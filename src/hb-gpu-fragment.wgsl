@@ -98,38 +98,61 @@ fn _hb_gpu_calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
   return clamp (coverage, 0.0, 1.0);
 }
 
-/* Render a glyph and return its coverage in [0, 1].
- *
- * renderCoord:  em-space sample position (interpolated from vertex shader)
- * glyphLoc:     offset into hb_gpu_atlas for this glyph's encoded blob
- * hb_gpu_atlas: storage buffer with the glyph atlas data
- */
+/* Decoded glyph band info for a pixel position. */
+struct _hb_gpu_glyph_info
+{
+  glyphLoc: i32,
+  bandBase: i32,
+  bandIndex: vec2<i32>,
+  numHBands: i32,
+  numVBands: i32,
+}
+
+fn _hb_gpu_decode_glyph (renderCoord: vec2f, glyphLoc_: u32,
+                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> _hb_gpu_glyph_info
+{
+  var gi: _hb_gpu_glyph_info;
+  gi.glyphLoc = i32 (glyphLoc_);
+
+  let header0 = hb_gpu_fetch (hb_gpu_atlas, gi.glyphLoc);
+  let header1 = hb_gpu_fetch (hb_gpu_atlas, gi.glyphLoc + 1);
+  let ext = vec4f (header0) * HB_GPU_INV_UNITS;
+  gi.numHBands = header1.r;
+  gi.numVBands = header1.g;
+
+  let extSize = ext.zw - ext.xy;
+  let bandScale = vec2f (f32 (gi.numVBands), f32 (gi.numHBands)) / max (extSize, vec2f (1.0 / 65536.0));
+  let bandOffset = -ext.xy * bandScale;
+
+  gi.bandIndex = clamp (vec2<i32> (renderCoord * bandScale + bandOffset),
+                        vec2<i32> (0, 0),
+                        vec2<i32> (gi.numVBands - 1, gi.numHBands - 1));
+
+  gi.bandBase = gi.glyphLoc + 2;
+  return gi;
+}
+
+/* Return per-pixel curve counts: (horizontal, vertical). */
+fn _hb_gpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
+                         hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec2<i32>
+{
+  let gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  let hCount = hb_gpu_fetch (hb_gpu_atlas, gi.bandBase + gi.bandIndex.y).r;
+  let vCount = hb_gpu_fetch (hb_gpu_atlas, gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
+  return vec2<i32> (hCount, vCount);
+}
+
+/* Render a glyph and return its coverage in [0, 1]. */
 fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
                   hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
   let emsPerPixel = fwidth (renderCoord);
   let pixelsPerEm = 1.0 / emsPerPixel;
 
-  let glyphLoc = i32 (glyphLoc_);
-
-  /* Read blob header */
-  let header0 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc);
-  let header1 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + 1);
-  let ext = vec4f (header0) * HB_GPU_INV_UNITS; /* min_x, min_y, max_x, max_y */
-  let numHBands = header1.r;
-  let numVBands = header1.g;
-
-  /* Compute band transform from extents */
-  let extSize = ext.zw - ext.xy; /* (width, height) */
-  let bandScale = vec2f (f32 (numVBands), f32 (numHBands)) / max (extSize, vec2f (1.0 / 65536.0));
-  let bandOffset = -ext.xy * bandScale;
-
-  let bandIndex = clamp (vec2<i32> (renderCoord * bandScale + bandOffset),
-                         vec2<i32> (0, 0),
-                         vec2<i32> (numVBands - 1, numHBands - 1));
-
-  /* Skip past header (2 texels) */
-  let bandBase = glyphLoc + 2;
+  let gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  let glyphLoc = gi.glyphLoc;
+  let bandBase = gi.bandBase;
+  let numHBands = gi.numHBands;
 
   var xcov: f32 = 0.0;
   var xwgt: f32 = 0.0;
@@ -190,7 +213,7 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
   var ycov: f32 = 0.0;
   var ywgt: f32 = 0.0;
 
-  let vbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + numHBands + bandIndex.x);
+  let vbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + numHBands + gi.bandIndex.x);
   let vCurveCount = vbandData.r;
   let vSplit = f32 (vbandData.a) * HB_GPU_INV_UNITS;
   let vLeftRay = (renderCoord.y < vSplit);
