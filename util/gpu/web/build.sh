@@ -38,3 +38,4 @@ em++ \
 
 echo "Built: $OUTDIR/index.html"
 echo "Serve: python3 -m http.server -d $OUTDIR"
+cp "$SRCDIR/util/gpu/web/fallback.html" "$OUTDIR/"
