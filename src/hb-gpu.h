@@ -34,9 +34,10 @@ HB_BEGIN_DECLS
 
 /**
  * hb_gpu_shader_lang_t:
- * @HB_GPU_SHADER_LANG_GLSL: GLSL (compatible with GLSL 3.30 and GLSL ES 3.00)
- * @HB_GPU_SHADER_LANG_MSL: Metal Shading Language 2.0
- * @HB_GPU_SHADER_LANG_WGSL: WGSL (WebGPU Shading Language)
+ * @HB_GPU_SHADER_LANG_GLSL: GLSL (OpenGL 3.3 / OpenGL ES 3.0 / WebGL 2.0)
+ * @HB_GPU_SHADER_LANG_WGSL: WGSL (WebGPU)
+ * @HB_GPU_SHADER_LANG_MSL: MSL (Metal)
+ * @HB_GPU_SHADER_LANG_HLSL: HLSL (Direct3D)
  *
  * Shader language variant.
  *
@@ -44,8 +45,9 @@ HB_BEGIN_DECLS
  */
 typedef enum {
   HB_GPU_SHADER_LANG_GLSL,
-  HB_GPU_SHADER_LANG_MSL,
   HB_GPU_SHADER_LANG_WGSL,
+  HB_GPU_SHADER_LANG_MSL,
+  HB_GPU_SHADER_LANG_HLSL,
 } hb_gpu_shader_lang_t;
 
 HB_EXTERN const char *
