@@ -185,37 +185,6 @@ static ID3D11BlendState *blend;
 
 static HWND hwnd;
 static int win_w = 1024, win_h = 768;
-static bool fullscreen = false;
-static RECT saved_rect;
-static LONG saved_style;
-
-static void
-toggle_fullscreen ()
-{
-  fullscreen = !fullscreen;
-  if (fullscreen)
-  {
-    saved_style = GetWindowLong (hwnd, GWL_STYLE);
-    GetWindowRect (hwnd, &saved_rect);
-    SetWindowLong (hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-    MONITORINFO mi = {sizeof (mi)};
-    GetMonitorInfo (MonitorFromWindow (hwnd, MONITOR_DEFAULTTONEAREST), &mi);
-    SetWindowPos (hwnd, HWND_TOP,
-		  mi.rcMonitor.left, mi.rcMonitor.top,
-		  mi.rcMonitor.right - mi.rcMonitor.left,
-		  mi.rcMonitor.bottom - mi.rcMonitor.top,
-		  SWP_FRAMECHANGED);
-  }
-  else
-  {
-    SetWindowLong (hwnd, GWL_STYLE, saved_style);
-    SetWindowPos (hwnd, nullptr,
-		  saved_rect.left, saved_rect.top,
-		  saved_rect.right - saved_rect.left,
-		  saved_rect.bottom - saved_rect.top,
-		  SWP_FRAMECHANGED);
-  }
-}
 
 /* ---- Demo state ---- */
 
@@ -388,11 +357,6 @@ wnd_proc (HWND h, UINT msg, WPARAM wp, LPARAM lp)
       if (wp == VK_ESCAPE || wp == 'Q')
       {
 	DestroyWindow (h);
-	return 0;
-      }
-      if (wp == 'F')
-      {
-	toggle_fullscreen ();
 	return 0;
       }
       int key = VK_TO_GLFW_KEY ((int) wp);
