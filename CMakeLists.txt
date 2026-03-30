@@ -1076,6 +1076,13 @@ if (HB_BUILD_UTILS)
       )
       target_link_libraries(hb-gpu-demo harfbuzz-gpu harfbuzz
                             OpenGL::GL GLEW::GLEW glfw)
+      if (APPLE)
+        target_sources(hb-gpu-demo PRIVATE
+            ${PROJECT_SOURCE_DIR}/util/gpu/demo-metal.mm)
+        target_link_libraries(hb-gpu-demo
+            "-framework Metal" "-framework QuartzCore"
+            "-framework Foundation" "-framework AppKit")
+      endif ()
     endif ()
   endif ()
 endif ()
