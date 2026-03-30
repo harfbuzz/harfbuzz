@@ -589,6 +589,16 @@ on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
   {
     three_finger_active = false;
     demo_view_mouse_func (vu, BUTTON_RIGHT, ACTION_RELEASE, 0);
+    /* Reinitialize pinch state so 3→2 transition doesn't jump */
+    if (e->numTouches == 2)
+    {
+      double dx = e->touches[1].targetX - e->touches[0].targetX;
+      double dy = e->touches[1].targetY - e->touches[0].targetY;
+      pinch_dist = sqrt (dx * dx + dy * dy);
+      pinch_angle = atan2 (dy, dx);
+      pinch_cx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
+      pinch_cy = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
+    }
   }
   else
     demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);

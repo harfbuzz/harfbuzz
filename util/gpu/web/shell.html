@@ -325,6 +325,16 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     if (threeFingerActive && e.touches.length < 3) {
       threeFingerActive = false;
       canvas.dispatchEvent(new MouseEvent('mouseup', { button: 2 }));
+      /* Reinitialize pinch state so 3→2 transition doesn't jump */
+      if (e.touches.length === 2) {
+        var t = e.touches;
+        pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
+                               t[1].clientY - t[0].clientY);
+        pinchAngle = Math.atan2(t[1].clientY - t[0].clientY,
+                                t[1].clientX - t[0].clientX);
+        pinchCX = (t[0].clientX + t[1].clientX) / 2;
+        pinchCY = (t[0].clientY + t[1].clientY) / 2;
+      }
     }
   }, {passive: false});
 
