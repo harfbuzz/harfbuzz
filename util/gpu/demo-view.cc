@@ -587,6 +587,8 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("  f                         Toggle fullscreen\n");
   LOGI ("  b                         Toggle dark mode\n");
   LOGI ("  g                         Cycle gamma (sRGB/2.2/none)\n");
+  LOGI ("  s                         Toggle stem darkening\n");
+  LOGI ("  d                         Toggle debug heatmap\n");
   LOGI ("  v                         Toggle vsync\n");
   LOGI ("  =, -                      Zoom in/out\n");
   LOGI ("  [, ]                      Stretch/shrink horizontally\n");
