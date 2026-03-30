@@ -216,7 +216,8 @@ struct demo_renderer_d3d11_t : demo_renderer_t
   void set_debug (bool e) override { debug_val = e ? 1.f : 0.f; }
   void set_stem_darkening (bool e) override { stem_val = e ? 1.f : 0.f; }
   bool set_srgb (bool) override { return false; }
-  void toggle_vsync (bool &v) override { v = !v; }
+  bool vsync_on = true;
+  void toggle_vsync (bool &v) override { v = !v; vsync_on = v; }
 
   void display (glyph_vertex_t *vertices, unsigned count,
 		int width, int height, float mat[16]) override
@@ -298,7 +299,7 @@ struct demo_renderer_d3d11_t : demo_renderer_t
       ctx->Draw (count, 0);
     }
 
-    swapchain->Present (1, 0);
+    swapchain->Present (vsync_on ? 1 : 0, 0);
   }
 };
 
@@ -353,6 +354,11 @@ wnd_proc (HWND h, UINT msg, WPARAM wp, LPARAM lp)
 
   case WM_KEYDOWN:
     {
+      if (wp == VK_ESCAPE || wp == 'Q')
+      {
+	DestroyWindow (h);
+	return 0;
+      }
       int key = VK_TO_GLFW_KEY ((int) wp);
       if (key)
 	demo_view_key_func (vu, key, 0, 1 /* GLFW_PRESS */, 0);
@@ -541,6 +547,17 @@ WinMain (HINSTANCE hInst, HINSTANCE, LPSTR, int)
     bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
     bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     device->CreateBlendState (&bd, &blend);
+  }
+
+  /* Rasterizer state (no backface culling) */
+  {
+    D3D11_RASTERIZER_DESC rd = {};
+    rd.FillMode = D3D11_FILL_SOLID;
+    rd.CullMode = D3D11_CULL_NONE;
+    ID3D11RasterizerState *rs;
+    device->CreateRasterizerState (&rd, &rs);
+    ctx->RSSetState (rs);
+    rs->Release ();
   }
 
   /* Set up renderer */
