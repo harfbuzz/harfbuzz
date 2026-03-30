@@ -127,7 +127,13 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-  document.addEventListener('visibilitychange', resizeCanvas);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      /* Force GLFW to notice by toggling canvas size */
+      canvas.width ^= 1;
+      resizeCanvas();
+    }
+  });
   canvas.addEventListener('webglcontextrestored', resizeCanvas);
 
   /* Backend selector */
