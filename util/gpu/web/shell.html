@@ -189,6 +189,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var pinchCX = 0, pinchCY = 0;
   var threeFingerActive = false;
   var longPressTimer = null;
+  var longPressFired = false;
   var lastTapTime = 0;
   var doubleTapZoom = false;
   var doubleTapY = 0;
@@ -211,6 +212,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         longPressY = e.touches[0].clientY;
         longPressTimer = setTimeout(function () {
           longPressTimer = null;
+          longPressFired = true;
           if (typeof _web_reset === 'function') _web_reset();
         }, 500);
       }
@@ -296,6 +298,10 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   }, {passive: false});
   canvas.addEventListener('touchend', function (e) {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    if (longPressFired) {
+      longPressFired = false;
+      e.preventDefault(); /* Don't let GLFW see this as a click */
+    }
     doubleTapZoom = false;
     if (threeFingerActive && e.touches.length < 3) {
       threeFingerActive = false;
