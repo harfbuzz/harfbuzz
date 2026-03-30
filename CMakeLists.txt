@@ -1070,6 +1070,7 @@ if (HB_BUILD_UTILS)
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-buffer.cc
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-font.cc
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-glstate.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-renderer-gl.cc
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-shader.cc
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-view.cc
       )
