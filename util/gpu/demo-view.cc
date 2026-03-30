@@ -516,6 +516,27 @@ demo_view_rotate_z (demo_view_t *vu, double angle)
 }
 
 void
+demo_view_rotate_z_around (demo_view_t *vu, double angle,
+			   double cx, double cy,
+			   int width, int height)
+{
+  /* Normalized screen coords [-1, 1] */
+  double nx =  (2.0 * cx / width  - 1.0) / vu->scalex;
+  double ny = -(2.0 * cy / height - 1.0) / vu->scaley;
+
+  /* Translate so center is at origin, rotate, translate back */
+  double c = cos (angle), s = sin (angle);
+  vu->translate.x += nx - (nx * c - ny * s);
+  vu->translate.y += ny - (nx * s + ny * c);
+
+  float dquat[4];
+  float axis[3] = {0, 0, 1};
+  axis_to_quat (axis, (float) angle, dquat);
+  add_quats (dquat, vu->quat, vu->quat);
+  vu->needs_redraw = true;
+}
+
+void
 demo_view_motion_func (demo_view_t *vu, double x, double y)
 {
   vu->cursorx = x;

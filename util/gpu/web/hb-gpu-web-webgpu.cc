@@ -557,7 +557,11 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
     if (dAngle > M_PI) dAngle -= 2 * M_PI;
     if (dAngle < -M_PI) dAngle += 2 * M_PI;
     if (fabs (dAngle) > 0.01)
-      demo_view_rotate_z (vu, dAngle);
+    {
+      double mx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
+      double my = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
+      demo_view_rotate_z_around (vu, dAngle, mx, my, css_w, css_h);
+    }
     pinch_dist = dist;
     pinch_angle = angle;
   }

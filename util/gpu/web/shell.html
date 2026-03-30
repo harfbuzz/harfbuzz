@@ -241,8 +241,11 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
       if (dAngle < -Math.PI) dAngle += 2 * Math.PI;
       if (Math.abs(dAngle) > 0.01) {
         pinchAngle = angle;
-        if (typeof _web_rotate_z === 'function')
-          _web_rotate_z(dAngle);
+        if (typeof _web_rotate_z === 'function') {
+          var mx = (t[0].clientX + t[1].clientX) / 2;
+          var my = (t[0].clientY + t[1].clientY) / 2;
+          _web_rotate_z(dAngle, mx, my, canvas.clientWidth, canvas.clientHeight);
+        }
       }
     }
   }, {passive: false});

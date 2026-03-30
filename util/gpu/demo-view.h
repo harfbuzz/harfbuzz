@@ -49,6 +49,11 @@ void
 demo_view_rotate_z (demo_view_t *vu, double angle);
 
 void
+demo_view_rotate_z_around (demo_view_t *vu, double angle,
+			   double cx, double cy,
+			   int width, int height);
+
+void
 demo_view_motion_func (demo_view_t *vu, double x, double y);
 
 void
