@@ -60,9 +60,11 @@
 
 /* ---- HLSL demo shader ---- */
 
-static const char *hlsl_demo_shader = R"hlsl(
-StructuredBuffer<int4> hb_gpu_atlas : register(t0);
+/* Atlas declaration must precede the library shader (which references it). */
+static const char *hlsl_preamble =
+  "StructuredBuffer<int4> hb_gpu_atlas : register(t0);\n";
 
+static const char *hlsl_demo_shader = R"hlsl(
 cbuffer Uniforms : register(b0) {
   float4x4 mvp;
   float2 viewport;
@@ -470,6 +472,7 @@ WinMain (HINSTANCE hInst, HINSTANCE, LPSTR, int)
 
   /* Compile shaders */
   std::string full_shader;
+  full_shader += hlsl_preamble;
   full_shader += hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_HLSL);
   full_shader += "\n";
   full_shader += hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_HLSL);
