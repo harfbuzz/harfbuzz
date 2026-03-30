@@ -20,9 +20,11 @@ jobs:
         include:
           - name: win32
             ARCH: 32
+            TRIPLET: i686-w64-mingw32
             PACKAGES: g++-mingw-w64-i686 wine wine32 libglew-mingw-w64-dev
           - name: win64
             ARCH: 64
+            TRIPLET: x86_64-w64-mingw32
             PACKAGES: g++-mingw-w64-x86-64 wine wine64 wine32:i386 libglew-mingw-w64-dev
 
     steps:
@@ -37,6 +39,30 @@ jobs:
         sudo apt install -y \
           zip \
           ${{ matrix.PACKAGES }}
+    - name: Install GLFW for MinGW
+      run: |
+        GLFW_VER=3.4
+        GLFW_ZIP=glfw-${GLFW_VER}.bin.WIN${{ matrix.ARCH }}.zip
+        wget -q -O /tmp/${GLFW_ZIP} "https://github.com/glfw/glfw/releases/download/${GLFW_VER}/${GLFW_ZIP}"
+        GLFW_DIR=$(mktemp -d)
+        unzip -q /tmp/${GLFW_ZIP} -d ${GLFW_DIR}
+        GLFW_ROOT=${GLFW_DIR}/glfw-${GLFW_VER}.bin.WIN${{ matrix.ARCH }}
+        TRIPLET=${{ matrix.TRIPLET }}
+        sudo mkdir -p /usr/${TRIPLET}/include/GLFW
+        sudo cp ${GLFW_ROOT}/include/GLFW/*.h /usr/${TRIPLET}/include/GLFW/
+        sudo cp ${GLFW_ROOT}/lib-mingw-w64/libglfw3.a /usr/${TRIPLET}/lib/
+        sudo mkdir -p /usr/${TRIPLET}/lib/pkgconfig
+        cat > /tmp/glfw3.pc << EOF
+        prefix=/usr/${TRIPLET}
+        includedir=\${prefix}/include
+        libdir=\${prefix}/lib
+        Name: GLFW
+        Version: ${GLFW_VER}
+        Libs: -L\${libdir} -lglfw3
+        Libs.private: -lgdi32
+        Cflags: -I\${includedir}
+        EOF
+        sudo cp /tmp/glfw3.pc /usr/${TRIPLET}/lib/pkgconfig/
     - name: Setup Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:

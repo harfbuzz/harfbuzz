@@ -10,43 +10,9 @@ fi
 ARCH=$1
 shift
 
-if [ "$ARCH" = "64" ]; then
-  TRIPLET=x86_64-w64-mingw32
-else
-  TRIPLET=i686-w64-mingw32
-fi
-
 BUILD=build-win${ARCH}
 INSTALL=install-win${ARCH}
 DIST=harfbuzz-win${ARCH}
-
-# Install GLFW for MinGW if not already present
-if [ ! -f /usr/${TRIPLET}/include/GLFW/glfw3.h ]; then
-  GLFW_VER=3.4
-  GLFW_ZIP=glfw-${GLFW_VER}.bin.WIN${ARCH}.zip
-  if [ ! -f /tmp/${GLFW_ZIP} ]; then
-    wget -q -O /tmp/${GLFW_ZIP} "https://github.com/glfw/glfw/releases/download/${GLFW_VER}/${GLFW_ZIP}"
-  fi
-  GLFW_DIR=$(mktemp -d)
-  unzip -q /tmp/${GLFW_ZIP} -d ${GLFW_DIR}
-  GLFW_ROOT=${GLFW_DIR}/glfw-${GLFW_VER}.bin.WIN${ARCH}
-  sudo mkdir -p /usr/${TRIPLET}/include/GLFW
-  sudo cp ${GLFW_ROOT}/include/GLFW/*.h /usr/${TRIPLET}/include/GLFW/
-  sudo cp ${GLFW_ROOT}/lib-mingw-w64/libglfw3.a /usr/${TRIPLET}/lib/
-  sudo mkdir -p /usr/${TRIPLET}/lib/pkgconfig
-  cat > /tmp/glfw3.pc << PCEOF
-prefix=/usr/${TRIPLET}
-includedir=\${prefix}/include
-libdir=\${prefix}/lib
-Name: GLFW
-Version: ${GLFW_VER}
-Libs: -L\${libdir} -lglfw3
-Libs.private: -lgdi32
-Cflags: -I\${includedir}
-PCEOF
-  sudo cp /tmp/glfw3.pc /usr/${TRIPLET}/lib/pkgconfig/
-  rm -rf ${GLFW_DIR}
-fi
 
 meson setup \
 	--buildtype=release \
