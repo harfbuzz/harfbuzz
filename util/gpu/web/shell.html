@@ -216,8 +216,31 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</s
    * Registered before Module so it runs before Emscripten's capture-phase handlers. */
   var textModalEl = document.getElementById('text-modal');
   function blockKeysIfModal(e) {
-    if (textModalEl.style.display !== 'flex') return;
+    if (textModalEl.style.display !== 'flex') {
+      if (e.key === 't') {
+        e.preventDefault();
+        if (e.type === 'keydown')
+          document.getElementById('text-btn').click();
+        e.stopImmediatePropagation();
+        return;
+      }
+      if (e.type === 'keydown' && e.key === 'f') {
+        document.getElementById('font-input').click();
+        e.stopImmediatePropagation();
+      }
+      if (e.type === 'keydown' && e.key === 'w') {
+        var sel = document.getElementById('backend-sel');
+        sel.value = sel.value === 'webgpu.html' ? 'index.html' : 'webgpu.html';
+        location.href = sel.value;
+        e.stopImmediatePropagation();
+      }
+      return;
+    }
     if (e.key === 'Escape') { textModalEl.style.display = 'none'; e.stopImmediatePropagation(); return; }
+    if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
+      document.getElementById('text-apply').click();
+      e.stopImmediatePropagation(); return;
+    }
     e.stopImmediatePropagation();
   }
   window.addEventListener('keydown', blockKeysIfModal, true);
