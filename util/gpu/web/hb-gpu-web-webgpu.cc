@@ -394,6 +394,7 @@ web_get_text ()
 /* GLFW-compatible button/action constants */
 #define BUTTON_LEFT 0
 #define BUTTON_RIGHT 1
+#define BUTTON_MIDDLE 2
 #define ACTION_RELEASE 0
 #define ACTION_PRESS 1
 
@@ -402,7 +403,7 @@ static int active_buttons;
 static EM_BOOL
 on_mousedown (int type, const EmscriptenMouseEvent *e, void *ud)
 {
-  int button = (e->button == 2) ? BUTTON_RIGHT : BUTTON_LEFT;
+  int button = e->button == 2 ? BUTTON_RIGHT : e->button == 1 ? BUTTON_MIDDLE : BUTTON_LEFT;
   active_buttons |= (1 << button);
   demo_view_motion_func (vu, e->targetX, e->targetY);
   demo_view_mouse_func (vu, button, ACTION_PRESS, 0);
@@ -412,7 +413,7 @@ on_mousedown (int type, const EmscriptenMouseEvent *e, void *ud)
 static EM_BOOL
 on_mouseup (int type, const EmscriptenMouseEvent *e, void *ud)
 {
-  int button = (e->button == 2) ? BUTTON_RIGHT : BUTTON_LEFT;
+  int button = e->button == 2 ? BUTTON_RIGHT : e->button == 1 ? BUTTON_MIDDLE : BUTTON_LEFT;
   if (!(active_buttons & (1 << button)))
     return EM_FALSE; /* Not our drag — ignore (e.g. UI button click) */
   active_buttons &= ~(1 << button);
