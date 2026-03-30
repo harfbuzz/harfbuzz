@@ -39,5 +39,3 @@ em++ \
 echo "Built: $OUTDIR/index.html"
 echo "Serve: python3 -m http.server -d $OUTDIR"
 cp "$SRCDIR/util/gpu/web/dom.html" "$OUTDIR/"
-
-"$(dirname "$0")/build-webgpu.sh"
