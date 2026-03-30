@@ -46,7 +46,7 @@
 #ifdef HB_GPU_ATLAS_2D
 uniform highp isampler2D hb_gpu_atlas;
 uniform int hb_gpu_atlas_width;
-ivec4 _hb_gpu_fetch (int offset)
+ivec4 hb_gpu_fetch (int offset)
 {
   return texelFetch (hb_gpu_atlas,
 		     ivec2 (offset % hb_gpu_atlas_width,
@@ -54,7 +54,7 @@ ivec4 _hb_gpu_fetch (int offset)
 }
 #else
 uniform isamplerBuffer hb_gpu_atlas;
-ivec4 _hb_gpu_fetch (int offset)
+ivec4 hb_gpu_fetch (int offset)
 {
   return texelFetch (hb_gpu_atlas, offset);
 }
@@ -129,8 +129,8 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
   _hb_gpu_glyph_info gi;
   gi.glyphLoc = int (glyphLoc_);
 
-  ivec4 header0 = _hb_gpu_fetch (gi.glyphLoc);
-  ivec4 header1 = _hb_gpu_fetch (gi.glyphLoc + 1);
+  ivec4 header0 = hb_gpu_fetch (gi.glyphLoc);
+  ivec4 header1 = hb_gpu_fetch (gi.glyphLoc + 1);
   vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS;
   gi.numHBands = header1.r;
   gi.numVBands = header1.g;
@@ -151,8 +151,8 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
 ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
 {
   _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
-  int hCount = _hb_gpu_fetch (gi.bandBase + gi.bandIndex.y).r;
-  int vCount = _hb_gpu_fetch (gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
+  int hCount = hb_gpu_fetch (gi.bandBase + gi.bandIndex.y).r;
+  int vCount = hb_gpu_fetch (gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
   return ivec2 (hCount, vCount);
 }
 
@@ -176,7 +176,7 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   float xcov = 0.0;
   float xwgt = 0.0;
 
-  ivec4 hbandData = _hb_gpu_fetch (bandBase + gi.bandIndex.y);
+  ivec4 hbandData = hb_gpu_fetch (bandBase + gi.bandIndex.y);
   int hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   float hSplit = float (hbandData.a) * HB_GPU_INV_UNITS;
@@ -185,10 +185,10 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 
   for (int ci = 0; ci < hCurveCount; ci++)
   {
-    int curveOffset = _hb_gpu_fetch (glyphLoc + hDataOffset + ci).r + 32768;
+    int curveOffset = hb_gpu_fetch (glyphLoc + hDataOffset + ci).r + 32768;
 
-    ivec4 raw12 = _hb_gpu_fetch (glyphLoc + curveOffset);
-    ivec4 raw3 = _hb_gpu_fetch (glyphLoc + curveOffset + 1);
+    ivec4 raw12 = hb_gpu_fetch (glyphLoc + curveOffset);
+    ivec4 raw3 = hb_gpu_fetch (glyphLoc + curveOffset + 1);
 
     vec4 q12 = vec4 (raw12) * HB_GPU_INV_UNITS;
     vec2 q3 = vec2 (raw3.rg) * HB_GPU_INV_UNITS;
@@ -229,7 +229,7 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   float ycov = 0.0;
   float ywgt = 0.0;
 
-  ivec4 vbandData = _hb_gpu_fetch (bandBase + numHBands + gi.bandIndex.x);
+  ivec4 vbandData = hb_gpu_fetch (bandBase + numHBands + gi.bandIndex.x);
   int vCurveCount = vbandData.r;
   float vSplit = float (vbandData.a) * HB_GPU_INV_UNITS;
   bool vLeftRay = (renderCoord.y < vSplit);
@@ -237,10 +237,10 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 
   for (int ci = 0; ci < vCurveCount; ci++)
   {
-    int curveOffset = _hb_gpu_fetch (glyphLoc + vDataOffset + ci).r + 32768;
+    int curveOffset = hb_gpu_fetch (glyphLoc + vDataOffset + ci).r + 32768;
 
-    ivec4 raw12 = _hb_gpu_fetch (glyphLoc + curveOffset);
-    ivec4 raw3 = _hb_gpu_fetch (glyphLoc + curveOffset + 1);
+    ivec4 raw12 = hb_gpu_fetch (glyphLoc + curveOffset);
+    ivec4 raw3 = hb_gpu_fetch (glyphLoc + curveOffset + 1);
 
     vec4 q12 = vec4 (raw12) * HB_GPU_INV_UNITS;
     vec2 q3 = vec2 (raw3.rg) * HB_GPU_INV_UNITS;

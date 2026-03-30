@@ -41,7 +41,7 @@ fn hb_gpu_fetch (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
 }
 
 
-fn hb_gpu__calc_root_code (y1: f32, y2: f32, y3: f32) -> u32
+fn _hb_gpu_calc_root_code (y1: f32, y2: f32, y3: f32) -> u32
 {
   let i1 = bitcast<u32> (y1) >> 31u;
   let i2 = bitcast<u32> (y2) >> 30u;
@@ -53,7 +53,7 @@ fn hb_gpu__calc_root_code (y1: f32, y2: f32, y3: f32) -> u32
   return (0x2E74u >> shift) & 0x0101u;
 }
 
-fn hb_gpu__solve_horiz_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
+fn _hb_gpu_solve_horiz_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
 {
   let ra = 1.0 / a.y;
   let rb = 0.5 / b.y;
@@ -71,7 +71,7 @@ fn hb_gpu__solve_horiz_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
                 (a.x * t2 - b.x * 2.0) * t2 + p1.x);
 }
 
-fn hb_gpu__solve_vert_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
+fn _hb_gpu_solve_vert_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
 {
   let ra = 1.0 / a.x;
   let rb = 0.5 / b.x;
@@ -89,7 +89,7 @@ fn hb_gpu__solve_vert_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
                 (a.y * t2 - b.y * 2.0) * t2 + p1.y);
 }
 
-fn hb_gpu__calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
+fn _hb_gpu_calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
 {
   let coverage = max (abs (xcov * xwgt + ycov * ywgt) /
                       max (xwgt + ywgt, 1.0 / 65536.0),
@@ -162,12 +162,12 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
       if (max (max (p12.x, p12.z), p3.x) * pixelsPerEm.x < -0.5) { break; }
     }
 
-    let code = hb_gpu__calc_root_code (p12.y, p12.w, p3.y);
+    let code = _hb_gpu_calc_root_code (p12.y, p12.w, p3.y);
     if (code != 0u)
     {
       let a = q12.xy - q12.zw * 2.0 + q3;
       let b = q12.xy - q12.zw;
-      let r = hb_gpu__solve_horiz_poly (a, b, p12.xy) * pixelsPerEm.x;
+      let r = _hb_gpu_solve_horiz_poly (a, b, p12.xy) * pixelsPerEm.x;
       /* For leftward ray: saturate(0.5 - r) counts coverage from the left */
       var cov: vec2f;
       if (hLeftRay) { cov = clamp (vec2f (0.5) - r, vec2f (0.0), vec2f (1.0)); }
@@ -217,12 +217,12 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
       if (max (max (p12.y, p12.w), p3.y) * pixelsPerEm.y < -0.5) { break; }
     }
 
-    let code = hb_gpu__calc_root_code (p12.x, p12.z, p3.x);
+    let code = _hb_gpu_calc_root_code (p12.x, p12.z, p3.x);
     if (code != 0u)
     {
       let a = q12.xy - q12.zw * 2.0 + q3;
       let b = q12.xy - q12.zw;
-      let r = hb_gpu__solve_vert_poly (a, b, p12.xy) * pixelsPerEm.y;
+      let r = _hb_gpu_solve_vert_poly (a, b, p12.xy) * pixelsPerEm.y;
       var cov: vec2f;
       if (vLeftRay) { cov = clamp (vec2f (0.5) - r, vec2f (0.0), vec2f (1.0)); }
       else          { cov = clamp (r + vec2f (0.5), vec2f (0.0), vec2f (1.0)); }
@@ -241,5 +241,5 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
     }
   }
 
-  return hb_gpu__calc_coverage (xcov, ycov, xwgt, ywgt);
+  return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
 }
