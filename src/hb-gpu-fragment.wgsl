@@ -157,7 +157,7 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
   var xcov: f32 = 0.0;
   var xwgt: f32 = 0.0;
 
-  let hbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + bandIndex.y);
+  let hbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + gi.bandIndex.y);
   let hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   let hSplit = f32 (hbandData.a) * HB_GPU_INV_UNITS;

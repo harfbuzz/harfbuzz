@@ -158,7 +158,7 @@ static const char *hb_gpu_fragment_wgsl =
 "  var xcov: f32 = 0.0;\n"
 "  var xwgt: f32 = 0.0;\n"
 "\n"
-"  let hbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + bandIndex.y);\n"
+"  let hbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + gi.bandIndex.y);\n"
 "  let hCurveCount = hbandData.r;\n"
 "  /* Symmetric: choose rightward (desc) or leftward (asc) sort */\n"
 "  let hSplit = f32 (hbandData.a) * HB_GPU_INV_UNITS;\n"
