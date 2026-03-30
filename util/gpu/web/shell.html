@@ -196,13 +196,19 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     if (e.touches.length === 1) {
       var now = performance.now();
       if (now - lastTapTime < 300) {
-        /* Double-tap: start zoom drag */
+        /* Double-tap: start zoom drag.
+         * Undo animation toggle from first tap. */
+        e.preventDefault();
+        if (typeof _web_toggle_animation === 'function')
+          _web_toggle_animation();
         doubleTapZoom = true;
         doubleTapY = e.touches[0].clientY;
         lastTapTime = 0;
         if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
       } else {
         lastTapTime = now;
+        longPressX = e.touches[0].clientX;
+        longPressY = e.touches[0].clientY;
         longPressTimer = setTimeout(function () {
           longPressTimer = null;
           if (typeof _web_reset === 'function') _web_reset();
@@ -233,8 +239,13 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       }));
     }
   }, {passive: false});
+  var longPressX = 0, longPressY = 0;
   canvas.addEventListener('touchmove', function (e) {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    if (longPressTimer && e.touches.length === 1) {
+      var dx = e.touches[0].clientX - longPressX;
+      var dy = e.touches[0].clientY - longPressY;
+      if (dx*dx + dy*dy > 100) { clearTimeout(longPressTimer); longPressTimer = null; }
+    }
     if (doubleTapZoom && e.touches.length === 1) {
       e.preventDefault();
       var dy = e.touches[0].clientY - doubleTapY;

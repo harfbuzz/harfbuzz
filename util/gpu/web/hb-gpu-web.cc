@@ -121,6 +121,12 @@ web_get_text ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_toggle_animation ()
+{
+  demo_view_key_func (vu, 32 /* GLFW_KEY_SPACE */, 0, 1, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_reset ()
 {
   demo_view_reset (vu);

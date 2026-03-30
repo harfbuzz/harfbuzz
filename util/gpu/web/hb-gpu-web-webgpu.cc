@@ -375,6 +375,12 @@ rebuild_buffer (const char *text)
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE void
+web_reset ()
+{
+  demo_view_reset (vu);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_load_font (const char *data, int len)
 {
   hb_blob_t *blob = hb_blob_create (data, len,
