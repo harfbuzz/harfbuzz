@@ -43,9 +43,26 @@ struct gpu_output_t
 {
   static constexpr bool repeat_shape = false;
 
-  void add_options (option_parser_t *parser HB_UNUSED) {}
+  hb_bool_t use_metal = false;
+  hb_bool_t demo = false;
 
-  bool use_metal = false;
+  void add_options (option_parser_t *parser)
+  {
+    GOptionEntry entries[] =
+    {
+      {"demo",	0, 0, G_OPTION_ARG_NONE,	&this->demo,		"Use built-in demo font and text",	nullptr},
+#ifdef __APPLE__
+      {"metal",	0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
+#endif
+      {nullptr}
+    };
+    parser->add_group (entries,
+		       "gpu",
+		       "GPU options:",
+		       "Options for GPU rendering",
+		       this,
+		       false);
+  }
 
   template <typename app_t>
   void init (hb_buffer_t *buffer_ HB_UNUSED, const app_t *app)
@@ -114,7 +131,7 @@ struct gpu_output_t
 #endif
     glfwWindowHint (GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
-    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU Demo", NULL, NULL);
+    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU", NULL, NULL);
     if (!window) {
       glfwTerminate ();
       fail (false, "Failed to create GLFW window");
@@ -142,7 +159,7 @@ struct gpu_output_t
 #ifdef __APPLE__
     glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
 
-    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU Demo (Metal)", NULL, NULL);
+    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU (Metal)", NULL, NULL);
     if (!window) {
       glfwTerminate ();
       fail (false, "Failed to create GLFW window");

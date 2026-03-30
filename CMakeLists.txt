@@ -1063,8 +1063,8 @@ if (HB_BUILD_UTILS)
     find_package(GLEW QUIET)
     find_package(glfw3 QUIET)
     if (OpenGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
-      add_executable(hb-gpu-demo
-          ${PROJECT_SOURCE_DIR}/util/hb-gpu-demo.cc
+      add_executable(hb-gpu
+          ${PROJECT_SOURCE_DIR}/util/hb-gpu.cc
           ${PROJECT_SOURCE_DIR}/util/gpu-output.hh
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-atlas.cc
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-buffer.cc
@@ -1074,12 +1074,12 @@ if (HB_BUILD_UTILS)
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-shader.cc
           ${PROJECT_SOURCE_DIR}/util/gpu/demo-view.cc
       )
-      target_link_libraries(hb-gpu-demo harfbuzz-gpu harfbuzz
+      target_link_libraries(hb-gpu harfbuzz-gpu harfbuzz
                             OpenGL::GL GLEW::GLEW glfw)
       if (APPLE)
-        target_sources(hb-gpu-demo PRIVATE
+        target_sources(hb-gpu PRIVATE
             ${PROJECT_SOURCE_DIR}/util/gpu/demo-metal.mm)
-        target_link_libraries(hb-gpu-demo
+        target_link_libraries(hb-gpu
             "-framework Metal" "-framework QuartzCore"
             "-framework Foundation" "-framework AppKit")
       endif ()

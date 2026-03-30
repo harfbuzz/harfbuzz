@@ -117,12 +117,13 @@ build_default_text (hb_face_t *face)
 }
 
 static const char *gpu_default_text_sentinel = "";
+static hb_bool_t *gpu_demo_flag = nullptr;
 
 struct gpu_text_options_t : shape_text_options_t
 {
   const char *default_text () override
   {
-    return gpu_default_text_sentinel;
+    return (gpu_demo_flag && *gpu_demo_flag) ? gpu_default_text_sentinel : nullptr;
   }
 };
 
@@ -130,9 +131,8 @@ struct gpu_font_options_t : font_options_t
 {
   hb_face_t *default_face () override
   {
-#ifdef _WIN32
-    return nullptr;
-#else
+    if (!gpu_demo_flag || !*gpu_demo_flag)
+      return nullptr;
     #include "gpu/default-font.hh"
     hb_blob_t *blob = hb_blob_create ((const char *) default_font,
 				      sizeof (default_font),
@@ -141,7 +141,6 @@ struct gpu_font_options_t : font_options_t
     hb_face_t *face_ = hb_face_create (blob, 0);
     hb_blob_destroy (blob);
     return face_;
-#endif
   }
 };
 
@@ -153,20 +152,10 @@ struct gpu_main_t : base_t
 {
   int operator () (int argc, char **argv)
   {
+    gpu_demo_flag = &this->output.demo;
+
     add_options ();
     add_exit_code (RETURN_VALUE_OPERATION_FAILED, "Operation failed.");
-
-    /* Check for --metal before GLib eats the options. */
-    for (int i = 1; i < argc; i++)
-      if (!strcmp (argv[i], "--metal"))
-      {
-	this->output.use_metal = true;
-	/* Remove from argv so GLib doesn't complain. */
-	for (int j = i; j < argc - 1; j++)
-	  argv[j] = argv[j + 1];
-	argc--;
-	i--;
-      }
 
     parse (&argc, &argv);
 
