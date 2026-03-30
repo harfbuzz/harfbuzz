@@ -227,13 +227,17 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
       /* Zoom from distance change */
       var change = dist - pinchDist;
       if (Math.abs(change) >= 2) {
+        var factor = dist / pinchDist;
         pinchDist = dist;
-        var delta = change / dist * 5;
-        canvas.dispatchEvent(new WheelEvent('wheel', {
-          deltaY: -delta * 120,
-          clientX: (t[0].clientX + t[1].clientX) / 2,
-          clientY: (t[0].clientY + t[1].clientY) / 2
-        }));
+        var mx = (t[0].clientX + t[1].clientX) / 2;
+        var my = (t[0].clientY + t[1].clientY) / 2;
+        if (typeof _web_zoom_around === 'function')
+          _web_zoom_around(factor, mx, my, canvas.clientWidth, canvas.clientHeight);
+        else {
+          /* Fallback to wheel event */
+          var delta = (factor - 1) * 5;
+          canvas.dispatchEvent(new WheelEvent('wheel', { deltaY: -delta * 120 }));
+        }
       }
       /* Rotate from angle change */
       var dAngle = angle - pinchAngle;

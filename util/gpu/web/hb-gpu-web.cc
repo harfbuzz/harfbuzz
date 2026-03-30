@@ -121,6 +121,12 @@ web_get_text ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_zoom_around (float factor, float cx, float cy, int w, int h)
+{
+  demo_view_zoom_around (vu, factor, cx, cy, w, h);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_rotate_z (float angle, float cx, float cy, int w, int h)
 {
   demo_view_rotate_z_around (vu, angle, cx, cy, w, h);
