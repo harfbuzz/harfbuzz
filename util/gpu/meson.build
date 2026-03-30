@@ -33,19 +33,15 @@ if host_machine.system() == 'windows'
   )
 endif
 
-gpu_demo_opt = get_option('gpu_demo')
-have_gpu_demo_deps = false
-if not gpu_demo_opt.disabled()
-  glew_dep = dependency('glew', required: gpu_demo_opt)
-  glfw_dep = dependency('glfw3', required: gpu_demo_opt)
-  if host_machine.system() == 'darwin'
-    gl_dep = dependency('appleframeworks', modules: ['OpenGL'], required: gpu_demo_opt)
-    metal_dep = dependency('appleframeworks', modules: ['Metal', 'QuartzCore', 'Foundation', 'AppKit'], required: false)
-  else
-    gl_dep = dependency('gl', required: gpu_demo_opt)
-    metal_dep = disabler()
-  endif
-  d3d11_dep = meson.get_compiler('cpp').find_library('d3d11', required: false)
-  d3dcompiler_dep = meson.get_compiler('cpp').find_library('d3dcompiler_47', required: false)
-  have_gpu_demo_deps = glew_dep.found() and glfw_dep.found() and gl_dep.found()
+glew_dep = dependency('glew', required: false)
+glfw_dep = dependency('glfw3', required: false)
+if host_machine.system() == 'darwin'
+  gl_dep = dependency('appleframeworks', modules: ['OpenGL'], required: false)
+  metal_dep = dependency('appleframeworks', modules: ['Metal', 'QuartzCore', 'Foundation', 'AppKit'], required: false)
+else
+  gl_dep = dependency('gl', required: false)
+  metal_dep = disabler()
 endif
+d3d11_dep = meson.get_compiler('cpp').find_library('d3d11', required: false)
+d3dcompiler_dep = meson.get_compiler('cpp').find_library('d3dcompiler_47', required: false)
+have_gpu_demo_deps = glew_dep.found() and glfw_dep.found() and gl_dep.found()

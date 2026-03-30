@@ -31,6 +31,8 @@ jobs:
           freetype \
           glib \
           gobject-introspection \
+          glew \
+          glfw \
           graphite2 \
           icu4c \
           libpng \

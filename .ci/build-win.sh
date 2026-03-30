@@ -34,7 +34,6 @@ meson setup \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
 	-Dgpu=enabled \
-	-Dgpu_demo=enabled \
 	${BUILD} \
 	"$@"
 
