@@ -3,6 +3,10 @@
  * Copyright 2026 Behdad Esfahbod. All Rights Reserved.
  */
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES
+#endif
+
 #include "demo-view.h"
 
 #ifdef __EMSCRIPTEN__
