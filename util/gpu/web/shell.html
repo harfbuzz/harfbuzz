@@ -110,6 +110,19 @@ space: animate · b: dark mode · g: gamma · d: debug · =/-: zoom · r: reset<
     location.href = backendSel.value;
   });
 
+  /* Early WebGL2 availability check */
+  if (!isWebGPU && !canvas.getContext('webgl2')) {
+    var el = document.getElementById('loading');
+    el.innerHTML = 'WebGL2 not available.<br>' +
+                   'Check that hardware acceleration is enabled in your browser settings.<br>' +
+                   '<a href="https://webglreport.com/?v=2" style="color:#88f">WebGL2 support status</a>';
+    el.style.font = '18px sans-serif';
+    el.style.color = '#666';
+    el.style.textAlign = 'center';
+    el.style.flexDirection = 'column';
+    window._webglError = true;
+  }
+
   /* Early WebGPU availability check */
   if (isWebGPU && !navigator.gpu) {
     var el = document.getElementById('loading');
@@ -214,7 +227,7 @@ space: animate · b: dark mode · g: gamma · d: debug · =/-: zoom · r: reset<
   var Module = {
     canvas: canvas,
     onRuntimeInitialized: function () {
-      if (!window._webgpuError) {
+      if (!window._webgpuError && !window._webglError) {
         document.getElementById('loading').style.display = 'none';
         document.body.style.background = '#222';
       }
