@@ -36,7 +36,8 @@ jobs:
           libicu-dev \
           libpng-dev \
           pkg-config \
-          zlib1g-dev
+          zlib1g-dev \
+          help2man
     - name: Setup Emscripten
       uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
       with:
