@@ -192,11 +192,67 @@
  * }
  * ]|
  *
+ * # Font scale
+ *
+ * The encoder works in font design units (upem).  For best
+ * results, do not set a scale on the #hb_font_t passed to
+ * hb_gpu_draw_glyph() — leave it at the default (upem).
+ * Scaling is applied later when computing vertex positions:
+ *
+ * |[<!-- language="plain" -->
+ * float scale = font_size / upem;
+ * pos.x = pen_x + scale * extent_x;
+ * pos.y = pen_y - scale * extent_y;
+ * ]|
+ *
+ * If you do set a font scale (e.g. for hinting), the encoded
+ * blob and extents will be in the scaled coordinate space,
+ * and you must adjust emPerPos accordingly.
+ *
+ * # Dilation
+ *
+ * Each glyph is rendered on a screen-aligned quad whose
+ * corners match the glyph's bounding box.  Without dilation,
+ * the antialiased edges at the quad boundary get clipped — the
+ * fragment shader needs at least half a pixel of padding
+ * around the glyph to produce smooth coverage gradients.
+ *
  * hb_gpu_dilate computes a perspective-correct half-pixel
- * expansion.  Applications that do not need perspective
- * correctness (e.g. strictly 2D rendering) can instead expand
- * each quad vertex by a fixed amount along its normal and
- * adjust the texcoord proportionally.
+ * expansion.  It adjusts both the vertex position (expanding
+ * the quad) and the texcoord (so the fragment shader samples
+ * the right location in em-space after expansion).
+ *
+ * The `jac` parameter maps object-space displacements back to
+ * em-space.  For the common case of uniform scaling with
+ * y-flip (`pos.y = pen_y - scale * ey`):
+ *
+ * |[<!-- language="plain" -->
+ * float emPerPos = upem / font_size;
+ * jac = vec4(emPerPos, 0.0, 0.0, -emPerPos);
+ * ]|
+ *
+ * For non-uniform scaling or shearing transforms, jac is the
+ * 2x2 inverse of the em-to-object linear transform, stored
+ * row-major.
+ *
+ * ## Static dilation alternative
+ *
+ * Applications that do not need perspective correctness (e.g.
+ * strictly 2D rendering at known sizes) can skip hb_gpu_dilate
+ * and instead expand each quad vertex by a fixed amount along
+ * its normal, based on the minimum expected font size:
+ *
+ * |[<!-- language="plain" -->
+ * float min_ppem = 10.0;  // smallest expected size in pixels
+ * float pad = 0.5 * upem / min_ppem;  // half-pixel in em units
+ * pos += normal * pad * scale;
+ * texcoord += normal * pad;
+ * ]|
+ *
+ * This over-dilates at larger sizes (wasting fill rate on
+ * transparent pixels) but is simpler to implement and avoids
+ * the need for the MVP matrix and viewport size in the vertex
+ * shader.
  *
  * # Fragment shader
  *
