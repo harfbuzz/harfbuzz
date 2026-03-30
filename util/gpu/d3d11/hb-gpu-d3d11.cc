@@ -208,12 +208,13 @@ toggle_fullscreen ()
   }
   else
   {
-    SetWindowLong (hwnd, GWL_STYLE, saved_style);
-    SetWindowPos (hwnd, nullptr,
+    SetWindowLong (hwnd, GWL_STYLE, saved_style | WS_VISIBLE);
+    SetWindowPos (hwnd, HWND_NOTOPMOST,
 		  saved_rect.left, saved_rect.top,
 		  saved_rect.right - saved_rect.left,
 		  saved_rect.bottom - saved_rect.top,
-		  SWP_FRAMECHANGED);
+		  SWP_FRAMECHANGED | SWP_NOZORDER);
+    ShowWindow (hwnd, SW_SHOW);
   }
 }
 
