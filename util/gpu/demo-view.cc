@@ -553,12 +553,6 @@ demo_view_pinch (demo_view_t *vu,
 		 double cx, double cy,
 		 int width, int height)
 {
-  /* Ignore tiny pinch jitter from touch hardware. */
-  if (fabs (zoom_factor - 1.0) < 0.005)
-    zoom_factor = 1.0;
-  if (fabs (angle_delta) < M_PI / 360.0)
-    angle_delta = 0.0;
-
   /* A natural pinch maps the previous finger frame to the current one:
    *
    *   x' = current_center + A * (x - previous_center)
