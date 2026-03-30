@@ -297,7 +297,8 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</s
       });
 
       document.getElementById('text-apply').addEventListener('click', function () {
-        var text = textArea.value;
+        var text = textArea.value.trim();
+        if (!text) { textModal.style.display = 'none'; return; }
         var len = lengthBytesUTF8(text) + 1;
         var buf = _malloc(len);
         stringToUTF8(text, buf, len);
