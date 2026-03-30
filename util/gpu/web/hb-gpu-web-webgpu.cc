@@ -60,54 +60,55 @@
 
 /* ---- WGSL demo shader ---- */
 
-static const char *wgsl_demo_shader =
-"struct Uniforms {\n"
-"  mvp: mat4x4f,\n"
-"  viewport: vec2f,\n"
-"  gamma: f32,\n"
-"  debug: f32,\n"
-"  foreground: vec4f,\n"
-"};\n"
-"\n"
-"@group(0) @binding(0) var<uniform> u: Uniforms;\n"
-"@group(0) @binding(1) var<storage, read> hb_gpu_atlas: array<vec4<i32>>;\n"
-"\n"
-"struct VertexInput {\n"
-"  @location(0) position: vec2f,\n"
-"  @location(1) texcoord: vec2f,\n"
-"  @location(2) normal: vec2f,\n"
-"  @location(3) emPerPos: f32,\n"
-"  @location(4) glyphLoc: u32,\n"
-"};\n"
-"\n"
-"struct VertexOutput {\n"
-"  @builtin(position) clip_position: vec4f,\n"
-"  @location(0) texcoord: vec2f,\n"
-"  @location(1) @interpolate(flat) glyphLoc: u32,\n"
-"};\n"
-"\n"
-"@vertex fn vs_main (in: VertexInput) -> VertexOutput {\n"
-"  var pos = in.position;\n"
-"  var tc = in.texcoord;\n"
-"  let jac = vec4f (in.emPerPos, 0.0, 0.0, -in.emPerPos);\n"
-"  let result = hb_gpu_dilate (pos, tc, in.normal, jac, u.mvp, u.viewport);\n"
-"  pos = result[0];\n"
-"  tc = result[1];\n"
-"\n"
-"  var out: VertexOutput;\n"
-"  out.clip_position = u.mvp * vec4f (pos, 0.0, 1.0);\n"
-"  out.texcoord = tc;\n"
-"  out.glyphLoc = in.glyphLoc;\n"
-"  return out;\n"
-"}\n"
-"\n"
-"@fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {\n"
-"  var coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);\n"
-"  if (u.gamma != 1.0) {\n"
-"    coverage = pow (coverage, u.gamma);\n"
-"  }\n"
-"  return vec4f (u.foreground.rgb, u.foreground.a * coverage);\n"
-"}\n";
+static const char *wgsl_demo_shader = R"wgsl(
+struct Uniforms {
+  mvp: mat4x4f,
+  viewport: vec2f,
+  gamma: f32,
+  debug: f32,
+  foreground: vec4f,
+};
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> hb_gpu_atlas: array<vec4<i32>>;
+
+struct VertexInput {
+  @location(0) position: vec2f,
+  @location(1) texcoord: vec2f,
+  @location(2) normal: vec2f,
+  @location(3) emPerPos: f32,
+  @location(4) glyphLoc: u32,
+};
+
+struct VertexOutput {
+  @builtin(position) clip_position: vec4f,
+  @location(0) texcoord: vec2f,
+  @location(1) @interpolate(flat) glyphLoc: u32,
+};
+
+@vertex fn vs_main (in: VertexInput) -> VertexOutput {
+  var pos = in.position;
+  var tc = in.texcoord;
+  let jac = vec4f (in.emPerPos, 0.0, 0.0, -in.emPerPos);
+  let result = hb_gpu_dilate (pos, tc, in.normal, jac, u.mvp, u.viewport);
+  pos = result[0];
+  tc = result[1];
+
+  var out: VertexOutput;
+  out.clip_position = u.mvp * vec4f (pos, 0.0, 1.0);
+  out.texcoord = tc;
+  out.glyphLoc = in.glyphLoc;
+  return out;
+}
+
+@fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
+  var coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
+  if (u.gamma != 1.0) {
+    coverage = pow (coverage, u.gamma);
+  }
+  return vec4f (u.foreground.rgb, u.foreground.a * coverage);
+}
+)wgsl";
 
 
 /* ---- Uniform buffer layout (must match WGSL struct) ---- */
