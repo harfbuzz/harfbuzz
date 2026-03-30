@@ -592,6 +592,7 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("Mouse:\n");
   LOGI ("  Left drag                 Pan\n");
   LOGI ("  Middle drag / wheel       Zoom\n");
+  LOGI ("  Middle click              Reset view\n");
   LOGI ("  Right drag                Rotate\n");
   LOGI ("  Shift + right drag        Adjust perspective\n");
   LOGI ("  Right drag and release    Spin animation\n");
