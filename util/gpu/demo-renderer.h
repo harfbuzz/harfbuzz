@@ -48,6 +48,11 @@ demo_renderer_create_gl (GLFWwindow *window);
 demo_renderer_t *
 demo_renderer_create_metal (GLFWwindow *window);
 #endif
+
+#ifdef _WIN32
+demo_renderer_t *
+demo_renderer_create_d3d11 (GLFWwindow *window);
+#endif
 #endif
 
 
