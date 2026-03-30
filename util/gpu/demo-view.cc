@@ -41,6 +41,7 @@ struct demo_view_t {
   double cursorx, cursory;
   double beginx, beginy;
   double lastx, lasty, lastt;
+  double last_click_time;
   double dx,dy, dt;
 
   /* Transformation */
@@ -461,7 +462,21 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
   {
     case GLFW_MOUSE_BUTTON_LEFT:
       if (action == GLFW_RELEASE && !vu->dragged && !vu->click_handled)
-	demo_view_toggle_animation (vu);
+      {
+	double now = current_time ();
+	if (now - vu->last_click_time < 0.3)
+	{
+	  /* Double-click: undo first click's animation toggle + reset */
+	  demo_view_toggle_animation (vu);
+	  demo_view_reset (vu);
+	  vu->last_click_time = 0;
+	}
+	else
+	{
+	  demo_view_toggle_animation (vu);
+	  vu->last_click_time = now;
+	}
+      }
       break;
     case GLFW_MOUSE_BUTTON_RIGHT:
       switch (action) {
