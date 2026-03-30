@@ -43,6 +43,9 @@ void
 demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods);
 
 void
+demo_view_cancel_gesture (demo_view_t *vu);
+
+void
 demo_view_scroll_func (demo_view_t *vu, double xoffset, double yoffset);
 
 void

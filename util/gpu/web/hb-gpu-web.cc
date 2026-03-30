@@ -139,6 +139,12 @@ web_request_redraw ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_cancel_gesture ()
+{
+  demo_view_cancel_gesture (vu);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_pinch (float pan_dx, float pan_dy,
 	   float zoom_factor, float angle_delta,
 	   float cx, float cy, int w, int h)

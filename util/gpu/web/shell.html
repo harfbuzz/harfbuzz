@@ -207,14 +207,17 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var pinchAngle = 0;
   var pinchCX = 0, pinchCY = 0;
   var threeFingerActive = false;
-  var touchCountChanged = false;
+  var skipNextPinchMove = false;
   var longPressTimer = null;
   var longPressFired = false;
   var lastTapTime = 0;
   var doubleTapZoom = false;
   var doubleTapY = 0;
-  canvas.addEventListener('touchstart', function (e) {
-    touchCountChanged = true;
+  function swallowTouch (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+  if (!isWebGPU) canvas.addEventListener('touchstart', function (e) {
     if (e.touches.length === 1) {
       var now = performance.now();
       if (now - lastTapTime < 300) {
@@ -242,7 +245,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       longPressTimer = null;
     }
     if (e.touches.length === 2) {
-      e.preventDefault();
+      swallowTouch(e);
       var t = e.touches;
       pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
                              t[1].clientY - t[0].clientY);
@@ -250,39 +253,39 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
                               t[1].clientX - t[0].clientX);
       pinchCX = (t[0].clientX + t[1].clientX) / 2;
       pinchCY = (t[0].clientY + t[1].clientY) / 2;
+      if (typeof _web_cancel_gesture === 'function')
+        _web_cancel_gesture();
+      canvas.dispatchEvent(new MouseEvent('mouseup', {
+        button: 0, clientX: pinchCX, clientY: pinchCY
+      }));
+      skipNextPinchMove = false;
     } else if (e.touches.length >= 3) {
-      e.preventDefault();
+      swallowTouch(e);
       threeFingerActive = true;
+      skipNextPinchMove = false;
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
       var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
+      if (typeof _web_cancel_gesture === 'function')
+        _web_cancel_gesture();
+      canvas.dispatchEvent(new MouseEvent('mouseup', {
+        button: 0, clientX: cx, clientY: cy
+      }));
       /* Synthesize right-button press at centroid */
       canvas.dispatchEvent(new MouseEvent('mousedown', {
         button: 2, clientX: cx, clientY: cy
       }));
     }
-  }, {passive: false});
+  }, {passive: false, capture: true});
   var longPressX = 0, longPressY = 0;
-  canvas.addEventListener('touchmove', function (e) {
-    if (touchCountChanged) {
-      touchCountChanged = false;
-      /* Reinitialize state for current finger count to avoid jumps */
-      if (e.touches.length === 2) {
-        var t = e.touches;
-        pinchDist = Math.hypot(t[1].clientX - t[0].clientX, t[1].clientY - t[0].clientY);
-        pinchAngle = Math.atan2(t[1].clientY - t[0].clientY, t[1].clientX - t[0].clientX);
-        pinchCX = (t[0].clientX + t[1].clientX) / 2;
-        pinchCY = (t[0].clientY + t[1].clientY) / 2;
-      }
-      return;
-    }
+  if (!isWebGPU) canvas.addEventListener('touchmove', function (e) {
     if (longPressTimer && e.touches.length === 1) {
       var dx = e.touches[0].clientX - longPressX;
       var dy = e.touches[0].clientY - longPressY;
       if (dx*dx + dy*dy > 100) { clearTimeout(longPressTimer); longPressTimer = null; }
     }
     if (doubleTapZoom && e.touches.length === 1) {
-      e.preventDefault();
+      swallowTouch(e);
       var dy = e.touches[0].clientY - doubleTapY;
       doubleTapY = e.touches[0].clientY;
       canvas.dispatchEvent(new WheelEvent('wheel', {
@@ -293,7 +296,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       return;
     }
     if (e.touches.length >= 3 && threeFingerActive) {
-      e.preventDefault();
+      swallowTouch(e);
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
       var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
@@ -303,7 +306,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       return;
     }
     if (e.touches.length === 2) {
-      e.preventDefault();
+      swallowTouch(e);
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX) / 2;
       var cy = (t[0].clientY + t[1].clientY) / 2;
@@ -311,6 +314,14 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
                             t[1].clientY - t[0].clientY);
       var angle = Math.atan2(t[1].clientY - t[0].clientY,
                              t[1].clientX - t[0].clientX);
+      if (skipNextPinchMove) {
+        pinchDist = dist;
+        pinchAngle = angle;
+        pinchCX = cx;
+        pinchCY = cy;
+        skipNextPinchMove = false;
+        return;
+      }
       var dAngle = angle - pinchAngle;
       if (dAngle > Math.PI) dAngle -= 2 * Math.PI;
       if (dAngle < -Math.PI) dAngle += 2 * Math.PI;
@@ -328,9 +339,10 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       pinchAngle = angle;
       pinchCX = cx; pinchCY = cy;
     }
-  }, {passive: false});
-  canvas.addEventListener('touchend', function (e) {
-    touchCountChanged = true;
+  }, {passive: false, capture: true});
+  if (!isWebGPU) canvas.addEventListener('touchend', function (e) {
+    if (threeFingerActive || skipNextPinchMove || e.touches.length >= 2 || doubleTapZoom)
+      swallowTouch(e);
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     if (longPressFired) {
       longPressFired = false;
@@ -339,19 +351,30 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     doubleTapZoom = false;
     if (threeFingerActive && e.touches.length < 3) {
       threeFingerActive = false;
-      canvas.dispatchEvent(new MouseEvent('mouseup', { button: 2 }));
-      /* Reinitialize pinch state so 3→2 transition doesn't jump */
+      var releaseX = pinchCX, releaseY = pinchCY;
       if (e.touches.length === 2) {
         var t = e.touches;
+        releaseX = (t[0].clientX + t[1].clientX) / 2;
+        releaseY = (t[0].clientY + t[1].clientY) / 2;
         pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
                                t[1].clientY - t[0].clientY);
         pinchAngle = Math.atan2(t[1].clientY - t[0].clientY,
                                 t[1].clientX - t[0].clientX);
-        pinchCX = (t[0].clientX + t[1].clientX) / 2;
-        pinchCY = (t[0].clientY + t[1].clientY) / 2;
+        pinchCX = releaseX;
+        pinchCY = releaseY;
+        skipNextPinchMove = true;
+      } else {
+        skipNextPinchMove = false;
       }
+      if (typeof _web_cancel_gesture === 'function')
+        _web_cancel_gesture();
+      canvas.dispatchEvent(new MouseEvent('mouseup', {
+        button: 2, clientX: releaseX, clientY: releaseY
+      }));
+    } else if (e.touches.length < 2) {
+      skipNextPinchMove = false;
     }
-  }, {passive: false});
+  }, {passive: false, capture: true});
 
   /* Block Emscripten/GLFW from eating key events while the text modal is open.
    * Registered before Module so it runs before Emscripten's capture-phase handlers. */

@@ -500,6 +500,14 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
 }
 
 void
+demo_view_cancel_gesture (demo_view_t *vu)
+{
+  vu->click_handled = true;
+  vu->dragged = true;
+  vu->dx = vu->dy = vu->dt = 0;
+}
+
+void
 demo_view_scroll_func (demo_view_t *vu, double xoffset, double yoffset)
 {
   double factor = pow (STEP, yoffset);
