@@ -98,12 +98,12 @@ Mouse:                            Keyboard:
   click         toggle animation    s         stem darkening
   middle-click  reset view          d         debug heatmap
   middle-drag   zoom                r         reset view
-                                    v         vsync
+
 Touch:                              =/-       zoom in/out
-  drag          pan                 [/]       stretch horiz
-  pinch         zoom                {/}       stretch vert
+  drag          pan                 [ ]       stretch horiz
+  pinch         zoom                { }       stretch vert
   3-finger      rotate              arrows    pan
-  tap           animate             hjkl      pan (vim)
+  tap           animate             h j k l      pan (vim)
 
 Text editor:                      Shortcuts:
   Ctrl+Enter    apply               t         edit text
@@ -246,8 +246,10 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</s
   function blockKeysIfModal(e) {
     if (textModalEl.style.display !== 'flex') {
       if (e.key === '/' || e.key === '?') {
-        var hm = document.getElementById('help-modal');
-        hm.style.display = hm.style.display === 'flex' ? 'none' : 'flex';
+        if (e.type === 'keydown') {
+          var hm = document.getElementById('help-modal');
+          hm.style.display = hm.style.display === 'flex' ? 'none' : 'flex';
+        }
         e.preventDefault();
         e.stopImmediatePropagation();
         return;
