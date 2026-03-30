@@ -560,8 +560,38 @@ on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
 /* ---- Main loop ---- */
 
 static void
+check_resize ()
+{
+  int w, h;
+  emscripten_get_canvas_element_size ("#canvas", &w, &h);
+  if (w != canvas_w || h != canvas_h)
+  {
+    canvas_w = w;
+    canvas_h = h;
+    double cw, ch;
+    emscripten_get_element_css_size ("#canvas", &cw, &ch);
+    css_w = (int) cw;
+    css_h = (int) ch;
+
+    WGPUSurfaceConfiguration config = {};
+    config.device = g_device;
+    config.format = g_surface_format;
+    config.usage = WGPUTextureUsage_RenderAttachment;
+    config.width = canvas_w;
+    config.height = canvas_h;
+    config.presentMode = WGPUPresentMode_Fifo;
+    config.alphaMode = WGPUCompositeAlphaMode_Opaque;
+    wgpuSurfaceConfigure (g_surface, &config);
+
+    demo_view_reshape_func (vu, canvas_w, canvas_h);
+  }
+}
+
+static void
 main_loop_iter ()
 {
+  check_resize ();
+
   if (demo_view_should_redraw (vu))
     demo_view_display (vu, buffer);
 }
