@@ -207,12 +207,14 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var pinchAngle = 0;
   var pinchCX = 0, pinchCY = 0;
   var threeFingerActive = false;
+  var touchCountChanged = false;
   var longPressTimer = null;
   var longPressFired = false;
   var lastTapTime = 0;
   var doubleTapZoom = false;
   var doubleTapY = 0;
   canvas.addEventListener('touchstart', function (e) {
+    touchCountChanged = true;
     if (e.touches.length === 1) {
       var now = performance.now();
       if (now - lastTapTime < 300) {
@@ -262,6 +264,18 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   }, {passive: false});
   var longPressX = 0, longPressY = 0;
   canvas.addEventListener('touchmove', function (e) {
+    if (touchCountChanged) {
+      touchCountChanged = false;
+      /* Reinitialize state for current finger count to avoid jumps */
+      if (e.touches.length === 2) {
+        var t = e.touches;
+        pinchDist = Math.hypot(t[1].clientX - t[0].clientX, t[1].clientY - t[0].clientY);
+        pinchAngle = Math.atan2(t[1].clientY - t[0].clientY, t[1].clientX - t[0].clientX);
+        pinchCX = (t[0].clientX + t[1].clientX) / 2;
+        pinchCY = (t[0].clientY + t[1].clientY) / 2;
+      }
+      return;
+    }
     if (longPressTimer && e.touches.length === 1) {
       var dx = e.touches[0].clientX - longPressX;
       var dy = e.touches[0].clientY - longPressY;
@@ -316,6 +330,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     }
   }, {passive: false});
   canvas.addEventListener('touchend', function (e) {
+    touchCountChanged = true;
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     if (longPressFired) {
       longPressFired = false;

@@ -516,10 +516,12 @@ static double pinch_dist;
 static double pinch_angle;
 static double pinch_cx, pinch_cy;
 static bool three_finger_active;
+static bool touch_count_changed;
 
 static EM_BOOL
 on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
 {
+  touch_count_changed = true;
   if (e->numTouches == 1)
   {
     demo_view_motion_func (vu, e->touches[0].targetX, e->touches[0].targetY);
@@ -550,6 +552,20 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
 static EM_BOOL
 on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 {
+  if (touch_count_changed)
+  {
+    touch_count_changed = false;
+    if (e->numTouches == 2)
+    {
+      double dx = e->touches[1].targetX - e->touches[0].targetX;
+      double dy = e->touches[1].targetY - e->touches[0].targetY;
+      pinch_dist = sqrt (dx * dx + dy * dy);
+      pinch_angle = atan2 (dy, dx);
+      pinch_cx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
+      pinch_cy = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
+    }
+    return EM_TRUE;
+  }
   if (e->numTouches >= 3 && three_finger_active)
   {
     double cx = (e->touches[0].targetX + e->touches[1].targetX + e->touches[2].targetX) / 3.0;
@@ -585,6 +601,7 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 static EM_BOOL
 on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
 {
+  touch_count_changed = true;
   if (three_finger_active && e->numTouches < 3)
   {
     three_finger_active = false;
