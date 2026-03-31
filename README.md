@@ -110,9 +110,10 @@ may want to read [State of Text Rendering 2024][6].
 Here are a few presentation slides about HarfBuzz at the
 Internationalization and Unicode Conference over the years:
 
+- 2026 – [HarfBuzz at 20!][25]
+- 2016 – [Ten Years of HarfBuzz][20]
 - 2014 – [Unicode, OpenType, and HarfBuzz: Closing the Circle][7]
 - 2012 – [HarfBuzz, The Free and Open Text Shaping Engine][8]
-- 2016 – [Ten Years of HarfBuzz][20]
 - 2009 – [HarfBuzz: the Free and Open Shaping Engine][9]
 
 More presentations and papers are available on [behdad][11]'s website.
@@ -193,3 +194,4 @@ InDesign, Godot Engine, Unreal Engine, QuarkXPress, Figma, and other places.
 [22]: https://docs.google.com/document/d/1aH_waagdEM5UhslQxCeFEb82ECBhPlZjy5_MwLNLBYo/preview
 [23]: https://docs.google.com/document/d/1hRd5oYQJLrt0JuwWhEJWi7wh_9rbaIJkX6IR9DW7rZQ/preview
 [24]: https://docs.google.com/document/d/1a3K6fHjsiWW36vSzwJwCwEBOgznunKs80PSpBbpfHiA/preview
+[25]: https://docs.google.com/presentation/d/1o9Exz1c-Lr-dJjA8dcBn_Vl_Y37cupmFzmclMjBE_Bc/view
