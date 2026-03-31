@@ -46,13 +46,30 @@ struct gpu_output_t
   hb_bool_t use_metal = false;
   hb_bool_t use_d3d11 = false;
   hb_bool_t demo = false;
+  hb_bool_t bench = false;
   char *type_text = nullptr;
+
+  static gboolean
+  parse_bench (const char *name G_GNUC_UNUSED,
+	       const char *arg G_GNUC_UNUSED,
+	       gpointer    data,
+	       GError    **error G_GNUC_UNUSED)
+  {
+    auto *self = (gpu_output_t *) data;
+    self->demo = true;
+    self->bench = true;
+    if (!self->type_text)
+      self->type_text = g_strdup ("30=f ");
+    return true;
+  }
 
   void add_options (option_parser_t *parser)
   {
     GOptionEntry entries[] =
     {
       {"demo",		0, 0, G_OPTION_ARG_NONE,	&this->demo,		"Use built-in demo font and text",	nullptr},
+      {"bench",		0, G_OPTION_FLAG_NO_ARG,
+				G_OPTION_ARG_CALLBACK,	(gpointer) &parse_bench,"Demo in fullscreen benchmark mode",	nullptr},
       {"type",		'T', 0, G_OPTION_ARG_STRING,	&this->type_text,	"Type these keystrokes on start",	"keys"},
 #ifdef __APPLE__
       {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
@@ -248,6 +265,8 @@ struct gpu_output_t
 
     if (type_text)
       demo_view_type (vu, type_text);
+    if (bench)
+      demo_view_set_fps_quit (vu, 3);
 
     demo_view_display (vu, buf);
     glfwPollEvents ();
