@@ -295,6 +295,324 @@ encode_curve_info (const hb_gpu_curve_t *c)
   return info;
 }
 
+struct hb_gpu_quantized_curve_t
+{
+  double p0x, p0y;
+  double p1x, p1y;
+  double p2x, p2y;
+};
+
+struct hb_gpu_monotone_piece_t
+{
+  double p0x, p0y;
+  double p1x, p1y;
+  double p2x, p2y;
+  double min_primary, max_primary;
+  double min_secondary, max_secondary;
+  int winding_delta;
+};
+
+struct hb_gpu_crossing_t
+{
+  double pos;
+  int delta;
+};
+
+static inline double
+_hb_gpu_lerp (double a, double b, double t)
+{
+  return a + (b - a) * t;
+}
+
+static hb_gpu_quantized_curve_t
+_hb_gpu_quantize_curve (const hb_gpu_curve_t *c)
+{
+  return {
+    (double) quantize (c->p1x), (double) quantize (c->p1y),
+    (double) quantize (c->p2x), (double) quantize (c->p2y),
+    (double) quantize (c->p3x), (double) quantize (c->p3y),
+  };
+}
+
+static void
+_hb_gpu_split_curve (const hb_gpu_quantized_curve_t &curve,
+		     double t,
+		     hb_gpu_quantized_curve_t &left,
+		     hb_gpu_quantized_curve_t &right)
+{
+  double p01x = _hb_gpu_lerp (curve.p0x, curve.p1x, t);
+  double p01y = _hb_gpu_lerp (curve.p0y, curve.p1y, t);
+  double p12x = _hb_gpu_lerp (curve.p1x, curve.p2x, t);
+  double p12y = _hb_gpu_lerp (curve.p1y, curve.p2y, t);
+  double p0112x = _hb_gpu_lerp (p01x, p12x, t);
+  double p0112y = _hb_gpu_lerp (p01y, p12y, t);
+
+  left = {
+    curve.p0x, curve.p0y,
+    p01x, p01y,
+    p0112x, p0112y,
+  };
+
+  right = {
+    p0112x, p0112y,
+    p12x, p12y,
+    curve.p2x, curve.p2y,
+  };
+}
+
+static bool
+_hb_gpu_split_curve_on_primary_extremum (const hb_gpu_quantized_curve_t &curve,
+					 bool horizontal,
+					 hb_gpu_quantized_curve_t &left,
+					 hb_gpu_quantized_curve_t &right)
+{
+  double p0 = horizontal ? curve.p0y : curve.p0x;
+  double p1 = horizontal ? curve.p1y : curve.p1x;
+  double p2 = horizontal ? curve.p2y : curve.p2x;
+  double denom = p0 - p1 * 2.0 + p2;
+
+  if (denom == 0.0)
+    return false;
+
+  double t = (p0 - p1) / denom;
+  if (!(t > 1e-9 && t < 1.0 - 1e-9))
+    return false;
+
+  _hb_gpu_split_curve (curve, t, left, right);
+  return true;
+}
+
+static void
+_hb_gpu_add_monotone_piece (const hb_gpu_quantized_curve_t &curve,
+			    bool horizontal,
+			    hb_vector_t<hb_gpu_monotone_piece_t> &pieces)
+{
+  double start = horizontal ? curve.p0y : curve.p0x;
+  double end = horizontal ? curve.p2y : curve.p2x;
+
+  if (start == end)
+    return;
+
+  hb_gpu_monotone_piece_t piece = {
+    curve.p0x, curve.p0y,
+    curve.p1x, curve.p1y,
+    curve.p2x, curve.p2y,
+    hb_min (start, end),
+    hb_max (start, end),
+    horizontal ? hb_min (hb_min (curve.p0x, curve.p1x), curve.p2x)
+	       : hb_min (hb_min (curve.p0y, curve.p1y), curve.p2y),
+    horizontal ? hb_max (hb_max (curve.p0x, curve.p1x), curve.p2x)
+	       : hb_max (hb_max (curve.p0y, curve.p1y), curve.p2y),
+    start < end ? +1 : -1,
+  };
+
+  pieces.push (piece);
+}
+
+static bool
+_hb_gpu_build_monotone_pieces (const hb_gpu_curve_t *curves,
+			       unsigned num_curves,
+			       bool horizontal,
+			       hb_vector_t<hb_gpu_monotone_piece_t> &pieces)
+{
+  for (unsigned i = 0; i < num_curves; i++)
+  {
+    hb_gpu_quantized_curve_t curve = _hb_gpu_quantize_curve (&curves[i]);
+    hb_gpu_quantized_curve_t left, right;
+
+    if (_hb_gpu_split_curve_on_primary_extremum (curve, horizontal, left, right))
+    {
+      _hb_gpu_add_monotone_piece (left, horizontal, pieces);
+      _hb_gpu_add_monotone_piece (right, horizontal, pieces);
+    }
+    else
+      _hb_gpu_add_monotone_piece (curve, horizontal, pieces);
+
+    if (unlikely (pieces.in_error ()))
+      return false;
+  }
+
+  return true;
+}
+
+static bool
+_hb_gpu_eval_piece_at_primary (const hb_gpu_monotone_piece_t &piece,
+			       bool horizontal,
+			       double primary,
+			       double *secondary)
+{
+  double p0p = horizontal ? piece.p0y : piece.p0x;
+  double p1p = horizontal ? piece.p1y : piece.p1x;
+  double p2p = horizontal ? piece.p2y : piece.p2x;
+
+  if (!(primary > piece.min_primary + 1e-9 &&
+	primary < piece.max_primary - 1e-9))
+    return false;
+
+  double a = p0p - p1p * 2.0 + p2p;
+  double b = (p1p - p0p) * 2.0;
+  double c = p0p - primary;
+  double t = 0.0;
+
+  if (fabs (a) <= 1e-9)
+  {
+    if (fabs (b) <= 1e-9)
+      return false;
+    t = -c / b;
+  }
+  else
+  {
+    double d = b * b - 4.0 * a * c;
+    if (d < -1e-9)
+      return false;
+    d = hb_max (d, 0.0);
+    double sqrt_d = sqrt (d);
+    double t1 = (-b - sqrt_d) / (2.0 * a);
+    double t2 = (-b + sqrt_d) / (2.0 * a);
+    bool ok1 = t1 >= -1e-9 && t1 <= 1.0 + 1e-9;
+    bool ok2 = t2 >= -1e-9 && t2 <= 1.0 + 1e-9;
+
+    if (ok1 && ok2)
+      t = fabs (t1 - 0.5) < fabs (t2 - 0.5) ? t1 : t2;
+    else if (ok1)
+      t = t1;
+    else if (ok2)
+      t = t2;
+    else
+      return false;
+  }
+
+  t = hb_min (hb_max (t, 0.0), 1.0);
+
+  double omt = 1.0 - t;
+  double p0s = horizontal ? piece.p0x : piece.p0y;
+  double p1s = horizontal ? piece.p1x : piece.p1y;
+  double p2s = horizontal ? piece.p2x : piece.p2y;
+
+  *secondary = omt * omt * p0s + 2.0 * omt * t * p1s + t * t * p2s;
+  return true;
+}
+
+static uint16_t
+_hb_gpu_full_band_mask (unsigned num_bands)
+{
+  return num_bands >= 16 ? 0xFFFFu : (uint16_t) ((1u << num_bands) - 1u);
+}
+
+static uint16_t
+_hb_gpu_compute_band_complexity_mask (const hb_gpu_curve_t *curves,
+				      unsigned num_curves,
+				      unsigned num_bands,
+				      double primary_min,
+				      double primary_max,
+				      bool horizontal)
+{
+  if (!num_curves || !num_bands || primary_max <= primary_min)
+    return 0;
+
+  hb_vector_t<hb_gpu_monotone_piece_t> pieces;
+  if (!_hb_gpu_build_monotone_pieces (curves, num_curves, horizontal, pieces))
+    return _hb_gpu_full_band_mask (num_bands);
+
+  hb_vector_t<unsigned> active;
+  hb_vector_t<double> cuts;
+  hb_vector_t<hb_gpu_crossing_t> crossings;
+  uint16_t mask = 0;
+  double band_size = (primary_max - primary_min) / (double) num_bands;
+
+  for (unsigned b = 0; b < num_bands; b++)
+  {
+    double band_lo = primary_min + band_size * b;
+    double band_hi = b + 1 == num_bands ? primary_max : band_lo + band_size;
+
+    active.clear ();
+    cuts.clear ();
+
+    cuts.push (band_lo);
+    cuts.push (band_hi);
+
+    for (unsigned i = 0; i < pieces.length; i++)
+    {
+      const hb_gpu_monotone_piece_t &piece = pieces.arrayZ[i];
+      if (piece.max_primary <= band_lo || piece.min_primary >= band_hi)
+	continue;
+
+      active.push (i);
+      cuts.push (hb_max (piece.min_primary, band_lo));
+      cuts.push (hb_min (piece.max_primary, band_hi));
+    }
+
+    if (unlikely (active.in_error () || cuts.in_error () || crossings.in_error ()))
+      return _hb_gpu_full_band_mask (num_bands);
+
+    if (active.length < 2)
+      continue;
+
+    cuts.as_array ().qsort ([] (const double &a, const double &b) { return a < b; });
+
+    unsigned num_cuts = 1;
+    for (unsigned i = 1; i < cuts.length; i++)
+      if (cuts.arrayZ[i] - cuts.arrayZ[num_cuts - 1] > 1e-9)
+	cuts.arrayZ[num_cuts++] = cuts.arrayZ[i];
+
+    for (unsigned i = 0; i + 1 < num_cuts; i++)
+    {
+      double lo = cuts.arrayZ[i];
+      double hi = cuts.arrayZ[i + 1];
+      if (hi - lo <= 1e-9)
+	continue;
+
+      double primary = (lo + hi) * 0.5;
+      crossings.clear ();
+
+      for (unsigned j = 0; j < active.length; j++)
+      {
+	const hb_gpu_monotone_piece_t &piece = pieces.arrayZ[active.arrayZ[j]];
+	double secondary;
+	if (_hb_gpu_eval_piece_at_primary (piece, horizontal, primary, &secondary))
+	{
+	  hb_gpu_crossing_t crossing = {secondary, piece.winding_delta};
+	  crossings.push (crossing);
+	}
+      }
+
+      if (unlikely (crossings.in_error ()))
+	return _hb_gpu_full_band_mask (num_bands);
+
+      if (crossings.length < 2)
+	continue;
+
+      crossings.as_array ().qsort ([] (const hb_gpu_crossing_t &a,
+				       const hb_gpu_crossing_t &b)
+				   { return a.pos < b.pos; });
+
+      int winding = 0;
+      for (unsigned j = 0; j < crossings.length; )
+      {
+	double pos = crossings.arrayZ[j].pos;
+	int delta = 0;
+	do
+	{
+	  delta += crossings.arrayZ[j].delta;
+	  j++;
+	} while (j < crossings.length && fabs (crossings.arrayZ[j].pos - pos) <= 1e-9);
+
+	winding += delta;
+	if (winding > 1 || winding < -1)
+	{
+	  mask |= (uint16_t) (1u << b);
+	  break;
+	}
+      }
+
+      if (mask & (uint16_t) (1u << b))
+	break;
+    }
+  }
+
+  return mask;
+}
+
 /**
  * hb_gpu_draw_encode:
  * @draw: a GPU shape encoder
@@ -489,6 +807,24 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
       !quantize_fits_i16 (max_y))
     return nullptr;
 
+  int16_t qmin_x = quantize (min_x);
+  int16_t qmin_y = quantize (min_y);
+  int16_t qmax_x = quantize (max_x);
+  int16_t qmax_y = quantize (max_y);
+
+  uint16_t hband_complexity_mask =
+    _hb_gpu_compute_band_complexity_mask (curves, num_curves,
+					  num_hbands,
+					  (double) qmin_y,
+					  (double) qmax_y,
+					  true);
+  uint16_t vband_complexity_mask =
+    _hb_gpu_compute_band_complexity_mask (curves, num_curves,
+					  num_vbands,
+					  (double) qmin_x,
+					  (double) qmax_x,
+					  false);
+
   /* Allocate or reuse encode buffer */
   unsigned needed_bytes = total_len * sizeof (hb_gpu_texel_t);
   hb_gpu_texel_t *buf = nullptr;
@@ -528,14 +864,14 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
 
   /* Pack header */
-  buf[0].r = quantize (min_x);
-  buf[0].g = quantize (min_y);
-  buf[0].b = quantize (max_x);
-  buf[0].a = quantize (max_y);
+  buf[0].r = qmin_x;
+  buf[0].g = qmin_y;
+  buf[0].b = qmax_x;
+  buf[0].a = qmax_y;
   buf[1].r = (int16_t) num_hbands;
   buf[1].g = (int16_t) num_vbands;
-  buf[1].b = 0;
-  buf[1].a = 0;
+  buf[1].b = (int16_t) hband_complexity_mask;
+  buf[1].a = (int16_t) vband_complexity_mask;
 
   /* Pack curve data with shared endpoints */
   s.curve_texel_offset.resize (num_curves);
@@ -929,4 +1265,3 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
     return;
   draw->recycled_blob = blob;
 }
-

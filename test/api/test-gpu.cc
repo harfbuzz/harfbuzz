@@ -30,6 +30,70 @@
 
 #define FONT_FILE "fonts/Roboto-Regular.abc.ttf"
 
+static void
+draw_rect (hb_gpu_draw_t *draw,
+	   float x0, float y0, float x1, float y1)
+{
+  hb_draw_funcs_t *df = hb_gpu_draw_get_funcs ();
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  hb_draw_move_to (df, draw, &st, x0, y0);
+  hb_draw_line_to (df, draw, &st, x1, y0);
+  hb_draw_line_to (df, draw, &st, x1, y1);
+  hb_draw_line_to (df, draw, &st, x0, y1);
+  hb_draw_close_path (df, draw, &st);
+}
+
+static uint16_t
+blob_header_u16 (hb_blob_t *blob, unsigned short_index)
+{
+  unsigned length = 0;
+  const char *data = hb_blob_get_data (blob, &length);
+
+  g_assert_nonnull (data);
+  g_assert_cmpuint (length, >=, 8 * sizeof (int16_t));
+
+  const int16_t *words = (const int16_t *) (const void *) data;
+  return (uint16_t) words[short_index];
+}
+
+static void
+test_band_complexity_masks (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  draw_rect (draw, 0.f, 0.f, 40.f, 40.f);
+  draw_rect (draw, 10.f, 10.f, 50.f, 50.f);
+
+  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  g_assert_nonnull (blob);
+
+  g_assert_cmpuint (blob_header_u16 (blob, 6), !=, 0);
+  g_assert_cmpuint (blob_header_u16 (blob, 7), !=, 0);
+
+  hb_blob_destroy (blob);
+  hb_gpu_draw_destroy (draw);
+}
+
+static void
+test_band_complexity_masks_disjoint (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  draw_rect (draw, 0.f, 0.f, 20.f, 20.f);
+  draw_rect (draw, 30.f, 0.f, 50.f, 20.f);
+
+  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  g_assert_nonnull (blob);
+
+  g_assert_cmpuint (blob_header_u16 (blob, 6), ==, 0);
+  g_assert_cmpuint (blob_header_u16 (blob, 7), ==, 0);
+
+  hb_blob_destroy (blob);
+  hb_gpu_draw_destroy (draw);
+}
 
 static void
 test_create_destroy (void)
@@ -192,6 +256,8 @@ main (int argc, char **argv)
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
   hb_test_add (test_recycle_blob);
+  hb_test_add (test_band_complexity_masks);
+  hb_test_add (test_band_complexity_masks_disjoint);
 
   return hb_test_run ();
 }
