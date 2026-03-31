@@ -1,0 +1,76 @@
+name: docs
+
+on:
+  push:
+    branches: [ main ]
+    tags: ["*.*.*"]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Setup Ccache
+      uses: hendrikmuhs/ccache-action@33522472633dbd32578e909b315f5ee43ba878ce # v1.2.22
+      with:
+        key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install \
+          gcc \
+          gobject-introspection \
+          gtk-doc-tools \
+          libcairo2-dev \
+          libfreetype6-dev \
+          libgirepository1.0-dev \
+          libglib2.0-dev \
+          libgraphite2-dev \
+          libicu-dev \
+          libpng-dev \
+          pkg-config \
+          zlib1g-dev \
+          help2man
+    - name: Setup Emscripten
+      uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
+      with:
+        version: latest
+    - name: Setup Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      with:
+        python-version: '3.12'
+    - name: Install Python Dependencies
+      run: pip3 install -r .ci/requirements.txt --require-hashes
+    - name: Build HarfBuzz
+      run: |
+        ccache --version
+        meson setup build \
+          -Dauto_features=enabled \
+          -Doptimization=2 \
+          -Dgpu_demo=disabled \
+          -Dchafa=disabled
+        meson compile -Cbuild
+    - name: Generate Documentation
+      run: ninja -Cbuild harfbuzz-doc
+    - name: Build Web Demos
+      run: |
+        bash util/gpu/web/build.sh
+        bash util/gpu/web/build-webgpu.sh
+        cp util/gpu/web/dom.html util/gpu/web/out/
+    - name: Stage for deployment
+      run: |
+        mkdir -p build/docs/html/hb-gpu-demo
+        cp util/gpu/web/out/* build/docs/html/hb-gpu-demo/
+    - name: Deploy
+      if: github.ref_type == 'tag'
+      run: .ci/deploy-docs.sh
+      env:
+        GH_TOKEN: ${{ secrets.DOCS_PUSH_TOKEN }}
+        REVISION: ${{ github.sha }}
