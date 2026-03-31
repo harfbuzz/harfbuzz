@@ -106,11 +106,9 @@ struct VertexOutput {
   var coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
 
   if (u.stem_darkening > 0.0) {
-    let ppem = 1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y);
-    let size_factor = smoothstep (8.0, 48.0, ppem);
-    let brightness = dot (u.foreground.rgb, vec3f (1.0 / 3.0));
-    let stem_exp = mix (pow (2.0, brightness - 0.5), 1.0, size_factor);
-    coverage = pow (coverage, stem_exp);
+    coverage = hb_gpu_darken (coverage,
+      dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
+      1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y));
   }
 
   if (u.gamma != 1.0) {

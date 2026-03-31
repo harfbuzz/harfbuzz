@@ -156,12 +156,12 @@ ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
   return ivec2 (hCount, vCount);
 }
 
-/* Render a glyph and return its coverage in [0, 1].
+/* Return coverage in [0, 1].
  *
- * Requires the hb_gpu_atlas uniform to be bound to the glyph atlas buffer.
+ * Requires the hb_gpu_atlas uniform to be bound.
  *
- * renderCoord:  em-space sample position (interpolated from vertex shader)
- * glyphLoc:     offset into hb_gpu_atlas for this glyph's encoded blob
+ * renderCoord:  em-space sample position
+ * glyphLoc:     texel offset of glyph blob in atlas
  */
 float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 {
@@ -278,4 +278,17 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   }
 
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
+}
+
+/* Stem darkening for small sizes.
+ *
+ * coverage:    output of hb_gpu_render
+ * brightness:  foreground brightness in [0, 1]
+ * ppem:        pixels per em at this fragment
+ */
+float hb_gpu_darken (float coverage, float brightness, float ppem)
+{
+  return pow (coverage,
+	      mix (pow (2.0, brightness - 0.5), 1.0,
+		   smoothstep (8.0, 48.0, ppem)));
 }

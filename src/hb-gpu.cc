@@ -258,7 +258,7 @@
  *
  * # Fragment shader
  *
- * The fragment library provides one function:
+ * The fragment library provides two functions:
  *
  * |[<!-- language="plain" -->
  * float hb_gpu_render (vec2 renderCoord, uint glyphLoc);
@@ -299,6 +299,35 @@
  * ]|
  *
  * The coverage value can be used with alpha blending
- * (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) to composite glyphs
+ * (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) to composite
  * over a background, or multiplied with any color.
+ *
+ * # Stem darkening
+ *
+ * |[<!-- language="plain" -->
+ * float hb_gpu_darken (float coverage, float brightness, float ppem);
+ * ]|
+ *
+ * Optional stem darkening adjusts coverage at small sizes so
+ * thin stems are not washed out by gamma correction.
+ *
+ * Parameters:
+ *
+ * - coverage: the output of hb_gpu_render.
+ *
+ * - brightness: foreground brightness in [0, 1], computed as
+ *   `dot (foreground.rgb, vec3 (1.0 / 3.0))`.
+ *
+ * - ppem: pixels per em at this fragment, computed as
+ *   `1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y)`.
+ *
+ * Example:
+ *
+ * |[<!-- language="plain" -->
+ * float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
+ * float brightness = dot (u_foreground.rgb, vec3 (1.0 / 3.0));
+ * float ppem = 1.0 / max (fwidth (v_texcoord).x,
+ *                          fwidth (v_texcoord).y);
+ * coverage = hb_gpu_darken (coverage, brightness, ppem);
+ * ]|
  **/

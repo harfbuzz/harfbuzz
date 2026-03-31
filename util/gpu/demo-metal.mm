@@ -63,13 +63,10 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
   float coverage = hb_gpu_render(in.texcoord, in.glyphLoc, atlas);
 
   /* Stem darkening / thinning at small sizes. */
-  if (uniforms.stem_darkening > 0.0) {
-    float ppem = 1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y);
-    float size_factor = smoothstep(8.0, 48.0, ppem);
-    float brightness = dot(uniforms.foreground.rgb, float3(1.0 / 3.0));
-    float stem_exp = mix(pow(2.0, brightness - 0.5), 1.0, size_factor);
-    coverage = pow(coverage, stem_exp);
-  }
+  if (uniforms.stem_darkening > 0.0)
+    coverage = hb_gpu_darken(coverage,
+      dot(uniforms.foreground.rgb, float3(1.0 / 3.0)),
+      1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y));
 
   if (uniforms.gamma != 1.0)
     coverage = pow(coverage, uniforms.gamma);

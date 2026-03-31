@@ -142,7 +142,12 @@ fn _hb_gpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
   return vec2<i32> (hCount, vCount);
 }
 
-/* Render a glyph and return its coverage in [0, 1]. */
+/* Return coverage in [0, 1].
+ *
+ * renderCoord:    em-space sample position
+ * glyphLoc:       texel offset of glyph blob in atlas
+ * hb_gpu_atlas:   storage buffer pointer to the atlas
+ */
 fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
                   hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
@@ -265,4 +270,17 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
   }
 
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
+}
+
+/* Stem darkening for small sizes.
+ *
+ * coverage:    output of hb_gpu_render
+ * brightness:  foreground brightness in [0, 1]
+ * ppem:        pixels per em at this fragment
+ */
+fn hb_gpu_darken (coverage: f32, brightness: f32, ppem: f32) -> f32
+{
+  return pow (coverage,
+	      mix (pow (2.0, brightness - 0.5), 1.0,
+		   smoothstep (8.0, 48.0, ppem)));
 }

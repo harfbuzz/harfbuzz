@@ -53,13 +53,9 @@ void main ()
    * Dark text on light: stems get too thin → darken them (exponent < 1).
    * The foreground brightness tells us which mode we're in. */
   if (u_stem_darkening > 0.0)
-  {
-    float ppem = 1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y);
-    float size_factor = smoothstep (8.0, 48.0, ppem);
-    float brightness = dot (u_foreground.rgb, vec3 (1.0 / 3.0));
-    float stem_exp = mix (pow (2.0, brightness - 0.5), 1.0, size_factor);
-    coverage = pow (coverage, stem_exp);
-  }
+    coverage = hb_gpu_darken (coverage,
+      dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
+      1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
 
   if (u_gamma != 1.0)
     coverage = pow (coverage, u_gamma);
