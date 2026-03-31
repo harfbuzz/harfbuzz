@@ -900,11 +900,13 @@ hb_ot_draw_glyph_or_fail (hb_font_t *font,
   bool ret = false;
 
   OT::hb_scalar_cache_t *gvar_cache = nullptr;
+#ifndef HB_NO_VAR
   if (font->num_coords)
   {
     ot_font->check_serial (font);
     gvar_cache = ot_font->draw.acquire_gvar_cache (*ot_font->ot_face->gvar);
   }
+#endif
 
 #ifndef HB_NO_VAR_COMPOSITES
   if (font->face->table.VARC->get_path (font, glyph, draw_session)) { ret = true; goto done; }
