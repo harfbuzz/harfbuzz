@@ -132,10 +132,7 @@ struct gpu_font_options_t : font_options_t
   hb_face_t *default_face () override
   {
     if (!gpu_demo_flag || !*gpu_demo_flag)
-    {
-      fprintf (stderr, "Try --demo for a quick demo.\n");
       return nullptr;
-    }
     #include "gpu/default-font.hh"
     hb_blob_t *blob = hb_blob_create ((const char *) default_font,
 				      sizeof (default_font),
