@@ -45,7 +45,7 @@ full font platform.  Here is a quick map of its components:
 
 Notable missing feature: font hinting (including autohinting)
 is not implemented.  For hinted rasterization, use FreeType or
-Skrifa as the font backend.
+Skrifa.
 
 For simplified builds, amalgamated sources are available:
 `harfbuzz.cc` (just libharfbuzz), `harfbuzz-subset.cc` (just
