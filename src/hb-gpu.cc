@@ -41,6 +41,8 @@
  * and rasterizes directly in the fragment shader, with no
  * intermediate bitmap atlas.
  *
+ * See the [live web demo](https://harfbuzz.github.io/hb-gpu-demo/).
+ *
  * # Encoding
  *
  * Each glyph is encoded independently into an opaque blob of
