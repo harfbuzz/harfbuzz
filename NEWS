@@ -1,3 +1,35 @@
+Overview of changes leading to X.X.X
+XXXXX
+=====================================
+- New `libharfbuzz-gpu` library: GPU text rasterization based on the
+  Slug algorithm by Eric Lengyel.  Encodes glyph outlines on the CPU
+  into compact blobs that the GPU decodes and rasterizes directly in
+  the fragment shader, with no intermediate bitmap atlas.
+  Shader sources provided in GLSL, WGSL, MSL, and HLSL.
+  New `hb-gpu` installed utility for interactive GPU text rendering.
+  Live web demo: https://harfbuzz.github.io/hb-gpu-demo/
+- New `harfbuzz-world.cc` amalgamated source for building a subset of
+  all HarfBuzz libraries into one compilation unit, driven by a custom
+  `hb-features.h`.
+- Various bug fixes.
+- New API:
+  + hb_gpu_draw_t
+  + hb_gpu_draw_create_or_fail()
+  + hb_gpu_draw_reference()
+  + hb_gpu_draw_destroy()
+  + hb_gpu_draw_set_user_data()
+  + hb_gpu_draw_get_user_data()
+  + hb_gpu_draw_get_funcs()
+  + hb_gpu_draw_glyph()
+  + hb_gpu_draw_encode()
+  + hb_gpu_draw_get_extents()
+  + hb_gpu_draw_reset()
+  + hb_gpu_draw_recycle_blob()
+  + hb_gpu_shader_lang_t
+  + hb_gpu_shader_fragment_source()
+  + hb_gpu_shader_vertex_source()
+
+
 Overview of changes leading to 13.2.1
 Thursday, March 19, 2026
 =====================================
