@@ -55,6 +55,8 @@ by a custom `hb-features.h`).
 | **hb-view** | Render shaped text to an image. |
 | **hb-subset** | Subset and optimize fonts. |
 | **hb-info** | Display font metadata. |
+| **hb-raster** | Render glyphs to bitmap images. |
+| **hb-vector** | Render glyphs to vector formats (SVG). |
 | **hb-gpu** | Interactive GPU text rendering. |
 
 The canonical source tree and bug trackers are available on [github][4].
