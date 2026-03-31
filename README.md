@@ -15,8 +15,10 @@
 </div>
 
 HarfBuzz started as a text shaping engine but has grown into a
-full font platform.  It primarily supports [OpenType][1], but also
-[Apple Advanced Typography][2].
+full font platform — the `ffmpeg` of text shaping.  It primarily
+supports [OpenType][1], but also [Apple Advanced Typography][2].
+
+HarfBuzz shapes the majority of text on modern screens.
 
 HarfBuzz is optimized for robustness, correctness, and performance
 — in that order. Achieve all.
@@ -146,10 +148,13 @@ transliterated using the Latin script. It also means "talkative" or
 
 ## Users
 
-HarfBuzz is used in Android, Chrome,
-ChromeOS, Firefox, GNOME, GTK+, KDE, Qt, LibreOffice, OpenJDK, XeTeX, Scribus,
-PlayStation, Microsoft Edge, Amazon Kindle, Adobe Photoshop, Illustrator,
-InDesign, Godot Engine, Unreal Engine, QuarkXPress, Figma, and other places.
+HarfBuzz is used in Android, Chrome, ChromeOS, Firefox, GNOME, GTK+, KDE,
+Qt, LibreOffice, OpenJDK, XeTeX, Adobe Photoshop, Illustrator, InDesign,
+Microsoft Edge, Amazon Kindle, PlayStation, Godot Engine, Unreal Engine,
+Figma, Canva, QuarkXPress, Scribus, smart TVs,
+car displays, and many other places.
+
+*Wine* remains the only major Open Source platform to use its own text shaper.
 
 <p align="center">
   <a href="https://xkcd.com/2347/" rel="nofollow">
