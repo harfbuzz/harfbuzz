@@ -34,6 +34,10 @@ html_images = [
   'favicon.ico',
   'HarfBuzz.png',
   'HarfBuzz.svg',
+  'hb-subset.png',
+  'hb-raster.png',
+  'hb-vector.png',
+  'hb-gpu.png',
 ]
 
 ignore_headers = [

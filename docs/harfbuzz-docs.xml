@@ -9,7 +9,13 @@
     <title>HarfBuzz Manual</title>
     <abstract>
       <title>HarfBuzz</title>
-      <graphic fileref="HarfBuzz.png" format="PNG" align="center"/>
+      <para>
+        <inlinemediaobject><imageobject><imagedata fileref="HarfBuzz.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
+        <inlinemediaobject><imageobject><imagedata fileref="hb-subset.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
+        <inlinemediaobject><imageobject><imagedata fileref="hb-raster.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
+        <inlinemediaobject><imageobject><imagedata fileref="hb-vector.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
+        <inlinemediaobject><imageobject><imagedata fileref="hb-gpu.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
+      </para>
       <para>
         HarfBuzz is a text shaping library. Using the HarfBuzz library allows
 	programs to convert a sequence of Unicode input into
