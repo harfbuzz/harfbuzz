@@ -154,8 +154,6 @@ Microsoft Edge, Amazon Kindle, PlayStation, Godot Engine, Unreal Engine,
 Figma, Canva, QuarkXPress, Scribus, smart TVs,
 car displays, and many other places.
 
-*Wine* remains the only major Open Source platform to use its own text shaper.
-
 <p align="center">
   <a href="https://xkcd.com/2347/" rel="nofollow">
     <img src="xkcd.png" width="256" alt="xkcd-derived image">
