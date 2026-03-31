@@ -132,9 +132,18 @@ In particular, the following _studies_ are relevant to HarfBuzz development:
 
 ## Name
 
-HarfBuzz (حرف‌باز) is the literal Persian translation of “[OpenType][1]”,
-transliterated using the Latin script. It also means "talkative" or
-"glib" (also a nod to the GNOME project where HarfBuzz originates from).
+HarfBuzz /hærfˈbɒːz/
+
+From Persian حرف (*Harf*: letter) and باز (*Buzz*: open).
+Transliteration of the Persian calque for *OpenType*.
+
+As a noun: *The* Open Source *text shaping* engine.
+
+As an adjective: Insincerely talkative; glib. A nod to the
+GNOME project where HarfBuzz originates from.
+
+The logo shows حرف‌باز in the IranNastaliq font, on a Damascus
+steel background.
 
 > Background: Originally there was this font format called TrueType. People and
 > companies started calling their type engines all things ending in Type:
