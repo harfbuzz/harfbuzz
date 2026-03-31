@@ -56,9 +56,8 @@ void main ()
   {
     float ppem = 1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y);
     float size_factor = smoothstep (8.0, 48.0, ppem);
-    bool light_on_dark = dot (u_foreground.rgb, vec3 (1.0)) > 1.5;
-    float stem_exp = light_on_dark ? mix (1.4, 1.0, size_factor)
-				   : mix (0.7, 1.0, size_factor);
+    float brightness = dot (u_foreground.rgb, vec3 (1.0 / 3.0));
+    float stem_exp = mix (pow (2.0, brightness - 0.5), 1.0, size_factor);
     coverage = pow (coverage, stem_exp);
   }
 

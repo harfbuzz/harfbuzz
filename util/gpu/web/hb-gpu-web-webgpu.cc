@@ -108,10 +108,8 @@ struct VertexOutput {
   if (u.stem_darkening > 0.0) {
     let ppem = 1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y);
     let size_factor = smoothstep (8.0, 48.0, ppem);
-    let light_on_dark = dot (u.foreground.rgb, vec3f (1.0)) > 1.5;
-    var stem_exp: f32;
-    if (light_on_dark) { stem_exp = mix (1.4, 1.0, size_factor); }
-    else               { stem_exp = mix (0.7, 1.0, size_factor); }
+    let brightness = dot (u.foreground.rgb, vec3f (1.0 / 3.0));
+    let stem_exp = mix (pow (2.0, brightness - 0.5), 1.0, size_factor);
     coverage = pow (coverage, stem_exp);
   }
 
