@@ -14,24 +14,14 @@
 
 </div>
 
-HarfBuzz is a text shaping engine. It primarily supports [OpenType][1], but also
+HarfBuzz started as a text shaping engine but has grown into a
+full font platform.  It primarily supports [OpenType][1], but also
 [Apple Advanced Typography][2].
-Check “[What is HarfBuzz?](https://harfbuzz.github.io/what-is-harfbuzz.html)” chapter
-in the user manual for more inforamation on what HarfBuzz do and what it doesn’t do.
 
 HarfBuzz is optimized for robustness, correctness, and performance
 — in that order. Achieve all.
 
-The canonical source tree and bug trackers are available on [github][4].
-Both development and user support discussion around HarfBuzz happen on
-[github][4] as well.
-
-For license information, see [COPYING](COPYING).
-
-## Overview
-
-HarfBuzz started as a text shaping engine but has grown into a
-full font platform.  Here is a quick map of its components:
+Here is a quick map of its components:
 
 ### Core libraries
 
@@ -64,6 +54,12 @@ by a custom `hb-features.h`).
 | **hb-subset** | Subset and optimize fonts. |
 | **hb-info** | Display font metadata. |
 | **hb-gpu** | Interactive GPU text rendering demo. |
+
+The canonical source tree and bug trackers are available on [github][4].
+Both development and user support discussion around HarfBuzz happen on
+[github][4] as well.
+
+For license information, see [COPYING](COPYING).
 
 ## API stability
 
