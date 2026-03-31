@@ -522,8 +522,6 @@ static double pinch_dist;
 static double pinch_angle;
 static double pinch_cx, pinch_cy;
 static double gesture_x, gesture_y;
-static bool pinch_active;
-static bool single_pan_active;
 static bool three_finger_active;
 static bool skip_next_pinch_move;
 
@@ -532,14 +530,11 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
 {
   if (e->numTouches == 1)
   {
-    single_pan_active = false;
     demo_view_motion_func (vu, e->touches[0].targetX, e->touches[0].targetY);
     demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_PRESS, 0);
   }
   else if (e->numTouches == 2)
   {
-    pinch_active = true;
-    single_pan_active = false;
     demo_view_cancel_gesture (vu);
     demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
     double dx = e->touches[1].targetX - e->touches[0].targetX;
@@ -554,8 +549,6 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
   }
   else if (e->numTouches >= 3)
   {
-    pinch_active = false;
-    single_pan_active = false;
     demo_view_cancel_gesture (vu);
     demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
     three_finger_active = true;
@@ -575,18 +568,11 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 {
   if (e->numTouches >= 3 && three_finger_active)
   {
-    pinch_active = false;
     double cx = (e->touches[0].targetX + e->touches[1].targetX + e->touches[2].targetX) / 3.0;
     double cy = (e->touches[0].targetY + e->touches[1].targetY + e->touches[2].targetY) / 3.0;
     gesture_x = cx;
     gesture_y = cy;
     demo_view_motion_func (vu, cx, cy);
-  }
-  else if (e->numTouches == 1 && single_pan_active)
-  {
-    gesture_x = e->touches[0].targetX;
-    gesture_y = e->touches[0].targetY;
-    demo_view_motion_func (vu, gesture_x, gesture_y);
   }
   else if (e->numTouches == 1)
   {
@@ -594,7 +580,6 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
   }
   else if (e->numTouches == 2)
   {
-    pinch_active = true;
     double dx = e->touches[1].targetX - e->touches[0].targetX;
     double dy = e->touches[1].targetY - e->touches[0].targetY;
     double dist = sqrt (dx * dx + dy * dy);
@@ -631,9 +616,6 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 static EM_BOOL
 on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
 {
-  bool pinch_ending = pinch_active && e->numTouches < 2;
-  bool single_pan_ending = single_pan_active && e->numTouches == 0;
-
   if (three_finger_active && e->numTouches < 3)
   {
     three_finger_active = false;
@@ -657,34 +639,10 @@ on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
       pinch_cy = release_y;
       gesture_x = release_x;
       gesture_y = release_y;
-      pinch_active = true;
       skip_next_pinch_move = true;
     }
     else
-    {
-      pinch_active = false;
       skip_next_pinch_move = false;
-    }
-  }
-  else if (pinch_ending)
-  {
-    pinch_active = false;
-    skip_next_pinch_move = false;
-    if (e->numTouches == 1)
-    {
-      single_pan_active = true;
-      gesture_x = e->touches[0].targetX;
-      gesture_y = e->touches[0].targetY;
-      demo_view_motion_func (vu, gesture_x, gesture_y);
-      demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_PRESS, 0);
-    }
-  }
-  else if (single_pan_ending)
-  {
-    single_pan_active = false;
-    demo_view_motion_func (vu, gesture_x, gesture_y);
-    demo_view_cancel_gesture (vu);
-    demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
   }
   else
   {
@@ -704,24 +662,12 @@ on_touchcancel (int type, const EmscriptenTouchEvent *e, void *ud)
     demo_view_cancel_gesture (vu);
     demo_view_mouse_func (vu, BUTTON_RIGHT, ACTION_RELEASE, 0);
   }
-  else if (pinch_active)
-  {
-    pinch_active = false;
-  }
-  else if (single_pan_active)
-  {
-    single_pan_active = false;
-    demo_view_motion_func (vu, gesture_x, gesture_y);
-    demo_view_cancel_gesture (vu);
-    demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
-  }
   else
   {
     demo_view_cancel_gesture (vu);
     demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
   }
 
-  pinch_active = false;
   skip_next_pinch_move = false;
   return EM_TRUE;
 }
