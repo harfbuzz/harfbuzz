@@ -152,7 +152,7 @@ steel background.
 > with the concept but use the Persian translation. Which is fitting given that
 > Persian is written in the Arabic script, and OpenType is an extension of
 > TrueType that adds support for complex script rendering, and HarfBuzz is an
-> implementation of OpenType complex text shaping.
+> implementation of OpenType text shaping.
 
 ## Users
 
