@@ -389,11 +389,6 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       /* 2→1: GLFW didn't see the pinch, so synthesize mousedown
        * for the remaining finger to enable panning. */
       if (e.touches.length === 1) {
-        /* Sync GLFW cursor position first to prevent jump */
-        canvas.dispatchEvent(new MouseEvent('mousemove', {
-          clientX: e.touches[0].clientX,
-          clientY: e.touches[0].clientY
-        }));
         canvas.dispatchEvent(new MouseEvent('mousedown', {
           button: 0,
           clientX: e.touches[0].clientX,
