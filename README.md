@@ -83,9 +83,8 @@ For user manual as well as API documentation, check: https://harfbuzz.github.io
 
 ## Download
 
-Tarball releases of HarfBuzz are available on [github releases][3] page. At the same place you
-will also find Win32/Win64 binary bundles that include `libharfbuzz` DLL,
-`hb-view.exe`, `hb-shape.exe`, and all dependencies.
+Tarball releases and Win32/Win64 binary bundles are available on the
+[github releases][3] page.
 
 ## Development
 
