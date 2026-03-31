@@ -14,10 +14,9 @@ em++ \
   -std=c++17 \
   -Oz -flto \
   -I"$SRCDIR/src" \
-  -DHB_NO_MT \
-  -DHAVE_ROUND \
+  -I"$SRCDIR/util/gpu/web" \
+  -DHAVE_CONFIG_H \
   -DHB_GPU_ATLAS_2D \
-  -DHB_HAS_GPU \
   "$SRCDIR/src/harfbuzz-world.cc" \
   "$SRCDIR/util/gpu/demo-atlas.cc" \
   "$SRCDIR/util/gpu/demo-buffer.cc" \
