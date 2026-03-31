@@ -55,7 +55,7 @@ by a custom `hb-features.h`).
 | **hb-view** | Render shaped text to an image. |
 | **hb-subset** | Subset and optimize fonts. |
 | **hb-info** | Display font metadata. |
-| **hb-gpu** | Interactive GPU text rendering demo. |
+| **hb-gpu** | Interactive GPU text rendering. |
 
 The canonical source tree and bug trackers are available on [github][4].
 Both development and user support discussion around HarfBuzz happen on
