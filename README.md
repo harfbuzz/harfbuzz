@@ -25,6 +25,43 @@ Both development and user support discussion around HarfBuzz happen on
 
 For license information, see [COPYING](COPYING).
 
+## Overview
+
+HarfBuzz started as a text shaping engine but has grown into a
+full font platform.  Here is a quick map of its components:
+
+### Core libraries
+
+| Library | Description |
+|---------|-------------|
+| **libharfbuzz** | Text shaping, draw API, paint API. Highly configurable (see [CONFIG.md](CONFIG.md)). Optional integration backends compiled in: hb-ft (FreeType), hb-coretext (macOS), hb-uniscribe (Windows), hb-directwrite (Windows), hb-gdi (Windows), hb-glib, hb-graphite2, hb-fontations, hb-harfrust. |
+| **libharfbuzz-subset** | Font subsetting and variable-font instancing. |
+| **libharfbuzz-raster** | Glyph rasterization to bitmaps, including color fonts. Uses hb-draw and hb-paint. |
+| **libharfbuzz-vector** | Glyph output to vector formats (currently SVG), including color fonts. Uses hb-draw and hb-paint. |
+| **libharfbuzz-gpu** | Encodes glyph outlines for GPU rasterization (Slug algorithm). Provides shader sources in GLSL, WGSL, MSL, and HLSL. [Live demo.](https://harfbuzz.github.io/hb-gpu-demo/) |
+| **libharfbuzz-icu** | ICU Unicode integration. |
+| **libharfbuzz-cairo** | Cairo rendering integration. |
+| **libharfbuzz-gobject** | GObject/GI bindings. |
+
+Notable missing feature: font hinting (including autohinting)
+is not implemented.  For hinted rasterization, use FreeType or
+Skrifa as the font backend.
+
+For simplified builds, amalgamated sources are available:
+`harfbuzz.cc` (just libharfbuzz), `harfbuzz-subset.cc` (just
+libharfbuzz-subset), or `harfbuzz-world.cc` (everything, driven
+by a custom `hb-features.h`).
+
+### Command-line tools
+
+| Tool | Description |
+|------|-------------|
+| **hb-shape** | Shape text and display glyph output. |
+| **hb-view** | Render shaped text to an image. |
+| **hb-subset** | Subset and optimize fonts. |
+| **hb-info** | Display font metadata. |
+| **hb-gpu** | Interactive GPU text rendering demo. |
+
 ## API stability
 
 The API that comes with `hb.h` will not change incompatibly. Other, peripheral,
