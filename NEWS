@@ -11,6 +11,7 @@ XXXXX
 - New `harfbuzz-world.cc` amalgamated source for building a subset of
   all HarfBuzz libraries into one compilation unit, driven by a custom
   `hb-features.h`.
+- Updated README with libraries overview and project description.
 - Various bug fixes.
 - New API:
   + hb_gpu_draw_t

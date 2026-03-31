@@ -25,7 +25,7 @@ HarfBuzz is optimized for robustness, correctness, and performance
 
 Here is a quick map of its components:
 
-### Core libraries
+### Libraries
 
 | Library | Description |
 |---------|-------------|
