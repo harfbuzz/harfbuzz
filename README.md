@@ -107,8 +107,7 @@ To report bugs or submit patches please use [github][4] issues and pull-requests
 
 To get a better idea of where HarfBuzz stands in the text rendering stack you
 may want to read [State of Text Rendering 2024][6].
-Here are a few presentation slides about HarfBuzz at the
-Internationalization and Unicode Conference over the years:
+Here are a few presentation slides about HarfBuzz over the years:
 
 - 2026 – [HarfBuzz at 20!][25]
 - 2016 – [Ten Years of HarfBuzz][20]
