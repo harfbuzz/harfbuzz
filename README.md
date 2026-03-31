@@ -25,18 +25,23 @@ HarfBuzz is optimized for robustness, correctness, and performance
 
 Here is a quick map of its components:
 
-### Libraries
+### Core libraries
 
 | Library | Description |
 |---------|-------------|
-| **libharfbuzz** | Text shaping, draw API, paint API. Highly configurable (see [CONFIG.md](CONFIG.md)). Optional integration backends compiled in: hb-ft (FreeType), hb-coretext (macOS), hb-uniscribe (Windows), hb-directwrite (Windows), hb-gdi (Windows), hb-glib, hb-graphite2, hb-fontations, hb-harfrust. |
+| **libharfbuzz** | Text shaping, draw API, paint API. Highly configurable (see [CONFIG.md](CONFIG.md)). Optional integration backends compiled in: hb-ft (FreeType), hb-coretext (macOS), hb-uniscribe (Windows), hb-directwrite (Windows), hb-gdi (Windows), hb-glib, hb-graphite2. |
 | **libharfbuzz-subset** | Font subsetting and variable-font instancing. |
-| **libharfbuzz-raster** | Glyph rasterization to bitmaps, including color fonts. Uses hb-draw and hb-paint. |
-| **libharfbuzz-vector** | Glyph output to vector formats (currently SVG), including color fonts. Uses hb-draw and hb-paint. |
-| **libharfbuzz-gpu** | Encodes glyph outlines for GPU rasterization (Slug algorithm). Provides shader sources in GLSL, WGSL, MSL, and HLSL. [Live demo.](https://harfbuzz.github.io/hb-gpu-demo/) |
 | **libharfbuzz-icu** | ICU Unicode integration. |
 | **libharfbuzz-cairo** | Cairo rendering integration. |
 | **libharfbuzz-gobject** | GObject/GI bindings. |
+
+### Experimental libraries
+
+| Library | Description |
+|---------|-------------|
+| **libharfbuzz-raster** | Glyph rasterization to bitmaps, including color fonts. Uses hb-draw and hb-paint. |
+| **libharfbuzz-vector** | Glyph output to vector formats (currently SVG), including color fonts. Uses hb-draw and hb-paint. |
+| **libharfbuzz-gpu** | Encodes glyph outlines for GPU rasterization (Slug algorithm). Provides shader sources in GLSL, WGSL, MSL, and HLSL. [Live demo.](https://harfbuzz.github.io/hb-gpu-demo/) |
 
 Notable missing feature: font hinting (including autohinting)
 is not implemented.  For hinted rasterization, use FreeType or
