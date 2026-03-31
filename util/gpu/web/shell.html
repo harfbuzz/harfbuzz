@@ -207,6 +207,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var pinchAngle = 0;
   var pinchCX = 0, pinchCY = 0;
   var gestureX = 0, gestureY = 0;
+  var pinchActive = false;
   var threeFingerActive = false;
   var skipNextPinchMove = false;
   var longPressTimer = null;
@@ -247,6 +248,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     }
     if (e.touches.length === 2) {
       swallowTouch(e);
+      pinchActive = true;
       var t = e.touches;
       pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
                              t[1].clientY - t[0].clientY);
@@ -264,6 +266,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       skipNextPinchMove = false;
     } else if (e.touches.length >= 3) {
       swallowTouch(e);
+      pinchActive = false;
       threeFingerActive = true;
       skipNextPinchMove = false;
       var t = e.touches;
@@ -302,6 +305,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     }
     if (e.touches.length >= 3 && threeFingerActive) {
       swallowTouch(e);
+      pinchActive = false;
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
       var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
@@ -314,6 +318,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     }
     if (e.touches.length === 2) {
       swallowTouch(e);
+      pinchActive = true;
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX) / 2;
       var cy = (t[0].clientY + t[1].clientY) / 2;
@@ -352,7 +357,9 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     }
   }, {passive: false, capture: true});
   if (!isWebGPU) canvas.addEventListener('touchend', function (e) {
-    if (threeFingerActive || skipNextPinchMove || e.touches.length >= 2 || doubleTapZoom)
+    var pinchEnding = pinchActive && e.touches.length < 2;
+    if (threeFingerActive || pinchEnding || skipNextPinchMove ||
+        e.touches.length >= 2 || doubleTapZoom)
       swallowTouch(e);
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     if (longPressFired) {
@@ -375,8 +382,10 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         pinchCY = releaseY;
         gestureX = releaseX;
         gestureY = releaseY;
+        pinchActive = true;
         skipNextPinchMove = true;
       } else {
+        pinchActive = false;
         skipNextPinchMove = false;
       }
       if (typeof _web_cancel_gesture === 'function')
@@ -384,27 +393,35 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 2, clientX: releaseX, clientY: releaseY
       }));
-    } else if (e.touches.length < 2) {
+    } else if (pinchEnding) {
+      pinchActive = false;
       skipNextPinchMove = false;
-      /* 2→1: GLFW didn't see the pinch, so synthesize mousedown
-       * for the remaining finger to enable panning. */
       if (e.touches.length === 1) {
+        /* Hand single-finger pan off from the remaining touch point. */
+        canvas.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: e.touches[0].clientX,
+          clientY: e.touches[0].clientY
+        }));
         canvas.dispatchEvent(new MouseEvent('mousedown', {
           button: 0,
           clientX: e.touches[0].clientX,
           clientY: e.touches[0].clientY
         }));
       }
+    } else if (e.touches.length < 2) {
+      skipNextPinchMove = false;
     }
   }, {passive: false, capture: true});
   if (!isWebGPU) canvas.addEventListener('touchcancel', function (e) {
-    var handledGesture = threeFingerActive || skipNextPinchMove ||
+    var handledGesture = threeFingerActive || pinchActive ||
+                         skipNextPinchMove ||
                          e.touches.length >= 2 || doubleTapZoom;
     if (handledGesture)
       swallowTouch(e);
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     longPressFired = false;
     doubleTapZoom = false;
+    pinchActive = false;
     skipNextPinchMove = false;
     if (threeFingerActive) {
       threeFingerActive = false;
