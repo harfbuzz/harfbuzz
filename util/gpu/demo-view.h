@@ -82,6 +82,9 @@ void
 demo_view_setup (demo_view_t *vu);
 
 void
+demo_view_type (demo_view_t *vu, const char *keys);
+
+void
 demo_view_request_redraw (demo_view_t *vu);
 
 bool

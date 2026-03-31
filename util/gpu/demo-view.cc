@@ -816,6 +816,17 @@ demo_view_setup (demo_view_t *vu)
 }
 
 void
+demo_view_type (demo_view_t *vu, const char *keys)
+{
+  for (const char *p = keys; *p; p++)
+  {
+    int key = (unsigned char) *p;
+    demo_view_key_func (vu, key >= 'a' && key <= 'z' ? key - 32 : key, 0, GLFW_PRESS, 0);
+    demo_view_char_func (vu, key);
+  }
+}
+
+void
 demo_view_request_redraw (demo_view_t *vu)
 {
   vu->needs_redraw = true;

@@ -46,12 +46,14 @@ struct gpu_output_t
   hb_bool_t use_metal = false;
   hb_bool_t use_d3d11 = false;
   hb_bool_t demo = false;
+  char *type_text = nullptr;
 
   void add_options (option_parser_t *parser)
   {
     GOptionEntry entries[] =
     {
       {"demo",		0, 0, G_OPTION_ARG_NONE,	&this->demo,		"Use built-in demo font and text",	nullptr},
+      {"type",		'T', 0, G_OPTION_ARG_STRING,	&this->type_text,	"Type these keystrokes on start",	"keys"},
 #ifdef __APPLE__
       {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
 #endif
@@ -243,6 +245,9 @@ struct gpu_output_t
     demo_font_print_stats (demo_font_);
     demo_view_print_help (vu);
     demo_view_setup (vu);
+
+    if (type_text)
+      demo_view_type (vu, type_text);
 
     demo_view_display (vu, buf);
     glfwPollEvents ();
