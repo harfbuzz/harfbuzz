@@ -92,8 +92,6 @@
 #define HB_NO_LEGACY
 #define HB_NO_BEYOND_64K
 #define HB_NO_CUBIC_GLYF
-#define HB_NO_VAR_COMPOSITES
-#define HB_NO_VAR_HVF
 #endif
 
 #ifdef __OPTIMIZE_SIZE__
