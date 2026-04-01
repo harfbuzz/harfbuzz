@@ -59,7 +59,7 @@ struct gpu_output_t
     self->demo = true;
     self->bench = true;
     if (!self->type_text)
-      self->type_text = g_strdup ("30=f ");
+      self->type_text = g_strdup ("v30=f ");
     return true;
   }
 
