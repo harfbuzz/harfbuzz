@@ -1,5 +1,5 @@
-Overview of changes leading to X.X.X
-XXXXX
+Overview of changes leading to 14.0.0
+Wednesday, April 1, 2026
 =====================================
 - New `libharfbuzz-gpu` library: GPU text rasterization based on the
   Slug algorithm by Eric Lengyel.  Encodes glyph outlines on the CPU

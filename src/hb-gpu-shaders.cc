@@ -52,7 +52,7 @@
  * Return value: (transfer none):
  * A shader source string, or `NULL` if @lang is unsupported.
  *
- * XSince: REPLACEME
+ * Since: 14.0.0
  **/
 const char *
 hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang)
@@ -81,7 +81,7 @@ hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang)
  * Return value: (transfer none):
  * A shader source string, or `NULL` if @lang is unsupported.
  *
- * XSince: REPLACEME
+ * Since: 14.0.0
  **/
 const char *
 hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang)
