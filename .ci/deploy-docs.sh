@@ -10,7 +10,7 @@ rm -rf $DOCSDIR || exit
 mkdir $DOCSDIR
 cd $DOCSDIR
 
-cp ../build/docs/html/* .
+cp -r ../build/docs/html/* .
 #cp ../build/docs/CNAME .
 
 git init
