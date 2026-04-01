@@ -132,15 +132,15 @@
 #define HB_NO_OT_FONT_BITMAP
 #endif
 
-#ifdef HB_NO_CFF
-#define HB_NO_OT_FONT_CFF
-#define HB_NO_SUBSET_CFF
-#endif
-
 #ifdef HB_NO_DRAW
 #define HB_NO_CFF
 #define HB_NO_OUTLINE
 #define HB_NO_PAINT
+#endif
+
+#ifdef HB_NO_CFF
+#define HB_NO_OT_FONT_CFF
+#define HB_NO_SUBSET_CFF
 #endif
 
 #ifdef HB_NO_LEGACY
