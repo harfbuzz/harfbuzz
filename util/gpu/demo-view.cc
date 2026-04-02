@@ -802,7 +802,8 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer)
 
   unsigned int count;
   glyph_vertex_t *verts = demo_buffer_get_vertices (buffer, &count);
-  vu->renderer->display (verts, count, width, height, mat);
+  unsigned generation = demo_buffer_get_generation (buffer);
+  vu->renderer->display (verts, count, generation, width, height, mat);
 
   vu->needs_redraw = false;
 }
