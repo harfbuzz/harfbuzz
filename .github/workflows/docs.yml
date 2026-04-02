@@ -54,6 +54,7 @@ jobs:
         meson setup build \
           -Dauto_features=enabled \
           -Doptimization=2 \
+          -Ddoc_tests=true \
           -Dgpu_demo=disabled \
           -Dchafa=disabled
         meson compile -Cbuild

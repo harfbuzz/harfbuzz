@@ -56,7 +56,6 @@ jobs:
           -Dgraphite=enabled \
           -Dkbts=enabled \
           -Doptimization=2 \
-          -Ddoc_tests=true \
           -Dragel_subproject=true
     - name: Build
       run: meson compile -Cbuild
