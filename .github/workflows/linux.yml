@@ -27,7 +27,6 @@ jobs:
         sudo apt-get install \
           gcc \
           gobject-introspection \
-          gtk-doc-tools \
           libcairo2-dev \
           libchafa-dev \
           libfreetype6-dev \
@@ -56,6 +55,7 @@ jobs:
           -Dgraphite=enabled \
           -Dkbts=enabled \
           -Doptimization=2 \
+          -Ddocs=disabled \
           -Dragel_subproject=true
     - name: Build
       run: meson compile -Cbuild
