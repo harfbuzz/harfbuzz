@@ -122,6 +122,7 @@ struct _hb_gpu_glyph_info
   ivec2 bandIndex;
   int numHBands;
   int numVBands;
+  vec2 scale;
 };
 
 _hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
@@ -134,6 +135,7 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
   vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS;
   gi.numHBands = header1.r;
   gi.numVBands = header1.g;
+  gi.scale = vec2 (float (header1.b), float (header1.a));
 
   vec2 extSize = ext.zw - ext.xy;
   vec2 bandScale = vec2 (float (gi.numVBands), float (gi.numHBands)) / max (extSize, vec2 (1.0 / 65536.0));
@@ -147,6 +149,19 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
   return gi;
 }
 
+/* Return pixels per em at this fragment.
+ *
+ * renderCoord:  em-space sample position
+ * glyphLoc:     texel offset of glyph blob in atlas
+ */
+float hb_gpu_ppem (vec2 renderCoord, uint glyphLoc_)
+{
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
+  vec2 emsPerPixel = fwidth (renderCoord);
+  return min (gi.scale.x, gi.scale.y) /
+	 max (emsPerPixel.x, emsPerPixel.y);
+}
+
 /* Return per-pixel curve counts: (horizontal, vertical). */
 ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
 {
@@ -156,12 +171,8 @@ ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
   return ivec2 (hCount, vCount);
 }
 
-/* Return coverage in [0, 1].
- *
- * renderCoord:  em-space sample position
- * glyphLoc:     texel offset of glyph blob in atlas
- */
-float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
+/* Single-sample coverage in [0, 1]. */
+float _hb_gpu_render_single (vec2 renderCoord, uint glyphLoc_)
 {
   vec2 emsPerPixel = fwidth (renderCoord);
   vec2 pixelsPerEm = 1.0 / emsPerPixel;
@@ -278,32 +289,37 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
 }
 
-/* Adaptive anti-aliased coverage in [0, 1].
+/* Return coverage in [0, 1].
  *
- * At small sizes (ppem < 16) blends 4 extra samples at ±1/3
- * pixel corners to reduce moiré.  Full MSAA at ppem ≤ 8,
- * single-sample at ppem ≥ 16.
+ * At small sizes (ppem < 16) automatically blends 4 extra
+ * samples at ±1/3 pixel corners to reduce moiré.  ppem is
+ * derived from the font scale stored in the glyph blob header.
+ * Define HB_GPU_NO_MSAA before including this shader to
+ * disable the multi-sample path.
  *
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
- * ppem:         pixels per em at this fragment
  */
-float hb_gpu_render_aaa (vec2 renderCoord, uint glyphLoc_,
-			 float ppem)
+float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 {
-  float c = hb_gpu_render (renderCoord, glyphLoc_);
+  float c = _hb_gpu_render_single (renderCoord, glyphLoc_);
+
+#ifndef HB_GPU_NO_MSAA
+  float ppem = hb_gpu_ppem (renderCoord, glyphLoc_);
+  vec2 emsPerPixel = fwidth (renderCoord);
 
   if (ppem < 16.0)
   {
-    vec2 d = fwidth (renderCoord) * (1.0 / 3.0);
+    vec2 d = emsPerPixel * (1.0 / 3.0);
     float msaa = 0.25 *
-      (hb_gpu_render (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
-       hb_gpu_render (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
-       hb_gpu_render (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
-       hb_gpu_render (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
+      (_hb_gpu_render_single (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
 
     c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
   }
+#endif
 
   return c;
 }

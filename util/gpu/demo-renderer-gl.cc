@@ -111,11 +111,6 @@ struct demo_renderer_gl_t : demo_renderer_t
     demo_glstate_set_stem_darkening (st, enabled);
   }
 
-  void set_upem (float upem) override
-  {
-    demo_glstate_set_upem (st, upem);
-  }
-
   bool set_srgb (bool enabled) override
   {
 #if defined(GL_FRAMEBUFFER_SRGB)

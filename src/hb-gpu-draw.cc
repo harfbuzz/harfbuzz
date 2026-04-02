@@ -534,8 +534,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   buf[0].a = quantize (max_y);
   buf[1].r = (int16_t) num_hbands;
   buf[1].g = (int16_t) num_vbands;
-  buf[1].b = 0;
-  buf[1].a = 0;
+  buf[1].b = (int16_t) hb_clamp (draw->x_scale, -32768, 32767);
+  buf[1].a = (int16_t) hb_clamp (draw->y_scale, -32768, 32767);
 
   /* Pack curve data with shared endpoints */
   s.curve_texel_offset.resize (num_curves);
@@ -830,13 +830,35 @@ hb_gpu_draw_get_funcs (void)
 }
 
 /**
+ * hb_gpu_draw_set_scale:
+ * @draw: a GPU shape encoder
+ * @x_scale: horizontal scale (typically from hb_font_get_scale())
+ * @y_scale: vertical scale
+ *
+ * Sets the font scale so the encoded blob can embed it for
+ * shader use (e.g. computing pixels-per-em).  Called
+ * automatically by hb_gpu_draw_glyph().
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
+		       int            x_scale,
+		       int            y_scale)
+{
+  draw->x_scale = x_scale;
+  draw->y_scale = y_scale;
+}
+
+/**
  * hb_gpu_draw_glyph:
  * @draw: a GPU shape encoder
  * @font: font to draw from
  * @codepoint: glyph ID to draw
  *
  * Convenience wrapper that draws a single glyph outline into the
- * encoder using hb_font_draw_glyph().
+ * encoder using hb_font_draw_glyph().  Also sets the font scale
+ * on the encoder.
  *
  * Since: 14.0.0
  **/
@@ -845,6 +867,10 @@ hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
 			  hb_font_t      *font,
 			  hb_codepoint_t  codepoint)
 {
+  int x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  hb_gpu_draw_set_scale (draw, x_scale, y_scale);
+
   hb_font_draw_glyph (font, codepoint,
 		       hb_gpu_draw_get_funcs (),
 		       draw);

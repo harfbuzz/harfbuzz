@@ -87,8 +87,3 @@ demo_glstate_set_stem_darkening (demo_glstate_t *st, bool enabled)
   glUniform1f (glGetUniformLocation (st->program, "u_stem_darkening"), enabled ? 1.f : 0.f);
 }
 
-void
-demo_glstate_set_upem (demo_glstate_t *st, float upem)
-{
-  glUniform1f (glGetUniformLocation (st->program, "u_upem"), upem);
-}

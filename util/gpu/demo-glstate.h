@@ -42,8 +42,5 @@ demo_glstate_set_debug (demo_glstate_t *st, bool enabled);
 void
 demo_glstate_set_stem_darkening (demo_glstate_t *st, bool enabled);
 
-void
-demo_glstate_set_upem (demo_glstate_t *st, float upem);
-
 
 #endif /* DEMO_GLSTATE_H */

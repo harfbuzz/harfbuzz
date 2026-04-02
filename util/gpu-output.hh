@@ -262,7 +262,6 @@ struct gpu_output_t
     demo_font_print_stats (demo_font_);
     demo_view_print_help (vu);
     demo_view_setup (vu);
-    renderer->set_upem ((float) hb_face_get_upem (face));
 
     if (type_text)
       demo_view_type (vu, type_text);

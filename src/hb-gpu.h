@@ -89,6 +89,13 @@ hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
 			     hb_user_data_key_t *key);
 
 
+/* Scale */
+
+HB_EXTERN void
+hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
+		       int            x_scale,
+		       int            y_scale);
+
 /* Draw */
 
 HB_EXTERN hb_draw_funcs_t *
