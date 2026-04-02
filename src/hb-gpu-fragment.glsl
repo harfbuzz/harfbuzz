@@ -156,8 +156,12 @@ ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
   return ivec2 (hCount, vCount);
 }
 
-/* Single-sample coverage. */
-float _hb_gpu_render_single (vec2 renderCoord, uint glyphLoc_)
+/* Return coverage in [0, 1].
+ *
+ * renderCoord:  em-space sample position
+ * glyphLoc:     texel offset of glyph blob in atlas
+ */
+float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 {
   vec2 emsPerPixel = fwidth (renderCoord);
   vec2 pixelsPerEm = 1.0 / emsPerPixel;
@@ -274,34 +278,31 @@ float _hb_gpu_render_single (vec2 renderCoord, uint glyphLoc_)
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
 }
 
-/* Return coverage in [0, 1].
- *
- * At small sizes (ppem < 16), blends in 4 extra samples at
- * ±1/3 pixel offsets to reduce moiré and aliasing.
+/* Coverage with 4 extra samples at ±1/3 pixel offsets,
+ * blended with the center sample.  Reduces moiré at small
+ * sizes.  blend is in [0, 1]: 0 = center only, 1 = full MSAA.
  *
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
+ * blend:        MSAA blend factor
  */
-float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
+float hb_gpu_render_msaa (vec2 renderCoord, uint glyphLoc_,
+			  float blend)
 {
-  float c = _hb_gpu_render_single (renderCoord, glyphLoc_);
+  float c = hb_gpu_render (renderCoord, glyphLoc_);
 
-  vec2 emsPerPixel = fwidth (renderCoord);
-  float ppem = 1.0 / max (emsPerPixel.x, emsPerPixel.y);
+  vec2 d = fwidth (renderCoord) * (1.0 / 3.0);
+  float msaa = (1.0 / 8.0) *
+    (hb_gpu_render (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 ( 0.0, -d.y), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 (-d.x,  0.0), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 ( d.x,  0.0), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 ( 0.0,  d.y), glyphLoc_) +
+     hb_gpu_render (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
 
-  if (ppem < 16.0)
-  {
-    vec2 d = emsPerPixel * (1.0 / 3.0);
-    float msaa = 0.25 *
-      (_hb_gpu_render_single (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
-
-    c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
-  }
-
-  return c;
+  return mix (c, msaa, blend);
 }
 
 /* Stem darkening for small sizes.
