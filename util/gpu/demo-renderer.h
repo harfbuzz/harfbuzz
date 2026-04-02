@@ -27,6 +27,7 @@ struct demo_renderer_t
   virtual void set_background (float r, float g, float b, float a) = 0;
   virtual void set_debug (bool enabled) = 0;
   virtual void set_stem_darkening (bool enabled) { (void) enabled; }
+  virtual void set_msaa (bool enabled) { (void) enabled; }
 
   /* sRGB framebuffer control; returns false if unsupported. */
   virtual bool set_srgb (bool enabled) = 0;
