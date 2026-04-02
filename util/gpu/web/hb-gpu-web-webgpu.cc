@@ -244,7 +244,7 @@ struct demo_renderer_webgpu_t : demo_renderer_t
   void toggle_vsync (bool &vsync) override { /* always vsync in browser */ }
 
   void display (glyph_vertex_t *vertices, unsigned int count,
-		unsigned generation HB_UNUSED,
+		unsigned generation,
 		int width, int height, float mat[16]) override
   {
     WGPUSurfaceTexture surfTex;
