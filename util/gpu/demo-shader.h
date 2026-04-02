@@ -75,7 +75,7 @@ demo_shader_add_glyph_vertices (const demo_point_t              &p,
 
 
 GLuint
-demo_shader_create_program (bool msaa = false);
+demo_shader_create_program (void);
 
 
 #endif /* DEMO_SHADERS_H */

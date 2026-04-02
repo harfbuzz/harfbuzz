@@ -278,27 +278,34 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
 }
 
-/* Coverage with 4 extra samples at ±1/3 pixel offsets,
- * blended with the center sample.  Reduces moiré at small
- * sizes.  blend is in [0, 1]: 0 = center only, 1 = full MSAA.
+/* Adaptive anti-aliased coverage in [0, 1].
+ *
+ * At small sizes (ppem < 16) blends 4 extra samples at ±1/3
+ * pixel corners to reduce moiré.  Full MSAA at ppem ≤ 8,
+ * single-sample at ppem ≥ 16.
  *
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
- * blend:        MSAA blend factor
+ * ppem:         pixels per em at this fragment
  */
-float hb_gpu_render_msaa (vec2 renderCoord, uint glyphLoc_,
-			  float blend)
+float hb_gpu_render_aaa (vec2 renderCoord, uint glyphLoc_,
+			 float ppem)
 {
   float c = hb_gpu_render (renderCoord, glyphLoc_);
 
-  vec2 d = fwidth (renderCoord) * (1.0 / 3.0);
-  float msaa = 0.25 *
-    (hb_gpu_render (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
+  if (ppem < 16.0)
+  {
+    vec2 d = fwidth (renderCoord) * (1.0 / 3.0);
+    float msaa = 0.25 *
+      (hb_gpu_render (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
+       hb_gpu_render (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
+       hb_gpu_render (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
+       hb_gpu_render (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
 
-  return mix (c, msaa, blend);
+    c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
+  }
+
+  return c;
 }
 
 /* Stem darkening for small sizes.

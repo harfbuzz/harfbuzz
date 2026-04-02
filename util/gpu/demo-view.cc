@@ -34,7 +34,6 @@ struct demo_view_t {
   bool dark_mode;
   bool debug;
   bool stem_darkening = true;
-  bool msaa;
   double screen_angle; /* 2D screen-space rotation from pinch */
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
@@ -413,11 +412,6 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       vu->stem_darkening = !vu->stem_darkening;
       vu->renderer->set_stem_darkening (vu->stem_darkening);
       LOGI ("Stem darkening: %s.\n", vu->stem_darkening ? "on" : "off");
-      break;
-    case GLFW_KEY_M:
-      vu->msaa = !vu->msaa;
-      vu->renderer->set_msaa (vu->msaa);
-      LOGI ("MSAA: %s.\n", vu->msaa ? "on" : "off");
       break;
     case GLFW_KEY_V:
       demo_view_toggle_vsync (vu);
