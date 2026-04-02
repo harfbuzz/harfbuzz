@@ -108,6 +108,7 @@ struct _hb_gpu_glyph_info
   int2 bandIndex;
   int numHBands;
   int numVBands;
+  float2 scale;
 };
 
 _hb_gpu_glyph_info _hb_gpu_decode_glyph (float2 renderCoord, uint glyphLoc_)
@@ -120,6 +121,7 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (float2 renderCoord, uint glyphLoc_)
   float4 ext = (float4) header0 * HB_GPU_INV_UNITS;
   gi.numHBands = header1.r;
   gi.numVBands = header1.g;
+  gi.scale = float2 ((float) header1.b, (float) header1.a);
 
   float2 extSize = ext.zw - ext.xy;
   float2 bandScale = float2 ((float) gi.numVBands, (float) gi.numHBands) / max (extSize, float2 (1.0 / 65536.0, 1.0 / 65536.0));
@@ -133,6 +135,19 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (float2 renderCoord, uint glyphLoc_)
   return gi;
 }
 
+/* Return pixels per em at this fragment.
+ *
+ * renderCoord:  em-space sample position
+ * glyphLoc:     texel offset of glyph blob in atlas
+ */
+float hb_gpu_ppem (float2 renderCoord, uint glyphLoc_)
+{
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
+  float2 emsPerPixel = fwidth (renderCoord);
+  return min (gi.scale.x, gi.scale.y) /
+	 max (emsPerPixel.x, emsPerPixel.y);
+}
+
 int2 _hb_gpu_curve_counts (float2 renderCoord, uint glyphLoc_)
 {
   _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
@@ -142,14 +157,8 @@ int2 _hb_gpu_curve_counts (float2 renderCoord, uint glyphLoc_)
 }
 
 
-/* Return coverage in [0, 1].
- *
- * Caller must declare: StructuredBuffer<int4> hb_gpu_atlas
- *
- * renderCoord:  em-space sample position
- * glyphLoc:     texel offset of glyph blob in atlas
- */
-float hb_gpu_render (float2 renderCoord, uint glyphLoc_)
+/* Single-sample coverage in [0, 1]. */
+float _hb_gpu_render_single (float2 renderCoord, uint glyphLoc_)
 {
   float2 emsPerPixel = fwidth (renderCoord);
   float2 pixelsPerEm = 1.0 / emsPerPixel;
@@ -262,6 +271,37 @@ float hb_gpu_render (float2 renderCoord, uint glyphLoc_)
   }
 
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
+}
+
+/* Return coverage in [0, 1].
+ *
+ * Caller must declare: StructuredBuffer<int4> hb_gpu_atlas
+ *
+ * renderCoord:  em-space sample position
+ * glyphLoc:     texel offset of glyph blob in atlas
+ */
+float hb_gpu_render (float2 renderCoord, uint glyphLoc_)
+{
+  float c = _hb_gpu_render_single (renderCoord, glyphLoc_);
+
+#ifndef HB_GPU_NO_MSAA
+  float ppem = hb_gpu_ppem (renderCoord, glyphLoc_);
+  float2 emsPerPixel = fwidth (renderCoord);
+
+  if (ppem < 16.0)
+  {
+    float2 d = emsPerPixel * (1.0 / 3.0);
+    float msaa = 0.25 *
+      (_hb_gpu_render_single (renderCoord + float2 (-d.x, -d.y), glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + float2 ( d.x, -d.y), glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + float2 (-d.x,  d.y), glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + float2 ( d.x,  d.y), glyphLoc_));
+
+    c = lerp (c, msaa, smoothstep (16.0, 8.0, ppem));
+  }
+#endif
+
+  return c;
 }
 
 /* Stem darkening for small sizes.

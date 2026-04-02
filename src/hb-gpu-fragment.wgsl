@@ -106,6 +106,7 @@ struct _hb_gpu_glyph_info
   bandIndex: vec2<i32>,
   numHBands: i32,
   numVBands: i32,
+  scale: vec2f,
 }
 
 fn _hb_gpu_decode_glyph (renderCoord: vec2f, glyphLoc_: u32,
@@ -119,6 +120,7 @@ fn _hb_gpu_decode_glyph (renderCoord: vec2f, glyphLoc_: u32,
   let ext = vec4f (header0) * HB_GPU_INV_UNITS;
   gi.numHBands = header1.r;
   gi.numVBands = header1.g;
+  gi.scale = vec2f (f32 (header1.b), f32 (header1.a));
 
   let extSize = ext.zw - ext.xy;
   let bandScale = vec2f (f32 (gi.numVBands), f32 (gi.numHBands)) / max (extSize, vec2f (1.0 / 65536.0));
@@ -132,6 +134,20 @@ fn _hb_gpu_decode_glyph (renderCoord: vec2f, glyphLoc_: u32,
   return gi;
 }
 
+/* Return pixels per em at this fragment.
+ *
+ * renderCoord:  em-space sample position
+ * glyphLoc:     texel offset of glyph blob in atlas
+ */
+fn hb_gpu_ppem (renderCoord: vec2f, glyphLoc_: u32,
+                hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+{
+  let gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  let emsPerPixel = fwidth (renderCoord);
+  return min (gi.scale.x, gi.scale.y) /
+         max (emsPerPixel.x, emsPerPixel.y);
+}
+
 /* Return per-pixel curve counts: (horizontal, vertical). */
 fn _hb_gpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec2<i32>
@@ -142,14 +158,9 @@ fn _hb_gpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
   return vec2<i32> (hCount, vCount);
 }
 
-/* Return coverage in [0, 1].
- *
- * renderCoord:    em-space sample position
- * glyphLoc:       texel offset of glyph blob in atlas
- * hb_gpu_atlas:   storage buffer pointer to the atlas
- */
-fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
-                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+/* Single-sample coverage in [0, 1]. */
+fn _hb_gpu_render_single (renderCoord: vec2f, glyphLoc_: u32,
+                           hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
   let emsPerPixel = fwidth (renderCoord);
   let pixelsPerEm = 1.0 / emsPerPixel;
@@ -270,6 +281,35 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
   }
 
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
+}
+
+/* Return coverage in [0, 1].
+ *
+ * renderCoord:    em-space sample position
+ * glyphLoc:       texel offset of glyph blob in atlas
+ * hb_gpu_atlas:   storage buffer pointer to the atlas
+ */
+fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
+                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+{
+  var c = _hb_gpu_render_single (renderCoord, glyphLoc_, hb_gpu_atlas);
+
+  let ppem = hb_gpu_ppem (renderCoord, glyphLoc_, hb_gpu_atlas);
+  let emsPerPixel = fwidth (renderCoord);
+
+  if (ppem < 16.0)
+  {
+    let d = emsPerPixel * (1.0 / 3.0);
+    let msaa = 0.25 *
+      (_hb_gpu_render_single (renderCoord + vec2f (-d.x, -d.y), glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_render_single (renderCoord + vec2f ( d.x, -d.y), glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_render_single (renderCoord + vec2f (-d.x,  d.y), glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_render_single (renderCoord + vec2f ( d.x,  d.y), glyphLoc_, hb_gpu_atlas));
+
+    c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
+  }
+
+  return c;
 }
 
 /* Stem darkening for small sizes.
