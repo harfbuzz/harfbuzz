@@ -292,14 +292,10 @@ float hb_gpu_render_msaa (vec2 renderCoord, uint glyphLoc_,
   float c = hb_gpu_render (renderCoord, glyphLoc_);
 
   vec2 d = fwidth (renderCoord) * (1.0 / 3.0);
-  float msaa = (1.0 / 8.0) *
+  float msaa = 0.25 *
     (hb_gpu_render (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( 0.0, -d.y), glyphLoc_) +
      hb_gpu_render (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 (-d.x,  0.0), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( d.x,  0.0), glyphLoc_) +
      hb_gpu_render (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( 0.0,  d.y), glyphLoc_) +
      hb_gpu_render (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
 
   return mix (c, msaa, blend);
