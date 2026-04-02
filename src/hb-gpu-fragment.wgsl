@@ -159,11 +159,9 @@ fn _hb_gpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
 }
 
 /* Single-sample coverage in [0, 1]. */
-fn _hb_gpu_render_single (renderCoord: vec2f, glyphLoc_: u32,
+fn _hb_gpu_render_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
                            hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
-  let emsPerPixel = fwidth (renderCoord);
-  let pixelsPerEm = 1.0 / emsPerPixel;
 
   let gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
   let glyphLoc = gi.glyphLoc;
@@ -292,19 +290,21 @@ fn _hb_gpu_render_single (renderCoord: vec2f, glyphLoc_: u32,
 fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
                   hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
-  var c = _hb_gpu_render_single (renderCoord, glyphLoc_, hb_gpu_atlas);
+  let emsPerPixel = fwidth (renderCoord);
+  let pixelsPerEm = 1.0 / emsPerPixel;
+
+  var c = _hb_gpu_render_single (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 
   let ppem = hb_gpu_ppem (renderCoord, glyphLoc_, hb_gpu_atlas);
-  let emsPerPixel = fwidth (renderCoord);
 
   if (ppem < 16.0)
   {
     let d = emsPerPixel * (1.0 / 3.0);
     let msaa = 0.25 *
-      (_hb_gpu_render_single (renderCoord + vec2f (-d.x, -d.y), glyphLoc_, hb_gpu_atlas) +
-       _hb_gpu_render_single (renderCoord + vec2f ( d.x, -d.y), glyphLoc_, hb_gpu_atlas) +
-       _hb_gpu_render_single (renderCoord + vec2f (-d.x,  d.y), glyphLoc_, hb_gpu_atlas) +
-       _hb_gpu_render_single (renderCoord + vec2f ( d.x,  d.y), glyphLoc_, hb_gpu_atlas));
+      (_hb_gpu_render_single (renderCoord + vec2f (-d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_render_single (renderCoord + vec2f ( d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_render_single (renderCoord + vec2f (-d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_render_single (renderCoord + vec2f ( d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas));
 
     c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
   }

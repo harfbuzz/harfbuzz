@@ -172,10 +172,8 @@ ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
 }
 
 /* Single-sample coverage in [0, 1]. */
-float _hb_gpu_render_single (vec2 renderCoord, uint glyphLoc_)
+float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
 {
-  vec2 emsPerPixel = fwidth (renderCoord);
-  vec2 pixelsPerEm = 1.0 / emsPerPixel;
 
   _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
   int glyphLoc = gi.glyphLoc;
@@ -296,20 +294,22 @@ float _hb_gpu_render_single (vec2 renderCoord, uint glyphLoc_)
  */
 float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 {
-  float c = _hb_gpu_render_single (renderCoord, glyphLoc_);
+  vec2 emsPerPixel = fwidth (renderCoord);
+  vec2 pixelsPerEm = 1.0 / emsPerPixel;
+
+  float c = _hb_gpu_render_single (renderCoord, pixelsPerEm, glyphLoc_);
 
 #ifndef HB_GPU_NO_MSAA
   float ppem = hb_gpu_ppem (renderCoord, glyphLoc_);
-  vec2 emsPerPixel = fwidth (renderCoord);
 
   if (ppem < 16.0)
   {
     vec2 d = emsPerPixel * (1.0 / 3.0);
     float msaa = 0.25 *
-      (_hb_gpu_render_single (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
+      (_hb_gpu_render_single (renderCoord + vec2 (-d.x, -d.y), pixelsPerEm, glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + vec2 ( d.x, -d.y), pixelsPerEm, glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + vec2 (-d.x,  d.y), pixelsPerEm, glyphLoc_) +
+       _hb_gpu_render_single (renderCoord + vec2 ( d.x,  d.y), pixelsPerEm, glyphLoc_));
 
     c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
   }
