@@ -796,8 +796,10 @@ on_adapter (WGPURequestAdapterStatus status,
   {
     fprintf (stderr, "Failed to get WebGPU adapter\n");
     EM_ASM ({
+      window._webgpuError = true;
       var el = document.getElementById ('loading');
       if (el) {
+        el.style.display = '';
         var html = 'WebGPU adapter not available.<br>' +
                  '<a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
                  'style="color:#88f">Browser support status</a>';
@@ -1034,6 +1036,26 @@ main ()
   emscripten_get_element_css_size ("#canvas", &css_w_d, &css_h_d);
   css_w = (int) css_w_d;
   css_h = (int) css_h_d;
+
+  /* Check WebGPU availability before trying the C API. */
+  bool has_webgpu = EM_ASM_INT ({ return !!navigator.gpu; });
+  if (!has_webgpu)
+  {
+    fprintf (stderr, "WebGPU not available in this browser\n");
+    EM_ASM ({
+      window._webgpuError = true;
+      var el = document.getElementById ('loading');
+      if (el) {
+        el.style.display = '';
+        el.innerHTML = 'WebGPU is not available in this browser.<br>' +
+          '<a href="index.html" style="color:#88f">Try the WebGL version</a>';
+        el.style.font = '18px sans-serif';
+        el.style.color = '#666';
+        el.style.textAlign = 'center';
+      }
+    });
+    return 0;
+  }
 
   WGPUInstanceDescriptor instDesc = {};
   WGPUInstance instance = wgpuCreateInstance (&instDesc);
