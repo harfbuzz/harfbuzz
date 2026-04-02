@@ -291,12 +291,6 @@ float _hb_gpu_render_single (vec2 renderCoord, uint glyphLoc_)
 
 /* Return coverage in [0, 1].
  *
- * At small sizes (ppem < 16) automatically blends 4 extra
- * samples at ±1/3 pixel corners to reduce moiré.  ppem is
- * derived from the font scale stored in the glyph blob header.
- * Define HB_GPU_NO_MSAA before including this shader to
- * disable the multi-sample path.
- *
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
  */
