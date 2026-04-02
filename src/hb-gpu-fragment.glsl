@@ -158,6 +158,8 @@ ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
 
 /* Return coverage in [0, 1].
  *
+ * Requires the hb_gpu_atlas uniform to be bound.
+ *
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
  */
@@ -276,33 +278,6 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   }
 
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
-}
-
-/* Coverage with 4 extra samples at ±1/3 pixel offsets,
- * blended with the center sample.  Reduces moiré at small
- * sizes.  blend is in [0, 1]: 0 = center only, 1 = full MSAA.
- *
- * renderCoord:  em-space sample position
- * glyphLoc:     texel offset of glyph blob in atlas
- * blend:        MSAA blend factor
- */
-float hb_gpu_render_msaa (vec2 renderCoord, uint glyphLoc_,
-			  float blend)
-{
-  float c = hb_gpu_render (renderCoord, glyphLoc_);
-
-  vec2 d = fwidth (renderCoord) * (1.0 / 3.0);
-  float msaa = (1.0 / 8.0) *
-    (hb_gpu_render (renderCoord + vec2 (-d.x, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( 0.0, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( d.x, -d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 (-d.x,  0.0), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( d.x,  0.0), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 (-d.x,  d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( 0.0,  d.y), glyphLoc_) +
-     hb_gpu_render (renderCoord + vec2 ( d.x,  d.y), glyphLoc_));
-
-  return mix (c, msaa, blend);
 }
 
 /* Stem darkening for small sizes.

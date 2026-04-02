@@ -46,14 +46,7 @@ out vec4 fragColor;
 
 void main ()
 {
-  float ppem = 1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y);
-
-#ifdef HB_GPU_DEMO_MSAA
-  float coverage = hb_gpu_render_msaa (v_texcoord, v_glyphLoc,
-					smoothstep (16.0, 8.0, ppem));
-#else
   float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
-#endif
 
   /* Stem darkening / thinning at small sizes.
    * Light text on dark: stems get too fat → thin them (exponent > 1).
@@ -62,7 +55,7 @@ void main ()
   if (u_stem_darkening > 0.0)
     coverage = hb_gpu_darken (coverage,
       dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
-      ppem);
+      1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
 
   if (u_gamma != 1.0)
     coverage = pow (coverage, u_gamma);
@@ -152,25 +145,24 @@ link_program (GLuint vertex_shader,
 }
 
 GLuint
-demo_shader_create_program (bool msaa)
+demo_shader_create_program (void)
 {
   GLuint vertex_shader, fragment_shader, program;
 
 #ifdef HB_GPU_ATLAS_2D
-  const char *base = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
+  const GLchar *preamble = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
 #else
-  const char *base = "#version 330\n";
+  const GLchar *preamble = "#version 330\n";
 #endif
-  const char *msaa_def = msaa ? "#define HB_GPU_DEMO_MSAA\n" : "";
 
-  const GLchar *vert_sources[] = {base,
+  const GLchar *vert_sources[] = {preamble,
 				  hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_GLSL),
 				  demo_vertex_glsl};
   vertex_shader = compile_shader (GL_VERTEX_SHADER,
 				  ARRAY_LEN (vert_sources),
 				  vert_sources);
 
-  const GLchar *frag_sources[] = {base, msaa_def,
+  const GLchar *frag_sources[] = {preamble,
 				  hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_GLSL),
 				  demo_fragment_glsl};
   fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
