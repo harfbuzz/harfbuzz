@@ -275,6 +275,7 @@ float4 ps_main (PSInput input) : SV_Target {
   void toggle_vsync (bool &v) override { v = !v; vsync_on = v; }
 
   void display (glyph_vertex_t *vertices, unsigned count,
+		unsigned generation HB_UNUSED,
 		int width, int height, float mat[16]) override
   {
     if (width != cur_width || height != cur_height)

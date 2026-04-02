@@ -34,8 +34,9 @@ struct demo_renderer_t
   /* Vsync toggle. */
   virtual void toggle_vsync (bool &vsync) = 0;
 
-  /* Render a frame. */
+  /* Render a frame.  generation changes when buffer content is rebuilt. */
   virtual void display (glyph_vertex_t *vertices, unsigned int count,
+			unsigned generation,
 			int width, int height, float mat[16]) = 0;
 };
 

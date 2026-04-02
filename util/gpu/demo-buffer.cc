@@ -10,6 +10,7 @@ struct demo_buffer_t {
   std::vector<glyph_vertex_t> *vertices;
   demo_extents_t ink_extents;
   demo_extents_t logical_extents;
+  unsigned generation;
 };
 
 demo_buffer_t *
@@ -41,6 +42,7 @@ demo_buffer_clear (demo_buffer_t *buffer)
   buffer->vertices->clear ();
   demo_extents_clear (&buffer->ink_extents);
   demo_extents_clear (&buffer->logical_extents);
+  buffer->generation++;
 }
 
 void
@@ -172,4 +174,10 @@ demo_buffer_get_vertices (demo_buffer_t *buffer,
   if (buffer->vertices->empty ())
     return nullptr;
   return &(*buffer->vertices)[0];
+}
+
+unsigned
+demo_buffer_get_generation (demo_buffer_t *buffer)
+{
+  return buffer->generation;
 }

@@ -55,5 +55,8 @@ glyph_vertex_t *
 demo_buffer_get_vertices (demo_buffer_t *buffer,
 			  unsigned int  *count);
 
+unsigned
+demo_buffer_get_generation (demo_buffer_t *buffer);
+
 
 #endif /* DEMO_BUFFER_H */

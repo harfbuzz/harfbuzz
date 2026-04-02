@@ -251,6 +251,7 @@ struct demo_renderer_metal_t : demo_renderer_t
   /* -- Frame -- */
 
   void display (glyph_vertex_t *vertices, unsigned int count,
+		unsigned generation HB_UNUSED,
 		int width, int height, float mat[16]) override
   {
     @autoreleasepool {

@@ -15,11 +15,11 @@ struct demo_renderer_gl_t : demo_renderer_t
   GLuint buf_name;
   bool vao_ready;
   unsigned int uploaded_count;
-  glyph_vertex_t *uploaded_ptr;
+  unsigned uploaded_generation;
 
   demo_renderer_gl_t (GLFWwindow *window_)
     : window (window_), vao_ready (false),
-      uploaded_count (0), uploaded_ptr (nullptr)
+      uploaded_count (0), uploaded_generation (0)
   {
     st = demo_glstate_create ();
     glGenVertexArrays (1, &vao_name);
@@ -137,6 +137,7 @@ struct demo_renderer_gl_t : demo_renderer_t
   }
 
   void display (glyph_vertex_t *vertices, unsigned int count,
+		unsigned generation,
 		int width, int height, float mat[16]) override
   {
     glViewport (0, 0, width, height);
@@ -150,14 +151,14 @@ struct demo_renderer_gl_t : demo_renderer_t
 
       glBindVertexArray (vao_name);
 
-      if (vertices != uploaded_ptr || count != uploaded_count)
+      if (count != uploaded_count || generation != uploaded_generation)
       {
 	glBindBuffer (GL_ARRAY_BUFFER, buf_name);
 	glBufferData (GL_ARRAY_BUFFER,
 		      sizeof (glyph_vertex_t) * count,
 		      (const char *) vertices, GL_STATIC_DRAW);
-	uploaded_ptr = vertices;
 	uploaded_count = count;
+	uploaded_generation = generation;
       }
 
       glDrawArrays (GL_TRIANGLES, 0, count);
