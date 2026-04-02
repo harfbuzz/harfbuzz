@@ -839,7 +839,7 @@ hb_gpu_draw_get_funcs (void)
  * shader use (e.g. computing pixels-per-em).  Called
  * automatically by hb_gpu_draw_glyph().
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,

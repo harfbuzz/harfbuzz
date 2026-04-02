@@ -1121,6 +1121,7 @@ hb_gpu_draw_destroy
 hb_gpu_draw_set_user_data
 hb_gpu_draw_get_user_data
 hb_gpu_draw_get_funcs
+hb_gpu_draw_set_scale
 hb_gpu_draw_glyph
 hb_gpu_draw_encode
 hb_gpu_draw_get_extents
