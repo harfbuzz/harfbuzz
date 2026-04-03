@@ -73,6 +73,7 @@ struct hb_svg_render_context_t
   hb_decycler_t use_decycler;
   bool suppress_viewbox_once = false;
   bool allow_symbol_render_once = false;
+  bool failed = false;
 
   bool push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
   {
