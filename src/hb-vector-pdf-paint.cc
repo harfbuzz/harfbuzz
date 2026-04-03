@@ -77,17 +77,17 @@ struct hb_pdf_resources_t
   {
     unsigned idx = extgstate_count++;
     hb_vector_t<char> obj;
-    hb_svg_append_str (&obj, "<< /Type /ExtGState /ca ");
-    hb_svg_append_num (&obj, alpha, 4);
-    hb_svg_append_str (&obj, " >>");
+    hb_buf_append_str (&obj, "<< /Type /ExtGState /ca ");
+    hb_buf_append_num (&obj, alpha, 4);
+    hb_buf_append_str (&obj, " >>");
     unsigned obj_id = add_object (std::move (obj));
 
     /* Add to resource dict. */
-    hb_svg_append_str (&extgstate_dict, "/GS");
-    hb_svg_append_unsigned (&extgstate_dict, idx);
-    hb_svg_append_c (&extgstate_dict, ' ');
-    hb_svg_append_unsigned (&extgstate_dict, obj_id);
-    hb_svg_append_str (&extgstate_dict, " 0 R ");
+    hb_buf_append_str (&extgstate_dict, "/GS");
+    hb_buf_append_unsigned (&extgstate_dict, idx);
+    hb_buf_append_c (&extgstate_dict, ' ');
+    hb_buf_append_unsigned (&extgstate_dict, obj_id);
+    hb_buf_append_str (&extgstate_dict, " 0 R ");
     (void) precision;
     return idx;
   }
@@ -98,11 +98,11 @@ struct hb_pdf_resources_t
     unsigned idx = shading_count++;
     unsigned obj_id = add_object (std::move (shading_data));
 
-    hb_svg_append_str (&shading_dict, "/SH");
-    hb_svg_append_unsigned (&shading_dict, idx);
-    hb_svg_append_c (&shading_dict, ' ');
-    hb_svg_append_unsigned (&shading_dict, obj_id);
-    hb_svg_append_str (&shading_dict, " 0 R ");
+    hb_buf_append_str (&shading_dict, "/SH");
+    hb_buf_append_unsigned (&shading_dict, idx);
+    hb_buf_append_c (&shading_dict, ' ');
+    hb_buf_append_unsigned (&shading_dict, obj_id);
+    hb_buf_append_str (&shading_dict, " 0 R ");
     return idx;
   }
 };
@@ -179,7 +179,7 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 		       hb_vector_draw_get_funcs (),
 		       &tmp);
 
-  hb_svg_append_len (buf, tmp.path.arrayZ, tmp.path.length);
+  hb_buf_append_len (buf, tmp.path.arrayZ, tmp.path.length);
 }
 
 
@@ -198,19 +198,19 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "q\n");
-  hb_svg_append_num (&body, xx, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, yx, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, xy, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, yy, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, dx, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, dy, paint->precision);
-  hb_svg_append_str (&body, " cm\n");
+  hb_buf_append_str (&body, "q\n");
+  hb_buf_append_num (&body, xx, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, yx, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, xy, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, yy, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, dx, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, dy, paint->precision);
+  hb_buf_append_str (&body, " cm\n");
 }
 
 static void
@@ -221,7 +221,7 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
-  hb_svg_append_str (&paint->current_body (), "Q\n");
+  hb_buf_append_str (&paint->current_body (), "Q\n");
 }
 
 static void
@@ -236,9 +236,9 @@ hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "q\n");
+  hb_buf_append_str (&body, "q\n");
   hb_pdf_emit_glyph_path (paint, font, glyph, &body);
-  hb_svg_append_str (&body, "W n\n");
+  hb_buf_append_str (&body, "W n\n");
 }
 
 static void
@@ -253,15 +253,15 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "q\n");
-  hb_svg_append_num (&body, xmin, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, ymin, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, xmax - xmin, paint->precision);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, ymax - ymin, paint->precision);
-  hb_svg_append_str (&body, " re W n\n");
+  hb_buf_append_str (&body, "q\n");
+  hb_buf_append_num (&body, xmin, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, ymin, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, xmax - xmin, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, ymax - ymin, paint->precision);
+  hb_buf_append_str (&body, " re W n\n");
 }
 
 static void
@@ -272,7 +272,7 @@ hb_pdf_paint_pop_clip (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
-  hb_svg_append_str (&paint->current_body (), "Q\n");
+  hb_buf_append_str (&paint->current_body (), "Q\n");
 }
 
 /* Paint a solid color, including alpha via ExtGState. */
@@ -296,22 +296,22 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
     if (res)
     {
       unsigned gs_idx = res->add_extgstate_alpha (a, paint->precision);
-      hb_svg_append_str (&body, "/GS");
-      hb_svg_append_unsigned (&body, gs_idx);
-      hb_svg_append_str (&body, " gs\n");
+      hb_buf_append_str (&body, "/GS");
+      hb_buf_append_unsigned (&body, gs_idx);
+      hb_buf_append_str (&body, " gs\n");
     }
   }
 
   /* Set fill color. */
-  hb_svg_append_num (&body, r, 4);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, g, 4);
-  hb_svg_append_c (&body, ' ');
-  hb_svg_append_num (&body, b, 4);
-  hb_svg_append_str (&body, " rg\n");
+  hb_buf_append_num (&body, r, 4);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, g, 4);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, b, 4);
+  hb_buf_append_str (&body, " rg\n");
 
   /* Paint a huge rect (will be clipped). */
-  hb_svg_append_str (&body, "-32767 -32767 65534 65534 re f\n");
+  hb_buf_append_str (&body, "-32767 -32767 65534 65534 re f\n");
 }
 
 static void
@@ -357,20 +357,20 @@ static void
 hb_pdf_build_interpolation_function (hb_vector_t<char> *obj,
 				     hb_color_t c0, hb_color_t c1)
 {
-  hb_svg_append_str (obj, "<< /FunctionType 2 /Domain [0 1] /N 1\n");
-  hb_svg_append_str (obj, "/C0 [");
-  hb_svg_append_num (obj, hb_color_get_red (c0) / 255.f, 4);
-  hb_svg_append_c (obj, ' ');
-  hb_svg_append_num (obj, hb_color_get_green (c0) / 255.f, 4);
-  hb_svg_append_c (obj, ' ');
-  hb_svg_append_num (obj, hb_color_get_blue (c0) / 255.f, 4);
-  hb_svg_append_str (obj, "]\n/C1 [");
-  hb_svg_append_num (obj, hb_color_get_red (c1) / 255.f, 4);
-  hb_svg_append_c (obj, ' ');
-  hb_svg_append_num (obj, hb_color_get_green (c1) / 255.f, 4);
-  hb_svg_append_c (obj, ' ');
-  hb_svg_append_num (obj, hb_color_get_blue (c1) / 255.f, 4);
-  hb_svg_append_str (obj, "] >>");
+  hb_buf_append_str (obj, "<< /FunctionType 2 /Domain [0 1] /N 1\n");
+  hb_buf_append_str (obj, "/C0 [");
+  hb_buf_append_num (obj, hb_color_get_red (c0) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_green (c0) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_blue (c0) / 255.f, 4);
+  hb_buf_append_str (obj, "]\n/C1 [");
+  hb_buf_append_num (obj, hb_color_get_red (c1) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_green (c1) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_blue (c1) / 255.f, 4);
+  hb_buf_append_str (obj, "] >>");
 }
 
 /* Build a stitching function (Type 3) for multiple color stops. */
@@ -421,35 +421,35 @@ hb_pdf_build_gradient_function (hb_pdf_resources_t *res,
 
   /* Stitching function (Type 3). */
   hb_vector_t<char> obj;
-  hb_svg_append_str (&obj, "<< /FunctionType 3 /Domain [0 1]\n");
+  hb_buf_append_str (&obj, "<< /FunctionType 3 /Domain [0 1]\n");
 
   /* Functions array. */
-  hb_svg_append_str (&obj, "/Functions [");
+  hb_buf_append_str (&obj, "/Functions [");
   for (unsigned i = 0; i < sub_func_ids.length; i++)
   {
-    if (i) hb_svg_append_c (&obj, ' ');
-    hb_svg_append_unsigned (&obj, sub_func_ids.arrayZ[i]);
-    hb_svg_append_str (&obj, " 0 R");
+    if (i) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_unsigned (&obj, sub_func_ids.arrayZ[i]);
+    hb_buf_append_str (&obj, " 0 R");
   }
-  hb_svg_append_str (&obj, "]\n");
+  hb_buf_append_str (&obj, "]\n");
 
   /* Bounds. */
-  hb_svg_append_str (&obj, "/Bounds [");
+  hb_buf_append_str (&obj, "/Bounds [");
   for (unsigned i = 1; i + 1 < count; i++)
   {
-    if (i > 1) hb_svg_append_c (&obj, ' ');
-    hb_svg_append_num (&obj, paint->color_stops_scratch.arrayZ[i].offset, 4);
+    if (i > 1) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_num (&obj, paint->color_stops_scratch.arrayZ[i].offset, 4);
   }
-  hb_svg_append_str (&obj, "]\n");
+  hb_buf_append_str (&obj, "]\n");
 
   /* Encode array. */
-  hb_svg_append_str (&obj, "/Encode [");
+  hb_buf_append_str (&obj, "/Encode [");
   for (unsigned i = 0; i + 1 < count; i++)
   {
-    if (i) hb_svg_append_c (&obj, ' ');
-    hb_svg_append_str (&obj, "0 1");
+    if (i) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_str (&obj, "0 1");
   }
-  hb_svg_append_str (&obj, "] >>");
+  hb_buf_append_str (&obj, "] >>");
 
   return res->add_object (std::move (obj));
 }
@@ -474,31 +474,31 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 
   /* Build Type 2 (axial) shading. */
   hb_vector_t<char> sh;
-  hb_svg_append_str (&sh, "<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
-  hb_svg_append_str (&sh, "/Coords [");
-  hb_svg_append_num (&sh, x0, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, y0, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, x1, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, y1, paint->precision);
-  hb_svg_append_str (&sh, "]\n/Function ");
-  hb_svg_append_unsigned (&sh, func_id);
-  hb_svg_append_str (&sh, " 0 R\n");
+  hb_buf_append_str (&sh, "<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
+  hb_buf_append_str (&sh, "/Coords [");
+  hb_buf_append_num (&sh, x0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, x1, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y1, paint->precision);
+  hb_buf_append_str (&sh, "]\n/Function ");
+  hb_buf_append_unsigned (&sh, func_id);
+  hb_buf_append_str (&sh, " 0 R\n");
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   if (extend == HB_PAINT_EXTEND_PAD)
-    hb_svg_append_str (&sh, "/Extend [true true]\n");
+    hb_buf_append_str (&sh, "/Extend [true true]\n");
 
-  hb_svg_append_str (&sh, ">>");
+  hb_buf_append_str (&sh, ">>");
 
   unsigned sh_idx = res->add_shading (std::move (sh));
 
   auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "/SH");
-  hb_svg_append_unsigned (&body, sh_idx);
-  hb_svg_append_str (&body, " sh\n");
+  hb_buf_append_str (&body, "/SH");
+  hb_buf_append_unsigned (&body, sh_idx);
+  hb_buf_append_str (&body, " sh\n");
 }
 
 static void
@@ -520,35 +520,35 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 
   /* Build Type 3 (radial) shading. */
   hb_vector_t<char> sh;
-  hb_svg_append_str (&sh, "<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
-  hb_svg_append_str (&sh, "/Coords [");
-  hb_svg_append_num (&sh, x0, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, y0, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, r0, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, x1, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, y1, paint->precision);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, r1, paint->precision);
-  hb_svg_append_str (&sh, "]\n/Function ");
-  hb_svg_append_unsigned (&sh, func_id);
-  hb_svg_append_str (&sh, " 0 R\n");
+  hb_buf_append_str (&sh, "<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
+  hb_buf_append_str (&sh, "/Coords [");
+  hb_buf_append_num (&sh, x0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, r0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, x1, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y1, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, r1, paint->precision);
+  hb_buf_append_str (&sh, "]\n/Function ");
+  hb_buf_append_unsigned (&sh, func_id);
+  hb_buf_append_str (&sh, " 0 R\n");
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   if (extend == HB_PAINT_EXTEND_PAD)
-    hb_svg_append_str (&sh, "/Extend [true true]\n");
+    hb_buf_append_str (&sh, "/Extend [true true]\n");
 
-  hb_svg_append_str (&sh, ">>");
+  hb_buf_append_str (&sh, ">>");
 
   unsigned sh_idx = res->add_shading (std::move (sh));
 
   auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "/SH");
-  hb_svg_append_unsigned (&body, sh_idx);
-  hb_svg_append_str (&body, " sh\n");
+  hb_buf_append_str (&body, "/SH");
+  hb_buf_append_unsigned (&body, sh_idx);
+  hb_buf_append_str (&body, " sh\n");
 }
 
 /* Evaluate color line at a given offset. */
@@ -600,7 +600,7 @@ static void
 hb_pdf_encode_u16 (hb_vector_t<char> *buf, uint16_t v)
 {
   char bytes[2] = {(char) (v >> 8), (char) (v & 0xFF)};
-  hb_svg_append_len (buf, bytes, 2);
+  hb_buf_append_len (buf, bytes, 2);
 }
 
 /* Encode a coordinate as 16-bit value relative to Decode range. */
@@ -620,7 +620,7 @@ hb_pdf_encode_color_rgb (hb_vector_t<char> *buf, hb_color_t c)
   char rgb[3] = {(char) hb_color_get_red (c),
 		 (char) hb_color_get_green (c),
 		 (char) hb_color_get_blue (c)};
-  hb_svg_append_len (buf, rgb, 3);
+  hb_buf_append_len (buf, rgb, 3);
 }
 
 /* Encode one Coons patch control point. */
@@ -736,7 +736,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 						  count, t1, extend);
 
     /* Flag byte. */
-    hb_svg_append_c (&mesh, '\0'); /* flag = 0, new patch */
+    hb_buf_append_c (&mesh, '\0'); /* flag = 0, new patch */
 
     /* 12 control points: edges 1,2,3,4. */
     hb_pdf_encode_point (&mesh, p0x, p0y, xlo, xhi, ylo, yhi);      /* p0 */
@@ -761,29 +761,29 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   /* Build the shading stream object. */
   hb_vector_t<char> sh;
-  hb_svg_append_str (&sh, "<< /ShadingType 6 /ColorSpace /DeviceRGB\n");
-  hb_svg_append_str (&sh, "/BitsPerCoordinate 16 /BitsPerComponent 8 /BitsPerFlag 8\n");
-  hb_svg_append_str (&sh, "/Decode [");
-  hb_svg_append_num (&sh, xlo, 2);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, xhi, 2);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, ylo, 2);
-  hb_svg_append_c (&sh, ' ');
-  hb_svg_append_num (&sh, yhi, 2);
-  hb_svg_append_str (&sh, " 0 1 0 1 0 1]\n");
-  hb_svg_append_str (&sh, "/Length ");
-  hb_svg_append_unsigned (&sh, mesh.length);
-  hb_svg_append_str (&sh, " >>\nstream\n");
-  hb_svg_append_len (&sh, mesh.arrayZ, mesh.length);
-  hb_svg_append_str (&sh, "\nendstream");
+  hb_buf_append_str (&sh, "<< /ShadingType 6 /ColorSpace /DeviceRGB\n");
+  hb_buf_append_str (&sh, "/BitsPerCoordinate 16 /BitsPerComponent 8 /BitsPerFlag 8\n");
+  hb_buf_append_str (&sh, "/Decode [");
+  hb_buf_append_num (&sh, xlo, 2);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, xhi, 2);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, ylo, 2);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, yhi, 2);
+  hb_buf_append_str (&sh, " 0 1 0 1 0 1]\n");
+  hb_buf_append_str (&sh, "/Length ");
+  hb_buf_append_unsigned (&sh, mesh.length);
+  hb_buf_append_str (&sh, " >>\nstream\n");
+  hb_buf_append_len (&sh, mesh.arrayZ, mesh.length);
+  hb_buf_append_str (&sh, "\nendstream");
 
   unsigned sh_idx = res->add_shading (std::move (sh));
 
   auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "/SH");
-  hb_svg_append_unsigned (&body, sh_idx);
-  hb_svg_append_str (&body, " sh\n");
+  hb_buf_append_str (&body, "/SH");
+  hb_buf_append_unsigned (&body, sh_idx);
+  hb_buf_append_str (&body, " sh\n");
 }
 
 static void
@@ -794,7 +794,7 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
-  hb_svg_append_str (&paint->current_body (), "q\n");
+  hb_buf_append_str (&paint->current_body (), "q\n");
 }
 
 static void
@@ -806,7 +806,7 @@ hb_pdf_paint_pop_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
-  hb_svg_append_str (&paint->current_body (), "Q\n");
+  hb_buf_append_str (&paint->current_body (), "Q\n");
 }
 
 
@@ -875,96 +875,96 @@ hb_vector_pdf_paint_render (hb_vector_paint_t *paint)
 
   /* Build PDF. */
   hb_vector_t<char> out;
-  hb_svg_recover_recycled_buffer (paint->recycled_blob, &out);
+  hb_buf_recover_recycled (paint->recycled_blob, &out);
   out.alloc (content.length + num_extra * 128 + 1024);
 
   hb_vector_t<unsigned> offsets;
   offsets.resize (total_objects);
 
-  hb_svg_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
+  hb_buf_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
 
   /* Object 1: Catalog */
   offsets.arrayZ[0] = out.length;
-  hb_svg_append_str (&out, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  hb_buf_append_str (&out, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
 
   /* Object 2: Pages */
   offsets.arrayZ[1] = out.length;
-  hb_svg_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+  hb_buf_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
   /* Object 3: Page */
   offsets.arrayZ[2] = out.length;
-  hb_svg_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
-  hb_svg_append_num (&out, ex, paint->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, -(ey + eh), paint->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, ex + ew, paint->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, -ey, paint->precision);
-  hb_svg_append_str (&out, "]\n/Contents 4 0 R");
+  hb_buf_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
+  hb_buf_append_num (&out, ex, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, -(ey + eh), paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, ex + ew, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, -ey, paint->precision);
+  hb_buf_append_str (&out, "]\n/Contents 4 0 R");
 
   /* Resources. */
   bool has_resources = res &&
     (res->extgstate_dict.length || res->shading_dict.length);
   if (has_resources)
   {
-    hb_svg_append_str (&out, "\n/Resources <<");
+    hb_buf_append_str (&out, "\n/Resources <<");
     if (res->extgstate_dict.length)
     {
-      hb_svg_append_str (&out, " /ExtGState << ");
-      hb_svg_append_len (&out, res->extgstate_dict.arrayZ, res->extgstate_dict.length);
-      hb_svg_append_str (&out, ">>");
+      hb_buf_append_str (&out, " /ExtGState << ");
+      hb_buf_append_len (&out, res->extgstate_dict.arrayZ, res->extgstate_dict.length);
+      hb_buf_append_str (&out, ">>");
     }
     if (res->shading_dict.length)
     {
-      hb_svg_append_str (&out, " /Shading << ");
-      hb_svg_append_len (&out, res->shading_dict.arrayZ, res->shading_dict.length);
-      hb_svg_append_str (&out, ">>");
+      hb_buf_append_str (&out, " /Shading << ");
+      hb_buf_append_len (&out, res->shading_dict.arrayZ, res->shading_dict.length);
+      hb_buf_append_str (&out, ">>");
     }
-    hb_svg_append_str (&out, " >>");
+    hb_buf_append_str (&out, " >>");
   }
 
-  hb_svg_append_str (&out, " >>\nendobj\n");
+  hb_buf_append_str (&out, " >>\nendobj\n");
 
   /* Object 4: Content stream */
   offsets.arrayZ[3] = out.length;
-  hb_svg_append_str (&out, "4 0 obj\n<< /Length ");
-  hb_svg_append_unsigned (&out, content.length);
-  hb_svg_append_str (&out, " >>\nstream\n");
-  hb_svg_append_len (&out, content.arrayZ, content.length);
-  hb_svg_append_str (&out, "endstream\nendobj\n");
+  hb_buf_append_str (&out, "4 0 obj\n<< /Length ");
+  hb_buf_append_unsigned (&out, content.length);
+  hb_buf_append_str (&out, " >>\nstream\n");
+  hb_buf_append_len (&out, content.arrayZ, content.length);
+  hb_buf_append_str (&out, "endstream\nendobj\n");
 
   /* Extra objects (functions, shadings, ExtGState). */
   for (unsigned i = 0; i < num_extra; i++)
   {
     offsets.arrayZ[4 + i] = out.length;
-    hb_svg_append_unsigned (&out, 5 + i);
-    hb_svg_append_str (&out, " 0 obj\n");
+    hb_buf_append_unsigned (&out, 5 + i);
+    hb_buf_append_str (&out, " 0 obj\n");
     auto &obj = res->objects.arrayZ[i];
-    hb_svg_append_len (&out, obj.data.arrayZ, obj.data.length);
-    hb_svg_append_str (&out, "\nendobj\n");
+    hb_buf_append_len (&out, obj.data.arrayZ, obj.data.length);
+    hb_buf_append_str (&out, "\nendobj\n");
   }
 
   /* Cross-reference table */
   unsigned xref_offset = out.length;
-  hb_svg_append_str (&out, "xref\n0 ");
-  hb_svg_append_unsigned (&out, total_objects + 1);
-  hb_svg_append_str (&out, "\n0000000000 65535 f \n");
+  hb_buf_append_str (&out, "xref\n0 ");
+  hb_buf_append_unsigned (&out, total_objects + 1);
+  hb_buf_append_str (&out, "\n0000000000 65535 f \n");
   for (unsigned i = 0; i < total_objects; i++)
   {
     char tmp[21];
     snprintf (tmp, sizeof (tmp), "%010u 00000 n \n", offsets.arrayZ[i]);
-    hb_svg_append_len (&out, tmp, 20);
+    hb_buf_append_len (&out, tmp, 20);
   }
 
   /* Trailer */
-  hb_svg_append_str (&out, "trailer\n<< /Size ");
-  hb_svg_append_unsigned (&out, total_objects + 1);
-  hb_svg_append_str (&out, " /Root 1 0 R >>\nstartxref\n");
-  hb_svg_append_unsigned (&out, xref_offset);
-  hb_svg_append_str (&out, "\n%%EOF\n");
+  hb_buf_append_str (&out, "trailer\n<< /Size ");
+  hb_buf_append_unsigned (&out, total_objects + 1);
+  hb_buf_append_str (&out, " /Root 1 0 R >>\nstartxref\n");
+  hb_buf_append_unsigned (&out, xref_offset);
+  hb_buf_append_str (&out, "\n%%EOF\n");
 
-  hb_blob_t *blob = hb_svg_blob_from_buffer (&paint->recycled_blob, &out);
+  hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
 
   /* Reset state. */
   hb_pdf_free_resources (paint);
