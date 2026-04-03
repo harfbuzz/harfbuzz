@@ -61,11 +61,11 @@ hb_vector_draw_move_to (hb_draw_funcs_t *,
   if (d->format == HB_VECTOR_FORMAT_PDF)
   {
     d->append_xy (to_x, to_y);
-    hb_svg_append_str (&d->path, " m\n");
+    hb_buf_append_str (&d->path, " m\n");
   }
   else
   {
-    hb_svg_append_c (&d->path, 'M');
+    hb_buf_append_c (&d->path, 'M');
     d->append_xy (to_x, to_y);
   }
 }
@@ -81,11 +81,11 @@ hb_vector_draw_line_to (hb_draw_funcs_t *,
   if (d->format == HB_VECTOR_FORMAT_PDF)
   {
     d->append_xy (to_x, to_y);
-    hb_svg_append_str (&d->path, " l\n");
+    hb_buf_append_str (&d->path, " l\n");
   }
   else
   {
-    hb_svg_append_c (&d->path, 'L');
+    hb_buf_append_c (&d->path, 'L');
     d->append_xy (to_x, to_y);
   }
 }
@@ -108,17 +108,17 @@ hb_vector_draw_quadratic_to (hb_draw_funcs_t *,
     float c2x = to_x + 2.f / 3.f * (cx - to_x);
     float c2y = to_y + 2.f / 3.f * (cy - to_y);
     d->append_xy (c1x, c1y);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (c2x, c2y);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (to_x, to_y);
-    hb_svg_append_str (&d->path, " c\n");
+    hb_buf_append_str (&d->path, " c\n");
   }
   else
   {
-    hb_svg_append_c (&d->path, 'Q');
+    hb_buf_append_c (&d->path, 'Q');
     d->append_xy (cx, cy);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (to_x, to_y);
   }
 }
@@ -136,19 +136,19 @@ hb_vector_draw_cubic_to (hb_draw_funcs_t *,
   if (d->format == HB_VECTOR_FORMAT_PDF)
   {
     d->append_xy (c1x, c1y);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (c2x, c2y);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (to_x, to_y);
-    hb_svg_append_str (&d->path, " c\n");
+    hb_buf_append_str (&d->path, " c\n");
   }
   else
   {
-    hb_svg_append_c (&d->path, 'C');
+    hb_buf_append_c (&d->path, 'C');
     d->append_xy (c1x, c1y);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (c2x, c2y);
-    hb_svg_append_c (&d->path, ' ');
+    hb_buf_append_c (&d->path, ' ');
     d->append_xy (to_x, to_y);
   }
 }
@@ -161,9 +161,9 @@ hb_vector_draw_close_path (hb_draw_funcs_t *,
 {
   auto *d = (hb_vector_draw_t *) draw_data;
   if (d->format == HB_VECTOR_FORMAT_PDF)
-    hb_svg_append_str (&d->path, "h\n");
+    hb_buf_append_str (&d->path, "h\n");
   else
-    hb_svg_append_c (&d->path, 'Z');
+    hb_buf_append_c (&d->path, 'Z');
 }
 
 static inline void free_static_vector_draw_funcs ();
@@ -559,8 +559,8 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     if (!draw->path.length)
       return false;
 
-    hb_svg_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&draw->body, "f\n");
+    hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&draw->body, "f\n");
     return true;
   }
 
@@ -572,11 +572,11 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
     if (!draw->path.length)
       return false;
-    hb_svg_append_str (&draw->defs, "<path id=\"p");
-    hb_svg_append_unsigned (&draw->defs, glyph);
-    hb_svg_append_str (&draw->defs, "\" d=\"");
-    hb_svg_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&draw->defs, "\"/>\n");
+    hb_buf_append_str (&draw->defs, "<path id=\"p");
+    hb_buf_append_unsigned (&draw->defs, glyph);
+    hb_buf_append_str (&draw->defs, "\" d=\"");
+    hb_buf_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&draw->defs, "\"/>\n");
     hb_set_add (draw->defined_glyphs, glyph);
   }
 
@@ -596,15 +596,15 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
     float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
 
-    hb_svg_append_str (&draw->body, "<path d=\"");
-    hb_svg_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&draw->body, "\" transform=\"");
+    hb_buf_append_str (&draw->body, "<path d=\"");
+    hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&draw->body, "\" transform=\"");
     hb_svg_append_instance_transform (&draw->body,
                                       draw->precision,
                                       draw->x_scale_factor,
                                       draw->y_scale_factor,
                                       xx, yx, xy, yy, tx, ty);
-    hb_svg_append_str (&draw->body, "\"/>\n");
+    hb_buf_append_str (&draw->body, "\"/>\n");
     return true;
   }
 
@@ -615,15 +615,15 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
   float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
   float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
 
-  hb_svg_append_str (&draw->body, "<use href=\"#p");
-  hb_svg_append_unsigned (&draw->body, glyph);
-  hb_svg_append_str (&draw->body, "\" transform=\"");
+  hb_buf_append_str (&draw->body, "<use href=\"#p");
+  hb_buf_append_unsigned (&draw->body, glyph);
+  hb_buf_append_str (&draw->body, "\" transform=\"");
   hb_svg_append_instance_transform (&draw->body,
                                     draw->precision,
                                     draw->x_scale_factor,
                                     draw->y_scale_factor,
                                     xx, yx, xy, yy, tx, ty);
-  hb_svg_append_str (&draw->body, "\"/>\n");
+  hb_buf_append_str (&draw->body, "\"/>\n");
   return true;
 }
 
@@ -689,68 +689,68 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   /* Path coords are in font space (Y-up); no CTM needed. */
 
   if (draw->body.length)
-    hb_svg_append_len (&stream, draw->body.arrayZ, draw->body.length);
+    hb_buf_append_len (&stream, draw->body.arrayZ, draw->body.length);
   else if (draw->path.length)
   {
-    hb_svg_append_len (&stream, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&stream, "f\n");
+    hb_buf_append_len (&stream, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&stream, "f\n");
   }
 
   /* Build PDF objects, tracking byte offsets for xref. */
   hb_vector_t<char> out;
-  hb_svg_recover_recycled_buffer (draw->recycled_blob, &out);
+  hb_buf_recover_recycled (draw->recycled_blob, &out);
   out.alloc (stream.length + 512);
 
   unsigned offsets[5]; /* objects 1-4, plus end */
 
-  hb_svg_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
+  hb_buf_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
 
   /* Object 1: Catalog */
   offsets[0] = out.length;
-  hb_svg_append_str (&out, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  hb_buf_append_str (&out, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
 
   /* Object 2: Pages */
   offsets[1] = out.length;
-  hb_svg_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+  hb_buf_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
   /* Object 3: Page.  Extents are in SVG space (y = -font_y).
    * Convert back: font Y range = [-(ey+eh) .. -ey]. */
   offsets[2] = out.length;
-  hb_svg_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
-  hb_svg_append_num (&out, ex, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, -(ey + eh), draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, ex + ew, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, -ey, draw->precision);
-  hb_svg_append_str (&out, "] /Contents 4 0 R >>\nendobj\n");
+  hb_buf_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
+  hb_buf_append_num (&out, ex, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, -(ey + eh), draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, ex + ew, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, -ey, draw->precision);
+  hb_buf_append_str (&out, "] /Contents 4 0 R >>\nendobj\n");
 
   /* Object 4: Content stream */
   offsets[3] = out.length;
-  hb_svg_append_str (&out, "4 0 obj\n<< /Length ");
-  hb_svg_append_unsigned (&out, stream.length);
-  hb_svg_append_str (&out, " >>\nstream\n");
-  hb_svg_append_len (&out, stream.arrayZ, stream.length);
-  hb_svg_append_str (&out, "endstream\nendobj\n");
+  hb_buf_append_str (&out, "4 0 obj\n<< /Length ");
+  hb_buf_append_unsigned (&out, stream.length);
+  hb_buf_append_str (&out, " >>\nstream\n");
+  hb_buf_append_len (&out, stream.arrayZ, stream.length);
+  hb_buf_append_str (&out, "endstream\nendobj\n");
 
   /* Cross-reference table */
   unsigned xref_offset = out.length;
-  hb_svg_append_str (&out, "xref\n0 5\n");
-  hb_svg_append_str (&out, "0000000000 65535 f \n");
+  hb_buf_append_str (&out, "xref\n0 5\n");
+  hb_buf_append_str (&out, "0000000000 65535 f \n");
   for (unsigned i = 0; i < 4; i++)
   {
     char tmp[21];
     snprintf (tmp, sizeof (tmp), "%010u 00000 n \n", offsets[i]);
-    hb_svg_append_len (&out, tmp, 20);
+    hb_buf_append_len (&out, tmp, 20);
   }
 
   /* Trailer */
-  hb_svg_append_str (&out, "trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n");
-  hb_svg_append_unsigned (&out, xref_offset);
-  hb_svg_append_str (&out, "\n%%EOF\n");
+  hb_buf_append_str (&out, "trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n");
+  hb_buf_append_unsigned (&out, xref_offset);
+  hb_buf_append_str (&out, "\n%%EOF\n");
 
-  hb_blob_t *blob = hb_svg_blob_from_buffer (&draw->recycled_blob, &out);
+  hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
 
   draw->path.clear ();
   draw->defs.clear ();
@@ -774,46 +774,46 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
     return nullptr;
 
   hb_vector_t<char> out;
-  hb_svg_recover_recycled_buffer (draw->recycled_blob, &out);
+  hb_buf_recover_recycled (draw->recycled_blob, &out);
   unsigned estimated = draw->defs.length +
                        (draw->body.length ? draw->body.length : draw->path.length) +
                        256;
   out.alloc (estimated);
-  hb_svg_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  hb_svg_append_num (&out, draw->extents.x, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.y, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.width, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.height, draw->precision);
-  hb_svg_append_str (&out, "\" width=\"");
-  hb_svg_append_num (&out, draw->extents.width, draw->precision);
-  hb_svg_append_str (&out, "\" height=\"");
-  hb_svg_append_num (&out, draw->extents.height, draw->precision);
-  hb_svg_append_str (&out, "\">\n");
+  hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
+  hb_buf_append_num (&out, draw->extents.x, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, draw->extents.y, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, draw->extents.width, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, draw->extents.height, draw->precision);
+  hb_buf_append_str (&out, "\" width=\"");
+  hb_buf_append_num (&out, draw->extents.width, draw->precision);
+  hb_buf_append_str (&out, "\" height=\"");
+  hb_buf_append_num (&out, draw->extents.height, draw->precision);
+  hb_buf_append_str (&out, "\">\n");
 
   if (draw->defs.length)
   {
-    hb_svg_append_str (&out, "<defs>\n");
-    hb_svg_append_len (&out, draw->defs.arrayZ, draw->defs.length);
-    hb_svg_append_str (&out, "</defs>\n");
+    hb_buf_append_str (&out, "<defs>\n");
+    hb_buf_append_len (&out, draw->defs.arrayZ, draw->defs.length);
+    hb_buf_append_str (&out, "</defs>\n");
   }
 
   if (draw->body.length)
   {
-    hb_svg_append_len (&out, draw->body.arrayZ, draw->body.length);
+    hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
   }
   else if (draw->path.length)
   {
-    hb_svg_append_str (&out, "<path d=\"");
-    hb_svg_append_len (&out, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&out, "\"/>\n");
+    hb_buf_append_str (&out, "<path d=\"");
+    hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&out, "\"/>\n");
   }
 
-  hb_svg_append_str (&out, "</svg>\n");
+  hb_buf_append_str (&out, "</svg>\n");
 
-  hb_blob_t *blob = hb_svg_blob_from_buffer (&draw->recycled_blob, &out);
+  hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
 
   draw->path.clear ();
   draw->defs.clear ();

@@ -37,7 +37,7 @@ HB_INTERNAL const char *
 hb_svg_decimal_point_get (void);
 
 static inline bool
-hb_svg_append_len (hb_vector_t<char> *buf,
+hb_buf_append_len (hb_vector_t<char> *buf,
                    const char *s,
                    unsigned len)
 {
@@ -49,13 +49,13 @@ hb_svg_append_len (hb_vector_t<char> *buf,
 }
 
 static inline bool
-hb_svg_append_c (hb_vector_t<char> *buf, char c)
+hb_buf_append_c (hb_vector_t<char> *buf, char c)
 {
   return buf->push_or_fail (c);
 }
 
 static inline void
-hb_svg_append_num (hb_vector_t<char> *buf,
+hb_buf_append_num (hb_vector_t<char> *buf,
                    float v,
                    unsigned precision,
                    bool keep_nonzero = false)
@@ -82,7 +82,7 @@ hb_svg_append_num (hb_vector_t<char> *buf,
 
   if (!(v == v) || !std::isfinite (v))
   {
-    hb_svg_append_c (buf, '0');
+    hb_buf_append_c (buf, '0');
     return;
   }
 
@@ -117,7 +117,7 @@ hb_svg_append_num (hb_vector_t<char> *buf,
       *end = '\0';
   }
 
-  hb_svg_append_len (buf, out, (unsigned) strlen (out));
+  hb_buf_append_len (buf, out, (unsigned) strlen (out));
 }
 
 static inline unsigned
