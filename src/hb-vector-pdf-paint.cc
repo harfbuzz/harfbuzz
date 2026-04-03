@@ -911,16 +911,6 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&body, " sh\n");
 }
 
-static hb_color_t
-hb_pdf_lerp_color (hb_color_t c0, hb_color_t c1, float t)
-{
-  auto lerp = [&] (unsigned shift) -> unsigned {
-    unsigned v0 = (c0 >> shift) & 0xFF;
-    unsigned v1 = (c1 >> shift) & 0xFF;
-    return (unsigned) (v0 + t * ((float) v1 - (float) v0) + 0.5f);
-  };
-  return HB_COLOR (lerp (16), lerp (8), lerp (0), lerp (24));
-}
 
 /* Encode a 16-bit big-endian unsigned value into buf. */
 static void
@@ -983,8 +973,8 @@ hb_pdf_add_sweep_patch (hb_vector_t<char> *mesh,
     float k1 = (float) (s + 1) / num_splits;
     float sa0 = a0 + k0 * (a1 - a0);
     float sa1 = a0 + k1 * (a1 - a0);
-    hb_color_t sc0 = hb_pdf_lerp_color (c0_in, c1_in, k0);
-    hb_color_t sc1 = hb_pdf_lerp_color (c0_in, c1_in, k1);
+    hb_color_t sc0 = hb_color_lerp (c0_in, c1_in, k0);
+    hb_color_t sc1 = hb_color_lerp (c0_in, c1_in, k1);
 
     float da = sa1 - sa0;
     float kappa = (4.f / 3.f) * tanf (da / 4.f);
@@ -1080,189 +1070,12 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   hb_vector_t<char> mesh;
   mesh.alloc (256);
 
-  /* Same tiling logic as hb_svg_add_sweep_gradient_patches. */
+  hb_sweep_gradient_tiles (stops, n_stops, extend,
+			   start_angle, end_angle,
+			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
+			   { hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+						     a0, c0, a1, c1); });
 
-  if (start_angle == end_angle)
-  {
-    if (extend == HB_PAINT_EXTEND_PAD)
-    {
-      if (start_angle > 0.f)
-	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				0.f, stops[0].color, start_angle, stops[0].color);
-      if (end_angle < HB_2_PI)
-	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				end_angle, stops[n_stops - 1].color, HB_2_PI, stops[n_stops - 1].color);
-    }
-    goto emit;
-  }
-
-  if (end_angle < start_angle)
-  {
-    float tmp = start_angle; start_angle = end_angle; end_angle = tmp;
-    for (unsigned i = 0; i < n_stops - 1 - i; i++)
-    {
-      hb_color_stop_t t = stops[i];
-      stops[i] = stops[n_stops - 1 - i];
-      stops[n_stops - 1 - i] = t;
-    }
-    for (unsigned i = 0; i < n_stops; i++)
-      stops[i].offset = 1.f - stops[i].offset;
-  }
-
-  {
-    /* Map stop offsets to angles. */
-    float angles_buf[16];
-    hb_color_t colors_buf[16];
-    float *angles = angles_buf;
-    hb_color_t *colors = colors_buf;
-    bool dynamic = false;
-
-    if (n_stops > 16)
-    {
-      angles = (float *) hb_malloc (sizeof (float) * n_stops);
-      colors = (hb_color_t *) hb_malloc (sizeof (hb_color_t) * n_stops);
-      if (!angles || !colors)
-      {
-	hb_free (angles);
-	hb_free (colors);
-	goto emit;
-      }
-      dynamic = true;
-    }
-
-    for (unsigned i = 0; i < n_stops; i++)
-    {
-      angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
-      colors[i] = stops[i].color;
-    }
-
-    if (extend == HB_PAINT_EXTEND_PAD)
-    {
-      unsigned pos;
-      hb_color_t color0 = colors[0];
-      for (pos = 0; pos < n_stops; pos++)
-      {
-	if (angles[pos] >= 0)
-	{
-	  if (pos > 0)
-	  {
-	    float f = (0.f - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-	    color0 = hb_pdf_lerp_color (colors[pos - 1], colors[pos], f);
-	  }
-	  break;
-	}
-      }
-      if (pos == n_stops)
-      {
-	color0 = colors[n_stops - 1];
-	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				0.f, color0, HB_2_PI, color0);
-	goto done;
-      }
-      hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-			      0.f, color0, angles[pos], colors[pos]);
-      for (pos++; pos < n_stops; pos++)
-      {
-	if (angles[pos] <= HB_2_PI)
-	  hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				  angles[pos - 1], colors[pos - 1], angles[pos], colors[pos]);
-	else
-	{
-	  float f = (HB_2_PI - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-	  hb_color_t color1 = hb_pdf_lerp_color (colors[pos - 1], colors[pos], f);
-	  hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				  angles[pos - 1], colors[pos - 1], HB_2_PI, color1);
-	  break;
-	}
-      }
-      if (pos == n_stops)
-      {
-	color0 = colors[n_stops - 1];
-	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				angles[n_stops - 1], color0, HB_2_PI, color0);
-	goto done;
-      }
-    }
-    else
-    {
-      float span = angles[n_stops - 1] - angles[0];
-      if (fabsf (span) < 1e-6f)
-	goto done;
-
-      int k = 0;
-      if (angles[0] >= 0)
-      {
-	float ss = angles[0];
-	while (ss > 0)
-	{
-	  if (span > 0) { ss -= span; k--; }
-	  else          { ss += span; k++; }
-	}
-      }
-      else
-      {
-	float ee = angles[n_stops - 1];
-	while (ee < 0)
-	{
-	  if (span > 0) { ee += span; k++; }
-	  else          { ee -= span; k--; }
-	}
-      }
-
-      span = fabsf (span);
-      for (int l = k; l < 1000; l++)
-      {
-	for (unsigned i = 1; i < n_stops; i++)
-	{
-	  float a0_l, a1_l;
-	  hb_color_t col0, col1;
-	  if ((l % 2 != 0) && (extend == HB_PAINT_EXTEND_REFLECT))
-	  {
-	    a0_l = angles[0] + angles[n_stops - 1] - angles[n_stops - i] + l * span;
-	    a1_l = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - i] + l * span;
-	    col0 = colors[n_stops - i];
-	    col1 = colors[n_stops - 1 - i];
-	  }
-	  else
-	  {
-	    a0_l = angles[i - 1] + l * span;
-	    a1_l = angles[i] + l * span;
-	    col0 = colors[i - 1];
-	    col1 = colors[i];
-	  }
-
-	  if (a1_l < 0.f) continue;
-	  if (a0_l < 0.f)
-	  {
-	    float f = (0.f - a0_l) / (a1_l - a0_l);
-	    hb_color_t c = hb_pdf_lerp_color (col0, col1, f);
-	    hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				    0.f, c, a1_l, col1);
-	  }
-	  else if (a1_l >= HB_2_PI)
-	  {
-	    float f = (HB_2_PI - a0_l) / (a1_l - a0_l);
-	    hb_color_t c = hb_pdf_lerp_color (col0, col1, f);
-	    hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				    a0_l, col0, HB_2_PI, c);
-	    goto done;
-	  }
-	  else
-	    hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-				    a0_l, col0, a1_l, col1);
-	}
-      }
-    }
-
-done:
-    if (dynamic)
-    {
-      hb_free (angles);
-      hb_free (colors);
-    }
-  }
-
-emit:
   if (!mesh.length)
     return;
 
