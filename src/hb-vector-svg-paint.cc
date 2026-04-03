@@ -26,124 +26,49 @@
 
 #include "hb.hh"
 
-#include "hb-vector.h"
+#include "hb-vector-paint.hh"
 #include "hb-blob.hh"
-#include "hb-geometry.hh"
-#include "hb-machinery.hh"
-#include "hb-map.hh"
 #include "hb-vector-svg-path.hh"
 #include "hb-vector-svg-subset.hh"
-#include "hb-vector-svg-utils.hh"
 
-#include <algorithm>
 #include <math.h>
 #include <string.h>
 
-#include "hb-vector-svg.hh"
-
-struct hb_svg_color_glyph_cache_key_t
+static void
+hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
-  hb_codepoint_t glyph = HB_CODEPOINT_INVALID;
-  unsigned palette = 0;
-  hb_color_t foreground = 0;
+  if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
+      paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
+      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f &&
+      paint->x_scale_factor == 1.f && paint->y_scale_factor == 1.f)
+    return;
 
-  hb_svg_color_glyph_cache_key_t () = default;
-  hb_svg_color_glyph_cache_key_t (hb_codepoint_t g, unsigned p, hb_color_t f)
-    : glyph (g), palette (p), foreground (f) {}
+  unsigned sprec = hb_svg_scale_precision (paint->precision);
+  hb_svg_append_str (buf, "<g transform=\"matrix(");
+  hb_svg_append_num (buf, paint->transform.xx / paint->x_scale_factor, sprec, true);
+  hb_svg_append_c (buf, ',');
+  hb_svg_append_num (buf, paint->transform.yx / paint->y_scale_factor, sprec, true);
+  hb_svg_append_c (buf, ',');
+  hb_svg_append_num (buf, paint->transform.xy / paint->x_scale_factor, sprec, true);
+  hb_svg_append_c (buf, ',');
+  hb_svg_append_num (buf, paint->transform.yy / paint->y_scale_factor, sprec, true);
+  hb_svg_append_c (buf, ',');
+  hb_svg_append_num (buf, paint->transform.x0 / paint->x_scale_factor, paint->precision);
+  hb_svg_append_c (buf, ',');
+  hb_svg_append_num (buf, paint->transform.y0 / paint->y_scale_factor, paint->precision);
+  hb_svg_append_str (buf, ")\">\n");
+}
 
-  bool operator == (const hb_svg_color_glyph_cache_key_t &o) const
-  {
-    return glyph == o.glyph &&
-           palette == o.palette &&
-           foreground == o.foreground;
-  }
-
-  uint32_t hash () const
-  {
-    uint32_t h = hb_hash (glyph);
-    h = h * 31u + hb_hash (palette);
-    h = h * 31u + hb_hash (foreground);
-    return h;
-  }
-};
-
-struct hb_vector_paint_t
+static void
+hb_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
-  hb_object_header_t header;
-
-  hb_vector_format_t format = HB_VECTOR_FORMAT_SVG;
-  hb_transform_t<> transform = {1, 0, 0, 1, 0, 0};
-  float x_scale_factor = 1.f;
-  float y_scale_factor = 1.f;
-  hb_vector_extents_t extents = {0, 0, 0, 0};
-  bool has_extents = false;
-
-  hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
-  int palette = 0;
-  hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
-  unsigned precision = 2;
-  bool flat = false;
-
-  hb_vector_t<char> defs;
-  hb_vector_t<char> path;
-  hb_vector_t<hb_vector_t<char>> group_stack;
-  uint64_t transform_group_open_mask = 0;
-  unsigned transform_group_depth = 0;
-  unsigned transform_group_overflow_depth = 0;
-
-  unsigned clip_rect_counter = 0;
-  unsigned gradient_counter = 0;
-  unsigned color_glyph_counter = 0;
-  unsigned color_glyph_depth = 0;
-  hb_set_t *defined_outlines = nullptr;
-  hb_set_t *defined_clips = nullptr;
-  hb_set_t *active_color_glyphs = nullptr;
-  hb_hashmap_t<hb_svg_color_glyph_cache_key_t, uint64_t> defined_color_glyphs;
-  hb_vector_t<hb_color_stop_t> color_stops_scratch;
-  hb_vector_t<char> subset_body_scratch;
-  hb_vector_t<char> captured_scratch;
-  hb_blob_t *recycled_blob = nullptr;
-  bool current_color_glyph_has_svg_image = false;
-  hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
-  hb_face_t *current_face = nullptr;
-  unsigned svg_image_counter = 0;
-
-  hb_vector_t<char> &current_body () { return group_stack.tail (); }
-
-  void append_global_transform_prefix (hb_vector_t<char> *buf)
-  {
-    if (transform.xx == 1.f && transform.yx == 0.f &&
-        transform.xy == 0.f && transform.yy == 1.f &&
-        transform.x0 == 0.f && transform.y0 == 0.f &&
-        x_scale_factor == 1.f && y_scale_factor == 1.f)
-      return;
-
-    unsigned sprec = hb_svg_scale_precision (precision);
-    hb_svg_append_str (buf, "<g transform=\"matrix(");
-    hb_svg_append_num (buf, transform.xx / x_scale_factor, sprec, true);
-    hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.yx / y_scale_factor, sprec, true);
-    hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.xy / x_scale_factor, sprec, true);
-    hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.yy / y_scale_factor, sprec, true);
-    hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.x0 / x_scale_factor, precision);
-    hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.y0 / y_scale_factor, precision);
-    hb_svg_append_str (buf, ")\">\n");
-  }
-
-  void append_global_transform_suffix (hb_vector_t<char> *buf)
-  {
-    if (transform.xx == 1.f && transform.yx == 0.f &&
-        transform.xy == 0.f && transform.yy == 1.f &&
-        transform.x0 == 0.f && transform.y0 == 0.f &&
-        x_scale_factor == 1.f && y_scale_factor == 1.f)
-      return;
-    hb_svg_append_str (buf, "</g>\n");
-  }
-};
+  if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
+      paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
+      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f &&
+      paint->x_scale_factor == 1.f && paint->y_scale_factor == 1.f)
+    return;
+  hb_svg_append_str (buf, "</g>\n");
+}
 
 static inline uint64_t
 hb_svg_pack_color_glyph_cache_entry (unsigned def_id,
@@ -1808,9 +1733,9 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
     hb_svg_append_str (&out, "</defs>\n");
   }
 
-  paint->append_global_transform_prefix (&out);
+  hb_svg_paint_append_global_transform_prefix (paint, &out);
   hb_svg_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-  paint->append_global_transform_suffix (&out);
+  hb_svg_paint_append_global_transform_suffix (paint, &out);
 
   hb_svg_append_str (&out, "</svg>\n");
 
