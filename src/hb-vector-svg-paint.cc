@@ -1074,7 +1074,7 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
 hb_vector_paint_t *
 hb_vector_paint_create_or_fail (hb_vector_format_t format)
 {
-  if (format != HB_VECTOR_FORMAT_SVG)
+  if (format != HB_VECTOR_FORMAT_SVG && format != HB_VECTOR_FORMAT_PDF)
     return nullptr;
 
   hb_vector_paint_t *paint = hb_object_create<hb_vector_paint_t> ();
@@ -1508,6 +1508,32 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
     return false;
 
+  if (paint->format == HB_VECTOR_FORMAT_PDF)
+  {
+    /* PDF: emit transform + paint directly, no caching. */
+    auto &body = paint->current_body ();
+    hb_svg_append_str (&body, "q\n");
+    hb_svg_append_num (&body, xx, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, yx, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, -xy, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, -yy, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, tx, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, ty, paint->precision);
+    hb_svg_append_str (&body, " cm\n");
+
+    hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						  hb_vector_pdf_paint_funcs_get (), paint,
+						  (unsigned) paint->palette,
+						  paint->foreground);
+    hb_svg_append_str (&body, "Q\n");
+    return ret;
+  }
+
   bool can_cache = !paint->flat;
   hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
                                                                             (unsigned) paint->palette,
@@ -1698,6 +1724,8 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
 hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint)
 {
+  if (paint->format == HB_VECTOR_FORMAT_PDF)
+    return hb_vector_pdf_paint_render (paint);
   if (paint->format != HB_VECTOR_FORMAT_SVG)
     return nullptr;
   if (!paint->has_extents)

@@ -184,8 +184,7 @@ struct vector_output_t : output_options_t<>, view_options_t
       fmt = HB_VECTOR_FORMAT_PDF;
 
     hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (fmt);
-    hb_vector_paint_t *paint = (fmt == HB_VECTOR_FORMAT_SVG)
-      ? hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG) : nullptr;
+    hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (fmt);
 
     hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
     hb_vector_draw_set_extents (draw, &extents);
