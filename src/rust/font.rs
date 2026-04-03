@@ -864,9 +864,10 @@ impl ColorPainter for HbColorPainter<'_> {
             }
         }
     }
-    fn push_layer(&mut self, _mode: CompositeMode) {
+    fn push_layer(&mut self, mode: CompositeMode) {
+        let mode = mode as hb_paint_composite_mode_t;
         unsafe {
-            hb_paint_push_group(self.paint_funcs, self.paint_data);
+            hb_paint_push_group_for(self.paint_funcs, self.paint_data, mode);
         }
     }
     fn pop_layer_with_mode(&mut self, mode: CompositeMode) {

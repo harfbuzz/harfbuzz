@@ -84,10 +84,10 @@ struct hb_svg_render_context_t
   {
     hb_paint_pop_transform (pfuncs, paint);
   }
-  bool push_group ()
+  bool push_group (hb_paint_composite_mode_t mode = HB_PAINT_COMPOSITE_MODE_SRC_OVER)
   {
     unsigned depth = paint->surface_stack.length;
-    hb_paint_push_group (pfuncs, paint);
+    hb_paint_push_group_for (pfuncs, paint, mode);
     return paint->surface_stack.length > depth;
   }
   void pop_group (hb_paint_composite_mode_t mode)
