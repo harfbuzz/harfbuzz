@@ -273,6 +273,7 @@ hb_base_sources = files(
   'hb-unicode.hh',
   'hb-utf.hh',
   'hb-vector.hh',
+  'hb-vector-draw.hh',
   'hb.hh',
 )
 
