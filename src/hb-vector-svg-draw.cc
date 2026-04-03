@@ -548,10 +548,9 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 
   if (draw->format == HB_VECTOR_FORMAT_PDF)
   {
-    /* PDF: always inline.  Pen position is in SVG space (Y-down);
-     * negate it since font/PDF coords are Y-up. */
+    /* PDF: always inline.  Pen and font coords are both Y-up. */
     hb_transform_t<> saved = draw->transform;
-    draw->transform = {1, 0, 0, 1, pen_x, -pen_y};
+    draw->transform = {1, 0, 0, 1, pen_x, pen_y};
 
     draw->path.clear ();
     hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (), draw);
@@ -714,8 +713,8 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   offsets[1] = out.length;
   hb_svg_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
-  /* Object 3: Page */
-  /* Y was negated in append_xy; SVG [ey..ey+eh] → PDF [-(ey+eh)..(-ey)]. */
+  /* Object 3: Page.  Extents are in SVG space (y = -font_y).
+   * Convert back: font Y range = [-(ey+eh) .. -ey]. */
   offsets[2] = out.length;
   hb_svg_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
   hb_svg_append_num (&out, ex, draw->precision);
