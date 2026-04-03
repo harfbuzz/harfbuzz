@@ -46,11 +46,12 @@ acc_update_extents (hb_gpu_draw_t *g, double x, double y)
 
 static void
 acc_emit (hb_gpu_draw_t *g,
+	  bool contour_start,
 	  double p1x, double p1y,
 	  double p2x, double p2y,
 	  double p3x, double p3y)
 {
-  hb_gpu_curve_t c = {p1x, p1y, p2x, p2y, p3x, p3y};
+  hb_gpu_curve_t c = {p1x, p1y, p2x, p2y, p3x, p3y, contour_start};
   g->curves.push (c);
   g->num_curves++;
   g->current_x = p3x;
@@ -69,13 +70,15 @@ acc_emit_conic (hb_gpu_draw_t *g,
   if (g->current_x == x && g->current_y == y)
     return;
 
+  bool contour_start = g->need_moveto;
   if (g->need_moveto) {
     g->start_x = g->current_x;
     g->start_y = g->current_y;
     g->need_moveto = false;
   }
 
-  acc_emit (g, g->current_x, g->current_y, cx, cy, x, y);
+  acc_emit (g, contour_start,
+	    g->current_x, g->current_y, cx, cy, x, y);
 }
 
 void
@@ -262,10 +265,36 @@ quantize (double v)
   return (int16_t) round (v * HB_GPU_UNITS_PER_EM);
 }
 
-static bool
-quantize_fits_i16 (double v)
+static int16_t
+quantize_down (double v)
 {
-  double q = round (v * HB_GPU_UNITS_PER_EM);
+  return (int16_t) floor (v * HB_GPU_UNITS_PER_EM);
+}
+
+static int16_t
+quantize_up (double v)
+{
+  return (int16_t) ceil (v * HB_GPU_UNITS_PER_EM);
+}
+
+static double
+dequantize (int16_t v)
+{
+  return (double) v / HB_GPU_UNITS_PER_EM;
+}
+
+static bool
+quantize_down_fits_i16 (double v)
+{
+  double q = floor (v * HB_GPU_UNITS_PER_EM);
+  return q >= INT16_MIN &&
+	 q <= INT16_MAX;
+}
+
+static bool
+quantize_up_fits_i16 (double v)
+{
+  double q = ceil (v * HB_GPU_UNITS_PER_EM);
   return q >= INT16_MIN &&
 	 q <= INT16_MAX;
 }
@@ -326,10 +355,15 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   /* Compute per-curve info and extents */
   s.curve_infos.resize (num_curves);
 
-  double min_x = draw->ext_min_x;
-  double min_y = draw->ext_min_y;
-  double max_x = draw->ext_max_x;
-  double max_y = draw->ext_max_y;
+  int16_t min_x_q = quantize_down (draw->ext_min_x);
+  int16_t min_y_q = quantize_down (draw->ext_min_y);
+  int16_t max_x_q = quantize_up (draw->ext_max_x);
+  int16_t max_y_q = quantize_up (draw->ext_max_y);
+
+  double min_x = dequantize (min_x_q);
+  double min_y = dequantize (min_y_q);
+  double max_x = dequantize (max_x_q);
+  double max_y = dequantize (max_y_q);
 
   for (unsigned i = 0; i < num_curves; i++)
     s.curve_infos.arrayZ[i] = encode_curve_info (&curves[i]);
@@ -471,8 +505,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
   unsigned num_contour_breaks = 0;
   for (unsigned i = 0; i + 1 < num_curves; i++)
-    if (curves[i].p3x != curves[i + 1].p1x ||
-	curves[i].p3y != curves[i + 1].p1y)
+    if (curves[i + 1].contour_start)
       num_contour_breaks++;
 
   unsigned curve_data_len = num_curves + num_contour_breaks + 1;
@@ -483,10 +516,10 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   if (total_len - 1 > (unsigned) UINT16_MAX)
     return nullptr;
 
-  if (!quantize_fits_i16 (min_x) ||
-      !quantize_fits_i16 (min_y) ||
-      !quantize_fits_i16 (max_x) ||
-      !quantize_fits_i16 (max_y))
+  if (!quantize_down_fits_i16 (draw->ext_min_x) ||
+      !quantize_down_fits_i16 (draw->ext_min_y) ||
+      !quantize_up_fits_i16 (draw->ext_max_x) ||
+      !quantize_up_fits_i16 (draw->ext_max_y))
     return nullptr;
 
   /* Allocate or reuse encode buffer */
@@ -528,10 +561,10 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
 
   /* Pack header */
-  buf[0].r = quantize (min_x);
-  buf[0].g = quantize (min_y);
-  buf[0].b = quantize (max_x);
-  buf[0].a = quantize (max_y);
+  buf[0].r = min_x_q;
+  buf[0].g = min_y_q;
+  buf[0].b = max_x_q;
+  buf[0].a = max_y_q;
   buf[1].r = (int16_t) num_hbands;
   buf[1].g = (int16_t) num_vbands;
   buf[1].b = (int16_t) hb_clamp (draw->x_scale, -32768, 32767);
@@ -543,9 +576,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
   for (unsigned i = 0; i < num_curves; i++)
   {
-    bool contour_start = (i == 0 ||
-			  curves[i - 1].p3x != curves[i].p1x ||
-			  curves[i - 1].p3y != curves[i].p1y);
+    bool contour_start = curves[i].contour_start;
 
     if (contour_start) {
       s.curve_texel_offset.arrayZ[i] = texel;
@@ -558,9 +589,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
       s.curve_texel_offset.arrayZ[i] = texel - 1;
     }
 
-    bool has_next = (i + 1 < num_curves &&
-		     curves[i].p3x == curves[i + 1].p1x &&
-		     curves[i].p3y == curves[i + 1].p1y);
+    bool has_next = i + 1 < num_curves &&
+		    !curves[i + 1].contour_start;
 
     buf[texel].r = quantize (curves[i].p3x);
     buf[texel].g = quantize (curves[i].p3y);
@@ -955,4 +985,3 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
     return;
   draw->recycled_blob = blob;
 }
-

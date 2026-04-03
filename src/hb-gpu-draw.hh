@@ -43,6 +43,7 @@ struct hb_gpu_curve_t
   double p1x, p1y;
   double p2x, p2y;
   double p3x, p3y;
+  bool contour_start;
 };
 
 struct hb_gpu_encode_curve_info_t
