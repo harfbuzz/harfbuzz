@@ -30,6 +30,39 @@
 
 #define FONT_FILE "fonts/Roboto-Regular.abc.ttf"
 
+struct hb_gpu_test_texel_t
+{
+  int16_t r, g, b, a;
+};
+
+static const hb_gpu_test_texel_t *
+blob_as_texels (hb_blob_t *blob,
+		unsigned  *texel_count)
+{
+  unsigned length = hb_blob_get_length (blob);
+  g_assert_cmpuint (length % sizeof (hb_gpu_test_texel_t), ==, 0);
+
+  *texel_count = length / sizeof (hb_gpu_test_texel_t);
+  return (const hb_gpu_test_texel_t *) hb_blob_get_data (blob, nullptr);
+}
+
+static hb_bool_t
+blob_has_texel (hb_blob_t                   *blob,
+		const hb_gpu_test_texel_t  needle)
+{
+  unsigned texel_count;
+  const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
+
+  for (unsigned i = 0; i < texel_count; i++)
+    if (texels[i].r == needle.r &&
+	texels[i].g == needle.g &&
+	texels[i].b == needle.b &&
+	texels[i].a == needle.a)
+      return true;
+
+  return false;
+}
+
 
 static void
 test_create_destroy (void)
@@ -158,6 +191,61 @@ test_shader_sources (void)
 }
 
 static void
+test_encode_quantizes_extents_outward (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (funcs, draw, &st, 0.24f, 0.24f);
+  hb_draw_line_to (funcs, draw, &st, 0.76f, 0.24f);
+  hb_draw_line_to (funcs, draw, &st, 0.76f, 0.76f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  g_assert_nonnull (blob);
+
+  unsigned texel_count;
+  const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
+  g_assert_cmpuint (texel_count, >, 0);
+  g_assert_cmpint (texels[0].r, ==, 0);
+  g_assert_cmpint (texels[0].g, ==, 0);
+  g_assert_cmpint (texels[0].b, ==, 4);
+  g_assert_cmpint (texels[0].a, ==, 4);
+
+  hb_blob_destroy (blob);
+  hb_gpu_draw_destroy (draw);
+}
+
+static void
+test_encode_preserves_touching_contours (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 1.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 0.f, 1.f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_quadratic_to (funcs, draw, &st, -0.75f, 0.25f, -0.25f, -1.f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  g_assert_nonnull (blob);
+
+  g_assert_true (blob_has_texel (blob, {0, 0, -3, 1}));
+
+  hb_blob_destroy (blob);
+  hb_gpu_draw_destroy (draw);
+}
+
+static void
 test_recycle_blob (void)
 {
   hb_face_t *face = hb_test_open_font_file (FONT_FILE);
@@ -191,6 +279,8 @@ main (int argc, char **argv)
   hb_test_add (test_reset);
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
+  hb_test_add (test_encode_quantizes_extents_outward);
+  hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
 
   return hb_test_run ();
