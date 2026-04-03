@@ -273,6 +273,10 @@ if not get_option('subset').disabled()
   conf.set('HAVE_SUBSET', 1)
 endif
 
+if get_option('depend_api')
+  conf.set('HB_DEPEND_API', 1)
+endif
+
 if freetype_dep.found()
   conf.set('HAVE_FREETYPE', 1)
   check_freetype_funcs = [
