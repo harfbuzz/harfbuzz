@@ -473,12 +473,18 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
   for (unsigned b = 0; b < num_hbands; b++) {
     s.hband_offsets.arrayZ[b] = total_hband_indices;
-    total_hband_indices += s.hband_curve_counts.arrayZ[b];
+    if (unlikely (hb_unsigned_add_overflows (total_hband_indices,
+					     s.hband_curve_counts.arrayZ[b],
+					     &total_hband_indices)))
+      return nullptr;
   }
 
   for (unsigned b = 0; b < num_vbands; b++) {
     s.vband_offsets.arrayZ[b] = total_vband_indices;
-    total_vband_indices += s.vband_curve_counts.arrayZ[b];
+    if (unlikely (hb_unsigned_add_overflows (total_vband_indices,
+					     s.vband_curve_counts.arrayZ[b],
+					     &total_vband_indices)))
+      return nullptr;
   }
 
   /* Assign curves to bands */
@@ -542,7 +548,14 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   }
 
   /* Compute sizes */
-  unsigned total_curve_indices = (total_hband_indices + total_vband_indices) * 2;
+  unsigned total_curve_indices;
+  if (unlikely (hb_unsigned_add_overflows (total_hband_indices,
+					   total_vband_indices,
+					   &total_curve_indices) ||
+		hb_unsigned_mul_overflows (total_curve_indices,
+					   2,
+					   &total_curve_indices)))
+    return nullptr;
 
   unsigned header_len = 2;
 
@@ -551,12 +564,35 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     if (curves[i + 1].contour_start)
       num_contour_breaks++;
 
-  unsigned curve_data_len = num_curves + num_contour_breaks + 1;
-  unsigned band_headers_len = num_hbands + num_vbands;
-  unsigned total_len = header_len + band_headers_len + total_curve_indices + curve_data_len;
+  unsigned curve_data_len;
+  if (unlikely (hb_unsigned_add_overflows (num_curves,
+					   num_contour_breaks,
+					   &curve_data_len) ||
+		hb_unsigned_add_overflows (curve_data_len,
+					   1,
+					   &curve_data_len)))
+    return nullptr;
+
+  unsigned band_headers_len;
+  if (unlikely (hb_unsigned_add_overflows (num_hbands,
+					   num_vbands,
+					   &band_headers_len)))
+    return nullptr;
+
+  unsigned total_len = header_len;
+  if (unlikely (hb_unsigned_add_overflows (total_len,
+					   band_headers_len,
+					   &total_len) ||
+		hb_unsigned_add_overflows (total_len,
+					   total_curve_indices,
+					   &total_len) ||
+		hb_unsigned_add_overflows (total_len,
+					   curve_data_len,
+					   &total_len)))
+    return nullptr;
 
   /* Validate fits in uint16 offsets (stored as int16 with bias) */
-  if (total_len - 1 > (unsigned) UINT16_MAX)
+  if (total_len > (unsigned) UINT16_MAX + 1u)
     return nullptr;
 
   if (!quantize_down_fits_i16 (draw->ext_min_x) ||
@@ -566,7 +602,11 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     return nullptr;
 
   /* Allocate or reuse encode buffer */
-  unsigned needed_bytes = total_len * sizeof (hb_gpu_texel_t);
+  unsigned needed_bytes;
+  if (unlikely (hb_unsigned_mul_overflows (total_len,
+					   sizeof (hb_gpu_texel_t),
+					   &needed_bytes)))
+    return nullptr;
   hb_gpu_texel_t *buf = nullptr;
   unsigned buf_capacity = 0;
 
@@ -581,7 +621,11 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     }
     else
     {
-      unsigned alloc_bytes = needed_bytes + needed_bytes / 2;
+      unsigned alloc_bytes = needed_bytes;
+      if (unlikely (hb_unsigned_add_overflows (needed_bytes,
+					       needed_bytes / 2,
+					       &alloc_bytes)))
+	alloc_bytes = needed_bytes;
       char *new_buf = (char *) hb_realloc (bd->buf, alloc_bytes);
       if (new_buf)
       {
@@ -601,7 +645,14 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
       return nullptr;
   }
 
-  unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
+  unsigned curve_data_offset = header_len;
+  if (unlikely (hb_unsigned_add_overflows (curve_data_offset,
+					   band_headers_len,
+					   &curve_data_offset) ||
+		hb_unsigned_add_overflows (curve_data_offset,
+					   total_curve_indices,
+					   &curve_data_offset)))
+    return nullptr;
 
   /* Pack header */
   buf[0].r = min_x_q;
