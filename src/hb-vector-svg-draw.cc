@@ -692,10 +692,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   hb_vector_t<char> stream;
   stream.alloc (draw->body.length + draw->path.length + 128);
 
-  /* Flip Y: map SVG y-range [ey .. ey+eh] to PDF [0 .. eh]. */
-  hb_svg_append_str (&stream, "1 0 0 -1 0 ");
-  hb_svg_append_num (&stream, ey + eh, draw->precision);
-  hb_svg_append_str (&stream, " cm\n");
+  /* Y is negated in append_xy, so no CTM needed. */
 
   if (draw->body.length)
     hb_svg_append_len (&stream, draw->body.arrayZ, draw->body.length);
@@ -723,13 +720,16 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   hb_svg_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
   /* Object 3: Page */
+  /* Y was negated in append_xy; SVG [ey..ey+eh] → PDF [-(ey+eh)..(-ey)]. */
   offsets[2] = out.length;
   hb_svg_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
   hb_svg_append_num (&out, ex, draw->precision);
-  hb_svg_append_str (&out, " 0 ");
+  hb_svg_append_c (&out, ' ');
+  hb_svg_append_num (&out, -(ey + eh), draw->precision);
+  hb_svg_append_c (&out, ' ');
   hb_svg_append_num (&out, ex + ew, draw->precision);
   hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, eh, draw->precision);
+  hb_svg_append_num (&out, -ey, draw->precision);
   hb_svg_append_str (&out, "] /Contents 4 0 R >>\nendobj\n");
 
   /* Object 4: Content stream */
