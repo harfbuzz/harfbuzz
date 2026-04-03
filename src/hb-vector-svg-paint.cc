@@ -1513,13 +1513,14 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     /* PDF: emit transform + paint directly, no caching. */
     auto &body = paint->current_body ();
     hb_svg_append_str (&body, "q\n");
+    /* Font and PDF coords are both Y-up; no negation needed. */
     hb_svg_append_num (&body, xx, paint->precision);
     hb_svg_append_c (&body, ' ');
     hb_svg_append_num (&body, yx, paint->precision);
     hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, -xy, paint->precision);
+    hb_svg_append_num (&body, xy, paint->precision);
     hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, -yy, paint->precision);
+    hb_svg_append_num (&body, yy, paint->precision);
     hb_svg_append_c (&body, ' ');
     hb_svg_append_num (&body, tx, paint->precision);
     hb_svg_append_c (&body, ' ');
