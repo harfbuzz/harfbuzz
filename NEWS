@@ -29,6 +29,7 @@ Wednesday, April 1, 2026
   + hb_gpu_shader_lang_t
   + hb_gpu_shader_fragment_source()
   + hb_gpu_shader_vertex_source()
+  + hb_raster_gpu_render_from_blob_or_fail()
 
 
 Overview of changes leading to 13.2.1
@@ -4232,5 +4233,4 @@ Summary of API changes follows.
     hb_version()
     hb_version_string()
     hb_version_check()
-
 

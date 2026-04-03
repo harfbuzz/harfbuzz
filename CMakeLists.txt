@@ -248,6 +248,7 @@ set (raster_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-utils.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-draw.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-gpu.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-base.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-base.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs.cc

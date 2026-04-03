@@ -155,6 +155,11 @@ fixed and called `config-override.h`, and was activated by defining the macro
 
 ## Notes
 
+Defining `HB_NO_RASTER_GPU` disables the
+`hb_raster_gpu_render_from_blob_or_fail()` helper in the
+`harfbuzz-raster` library. This only affects CPU rasterization
+of blobs produced by `hb_gpu_draw_encode()`.
+
 Note that the config option `HB_NO_CFF`, which is enabled by `HB_LEAN` and
 `HB_TINY` does *not* mean that the resulting library won't work with CFF fonts.
 The library can shape valid CFF fonts just fine, with or without this option.

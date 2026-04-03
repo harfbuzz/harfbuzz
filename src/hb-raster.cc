@@ -48,6 +48,10 @@
  * hb_raster_image_t *mask = hb_raster_draw_render (draw);
  * ]|
  *
+ * #hb_raster_gpu_render_from_blob_or_fail() decodes blobs produced by
+ * hb_gpu_draw_encode() and rasterizes them with the same coverage
+ * algorithm used by the GPU fragment shader.
+ *
  * #hb_raster_paint_t renders color paint graphs and always outputs
  * @HB_RASTER_FORMAT_BGRA32. Typical flow:
  *

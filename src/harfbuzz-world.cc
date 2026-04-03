@@ -114,6 +114,7 @@
 
 #ifdef HB_HAS_RASTER
 #include "hb-raster-draw.cc"
+#include "hb-raster-gpu.cc"
 #include "hb-raster-image.cc"
 #include "hb-raster-paint.cc"
 #include "hb-raster-svg-base.cc"

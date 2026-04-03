@@ -1035,6 +1035,7 @@ hb_raster_draw_get_funcs
 hb_raster_draw_glyph
 hb_raster_draw_render
 hb_raster_draw_recycle_image
+hb_raster_gpu_render_from_blob_or_fail
 hb_raster_paint_t
 hb_raster_paint_create_or_fail
 hb_raster_paint_reference

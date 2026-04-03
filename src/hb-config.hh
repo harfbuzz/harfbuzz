@@ -79,6 +79,7 @@
 #define HB_NO_OPEN
 #define HB_NO_OT_FONT_GLYPH_NAMES
 #define HB_NO_PAINT
+#define HB_NO_RASTER_GPU
 #define HB_NO_SETLOCALE
 #define HB_NO_STYLE
 #define HB_NO_SUBSET_LAYOUT

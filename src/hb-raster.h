@@ -212,6 +212,23 @@ HB_EXTERN void
 hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 			      hb_raster_image_t *image);
 
+/**
+ * hb_raster_gpu_render_from_blob_or_fail:
+ * @blob: a blob produced by hb_gpu_draw_encode()
+ *
+ * Decodes a glyph blob produced by hb_gpu_draw_encode() and rasterizes
+ * it into a new @HB_RASTER_FORMAT_A8 image using the same coverage
+ * algorithm as hb_gpu_render().
+ *
+ * Return value: (transfer full):
+ * A rendered #hb_raster_image_t, or `NULL` on malformed input or
+ * allocation failure. An empty blob returns an empty image.
+ *
+ * XSince: REPLACEME
+ **/
+HB_EXTERN hb_raster_image_t *
+hb_raster_gpu_render_from_blob_or_fail (hb_blob_t *blob);
+
 
 
 /* hb_raster_paint_t */
