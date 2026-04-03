@@ -551,46 +551,13 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&body, " sh\n");
 }
 
-/* Evaluate color line at a given offset. */
 static hb_color_t
-hb_pdf_evaluate_color_line (hb_color_stop_t *stops, unsigned len,
-			    float t, hb_paint_extend_t extend)
+hb_pdf_lerp_color (hb_color_t c0, hb_color_t c1, float t)
 {
-  if (!len)
-    return HB_COLOR (0, 0, 0, 255);
-
-  /* Handle extend modes. */
-  if (extend == HB_PAINT_EXTEND_REPEAT)
-    t = t - floorf (t);
-  else if (extend == HB_PAINT_EXTEND_REFLECT)
-  {
-    float ft = floorf (t);
-    t = t - ft;
-    if (((int) ft) & 1)
-      t = 1.f - t;
-  }
-  else /* PAD */
-    t = hb_clamp (t, 0.f, 1.f);
-
-  if (t <= stops[0].offset)
-    return stops[0].color;
-  if (t >= stops[len - 1].offset)
-    return stops[len - 1].color;
-
-  unsigned i = 0;
-  for (; i + 1 < len; i++)
-    if (stops[i + 1].offset >= t)
-      break;
-
-  float range = stops[i + 1].offset - stops[i].offset;
-  float frac = range > 0.f ? (t - stops[i].offset) / range : 0.f;
-
-  hb_color_t c0 = stops[i].color;
-  hb_color_t c1 = stops[i + 1].color;
   auto lerp = [&] (unsigned shift) -> unsigned {
     unsigned v0 = (c0 >> shift) & 0xFF;
     unsigned v1 = (c1 >> shift) & 0xFF;
-    return (unsigned) (v0 + frac * ((float) v1 - (float) v0) + 0.5f);
+    return (unsigned) (v0 + t * ((float) v1 - (float) v0) + 0.5f);
   };
   return HB_COLOR (lerp (16), lerp (8), lerp (0), lerp (24));
 }
@@ -634,6 +601,88 @@ hb_pdf_encode_point (hb_vector_t<char> *buf,
   hb_pdf_encode_coord (buf, y, ylo, yhi);
 }
 
+/* Emit one Coons patch sector into the mesh stream.
+ * Splits large arcs into sub-patches of max 90°. */
+static void
+hb_pdf_add_sweep_patch (hb_vector_t<char> *mesh,
+			float cx, float cy,
+			float xlo, float xhi, float ylo, float yhi,
+			float a0, hb_color_t c0_in,
+			float a1, hb_color_t c1_in)
+{
+  const float R = 32767.f;
+  const float eps = 0.5f;
+  const float MAX_SECTOR = (float) M_PI / 2.f;
+
+  int num_splits = (int) ceilf (fabsf (a1 - a0) / MAX_SECTOR);
+  if (num_splits < 1) num_splits = 1;
+
+  for (int s = 0; s < num_splits; s++)
+  {
+    float k0 = (float) s / num_splits;
+    float k1 = (float) (s + 1) / num_splits;
+    float sa0 = a0 + k0 * (a1 - a0);
+    float sa1 = a0 + k1 * (a1 - a0);
+    hb_color_t sc0 = hb_pdf_lerp_color (c0_in, c1_in, k0);
+    hb_color_t sc1 = hb_pdf_lerp_color (c0_in, c1_in, k1);
+
+    float da = sa1 - sa0;
+    float kappa = (4.f / 3.f) * tanf (da / 4.f);
+
+    float cos0 = cosf (sa0), sin0 = sinf (sa0);
+    float cos1 = cosf (sa1), sin1 = sinf (sa1);
+
+    float p0x = cx + eps * cos0, p0y = cy + eps * sin0;
+    float p3x = cx + R * cos0,   p3y = cy + R * sin0;
+    float p6x = cx + R * cos1,   p6y = cy + R * sin1;
+    float p9x = cx + eps * cos1, p9y = cy + eps * sin1;
+
+    /* Edge 1: p0→p3, radial straight line. */
+    float e1_1x = p0x + (p3x - p0x) / 3.f;
+    float e1_1y = p0y + (p3y - p0y) / 3.f;
+    float e1_2x = p0x + 2.f * (p3x - p0x) / 3.f;
+    float e1_2y = p0y + 2.f * (p3y - p0y) / 3.f;
+
+    /* Edge 2: p3→p6, outer arc. */
+    float e2_1x = p3x + kappa * R * (-sin0);
+    float e2_1y = p3y + kappa * R * ( cos0);
+    float e2_2x = p6x - kappa * R * (-sin1);
+    float e2_2y = p6y - kappa * R * ( cos1);
+
+    /* Edge 3: p6→p9, radial straight line. */
+    float e3_1x = p6x + (p9x - p6x) / 3.f;
+    float e3_1y = p6y + (p9y - p6y) / 3.f;
+    float e3_2x = p6x + 2.f * (p9x - p6x) / 3.f;
+    float e3_2y = p6y + 2.f * (p9y - p6y) / 3.f;
+
+    /* Edge 4: p9→p0, inner arc. */
+    float e4_1x = p9x + kappa * eps * (-sin1);
+    float e4_1y = p9y + kappa * eps * ( cos1);
+    float e4_2x = p0x - kappa * eps * (-sin0);
+    float e4_2y = p0y - kappa * eps * ( cos0);
+
+    hb_buf_append_c (mesh, '\0'); /* flag = 0, new patch */
+
+    hb_pdf_encode_point (mesh, p0x, p0y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e1_1x, e1_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e1_2x, e1_2y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, p3x, p3y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e2_1x, e2_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e2_2x, e2_2y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, p6x, p6y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e3_1x, e3_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e3_2x, e3_2y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, p9x, p9y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e4_1x, e4_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e4_2x, e4_2y, xlo, xhi, ylo, yhi);
+
+    hb_pdf_encode_color_rgb (mesh, sc0); /* inner start */
+    hb_pdf_encode_color_rgb (mesh, sc0); /* outer start */
+    hb_pdf_encode_color_rgb (mesh, sc1); /* outer end */
+    hb_pdf_encode_color_rgb (mesh, sc1); /* inner end */
+  }
+}
+
 static void
 hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 			     void *paint_data,
@@ -651,113 +700,211 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
     return;
 
   /* Get and sort color stops. */
-  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  paint->color_stops_scratch.resize (count);
-  hb_color_line_get_color_stops (color_line, 0, &count, paint->color_stops_scratch.arrayZ);
+  unsigned n_stops = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  paint->color_stops_scratch.resize (n_stops);
+  hb_color_line_get_color_stops (color_line, 0, &n_stops, paint->color_stops_scratch.arrayZ);
   paint->color_stops_scratch.as_array ().qsort (
     [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
     { return a.offset < b.offset; });
+  hb_color_stop_t *stops = paint->color_stops_scratch.arrayZ;
+
+  if (!n_stops)
+    return;
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  float angle_range = end_angle - start_angle;
-  if (fabsf (angle_range) < 1e-10f)
-    return;
-
-  /* Parameters. */
   const float R = 32767.f;
-  const float eps = 0.5f;  /* small inner radius to avoid degenerate patch */
-  const float MAX_SECTOR = (float) M_PI / 2.f; /* max 90° per patch */
-
-  unsigned num_sectors = (unsigned) ceilf (fabsf (angle_range) / MAX_SECTOR);
-  if (num_sectors < 4) num_sectors = 4;
-
-  /* Coordinate bounds for Decode. */
   float xlo = cx - R - 1, xhi = cx + R + 1;
   float ylo = cy - R - 1, yhi = cy + R + 1;
 
-  /* Build mesh data stream. */
   hb_vector_t<char> mesh;
-  mesh.alloc (num_sectors * 64);
+  mesh.alloc (256);
 
-  for (unsigned i = 0; i < num_sectors; i++)
+  /* Same tiling logic as hb_svg_add_sweep_gradient_patches. */
+
+  if (start_angle == end_angle)
   {
-    float t0 = (float) i / num_sectors;
-    float t1 = (float) (i + 1) / num_sectors;
-    float a0 = start_angle + t0 * angle_range;
-    float a1 = start_angle + t1 * angle_range;
-    float da = a1 - a0;
-
-    /* Bézier approximation factor for circular arc. */
-    float kappa = (4.f / 3.f) * tanf (da / 4.f);
-
-    float cos0 = cosf (a0), sin0 = sinf (a0);
-    float cos1 = cosf (a1), sin1 = sinf (a1);
-
-    /* 4 corners:
-     *   p0  = inner at a0
-     *   p3  = outer at a0
-     *   p6  = outer at a1
-     *   p9  = inner at a1
-     */
-    float p0x = cx + eps * cos0, p0y = cy + eps * sin0;
-    float p3x = cx + R * cos0,   p3y = cy + R * sin0;
-    float p6x = cx + R * cos1,   p6y = cy + R * sin1;
-    float p9x = cx + eps * cos1, p9y = cy + eps * sin1;
-
-    /* Edge 1: p0→p3, radial line (straight Bézier). */
-    float e1_1x = p0x + (p3x - p0x) / 3.f;
-    float e1_1y = p0y + (p3y - p0y) / 3.f;
-    float e1_2x = p0x + 2.f * (p3x - p0x) / 3.f;
-    float e1_2y = p0y + 2.f * (p3y - p0y) / 3.f;
-
-    /* Edge 2: p3→p6, outer arc. */
-    float e2_1x = p3x + kappa * R * (-sin0);
-    float e2_1y = p3y + kappa * R * ( cos0);
-    float e2_2x = p6x - kappa * R * (-sin1);
-    float e2_2y = p6y - kappa * R * ( cos1);
-
-    /* Edge 3: p6→p9, radial line (straight, reversed). */
-    float e3_1x = p6x + (p9x - p6x) / 3.f;
-    float e3_1y = p6y + (p9y - p6y) / 3.f;
-    float e3_2x = p6x + 2.f * (p9x - p6x) / 3.f;
-    float e3_2y = p6y + 2.f * (p9y - p6y) / 3.f;
-
-    /* Edge 4: p9→p0, inner arc (reversed). */
-    float e4_1x = p9x + kappa * eps * (-sin1);
-    float e4_1y = p9y + kappa * eps * ( cos1);
-    float e4_2x = p0x - kappa * eps * (-sin0);
-    float e4_2y = p0y - kappa * eps * ( cos0);
-
-    /* Evaluate colors. */
-    hb_color_t c0 = hb_pdf_evaluate_color_line (paint->color_stops_scratch.arrayZ,
-						  count, t0, extend);
-    hb_color_t c1 = hb_pdf_evaluate_color_line (paint->color_stops_scratch.arrayZ,
-						  count, t1, extend);
-
-    /* Flag byte. */
-    hb_buf_append_c (&mesh, '\0'); /* flag = 0, new patch */
-
-    /* 12 control points: edges 1,2,3,4. */
-    hb_pdf_encode_point (&mesh, p0x, p0y, xlo, xhi, ylo, yhi);      /* p0 */
-    hb_pdf_encode_point (&mesh, e1_1x, e1_1y, xlo, xhi, ylo, yhi);  /* p1 */
-    hb_pdf_encode_point (&mesh, e1_2x, e1_2y, xlo, xhi, ylo, yhi);  /* p2 */
-    hb_pdf_encode_point (&mesh, p3x, p3y, xlo, xhi, ylo, yhi);      /* p3 */
-    hb_pdf_encode_point (&mesh, e2_1x, e2_1y, xlo, xhi, ylo, yhi);  /* p4 */
-    hb_pdf_encode_point (&mesh, e2_2x, e2_2y, xlo, xhi, ylo, yhi);  /* p5 */
-    hb_pdf_encode_point (&mesh, p6x, p6y, xlo, xhi, ylo, yhi);      /* p6 */
-    hb_pdf_encode_point (&mesh, e3_1x, e3_1y, xlo, xhi, ylo, yhi);  /* p7 */
-    hb_pdf_encode_point (&mesh, e3_2x, e3_2y, xlo, xhi, ylo, yhi);  /* p8 */
-    hb_pdf_encode_point (&mesh, p9x, p9y, xlo, xhi, ylo, yhi);      /* p9 */
-    hb_pdf_encode_point (&mesh, e4_1x, e4_1y, xlo, xhi, ylo, yhi);  /* p10 */
-    hb_pdf_encode_point (&mesh, e4_2x, e4_2y, xlo, xhi, ylo, yhi);  /* p11 */
-
-    /* 4 corner colors: c0(p0), c1(p3), c2(p6), c3(p9). */
-    hb_pdf_encode_color_rgb (&mesh, c0); /* c0 = inner start */
-    hb_pdf_encode_color_rgb (&mesh, c0); /* c1 = outer start (same angle) */
-    hb_pdf_encode_color_rgb (&mesh, c1); /* c2 = outer end */
-    hb_pdf_encode_color_rgb (&mesh, c1); /* c3 = inner end */
+    if (extend == HB_PAINT_EXTEND_PAD)
+    {
+      if (start_angle > 0.f)
+	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				0.f, stops[0].color, start_angle, stops[0].color);
+      if (end_angle < HB_2_PI)
+	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				end_angle, stops[n_stops - 1].color, HB_2_PI, stops[n_stops - 1].color);
+    }
+    goto emit;
   }
+
+  if (end_angle < start_angle)
+  {
+    float tmp = start_angle; start_angle = end_angle; end_angle = tmp;
+    for (unsigned i = 0; i < n_stops - 1 - i; i++)
+    {
+      hb_color_stop_t t = stops[i];
+      stops[i] = stops[n_stops - 1 - i];
+      stops[n_stops - 1 - i] = t;
+    }
+    for (unsigned i = 0; i < n_stops; i++)
+      stops[i].offset = 1.f - stops[i].offset;
+  }
+
+  {
+    /* Map stop offsets to angles. */
+    float angles_buf[16];
+    hb_color_t colors_buf[16];
+    float *angles = angles_buf;
+    hb_color_t *colors = colors_buf;
+    bool dynamic = false;
+
+    if (n_stops > 16)
+    {
+      angles = (float *) hb_malloc (sizeof (float) * n_stops);
+      colors = (hb_color_t *) hb_malloc (sizeof (hb_color_t) * n_stops);
+      if (!angles || !colors)
+      {
+	hb_free (angles);
+	hb_free (colors);
+	goto emit;
+      }
+      dynamic = true;
+    }
+
+    for (unsigned i = 0; i < n_stops; i++)
+    {
+      angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
+      colors[i] = stops[i].color;
+    }
+
+    if (extend == HB_PAINT_EXTEND_PAD)
+    {
+      unsigned pos;
+      hb_color_t color0 = colors[0];
+      for (pos = 0; pos < n_stops; pos++)
+      {
+	if (angles[pos] >= 0)
+	{
+	  if (pos > 0)
+	  {
+	    float f = (0.f - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
+	    color0 = hb_pdf_lerp_color (colors[pos - 1], colors[pos], f);
+	  }
+	  break;
+	}
+      }
+      if (pos == n_stops)
+      {
+	color0 = colors[n_stops - 1];
+	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				0.f, color0, HB_2_PI, color0);
+	goto done;
+      }
+      hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+			      0.f, color0, angles[pos], colors[pos]);
+      for (pos++; pos < n_stops; pos++)
+      {
+	if (angles[pos] <= HB_2_PI)
+	  hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				  angles[pos - 1], colors[pos - 1], angles[pos], colors[pos]);
+	else
+	{
+	  float f = (HB_2_PI - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
+	  hb_color_t color1 = hb_pdf_lerp_color (colors[pos - 1], colors[pos], f);
+	  hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				  angles[pos - 1], colors[pos - 1], HB_2_PI, color1);
+	  break;
+	}
+      }
+      if (pos == n_stops)
+      {
+	color0 = colors[n_stops - 1];
+	hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				angles[n_stops - 1], color0, HB_2_PI, color0);
+	goto done;
+      }
+    }
+    else
+    {
+      float span = angles[n_stops - 1] - angles[0];
+      if (fabsf (span) < 1e-6f)
+	goto done;
+
+      int k = 0;
+      if (angles[0] >= 0)
+      {
+	float ss = angles[0];
+	while (ss > 0)
+	{
+	  if (span > 0) { ss -= span; k--; }
+	  else          { ss += span; k++; }
+	}
+      }
+      else
+      {
+	float ee = angles[n_stops - 1];
+	while (ee < 0)
+	{
+	  if (span > 0) { ee += span; k++; }
+	  else          { ee -= span; k--; }
+	}
+      }
+
+      span = fabsf (span);
+      for (int l = k; l < 1000; l++)
+      {
+	for (unsigned i = 1; i < n_stops; i++)
+	{
+	  float a0_l, a1_l;
+	  hb_color_t col0, col1;
+	  if ((l % 2 != 0) && (extend == HB_PAINT_EXTEND_REFLECT))
+	  {
+	    a0_l = angles[0] + angles[n_stops - 1] - angles[n_stops - i] + l * span;
+	    a1_l = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - i] + l * span;
+	    col0 = colors[n_stops - i];
+	    col1 = colors[n_stops - 1 - i];
+	  }
+	  else
+	  {
+	    a0_l = angles[i - 1] + l * span;
+	    a1_l = angles[i] + l * span;
+	    col0 = colors[i - 1];
+	    col1 = colors[i];
+	  }
+
+	  if (a1_l < 0.f) continue;
+	  if (a0_l < 0.f)
+	  {
+	    float f = (0.f - a0_l) / (a1_l - a0_l);
+	    hb_color_t c = hb_pdf_lerp_color (col0, col1, f);
+	    hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				    0.f, c, a1_l, col1);
+	  }
+	  else if (a1_l >= HB_2_PI)
+	  {
+	    float f = (HB_2_PI - a0_l) / (a1_l - a0_l);
+	    hb_color_t c = hb_pdf_lerp_color (col0, col1, f);
+	    hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				    a0_l, col0, HB_2_PI, c);
+	    goto done;
+	  }
+	  else
+	    hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+				    a0_l, col0, a1_l, col1);
+	}
+      }
+    }
+
+done:
+    if (dynamic)
+    {
+      hb_free (angles);
+      hb_free (colors);
+    }
+  }
+
+emit:
+  if (!mesh.length)
+    return;
 
   /* Build the shading stream object. */
   hb_vector_t<char> sh;
