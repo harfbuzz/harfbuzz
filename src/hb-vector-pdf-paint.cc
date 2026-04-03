@@ -564,8 +564,9 @@ hb_pdf_evaluate_color_line (hb_color_stop_t *stops, unsigned len,
     t = t - floorf (t);
   else if (extend == HB_PAINT_EXTEND_REFLECT)
   {
-    t = t - floorf (t);
-    if (((int) floorf (t * 2.f)) & 1)
+    float ft = floorf (t);
+    t = t - ft;
+    if (((int) ft) & 1)
       t = 1.f - t;
   }
   else /* PAD */
@@ -576,7 +577,6 @@ hb_pdf_evaluate_color_line (hb_color_stop_t *stops, unsigned len,
   if (t >= stops[len - 1].offset)
     return stops[len - 1].color;
 
-  /* Find enclosing stops. */
   unsigned i = 0;
   for (; i + 1 < len; i++)
     if (stops[i + 1].offset >= t)
@@ -595,6 +595,45 @@ hb_pdf_evaluate_color_line (hb_color_stop_t *stops, unsigned len,
   return HB_COLOR (lerp (16), lerp (8), lerp (0), lerp (24));
 }
 
+/* Encode a 16-bit big-endian unsigned value into buf. */
+static void
+hb_pdf_encode_u16 (hb_vector_t<char> *buf, uint16_t v)
+{
+  char bytes[2] = {(char) (v >> 8), (char) (v & 0xFF)};
+  hb_svg_append_len (buf, bytes, 2);
+}
+
+/* Encode a coordinate as 16-bit value relative to Decode range. */
+static void
+hb_pdf_encode_coord (hb_vector_t<char> *buf,
+		     float val, float lo, float hi)
+{
+  float t = (val - lo) / (hi - lo);
+  t = hb_clamp (t, 0.f, 1.f);
+  hb_pdf_encode_u16 (buf, (uint16_t) (t * 65535.f + 0.5f));
+}
+
+/* Encode RGB from hb_color_t as 3 bytes. */
+static void
+hb_pdf_encode_color_rgb (hb_vector_t<char> *buf, hb_color_t c)
+{
+  char rgb[3] = {(char) hb_color_get_red (c),
+		 (char) hb_color_get_green (c),
+		 (char) hb_color_get_blue (c)};
+  hb_svg_append_len (buf, rgb, 3);
+}
+
+/* Encode one Coons patch control point. */
+static void
+hb_pdf_encode_point (hb_vector_t<char> *buf,
+		     float x, float y,
+		     float xlo, float xhi,
+		     float ylo, float yhi)
+{
+  hb_pdf_encode_coord (buf, x, xlo, xhi);
+  hb_pdf_encode_coord (buf, y, ylo, yhi);
+}
+
 static void
 hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 			     void *paint_data,
@@ -607,6 +646,9 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return;
 
   /* Get and sort color stops. */
   unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
@@ -618,74 +660,130 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  /* Decompose into colored pie-slice sectors. */
-  const unsigned NUM_SECTORS = 360;
-  float R = 32767.f; /* large enough to cover any clip */
-
-  auto &body = paint->current_body ();
-
   float angle_range = end_angle - start_angle;
   if (fabsf (angle_range) < 1e-10f)
     return;
 
-  for (unsigned i = 0; i < NUM_SECTORS; i++)
+  /* Parameters. */
+  const float R = 32767.f;
+  const float eps = 0.5f;  /* small inner radius to avoid degenerate patch */
+  const float MAX_SECTOR = (float) M_PI / 2.f; /* max 90° per patch */
+
+  unsigned num_sectors = (unsigned) ceilf (fabsf (angle_range) / MAX_SECTOR);
+  if (num_sectors < 4) num_sectors = 4;
+
+  /* Coordinate bounds for Decode. */
+  float xlo = cx - R - 1, xhi = cx + R + 1;
+  float ylo = cy - R - 1, yhi = cy + R + 1;
+
+  /* Build mesh data stream. */
+  hb_vector_t<char> mesh;
+  mesh.alloc (num_sectors * 64);
+
+  for (unsigned i = 0; i < num_sectors; i++)
   {
-    float t0 = (float) i / NUM_SECTORS;
-    float t1 = (float) (i + 1) / NUM_SECTORS;
+    float t0 = (float) i / num_sectors;
+    float t1 = (float) (i + 1) / num_sectors;
     float a0 = start_angle + t0 * angle_range;
     float a1 = start_angle + t1 * angle_range;
+    float da = a1 - a0;
 
-    /* Evaluate color at midpoint of sector. */
-    float t_mid = (t0 + t1) * 0.5f;
-    hb_color_t c = hb_pdf_evaluate_color_line (paint->color_stops_scratch.arrayZ,
-					        count, t_mid, extend);
+    /* Bézier approximation factor for circular arc. */
+    float kappa = (4.f / 3.f) * tanf (da / 4.f);
 
-    float alpha = hb_color_get_alpha (c) / 255.f;
-    if (alpha < 1.f / 255.f)
-      continue;
-
-    /* Set alpha if needed. */
-    if (alpha < 1.f - 1.f / 512.f)
-    {
-      auto *res = hb_pdf_get_resources (paint);
-      if (res)
-      {
-	unsigned gs_idx = res->add_extgstate_alpha (alpha, paint->precision);
-	hb_svg_append_str (&body, "/GS");
-	hb_svg_append_unsigned (&body, gs_idx);
-	hb_svg_append_str (&body, " gs\n");
-      }
-    }
-
-    /* Set fill color. */
-    hb_svg_append_num (&body, hb_color_get_red (c) / 255.f, 4);
-    hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, hb_color_get_green (c) / 255.f, 4);
-    hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, hb_color_get_blue (c) / 255.f, 4);
-    hb_svg_append_str (&body, " rg\n");
-
-    /* Pie-slice path: center → outer edge at a0 → outer edge at a1 → close. */
     float cos0 = cosf (a0), sin0 = sinf (a0);
     float cos1 = cosf (a1), sin1 = sinf (a1);
 
-    hb_svg_append_num (&body, cx, paint->precision);
-    hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, cy, paint->precision);
-    hb_svg_append_str (&body, " m\n");
+    /* 4 corners:
+     *   p0  = inner at a0
+     *   p3  = outer at a0
+     *   p6  = outer at a1
+     *   p9  = inner at a1
+     */
+    float p0x = cx + eps * cos0, p0y = cy + eps * sin0;
+    float p3x = cx + R * cos0,   p3y = cy + R * sin0;
+    float p6x = cx + R * cos1,   p6y = cy + R * sin1;
+    float p9x = cx + eps * cos1, p9y = cy + eps * sin1;
 
-    hb_svg_append_num (&body, cx + R * cos0, paint->precision);
-    hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, cy + R * sin0, paint->precision);
-    hb_svg_append_str (&body, " l\n");
+    /* Edge 1: p0→p3, radial line (straight Bézier). */
+    float e1_1x = p0x + (p3x - p0x) / 3.f;
+    float e1_1y = p0y + (p3y - p0y) / 3.f;
+    float e1_2x = p0x + 2.f * (p3x - p0x) / 3.f;
+    float e1_2y = p0y + 2.f * (p3y - p0y) / 3.f;
 
-    hb_svg_append_num (&body, cx + R * cos1, paint->precision);
-    hb_svg_append_c (&body, ' ');
-    hb_svg_append_num (&body, cy + R * sin1, paint->precision);
-    hb_svg_append_str (&body, " l\n");
+    /* Edge 2: p3→p6, outer arc. */
+    float e2_1x = p3x + kappa * R * (-sin0);
+    float e2_1y = p3y + kappa * R * ( cos0);
+    float e2_2x = p6x - kappa * R * (-sin1);
+    float e2_2y = p6y - kappa * R * ( cos1);
 
-    hb_svg_append_str (&body, "h f\n");
+    /* Edge 3: p6→p9, radial line (straight, reversed). */
+    float e3_1x = p6x + (p9x - p6x) / 3.f;
+    float e3_1y = p6y + (p9y - p6y) / 3.f;
+    float e3_2x = p6x + 2.f * (p9x - p6x) / 3.f;
+    float e3_2y = p6y + 2.f * (p9y - p6y) / 3.f;
+
+    /* Edge 4: p9→p0, inner arc (reversed). */
+    float e4_1x = p9x + kappa * eps * (-sin1);
+    float e4_1y = p9y + kappa * eps * ( cos1);
+    float e4_2x = p0x - kappa * eps * (-sin0);
+    float e4_2y = p0y - kappa * eps * ( cos0);
+
+    /* Evaluate colors. */
+    hb_color_t c0 = hb_pdf_evaluate_color_line (paint->color_stops_scratch.arrayZ,
+						  count, t0, extend);
+    hb_color_t c1 = hb_pdf_evaluate_color_line (paint->color_stops_scratch.arrayZ,
+						  count, t1, extend);
+
+    /* Flag byte. */
+    hb_svg_append_c (&mesh, '\0'); /* flag = 0, new patch */
+
+    /* 12 control points: edges 1,2,3,4. */
+    hb_pdf_encode_point (&mesh, p0x, p0y, xlo, xhi, ylo, yhi);      /* p0 */
+    hb_pdf_encode_point (&mesh, e1_1x, e1_1y, xlo, xhi, ylo, yhi);  /* p1 */
+    hb_pdf_encode_point (&mesh, e1_2x, e1_2y, xlo, xhi, ylo, yhi);  /* p2 */
+    hb_pdf_encode_point (&mesh, p3x, p3y, xlo, xhi, ylo, yhi);      /* p3 */
+    hb_pdf_encode_point (&mesh, e2_1x, e2_1y, xlo, xhi, ylo, yhi);  /* p4 */
+    hb_pdf_encode_point (&mesh, e2_2x, e2_2y, xlo, xhi, ylo, yhi);  /* p5 */
+    hb_pdf_encode_point (&mesh, p6x, p6y, xlo, xhi, ylo, yhi);      /* p6 */
+    hb_pdf_encode_point (&mesh, e3_1x, e3_1y, xlo, xhi, ylo, yhi);  /* p7 */
+    hb_pdf_encode_point (&mesh, e3_2x, e3_2y, xlo, xhi, ylo, yhi);  /* p8 */
+    hb_pdf_encode_point (&mesh, p9x, p9y, xlo, xhi, ylo, yhi);      /* p9 */
+    hb_pdf_encode_point (&mesh, e4_1x, e4_1y, xlo, xhi, ylo, yhi);  /* p10 */
+    hb_pdf_encode_point (&mesh, e4_2x, e4_2y, xlo, xhi, ylo, yhi);  /* p11 */
+
+    /* 4 corner colors: c0(p0), c1(p3), c2(p6), c3(p9). */
+    hb_pdf_encode_color_rgb (&mesh, c0); /* c0 = inner start */
+    hb_pdf_encode_color_rgb (&mesh, c0); /* c1 = outer start (same angle) */
+    hb_pdf_encode_color_rgb (&mesh, c1); /* c2 = outer end */
+    hb_pdf_encode_color_rgb (&mesh, c1); /* c3 = inner end */
   }
+
+  /* Build the shading stream object. */
+  hb_vector_t<char> sh;
+  hb_svg_append_str (&sh, "<< /ShadingType 6 /ColorSpace /DeviceRGB\n");
+  hb_svg_append_str (&sh, "/BitsPerCoordinate 16 /BitsPerComponent 8 /BitsPerFlag 8\n");
+  hb_svg_append_str (&sh, "/Decode [");
+  hb_svg_append_num (&sh, xlo, 2);
+  hb_svg_append_c (&sh, ' ');
+  hb_svg_append_num (&sh, xhi, 2);
+  hb_svg_append_c (&sh, ' ');
+  hb_svg_append_num (&sh, ylo, 2);
+  hb_svg_append_c (&sh, ' ');
+  hb_svg_append_num (&sh, yhi, 2);
+  hb_svg_append_str (&sh, " 0 1 0 1 0 1]\n");
+  hb_svg_append_str (&sh, "/Length ");
+  hb_svg_append_unsigned (&sh, mesh.length);
+  hb_svg_append_str (&sh, " >>\nstream\n");
+  hb_svg_append_len (&sh, mesh.arrayZ, mesh.length);
+  hb_svg_append_str (&sh, "\nendstream");
+
+  unsigned sh_idx = res->add_shading (std::move (sh));
+
+  auto &body = paint->current_body ();
+  hb_svg_append_str (&body, "/SH");
+  hb_svg_append_unsigned (&body, sh_idx);
+  hb_svg_append_str (&body, " sh\n");
 }
 
 static void
