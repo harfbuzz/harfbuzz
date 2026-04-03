@@ -152,6 +152,15 @@ if conf.get('HAVE_GLIB', 0) == 1
     )
   endif
 
+  if not get_option('raster').disabled() and not get_option('gpu').disabled()
+    hb_raster_gpu_all = executable('hb-raster-gpu-all', ['hb-raster-gpu-all.cc'],
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      link_with: [libharfbuzz, libharfbuzz_raster, libharfbuzz_gpu],
+      install: false,
+    )
+  endif
+
   hb_info = executable('hb-info', [hb_info_sources, gobject_enums_h],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
