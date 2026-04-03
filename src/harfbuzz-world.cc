@@ -165,6 +165,7 @@
 
 #ifdef HB_HAS_VECTOR
 #include "hb-static.cc"
+#include "hb-vector-pdf-paint.cc"
 #include "hb-vector-svg-draw.cc"
 #include "hb-vector-svg-paint.cc"
 #include "hb-vector-svg-path.cc"
