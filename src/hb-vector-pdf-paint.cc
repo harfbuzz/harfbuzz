@@ -92,6 +92,24 @@ struct hb_pdf_resources_t
     return idx;
   }
 
+  /* Add ExtGState for blend mode, return resource name index. */
+  unsigned add_extgstate_blend (const char *bm)
+  {
+    unsigned idx = extgstate_count++;
+    hb_vector_t<char> obj;
+    hb_buf_append_str (&obj, "<< /Type /ExtGState /BM /");
+    hb_buf_append_str (&obj, bm);
+    hb_buf_append_str (&obj, " >>");
+    unsigned obj_id = add_object (std::move (obj));
+
+    hb_buf_append_str (&extgstate_dict, "/GS");
+    hb_buf_append_unsigned (&extgstate_dict, idx);
+    hb_buf_append_c (&extgstate_dict, ' ');
+    hb_buf_append_unsigned (&extgstate_dict, obj_id);
+    hb_buf_append_str (&extgstate_dict, " 0 R ");
+    return idx;
+  }
+
   /* Add a shading + function for a gradient, return resource name index. */
   unsigned add_shading (hb_vector_t<char> &&shading_data)
   {
@@ -933,6 +951,43 @@ emit:
   hb_buf_append_str (&body, " sh\n");
 }
 
+static const char *
+hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
+{
+  switch (mode)
+  {
+  case HB_PAINT_COMPOSITE_MODE_MULTIPLY:       return "Multiply";
+  case HB_PAINT_COMPOSITE_MODE_SCREEN:         return "Screen";
+  case HB_PAINT_COMPOSITE_MODE_OVERLAY:        return "Overlay";
+  case HB_PAINT_COMPOSITE_MODE_DARKEN:         return "Darken";
+  case HB_PAINT_COMPOSITE_MODE_LIGHTEN:        return "Lighten";
+  case HB_PAINT_COMPOSITE_MODE_COLOR_DODGE:    return "ColorDodge";
+  case HB_PAINT_COMPOSITE_MODE_COLOR_BURN:     return "ColorBurn";
+  case HB_PAINT_COMPOSITE_MODE_HARD_LIGHT:     return "HardLight";
+  case HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT:     return "SoftLight";
+  case HB_PAINT_COMPOSITE_MODE_DIFFERENCE:     return "Difference";
+  case HB_PAINT_COMPOSITE_MODE_EXCLUSION:      return "Exclusion";
+  case HB_PAINT_COMPOSITE_MODE_HSL_HUE:        return "Hue";
+  case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: return "Saturation";
+  case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:      return "Color";
+  case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: return "Luminosity";
+  case HB_PAINT_COMPOSITE_MODE_CLEAR:
+  case HB_PAINT_COMPOSITE_MODE_SRC:
+  case HB_PAINT_COMPOSITE_MODE_DEST:
+  case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+  case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+  case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+  case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+  case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+  case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+  case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+  case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+  case HB_PAINT_COMPOSITE_MODE_XOR:
+  case HB_PAINT_COMPOSITE_MODE_PLUS:
+  default:                                     return nullptr; /* Normal / no PDF equivalent */
+  }
+}
+
 static void
 hb_pdf_paint_push_group (hb_paint_funcs_t *,
 			 void *paint_data,
@@ -942,6 +997,33 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
   hb_buf_append_str (&paint->current_body (), "q\n");
+}
+
+static void
+hb_pdf_paint_push_group_for (hb_paint_funcs_t *,
+			     void *paint_data,
+			     hb_paint_composite_mode_t mode,
+			     void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+
+  const char *bm = hb_pdf_blend_mode_name (mode);
+  if (bm)
+  {
+    auto *res = hb_pdf_get_resources (paint);
+    if (likely (res))
+    {
+      unsigned gs_idx = res->add_extgstate_blend (bm);
+      hb_buf_append_str (&body, "/GS");
+      hb_buf_append_unsigned (&body, gs_idx);
+      hb_buf_append_str (&body, " gs\n");
+    }
+  }
 }
 
 static void
@@ -978,6 +1060,7 @@ static struct hb_pdf_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_radial_gradient_func (funcs, (hb_paint_radial_gradient_func_t) hb_pdf_paint_radial_gradient, nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func (funcs, (hb_paint_sweep_gradient_func_t) hb_pdf_paint_sweep_gradient, nullptr, nullptr);
     hb_paint_funcs_set_push_group_func (funcs, (hb_paint_push_group_func_t) hb_pdf_paint_push_group, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_for_func (funcs, (hb_paint_push_group_for_func_t) hb_pdf_paint_push_group_for, nullptr, nullptr);
     hb_paint_funcs_set_pop_group_func (funcs, (hb_paint_pop_group_func_t) hb_pdf_paint_pop_group, nullptr, nullptr);
     hb_paint_funcs_make_immutable (funcs);
     hb_atexit (free_static_pdf_paint_funcs);
