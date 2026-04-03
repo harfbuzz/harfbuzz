@@ -32,6 +32,10 @@
 #include <math.h>
 #include <stdio.h>
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 /* PDF paint backend for COLRv0/v1 color font rendering.
  *
  * Supports:
@@ -55,13 +59,21 @@ struct hb_pdf_obj_t
 /* Collects extra PDF objects (shadings, functions, ExtGState)
  * during painting.  Referenced from the content stream by name
  * (e.g. /SH0, /GS0) and emitted at render time. */
+static bool
+hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
+			    const char *idat_data, unsigned idat_len,
+			    unsigned width, unsigned height,
+			    const uint8_t *trns, unsigned trns_len);
+
 struct hb_pdf_resources_t
 {
   hb_vector_t<hb_pdf_obj_t> objects;   /* extra objects, starting at id 5 */
   hb_vector_t<char> extgstate_dict;    /* /GS0 5 0 R /GS1 6 0 R ... */
   hb_vector_t<char> shading_dict;      /* /SH0 7 0 R ... */
+  hb_vector_t<char> xobject_dict;      /* /Im0 8 0 R ... */
   unsigned extgstate_count = 0;
   unsigned shading_count = 0;
+  unsigned xobject_count = 0;
 
   unsigned add_object (hb_vector_t<char> &&obj_data)
   {
@@ -121,6 +133,104 @@ struct hb_pdf_resources_t
     hb_buf_append_c (&shading_dict, ' ');
     hb_buf_append_unsigned (&shading_dict, obj_id);
     hb_buf_append_str (&shading_dict, " 0 R ");
+    return idx;
+  }
+
+  /* Add an XObject image, return resource name index.
+   * idat_data/idat_len is the concatenated PNG IDAT payload (zlib data).
+   * colors is 1 (gray), 3 (RGB), or 4 (RGBA); for indexed, pass colors=1.
+   * plte/plte_len is the PLTE chunk data for indexed images (may be null). */
+  unsigned add_xobject_png_image (const char *idat_data, unsigned idat_len,
+				  unsigned width, unsigned height,
+				  unsigned colors, bool has_alpha,
+				  const uint8_t *plte = nullptr,
+				  unsigned plte_len = 0,
+				  const uint8_t *trns = nullptr,
+				  unsigned trns_len = 0)
+  {
+    unsigned idx = xobject_count++;
+    hb_vector_t<char> obj;
+    hb_buf_append_str (&obj, "<< /Type /XObject /Subtype /Image\n");
+    hb_buf_append_str (&obj, "/Width ");
+    hb_buf_append_unsigned (&obj, width);
+    hb_buf_append_str (&obj, " /Height ");
+    hb_buf_append_unsigned (&obj, height);
+    hb_buf_append_str (&obj, "\n/BitsPerComponent 8\n");
+
+    if (plte && plte_len >= 3)
+    {
+      /* Indexed color: /ColorSpace [/Indexed /DeviceRGB N <hex palette>] */
+      unsigned n_entries = plte_len / 3;
+      hb_buf_append_str (&obj, "/ColorSpace [/Indexed /DeviceRGB ");
+      hb_buf_append_unsigned (&obj, n_entries - 1);
+      hb_buf_append_str (&obj, " <");
+      for (unsigned i = 0; i < n_entries * 3; i++)
+      {
+	hb_buf_append_c (&obj, "0123456789ABCDEF"[plte[i] >> 4]);
+	hb_buf_append_c (&obj, "0123456789ABCDEF"[plte[i] & 0xF]);
+      }
+      hb_buf_append_str (&obj, ">]\n");
+    }
+    else
+    {
+      hb_buf_append_str (&obj, "/ColorSpace ");
+      unsigned color_channels = has_alpha ? colors - 1 : colors;
+      hb_buf_append_str (&obj, color_channels == 1 ? "/DeviceGray" : "/DeviceRGB");
+      hb_buf_append_c (&obj, '\n');
+    }
+
+    /* Build SMask for indexed images with tRNS transparency. */
+    unsigned smask_id = 0;
+    if (plte && trns && trns_len)
+    {
+      hb_vector_t<char> smask_stream;
+      if (hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
+				      width, height, trns, trns_len))
+      {
+	hb_vector_t<char> smask_obj;
+	hb_buf_append_str (&smask_obj, "<< /Type /XObject /Subtype /Image\n");
+	hb_buf_append_str (&smask_obj, "/Width ");
+	hb_buf_append_unsigned (&smask_obj, width);
+	hb_buf_append_str (&smask_obj, " /Height ");
+	hb_buf_append_unsigned (&smask_obj, height);
+	hb_buf_append_str (&smask_obj, "\n/ColorSpace /DeviceGray /BitsPerComponent 8\n");
+	hb_buf_append_str (&smask_obj, "/Length ");
+	hb_buf_append_unsigned (&smask_obj, smask_stream.length);
+	hb_buf_append_str (&smask_obj, " >>\nstream\n");
+	hb_buf_append_len (&smask_obj, smask_stream.arrayZ, smask_stream.length);
+	hb_buf_append_str (&smask_obj, "\nendstream");
+	smask_id = add_object (std::move (smask_obj));
+      }
+    }
+
+    if (smask_id)
+    {
+      hb_buf_append_str (&obj, "/SMask ");
+      hb_buf_append_unsigned (&obj, smask_id);
+      hb_buf_append_str (&obj, " 0 R\n");
+    }
+
+    hb_buf_append_str (&obj, "/Filter /FlateDecode\n");
+    hb_buf_append_str (&obj, "/DecodeParms << /Predictor 15 /Colors ");
+    hb_buf_append_unsigned (&obj, colors);
+    hb_buf_append_str (&obj, " /BitsPerComponent 8 /Columns ");
+    hb_buf_append_unsigned (&obj, width);
+    hb_buf_append_str (&obj, " >>\n");
+    hb_buf_append_str (&obj, "/Length ");
+    hb_buf_append_unsigned (&obj, idat_len);
+    hb_buf_append_str (&obj, " >>\nstream\n");
+    hb_buf_append_len (&obj, idat_data, idat_len);
+    hb_buf_append_str (&obj, "\nendstream");
+
+    (void) has_alpha;
+
+    unsigned obj_id = add_object (std::move (obj));
+
+    hb_buf_append_str (&xobject_dict, "/Im");
+    hb_buf_append_unsigned (&xobject_dict, idx);
+    hb_buf_append_c (&xobject_dict, ' ');
+    hb_buf_append_unsigned (&xobject_dict, obj_id);
+    hb_buf_append_str (&xobject_dict, " 0 R ");
     return idx;
   }
 };
@@ -354,17 +464,249 @@ hb_pdf_paint_color (hb_paint_funcs_t *,
   hb_pdf_paint_solid_color (paint, c);
 }
 
+/* Build an uncompressed alpha mask from indexed PNG IDAT data + tRNS.
+ * Decompresses IDAT, un-filters PNG rows, maps palette indices to alpha. */
+static bool
+hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
+			    const char *idat_data, unsigned idat_len,
+			    unsigned width, unsigned height,
+			    const uint8_t *trns, unsigned trns_len)
+{
+#ifndef HAVE_ZLIB
+  (void) out; (void) idat_data; (void) idat_len;
+  (void) width; (void) height; (void) trns; (void) trns_len;
+  return false;
+#else
+  /* Decompress IDAT (zlib). */
+  unsigned raw_len = (width + 1) * height; /* 1 filter byte per row + width bytes */
+  uint8_t *raw = (uint8_t *) hb_malloc (raw_len);
+  if (!raw) return false;
+
+  z_stream stream = {};
+  stream.next_in = (Bytef *) idat_data;
+  stream.avail_in = idat_len;
+  stream.next_out = (Bytef *) raw;
+  stream.avail_out = raw_len;
+
+  if (inflateInit (&stream) != Z_OK)
+  {
+    hb_free (raw);
+    return false;
+  }
+  int status = inflate (&stream, Z_FINISH);
+  inflateEnd (&stream);
+  if (status != Z_STREAM_END)
+  {
+    hb_free (raw);
+    return false;
+  }
+
+  /* Un-filter and map to alpha. */
+  if (!out->resize (width * height))
+  {
+    hb_free (raw);
+    return false;
+  }
+
+  uint8_t *unfiltered = (uint8_t *) hb_malloc (width);
+  if (!unfiltered)
+  {
+    hb_free (raw);
+    return false;
+  }
+  uint8_t *prev_unfiltered = (uint8_t *) hb_calloc (width, 1);
+  if (!prev_unfiltered)
+  {
+    hb_free (unfiltered);
+    hb_free (raw);
+    return false;
+  }
+
+  for (unsigned y = 0; y < height; y++)
+  {
+    uint8_t *row = raw + y * (width + 1);
+    uint8_t filter = row[0];
+    uint8_t *pixels = row + 1;
+
+    for (unsigned x = 0; x < width; x++)
+    {
+      uint8_t a = (x > 0) ? unfiltered[x - 1] : 0;
+      uint8_t b = prev_unfiltered[x];
+      uint8_t c = (x > 0) ? prev_unfiltered[x - 1] : 0;
+      uint8_t val = pixels[x];
+
+      switch (filter)
+      {
+      case 0: unfiltered[x] = val; break; /* None */
+      case 1: unfiltered[x] = val + a; break; /* Sub */
+      case 2: unfiltered[x] = val + b; break; /* Up */
+      case 3: unfiltered[x] = val + (uint8_t) (((unsigned) a + b) / 2); break; /* Average */
+      case 4: /* Paeth */
+      {
+	int p = (int) a + (int) b - (int) c;
+	int pa = abs (p - (int) a);
+	int pb = abs (p - (int) b);
+	int pc = abs (p - (int) c);
+	uint8_t pr = (pa <= pb && pa <= pc) ? a : (pb <= pc) ? b : c;
+	unfiltered[x] = val + pr;
+	break;
+      }
+      default: unfiltered[x] = val; break;
+      }
+
+      /* Map palette index to alpha. */
+      uint8_t idx = unfiltered[x];
+      out->arrayZ[y * width + x] = (idx < trns_len) ? trns[idx] : 0xFF;
+    }
+
+    /* Swap buffers. */
+    uint8_t *tmp = prev_unfiltered;
+    prev_unfiltered = unfiltered;
+    unfiltered = tmp;
+  }
+
+  hb_free (unfiltered);
+  hb_free (prev_unfiltered);
+  hb_free (raw);
+  return true;
+#endif
+}
+
+/* Read a big-endian uint32 from a byte pointer. */
+static inline uint32_t
+hb_pdf_png_u32 (const uint8_t *p)
+{
+  return ((uint32_t) p[0] << 24) | ((uint32_t) p[1] << 16) |
+	 ((uint32_t) p[2] << 8)  | (uint32_t) p[3];
+}
+
 static hb_bool_t
 hb_pdf_paint_image (hb_paint_funcs_t *,
-		    void *,
-		    hb_blob_t *,
-		    unsigned, unsigned,
-		    hb_tag_t,
-		    float,
-		    hb_glyph_extents_t *,
+		    void *paint_data,
+		    hb_blob_t *image,
+		    unsigned width,
+		    unsigned height,
+		    hb_tag_t format,
+		    float slant HB_UNUSED,
+		    hb_glyph_extents_t *extents,
 		    void *)
 {
-  return false;
+  if (format != HB_TAG ('p','n','g',' '))
+    return false;
+  if (!extents || !width || !height)
+    return false;
+
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return false;
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return false;
+
+  unsigned len = 0;
+  const uint8_t *data = (const uint8_t *) hb_blob_get_data (image, &len);
+  if (!data || len < 8)
+    return false;
+
+  /* Verify PNG signature. */
+  static const uint8_t png_sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+  if (hb_memcmp (data, png_sig, 8) != 0)
+    return false;
+
+  /* Parse PNG chunks: extract IHDR and concatenate IDAT payloads. */
+  unsigned png_w = 0, png_h = 0;
+  unsigned colors = 3; /* default RGB */
+  uint8_t color_type = 2;
+  bool has_alpha = false;
+  const uint8_t *plte_data = nullptr;
+  unsigned plte_len = 0;
+  const uint8_t *trns_data = nullptr;
+  unsigned trns_len = 0;
+  hb_vector_t<char> idat;
+
+  unsigned pos = 8;
+  while (pos + 12 <= len)
+  {
+    uint32_t chunk_len = hb_pdf_png_u32 (data + pos);
+    uint32_t chunk_type = hb_pdf_png_u32 (data + pos + 4);
+    if (pos + 12 + chunk_len > len)
+      break;
+    const uint8_t *chunk_data = data + pos + 8;
+
+    if (chunk_type == 0x49484452u) /* IHDR */
+    {
+      if (chunk_len < 13) return false;
+      png_w = hb_pdf_png_u32 (chunk_data);
+      png_h = hb_pdf_png_u32 (chunk_data + 4);
+      uint8_t bit_depth = chunk_data[8];
+      color_type = chunk_data[9];
+      if (bit_depth != 8) return false; /* only 8-bit supported */
+
+      switch (color_type)
+      {
+      case 0: colors = 1; has_alpha = false; break; /* Grayscale */
+      case 2: colors = 3; has_alpha = false; break; /* RGB */
+      case 3: colors = 1; has_alpha = false; break; /* Indexed */
+      case 4: colors = 2; has_alpha = true;  break; /* Gray+Alpha */
+      case 6: colors = 4; has_alpha = true;  break; /* RGBA */
+      default: return false;
+      }
+    }
+    else if (chunk_type == 0x504C5445u) /* PLTE */
+    {
+      plte_data = chunk_data;
+      plte_len = chunk_len;
+    }
+    else if (chunk_type == 0x74524E53u) /* tRNS */
+    {
+      trns_data = chunk_data;
+      trns_len = chunk_len;
+    }
+    else if (chunk_type == 0x49444154u) /* IDAT */
+    {
+      hb_buf_append_len (&idat, (const char *) chunk_data, chunk_len);
+    }
+    else if (chunk_type == 0x49454E44u) /* IEND */
+      break;
+
+    pos += 12 + chunk_len;
+  }
+
+  if (!png_w || !png_h || !idat.length)
+    return false;
+
+  unsigned im_idx = res->add_xobject_png_image (idat.arrayZ, idat.length,
+						 png_w, png_h,
+						 colors, has_alpha,
+						 plte_data, plte_len,
+						 trns_data, trns_len);
+
+  /* Emit: save state, set CTM to map image (0,0)-(1,1) to extents, paint. */
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+
+  /* Image space: (0,0) at bottom-left, (1,1) at top-right.
+   * We need to map to extents (x_bearing, y_bearing+height) .. (x_bearing+width, y_bearing).
+   * Since font coords are Y-up like PDF, y_bearing is the top. */
+  float ix = (float) extents->x_bearing;
+  float iy = (float) extents->y_bearing + (float) extents->height;
+  float iw = (float) extents->width;
+  float ih = (float) -extents->height; /* negative because image Y goes up but height is negative in extents */
+
+  hb_buf_append_num (&body, iw, paint->precision);
+  hb_buf_append_str (&body, " 0 0 ");
+  hb_buf_append_num (&body, ih, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, ix, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, iy, paint->precision);
+  hb_buf_append_str (&body, " cm\n");
+
+  hb_buf_append_str (&body, "/Im");
+  hb_buf_append_unsigned (&body, im_idx);
+  hb_buf_append_str (&body, " Do\nQ\n");
+
+  return true;
 }
 
 /* ---- Gradient helpers ---- */
@@ -1135,7 +1477,7 @@ hb_vector_pdf_paint_render (hb_vector_paint_t *paint)
 
   /* Resources. */
   bool has_resources = res &&
-    (res->extgstate_dict.length || res->shading_dict.length);
+    (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length);
   if (has_resources)
   {
     hb_buf_append_str (&out, "\n/Resources <<");
@@ -1149,6 +1491,12 @@ hb_vector_pdf_paint_render (hb_vector_paint_t *paint)
     {
       hb_buf_append_str (&out, " /Shading << ");
       hb_buf_append_len (&out, res->shading_dict.arrayZ, res->shading_dict.length);
+      hb_buf_append_str (&out, ">>");
+    }
+    if (res->xobject_dict.length)
+    {
+      hb_buf_append_str (&out, " /XObject << ");
+      hb_buf_append_len (&out, res->xobject_dict.arrayZ, res->xobject_dict.length);
       hb_buf_append_str (&out, ">>");
     }
     hb_buf_append_str (&out, " >>");
