@@ -69,6 +69,10 @@
  * allow buffer reuse; call hb_gpu_draw_reset() before each new
  * glyph.
  *
+ * For CPU-side validation, fallback rendering, or offline image
+ * generation, blobs produced here can also be rasterized with
+ * hb_raster_gpu_render_from_blob_or_fail() from `harfbuzz-raster`.
+ *
  * # Atlas setup
  *
  * All encoded blobs are uploaded into a single GL_TEXTURE_BUFFER

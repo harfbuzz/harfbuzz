@@ -64,6 +64,10 @@ hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang);
  * callbacks, then encodes them into a compact blob for GPU
  * rendering.
  *
+ * Encoded blobs are typically uploaded for shader-based rendering,
+ * but can also be rasterized on the CPU with
+ * hb_raster_gpu_render_from_blob_or_fail() from `harfbuzz-raster`.
+ *
  * Since: 14.0.0
  */
 typedef struct hb_gpu_draw_t hb_gpu_draw_t;
