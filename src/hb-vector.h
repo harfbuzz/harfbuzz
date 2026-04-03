@@ -43,6 +43,7 @@ HB_BEGIN_DECLS
 typedef enum {
   HB_VECTOR_FORMAT_INVALID = HB_TAG_NONE,
   HB_VECTOR_FORMAT_SVG = HB_TAG ('s','v','g',' '),
+  HB_VECTOR_FORMAT_PDF = HB_TAG ('p','d','f',' '),
 } hb_vector_format_t;
 
 /**
