@@ -85,7 +85,7 @@ hb_paint_funcs_t * hb_vector_svg_paint_funcs_get ();
 hb_blob_t * hb_vector_svg_paint_render (hb_vector_paint_t *paint);
 
 /* Implemented in hb-vector-pdf-paint.cc */
-hb_paint_funcs_t * hb_vector_pdf_paint_funcs_get ();
-hb_blob_t * hb_vector_pdf_paint_render (hb_vector_paint_t *paint);
+HB_INTERNAL hb_paint_funcs_t * hb_vector_pdf_paint_funcs_get ();
+HB_INTERNAL hb_blob_t * hb_vector_pdf_paint_render (hb_vector_paint_t *paint);
 
 #endif /* HB_VECTOR_PAINT_HH */
