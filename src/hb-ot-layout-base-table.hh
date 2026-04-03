@@ -726,7 +726,7 @@ struct BASE
     TRACE_SUBSET (this);
     if (!c->serializer->allocate_size<Offset32To<ItemVariationStore>> (Offset32To<ItemVariationStore>::static_size))
         return_trace (false);
-    if (!c->plan->normalized_coords)
+    if (!c->plan->normalized_coords || c->plan->has_avar2)
       return_trace (out->varStore.serialize_subset (c, varStore, this, c->plan->base_varstore_inner_maps.as_array ()));
 
     if (c->plan->all_axes_pinned)
