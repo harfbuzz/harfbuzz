@@ -32,8 +32,6 @@ struct hb_vector_draw_t
   {
     float tx, ty;
     hb_svg_transform_point (transform, x_scale_factor, y_scale_factor, x, y, &tx, &ty);
-    if (format == HB_VECTOR_FORMAT_PDF)
-      ty = -ty; /* PDF is Y-up; negate here to preserve winding. */
     hb_svg_append_num (&path, tx, precision);
     hb_svg_append_c (&path, format == HB_VECTOR_FORMAT_PDF ? ' ' : ',');
     hb_svg_append_num (&path, ty, precision);

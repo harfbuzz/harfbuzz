@@ -548,15 +548,10 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 
   if (draw->format == HB_VECTOR_FORMAT_PDF)
   {
-    /* PDF: always inline, use transform to position. */
+    /* PDF: always inline.  Pen position is in SVG space (Y-down);
+     * negate it since font/PDF coords are Y-up. */
     hb_transform_t<> saved = draw->transform;
-    float xx = draw->transform.xx;
-    float yx = draw->transform.yx;
-    float xy = draw->transform.xy;
-    float yy = draw->transform.yy;
-    float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-    float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-    draw->transform = {xx, yx, xy, yy, tx, ty};
+    draw->transform = {1, 0, 0, 1, pen_x, -pen_y};
 
     draw->path.clear ();
     hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (), draw);
@@ -692,7 +687,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   hb_vector_t<char> stream;
   stream.alloc (draw->body.length + draw->path.length + 128);
 
-  /* Y is negated in append_xy, so no CTM needed. */
+  /* Path coords are in font space (Y-up); no CTM needed. */
 
   if (draw->body.length)
     hb_svg_append_len (&stream, draw->body.arrayZ, draw->body.length);
