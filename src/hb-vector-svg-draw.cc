@@ -681,9 +681,21 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   if (!draw->has_extents)
     return nullptr;
 
-  /* Collect the content stream (path operators). */
+  /* Collect the content stream.  The path coordinates are in
+   * SVG space (Y-down).  Prepend a CTM that flips Y so the
+   * PDF page (Y-up) renders correctly. */
+  float ex = draw->extents.x;
+  float ey = draw->extents.y;
+  float ew = draw->extents.width;
+  float eh = draw->extents.height;
+
   hb_vector_t<char> stream;
-  stream.alloc (draw->body.length + draw->path.length + 64);
+  stream.alloc (draw->body.length + draw->path.length + 128);
+
+  /* Flip Y: map SVG y-range [ey .. ey+eh] to PDF [0 .. eh]. */
+  hb_svg_append_str (&stream, "1 0 0 -1 0 ");
+  hb_svg_append_num (&stream, ey + eh, draw->precision);
+  hb_svg_append_str (&stream, " cm\n");
 
   if (draw->body.length)
     hb_svg_append_len (&stream, draw->body.arrayZ, draw->body.length);
@@ -713,13 +725,11 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   /* Object 3: Page */
   offsets[2] = out.length;
   hb_svg_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
-  hb_svg_append_num (&out, draw->extents.x, draw->precision);
+  hb_svg_append_num (&out, ex, draw->precision);
+  hb_svg_append_str (&out, " 0 ");
+  hb_svg_append_num (&out, ex + ew, draw->precision);
   hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.y, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.x + draw->extents.width, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.y + draw->extents.height, draw->precision);
+  hb_svg_append_num (&out, eh, draw->precision);
   hb_svg_append_str (&out, "] /Contents 4 0 R >>\nendobj\n");
 
   /* Object 4: Content stream */
