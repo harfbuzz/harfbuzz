@@ -79,7 +79,22 @@ struct hb_raster_clip_t
       return ((int) x >= rect_x0 && (int) x < rect_x1 &&
 	      (int) y >= rect_y0 && (int) y < rect_y1) ? 255 : 0;
     if (x >= width || y >= height) return 0;
-    return alpha[y * stride + x];
+    if (stride < width) return 0;
+    if (height && stride > (size_t) -1 / height) return 0;
+    size_t idx = (size_t) y * stride + x;
+    if (!alpha.arrayZ || idx >= alpha.length) return 0;
+    return alpha[idx];
+  }
+
+  bool has_valid_alpha_mask () const
+  {
+    if (is_rect)
+      return true;
+    if (!alpha.arrayZ || stride < width)
+      return false;
+    if (height && stride > (size_t) -1 / height)
+      return false;
+    return (size_t) stride * height <= alpha.length;
   }
 };
 
@@ -153,6 +168,9 @@ struct hb_raster_paint_t
     clip.height = h;
     clip.stride = (w + 3u) & ~3u;
     clip.is_rect = false;
+    clip.rect_x0 = clip.rect_y0 = 0;
+    clip.rect_x1 = clip.rect_y1 = 0;
+    clip.min_x = clip.min_y = clip.max_x = clip.max_y = 0;
     return clip;
   }
 

@@ -227,6 +227,12 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   hb_raster_extents_t mask_ext;
   hb_raster_image_get_extents (mask_img, &mask_ext);
   const hb_raster_clip_t &old_clip = c->current_clip ();
+  if (unlikely (!old_clip.has_valid_alpha_mask ()))
+  {
+    hb_raster_draw_recycle_image (rdr, mask_img);
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
 
   /* Convert mask extents from surface coordinates to clip-buffer coordinates. */
   int mask_x0 = mask_ext.x_origin - surf->extents.x_origin;
@@ -420,6 +426,11 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   py1 = hb_min (py1, (int) h);
 
   const hb_raster_clip_t &old_clip = c->current_clip ();
+  if (unlikely (!old_clip.has_valid_alpha_mask ()))
+  {
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
 
   hb_raster_clip_t new_clip = c->acquire_clip (w, h);
 
