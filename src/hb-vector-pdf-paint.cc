@@ -551,22 +551,141 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_svg_append_str (&body, " sh\n");
 }
 
+/* Evaluate color line at a given offset. */
+static hb_color_t
+hb_pdf_evaluate_color_line (hb_color_stop_t *stops, unsigned len,
+			    float t, hb_paint_extend_t extend)
+{
+  if (!len)
+    return HB_COLOR (0, 0, 0, 255);
+
+  /* Handle extend modes. */
+  if (extend == HB_PAINT_EXTEND_REPEAT)
+    t = t - floorf (t);
+  else if (extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    t = t - floorf (t);
+    if (((int) floorf (t * 2.f)) & 1)
+      t = 1.f - t;
+  }
+  else /* PAD */
+    t = hb_clamp (t, 0.f, 1.f);
+
+  if (t <= stops[0].offset)
+    return stops[0].color;
+  if (t >= stops[len - 1].offset)
+    return stops[len - 1].color;
+
+  /* Find enclosing stops. */
+  unsigned i = 0;
+  for (; i + 1 < len; i++)
+    if (stops[i + 1].offset >= t)
+      break;
+
+  float range = stops[i + 1].offset - stops[i].offset;
+  float frac = range > 0.f ? (t - stops[i].offset) / range : 0.f;
+
+  hb_color_t c0 = stops[i].color;
+  hb_color_t c1 = stops[i + 1].color;
+  auto lerp = [&] (unsigned shift) -> unsigned {
+    unsigned v0 = (c0 >> shift) & 0xFF;
+    unsigned v1 = (c1 >> shift) & 0xFF;
+    return (unsigned) (v0 + frac * ((float) v1 - (float) v0) + 0.5f);
+  };
+  return HB_COLOR (lerp (16), lerp (8), lerp (0), lerp (24));
+}
+
 static void
 hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 			     void *paint_data,
 			     hb_color_line_t *color_line,
-			     float, float, float, float,
+			     float cx, float cy,
+			     float start_angle,
+			     float end_angle,
 			     void *)
 {
-  /* PDF has no native sweep gradient.  Fall back to first stop. */
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
 
-  unsigned count = 1;
-  hb_color_stop_t stop;
-  hb_color_line_get_color_stops (color_line, 0, &count, &stop);
-  hb_pdf_paint_solid_color (paint, count ? stop.color : HB_COLOR (0, 0, 0, 255));
+  /* Get and sort color stops. */
+  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  paint->color_stops_scratch.resize (count);
+  hb_color_line_get_color_stops (color_line, 0, &count, paint->color_stops_scratch.arrayZ);
+  paint->color_stops_scratch.as_array ().qsort (
+    [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
+    { return a.offset < b.offset; });
+
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+
+  /* Decompose into colored pie-slice sectors. */
+  const unsigned NUM_SECTORS = 360;
+  float R = 32767.f; /* large enough to cover any clip */
+
+  auto &body = paint->current_body ();
+
+  float angle_range = end_angle - start_angle;
+  if (fabsf (angle_range) < 1e-10f)
+    return;
+
+  for (unsigned i = 0; i < NUM_SECTORS; i++)
+  {
+    float t0 = (float) i / NUM_SECTORS;
+    float t1 = (float) (i + 1) / NUM_SECTORS;
+    float a0 = start_angle + t0 * angle_range;
+    float a1 = start_angle + t1 * angle_range;
+
+    /* Evaluate color at midpoint of sector. */
+    float t_mid = (t0 + t1) * 0.5f;
+    hb_color_t c = hb_pdf_evaluate_color_line (paint->color_stops_scratch.arrayZ,
+					        count, t_mid, extend);
+
+    float alpha = hb_color_get_alpha (c) / 255.f;
+    if (alpha < 1.f / 255.f)
+      continue;
+
+    /* Set alpha if needed. */
+    if (alpha < 1.f - 1.f / 512.f)
+    {
+      auto *res = hb_pdf_get_resources (paint);
+      if (res)
+      {
+	unsigned gs_idx = res->add_extgstate_alpha (alpha, paint->precision);
+	hb_svg_append_str (&body, "/GS");
+	hb_svg_append_unsigned (&body, gs_idx);
+	hb_svg_append_str (&body, " gs\n");
+      }
+    }
+
+    /* Set fill color. */
+    hb_svg_append_num (&body, hb_color_get_red (c) / 255.f, 4);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, hb_color_get_green (c) / 255.f, 4);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, hb_color_get_blue (c) / 255.f, 4);
+    hb_svg_append_str (&body, " rg\n");
+
+    /* Pie-slice path: center → outer edge at a0 → outer edge at a1 → close. */
+    float cos0 = cosf (a0), sin0 = sinf (a0);
+    float cos1 = cosf (a1), sin1 = sinf (a1);
+
+    hb_svg_append_num (&body, cx, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, cy, paint->precision);
+    hb_svg_append_str (&body, " m\n");
+
+    hb_svg_append_num (&body, cx + R * cos0, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, cy + R * sin0, paint->precision);
+    hb_svg_append_str (&body, " l\n");
+
+    hb_svg_append_num (&body, cx + R * cos1, paint->precision);
+    hb_svg_append_c (&body, ' ');
+    hb_svg_append_num (&body, cy + R * sin1, paint->precision);
+    hb_svg_append_str (&body, " l\n");
+
+    hb_svg_append_str (&body, "h f\n");
+  }
 }
 
 static void
