@@ -1037,9 +1037,14 @@ edge_sweep_row (int32_t                *area,
   int32_t ey1 = hb_min (edge.yH, y_bot);
   if (ey0 >= ey1) return;
 
-  /* X at clipped endpoints (fixed-point) */
-  int32_t x0 = edge.xL + (int32_t) ((int64_t) (ey0 - edge.yL) * edge.slope >> 16);
-  int32_t x1 = edge.xL + (int32_t) ((int64_t) (ey1 - edge.yL) * edge.slope >> 16);
+  /* X at clipped endpoints (fixed-point). Keep the interpolation in 64-bit
+   * so extreme y values do not overflow before the slope multiply. */
+  int64_t x0_64 = (int64_t) edge.xL +
+		  ((((int64_t) ey0 - (int64_t) edge.yL) * edge.slope) >> 16);
+  int64_t x1_64 = (int64_t) edge.xL +
+		  ((((int64_t) ey1 - (int64_t) edge.yL) * edge.slope) >> 16);
+  int32_t x0 = (int32_t) hb_clamp (x0_64, (int64_t) INT32_MIN, (int64_t) INT32_MAX);
+  int32_t x1 = (int32_t) hb_clamp (x1_64, (int64_t) INT32_MIN, (int64_t) INT32_MAX);
 
   /* Fractional y within this pixel row [0, ONE_PIXEL] */
   int32_t fy0 = ey0 - y_top;
@@ -1058,8 +1063,8 @@ edge_sweep_row (int32_t                *area,
     return;
   }
 
-  int32_t total_dx = x1 - x0;
-  int32_t total_dy = fy1 - fy0;
+  int64_t total_dx = (int64_t) x1 - (int64_t) x0;
+  int64_t total_dy = (int64_t) fy1 - (int64_t) fy0;
 
   /* fy increment per pixel column (constant since x_b advances by ONE_PIXEL). */
   int32_t delta_fy = (int32_t) ((int64_t) HB_RASTER_ONE_PIXEL * total_dy / total_dx);
@@ -1069,7 +1074,7 @@ edge_sweep_row (int32_t                *area,
     /* Left-to-right edge. */
     int32_t x_b = (int32_t) hb_clamp (((int64_t) cx0 + 1) * HB_RASTER_ONE_PIXEL,
 				      (int64_t) INT32_MIN, (int64_t) INT32_MAX);
-    int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+    int32_t fy_b = fy0 + (int32_t) ((((int64_t) x_b - (int64_t) x0) * total_dy) / total_dx);
     cell_add (area, cover, width, cx0 - x_org, fx0, fy0, HB_RASTER_ONE_PIXEL, fy_b, wind, x_min, x_max);
 
     int32_t fy_prev = fy_b;
@@ -1087,7 +1092,7 @@ edge_sweep_row (int32_t                *area,
     /* Right-to-left edge. */
     int32_t x_b = (int32_t) hb_clamp ((int64_t) cx0 * HB_RASTER_ONE_PIXEL,
 				      (int64_t) INT32_MIN, (int64_t) INT32_MAX);
-    int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+    int32_t fy_b = fy0 + (int32_t) ((((int64_t) x_b - (int64_t) x0) * total_dy) / total_dx);
     cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind, x_min, x_max);
 
     int32_t fy_prev = fy_b;
