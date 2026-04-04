@@ -1,3 +1,21 @@
+Overview of changes leading to 14.1.0
+Saturday, April 4, 2026
+=====================================
+- GPU library improvements:
+  * Add anti-aliased rendering for small sizes.
+  * Store font scale in blob header.
+  * Port scale/ppem support to MSL, WGSL, and HLSL shaders.
+  * Fix contour breaks and bounds quantization in encode.
+  * Fix garbled rendering after font change in web demo.
+  * Various robustness fixes.
+- Various fuzzing fixes for `harfbuzz-raster`, `harfbuzz-gpu` and
+  `harfbuzz-vector` libraries.
+- Move `HB_NO_CFF` from `HB_LEAN` to `HB_NO_DRAW` closure, and fix
+  `HB_TINY` build.
+- New API:
+  +hb_gpu_draw_set_scale()
+
+
 Overview of changes leading to 14.0.0
 Wednesday, April 1, 2026
 =====================================
@@ -14,21 +32,21 @@ Wednesday, April 1, 2026
 - Updated README with libraries overview and project description.
 - Various bug fixes.
 - New API:
-  + hb_gpu_draw_t
-  + hb_gpu_draw_create_or_fail()
-  + hb_gpu_draw_reference()
-  + hb_gpu_draw_destroy()
-  + hb_gpu_draw_set_user_data()
-  + hb_gpu_draw_get_user_data()
-  + hb_gpu_draw_get_funcs()
-  + hb_gpu_draw_glyph()
-  + hb_gpu_draw_encode()
-  + hb_gpu_draw_get_extents()
-  + hb_gpu_draw_reset()
-  + hb_gpu_draw_recycle_blob()
-  + hb_gpu_shader_lang_t
-  + hb_gpu_shader_fragment_source()
-  + hb_gpu_shader_vertex_source()
+  +hb_gpu_draw_t
+  +hb_gpu_draw_create_or_fail()
+  +hb_gpu_draw_reference()
+  +hb_gpu_draw_destroy()
+  +hb_gpu_draw_set_user_data()
+  +hb_gpu_draw_get_user_data()
+  +hb_gpu_draw_get_funcs()
+  +hb_gpu_draw_glyph()
+  +hb_gpu_draw_encode()
+  +hb_gpu_draw_get_extents()
+  +hb_gpu_draw_reset()
+  +hb_gpu_draw_recycle_blob()
+  +hb_gpu_shader_lang_t
+  +hb_gpu_shader_fragment_source()
+  +hb_gpu_shader_vertex_source()
 
 
 Overview of changes leading to 13.2.1
@@ -46,8 +64,8 @@ Thursday, March 19, 2026
 - Various improvements to tracing messages.
 - Various documentation improvements.
 - New API:
-  + HB_OT_SHAPE_BUFFER_FORMAT_SERIAL
-  + hb_ot_shape_get_buffer_format_serial()
+  +HB_OT_SHAPE_BUFFER_FORMAT_SERIAL
+  +hb_ot_shape_get_buffer_format_serial()
 
 
 Overview of changes leading to 13.1.1
