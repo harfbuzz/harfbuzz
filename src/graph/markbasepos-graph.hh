@@ -430,7 +430,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     unsigned base_coverage_id =
         graph.index_for_offset (sc.this_index, &baseCoverage);
     graph.add_link (&(prime->baseCoverage), prime_id, base_coverage_id);
-    graph.duplicate (prime_id, base_coverage_id);
 
     auto mark_coverage = sc.c.graph.as_table<Coverage> (this_index,
                                                         &markCoverage);
