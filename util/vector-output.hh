@@ -179,22 +179,29 @@ struct vector_output_t : output_options_t<>, view_options_t
       return;
     final_extents = extents;
 
-    hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (HB_VECTOR_FORMAT_SVG);
-    hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG);
+    hb_vector_format_t fmt = HB_VECTOR_FORMAT_SVG;
+    if (output_format && !strcmp (output_format, "pdf"))
+      fmt = HB_VECTOR_FORMAT_PDF;
+
+    hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (fmt);
+    hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (fmt);
 
     hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
     hb_vector_draw_set_extents (draw, &extents);
     hb_vector_svg_set_precision (draw, precision);
     hb_vector_svg_set_flat (draw, flat);
 
-    hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
-    hb_vector_paint_set_extents (paint, &extents);
-    hb_vector_paint_set_foreground (paint, foreground);
-    hb_vector_paint_set_palette (paint, this->palette);
-    apply_custom_palette (paint);
-    init_palette_color_cache ();
-    hb_vector_svg_paint_set_precision (paint, precision);
-    hb_vector_svg_paint_set_flat (paint, flat);
+    if (paint)
+    {
+      hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
+      hb_vector_paint_set_extents (paint, &extents);
+      hb_vector_paint_set_foreground (paint, foreground);
+      hb_vector_paint_set_palette (paint, this->palette);
+      apply_custom_palette (paint);
+      init_palette_color_cache ();
+      hb_vector_svg_paint_set_precision (paint, precision);
+      hb_vector_svg_paint_set_flat (paint, flat);
+    }
 
     bool had_draw = false;
     bool had_paint = false;
@@ -225,20 +232,23 @@ struct vector_output_t : output_options_t<>, view_options_t
         float pen_x = g.x + off_x;
         float pen_y = g.y + off_y;
 
-        if (use_foreground_palette)
+        if (paint)
         {
-          const rgba_color_t &c =
-            g_array_index (foreground_palette, rgba_color_t,
-                           palette_glyph_index++ % foreground_palette->len);
-          hb_vector_paint_set_foreground (paint, HB_COLOR (c.b, c.g, c.r, c.a));
-        }
+          if (use_foreground_palette)
+          {
+            const rgba_color_t &c =
+              g_array_index (foreground_palette, rgba_color_t,
+                             palette_glyph_index++ % foreground_palette->len);
+            hb_vector_paint_set_foreground (paint, HB_COLOR (c.b, c.g, c.r, c.a));
+          }
 
-        hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-        if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
-                                   extents_mode))
-        {
-          had_paint = true;
-          continue;
+          hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+          if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
+                                     extents_mode))
+          {
+            had_paint = true;
+            continue;
+          }
         }
 
         if (hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
@@ -809,6 +819,13 @@ struct vector_output_t : output_options_t<>, view_options_t
     const char *in_data = hb_blob_get_data (blob, &in_len);
     if (!in_data || !in_len)
       return;
+
+    /* PDF blobs are self-contained; write directly. */
+    if (in_len > 5 && memcmp (in_data, "%PDF-", 5) == 0)
+    {
+      fwrite (in_data, 1, in_len, out_fp);
+      return;
+    }
 
     const char *hdr_end = (const char *) memchr (in_data, '>', in_len);
     if (!hdr_end)

@@ -119,6 +119,14 @@ hb_paint_push_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
                          void *user_data) {}
 
 static void
+hb_paint_push_group_for_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                             hb_paint_composite_mode_t mode,
+                             void *user_data)
+{
+  hb_paint_push_group (funcs, paint_data);
+}
+
+static void
 hb_paint_pop_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
                         hb_paint_composite_mode_t mode,
                         void *user_data) {}
@@ -721,6 +729,25 @@ void
 hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data)
 {
   funcs->push_group (paint_data);
+}
+
+/**
+ * hb_paint_push_group_for:
+ * @funcs: paint functions
+ * @paint_data: associated data passed by the caller
+ * @mode: the compositing mode that will be used when the group is popped
+ *
+ * Perform a "push-group" paint operation, with the compositing
+ * mode known in advance.  By default, this calls
+ * hb_paint_push_group().
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_paint_push_group_for (hb_paint_funcs_t *funcs, void *paint_data,
+                         hb_paint_composite_mode_t mode)
+{
+  funcs->push_group_for (paint_data, mode);
 }
 
 /**

@@ -1,0 +1,1368 @@
+/*
+ * Copyright © 2026  Behdad Esfahbod
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Author(s): Behdad Esfahbod
+ */
+
+#include "hb.hh"
+
+#include "hb-vector-paint.hh"
+#include "hb-vector-draw.hh"
+
+#include <math.h>
+#include <stdio.h>
+
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
+/* PDF paint backend for COLRv0/v1 color font rendering.
+ *
+ * Supports:
+ *   - Solid colors with alpha (via ExtGState)
+ *   - Glyph and rectangle clipping
+ *   - Affine transforms
+ *   - Groups (save/restore)
+ *   - Linear gradients (PDF Type 2 axial shading)
+ *   - Radial gradients (PDF Type 3 radial shading)
+ *   - Sweep gradients (approximated via solid fallback)
+ */
+
+
+/* ---- PDF object collector ---- */
+
+struct hb_pdf_obj_t
+{
+  hb_vector_t<char> data;
+};
+
+/* Collects extra PDF objects (shadings, functions, ExtGState)
+ * during painting.  Referenced from the content stream by name
+ * (e.g. /SH0, /GS0) and emitted at render time. */
+static bool
+hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
+			    const char *idat_data, unsigned idat_len,
+			    unsigned width, unsigned height,
+			    const uint8_t *trns, unsigned trns_len);
+
+struct hb_pdf_resources_t
+{
+  hb_vector_t<hb_pdf_obj_t> objects;   /* extra objects, starting at id 5 */
+  hb_vector_t<char> extgstate_dict;    /* /GS0 5 0 R /GS1 6 0 R ... */
+  hb_vector_t<char> shading_dict;      /* /SH0 7 0 R ... */
+  hb_vector_t<char> xobject_dict;      /* /Im0 8 0 R ... */
+  unsigned extgstate_count = 0;
+  unsigned shading_count = 0;
+  unsigned xobject_count = 0;
+
+  unsigned add_object (hb_vector_t<char> &&obj_data)
+  {
+    unsigned id = 5 + objects.length; /* objects 1-4 are fixed */
+    hb_pdf_obj_t obj;
+    obj.data = std::move (obj_data);
+    objects.push (std::move (obj));
+    return id;
+  }
+
+  /* Add ExtGState for fill opacity, return resource name index. */
+  unsigned add_extgstate_alpha (float alpha, unsigned precision)
+  {
+    unsigned idx = extgstate_count++;
+    hb_vector_t<char> obj;
+    hb_buf_append_str (&obj, "<< /Type /ExtGState /ca ");
+    hb_buf_append_num (&obj, alpha, 4);
+    hb_buf_append_str (&obj, " >>");
+    unsigned obj_id = add_object (std::move (obj));
+
+    /* Add to resource dict. */
+    hb_buf_append_str (&extgstate_dict, "/GS");
+    hb_buf_append_unsigned (&extgstate_dict, idx);
+    hb_buf_append_c (&extgstate_dict, ' ');
+    hb_buf_append_unsigned (&extgstate_dict, obj_id);
+    hb_buf_append_str (&extgstate_dict, " 0 R ");
+    (void) precision;
+    return idx;
+  }
+
+  /* Add ExtGState for blend mode, return resource name index. */
+  unsigned add_extgstate_blend (const char *bm)
+  {
+    unsigned idx = extgstate_count++;
+    hb_vector_t<char> obj;
+    hb_buf_append_str (&obj, "<< /Type /ExtGState /BM /");
+    hb_buf_append_str (&obj, bm);
+    hb_buf_append_str (&obj, " >>");
+    unsigned obj_id = add_object (std::move (obj));
+
+    hb_buf_append_str (&extgstate_dict, "/GS");
+    hb_buf_append_unsigned (&extgstate_dict, idx);
+    hb_buf_append_c (&extgstate_dict, ' ');
+    hb_buf_append_unsigned (&extgstate_dict, obj_id);
+    hb_buf_append_str (&extgstate_dict, " 0 R ");
+    return idx;
+  }
+
+  /* Add a shading + function for a gradient, return resource name index. */
+  unsigned add_shading (hb_vector_t<char> &&shading_data)
+  {
+    unsigned idx = shading_count++;
+    unsigned obj_id = add_object (std::move (shading_data));
+
+    hb_buf_append_str (&shading_dict, "/SH");
+    hb_buf_append_unsigned (&shading_dict, idx);
+    hb_buf_append_c (&shading_dict, ' ');
+    hb_buf_append_unsigned (&shading_dict, obj_id);
+    hb_buf_append_str (&shading_dict, " 0 R ");
+    return idx;
+  }
+
+  /* Add an XObject image, return resource name index.
+   * idat_data/idat_len is the concatenated PNG IDAT payload (zlib data).
+   * colors is 1 (gray), 3 (RGB), or 4 (RGBA); for indexed, pass colors=1.
+   * plte/plte_len is the PLTE chunk data for indexed images (may be null). */
+  unsigned add_xobject_png_image (const char *idat_data, unsigned idat_len,
+				  unsigned width, unsigned height,
+				  unsigned colors, bool has_alpha,
+				  const uint8_t *plte = nullptr,
+				  unsigned plte_len = 0,
+				  const uint8_t *trns = nullptr,
+				  unsigned trns_len = 0)
+  {
+    unsigned idx = xobject_count++;
+    hb_vector_t<char> obj;
+    hb_buf_append_str (&obj, "<< /Type /XObject /Subtype /Image\n");
+    hb_buf_append_str (&obj, "/Width ");
+    hb_buf_append_unsigned (&obj, width);
+    hb_buf_append_str (&obj, " /Height ");
+    hb_buf_append_unsigned (&obj, height);
+    hb_buf_append_str (&obj, "\n/BitsPerComponent 8\n");
+
+    if (plte && plte_len >= 3)
+    {
+      /* Indexed color: /ColorSpace [/Indexed /DeviceRGB N <hex palette>] */
+      unsigned n_entries = plte_len / 3;
+      hb_buf_append_str (&obj, "/ColorSpace [/Indexed /DeviceRGB ");
+      hb_buf_append_unsigned (&obj, n_entries - 1);
+      hb_buf_append_str (&obj, " <");
+      for (unsigned i = 0; i < n_entries * 3; i++)
+      {
+	hb_buf_append_c (&obj, "0123456789ABCDEF"[plte[i] >> 4]);
+	hb_buf_append_c (&obj, "0123456789ABCDEF"[plte[i] & 0xF]);
+      }
+      hb_buf_append_str (&obj, ">]\n");
+    }
+    else
+    {
+      hb_buf_append_str (&obj, "/ColorSpace ");
+      unsigned color_channels = has_alpha ? colors - 1 : colors;
+      hb_buf_append_str (&obj, color_channels == 1 ? "/DeviceGray" : "/DeviceRGB");
+      hb_buf_append_c (&obj, '\n');
+    }
+
+    /* Build SMask for indexed images with tRNS transparency. */
+    unsigned smask_id = 0;
+    if (plte && trns && trns_len)
+    {
+      hb_vector_t<char> smask_stream;
+      if (hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
+				      width, height, trns, trns_len))
+      {
+	hb_vector_t<char> smask_obj;
+	hb_buf_append_str (&smask_obj, "<< /Type /XObject /Subtype /Image\n");
+	hb_buf_append_str (&smask_obj, "/Width ");
+	hb_buf_append_unsigned (&smask_obj, width);
+	hb_buf_append_str (&smask_obj, " /Height ");
+	hb_buf_append_unsigned (&smask_obj, height);
+	hb_buf_append_str (&smask_obj, "\n/ColorSpace /DeviceGray /BitsPerComponent 8\n");
+	hb_buf_append_str (&smask_obj, "/Length ");
+	hb_buf_append_unsigned (&smask_obj, smask_stream.length);
+	hb_buf_append_str (&smask_obj, " >>\nstream\n");
+	hb_buf_append_len (&smask_obj, smask_stream.arrayZ, smask_stream.length);
+	hb_buf_append_str (&smask_obj, "\nendstream");
+	smask_id = add_object (std::move (smask_obj));
+      }
+    }
+
+    if (smask_id)
+    {
+      hb_buf_append_str (&obj, "/SMask ");
+      hb_buf_append_unsigned (&obj, smask_id);
+      hb_buf_append_str (&obj, " 0 R\n");
+    }
+
+    hb_buf_append_str (&obj, "/Filter /FlateDecode\n");
+    hb_buf_append_str (&obj, "/DecodeParms << /Predictor 15 /Colors ");
+    hb_buf_append_unsigned (&obj, colors);
+    hb_buf_append_str (&obj, " /BitsPerComponent 8 /Columns ");
+    hb_buf_append_unsigned (&obj, width);
+    hb_buf_append_str (&obj, " >>\n");
+    hb_buf_append_str (&obj, "/Length ");
+    hb_buf_append_unsigned (&obj, idat_len);
+    hb_buf_append_str (&obj, " >>\nstream\n");
+    hb_buf_append_len (&obj, idat_data, idat_len);
+    hb_buf_append_str (&obj, "\nendstream");
+
+    (void) has_alpha;
+
+    unsigned obj_id = add_object (std::move (obj));
+
+    hb_buf_append_str (&xobject_dict, "/Im");
+    hb_buf_append_unsigned (&xobject_dict, idx);
+    hb_buf_append_c (&xobject_dict, ' ');
+    hb_buf_append_unsigned (&xobject_dict, obj_id);
+    hb_buf_append_str (&xobject_dict, " 0 R ");
+    return idx;
+  }
+};
+
+/* Store resources pointer in the paint struct's defs buffer
+ * (repurposed — defs is unused for PDF). */
+static hb_pdf_resources_t *
+hb_pdf_get_resources (hb_vector_paint_t *paint)
+{
+  if (!paint->defs.length)
+  {
+    /* First call: allocate and store. */
+    auto *res = (hb_pdf_resources_t *) hb_calloc (1, sizeof (hb_pdf_resources_t));
+    if (unlikely (!res)) return nullptr;
+    new (res) hb_pdf_resources_t ();
+    paint->defs.resize (sizeof (void *));
+    memcpy (paint->defs.arrayZ, &res, sizeof (void *));
+  }
+  hb_pdf_resources_t *res;
+  memcpy (&res, paint->defs.arrayZ, sizeof (void *));
+  return res;
+}
+
+static void
+hb_pdf_free_resources (hb_vector_paint_t *paint)
+{
+  if (paint->defs.length >= sizeof (void *))
+  {
+    hb_pdf_resources_t *res;
+    memcpy (&res, paint->defs.arrayZ, sizeof (void *));
+    if (res)
+    {
+      res->~hb_pdf_resources_t ();
+      hb_free (res);
+    }
+  }
+  paint->defs.clear ();
+}
+
+
+/* ---- helpers ---- */
+
+static hb_bool_t
+hb_pdf_paint_ensure_initialized (hb_vector_paint_t *paint)
+{
+  if (paint->group_stack.length)
+    return !paint->group_stack.in_error () &&
+           !paint->group_stack.tail ().in_error ();
+  if (unlikely (!paint->group_stack.push_or_fail ()))
+    return false;
+  paint->group_stack.tail ().alloc (4096);
+  if (unlikely (paint->group_stack.tail ().in_error ()))
+  {
+    paint->group_stack.pop ();
+    return false;
+  }
+  return !paint->group_stack.in_error ();
+}
+
+/* Emit a glyph outline as PDF path operators into buf. */
+static void
+hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
+			 hb_font_t *font,
+			 hb_codepoint_t glyph,
+			 hb_vector_t<char> *buf)
+{
+  hb_vector_draw_t tmp;
+  tmp.format = HB_VECTOR_FORMAT_PDF;
+  tmp.precision = paint->precision;
+  tmp.transform = {1, 0, 0, 1, 0, 0};
+  tmp.path.alloc (1024);
+
+  hb_font_draw_glyph (font, glyph,
+		       hb_vector_draw_get_funcs (),
+		       &tmp);
+
+  hb_buf_append_len (buf, tmp.path.arrayZ, tmp.path.length);
+}
+
+
+/* ---- paint callbacks ---- */
+
+static void
+hb_pdf_paint_push_transform (hb_paint_funcs_t *,
+			     void *paint_data,
+			     float xx, float yx,
+			     float xy, float yy,
+			     float dx, float dy,
+			     void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+  hb_buf_append_num (&body, xx, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, yx, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, xy, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, yy, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, dx, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, dy, paint->precision);
+  hb_buf_append_str (&body, " cm\n");
+}
+
+static void
+hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
+			    void *paint_data,
+			    void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  hb_buf_append_str (&paint->current_body (), "Q\n");
+}
+
+static void
+hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
+			      void *paint_data,
+			      hb_codepoint_t glyph,
+			      hb_font_t *font,
+			      void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+  hb_pdf_emit_glyph_path (paint, font, glyph, &body);
+  hb_buf_append_str (&body, "W n\n");
+}
+
+static void
+hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
+				  void *paint_data,
+				  float xmin, float ymin,
+				  float xmax, float ymax,
+				  void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+  hb_buf_append_num (&body, xmin, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, ymin, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, xmax - xmin, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, ymax - ymin, paint->precision);
+  hb_buf_append_str (&body, " re W n\n");
+}
+
+static void
+hb_pdf_paint_pop_clip (hb_paint_funcs_t *,
+		       void *paint_data,
+		       void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  hb_buf_append_str (&paint->current_body (), "Q\n");
+}
+
+/* Paint a solid color, including alpha via ExtGState. */
+static void
+hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
+{
+  auto &body = paint->current_body ();
+
+  float r = hb_color_get_red (c) / 255.f;
+  float g = hb_color_get_green (c) / 255.f;
+  float b = hb_color_get_blue (c) / 255.f;
+  float a = hb_color_get_alpha (c) / 255.f;
+
+  if (a < 1.f / 255.f)
+    return;
+
+  /* Set alpha via ExtGState if needed. */
+  if (a < 1.f - 1.f / 512.f)
+  {
+    auto *res = hb_pdf_get_resources (paint);
+    if (res)
+    {
+      unsigned gs_idx = res->add_extgstate_alpha (a, paint->precision);
+      hb_buf_append_str (&body, "/GS");
+      hb_buf_append_unsigned (&body, gs_idx);
+      hb_buf_append_str (&body, " gs\n");
+    }
+  }
+
+  /* Set fill color. */
+  hb_buf_append_num (&body, r, 4);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, g, 4);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, b, 4);
+  hb_buf_append_str (&body, " rg\n");
+
+  /* Paint a huge rect (will be clipped). */
+  hb_buf_append_str (&body, "-32767 -32767 65534 65534 re f\n");
+}
+
+static void
+hb_pdf_paint_color (hb_paint_funcs_t *,
+		    void *paint_data,
+		    hb_bool_t is_foreground,
+		    hb_color_t color,
+		    void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+
+  hb_color_t c = color;
+  if (is_foreground)
+    c = HB_COLOR (hb_color_get_blue (paint->foreground),
+		  hb_color_get_green (paint->foreground),
+		  hb_color_get_red (paint->foreground),
+		  (unsigned) hb_color_get_alpha (paint->foreground) *
+		  hb_color_get_alpha (color) / 255);
+
+  hb_pdf_paint_solid_color (paint, c);
+}
+
+/* Build an uncompressed alpha mask from indexed PNG IDAT data + tRNS.
+ * Decompresses IDAT, un-filters PNG rows, maps palette indices to alpha. */
+static bool
+hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
+			    const char *idat_data, unsigned idat_len,
+			    unsigned width, unsigned height,
+			    const uint8_t *trns, unsigned trns_len)
+{
+#ifndef HAVE_ZLIB
+  (void) out; (void) idat_data; (void) idat_len;
+  (void) width; (void) height; (void) trns; (void) trns_len;
+  return false;
+#else
+  /* Decompress IDAT (zlib). */
+  unsigned raw_len = (width + 1) * height; /* 1 filter byte per row + width bytes */
+  uint8_t *raw = (uint8_t *) hb_malloc (raw_len);
+  if (!raw) return false;
+
+  z_stream stream = {};
+  stream.next_in = (Bytef *) idat_data;
+  stream.avail_in = idat_len;
+  stream.next_out = (Bytef *) raw;
+  stream.avail_out = raw_len;
+
+  if (inflateInit (&stream) != Z_OK)
+  {
+    hb_free (raw);
+    return false;
+  }
+  int status = inflate (&stream, Z_FINISH);
+  inflateEnd (&stream);
+  if (status != Z_STREAM_END)
+  {
+    hb_free (raw);
+    return false;
+  }
+
+  /* Un-filter and map to alpha. */
+  if (!out->resize (width * height))
+  {
+    hb_free (raw);
+    return false;
+  }
+
+  uint8_t *unfiltered = (uint8_t *) hb_malloc (width);
+  if (!unfiltered)
+  {
+    hb_free (raw);
+    return false;
+  }
+  uint8_t *prev_unfiltered = (uint8_t *) hb_calloc (width, 1);
+  if (!prev_unfiltered)
+  {
+    hb_free (unfiltered);
+    hb_free (raw);
+    return false;
+  }
+
+  for (unsigned y = 0; y < height; y++)
+  {
+    uint8_t *row = raw + y * (width + 1);
+    uint8_t filter = row[0];
+    uint8_t *pixels = row + 1;
+
+    for (unsigned x = 0; x < width; x++)
+    {
+      uint8_t a = (x > 0) ? unfiltered[x - 1] : 0;
+      uint8_t b = prev_unfiltered[x];
+      uint8_t c = (x > 0) ? prev_unfiltered[x - 1] : 0;
+      uint8_t val = pixels[x];
+
+      switch (filter)
+      {
+      case 0: unfiltered[x] = val; break; /* None */
+      case 1: unfiltered[x] = val + a; break; /* Sub */
+      case 2: unfiltered[x] = val + b; break; /* Up */
+      case 3: unfiltered[x] = val + (uint8_t) (((unsigned) a + b) / 2); break; /* Average */
+      case 4: /* Paeth */
+      {
+	int p = (int) a + (int) b - (int) c;
+	int pa = abs (p - (int) a);
+	int pb = abs (p - (int) b);
+	int pc = abs (p - (int) c);
+	uint8_t pr = (pa <= pb && pa <= pc) ? a : (pb <= pc) ? b : c;
+	unfiltered[x] = val + pr;
+	break;
+      }
+      default: unfiltered[x] = val; break;
+      }
+
+      /* Map palette index to alpha. */
+      uint8_t idx = unfiltered[x];
+      out->arrayZ[y * width + x] = (idx < trns_len) ? trns[idx] : 0xFF;
+    }
+
+    /* Swap buffers. */
+    uint8_t *tmp = prev_unfiltered;
+    prev_unfiltered = unfiltered;
+    unfiltered = tmp;
+  }
+
+  hb_free (unfiltered);
+  hb_free (prev_unfiltered);
+  hb_free (raw);
+  return true;
+#endif
+}
+
+/* Read a big-endian uint32 from a byte pointer. */
+static inline uint32_t
+hb_pdf_png_u32 (const uint8_t *p)
+{
+  return ((uint32_t) p[0] << 24) | ((uint32_t) p[1] << 16) |
+	 ((uint32_t) p[2] << 8)  | (uint32_t) p[3];
+}
+
+static hb_bool_t
+hb_pdf_paint_image (hb_paint_funcs_t *,
+		    void *paint_data,
+		    hb_blob_t *image,
+		    unsigned width,
+		    unsigned height,
+		    hb_tag_t format,
+		    float slant HB_UNUSED,
+		    hb_glyph_extents_t *extents,
+		    void *)
+{
+  if (format != HB_TAG ('p','n','g',' '))
+    return false;
+  if (!extents || !width || !height)
+    return false;
+
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return false;
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return false;
+
+  unsigned len = 0;
+  const uint8_t *data = (const uint8_t *) hb_blob_get_data (image, &len);
+  if (!data || len < 8)
+    return false;
+
+  /* Verify PNG signature. */
+  static const uint8_t png_sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+  if (hb_memcmp (data, png_sig, 8) != 0)
+    return false;
+
+  /* Parse PNG chunks: extract IHDR and concatenate IDAT payloads. */
+  unsigned png_w = 0, png_h = 0;
+  unsigned colors = 3; /* default RGB */
+  uint8_t color_type = 2;
+  bool has_alpha = false;
+  const uint8_t *plte_data = nullptr;
+  unsigned plte_len = 0;
+  const uint8_t *trns_data = nullptr;
+  unsigned trns_len = 0;
+  hb_vector_t<char> idat;
+
+  unsigned pos = 8;
+  while (pos + 12 <= len)
+  {
+    uint32_t chunk_len = hb_pdf_png_u32 (data + pos);
+    uint32_t chunk_type = hb_pdf_png_u32 (data + pos + 4);
+    if (pos + 12 + chunk_len > len)
+      break;
+    const uint8_t *chunk_data = data + pos + 8;
+
+    if (chunk_type == 0x49484452u) /* IHDR */
+    {
+      if (chunk_len < 13) return false;
+      png_w = hb_pdf_png_u32 (chunk_data);
+      png_h = hb_pdf_png_u32 (chunk_data + 4);
+      uint8_t bit_depth = chunk_data[8];
+      color_type = chunk_data[9];
+      if (bit_depth != 8) return false; /* only 8-bit supported */
+
+      switch (color_type)
+      {
+      case 0: colors = 1; has_alpha = false; break; /* Grayscale */
+      case 2: colors = 3; has_alpha = false; break; /* RGB */
+      case 3: colors = 1; has_alpha = false; break; /* Indexed */
+      case 4: colors = 2; has_alpha = true;  break; /* Gray+Alpha */
+      case 6: colors = 4; has_alpha = true;  break; /* RGBA */
+      default: return false;
+      }
+    }
+    else if (chunk_type == 0x504C5445u) /* PLTE */
+    {
+      plte_data = chunk_data;
+      plte_len = chunk_len;
+    }
+    else if (chunk_type == 0x74524E53u) /* tRNS */
+    {
+      trns_data = chunk_data;
+      trns_len = chunk_len;
+    }
+    else if (chunk_type == 0x49444154u) /* IDAT */
+    {
+      hb_buf_append_len (&idat, (const char *) chunk_data, chunk_len);
+    }
+    else if (chunk_type == 0x49454E44u) /* IEND */
+      break;
+
+    pos += 12 + chunk_len;
+  }
+
+  if (!png_w || !png_h || !idat.length)
+    return false;
+
+  unsigned im_idx = res->add_xobject_png_image (idat.arrayZ, idat.length,
+						 png_w, png_h,
+						 colors, has_alpha,
+						 plte_data, plte_len,
+						 trns_data, trns_len);
+
+  /* Emit: save state, set CTM to map image (0,0)-(1,1) to extents, paint. */
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+
+  /* Image space: (0,0) at bottom-left, (1,1) at top-right.
+   * We need to map to extents (x_bearing, y_bearing+height) .. (x_bearing+width, y_bearing).
+   * Since font coords are Y-up like PDF, y_bearing is the top. */
+  float ix = (float) extents->x_bearing;
+  float iy = (float) extents->y_bearing + (float) extents->height;
+  float iw = (float) extents->width;
+  float ih = (float) -extents->height; /* negative because image Y goes up but height is negative in extents */
+
+  hb_buf_append_num (&body, iw, paint->precision);
+  hb_buf_append_str (&body, " 0 0 ");
+  hb_buf_append_num (&body, ih, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, ix, paint->precision);
+  hb_buf_append_c (&body, ' ');
+  hb_buf_append_num (&body, iy, paint->precision);
+  hb_buf_append_str (&body, " cm\n");
+
+  hb_buf_append_str (&body, "/Im");
+  hb_buf_append_unsigned (&body, im_idx);
+  hb_buf_append_str (&body, " Do\nQ\n");
+
+  return true;
+}
+
+/* ---- Gradient helpers ---- */
+
+/* Build a PDF Type 2 (exponential interpolation) function for
+ * a single color stop pair. */
+static void
+hb_pdf_build_interpolation_function (hb_vector_t<char> *obj,
+				     hb_color_t c0, hb_color_t c1)
+{
+  hb_buf_append_str (obj, "<< /FunctionType 2 /Domain [0 1] /N 1\n");
+  hb_buf_append_str (obj, "/C0 [");
+  hb_buf_append_num (obj, hb_color_get_red (c0) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_green (c0) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_blue (c0) / 255.f, 4);
+  hb_buf_append_str (obj, "]\n/C1 [");
+  hb_buf_append_num (obj, hb_color_get_red (c1) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_green (c1) / 255.f, 4);
+  hb_buf_append_c (obj, ' ');
+  hb_buf_append_num (obj, hb_color_get_blue (c1) / 255.f, 4);
+  hb_buf_append_str (obj, "] >>");
+}
+
+/* Build a stitching function (Type 3) for multiple color stops. */
+static unsigned
+hb_pdf_build_gradient_function (hb_pdf_resources_t *res,
+				hb_vector_paint_t *paint,
+				hb_color_line_t *color_line)
+{
+  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  paint->color_stops_scratch.resize (count);
+  hb_color_line_get_color_stops (color_line, 0, &count, paint->color_stops_scratch.arrayZ);
+
+  if (count < 2)
+  {
+    /* Single stop: constant function. */
+    hb_color_t c = count ? paint->color_stops_scratch.arrayZ[0].color
+			 : HB_COLOR (0, 0, 0, 255);
+    hb_vector_t<char> obj;
+    hb_pdf_build_interpolation_function (&obj, c, c);
+    return res->add_object (std::move (obj));
+  }
+
+  /* Sort by offset. */
+  paint->color_stops_scratch.as_array ().qsort (
+    [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
+    { return a.offset < b.offset; });
+
+  if (count == 2)
+  {
+    /* Two stops: single interpolation function. */
+    hb_vector_t<char> obj;
+    hb_pdf_build_interpolation_function (&obj,
+					  paint->color_stops_scratch.arrayZ[0].color,
+					  paint->color_stops_scratch.arrayZ[1].color);
+    return res->add_object (std::move (obj));
+  }
+
+  /* Multiple stops: create sub-functions and stitch. */
+  hb_vector_t<unsigned> sub_func_ids;
+  for (unsigned i = 0; i + 1 < count; i++)
+  {
+    hb_vector_t<char> sub;
+    hb_pdf_build_interpolation_function (&sub,
+					  paint->color_stops_scratch.arrayZ[i].color,
+					  paint->color_stops_scratch.arrayZ[i + 1].color);
+    sub_func_ids.push (res->add_object (std::move (sub)));
+  }
+
+  /* Stitching function (Type 3). */
+  hb_vector_t<char> obj;
+  hb_buf_append_str (&obj, "<< /FunctionType 3 /Domain [0 1]\n");
+
+  /* Functions array. */
+  hb_buf_append_str (&obj, "/Functions [");
+  for (unsigned i = 0; i < sub_func_ids.length; i++)
+  {
+    if (i) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_unsigned (&obj, sub_func_ids.arrayZ[i]);
+    hb_buf_append_str (&obj, " 0 R");
+  }
+  hb_buf_append_str (&obj, "]\n");
+
+  /* Bounds. */
+  hb_buf_append_str (&obj, "/Bounds [");
+  for (unsigned i = 1; i + 1 < count; i++)
+  {
+    if (i > 1) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_num (&obj, paint->color_stops_scratch.arrayZ[i].offset, 4);
+  }
+  hb_buf_append_str (&obj, "]\n");
+
+  /* Encode array. */
+  hb_buf_append_str (&obj, "/Encode [");
+  for (unsigned i = 0; i + 1 < count; i++)
+  {
+    if (i) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_str (&obj, "0 1");
+  }
+  hb_buf_append_str (&obj, "] >>");
+
+  return res->add_object (std::move (obj));
+}
+
+static void
+hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
+			      void *paint_data,
+			      hb_color_line_t *color_line,
+			      float x0, float y0,
+			      float x1, float y1,
+			      float x2 HB_UNUSED, float y2 HB_UNUSED,
+			      void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return;
+
+  unsigned func_id = hb_pdf_build_gradient_function (res, paint, color_line);
+
+  /* Build Type 2 (axial) shading. */
+  hb_vector_t<char> sh;
+  hb_buf_append_str (&sh, "<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
+  hb_buf_append_str (&sh, "/Coords [");
+  hb_buf_append_num (&sh, x0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, x1, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y1, paint->precision);
+  hb_buf_append_str (&sh, "]\n/Function ");
+  hb_buf_append_unsigned (&sh, func_id);
+  hb_buf_append_str (&sh, " 0 R\n");
+
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  if (extend == HB_PAINT_EXTEND_PAD)
+    hb_buf_append_str (&sh, "/Extend [true true]\n");
+
+  hb_buf_append_str (&sh, ">>");
+
+  unsigned sh_idx = res->add_shading (std::move (sh));
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "/SH");
+  hb_buf_append_unsigned (&body, sh_idx);
+  hb_buf_append_str (&body, " sh\n");
+}
+
+static void
+hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
+			      void *paint_data,
+			      hb_color_line_t *color_line,
+			      float x0, float y0, float r0,
+			      float x1, float y1, float r1,
+			      void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return;
+
+  unsigned func_id = hb_pdf_build_gradient_function (res, paint, color_line);
+
+  /* Build Type 3 (radial) shading. */
+  hb_vector_t<char> sh;
+  hb_buf_append_str (&sh, "<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
+  hb_buf_append_str (&sh, "/Coords [");
+  hb_buf_append_num (&sh, x0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, r0, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, x1, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, y1, paint->precision);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, r1, paint->precision);
+  hb_buf_append_str (&sh, "]\n/Function ");
+  hb_buf_append_unsigned (&sh, func_id);
+  hb_buf_append_str (&sh, " 0 R\n");
+
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  if (extend == HB_PAINT_EXTEND_PAD)
+    hb_buf_append_str (&sh, "/Extend [true true]\n");
+
+  hb_buf_append_str (&sh, ">>");
+
+  unsigned sh_idx = res->add_shading (std::move (sh));
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "/SH");
+  hb_buf_append_unsigned (&body, sh_idx);
+  hb_buf_append_str (&body, " sh\n");
+}
+
+
+/* Encode a 16-bit big-endian unsigned value into buf. */
+static void
+hb_pdf_encode_u16 (hb_vector_t<char> *buf, uint16_t v)
+{
+  char bytes[2] = {(char) (v >> 8), (char) (v & 0xFF)};
+  hb_buf_append_len (buf, bytes, 2);
+}
+
+/* Encode a coordinate as 16-bit value relative to Decode range. */
+static void
+hb_pdf_encode_coord (hb_vector_t<char> *buf,
+		     float val, float lo, float hi)
+{
+  float t = (val - lo) / (hi - lo);
+  t = hb_clamp (t, 0.f, 1.f);
+  hb_pdf_encode_u16 (buf, (uint16_t) (t * 65535.f + 0.5f));
+}
+
+/* Encode RGB from hb_color_t as 3 bytes. */
+static void
+hb_pdf_encode_color_rgb (hb_vector_t<char> *buf, hb_color_t c)
+{
+  char rgb[3] = {(char) hb_color_get_red (c),
+		 (char) hb_color_get_green (c),
+		 (char) hb_color_get_blue (c)};
+  hb_buf_append_len (buf, rgb, 3);
+}
+
+/* Encode one Coons patch control point. */
+static void
+hb_pdf_encode_point (hb_vector_t<char> *buf,
+		     float x, float y,
+		     float xlo, float xhi,
+		     float ylo, float yhi)
+{
+  hb_pdf_encode_coord (buf, x, xlo, xhi);
+  hb_pdf_encode_coord (buf, y, ylo, yhi);
+}
+
+/* Emit one Coons patch sector into the mesh stream.
+ * Splits large arcs into sub-patches of max 90°. */
+static void
+hb_pdf_add_sweep_patch (hb_vector_t<char> *mesh,
+			float cx, float cy,
+			float xlo, float xhi, float ylo, float yhi,
+			float a0, hb_color_t c0_in,
+			float a1, hb_color_t c1_in)
+{
+  const float R = 32767.f;
+  const float eps = 0.5f;
+  const float MAX_SECTOR = (float) M_PI / 2.f;
+
+  int num_splits = (int) ceilf (fabsf (a1 - a0) / MAX_SECTOR);
+  if (num_splits < 1) num_splits = 1;
+
+  for (int s = 0; s < num_splits; s++)
+  {
+    float k0 = (float) s / num_splits;
+    float k1 = (float) (s + 1) / num_splits;
+    float sa0 = a0 + k0 * (a1 - a0);
+    float sa1 = a0 + k1 * (a1 - a0);
+    hb_color_t sc0 = hb_color_lerp (c0_in, c1_in, k0);
+    hb_color_t sc1 = hb_color_lerp (c0_in, c1_in, k1);
+
+    float da = sa1 - sa0;
+    float kappa = (4.f / 3.f) * tanf (da / 4.f);
+
+    float cos0 = cosf (sa0), sin0 = sinf (sa0);
+    float cos1 = cosf (sa1), sin1 = sinf (sa1);
+
+    float p0x = cx + eps * cos0, p0y = cy + eps * sin0;
+    float p3x = cx + R * cos0,   p3y = cy + R * sin0;
+    float p6x = cx + R * cos1,   p6y = cy + R * sin1;
+    float p9x = cx + eps * cos1, p9y = cy + eps * sin1;
+
+    /* Edge 1: p0→p3, radial straight line. */
+    float e1_1x = p0x + (p3x - p0x) / 3.f;
+    float e1_1y = p0y + (p3y - p0y) / 3.f;
+    float e1_2x = p0x + 2.f * (p3x - p0x) / 3.f;
+    float e1_2y = p0y + 2.f * (p3y - p0y) / 3.f;
+
+    /* Edge 2: p3→p6, outer arc. */
+    float e2_1x = p3x + kappa * R * (-sin0);
+    float e2_1y = p3y + kappa * R * ( cos0);
+    float e2_2x = p6x - kappa * R * (-sin1);
+    float e2_2y = p6y - kappa * R * ( cos1);
+
+    /* Edge 3: p6→p9, radial straight line. */
+    float e3_1x = p6x + (p9x - p6x) / 3.f;
+    float e3_1y = p6y + (p9y - p6y) / 3.f;
+    float e3_2x = p6x + 2.f * (p9x - p6x) / 3.f;
+    float e3_2y = p6y + 2.f * (p9y - p6y) / 3.f;
+
+    /* Edge 4: p9→p0, inner arc. */
+    float e4_1x = p9x + kappa * eps * (-sin1);
+    float e4_1y = p9y + kappa * eps * ( cos1);
+    float e4_2x = p0x - kappa * eps * (-sin0);
+    float e4_2y = p0y - kappa * eps * ( cos0);
+
+    hb_buf_append_c (mesh, '\0'); /* flag = 0, new patch */
+
+    hb_pdf_encode_point (mesh, p0x, p0y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e1_1x, e1_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e1_2x, e1_2y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, p3x, p3y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e2_1x, e2_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e2_2x, e2_2y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, p6x, p6y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e3_1x, e3_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e3_2x, e3_2y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, p9x, p9y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e4_1x, e4_1y, xlo, xhi, ylo, yhi);
+    hb_pdf_encode_point (mesh, e4_2x, e4_2y, xlo, xhi, ylo, yhi);
+
+    hb_pdf_encode_color_rgb (mesh, sc0); /* inner start */
+    hb_pdf_encode_color_rgb (mesh, sc0); /* outer start */
+    hb_pdf_encode_color_rgb (mesh, sc1); /* outer end */
+    hb_pdf_encode_color_rgb (mesh, sc1); /* inner end */
+  }
+}
+
+static void
+hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
+			     void *paint_data,
+			     hb_color_line_t *color_line,
+			     float cx, float cy,
+			     float start_angle,
+			     float end_angle,
+			     void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return;
+
+  /* Get and sort color stops. */
+  unsigned n_stops = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  paint->color_stops_scratch.resize (n_stops);
+  hb_color_line_get_color_stops (color_line, 0, &n_stops, paint->color_stops_scratch.arrayZ);
+  paint->color_stops_scratch.as_array ().qsort (
+    [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
+    { return a.offset < b.offset; });
+  hb_color_stop_t *stops = paint->color_stops_scratch.arrayZ;
+
+  if (!n_stops)
+    return;
+
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+
+  const float R = 32767.f;
+  float xlo = cx - R - 1, xhi = cx + R + 1;
+  float ylo = cy - R - 1, yhi = cy + R + 1;
+
+  hb_vector_t<char> mesh;
+  mesh.alloc (256);
+
+  hb_sweep_gradient_tiles (stops, n_stops, extend,
+			   start_angle, end_angle,
+			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
+			   { hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
+						     a0, c0, a1, c1); });
+
+  if (!mesh.length)
+    return;
+
+  /* Build the shading stream object. */
+  hb_vector_t<char> sh;
+  hb_buf_append_str (&sh, "<< /ShadingType 6 /ColorSpace /DeviceRGB\n");
+  hb_buf_append_str (&sh, "/BitsPerCoordinate 16 /BitsPerComponent 8 /BitsPerFlag 8\n");
+  hb_buf_append_str (&sh, "/Decode [");
+  hb_buf_append_num (&sh, xlo, 2);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, xhi, 2);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, ylo, 2);
+  hb_buf_append_c (&sh, ' ');
+  hb_buf_append_num (&sh, yhi, 2);
+  hb_buf_append_str (&sh, " 0 1 0 1 0 1]\n");
+  hb_buf_append_str (&sh, "/Length ");
+  hb_buf_append_unsigned (&sh, mesh.length);
+  hb_buf_append_str (&sh, " >>\nstream\n");
+  hb_buf_append_len (&sh, mesh.arrayZ, mesh.length);
+  hb_buf_append_str (&sh, "\nendstream");
+
+  unsigned sh_idx = res->add_shading (std::move (sh));
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "/SH");
+  hb_buf_append_unsigned (&body, sh_idx);
+  hb_buf_append_str (&body, " sh\n");
+}
+
+static const char *
+hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
+{
+  switch (mode)
+  {
+  case HB_PAINT_COMPOSITE_MODE_MULTIPLY:       return "Multiply";
+  case HB_PAINT_COMPOSITE_MODE_SCREEN:         return "Screen";
+  case HB_PAINT_COMPOSITE_MODE_OVERLAY:        return "Overlay";
+  case HB_PAINT_COMPOSITE_MODE_DARKEN:         return "Darken";
+  case HB_PAINT_COMPOSITE_MODE_LIGHTEN:        return "Lighten";
+  case HB_PAINT_COMPOSITE_MODE_COLOR_DODGE:    return "ColorDodge";
+  case HB_PAINT_COMPOSITE_MODE_COLOR_BURN:     return "ColorBurn";
+  case HB_PAINT_COMPOSITE_MODE_HARD_LIGHT:     return "HardLight";
+  case HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT:     return "SoftLight";
+  case HB_PAINT_COMPOSITE_MODE_DIFFERENCE:     return "Difference";
+  case HB_PAINT_COMPOSITE_MODE_EXCLUSION:      return "Exclusion";
+  case HB_PAINT_COMPOSITE_MODE_HSL_HUE:        return "Hue";
+  case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: return "Saturation";
+  case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:      return "Color";
+  case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: return "Luminosity";
+  case HB_PAINT_COMPOSITE_MODE_CLEAR:
+  case HB_PAINT_COMPOSITE_MODE_SRC:
+  case HB_PAINT_COMPOSITE_MODE_DEST:
+  case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+  case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+  case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+  case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+  case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+  case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+  case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+  case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+  case HB_PAINT_COMPOSITE_MODE_XOR:
+  case HB_PAINT_COMPOSITE_MODE_PLUS:
+  default:                                     return nullptr; /* Normal / no PDF equivalent */
+  }
+}
+
+static void
+hb_pdf_paint_push_group (hb_paint_funcs_t *,
+			 void *paint_data,
+			 void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  hb_buf_append_str (&paint->current_body (), "q\n");
+}
+
+static void
+hb_pdf_paint_push_group_for (hb_paint_funcs_t *,
+			     void *paint_data,
+			     hb_paint_composite_mode_t mode,
+			     void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+
+  const char *bm = hb_pdf_blend_mode_name (mode);
+  if (bm)
+  {
+    auto *res = hb_pdf_get_resources (paint);
+    if (likely (res))
+    {
+      unsigned gs_idx = res->add_extgstate_blend (bm);
+      hb_buf_append_str (&body, "/GS");
+      hb_buf_append_unsigned (&body, gs_idx);
+      hb_buf_append_str (&body, " gs\n");
+    }
+  }
+}
+
+static void
+hb_pdf_paint_pop_group (hb_paint_funcs_t *,
+			void *paint_data,
+			hb_paint_composite_mode_t mode HB_UNUSED,
+			void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  hb_buf_append_str (&paint->current_body (), "Q\n");
+}
+
+
+/* ---- lazy loader for paint funcs ---- */
+
+static inline void free_static_pdf_paint_funcs ();
+
+static struct hb_pdf_paint_funcs_lazy_loader_t
+  : hb_paint_funcs_lazy_loader_t<hb_pdf_paint_funcs_lazy_loader_t>
+{
+  static hb_paint_funcs_t *create ()
+  {
+    hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_set_push_transform_func (funcs, (hb_paint_push_transform_func_t) hb_pdf_paint_push_transform, nullptr, nullptr);
+    hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_pdf_paint_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_pdf_paint_push_clip_glyph, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_pdf_paint_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_pop_clip_func (funcs, (hb_paint_pop_clip_func_t) hb_pdf_paint_pop_clip, nullptr, nullptr);
+    hb_paint_funcs_set_color_func (funcs, (hb_paint_color_func_t) hb_pdf_paint_color, nullptr, nullptr);
+    hb_paint_funcs_set_image_func (funcs, (hb_paint_image_func_t) hb_pdf_paint_image, nullptr, nullptr);
+    hb_paint_funcs_set_linear_gradient_func (funcs, (hb_paint_linear_gradient_func_t) hb_pdf_paint_linear_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_radial_gradient_func (funcs, (hb_paint_radial_gradient_func_t) hb_pdf_paint_radial_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_sweep_gradient_func (funcs, (hb_paint_sweep_gradient_func_t) hb_pdf_paint_sweep_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_func (funcs, (hb_paint_push_group_func_t) hb_pdf_paint_push_group, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_for_func (funcs, (hb_paint_push_group_for_func_t) hb_pdf_paint_push_group_for, nullptr, nullptr);
+    hb_paint_funcs_set_pop_group_func (funcs, (hb_paint_pop_group_func_t) hb_pdf_paint_pop_group, nullptr, nullptr);
+    hb_paint_funcs_make_immutable (funcs);
+    hb_atexit (free_static_pdf_paint_funcs);
+    return funcs;
+  }
+} static_pdf_paint_funcs;
+
+static inline void
+free_static_pdf_paint_funcs ()
+{
+  static_pdf_paint_funcs.free_instance ();
+}
+
+hb_paint_funcs_t *
+hb_vector_pdf_paint_funcs_get ()
+{
+  return static_pdf_paint_funcs.get_unconst ();
+}
+
+
+/* ---- render ---- */
+
+hb_blob_t *
+hb_vector_pdf_paint_render (hb_vector_paint_t *paint)
+{
+  if (!paint->has_extents)
+    return nullptr;
+  if (!paint->group_stack.length ||
+      !paint->group_stack.arrayZ[0].length)
+    return nullptr;
+
+  hb_vector_t<char> &content = paint->group_stack.arrayZ[0];
+  hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
+
+  float ex = paint->extents.x;
+  float ey = paint->extents.y;
+  float ew = paint->extents.width;
+  float eh = paint->extents.height;
+
+  unsigned num_extra = res ? res->objects.length : 0;
+  unsigned total_objects = 4 + num_extra; /* 1-based: 1..total_objects */
+
+  /* Build PDF. */
+  hb_vector_t<char> out;
+  hb_buf_recover_recycled (paint->recycled_blob, &out);
+  out.alloc (content.length + num_extra * 128 + 1024);
+
+  hb_vector_t<unsigned> offsets;
+  offsets.resize (total_objects);
+
+  hb_buf_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
+
+  /* Object 1: Catalog */
+  offsets.arrayZ[0] = out.length;
+  hb_buf_append_str (&out, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+
+  /* Object 2: Pages */
+  offsets.arrayZ[1] = out.length;
+  hb_buf_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+
+  /* Object 3: Page */
+  offsets.arrayZ[2] = out.length;
+  hb_buf_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
+  hb_buf_append_num (&out, ex, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, -(ey + eh), paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, ex + ew, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, -ey, paint->precision);
+  hb_buf_append_str (&out, "]\n/Contents 4 0 R");
+
+  /* Resources. */
+  bool has_resources = res &&
+    (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length);
+  if (has_resources)
+  {
+    hb_buf_append_str (&out, "\n/Resources <<");
+    if (res->extgstate_dict.length)
+    {
+      hb_buf_append_str (&out, " /ExtGState << ");
+      hb_buf_append_len (&out, res->extgstate_dict.arrayZ, res->extgstate_dict.length);
+      hb_buf_append_str (&out, ">>");
+    }
+    if (res->shading_dict.length)
+    {
+      hb_buf_append_str (&out, " /Shading << ");
+      hb_buf_append_len (&out, res->shading_dict.arrayZ, res->shading_dict.length);
+      hb_buf_append_str (&out, ">>");
+    }
+    if (res->xobject_dict.length)
+    {
+      hb_buf_append_str (&out, " /XObject << ");
+      hb_buf_append_len (&out, res->xobject_dict.arrayZ, res->xobject_dict.length);
+      hb_buf_append_str (&out, ">>");
+    }
+    hb_buf_append_str (&out, " >>");
+  }
+
+  hb_buf_append_str (&out, " >>\nendobj\n");
+
+  /* Object 4: Content stream */
+  offsets.arrayZ[3] = out.length;
+  hb_buf_append_str (&out, "4 0 obj\n<< /Length ");
+  hb_buf_append_unsigned (&out, content.length);
+  hb_buf_append_str (&out, " >>\nstream\n");
+  hb_buf_append_len (&out, content.arrayZ, content.length);
+  hb_buf_append_str (&out, "endstream\nendobj\n");
+
+  /* Extra objects (functions, shadings, ExtGState). */
+  for (unsigned i = 0; i < num_extra; i++)
+  {
+    offsets.arrayZ[4 + i] = out.length;
+    hb_buf_append_unsigned (&out, 5 + i);
+    hb_buf_append_str (&out, " 0 obj\n");
+    auto &obj = res->objects.arrayZ[i];
+    hb_buf_append_len (&out, obj.data.arrayZ, obj.data.length);
+    hb_buf_append_str (&out, "\nendobj\n");
+  }
+
+  /* Cross-reference table */
+  unsigned xref_offset = out.length;
+  hb_buf_append_str (&out, "xref\n0 ");
+  hb_buf_append_unsigned (&out, total_objects + 1);
+  hb_buf_append_str (&out, "\n0000000000 65535 f \n");
+  for (unsigned i = 0; i < total_objects; i++)
+  {
+    char tmp[21];
+    snprintf (tmp, sizeof (tmp), "%010u 00000 n \n", offsets.arrayZ[i]);
+    hb_buf_append_len (&out, tmp, 20);
+  }
+
+  /* Trailer */
+  hb_buf_append_str (&out, "trailer\n<< /Size ");
+  hb_buf_append_unsigned (&out, total_objects + 1);
+  hb_buf_append_str (&out, " /Root 1 0 R >>\nstartxref\n");
+  hb_buf_append_unsigned (&out, xref_offset);
+  hb_buf_append_str (&out, "\n%%EOF\n");
+
+  hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
+
+  /* Reset state. */
+  hb_pdf_free_resources (paint);
+  paint->group_stack.clear ();
+  paint->path.clear ();
+  paint->has_extents = false;
+  paint->extents = {0, 0, 0, 0};
+
+  return blob;
+}

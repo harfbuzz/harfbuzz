@@ -1526,9 +1526,9 @@ struct PaintComposite
   void paint_glyph (hb_paint_context_t *c) const
   {
     TRACE_PAINT (this);
-    c->funcs->push_group (c->data);
+    c->funcs->push_group_for (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
     c->recurse (this+backdrop);
-    c->funcs->push_group (c->data);
+    c->funcs->push_group_for (c->data, (hb_paint_composite_mode_t) (int) mode);
     c->recurse (this+src);
     c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int) mode);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);

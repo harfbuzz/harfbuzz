@@ -63,113 +63,113 @@ hb_svg_append_with_prefix (hb_vector_t<char> *out,
   {
     if (i + 4 <= n && !memcmp (s + i, "id=\"", 4))
     {
-      if (!hb_svg_append_len (out, s + i, 4)) return false;
+      if (!hb_buf_append_len (out, s + i, 4)) return false;
       i += 4;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '"')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 4 <= n && !memcmp (s + i, "id='", 4))
     {
-      if (!hb_svg_append_len (out, s + i, 4)) return false;
+      if (!hb_buf_append_len (out, s + i, 4)) return false;
       i += 4;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '\'')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 7 <= n && !memcmp (s + i, "href=\"#", 7))
     {
-      if (!hb_svg_append_len (out, s + i, 7)) return false;
+      if (!hb_buf_append_len (out, s + i, 7)) return false;
       i += 7;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '"')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 7 <= n && !memcmp (s + i, "href='#", 7))
     {
-      if (!hb_svg_append_len (out, s + i, 7)) return false;
+      if (!hb_buf_append_len (out, s + i, 7)) return false;
       i += 7;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '\'')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 13 <= n && !memcmp (s + i, "xlink:href=\"#", 13))
     {
-      if (!hb_svg_append_len (out, s + i, 13)) return false;
+      if (!hb_buf_append_len (out, s + i, 13)) return false;
       i += 13;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '"')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 13 <= n && !memcmp (s + i, "xlink:href='#", 13))
     {
-      if (!hb_svg_append_len (out, s + i, 13)) return false;
+      if (!hb_buf_append_len (out, s + i, 13)) return false;
       i += 13;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '\'')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 5 <= n && !memcmp (s + i, "url(#", 5))
     {
-      if (!hb_svg_append_len (out, s + i, 5)) return false;
+      if (!hb_buf_append_len (out, s + i, 5)) return false;
       i += 5;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != ')')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 6 <= n && !memcmp (s + i, "url(\"#", 6))
     {
-      if (!hb_svg_append_len (out, s + i, 6)) return false;
+      if (!hb_buf_append_len (out, s + i, 6)) return false;
       i += 6;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '"')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
     if (i + 6 <= n && !memcmp (s + i, "url('#", 6))
     {
-      if (!hb_svg_append_len (out, s + i, 6)) return false;
+      if (!hb_buf_append_len (out, s + i, 6)) return false;
       i += 6;
-      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      if (!hb_buf_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '\'')
       {
-        if (!hb_svg_append_c (out, s[i])) return false;
+        if (!hb_buf_append_c (out, s[i])) return false;
         i++;
       }
       continue;
     }
-    if (!hb_svg_append_c (out, s[i]))
+    if (!hb_buf_append_c (out, s[i]))
       return false;
     i++;
   }
@@ -392,7 +392,7 @@ hb_svg_subset_glyph_image (hb_face_t *face,
       goto done;
     if (!hb_svg_append_with_prefix (defs_dst, svg + e.start, e.end - e.start, prefix, (unsigned) prefix_len))
       goto done;
-    if (!hb_svg_append_c (defs_dst, '\n'))
+    if (!hb_buf_append_c (defs_dst, '\n'))
       goto done;
   }
 
@@ -407,19 +407,19 @@ hb_svg_subset_glyph_image (hb_face_t *face,
                                     prefix,
                                     (unsigned) prefix_len))
       goto done;
-    if (!hb_svg_append_str (body_dst, " width=\""))
+    if (!hb_buf_append_str (body_dst, " width=\""))
       goto done;
-    if (!hb_svg_append_unsigned (body_dst, upem))
+    if (!hb_buf_append_unsigned (body_dst, upem))
       goto done;
-    if (!hb_svg_append_str (body_dst, "\" height=\""))
+    if (!hb_buf_append_str (body_dst, "\" height=\""))
       goto done;
-    if (!hb_svg_append_unsigned (body_dst, upem))
+    if (!hb_buf_append_unsigned (body_dst, upem))
       goto done;
-    if (!hb_svg_append_str (body_dst, "\" overflow=\"visible"))
+    if (!hb_buf_append_str (body_dst, "\" overflow=\"visible"))
       goto done;
-    if (!hb_svg_append_c (body_dst, '"'))
+    if (!hb_buf_append_c (body_dst, '"'))
       goto done;
-    if (!hb_svg_append_c (body_dst, '>'))
+    if (!hb_buf_append_c (body_dst, '>'))
       goto done;
     ret = hb_svg_append_with_prefix (body_dst,
                                      svg + glyph_start + root_open_len,
@@ -437,9 +437,9 @@ hb_svg_subset_glyph_image (hb_face_t *face,
                                     prefix,
                                     (unsigned) prefix_len))
       goto done;
-    if (!hb_svg_append_str (body_dst, " overflow=\"visible\""))
+    if (!hb_buf_append_str (body_dst, " overflow=\"visible\""))
       goto done;
-    if (!hb_svg_append_c (body_dst, '>'))
+    if (!hb_buf_append_c (body_dst, '>'))
       goto done;
     ret = hb_svg_append_with_prefix (body_dst,
                                      svg + glyph_start + root_open_len,

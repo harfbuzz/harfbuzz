@@ -38,10 +38,10 @@ hb_svg_path_move_to (hb_draw_funcs_t *,
                      void *)
 {
   auto *s = (hb_svg_path_sink_t *) draw_data;
-  hb_svg_append_c (s->path, 'M');
-  hb_svg_append_num (s->path, to_x, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, to_y, s->precision);
+  hb_buf_append_c (s->path, 'M');
+  hb_buf_append_num (s->path, to_x, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, to_y, s->precision);
 }
 
 static void
@@ -52,10 +52,10 @@ hb_svg_path_line_to (hb_draw_funcs_t *,
                      void *)
 {
   auto *s = (hb_svg_path_sink_t *) draw_data;
-  hb_svg_append_c (s->path, 'L');
-  hb_svg_append_num (s->path, to_x, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, to_y, s->precision);
+  hb_buf_append_c (s->path, 'L');
+  hb_buf_append_num (s->path, to_x, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, to_y, s->precision);
 }
 
 static void
@@ -67,14 +67,14 @@ hb_svg_path_quadratic_to (hb_draw_funcs_t *,
                           void *)
 {
   auto *s = (hb_svg_path_sink_t *) draw_data;
-  hb_svg_append_c (s->path, 'Q');
-  hb_svg_append_num (s->path, cx, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, cy, s->precision);
-  hb_svg_append_c (s->path, ' ');
-  hb_svg_append_num (s->path, to_x, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, to_y, s->precision);
+  hb_buf_append_c (s->path, 'Q');
+  hb_buf_append_num (s->path, cx, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, cy, s->precision);
+  hb_buf_append_c (s->path, ' ');
+  hb_buf_append_num (s->path, to_x, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, to_y, s->precision);
 }
 
 static void
@@ -87,18 +87,18 @@ hb_svg_path_cubic_to (hb_draw_funcs_t *,
                       void *)
 {
   auto *s = (hb_svg_path_sink_t *) draw_data;
-  hb_svg_append_c (s->path, 'C');
-  hb_svg_append_num (s->path, c1x, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, c1y, s->precision);
-  hb_svg_append_c (s->path, ' ');
-  hb_svg_append_num (s->path, c2x, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, c2y, s->precision);
-  hb_svg_append_c (s->path, ' ');
-  hb_svg_append_num (s->path, to_x, s->precision);
-  hb_svg_append_c (s->path, ',');
-  hb_svg_append_num (s->path, to_y, s->precision);
+  hb_buf_append_c (s->path, 'C');
+  hb_buf_append_num (s->path, c1x, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, c1y, s->precision);
+  hb_buf_append_c (s->path, ' ');
+  hb_buf_append_num (s->path, c2x, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, c2y, s->precision);
+  hb_buf_append_c (s->path, ' ');
+  hb_buf_append_num (s->path, to_x, s->precision);
+  hb_buf_append_c (s->path, ',');
+  hb_buf_append_num (s->path, to_y, s->precision);
 }
 
 static void
@@ -108,7 +108,7 @@ hb_svg_path_close_path (hb_draw_funcs_t *,
                         void *)
 {
   auto *s = (hb_svg_path_sink_t *) draw_data;
-  hb_svg_append_c (s->path, 'Z');
+  hb_buf_append_c (s->path, 'Z');
 }
 
 static inline void
