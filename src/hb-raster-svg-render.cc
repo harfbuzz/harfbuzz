@@ -54,6 +54,24 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 				hb_svg_xml_parser_t &parser,
 				const struct hb_svg_cascade_t &inherited);
 
+static bool
+svg_restore_paint_stack (hb_svg_render_context_t *ctx,
+			 unsigned                 transform_depth,
+			 unsigned                 clip_depth,
+			 unsigned                 surface_depth)
+{
+  while (ctx->paint->transform_stack.length > transform_depth)
+    ctx->pop_transform ();
+  while (ctx->paint->clip_stack.length > clip_depth)
+    ctx->pop_clip ();
+  while (ctx->paint->surface_stack.length > surface_depth)
+    ctx->paint->release_surface (ctx->paint->surface_stack.pop ());
+
+  return ctx->paint->transform_stack.length == transform_depth &&
+	 ctx->paint->clip_stack.length == clip_depth &&
+	 ctx->paint->surface_stack.length == surface_depth;
+}
+
 /* Gradient def parsing lives in hb-raster-svg-gradient.* */
 
 /* Clip-path defs and push helpers live in hb-raster-svg-clip.* */
@@ -243,6 +261,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	  continue;
 	}
 	svg_render_element (ctx, parser, state);
+	if (unlikely (ctx->failed))
+	  break;
 	if (tok == SVG_TOKEN_OPEN_TAG &&
 	    !hb_raster_svg_tag_is_container_or_use (child_tag))
 	{
@@ -318,11 +338,13 @@ svg_render_element (hb_svg_render_context_t *ctx,
 		    hb_svg_xml_parser_t &parser,
 		    const hb_svg_cascade_t &inherited)
 {
+  if (unlikely (ctx->failed))
+    return;
   if (ctx->depth >= SVG_MAX_DEPTH) return;
 
-  const HB_UNUSED unsigned transform_depth = ctx->paint->transform_stack.length;
-  const HB_UNUSED unsigned clip_depth = ctx->paint->clip_stack.length;
-  const HB_UNUSED unsigned surface_depth = ctx->paint->surface_stack.length;
+  const unsigned transform_depth = ctx->paint->transform_stack.length;
+  const unsigned clip_depth = ctx->paint->clip_stack.length;
+  const unsigned surface_depth = ctx->paint->surface_stack.length;
 
   ctx->depth++;
 
@@ -372,9 +394,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
     if (!self_closing)
       svg_skip_subtree (parser);
     ctx->depth--;
-    assert (ctx->paint->transform_stack.length == transform_depth);
-    assert (ctx->paint->clip_stack.length == clip_depth);
-    assert (ctx->paint->surface_stack.length == surface_depth);
+    if (unlikely (!svg_restore_paint_stack (ctx, transform_depth, clip_depth, surface_depth)))
+      ctx->failed = true;
     return;
   }
   if (!state.visibility)
@@ -382,9 +403,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
     if (!self_closing)
       svg_skip_subtree (parser);
     ctx->depth--;
-    assert (ctx->paint->transform_stack.length == transform_depth);
-    assert (ctx->paint->clip_stack.length == clip_depth);
-    assert (ctx->paint->surface_stack.length == surface_depth);
+    if (unlikely (!svg_restore_paint_stack (ctx, transform_depth, clip_depth, surface_depth)))
+      ctx->failed = true;
     return;
   }
 
@@ -393,9 +413,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
     if (!self_closing)
       svg_skip_subtree (parser);
     ctx->depth--;
-    assert (ctx->paint->transform_stack.length == transform_depth);
-    assert (ctx->paint->clip_stack.length == clip_depth);
-    assert (ctx->paint->surface_stack.length == surface_depth);
+    if (unlikely (!svg_restore_paint_stack (ctx, transform_depth, clip_depth, surface_depth)))
+      ctx->failed = true;
     return;
   }
   if (tag.eq ("symbol"))
@@ -418,9 +437,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
 
   ctx->depth--;
 
-  assert (ctx->paint->transform_stack.length == transform_depth);
-  assert (ctx->paint->clip_stack.length == clip_depth);
-  assert (ctx->paint->surface_stack.length == surface_depth);
+  if (unlikely (!svg_restore_paint_stack (ctx, transform_depth, clip_depth, surface_depth)))
+    ctx->failed = true;
 }
 
 
@@ -501,6 +519,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
     hb_svg_token_type_t tok = parser.next ();
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
+      unsigned transform_depth = ctx.paint->transform_stack.length;
+      unsigned clip_depth = ctx.paint->clip_stack.length;
+      unsigned surface_depth = ctx.paint->surface_stack.length;
       bool pushed_font_transform = hb_raster_svg_push_font_transform (ctx.pfuncs, ctx.paint, font);
       bool pushed_flip_transform = ctx.push_transform (1, 0, 0, -1, 0, 0);
 	      svg_render_element (&ctx, parser, initial_state);
@@ -508,6 +529,10 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
         ctx.pop_transform ();
       if (pushed_font_transform)
         hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
+      if (unlikely (!svg_restore_paint_stack (&ctx, transform_depth, clip_depth, surface_depth)))
+        ctx.failed = true;
+      if (ctx.failed)
+        goto done;
       found_glyph = true;
     }
   }
@@ -533,6 +558,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
           if (id.len == (unsigned) glyph_id_len &&
               0 == hb_memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
           {
+            unsigned transform_depth = ctx.paint->transform_stack.length;
+            unsigned clip_depth = ctx.paint->clip_stack.length;
+            unsigned surface_depth = ctx.paint->surface_stack.length;
             bool pushed_font_transform = hb_raster_svg_push_font_transform (ctx.pfuncs, ctx.paint, font);
             bool pushed_flip_transform = ctx.push_transform (1, 0, 0, -1, 0, 0);
 	            svg_render_element (&ctx, parser, initial_state);
@@ -540,6 +568,10 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
               ctx.pop_transform ();
             if (pushed_font_transform)
               hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
+            if (unlikely (!svg_restore_paint_stack (&ctx, transform_depth, clip_depth, surface_depth)))
+              ctx.failed = true;
+            if (ctx.failed)
+              goto done;
             found_glyph = true;
             break;
           }

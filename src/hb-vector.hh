@@ -186,6 +186,14 @@ struct hb_vector_t
     return *this;
   }
 
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  hb_vector_t &reset_if_error ()
+  {
+    if (unlikely (in_error ()))
+      reset ();
+    return *this;
+  }
+
   /* Transfer ownership of the backing storage to caller.
    * Returns nullptr if storage is not owned by this vector. */
   Type *
