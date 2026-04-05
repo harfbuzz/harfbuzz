@@ -609,15 +609,17 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     return nullptr;
   hb_gpu_texel_t *buf = nullptr;
   unsigned buf_capacity = 0;
+  hb_gpu_blob_data_t *recycled_bd = nullptr;
+  char *replaced_recycled_buf = nullptr;
 
   if (draw->recycled_blob &&
       draw->recycled_blob->destroy == _hb_gpu_blob_data_destroy)
   {
-    auto *bd = (hb_gpu_blob_data_t *) draw->recycled_blob->user_data;
-    if (bd->capacity >= needed_bytes)
+    recycled_bd = (hb_gpu_blob_data_t *) draw->recycled_blob->user_data;
+    if (recycled_bd->capacity >= needed_bytes)
     {
-      buf = (hb_gpu_texel_t *) (void *) bd->buf;
-      buf_capacity = bd->capacity;
+      buf = (hb_gpu_texel_t *) (void *) recycled_bd->buf;
+      buf_capacity = recycled_bd->capacity;
     }
     else
     {
@@ -626,14 +628,16 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 					       needed_bytes / 2,
 					       &alloc_bytes)))
 	alloc_bytes = needed_bytes;
-      char *new_buf = (char *) hb_realloc (bd->buf, alloc_bytes);
+      char *new_buf = (char *) hb_realloc (recycled_bd->buf, alloc_bytes);
       if (new_buf)
       {
-	bd->buf = new_buf;
-	bd->capacity = alloc_bytes;
+	recycled_bd->buf = new_buf;
+	recycled_bd->capacity = alloc_bytes;
 	buf = (hb_gpu_texel_t *) (void *) new_buf;
 	buf_capacity = alloc_bytes;
       }
+      else
+	replaced_recycled_buf = recycled_bd->buf;
     }
   }
 
@@ -652,7 +656,11 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 		hb_unsigned_add_overflows (curve_data_offset,
 					   total_curve_indices,
 					   &curve_data_offset)))
+  {
+    if (!recycled_bd || buf != (hb_gpu_texel_t *) (void *) recycled_bd->buf)
+      hb_free (buf);
     return nullptr;
+  }
 
   /* Pack header */
   buf[0].r = min_x_q;
@@ -666,7 +674,11 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
   /* Pack curve data with shared endpoints */
   if (unlikely (!s.curve_texel_offset.resize (num_curves)))
+  {
+    if (!recycled_bd || buf != (hb_gpu_texel_t *) (void *) recycled_bd->buf)
+      hb_free (buf);
     return nullptr;
+  }
 
   unsigned texel = curve_data_offset;
 
@@ -813,6 +825,9 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     {
       /* Our blob — update the closure's buf pointer (may have been realloc'd). */
       auto *bd = (hb_gpu_blob_data_t *) blob->user_data;
+      if (replaced_recycled_buf &&
+	  replaced_recycled_buf != (char *) buf)
+	hb_free (replaced_recycled_buf);
       bd->buf = (char *) buf;
       bd->capacity = buf_capacity;
       blob->data = (const char *) buf;

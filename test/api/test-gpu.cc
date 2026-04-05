@@ -248,24 +248,42 @@ test_encode_preserves_touching_contours (void)
 static void
 test_recycle_blob (void)
 {
-  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
-  hb_font_t *font = hb_font_create (face);
-
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
 
-  hb_codepoint_t gid;
-  hb_font_get_nominal_glyph (font, 'b', &gid);
-  hb_gpu_draw_glyph (draw, font, gid);
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 1.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 0.f, 1.f);
+  hb_draw_close_path (funcs, draw, &st);
 
   hb_blob_t *blob = hb_gpu_draw_encode (draw);
   g_assert_nonnull (blob);
+  unsigned first_length = hb_blob_get_length (blob);
+  g_assert_cmpuint (first_length, >, 0);
 
-  /* Recycle should not crash. */
   hb_gpu_draw_recycle_blob (draw, blob);
 
+  hb_gpu_draw_reset (draw);
+
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 2.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 2.f, 2.f);
+  hb_draw_line_to (funcs, draw, &st, 0.f, 2.f);
+  hb_draw_close_path (funcs, draw, &st);
+  hb_draw_move_to (funcs, draw, &st, 0.25f, 0.25f);
+  hb_draw_quadratic_to (funcs, draw, &st, 1.f, 1.75f, 1.75f, 0.25f);
+  hb_draw_quadratic_to (funcs, draw, &st, 1.f, -0.5f, 0.25f, 0.25f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_blob_t *blob2 = hb_gpu_draw_encode (draw);
+  g_assert_nonnull (blob2);
+  g_assert_cmpuint (hb_blob_get_length (blob2), >, first_length);
+
+  hb_blob_destroy (blob2);
   hb_gpu_draw_destroy (draw);
-  hb_font_destroy (font);
-  hb_face_destroy (face);
 }
 
 int
