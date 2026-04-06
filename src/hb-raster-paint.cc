@@ -954,6 +954,13 @@ normalize_color_line (hb_color_stop_t *stops,
   *omax = mx;
 }
 
+static HB_ALWAYS_INLINE float
+reflect_gradient_t (float t)
+{
+  t = fmodf (fabsf (t), 2.f);
+  return t > 1.f ? 2.f - t : t;
+}
+
 /* Evaluate color at normalized position t, interpolating in premultiplied space. */
 static uint32_t
 evaluate_color_line (const hb_color_stop_t *stops, unsigned len, float t,
@@ -977,10 +984,7 @@ evaluate_color_line (const hb_color_stop_t *stops, unsigned len, float t,
   }
   else /* REFLECT */
   {
-    if (t < 0) t = -t;
-    int period = (int) floorf (t);
-    float frac = t - (float) period;
-    t = (period & 1) ? 1.f - frac : frac;
+    t = reflect_gradient_t (t);
   }
 
   /* Find bounding stops */
@@ -1039,10 +1043,7 @@ normalize_gradient_t (float t, hb_paint_extend_t extend)
   }
 
   /* REFLECT */
-  if (t < 0.f) t = -t;
-  int period = (int) floorf (t);
-  float frac = t - (float) period;
-  return (period & 1) ? 1.f - frac : frac;
+  return reflect_gradient_t (t);
 }
 
 static void
@@ -1063,6 +1064,10 @@ lookup_gradient_lut (const uint32_t *lut,
 		     hb_paint_extend_t extend)
 {
   float u = normalize_gradient_t (t, extend);
+  if (unlikely (!std::isfinite (u)))
+    u = 0.f;
+  else
+    u = hb_clamp (u, 0.f, 1.f);
   unsigned idx = (unsigned) (u * (GRADIENT_LUT_SIZE - 1) + 0.5f);
   return lut[idx];
 }
