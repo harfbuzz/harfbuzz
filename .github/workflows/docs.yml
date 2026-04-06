@@ -39,7 +39,7 @@ jobs:
           zlib1g-dev \
           help2man
     - name: Setup Emscripten
-      uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
+      uses: mymindstorm/setup-emsdk@667eb33f24e84e7f362c16d8d7fff0629a73e15e # v15
       with:
         version: latest
     - name: Setup Python
