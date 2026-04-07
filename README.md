@@ -33,6 +33,9 @@ Here is a quick map of its components:
 | **libharfbuzz-subset** | Font subsetting and variable-font instancing. |
 
 ### Auxiliary libraries
+
+| Library | Description |
+|---------|-------------|
 | **libharfbuzz-icu** | ICU Unicode integration. |
 | **libharfbuzz-cairo** | Cairo rendering integration. |
 | **libharfbuzz-gobject** | GObject/GI bindings. |
