@@ -31,6 +31,8 @@ Here is a quick map of its components:
 |---------|-------------|
 | **libharfbuzz** | Text shaping, draw API, paint API. Highly configurable (see [CONFIG.md](CONFIG.md)). Optional integration backends compiled in: hb-ft (FreeType), hb-coretext (macOS), hb-uniscribe (Windows), hb-directwrite (Windows), hb-gdi (Windows), hb-glib, hb-graphite2. |
 | **libharfbuzz-subset** | Font subsetting and variable-font instancing. |
+
+### Auxiliary libraries
 | **libharfbuzz-icu** | ICU Unicode integration. |
 | **libharfbuzz-cairo** | Cairo rendering integration. |
 | **libharfbuzz-gobject** | GObject/GI bindings. |
