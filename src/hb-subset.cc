@@ -247,6 +247,15 @@ _dependencies_satisfied (hb_subset_plan_t *plan, hb_tag_t tag,
     return !plan->normalized_coords || !pending_subset_tags.has (HB_TAG('g','l','y','f'));
   case HB_TAG('G','P','O','S'):
     return plan->all_axes_pinned || !pending_subset_tags.has (HB_TAG('G','D','E','F'));
+  /* For avar2, variation tables must wait for avar to be subsetted first. */
+  case HB_TAG('g','v','a','r'):
+  case HB_TAG('c','v','a','r'):
+  case HB_TAG('H','V','A','R'):
+  case HB_TAG('V','V','A','R'):
+  case HB_TAG('M','V','A','R'):
+  case HB_TAG('G','D','E','F'):
+  case HB_TAG('C','F','F','2'):
+    return !plan->has_avar2 || !pending_subset_tags.has (HB_TAG('a','v','a','r'));
   default:
     return true;
   }
@@ -286,7 +295,7 @@ _subset_table (hb_subset_plan_t *plan,
   case HB_TAG('c','v','t',' '):
 #ifndef HB_NO_VAR
     if (_is_table_present (plan->source, HB_TAG('c','v','a','r')) &&
-        plan->normalized_coords && !plan->pinned_at_default)
+        plan->normalized_coords && !plan->pinned_at_default && !plan->has_avar2)
     {
       auto &cvar = *plan->source->table.cvar;
       return OT::cvar::add_cvt_and_apply_deltas (plan, cvar.get_tuple_var_data (), &cvar);
