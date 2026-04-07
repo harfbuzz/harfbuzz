@@ -14,8 +14,11 @@ path = "lib.rs"
 crate-type = ["staticlib"]
 
 [features]
+default = ["paint", "draw"]
 font = ["dep:skrifa"]
 shape = ["dep:harfrust"]
+paint = []
+draw = []
 
 [profile.release]
 strip = true

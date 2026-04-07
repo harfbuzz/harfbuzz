@@ -9,21 +9,26 @@ use std::sync::Mutex;
 
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
-use skrifa::color::{
-    Brush, ColorGlyphCollection, ColorPainter, ColorStop, CompositeMode, Extend, Transform,
-};
+use skrifa::color::ColorGlyphCollection;
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
-use skrifa::metrics::{BoundingBox, GlyphMetrics};
-use skrifa::outline::pen::OutlinePen;
-use skrifa::outline::DrawSettings;
-use skrifa::raw::tables::cpal::ColorRecord;
+use skrifa::metrics::GlyphMetrics;
 use skrifa::raw::tables::vmtx::Vmtx;
 use skrifa::raw::tables::vorg::Vorg;
 use skrifa::raw::tables::vvar::Vvar;
 use skrifa::raw::TableProvider;
 use skrifa::OutlineGlyphCollection;
 use skrifa::{GlyphId, GlyphNames, MetadataProvider};
+
+#[cfg(feature = "draw")]
+use skrifa::outline::{pen::OutlinePen, DrawSettings};
+
+#[cfg(feature = "paint")]
+use skrifa::{
+    color::{Brush, ColorPainter, ColorStop, CompositeMode, Extend, Transform},
+    metrics::BoundingBox,
+    raw::tables::cpal::ColorRecord,
+};
 
 // A struct for storing your “fontations” data
 #[repr(C)]
@@ -436,6 +441,7 @@ extern "C" fn _hb_fontations_get_font_h_extents(
     true as hb_bool_t
 }
 
+#[cfg(feature = "draw")]
 struct HbPen {
     x_mult: f32,
     y_mult: f32,
@@ -444,6 +450,7 @@ struct HbPen {
     draw_data: *mut c_void,
 }
 
+#[cfg(feature = "draw")]
 impl OutlinePen for HbPen {
     fn move_to(&mut self, x: f32, y: f32) {
         unsafe {
@@ -502,6 +509,7 @@ impl OutlinePen for HbPen {
     }
 }
 
+#[cfg(feature = "draw")]
 extern "C" fn _hb_fontations_draw_glyph_or_fail(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -537,6 +545,7 @@ extern "C" fn _hb_fontations_draw_glyph_or_fail(
     true as hb_bool_t
 }
 
+#[cfg(feature = "paint")]
 struct HbColorPainter<'a> {
     font: *mut hb_font_t,
     paint_funcs: *mut hb_paint_funcs_t,
@@ -547,6 +556,7 @@ struct HbColorPainter<'a> {
     clip_depth: u32,
 }
 
+#[cfg(feature = "paint")]
 impl HbColorPainter<'_> {
     fn lookup_color(&self, color_index: u16, alpha: f32) -> hb_color_t {
         if color_index == 0xFFFF {
@@ -576,11 +586,13 @@ impl HbColorPainter<'_> {
     }
 }
 
+#[cfg(feature = "paint")]
 struct ColorLineData<'a> {
     painter: &'a HbColorPainter<'a>,
     color_stops: &'a [ColorStop],
     extend: Extend,
 }
+#[cfg(feature = "paint")]
 extern "C" fn _hb_fontations_get_color_stops(
     _color_line: *mut hb_color_line_t,
     color_line_data: *mut ::std::os::raw::c_void,
@@ -614,6 +626,7 @@ extern "C" fn _hb_fontations_get_color_stops(
     }
     color_stops.len() as u32
 }
+#[cfg(feature = "paint")]
 extern "C" fn _hb_fontations_get_extend(
     _color_line: *mut hb_color_line_t,
     color_line_data: *mut ::std::os::raw::c_void,
@@ -623,6 +636,7 @@ extern "C" fn _hb_fontations_get_extend(
     color_line_data.extend as hb_paint_extend_t // They are the same
 }
 
+#[cfg(feature = "paint")]
 pub fn _hb_fontations_unreduce_anchors(
     x0: f32,
     y0: f32,
@@ -651,6 +665,7 @@ pub fn _hb_fontations_unreduce_anchors(
     (x0, y0, x1, y1, x0 + dy, y0 - dx)
 }
 
+#[cfg(feature = "paint")]
 impl ColorPainter for HbColorPainter<'_> {
     fn push_transform(&mut self, transform: Transform) {
         unsafe {
@@ -877,6 +892,7 @@ impl ColorPainter for HbColorPainter<'_> {
     }
 }
 
+#[cfg(feature = "paint")]
 extern "C" fn _hb_fontations_paint_glyph_or_fail(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -1106,12 +1122,14 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
                 null_mut(),
                 None,
             );
+            #[cfg(feature = "draw")]
             hb_font_funcs_set_draw_glyph_or_fail_func(
                 ffuncs,
                 Some(_hb_fontations_draw_glyph_or_fail),
                 null_mut(),
                 None,
             );
+            #[cfg(feature = "paint")]
             hb_font_funcs_set_paint_glyph_or_fail_func(
                 ffuncs,
                 Some(_hb_fontations_paint_glyph_or_fail),
