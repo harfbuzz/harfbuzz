@@ -7,6 +7,8 @@ responsible for the changes they submit.
 
 - Use AI as a tool, not as an authority. Verify behavior, correctness, and
   compatibility yourself before submitting changes.
+- Any large changes to library code (~>100 lines) must be fully reviewed by
+  two humans: the producer and a second reviewer.
 - Keep changes narrow. Do not use AI to generate broad rewrites, drive-by
   refactors, or style-only churn.
 - Preserve HarfBuzz's public API and ABI unless a change explicitly calls for
