@@ -1693,6 +1693,13 @@ _release_blob (void *arg)
 void
 hb_ft_font_set_funcs (hb_font_t *font)
 {
+  int load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
+  if (font->destroy == (hb_destroy_func_t) _hb_ft_font_destroy && font->user_data)
+  {
+    const hb_ft_font_t *existing_ft_font = (const hb_ft_font_t *) font->user_data;
+    load_flags = existing_ft_font->load_flags;
+  }
+
   // In case of failure...
   hb_font_set_funcs (font,
 		     hb_font_funcs_get_empty (),
@@ -1740,7 +1747,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
   }
 
   _hb_ft_font_set_funcs (font, ft_face, true);
-  hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
+  hb_ft_font_set_load_flags (font, load_flags);
 
   _hb_ft_hb_font_changed (font, ft_face);
 }
