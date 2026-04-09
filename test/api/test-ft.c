@@ -109,12 +109,39 @@ test_native_ft_basic (void)
   cleanup_freetype ();
 }
 
+static void
+test_native_ft_set_funcs_preserves_load_flags (void)
+{
+  FT_Face ft_face;
+  hb_font_t *font;
+  const int requested_load_flags = FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL;
+
+  init_freetype ();
+
+  ft_face = get_ft_face ("fonts/Cantarell.A.otf");
+  g_assert_nonnull (ft_face);
+
+  font = hb_ft_font_create_referenced (ft_face);
+  g_assert_nonnull (font);
+
+  hb_ft_font_set_load_flags (font, requested_load_flags);
+  hb_ft_font_set_funcs (font);
+
+  g_assert_cmpint (hb_ft_font_get_load_flags (font), ==, requested_load_flags);
+
+  hb_font_destroy (font);
+  FT_Done_Face (ft_face);
+
+  cleanup_freetype ();
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_native_ft_basic);
+  hb_test_add (test_native_ft_set_funcs_preserves_load_flags);
 
   return hb_test_run ();
 }
