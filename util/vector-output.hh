@@ -188,8 +188,8 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
     hb_vector_draw_set_extents (draw, &extents);
-    hb_vector_svg_set_precision (draw, precision);
-    hb_vector_svg_set_flat (draw, flat);
+    hb_vector_draw_set_precision (draw, precision);
+    hb_vector_draw_set_flat (draw, flat);
 
     if (paint)
     {
@@ -199,8 +199,8 @@ struct vector_output_t : output_options_t<>, view_options_t
       hb_vector_paint_set_palette (paint, this->palette);
       apply_custom_palette (paint);
       init_palette_color_cache ();
-      hb_vector_svg_paint_set_precision (paint, precision);
-      hb_vector_svg_paint_set_flat (paint, flat);
+      hb_vector_paint_set_precision (paint, precision);
+      hb_vector_paint_set_flat (paint, flat);
     }
 
     bool had_draw = false;

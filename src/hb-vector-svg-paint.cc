@@ -1469,32 +1469,32 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 }
 
 /**
- * hb_vector_svg_paint_set_flat:
+ * hb_vector_paint_set_flat:
  * @paint: a paint context.
  * @flat: whether to flatten paint output and disable glyph-group reuse.
  *
- * Enables or disables SVG paint flattening.
+ * Enables or disables paint flattening.
  *
  * Since: 13.0.0
  */
 void
-hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
+hb_vector_paint_set_flat (hb_vector_paint_t *paint,
                               hb_bool_t flat)
 {
   paint->flat = !!flat;
 }
 
 /**
- * hb_vector_svg_paint_set_precision:
+ * hb_vector_paint_set_precision:
  * @paint: a paint context.
  * @precision: decimal precision.
  *
- * Sets numeric output precision for SVG paint output.
+ * Sets numeric output precision for paint output.
  *
  * Since: 13.0.0
  */
 void
-hb_vector_svg_paint_set_precision (hb_vector_paint_t *paint,
+hb_vector_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision)
 {
   paint->precision = hb_min (precision, 12u);

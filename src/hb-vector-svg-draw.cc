@@ -628,32 +628,32 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 }
 
 /**
- * hb_vector_svg_set_flat:
+ * hb_vector_draw_set_flat:
  * @draw: a draw context.
  * @flat: whether to flatten geometry and disable reuse.
  *
- * Enables or disables SVG draw flattening.
+ * Enables or disables draw flattening.
  *
  * Since: 13.0.0
  */
 void
-hb_vector_svg_set_flat (hb_vector_draw_t *draw,
+hb_vector_draw_set_flat (hb_vector_draw_t *draw,
                         hb_bool_t flat)
 {
   draw->flat = !!flat;
 }
 
 /**
- * hb_vector_svg_set_precision:
+ * hb_vector_draw_set_precision:
  * @draw: a draw context.
  * @precision: decimal precision.
  *
- * Sets numeric output precision for SVG draw output.
+ * Sets numeric output precision for draw output.
  *
  * Since: 13.0.0
  */
 void
-hb_vector_svg_set_precision (hb_vector_draw_t *draw,
+hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision)
 {
   draw->precision = hb_min (precision, 12u);

@@ -21,10 +21,10 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_vector_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
 
   unsigned precision = size ? data[size - 1] % 5 : 0;
-  hb_vector_svg_set_precision (draw, precision);
-  hb_vector_svg_paint_set_precision (paint, precision);
-  hb_vector_svg_set_flat (draw, size > 1 ? !!(data[size - 2] & 1) : false);
-  hb_vector_svg_paint_set_flat (paint, size > 2 ? !!(data[size - 3] & 1) : false);
+  hb_vector_draw_set_precision (draw, precision);
+  hb_vector_paint_set_precision (paint, precision);
+  hb_vector_draw_set_flat (draw, size > 1 ? !!(data[size - 2] & 1) : false);
+  hb_vector_paint_set_flat (paint, size > 2 ? !!(data[size - 3] & 1) : false);
 
   unsigned glyph_count = hb_face_get_glyph_count (input.face);
   unsigned limit = glyph_count > 16 ? 16 : glyph_count;
