@@ -286,6 +286,31 @@ test_recycle_blob (void)
   hb_gpu_draw_destroy (draw);
 }
 
+static void
+test_extents_saturate_overflow (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  hb_draw_move_to (funcs, draw, &st, -0x1p31f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 821.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 821.f, 1.f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_glyph_extents_t ext;
+  hb_gpu_draw_get_extents (draw, &ext);
+
+  g_assert_cmpint (ext.x_bearing, ==, G_MININT32);
+  g_assert_cmpint (ext.y_bearing, ==, 1);
+  g_assert_cmpint (ext.width, ==, G_MAXINT32);
+  g_assert_cmpint (ext.height, ==, -1);
+
+  hb_gpu_draw_destroy (draw);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -300,6 +325,7 @@ main (int argc, char **argv)
   hb_test_add (test_encode_quantizes_extents_outward);
   hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
+  hb_test_add (test_extents_saturate_overflow);
 
   return hb_test_run ();
 }

@@ -279,6 +279,14 @@ _hb_gpu_blob_data_destroy (void *user_data)
   hb_free (bd);
 }
 
+static hb_position_t
+clamp_to_hb_position (double v)
+{
+  return (hb_position_t) hb_clamp (v,
+				   (double) hb_int_min (hb_position_t),
+				   (double) hb_int_max (hb_position_t));
+}
+
 static int16_t
 quantize (double v)
 {
@@ -1041,12 +1049,27 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
     return;
   }
 
-  extents->x_bearing = (hb_position_t) floor (draw->ext_min_x);
-  extents->y_bearing = (hb_position_t) ceil  (draw->ext_max_y);
-  extents->width     = (hb_position_t) ceil  (draw->ext_max_x) -
-		       (hb_position_t) floor (draw->ext_min_x);
-  extents->height    = (hb_position_t) floor (draw->ext_min_y) -
-		       (hb_position_t) ceil  (draw->ext_max_y);
+  double min_x = floor (draw->ext_min_x);
+  double min_y = floor (draw->ext_min_y);
+  double max_x = ceil  (draw->ext_max_x);
+  double max_y = ceil  (draw->ext_max_y);
+
+  if (unlikely (!std::isfinite (min_x) ||
+		!std::isfinite (min_y) ||
+		!std::isfinite (max_x) ||
+		!std::isfinite (max_y)))
+  {
+    extents->x_bearing = 0;
+    extents->y_bearing = 0;
+    extents->width = 0;
+    extents->height = 0;
+    return;
+  }
+
+  extents->x_bearing = clamp_to_hb_position (min_x);
+  extents->y_bearing = clamp_to_hb_position (max_y);
+  extents->width     = clamp_to_hb_position (max_x - min_x);
+  extents->height    = clamp_to_hb_position (min_y - max_y);
 }
 
 /**
