@@ -395,7 +395,7 @@ hb_resolve_graph_overflows (hb_tag_t table_tag,
   while (!sorted_graph.in_error ()
          && graph::will_overflow (sorted_graph, &overflows)
          && round < max_rounds
-         && total_iterations < 500) {
+         && total_iterations < HB_REPACKER_MAX_ITERATIONS) {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Overflow resolution round %u ===", round);
     print_overflows (sorted_graph, overflows);
 
