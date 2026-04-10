@@ -58,15 +58,17 @@ hb_vector_draw_move_to (hb_draw_funcs_t *,
                         void *)
 {
   auto *d = (hb_vector_draw_t *) draw_data;
-  if (d->format == HB_VECTOR_FORMAT_PDF)
+  switch (d->format)
   {
-    d->append_xy (to_x, to_y);
-    hb_buf_append_str (&d->path, " m\n");
-  }
-  else
-  {
-    hb_buf_append_c (&d->path, 'M');
-    d->append_xy (to_x, to_y);
+    case HB_VECTOR_FORMAT_PDF:
+      d->append_xy (to_x, to_y);
+      hb_buf_append_str (&d->path, " m\n");
+      break;
+    case HB_VECTOR_FORMAT_SVG:
+      hb_buf_append_c (&d->path, 'M');
+      d->append_xy (to_x, to_y);
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default: break;
   }
 }
 
@@ -78,15 +80,17 @@ hb_vector_draw_line_to (hb_draw_funcs_t *,
                         void *)
 {
   auto *d = (hb_vector_draw_t *) draw_data;
-  if (d->format == HB_VECTOR_FORMAT_PDF)
+  switch (d->format)
   {
-    d->append_xy (to_x, to_y);
-    hb_buf_append_str (&d->path, " l\n");
-  }
-  else
-  {
-    hb_buf_append_c (&d->path, 'L');
-    d->append_xy (to_x, to_y);
+    case HB_VECTOR_FORMAT_PDF:
+      d->append_xy (to_x, to_y);
+      hb_buf_append_str (&d->path, " l\n");
+      break;
+    case HB_VECTOR_FORMAT_SVG:
+      hb_buf_append_c (&d->path, 'L');
+      d->append_xy (to_x, to_y);
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default: break;
   }
 }
 
@@ -99,27 +103,31 @@ hb_vector_draw_quadratic_to (hb_draw_funcs_t *,
                              void *)
 {
   auto *d = (hb_vector_draw_t *) draw_data;
-  if (d->format == HB_VECTOR_FORMAT_PDF)
+  switch (d->format)
   {
-    /* PDF has no quadratic operator; promote to cubic. */
-    float sx = st->current_x, sy = st->current_y;
-    float c1x = sx + 2.f / 3.f * (cx - sx);
-    float c1y = sy + 2.f / 3.f * (cy - sy);
-    float c2x = to_x + 2.f / 3.f * (cx - to_x);
-    float c2y = to_y + 2.f / 3.f * (cy - to_y);
-    d->append_xy (c1x, c1y);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (c2x, c2y);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (to_x, to_y);
-    hb_buf_append_str (&d->path, " c\n");
-  }
-  else
-  {
-    hb_buf_append_c (&d->path, 'Q');
-    d->append_xy (cx, cy);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (to_x, to_y);
+    case HB_VECTOR_FORMAT_PDF:
+    {
+      /* PDF has no quadratic operator; promote to cubic. */
+      float sx = st->current_x, sy = st->current_y;
+      float c1x = sx + 2.f / 3.f * (cx - sx);
+      float c1y = sy + 2.f / 3.f * (cy - sy);
+      float c2x = to_x + 2.f / 3.f * (cx - to_x);
+      float c2y = to_y + 2.f / 3.f * (cy - to_y);
+      d->append_xy (c1x, c1y);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (c2x, c2y);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (to_x, to_y);
+      hb_buf_append_str (&d->path, " c\n");
+      break;
+    }
+    case HB_VECTOR_FORMAT_SVG:
+      hb_buf_append_c (&d->path, 'Q');
+      d->append_xy (cx, cy);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (to_x, to_y);
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default: break;
   }
 }
 
@@ -133,23 +141,25 @@ hb_vector_draw_cubic_to (hb_draw_funcs_t *,
                          void *)
 {
   auto *d = (hb_vector_draw_t *) draw_data;
-  if (d->format == HB_VECTOR_FORMAT_PDF)
+  switch (d->format)
   {
-    d->append_xy (c1x, c1y);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (c2x, c2y);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (to_x, to_y);
-    hb_buf_append_str (&d->path, " c\n");
-  }
-  else
-  {
-    hb_buf_append_c (&d->path, 'C');
-    d->append_xy (c1x, c1y);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (c2x, c2y);
-    hb_buf_append_c (&d->path, ' ');
-    d->append_xy (to_x, to_y);
+    case HB_VECTOR_FORMAT_PDF:
+      d->append_xy (c1x, c1y);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (c2x, c2y);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (to_x, to_y);
+      hb_buf_append_str (&d->path, " c\n");
+      break;
+    case HB_VECTOR_FORMAT_SVG:
+      hb_buf_append_c (&d->path, 'C');
+      d->append_xy (c1x, c1y);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (c2x, c2y);
+      hb_buf_append_c (&d->path, ' ');
+      d->append_xy (to_x, to_y);
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default: break;
   }
 }
 
@@ -160,10 +170,16 @@ hb_vector_draw_close_path (hb_draw_funcs_t *,
                            void *)
 {
   auto *d = (hb_vector_draw_t *) draw_data;
-  if (d->format == HB_VECTOR_FORMAT_PDF)
-    hb_buf_append_str (&d->path, "h\n");
-  else
-    hb_buf_append_c (&d->path, 'Z');
+  switch (d->format)
+  {
+    case HB_VECTOR_FORMAT_PDF:
+      hb_buf_append_str (&d->path, "h\n");
+      break;
+    case HB_VECTOR_FORMAT_SVG:
+      hb_buf_append_c (&d->path, 'Z');
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default: break;
+  }
 }
 
 static inline void free_static_vector_draw_funcs ();
@@ -210,8 +226,14 @@ hb_vector_draw_funcs_get ()
 hb_vector_draw_t *
 hb_vector_draw_create_or_fail (hb_vector_format_t format)
 {
-  if (format != HB_VECTOR_FORMAT_SVG && format != HB_VECTOR_FORMAT_PDF)
-    return nullptr;
+  switch (format)
+  {
+    case HB_VECTOR_FORMAT_SVG:
+    case HB_VECTOR_FORMAT_PDF:
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default:
+      return nullptr;
+  }
 
   hb_vector_draw_t *draw = hb_object_create<hb_vector_draw_t> ();
   if (unlikely (!draw))
@@ -518,9 +540,14 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
-  if (draw->format != HB_VECTOR_FORMAT_SVG &&
-      draw->format != HB_VECTOR_FORMAT_PDF)
-    return false;
+  switch (draw->format)
+  {
+    case HB_VECTOR_FORMAT_SVG:
+    case HB_VECTOR_FORMAT_PDF:
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default:
+      return false;
+  }
 
   if (extents_mode == HB_VECTOR_EXTENTS_MODE_EXPAND)
   {
@@ -546,85 +573,94 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     }
   }
 
-  if (draw->format == HB_VECTOR_FORMAT_PDF)
+  switch (draw->format)
   {
-    /* PDF: always inline.  Pen and font coords are both Y-up. */
-    hb_transform_t<> saved = draw->transform;
-    draw->transform = {1, 0, 0, 1, pen_x, pen_y};
+    case HB_VECTOR_FORMAT_PDF:
+    {
+      /* PDF: always inline.  Pen and font coords are both Y-up. */
+      hb_transform_t<> saved = draw->transform;
+      draw->transform = {1, 0, 0, 1, pen_x, pen_y};
 
-    draw->path.clear ();
-    hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (), draw);
-    draw->transform = saved;
+      draw->path.clear ();
+      hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (), draw);
+      draw->transform = saved;
 
-    if (!draw->path.length)
+      if (!draw->path.length)
+	return false;
+
+      hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+      hb_buf_append_str (&draw->body, "f\n");
+      return true;
+    }
+
+    case HB_VECTOR_FORMAT_SVG:
+    {
+      bool needs_def = !draw->flat && !hb_set_has (draw->defined_glyphs, glyph);
+      if (needs_def)
+      {
+	draw->path.clear ();
+	hb_svg_path_sink_t sink = {&draw->path, draw->precision};
+	hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
+	if (!draw->path.length)
+	  return false;
+	hb_buf_append_str (&draw->defs, "<path id=\"p");
+	hb_buf_append_unsigned (&draw->defs, glyph);
+	hb_buf_append_str (&draw->defs, "\" d=\"");
+	hb_buf_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&draw->defs, "\"/>\n");
+	hb_set_add (draw->defined_glyphs, glyph);
+      }
+
+      if (draw->flat)
+      {
+	draw->path.clear ();
+	hb_svg_path_sink_t sink = {&draw->path, draw->precision};
+	hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
+
+	if (!draw->path.length)
+	  return false;
+
+	float xx = draw->transform.xx;
+	float yx = draw->transform.yx;
+	float xy = draw->transform.xy;
+	float yy = draw->transform.yy;
+	float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
+	float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
+
+	hb_buf_append_str (&draw->body, "<path d=\"");
+	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&draw->body, "\" transform=\"");
+	hb_svg_append_instance_transform (&draw->body,
+					  draw->precision,
+					  draw->x_scale_factor,
+					  draw->y_scale_factor,
+					  xx, yx, xy, yy, tx, ty);
+	hb_buf_append_str (&draw->body, "\"/>\n");
+	return true;
+      }
+
+      float xx = draw->transform.xx;
+      float yx = draw->transform.yx;
+      float xy = draw->transform.xy;
+      float yy = draw->transform.yy;
+      float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
+      float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
+
+      hb_buf_append_str (&draw->body, "<use href=\"#p");
+      hb_buf_append_unsigned (&draw->body, glyph);
+      hb_buf_append_str (&draw->body, "\" transform=\"");
+      hb_svg_append_instance_transform (&draw->body,
+					draw->precision,
+					draw->x_scale_factor,
+					draw->y_scale_factor,
+					xx, yx, xy, yy, tx, ty);
+      hb_buf_append_str (&draw->body, "\"/>\n");
+      return true;
+    }
+
+    case HB_VECTOR_FORMAT_INVALID: default:
       return false;
-
-    hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
-    hb_buf_append_str (&draw->body, "f\n");
-    return true;
   }
-
-  bool needs_def = !draw->flat && !hb_set_has (draw->defined_glyphs, glyph);
-  if (needs_def)
-  {
-    draw->path.clear ();
-    hb_svg_path_sink_t sink = {&draw->path, draw->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
-    if (!draw->path.length)
-      return false;
-    hb_buf_append_str (&draw->defs, "<path id=\"p");
-    hb_buf_append_unsigned (&draw->defs, glyph);
-    hb_buf_append_str (&draw->defs, "\" d=\"");
-    hb_buf_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
-    hb_buf_append_str (&draw->defs, "\"/>\n");
-    hb_set_add (draw->defined_glyphs, glyph);
-  }
-
-  if (draw->flat)
-  {
-    draw->path.clear ();
-    hb_svg_path_sink_t sink = {&draw->path, draw->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
-
-    if (!draw->path.length)
-      return false;
-
-    float xx = draw->transform.xx;
-    float yx = draw->transform.yx;
-    float xy = draw->transform.xy;
-    float yy = draw->transform.yy;
-    float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-    float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-
-    hb_buf_append_str (&draw->body, "<path d=\"");
-    hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
-    hb_buf_append_str (&draw->body, "\" transform=\"");
-    hb_svg_append_instance_transform (&draw->body,
-                                      draw->precision,
-                                      draw->x_scale_factor,
-                                      draw->y_scale_factor,
-                                      xx, yx, xy, yy, tx, ty);
-    hb_buf_append_str (&draw->body, "\"/>\n");
-    return true;
-  }
-
-  float xx = draw->transform.xx;
-  float yx = draw->transform.yx;
-  float xy = draw->transform.xy;
-  float yy = draw->transform.yy;
-  float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-  float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-
-  hb_buf_append_str (&draw->body, "<use href=\"#p");
-  hb_buf_append_unsigned (&draw->body, glyph);
-  hb_buf_append_str (&draw->body, "\" transform=\"");
-  hb_svg_append_instance_transform (&draw->body,
-                                    draw->precision,
-                                    draw->x_scale_factor,
-                                    draw->y_scale_factor,
-                                    xx, yx, xy, yy, tx, ty);
-  hb_buf_append_str (&draw->body, "\"/>\n");
-  return true;
 }
 
 /**
@@ -765,64 +801,71 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw)
 {
-  if (draw->format == HB_VECTOR_FORMAT_PDF)
-    return hb_vector_draw_render_pdf (draw);
-
-  if (draw->format != HB_VECTOR_FORMAT_SVG)
-    return nullptr;
-  if (!draw->has_extents)
-    return nullptr;
-
-  hb_vector_t<char> out;
-  hb_buf_recover_recycled (draw->recycled_blob, &out);
-  unsigned estimated = draw->defs.length +
-                       (draw->body.length ? draw->body.length : draw->path.length) +
-                       256;
-  out.alloc (estimated);
-  hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  hb_buf_append_num (&out, draw->extents.x, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.y, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.width, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.height, draw->precision);
-  hb_buf_append_str (&out, "\" width=\"");
-  hb_buf_append_num (&out, draw->extents.width, draw->precision);
-  hb_buf_append_str (&out, "\" height=\"");
-  hb_buf_append_num (&out, draw->extents.height, draw->precision);
-  hb_buf_append_str (&out, "\">\n");
-
-  if (draw->defs.length)
+  switch (draw->format)
   {
-    hb_buf_append_str (&out, "<defs>\n");
-    hb_buf_append_len (&out, draw->defs.arrayZ, draw->defs.length);
-    hb_buf_append_str (&out, "</defs>\n");
+    case HB_VECTOR_FORMAT_PDF:
+      return hb_vector_draw_render_pdf (draw);
+
+    case HB_VECTOR_FORMAT_SVG:
+    {
+      if (!draw->has_extents)
+	return nullptr;
+
+      hb_vector_t<char> out;
+      hb_buf_recover_recycled (draw->recycled_blob, &out);
+      unsigned estimated = draw->defs.length +
+			   (draw->body.length ? draw->body.length : draw->path.length) +
+			   256;
+      out.alloc (estimated);
+      hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
+      hb_buf_append_num (&out, draw->extents.x, draw->precision);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_num (&out, draw->extents.y, draw->precision);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_num (&out, draw->extents.width, draw->precision);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_num (&out, draw->extents.height, draw->precision);
+      hb_buf_append_str (&out, "\" width=\"");
+      hb_buf_append_num (&out, draw->extents.width, draw->precision);
+      hb_buf_append_str (&out, "\" height=\"");
+      hb_buf_append_num (&out, draw->extents.height, draw->precision);
+      hb_buf_append_str (&out, "\">\n");
+
+      if (draw->defs.length)
+      {
+	hb_buf_append_str (&out, "<defs>\n");
+	hb_buf_append_len (&out, draw->defs.arrayZ, draw->defs.length);
+	hb_buf_append_str (&out, "</defs>\n");
+      }
+
+      if (draw->body.length)
+      {
+	hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
+      }
+      else if (draw->path.length)
+      {
+	hb_buf_append_str (&out, "<path d=\"");
+	hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&out, "\"/>\n");
+      }
+
+      hb_buf_append_str (&out, "</svg>\n");
+
+      hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
+
+      draw->path.clear ();
+      draw->defs.clear ();
+      draw->body.clear ();
+      hb_set_clear (draw->defined_glyphs);
+      draw->has_extents = false;
+      draw->extents = {0, 0, 0, 0};
+
+      return blob;
+    }
+
+    case HB_VECTOR_FORMAT_INVALID: default:
+      return nullptr;
   }
-
-  if (draw->body.length)
-  {
-    hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
-  }
-  else if (draw->path.length)
-  {
-    hb_buf_append_str (&out, "<path d=\"");
-    hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
-    hb_buf_append_str (&out, "\"/>\n");
-  }
-
-  hb_buf_append_str (&out, "</svg>\n");
-
-  hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
-
-  draw->path.clear ();
-  draw->defs.clear ();
-  draw->body.clear ();
-  hb_set_clear (draw->defined_glyphs);
-  draw->has_extents = false;
-  draw->extents = {0, 0, 0, 0};
-
-  return blob;
 }
 
 /**

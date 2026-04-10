@@ -891,8 +891,14 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
 hb_vector_paint_t *
 hb_vector_paint_create_or_fail (hb_vector_format_t format)
 {
-  if (format != HB_VECTOR_FORMAT_SVG && format != HB_VECTOR_FORMAT_PDF)
-    return nullptr;
+  switch (format)
+  {
+    case HB_VECTOR_FORMAT_SVG:
+    case HB_VECTOR_FORMAT_PDF:
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default:
+      return nullptr;
+  }
 
   hb_vector_paint_t *paint = hb_object_create<hb_vector_paint_t> ();
   if (unlikely (!paint))
@@ -1325,147 +1331,156 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
     return false;
 
-  if (paint->format == HB_VECTOR_FORMAT_PDF)
+  switch (paint->format)
   {
-    /* PDF: emit transform + paint directly, no caching. */
-    auto &body = paint->current_body ();
-    hb_buf_append_str (&body, "q\n");
-    /* Font and PDF coords are both Y-up; no negation needed. */
-    hb_buf_append_num (&body, xx, paint->precision);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, yx, paint->precision);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, xy, paint->precision);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, yy, paint->precision);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, tx, paint->precision);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, ty, paint->precision);
-    hb_buf_append_str (&body, " cm\n");
-
-    hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						  hb_vector_paint_pdf_funcs_get (), paint,
-						  (unsigned) paint->palette,
-						  paint->foreground);
-    hb_buf_append_str (&body, "Q\n");
-    return ret;
-  }
-
-  bool can_cache = !paint->flat;
-  hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
-                                                                            (unsigned) paint->palette,
-                                                                            paint->foreground);
-  if (can_cache)
-  {
-    if (paint->defined_color_glyphs.has (cache_key))
+    case HB_VECTOR_FORMAT_PDF:
     {
-      uint64_t entry = paint->defined_color_glyphs.get (cache_key);
-      unsigned def_id = hb_svg_cache_entry_def_id (entry);
-      bool image_like = hb_svg_cache_entry_image_like (entry);
+      /* PDF: emit transform + paint directly, no caching. */
       auto &body = paint->current_body ();
-      hb_buf_append_str (&body, "<use href=\"#cg");
-      hb_buf_append_unsigned (&body, def_id);
-      hb_buf_append_str (&body, "\" transform=\"");
-      if (image_like)
-        hb_svg_append_image_instance_translate (&body, paint->precision,
-                                                paint->x_scale_factor,
-                                                paint->y_scale_factor,
-                                                tx, ty);
-      else
-        hb_svg_append_instance_transform (&body, paint->precision,
-                                          paint->x_scale_factor,
-                                          paint->y_scale_factor,
-                                          xx, yx, xy, yy, tx, ty);
-      hb_buf_append_str (&body, "\"/>\n");
-      return !body.in_error ();
+      hb_buf_append_str (&body, "q\n");
+      /* Font and PDF coords are both Y-up; no negation needed. */
+      hb_buf_append_num (&body, xx, paint->precision);
+      hb_buf_append_c (&body, ' ');
+      hb_buf_append_num (&body, yx, paint->precision);
+      hb_buf_append_c (&body, ' ');
+      hb_buf_append_num (&body, xy, paint->precision);
+      hb_buf_append_c (&body, ' ');
+      hb_buf_append_num (&body, yy, paint->precision);
+      hb_buf_append_c (&body, ' ');
+      hb_buf_append_num (&body, tx, paint->precision);
+      hb_buf_append_c (&body, ' ');
+      hb_buf_append_num (&body, ty, paint->precision);
+      hb_buf_append_str (&body, " cm\n");
+
+      hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						    hb_vector_paint_pdf_funcs_get (), paint,
+						    (unsigned) paint->palette,
+						    paint->foreground);
+      hb_buf_append_str (&body, "Q\n");
+      return ret;
     }
-  }
 
-  bool has_svg_image = false;
-  if (can_cache)
-  {
-    if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
-      return false;
-    paint->current_color_glyph_has_svg_image = false;
-  }
-
-  if (can_cache)
-  {
-    hb_codepoint_t old_gid = paint->current_svg_image_glyph;
-    hb_face_t *old_face = paint->current_face;
-    paint->current_svg_image_glyph = glyph;
-    paint->current_face = hb_font_get_face (font);
-    hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						  hb_vector_paint_get_funcs (), paint,
-						  (unsigned) paint->palette,
-						  paint->foreground);
-    paint->current_svg_image_glyph = old_gid;
-    paint->current_face = old_face;
-    if (unlikely (!ret))
+    case HB_VECTOR_FORMAT_SVG:
     {
-      paint->group_stack.pop ();
-      return false;
+      bool can_cache = !paint->flat;
+      hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
+										(unsigned) paint->palette,
+										paint->foreground);
+      if (can_cache)
+      {
+	if (paint->defined_color_glyphs.has (cache_key))
+	{
+	  uint64_t entry = paint->defined_color_glyphs.get (cache_key);
+	  unsigned def_id = hb_svg_cache_entry_def_id (entry);
+	  bool image_like = hb_svg_cache_entry_image_like (entry);
+	  auto &body = paint->current_body ();
+	  hb_buf_append_str (&body, "<use href=\"#cg");
+	  hb_buf_append_unsigned (&body, def_id);
+	  hb_buf_append_str (&body, "\" transform=\"");
+	  if (image_like)
+	    hb_svg_append_image_instance_translate (&body, paint->precision,
+						    paint->x_scale_factor,
+						    paint->y_scale_factor,
+						    tx, ty);
+	  else
+	    hb_svg_append_instance_transform (&body, paint->precision,
+					      paint->x_scale_factor,
+					      paint->y_scale_factor,
+					      xx, yx, xy, yy, tx, ty);
+	  hb_buf_append_str (&body, "\"/>\n");
+	  return !body.in_error ();
+	}
+      }
+
+      bool has_svg_image = false;
+      if (can_cache)
+      {
+	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
+	  return false;
+	paint->current_color_glyph_has_svg_image = false;
+      }
+
+      if (can_cache)
+      {
+	hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+	hb_face_t *old_face = paint->current_face;
+	paint->current_svg_image_glyph = glyph;
+	paint->current_face = hb_font_get_face (font);
+	hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						      hb_vector_paint_get_funcs (), paint,
+						      (unsigned) paint->palette,
+						      paint->foreground);
+	paint->current_svg_image_glyph = old_gid;
+	paint->current_face = old_face;
+	if (unlikely (!ret))
+	{
+	  paint->group_stack.pop ();
+	  return false;
+	}
+
+	paint->captured_scratch = paint->group_stack.pop ();
+	has_svg_image = paint->current_color_glyph_has_svg_image;
+	if (unlikely (paint->captured_scratch.in_error () ||
+		      !paint->captured_scratch.length))
+	  return false;
+
+	unsigned def_id = paint->color_glyph_counter++;
+	if (unlikely (!paint->defined_color_glyphs.set (cache_key,
+							hb_svg_pack_color_glyph_cache_entry (def_id,
+											     has_svg_image))))
+	  return false;
+
+	hb_buf_append_str (&paint->defs, "<g id=\"cg");
+	hb_buf_append_unsigned (&paint->defs, def_id);
+	hb_buf_append_str (&paint->defs, "\">\n");
+	hb_buf_append_len (&paint->defs,
+			   paint->captured_scratch.arrayZ,
+			   paint->captured_scratch.length);
+	hb_buf_append_str (&paint->defs, "</g>\n");
+
+	auto &body = paint->current_body ();
+	hb_buf_append_str (&body, "<use href=\"#cg");
+	hb_buf_append_unsigned (&body, def_id);
+	hb_buf_append_str (&body, "\" transform=\"");
+	if (has_svg_image)
+	  hb_svg_append_image_instance_translate (&body, paint->precision,
+						  paint->x_scale_factor,
+						  paint->y_scale_factor,
+						  tx, ty);
+	else
+	  hb_svg_append_instance_transform (&body, paint->precision,
+					    paint->x_scale_factor,
+					    paint->y_scale_factor,
+					    xx, yx, xy, yy, tx, ty);
+	hb_buf_append_str (&body, "\"/>\n");
+	return !paint->defs.in_error () && !body.in_error ();
+      }
+
+      hb_buf_append_str (&paint->current_body (), "<g transform=\"");
+      hb_svg_append_instance_transform (&paint->current_body (), paint->precision,
+					paint->x_scale_factor,
+					paint->y_scale_factor,
+					xx, yx, xy, yy, tx, ty);
+      hb_buf_append_str (&paint->current_body (), "\">\n");
+      hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+      hb_face_t *old_face = paint->current_face;
+      paint->current_svg_image_glyph = glyph;
+      paint->current_face = hb_font_get_face (font);
+      hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						    hb_vector_paint_get_funcs (), paint,
+						    (unsigned) paint->palette,
+						    paint->foreground);
+      paint->current_svg_image_glyph = old_gid;
+      paint->current_face = old_face;
+      hb_buf_append_str (&paint->current_body (), "</g>\n");
+      return ret &&
+	     !paint->defs.in_error () &&
+	     !paint->current_body ().in_error ();
     }
 
-    paint->captured_scratch = paint->group_stack.pop ();
-    has_svg_image = paint->current_color_glyph_has_svg_image;
-    if (unlikely (paint->captured_scratch.in_error () ||
-                  !paint->captured_scratch.length))
+    case HB_VECTOR_FORMAT_INVALID: default:
       return false;
-
-    unsigned def_id = paint->color_glyph_counter++;
-    if (unlikely (!paint->defined_color_glyphs.set (cache_key,
-                                                    hb_svg_pack_color_glyph_cache_entry (def_id,
-                                                                                         has_svg_image))))
-      return false;
-
-    hb_buf_append_str (&paint->defs, "<g id=\"cg");
-    hb_buf_append_unsigned (&paint->defs, def_id);
-    hb_buf_append_str (&paint->defs, "\">\n");
-    hb_buf_append_len (&paint->defs,
-                       paint->captured_scratch.arrayZ,
-                       paint->captured_scratch.length);
-    hb_buf_append_str (&paint->defs, "</g>\n");
-
-    auto &body = paint->current_body ();
-    hb_buf_append_str (&body, "<use href=\"#cg");
-    hb_buf_append_unsigned (&body, def_id);
-    hb_buf_append_str (&body, "\" transform=\"");
-    if (has_svg_image)
-      hb_svg_append_image_instance_translate (&body, paint->precision,
-                                              paint->x_scale_factor,
-                                              paint->y_scale_factor,
-                                              tx, ty);
-    else
-      hb_svg_append_instance_transform (&body, paint->precision,
-                                        paint->x_scale_factor,
-                                        paint->y_scale_factor,
-                                        xx, yx, xy, yy, tx, ty);
-    hb_buf_append_str (&body, "\"/>\n");
-    return !paint->defs.in_error () && !body.in_error ();
   }
-
-  hb_buf_append_str (&paint->current_body (), "<g transform=\"");
-  hb_svg_append_instance_transform (&paint->current_body (), paint->precision,
-				    paint->x_scale_factor,
-				    paint->y_scale_factor,
-				    xx, yx, xy, yy, tx, ty);
-  hb_buf_append_str (&paint->current_body (), "\">\n");
-  hb_codepoint_t old_gid = paint->current_svg_image_glyph;
-  hb_face_t *old_face = paint->current_face;
-  paint->current_svg_image_glyph = glyph;
-  paint->current_face = hb_font_get_face (font);
-  hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						hb_vector_paint_get_funcs (), paint,
-						(unsigned) paint->palette,
-						paint->foreground);
-  paint->current_svg_image_glyph = old_gid;
-  paint->current_face = old_face;
-  hb_buf_append_str (&paint->current_body (), "</g>\n");
-  return ret &&
-	 !paint->defs.in_error () &&
-	 !paint->current_body ().in_error ();
 }
 
 /**
@@ -1542,54 +1557,62 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
 hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint)
 {
-  if (paint->format == HB_VECTOR_FORMAT_PDF)
-    return hb_vector_paint_render_pdf (paint);
-  if (paint->format != HB_VECTOR_FORMAT_SVG)
-    return nullptr;
-  if (!paint->has_extents)
-    return nullptr;
-
-  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
-    return nullptr;
-
-  hb_vector_t<char> out;
-  hb_buf_recover_recycled (paint->recycled_blob, &out);
-  unsigned estimated = paint->defs.length +
-                       paint->group_stack.arrayZ[0].length +
-                       320;
-  out.alloc (estimated);
-  hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
-  hb_buf_append_num (&out, paint->extents.x, paint->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, paint->extents.y, paint->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, paint->extents.width, paint->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, paint->extents.height, paint->precision);
-  hb_buf_append_str (&out, "\" width=\"");
-  hb_buf_append_num (&out, paint->extents.width, paint->precision);
-  hb_buf_append_str (&out, "\" height=\"");
-  hb_buf_append_num (&out, paint->extents.height, paint->precision);
-  hb_buf_append_str (&out, "\">\n");
-
-  if (paint->defs.length)
+  switch (paint->format)
   {
-    hb_buf_append_str (&out, "<defs>\n");
-    hb_buf_append_len (&out, paint->defs.arrayZ, paint->defs.length);
-    hb_buf_append_str (&out, "</defs>\n");
+    case HB_VECTOR_FORMAT_PDF:
+      return hb_vector_paint_render_pdf (paint);
+
+    case HB_VECTOR_FORMAT_SVG:
+    {
+      if (!paint->has_extents)
+	return nullptr;
+
+      if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+	return nullptr;
+
+      hb_vector_t<char> out;
+      hb_buf_recover_recycled (paint->recycled_blob, &out);
+      unsigned estimated = paint->defs.length +
+			   paint->group_stack.arrayZ[0].length +
+			   320;
+      out.alloc (estimated);
+      hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
+      hb_buf_append_num (&out, paint->extents.x, paint->precision);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_num (&out, paint->extents.y, paint->precision);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_num (&out, paint->extents.width, paint->precision);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_num (&out, paint->extents.height, paint->precision);
+      hb_buf_append_str (&out, "\" width=\"");
+      hb_buf_append_num (&out, paint->extents.width, paint->precision);
+      hb_buf_append_str (&out, "\" height=\"");
+      hb_buf_append_num (&out, paint->extents.height, paint->precision);
+      hb_buf_append_str (&out, "\">\n");
+
+      if (paint->defs.length)
+      {
+	hb_buf_append_str (&out, "<defs>\n");
+	hb_buf_append_len (&out, paint->defs.arrayZ, paint->defs.length);
+	hb_buf_append_str (&out, "</defs>\n");
+      }
+
+      hb_svg_paint_append_global_transform_prefix (paint, &out);
+      hb_buf_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
+      hb_svg_paint_append_global_transform_suffix (paint, &out);
+
+      hb_buf_append_str (&out, "</svg>\n");
+
+      hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
+
+      hb_vector_paint_clear_render_state (paint);
+
+      return blob;
+    }
+
+    case HB_VECTOR_FORMAT_INVALID: default:
+      return nullptr;
   }
-
-  hb_svg_paint_append_global_transform_prefix (paint, &out);
-  hb_buf_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-  hb_svg_paint_append_global_transform_suffix (paint, &out);
-
-  hb_buf_append_str (&out, "</svg>\n");
-
-  hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
-
-  hb_vector_paint_clear_render_state (paint);
-
-  return blob;
 }
 
 /**

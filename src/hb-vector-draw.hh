@@ -33,7 +33,12 @@ struct hb_vector_draw_t
     float tx, ty;
     hb_svg_transform_point (transform, x_scale_factor, y_scale_factor, x, y, &tx, &ty);
     hb_buf_append_num (&path, tx, precision);
-    hb_buf_append_c (&path, format == HB_VECTOR_FORMAT_PDF ? ' ' : ',');
+    switch (format)
+    {
+      case HB_VECTOR_FORMAT_PDF: hb_buf_append_c (&path, ' '); break;
+      case HB_VECTOR_FORMAT_SVG: hb_buf_append_c (&path, ','); break;
+      case HB_VECTOR_FORMAT_INVALID: default: break;
+    }
     hb_buf_append_num (&path, ty, precision);
   }
 };
