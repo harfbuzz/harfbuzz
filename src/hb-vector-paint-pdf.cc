@@ -1230,7 +1230,7 @@ free_static_pdf_paint_funcs ()
 }
 
 hb_paint_funcs_t *
-hb_vector_pdf_paint_funcs_get ()
+hb_vector_paint_pdf_funcs_get ()
 {
   return static_pdf_paint_funcs.get_unconst ();
 }
@@ -1239,7 +1239,7 @@ hb_vector_pdf_paint_funcs_get ()
 /* ---- render ---- */
 
 hb_blob_t *
-hb_vector_pdf_paint_render (hb_vector_paint_t *paint)
+hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 {
   if (!paint->has_extents)
     return nullptr;

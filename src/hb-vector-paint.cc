@@ -1345,7 +1345,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     hb_buf_append_str (&body, " cm\n");
 
     hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						  hb_vector_pdf_paint_funcs_get (), paint,
+						  hb_vector_paint_pdf_funcs_get (), paint,
 						  (unsigned) paint->palette,
 						  paint->foreground);
     hb_buf_append_str (&body, "Q\n");
@@ -1543,7 +1543,7 @@ hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint)
 {
   if (paint->format == HB_VECTOR_FORMAT_PDF)
-    return hb_vector_pdf_paint_render (paint);
+    return hb_vector_paint_render_pdf (paint);
   if (paint->format != HB_VECTOR_FORMAT_SVG)
     return nullptr;
   if (!paint->has_extents)
