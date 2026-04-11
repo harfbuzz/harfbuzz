@@ -384,6 +384,14 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
   switch (key)
   {
     case GLFW_KEY_ESCAPE:
+#ifndef HB_GPU_NO_GLFW
+      if (vu->fullscreen)
+      {
+	demo_view_toggle_fullscreen (vu);
+	break;
+      }
+#endif
+      /* fallthrough */
     case GLFW_KEY_Q:
 #ifndef HB_GPU_NO_GLFW
       if (vu->window)
