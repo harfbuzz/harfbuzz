@@ -27,7 +27,6 @@
 #include "hb.hh"
 
 #include "hb-raster-paint.hh"
-#include "hb-raster-svg.hh"
 #include "hb-machinery.hh"
 
 #include <math.h>
@@ -350,30 +349,6 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
   hb_raster_paint_glyph_clip_data_t data = {glyph, font};
   hb_raster_paint_push_clip_from_emitter (c, hb_raster_paint_emit_clip_glyph_mask, &data);
-}
-
-/* Push clip from arbitrary path emitter (used by SVG rasterizer).
- * Identical to push_clip_glyph but calls user func instead of hb_font_draw_glyph. */
-struct hb_raster_paint_path_clip_data_t
-{
-  hb_raster_svg_path_func_t func;
-  void *user_data;
-};
-
-static void
-hb_raster_paint_emit_clip_path_mask (hb_raster_draw_t *rdr, void *user_data)
-{
-  hb_raster_paint_path_clip_data_t *data = (hb_raster_paint_path_clip_data_t *) user_data;
-  data->func (hb_raster_draw_get_funcs (), rdr, data->user_data);
-}
-
-void
-hb_raster_paint_push_clip_path (hb_raster_paint_t *c,
-				hb_raster_svg_path_func_t func,
-				void *user_data)
-{
-  hb_raster_paint_path_clip_data_t data = {func, user_data};
-  hb_raster_paint_push_clip_from_emitter (c, hb_raster_paint_emit_clip_path_mask, &data);
 }
 
 static void
@@ -733,15 +708,6 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
 
   ensure_initialized (c);
-
-  /* Handle SVG format */
-  if (format == HB_PAINT_IMAGE_FORMAT_SVG)
-  {
-    if (unlikely (!c->svg_font))
-      return false;
-    return hb_raster_svg_render (c, blob, c->svg_glyph, c->svg_font,
-				 c->svg_palette, c->foreground);
-  }
 
   unsigned src_width = width;
   unsigned src_height = height;
@@ -2209,15 +2175,9 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
   }
 
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
-  paint->svg_glyph = glyph;
-  paint->svg_font = font;
-  paint->svg_palette = palette;
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_raster_paint_get_funcs (), paint,
 						palette, foreground);
-  paint->svg_glyph = 0;
-  paint->svg_font = nullptr;
-  paint->svg_palette = 0;
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
   return ret;
 }

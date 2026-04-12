@@ -29,13 +29,12 @@
 #include "hb-vector-paint.hh"
 #include "hb-blob.hh"
 #include "hb-vector-svg-path.hh"
-#include "hb-vector-svg-subset.hh"
 
 #include <math.h>
 #include <string.h>
 
 static void
-hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
+hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
@@ -43,7 +42,7 @@ hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector
       paint->x_scale_factor == 1.f && paint->y_scale_factor == 1.f)
     return;
 
-  unsigned sprec = hb_svg_scale_precision (paint->precision);
+  unsigned sprec = hb_vector_scale_precision (paint->precision);
   hb_buf_append_str (buf, "<g transform=\"matrix(");
   hb_buf_append_num (buf, paint->transform.xx / paint->x_scale_factor, sprec, true);
   hb_buf_append_c (buf, ',');
@@ -60,7 +59,7 @@ hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector
 }
 
 static void
-hb_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
+hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
@@ -70,27 +69,8 @@ hb_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector
   hb_buf_append_str (buf, "</g>\n");
 }
 
-static inline uint64_t
-hb_svg_pack_color_glyph_cache_entry (unsigned def_id,
-                                     bool image_like)
-{
-  return ((uint64_t) def_id << 1) | (image_like ? 1ull : 0ull);
-}
-
-static inline unsigned
-hb_svg_cache_entry_def_id (uint64_t v)
-{
-  return (unsigned) (v >> 1);
-}
-
-static inline bool
-hb_svg_cache_entry_image_like (uint64_t v)
-{
-  return !!(v & 1ull);
-}
-
-static inline hb_svg_color_glyph_cache_key_t
-hb_svg_color_glyph_cache_key (hb_codepoint_t glyph,
+static inline hb_vector_color_glyph_cache_key_t
+hb_vector_color_glyph_cache_key (hb_codepoint_t glyph,
                               unsigned palette,
                               hb_color_t foreground)
 {
@@ -98,7 +78,7 @@ hb_svg_color_glyph_cache_key (hb_codepoint_t glyph,
 }
 
 static hb_bool_t
-hb_svg_get_color_stops (hb_vector_paint_t *paint,
+hb_vector_get_color_stops (hb_vector_paint_t *paint,
                         hb_color_line_t *color_line,
                         hb_vector_t<hb_color_stop_t> *stops)
 {
@@ -126,7 +106,7 @@ hb_svg_get_color_stops (hb_vector_paint_t *paint,
 }
 
 static const char *
-hb_svg_extend_mode_str (hb_paint_extend_t ext)
+hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
 {
   switch (ext)
   {
@@ -138,7 +118,7 @@ hb_svg_extend_mode_str (hb_paint_extend_t ext)
 }
 
 static int
-hb_svg_color_stop_cmp (const void *a, const void *b)
+hb_vector_color_stop_cmp (const void *a, const void *b)
 {
   const hb_color_stop_t *x = (const hb_color_stop_t *) a;
   const hb_color_stop_t *y = (const hb_color_stop_t *) b;
@@ -148,7 +128,7 @@ hb_svg_color_stop_cmp (const void *a, const void *b)
 }
 
 static void
-hb_svg_emit_color_stops (hb_vector_paint_t *paint,
+hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
                          hb_vector_t<char> *buf,
                          hb_vector_t<hb_color_stop_t> *stops)
 {
@@ -175,7 +155,7 @@ hb_svg_emit_color_stops (hb_vector_paint_t *paint,
 }
 
 static const char *
-hb_svg_composite_mode_str (hb_paint_composite_mode_t mode)
+hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
 {
   switch (mode)
   {
@@ -212,23 +192,23 @@ hb_svg_composite_mode_str (hb_paint_composite_mode_t mode)
   }
 }
 
-struct hb_svg_point_t { float x, y; };
-struct hb_svg_rgba_t { float r, g, b, a; };
+struct hb_vector_svg_point_t { float x, y; };
+struct hb_vector_svg_rgba_t { float r, g, b, a; };
 
 static inline float
-hb_svg_lerp (float a, float b, float t)
+hb_vector_svg_lerp (float a, float b, float t)
 { return a + (b - a) * t; }
 
 static inline float
-hb_svg_clamp01 (float v)
+hb_vector_svg_clamp01 (float v)
 {
   if (v < 0.f) return 0.f;
   if (v > 1.f) return 1.f;
   return v;
 }
 
-static inline hb_svg_rgba_t
-hb_svg_rgba_from_hb_color (hb_color_t c)
+static inline hb_vector_svg_rgba_t
+hb_vector_svg_rgba_from_hb_color (hb_color_t c)
 {
   return {(float) hb_color_get_red (c) / 255.f,
           (float) hb_color_get_green (c) / 255.f,
@@ -237,82 +217,82 @@ hb_svg_rgba_from_hb_color (hb_color_t c)
 }
 
 static inline hb_color_t
-hb_svg_hb_color_from_rgba (const hb_svg_rgba_t &c)
+hb_vector_svg_hb_color_from_rgba (const hb_vector_svg_rgba_t &c)
 {
-  unsigned r = (unsigned) roundf (hb_svg_clamp01 (c.r) * 255.f);
-  unsigned g = (unsigned) roundf (hb_svg_clamp01 (c.g) * 255.f);
-  unsigned b = (unsigned) roundf (hb_svg_clamp01 (c.b) * 255.f);
-  unsigned a = (unsigned) roundf (hb_svg_clamp01 (c.a) * 255.f);
+  unsigned r = (unsigned) roundf (hb_vector_svg_clamp01 (c.r) * 255.f);
+  unsigned g = (unsigned) roundf (hb_vector_svg_clamp01 (c.g) * 255.f);
+  unsigned b = (unsigned) roundf (hb_vector_svg_clamp01 (c.b) * 255.f);
+  unsigned a = (unsigned) roundf (hb_vector_svg_clamp01 (c.a) * 255.f);
   return HB_COLOR (b, g, r, a);
 }
 
-static inline hb_svg_rgba_t
-hb_svg_lerp_rgba (const hb_svg_rgba_t &c0,
-                  const hb_svg_rgba_t &c1,
+static inline hb_vector_svg_rgba_t
+hb_vector_svg_lerp_rgba (const hb_vector_svg_rgba_t &c0,
+                  const hb_vector_svg_rgba_t &c1,
                   float t)
 {
-  return {hb_svg_lerp (c0.r, c1.r, t),
-          hb_svg_lerp (c0.g, c1.g, t),
-          hb_svg_lerp (c0.b, c1.b, t),
-          hb_svg_lerp (c0.a, c1.a, t)};
+  return {hb_vector_svg_lerp (c0.r, c1.r, t),
+          hb_vector_svg_lerp (c0.g, c1.g, t),
+          hb_vector_svg_lerp (c0.b, c1.b, t),
+          hb_vector_svg_lerp (c0.a, c1.a, t)};
 }
 
-static inline float hb_svg_dot (const hb_svg_point_t &p, const hb_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
-static inline hb_svg_point_t hb_svg_add (const hb_svg_point_t &p, const hb_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
-static inline hb_svg_point_t hb_svg_sub (const hb_svg_point_t &p, const hb_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
-static inline hb_svg_point_t hb_svg_scale (const hb_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
+static inline float hb_vector_svg_dot (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
+static inline hb_vector_svg_point_t hb_vector_svg_add (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
+static inline hb_vector_svg_point_t hb_vector_svg_sub (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
+static inline hb_vector_svg_point_t hb_vector_svg_scale (const hb_vector_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
 
-static inline hb_svg_point_t
-hb_svg_normalize (const hb_svg_point_t &p)
+static inline hb_vector_svg_point_t
+hb_vector_svg_normalize (const hb_vector_svg_point_t &p)
 {
-  float len = sqrtf (hb_svg_dot (p, p));
+  float len = sqrtf (hb_vector_svg_dot (p, p));
   if (len == 0.f) return {0.f, 0.f};
-  return hb_svg_scale (p, 1.f / len);
+  return hb_vector_svg_scale (p, 1.f / len);
 }
 
 static void
-hb_svg_add_sweep_patch (hb_vector_t<char> *body,
+hb_vector_svg_add_sweep_patch (hb_vector_t<char> *body,
                         unsigned precision,
                         float cx, float cy, float radius,
-                        float a0, const hb_svg_rgba_t &c0_in,
-                        float a1, const hb_svg_rgba_t &c1_in)
+                        float a0, const hb_vector_svg_rgba_t &c0_in,
+                        float a1, const hb_vector_svg_rgba_t &c1_in)
 {
   static const float max_angle = HB_PI / 16.f;
-  hb_svg_point_t center = {cx, cy};
+  hb_vector_svg_point_t center = {cx, cy};
   int num_splits = (int) ceilf (fabsf (a1 - a0) / max_angle);
   if (num_splits < 1) num_splits = 1;
 
-  hb_svg_point_t p0 = {cosf (a0), sinf (a0)};
-  hb_svg_rgba_t color0 = c0_in;
+  hb_vector_svg_point_t p0 = {cosf (a0), sinf (a0)};
+  hb_vector_svg_rgba_t color0 = c0_in;
 
   for (int a = 0; a < num_splits; a++)
   {
     float k = (a + 1.f) / num_splits;
-    float angle1 = hb_svg_lerp (a0, a1, k);
-    hb_svg_rgba_t color1 = hb_svg_lerp_rgba (c0_in, c1_in, k);
+    float angle1 = hb_vector_svg_lerp (a0, a1, k);
+    hb_vector_svg_rgba_t color1 = hb_vector_svg_lerp_rgba (c0_in, c1_in, k);
 
-    hb_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
-    hb_svg_point_t sp0 = hb_svg_add (center, hb_svg_scale (p0, radius));
-    hb_svg_point_t sp1 = hb_svg_add (center, hb_svg_scale (p1, radius));
+    hb_vector_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
+    hb_vector_svg_point_t sp0 = hb_vector_svg_add (center, hb_vector_svg_scale (p0, radius));
+    hb_vector_svg_point_t sp1 = hb_vector_svg_add (center, hb_vector_svg_scale (p1, radius));
 
-    hb_svg_point_t A = hb_svg_normalize (hb_svg_add (p0, p1));
-    hb_svg_point_t U = {-A.y, A.x};
-    float up0 = hb_svg_dot (U, p0);
-    float up1 = hb_svg_dot (U, p1);
+    hb_vector_svg_point_t A = hb_vector_svg_normalize (hb_vector_svg_add (p0, p1));
+    hb_vector_svg_point_t U = {-A.y, A.x};
+    float up0 = hb_vector_svg_dot (U, p0);
+    float up1 = hb_vector_svg_dot (U, p1);
     if (fabsf (up0) < 1e-6f || fabsf (up1) < 1e-6f)
     {
       p0 = p1;
       color0 = color1;
       continue;
     }
-    hb_svg_point_t C0 = hb_svg_add (A, hb_svg_scale (U, hb_svg_dot (hb_svg_sub (p0, A), p0) / up0));
-    hb_svg_point_t C1 = hb_svg_add (A, hb_svg_scale (U, hb_svg_dot (hb_svg_sub (p1, A), p1) / up1));
+    hb_vector_svg_point_t C0 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p0, A), p0) / up0));
+    hb_vector_svg_point_t C1 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p1, A), p1) / up1));
 
-    hb_svg_point_t sc0 = hb_svg_add (center, hb_svg_scale (hb_svg_add (C0, hb_svg_scale (hb_svg_sub (C0, p0), 0.33333f)), radius));
-    hb_svg_point_t sc1 = hb_svg_add (center, hb_svg_scale (hb_svg_add (C1, hb_svg_scale (hb_svg_sub (C1, p1), 0.33333f)), radius));
+    hb_vector_svg_point_t sc0 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C0, hb_vector_svg_scale (hb_vector_svg_sub (C0, p0), 0.33333f)), radius));
+    hb_vector_svg_point_t sc1 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C1, hb_vector_svg_scale (hb_vector_svg_sub (C1, p1), 0.33333f)), radius));
 
-    hb_svg_rgba_t mid_color = hb_svg_lerp_rgba (color0, color1, 0.5f);
-    hb_color_t mid = hb_svg_hb_color_from_rgba (mid_color);
+    hb_vector_svg_rgba_t mid_color = hb_vector_svg_lerp_rgba (color0, color1, 0.5f);
+    hb_color_t mid = hb_vector_svg_hb_color_from_rgba (mid_color);
 
     hb_buf_append_str (body, "<path d=\"M");
     hb_buf_append_num (body, center.x, precision);
@@ -451,7 +431,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  unsigned sprec = hb_svg_scale_precision (paint->precision);
+  unsigned sprec = hb_vector_scale_precision (paint->precision);
   hb_buf_append_str (&body, "<g transform=\"matrix(");
   hb_buf_append_num (&body, xx, sprec, true);
   hb_buf_append_c (&body, ',');
@@ -504,8 +484,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_svg_path_sink_t sink = {&paint->path, paint->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
+    hb_vector_svg_path_sink_t sink = {&paint->path, paint->precision};
+    hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     hb_buf_append_str (&paint->defs, "<path id=\"p");
     hb_buf_append_unsigned (&paint->defs, glyph);
     hb_buf_append_str (&paint->defs, "\" d=\"");
@@ -608,44 +588,6 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     return false;
 
   auto &body = paint->current_body ();
-  if (format == HB_TAG ('s','v','g',' '))
-  {
-    paint->current_color_glyph_has_svg_image = true;
-
-    paint->subset_body_scratch.clear ();
-    bool subset_ok = hb_svg_subset_glyph_image (paint->current_face,
-                                                image,
-                                                paint->current_svg_image_glyph,
-                                                &paint->svg_image_counter,
-                                                &paint->defs,
-                                                &paint->subset_body_scratch);
-    if (unlikely (!subset_ok))
-      return false;
-
-    if (extents)
-    {
-      hb_buf_append_str (&body, "<g transform=\"translate(");
-      hb_buf_append_num (&body, (float) extents->x_bearing, paint->precision);
-      hb_buf_append_c (&body, ',');
-      hb_buf_append_num (&body, (float) extents->y_bearing, paint->precision);
-      hb_buf_append_str (&body, ") scale(");
-      hb_buf_append_num (&body, (float) extents->width / width, paint->precision);
-      hb_buf_append_c (&body, ',');
-      hb_buf_append_num (&body, (float) extents->height / height, paint->precision);
-      hb_buf_append_str (&body, ")\">\n");
-    }
-
-    hb_buf_append_len (&body,
-                       paint->subset_body_scratch.arrayZ,
-                       paint->subset_body_scratch.length);
-    hb_buf_append_c (&body, '\n');
-
-    if (extents)
-      hb_buf_append_str (&body, "</g>\n");
-
-    return true;
-  }
-
   if (format == HB_TAG ('p','n','g',' '))
   {
     if (!extents || !width || !height)
@@ -694,10 +636,10 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
+  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
 
   unsigned grad_id = paint->gradient_counter++;
 
@@ -712,9 +654,9 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "\" y2=\"");
   hb_buf_append_num (&paint->defs, y1 + (y1 - y2), paint->precision);
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
-  hb_buf_append_str (&paint->defs, hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");
-  hb_svg_emit_color_stops (paint, &paint->defs, &stops);
+  hb_vector_svg_emit_color_stops (paint, &paint->defs, &stops);
   hb_buf_append_str (&paint->defs, "</linearGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
@@ -736,10 +678,10 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
+  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
 
   unsigned grad_id = paint->gradient_counter++;
 
@@ -761,9 +703,9 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
     hb_buf_append_num (&paint->defs, r0, paint->precision);
   }
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
-  hb_buf_append_str (&paint->defs, hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");
-  hb_svg_emit_color_stops (paint, &paint->defs, &stops);
+  hb_vector_svg_emit_color_stops (paint, &paint->defs, &stops);
   hb_buf_append_str (&paint->defs, "</radialGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
@@ -785,21 +727,21 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
+  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
 
   auto *body = &paint->current_body ();
   unsigned precision = paint->precision;
   float radius = 32767.f;
-  hb_sweep_gradient_tiles (stops.arrayZ, stops.length,
+  hb_vector_sweep_gradient_tiles (stops.arrayZ, stops.length,
 			   hb_color_line_get_extend (color_line),
 			   start_angle, end_angle,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
-			   { hb_svg_add_sweep_patch (body, precision, cx, cy, radius,
-						     a0, hb_svg_rgba_from_hb_color (c0),
-						     a1, hb_svg_rgba_from_hb_color (c1)); });
+			   { hb_vector_svg_add_sweep_patch (body, precision, cx, cy, radius,
+						     a0, hb_vector_svg_rgba_from_hb_color (c0),
+						     a1, hb_vector_svg_rgba_from_hb_color (c1)); });
 }
 
 static void
@@ -829,7 +771,7 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   hb_vector_t<char> group = paint->group_stack.pop ();
   auto &body = paint->current_body ();
 
-  const char *blend = hb_svg_composite_mode_str (mode);
+  const char *blend = hb_vector_svg_composite_mode_str (mode);
   if (blend)
   {
     hb_buf_append_str (&body, "<g style=\"mix-blend-mode:");
@@ -860,17 +802,11 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
   paint->color_glyph_depth++;
   hb_set_add (paint->active_color_glyphs, glyph);
 
-  hb_codepoint_t old_gid = paint->current_svg_image_glyph;
-  hb_face_t *old_face = paint->current_face;
-  paint->current_svg_image_glyph = glyph;
-  paint->current_face = hb_font_get_face (font);
   hb_font_paint_glyph (font, glyph,
 		       hb_vector_paint_funcs_get (),
 		       paint,
 		       paint->palette,
 		       paint->foreground);
-  paint->current_svg_image_glyph = old_gid;
-  paint->current_face = old_face;
   hb_set_del (paint->active_color_glyphs, glyph);
   paint->color_glyph_depth--;
   return true;
@@ -910,7 +846,6 @@ hb_vector_paint_create_or_fail (hb_vector_format_t format)
   paint->active_color_glyphs = hb_set_create ();
   paint->defs.alloc (4096);
   paint->path.alloc (2048);
-  paint->subset_body_scratch.alloc (2048);
   paint->captured_scratch.alloc (4096);
   paint->color_stops_scratch.alloc (16);
 
@@ -1165,7 +1100,7 @@ hb_vector_paint_set_glyph_extents (hb_vector_paint_t *paint,
                                    const hb_glyph_extents_t *glyph_extents)
 {
   hb_bool_t has_extents = paint->has_extents;
-  hb_bool_t ret = hb_svg_set_glyph_extents_common (paint->transform,
+  hb_bool_t ret = hb_vector_set_glyph_extents_common (paint->transform,
 						   paint->x_scale_factor,
 						   paint->y_scale_factor,
 						   glyph_extents,
@@ -1317,7 +1252,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     {
       hb_bool_t has_extents = paint->has_extents;
       hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, ty};
-      hb_bool_t ret = hb_svg_set_glyph_extents_common (extents_transform,
+      hb_bool_t ret = hb_vector_set_glyph_extents_common (extents_transform,
 							paint->x_scale_factor,
 							paint->y_scale_factor,
 							&ge,
@@ -1363,55 +1298,36 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     case HB_VECTOR_FORMAT_SVG:
     {
       bool can_cache = !paint->flat;
-      hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
+      hb_vector_color_glyph_cache_key_t cache_key = hb_vector_color_glyph_cache_key (glyph,
 										(unsigned) paint->palette,
 										paint->foreground);
       if (can_cache)
       {
 	if (paint->defined_color_glyphs.has (cache_key))
 	{
-	  uint64_t entry = paint->defined_color_glyphs.get (cache_key);
-	  unsigned def_id = hb_svg_cache_entry_def_id (entry);
-	  bool image_like = hb_svg_cache_entry_image_like (entry);
+	  unsigned def_id = paint->defined_color_glyphs.get (cache_key);
 	  auto &body = paint->current_body ();
 	  hb_buf_append_str (&body, "<use href=\"#cg");
 	  hb_buf_append_unsigned (&body, def_id);
 	  hb_buf_append_str (&body, "\" transform=\"");
-	  if (image_like)
-	    hb_svg_append_image_instance_translate (&body, paint->precision,
-						    paint->x_scale_factor,
-						    paint->y_scale_factor,
-						    tx, ty);
-	  else
-	    hb_svg_append_instance_transform (&body, paint->precision,
-					      paint->x_scale_factor,
-					      paint->y_scale_factor,
-					      xx, yx, xy, yy, tx, ty);
+	  hb_vector_svg_append_instance_transform (&body, paint->precision,
+					    paint->x_scale_factor,
+					    paint->y_scale_factor,
+					    xx, yx, xy, yy, tx, ty);
 	  hb_buf_append_str (&body, "\"/>\n");
 	  return !body.in_error ();
 	}
       }
 
-      bool has_svg_image = false;
       if (can_cache)
       {
 	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
 	  return false;
-	paint->current_color_glyph_has_svg_image = false;
-      }
 
-      if (can_cache)
-      {
-	hb_codepoint_t old_gid = paint->current_svg_image_glyph;
-	hb_face_t *old_face = paint->current_face;
-	paint->current_svg_image_glyph = glyph;
-	paint->current_face = hb_font_get_face (font);
 	hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						      hb_vector_paint_get_funcs (), paint,
 						      (unsigned) paint->palette,
 						      paint->foreground);
-	paint->current_svg_image_glyph = old_gid;
-	paint->current_face = old_face;
 	if (unlikely (!ret))
 	{
 	  paint->group_stack.pop ();
@@ -1419,15 +1335,12 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	}
 
 	paint->captured_scratch = paint->group_stack.pop ();
-	has_svg_image = paint->current_color_glyph_has_svg_image;
 	if (unlikely (paint->captured_scratch.in_error () ||
 		      !paint->captured_scratch.length))
 	  return false;
 
 	unsigned def_id = paint->color_glyph_counter++;
-	if (unlikely (!paint->defined_color_glyphs.set (cache_key,
-							hb_svg_pack_color_glyph_cache_entry (def_id,
-											     has_svg_image))))
+	if (unlikely (!paint->defined_color_glyphs.set (cache_key, def_id)))
 	  return false;
 
 	hb_buf_append_str (&paint->defs, "<g id=\"cg");
@@ -1442,36 +1355,24 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	hb_buf_append_str (&body, "<use href=\"#cg");
 	hb_buf_append_unsigned (&body, def_id);
 	hb_buf_append_str (&body, "\" transform=\"");
-	if (has_svg_image)
-	  hb_svg_append_image_instance_translate (&body, paint->precision,
-						  paint->x_scale_factor,
-						  paint->y_scale_factor,
-						  tx, ty);
-	else
-	  hb_svg_append_instance_transform (&body, paint->precision,
-					    paint->x_scale_factor,
-					    paint->y_scale_factor,
-					    xx, yx, xy, yy, tx, ty);
+	hb_vector_svg_append_instance_transform (&body, paint->precision,
+					  paint->x_scale_factor,
+					  paint->y_scale_factor,
+					  xx, yx, xy, yy, tx, ty);
 	hb_buf_append_str (&body, "\"/>\n");
 	return !paint->defs.in_error () && !body.in_error ();
       }
 
       hb_buf_append_str (&paint->current_body (), "<g transform=\"");
-      hb_svg_append_instance_transform (&paint->current_body (), paint->precision,
+      hb_vector_svg_append_instance_transform (&paint->current_body (), paint->precision,
 					paint->x_scale_factor,
 					paint->y_scale_factor,
 					xx, yx, xy, yy, tx, ty);
       hb_buf_append_str (&paint->current_body (), "\">\n");
-      hb_codepoint_t old_gid = paint->current_svg_image_glyph;
-      hb_face_t *old_face = paint->current_face;
-      paint->current_svg_image_glyph = glyph;
-      paint->current_face = hb_font_get_face (font);
       hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						    hb_vector_paint_get_funcs (), paint,
 						    (unsigned) paint->palette,
 						    paint->foreground);
-      paint->current_svg_image_glyph = old_gid;
-      paint->current_face = old_face;
       hb_buf_append_str (&paint->current_body (), "</g>\n");
       return ret &&
 	     !paint->defs.in_error () &&
@@ -1531,16 +1432,11 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
   paint->gradient_counter = 0;
   paint->color_glyph_counter = 0;
   paint->color_glyph_depth = 0;
-  paint->current_color_glyph_has_svg_image = false;
-  paint->current_svg_image_glyph = HB_CODEPOINT_INVALID;
-  paint->current_face = nullptr;
-  paint->svg_image_counter = 0;
   hb_set_clear (paint->defined_outlines);
   hb_set_clear (paint->defined_clips);
   hb_set_clear (paint->active_color_glyphs);
   paint->defined_color_glyphs.clear ();
   paint->color_stops_scratch.clear ();
-  paint->subset_body_scratch.clear ();
   paint->captured_scratch.clear ();
 }
 
@@ -1580,9 +1476,9 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     hb_buf_append_str (&out, "</defs>\n");
   }
 
-  hb_svg_paint_append_global_transform_prefix (paint, &out);
+  hb_vector_svg_paint_append_global_transform_prefix (paint, &out);
   hb_buf_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-  hb_svg_paint_append_global_transform_suffix (paint, &out);
+  hb_vector_svg_paint_append_global_transform_suffix (paint, &out);
 
   hb_buf_append_str (&out, "</svg>\n");
 

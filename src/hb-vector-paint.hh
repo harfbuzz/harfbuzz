@@ -10,17 +10,17 @@
 #include "hb-vector-svg-utils.hh"
 #include "hb-vector-svg.hh"
 
-struct hb_svg_color_glyph_cache_key_t
+struct hb_vector_color_glyph_cache_key_t
 {
   hb_codepoint_t glyph = HB_CODEPOINT_INVALID;
   unsigned palette = 0;
   hb_color_t foreground = 0;
 
-  hb_svg_color_glyph_cache_key_t () = default;
-  hb_svg_color_glyph_cache_key_t (hb_codepoint_t g, unsigned p, hb_color_t f)
+  hb_vector_color_glyph_cache_key_t () = default;
+  hb_vector_color_glyph_cache_key_t (hb_codepoint_t g, unsigned p, hb_color_t f)
     : glyph (g), palette (p), foreground (f) {}
 
-  bool operator == (const hb_svg_color_glyph_cache_key_t &o) const
+  bool operator == (const hb_vector_color_glyph_cache_key_t &o) const
   {
     return glyph == o.glyph &&
            palette == o.palette &&
@@ -67,15 +67,10 @@ struct hb_vector_paint_t
   hb_set_t *defined_outlines = nullptr;
   hb_set_t *defined_clips = nullptr;
   hb_set_t *active_color_glyphs = nullptr;
-  hb_hashmap_t<hb_svg_color_glyph_cache_key_t, uint64_t> defined_color_glyphs;
+  hb_hashmap_t<hb_vector_color_glyph_cache_key_t, unsigned> defined_color_glyphs;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
-  hb_vector_t<char> subset_body_scratch;
   hb_vector_t<char> captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
-  bool current_color_glyph_has_svg_image = false;
-  hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
-  hb_face_t *current_face = nullptr;
-  unsigned svg_image_counter = 0;
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
 };

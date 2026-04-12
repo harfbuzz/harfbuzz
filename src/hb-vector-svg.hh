@@ -78,7 +78,7 @@ hb_buf_append_base64 (hb_vector_t<char> *buf,
   return true;
 }
 
-struct hb_svg_blob_meta_t
+struct hb_vector_blob_meta_t
 {
   char *data;
   int allocated;
@@ -86,10 +86,10 @@ struct hb_svg_blob_meta_t
   bool in_replace;
 };
 
-static hb_user_data_key_t hb_svg_blob_meta_user_data_key;
+static hb_user_data_key_t hb_vector_blob_meta_user_data_key;
 
 static inline void
-hb_svg_blob_meta_set_buffer (hb_svg_blob_meta_t *meta,
+hb_vector_blob_meta_set_buffer (hb_vector_blob_meta_t *meta,
                              char *data,
                              int allocated)
 {
@@ -99,7 +99,7 @@ hb_svg_blob_meta_set_buffer (hb_svg_blob_meta_t *meta,
 }
 
 static inline void
-hb_svg_blob_meta_release_buffer (hb_svg_blob_meta_t *meta)
+hb_vector_blob_meta_release_buffer (hb_vector_blob_meta_t *meta)
 {
   if (!meta)
     return;
@@ -111,10 +111,10 @@ hb_svg_blob_meta_release_buffer (hb_svg_blob_meta_t *meta)
 }
 
 static inline void
-hb_svg_blob_meta_destroy (void *data)
+hb_vector_blob_meta_destroy (void *data)
 {
-  auto *meta = (hb_svg_blob_meta_t *) data;
-  hb_svg_blob_meta_release_buffer (meta);
+  auto *meta = (hb_vector_blob_meta_t *) data;
+  hb_vector_blob_meta_release_buffer (meta);
   if (meta->in_replace)
   {
     meta->in_replace = false;
@@ -139,11 +139,11 @@ hb_buf_blob_from (hb_blob_t **recycled_blob,
   bool reused_blob = blob && blob != hb_blob_get_empty ();
   bool new_meta = false;
   auto *meta = reused_blob
-             ? (hb_svg_blob_meta_t *) hb_blob_get_user_data (blob, &hb_svg_blob_meta_user_data_key)
+             ? (hb_vector_blob_meta_t *) hb_blob_get_user_data (blob, &hb_vector_blob_meta_user_data_key)
              : nullptr;
   if (!meta)
   {
-    meta = (hb_svg_blob_meta_t *) hb_malloc (sizeof (hb_svg_blob_meta_t));
+    meta = (hb_vector_blob_meta_t *) hb_malloc (sizeof (hb_vector_blob_meta_t));
     if (!meta)
     {
       hb_free (data);
@@ -159,13 +159,13 @@ hb_buf_blob_from (hb_blob_t **recycled_blob,
   if (reused_blob)
   {
     meta->in_replace = true;
-    blob->replace_buffer (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
-    hb_svg_blob_meta_set_buffer (meta, data, allocated);
+    blob->replace_buffer (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_vector_blob_meta_destroy);
+    hb_vector_blob_meta_set_buffer (meta, data, allocated);
   }
   else
   {
-    hb_svg_blob_meta_set_buffer (meta, data, allocated);
-    blob = hb_blob_create_or_fail (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
+    hb_vector_blob_meta_set_buffer (meta, data, allocated);
+    blob = hb_blob_create_or_fail (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_vector_blob_meta_destroy);
     if (unlikely (!blob))
       return nullptr;
   }
@@ -180,7 +180,7 @@ hb_buf_blob_from (hb_blob_t **recycled_blob,
 
   if (new_meta &&
       !hb_blob_set_user_data (blob,
-                              &hb_svg_blob_meta_user_data_key,
+                              &hb_vector_blob_meta_user_data_key,
                               meta,
                               nullptr,
                               true))
@@ -203,7 +203,7 @@ hb_buf_recover_recycled (hb_blob_t *blob,
   if (!blob)
     return;
 
-  auto *meta = (hb_svg_blob_meta_t *) hb_blob_get_user_data (blob, &hb_svg_blob_meta_user_data_key);
+  auto *meta = (hb_vector_blob_meta_t *) hb_blob_get_user_data (blob, &hb_vector_blob_meta_user_data_key);
   if (!meta || meta->transferred || !meta->data)
     return;
 
@@ -246,7 +246,7 @@ hb_buf_append_color (hb_vector_t<char> *buf,
 }
 
 static inline void
-hb_svg_transform_point (const hb_transform_t<> &t,
+hb_vector_transform_point (const hb_transform_t<> &t,
                         float x_scale_factor,
                         float y_scale_factor,
                         float x, float y,
@@ -259,7 +259,7 @@ hb_svg_transform_point (const hb_transform_t<> &t,
 }
 
 static inline hb_bool_t
-hb_svg_set_glyph_extents_common (const hb_transform_t<> &transform,
+hb_vector_set_glyph_extents_common (const hb_transform_t<> &transform,
                                  float x_scale_factor,
                                  float y_scale_factor,
                                  const hb_glyph_extents_t *glyph_extents,
@@ -275,13 +275,13 @@ hb_svg_set_glyph_extents_common (const hb_transform_t<> &transform,
   float py[4] = {y0, y1, y0, y1};
 
   float tx, ty;
-  hb_svg_transform_point (transform, x_scale_factor, y_scale_factor, px[0], py[0], &tx, &ty);
+  hb_vector_transform_point (transform, x_scale_factor, y_scale_factor, px[0], py[0], &tx, &ty);
   float tx_min = tx, tx_max = tx;
   float ty_min = ty, ty_max = ty;
 
   for (unsigned i = 1; i < 4; i++)
   {
-    hb_svg_transform_point (transform, x_scale_factor, y_scale_factor, px[i], py[i], &tx, &ty);
+    hb_vector_transform_point (transform, x_scale_factor, y_scale_factor, px[i], py[i], &tx, &ty);
     tx_min = hb_min (tx_min, tx);
     tx_max = hb_max (tx_max, tx);
     ty_min = hb_min (ty_min, ty);
@@ -308,7 +308,7 @@ hb_svg_set_glyph_extents_common (const hb_transform_t<> &transform,
 }
 
 static inline void
-hb_svg_append_instance_transform (hb_vector_t<char> *out,
+hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
                                   unsigned precision,
                                   float x_scale_factor,
                                   float y_scale_factor,
@@ -316,7 +316,7 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
                                   float xy, float yy,
                                   float tx, float ty)
 {
-  unsigned sprec = hb_svg_scale_precision (precision);
+  unsigned sprec = hb_vector_scale_precision (precision);
   if (xx == 1.f && yx == 0.f && xy == 0.f && yy == 1.f)
   {
     float sx = 1.f / x_scale_factor;
@@ -347,20 +347,6 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
     hb_buf_append_num (out, -ty / y_scale_factor, precision);
     hb_buf_append_c (out, ')');
   }
-}
-
-static inline void
-hb_svg_append_image_instance_translate (hb_vector_t<char> *out,
-                                        unsigned precision,
-                                        float x_scale_factor,
-                                        float y_scale_factor,
-                                        float tx, float ty)
-{
-  hb_buf_append_str (out, "translate(");
-  hb_buf_append_num (out, tx / x_scale_factor, precision);
-  hb_buf_append_c (out, ',');
-  hb_buf_append_num (out, -ty / y_scale_factor, precision);
-  hb_buf_append_c (out, ')');
 }
 
 #endif /* HB_VECTOR_SVG_HH */

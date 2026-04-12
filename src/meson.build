@@ -710,38 +710,13 @@ if not get_option('subset').disabled()
 endif
 
 hb_raster_sources = files(
-  'hb-zlib.cc',
-  'hb-zlib.hh',
   'hb-raster.cc',
   'hb-raster-image.cc',
   'hb-raster-image.hh',
   'hb-raster-utils.hh',
   'hb-raster-draw.cc',
-  'hb-raster-svg-base.cc',
-  'hb-raster-svg-base.hh',
-  'hb-raster-svg-defs.cc',
-  'hb-raster-svg-defs.hh',
-  'hb-raster-svg-defs-scan.cc',
-  'hb-raster-svg-defs-scan.hh',
-  'hb-raster-svg-gradient.cc',
-  'hb-raster-svg-gradient.hh',
-  'hb-raster-svg-clip.cc',
-  'hb-raster-svg-clip.hh',
-  'hb-raster-svg-bbox.cc',
-  'hb-raster-svg-bbox.hh',
-  'hb-raster-svg-fill.cc',
-  'hb-raster-svg-fill.hh',
-  'hb-raster-svg-context.hh',
-  'hb-raster-svg-use.cc',
-  'hb-raster-svg-use.hh',
-  'hb-raster-svg-render.cc',
-  'hb-raster-svg-color.cc',
-  'hb-raster-svg-color.hh',
-  'hb-raster-svg-parse.cc',
-  'hb-raster-svg-parse.hh',
   'hb-raster-paint.cc',
   'hb-raster-paint.hh',
-  'hb-raster-svg.hh',
   'hb-static.cc',
 )
 
@@ -758,8 +733,6 @@ hb_vector_sources = files(
   'hb-vector-paint.cc',
   'hb-vector-paint-pdf.cc',
   'hb-vector-svg-path.hh',
-  'hb-vector-svg-subset.cc',
-  'hb-vector-svg-subset.hh',
   'hb-vector-svg-utils.cc',
   'hb-vector-svg-utils.hh',
   'hb-static.cc',
@@ -774,9 +747,6 @@ if not get_option('raster').disabled()
   raster_deps = [m_dep]
   if png_dep.found()
     raster_deps += [png_dep]
-  endif
-  if zlib_dep.found()
-    raster_deps += [zlib_dep]
   endif
 
   libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,

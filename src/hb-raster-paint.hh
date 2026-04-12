@@ -113,11 +113,6 @@ struct hb_raster_paint_t
   hb_color_t          foreground         = HB_COLOR (0, 0, 0, 255);
   hb_map_t           *custom_palette     = nullptr;
 
-  /* SVG rendering state */
-  hb_codepoint_t      svg_glyph          = 0;
-  hb_font_t          *svg_font           = nullptr;
-  unsigned            svg_palette        = 0;
-
   /* Stacks */
   hb_vector_t<hb_transform_t<>>     transform_stack;
   hb_vector_t<hb_raster_clip_t>     clip_stack;

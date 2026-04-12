@@ -241,38 +241,13 @@ set (subset_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h
 )
 set (raster_project_sources
-     ${PROJECT_SOURCE_DIR}/src/hb-zlib.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-zlib.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-utils.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-draw.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-base.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-base.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs-scan.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs-scan.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-gradient.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-gradient.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-clip.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-clip.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-bbox.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-bbox.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-fill.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-fill.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-context.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-use.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-use.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-render.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-color.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-color.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-parse.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-parse.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-paint.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-paint.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg.hh
      ${PROJECT_SOURCE_DIR}/src/hb-static.cc
 )
 set (raster_project_headers
@@ -287,8 +262,6 @@ set (vector_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-path.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-subset.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-subset.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-utils.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-utils.hh
      ${PROJECT_SOURCE_DIR}/src/hb-static.cc
@@ -475,13 +448,11 @@ if (HB_BUILD_RASTER)
   endif ()
 endif ()
 
-if (HB_BUILD_RASTER OR HB_BUILD_VECTOR)
+if (HB_BUILD_VECTOR)
   find_package(ZLIB QUIET)
   if (ZLIB_FOUND)
     add_compile_definitions(HAVE_ZLIB=1)
-    list(APPEND HB_RASTER_THIRD_PARTY_LIBS ZLIB::ZLIB)
     list(APPEND HB_VECTOR_THIRD_PARTY_LIBS ZLIB::ZLIB)
-    list(APPEND PC_REQUIRES_PRIV_RASTER zlib)
     list(APPEND PC_REQUIRES_PRIV_VECTOR zlib)
   endif ()
 endif ()

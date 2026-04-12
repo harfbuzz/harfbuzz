@@ -63,63 +63,6 @@ pixel_at (hb_raster_image_t *img, int x, int y)
   return hb_raster_image_get_buffer (img)[row * ext.stride + col];
 }
 
-#if !defined (HB_NO_SVG) && defined (HAVE_ZLIB)
-static hb_raster_image_t *
-render_svg_glyph (hb_face_t      *face,
-		  hb_codepoint_t  glyph)
-{
-  g_assert_nonnull (face);
-
-  hb_font_t *font = hb_font_create (face);
-  g_assert_nonnull (font);
-  hb_font_set_scale (font, 128, 128);
-
-  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
-  g_assert_nonnull (paint);
-  hb_raster_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
-
-  hb_raster_extents_t extents = {-32, -192, 256, 256, 0};
-  hb_raster_paint_set_extents (paint, &extents);
-  g_assert_true (hb_raster_paint_glyph (paint, font, glyph, 0.f, 0.f, 0, HB_COLOR (0, 0, 0, 255)));
-
-  hb_raster_image_t *img = hb_raster_paint_render (paint);
-  g_assert_nonnull (img);
-
-  hb_raster_paint_destroy (paint);
-  hb_font_destroy (font);
-  return img;
-}
-
-static hb_bool_t
-paint_svg_glyph_direct_or_fail (hb_face_t      *face,
-			        hb_codepoint_t  glyph)
-{
-  g_assert_nonnull (face);
-
-  hb_font_t *font = hb_font_create (face);
-  g_assert_nonnull (font);
-  hb_font_set_scale (font, 128, 128);
-
-  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
-  g_assert_nonnull (paint);
-  hb_raster_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
-
-  hb_raster_extents_t extents = {-32, -192, 256, 256, 0};
-  hb_raster_paint_set_extents (paint, &extents);
-
-  hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-					       hb_raster_paint_get_funcs (), paint,
-					       0, HB_COLOR (0, 0, 0, 255));
-  hb_raster_image_t *img = hb_raster_paint_render (paint);
-  g_assert_nonnull (img);
-
-  hb_raster_image_destroy (img);
-  hb_raster_paint_destroy (paint);
-  hb_font_destroy (font);
-  return ret;
-}
-#endif
-
 
 /* ── Test 1: rectangle geometry ──────────────────────────────────── */
 
@@ -282,56 +225,6 @@ test_set_glyph_extents_with_transform (void)
   hb_raster_draw_destroy (rdr);
 }
 
-/* ── Test 6: gzip-compressed SVG documents ──────────────────────── */
-
-static void
-test_svgz_render_matches_svg (void)
-{
-#if !defined (HB_NO_SVG) && defined (HAVE_ZLIB)
-  hb_face_t *svg_face = hb_test_open_font_file ("../fuzzing/fonts/noto_handwriting-untouchedsvg.ttf");
-  hb_face_t *svgz_face = hb_test_open_font_file ("../fuzzing/fonts/noto_handwriting-untouchedsvgz.ttf");
-
-  hb_raster_image_t *svg = render_svg_glyph (svg_face, 7);
-  hb_raster_image_t *svgz = render_svg_glyph (svgz_face, 7);
-
-  hb_raster_extents_t svg_extents;
-  hb_raster_extents_t svgz_extents;
-  hb_raster_image_get_extents (svg, &svg_extents);
-  hb_raster_image_get_extents (svgz, &svgz_extents);
-
-  g_assert_cmpint (hb_raster_image_get_format (svg), ==, hb_raster_image_get_format (svgz));
-  g_assert_cmpint (svg_extents.x_origin, ==, svgz_extents.x_origin);
-  g_assert_cmpint (svg_extents.y_origin, ==, svgz_extents.y_origin);
-  g_assert_cmpuint (svg_extents.width, ==, svgz_extents.width);
-  g_assert_cmpuint (svg_extents.height, ==, svgz_extents.height);
-  g_assert_cmpuint (svg_extents.stride, ==, svgz_extents.stride);
-  g_assert_cmpuint (svg_extents.width, >, 0);
-  g_assert_cmpuint (svg_extents.height, >, 0);
-
-  size_t len = (size_t) svg_extents.stride * svg_extents.height;
-  g_assert_cmpint (memcmp (hb_raster_image_get_buffer (svg),
-			   hb_raster_image_get_buffer (svgz),
-			   len), ==, 0);
-
-  hb_raster_image_destroy (svg);
-  hb_raster_image_destroy (svgz);
-  hb_face_destroy (svg_face);
-  hb_face_destroy (svgz_face);
-#endif
-}
-
-static void
-test_direct_svg_paint_fails_cleanly (void)
-{
-#if !defined (HB_NO_SVG) && defined (HAVE_ZLIB)
-  hb_face_t *svg_face = hb_test_open_font_file ("../fuzzing/fonts/noto_handwriting-untouchedsvg.ttf");
-
-  g_assert_false (paint_svg_glyph_direct_or_fail (svg_face, 7));
-  hb_face_destroy (svg_face);
-#endif
-}
-
-
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -344,8 +237,6 @@ main (int argc, char **argv)
   hb_test_add (test_subpixel_edge);
   hb_test_add (test_transform);
   hb_test_add (test_set_glyph_extents_with_transform);
-  hb_test_add (test_svgz_render_matches_svg);
-  hb_test_add (test_direct_svg_paint_fails_cleanly);
 
   return hb_test_run ();
 }
