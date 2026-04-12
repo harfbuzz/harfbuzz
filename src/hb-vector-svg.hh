@@ -349,18 +349,4 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
   }
 }
 
-static inline void
-hb_svg_append_image_instance_translate (hb_vector_t<char> *out,
-                                        unsigned precision,
-                                        float x_scale_factor,
-                                        float y_scale_factor,
-                                        float tx, float ty)
-{
-  hb_buf_append_str (out, "translate(");
-  hb_buf_append_num (out, tx / x_scale_factor, precision);
-  hb_buf_append_c (out, ',');
-  hb_buf_append_num (out, -ty / y_scale_factor, precision);
-  hb_buf_append_c (out, ')');
-}
-
 #endif /* HB_VECTOR_SVG_HH */

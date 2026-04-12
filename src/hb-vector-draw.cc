@@ -30,7 +30,6 @@
 #include "hb-blob.hh"
 #include "hb-map.hh"
 #include "hb-vector-svg-path.hh"
-#include "hb-vector-svg-subset.hh"
 
 #include <algorithm>
 #include <math.h>

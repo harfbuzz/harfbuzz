@@ -67,15 +67,10 @@ struct hb_vector_paint_t
   hb_set_t *defined_outlines = nullptr;
   hb_set_t *defined_clips = nullptr;
   hb_set_t *active_color_glyphs = nullptr;
-  hb_hashmap_t<hb_svg_color_glyph_cache_key_t, uint64_t> defined_color_glyphs;
+  hb_hashmap_t<hb_svg_color_glyph_cache_key_t, unsigned> defined_color_glyphs;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
-  hb_vector_t<char> subset_body_scratch;
   hb_vector_t<char> captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
-  bool current_color_glyph_has_svg_image = false;
-  hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
-  hb_face_t *current_face = nullptr;
-  unsigned svg_image_counter = 0;
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
 };
