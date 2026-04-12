@@ -259,10 +259,10 @@ Wednesday, March 4, 2026
     +hb_vector_paint_set_scale_factor()
     +hb_vector_paint_set_transform()
     +hb_vector_paint_set_user_data()
-    +hb_vector_paint_set_flat()
-    +hb_vector_paint_set_precision()
-    +hb_vector_draw_set_flat()
-    +hb_vector_draw_set_precision()
+    +hb_vector_svg_paint_set_flat()
+    +hb_vector_svg_paint_set_precision()
+    +hb_vector_svg_set_flat()
+    +hb_vector_svg_set_precision()
 
 
 Overview of changes leading to 12.3.2

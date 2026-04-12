@@ -36,6 +36,12 @@
 #include "hb-ot.h"
 
 
+static const char *vector_supported_formats[] = {
+  "svg",
+  "pdf",
+  nullptr
+};
+
 struct vector_output_t : output_options_t<>, view_options_t
 {
   static const bool repeat_shape = false;
@@ -49,9 +55,9 @@ struct vector_output_t : output_options_t<>, view_options_t
   void add_options (option_parser_t *parser)
   {
     parser->set_summary ("Draw text with given font.");
-    parser->set_description ("Shows shaped glyph outlines as SVG.");
+    parser->set_description ("Shows shaped glyph outlines as SVG or PDF.");
 
-    output_options_t::add_options (parser);
+    output_options_t::add_options (parser, vector_supported_formats);
     view_options_t::add_options (parser);
 
     GOptionEntry entries[] =
@@ -77,6 +83,18 @@ struct vector_output_t : output_options_t<>, view_options_t
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
                    "precision must be non-negative");
+      return;
+    }
+
+    if (output_format &&
+        g_ascii_strcasecmp (output_format, "svg") != 0 &&
+        g_ascii_strcasecmp (output_format, "pdf") != 0)
+    {
+      char *items = g_strjoinv ("/", const_cast<char **> (vector_supported_formats));
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                   "Unknown output format `%s'; supported formats are: %s",
+                   output_format, items);
+      g_free (items);
       return;
     }
 
@@ -180,7 +198,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     final_extents = extents;
 
     hb_vector_format_t fmt = HB_VECTOR_FORMAT_SVG;
-    if (output_format && !strcmp (output_format, "pdf"))
+    if (output_format && g_ascii_strcasecmp (output_format, "pdf") == 0)
       fmt = HB_VECTOR_FORMAT_PDF;
 
     hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (fmt);

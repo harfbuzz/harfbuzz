@@ -1490,7 +1490,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
  *
  * Enables or disables paint flattening.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_paint_set_flat (hb_vector_paint_t *paint,
@@ -1506,7 +1506,7 @@ hb_vector_paint_set_flat (hb_vector_paint_t *paint,
  *
  * Sets numeric output precision for paint output.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_paint_set_precision (hb_vector_paint_t *paint,

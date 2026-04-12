@@ -13,7 +13,7 @@ struct hb_vector_draw_t
 {
   hb_object_header_t header;
 
-  hb_vector_format_t format = HB_VECTOR_FORMAT_SVG;
+  hb_vector_format_t format = HB_VECTOR_FORMAT_INVALID;
   hb_transform_t<> transform = {1, 0, 0, 1, 0, 0};
   float x_scale_factor = 1.f;
   float y_scale_factor = 1.f;

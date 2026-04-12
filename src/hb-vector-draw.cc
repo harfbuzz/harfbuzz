@@ -670,7 +670,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
  *
  * Enables or disables draw flattening.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_draw_set_flat (hb_vector_draw_t *draw,
@@ -686,7 +686,7 @@ hb_vector_draw_set_flat (hb_vector_draw_t *draw,
  *
  * Sets numeric output precision for draw output.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_draw_set_precision (hb_vector_draw_t *draw,
@@ -695,16 +695,6 @@ hb_vector_draw_set_precision (hb_vector_draw_t *draw,
   draw->precision = hb_min (precision, 12u);
 }
 
-/**
- * hb_vector_draw_render:
- * @draw: a draw context.
- *
- * Renders accumulated draw content to an SVG blob.
- *
- * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
- *
- * Since: 13.0.0
- */
 static hb_blob_t *
 hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 {
@@ -798,70 +788,84 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   return blob;
 }
 
+static hb_blob_t *
+hb_vector_draw_render_svg (hb_vector_draw_t *draw)
+{
+  if (!draw->has_extents)
+    return nullptr;
+
+  hb_vector_t<char> out;
+  hb_buf_recover_recycled (draw->recycled_blob, &out);
+  unsigned estimated = draw->defs.length +
+		       (draw->body.length ? draw->body.length : draw->path.length) +
+		       256;
+  out.alloc (estimated);
+  hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
+  hb_buf_append_num (&out, draw->extents.x, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, draw->extents.y, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, draw->extents.width, draw->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, draw->extents.height, draw->precision);
+  hb_buf_append_str (&out, "\" width=\"");
+  hb_buf_append_num (&out, draw->extents.width, draw->precision);
+  hb_buf_append_str (&out, "\" height=\"");
+  hb_buf_append_num (&out, draw->extents.height, draw->precision);
+  hb_buf_append_str (&out, "\">\n");
+
+  if (draw->defs.length)
+  {
+    hb_buf_append_str (&out, "<defs>\n");
+    hb_buf_append_len (&out, draw->defs.arrayZ, draw->defs.length);
+    hb_buf_append_str (&out, "</defs>\n");
+  }
+
+  if (draw->body.length)
+  {
+    hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
+  }
+  else if (draw->path.length)
+  {
+    hb_buf_append_str (&out, "<path d=\"");
+    hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&out, "\"/>\n");
+  }
+
+  hb_buf_append_str (&out, "</svg>\n");
+
+  hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
+
+  draw->path.clear ();
+  draw->defs.clear ();
+  draw->body.clear ();
+  hb_set_clear (draw->defined_glyphs);
+  draw->has_extents = false;
+  draw->extents = {0, 0, 0, 0};
+
+  return blob;
+}
+
+/**
+ * hb_vector_draw_render:
+ * @draw: a draw context.
+ *
+ * Renders accumulated draw content to an output blob.
+ *
+ * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
+ *
+ * Since: 13.0.0
+ */
 hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw)
 {
   switch (draw->format)
   {
+    case HB_VECTOR_FORMAT_SVG:
+      return hb_vector_draw_render_svg (draw);
+
     case HB_VECTOR_FORMAT_PDF:
       return hb_vector_draw_render_pdf (draw);
-
-    case HB_VECTOR_FORMAT_SVG:
-    {
-      if (!draw->has_extents)
-	return nullptr;
-
-      hb_vector_t<char> out;
-      hb_buf_recover_recycled (draw->recycled_blob, &out);
-      unsigned estimated = draw->defs.length +
-			   (draw->body.length ? draw->body.length : draw->path.length) +
-			   256;
-      out.alloc (estimated);
-      hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-      hb_buf_append_num (&out, draw->extents.x, draw->precision);
-      hb_buf_append_c (&out, ' ');
-      hb_buf_append_num (&out, draw->extents.y, draw->precision);
-      hb_buf_append_c (&out, ' ');
-      hb_buf_append_num (&out, draw->extents.width, draw->precision);
-      hb_buf_append_c (&out, ' ');
-      hb_buf_append_num (&out, draw->extents.height, draw->precision);
-      hb_buf_append_str (&out, "\" width=\"");
-      hb_buf_append_num (&out, draw->extents.width, draw->precision);
-      hb_buf_append_str (&out, "\" height=\"");
-      hb_buf_append_num (&out, draw->extents.height, draw->precision);
-      hb_buf_append_str (&out, "\">\n");
-
-      if (draw->defs.length)
-      {
-	hb_buf_append_str (&out, "<defs>\n");
-	hb_buf_append_len (&out, draw->defs.arrayZ, draw->defs.length);
-	hb_buf_append_str (&out, "</defs>\n");
-      }
-
-      if (draw->body.length)
-      {
-	hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
-      }
-      else if (draw->path.length)
-      {
-	hb_buf_append_str (&out, "<path d=\"");
-	hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
-	hb_buf_append_str (&out, "\"/>\n");
-      }
-
-      hb_buf_append_str (&out, "</svg>\n");
-
-      hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
-
-      draw->path.clear ();
-      draw->defs.clear ();
-      draw->body.clear ();
-      hb_set_clear (draw->defined_glyphs);
-      draw->has_extents = false;
-      draw->extents = {0, 0, 0, 0};
-
-      return blob;
-    }
 
     case HB_VECTOR_FORMAT_INVALID: default:
       return nullptr;
