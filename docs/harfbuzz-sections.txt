@@ -1084,6 +1084,7 @@ hb_vector_draw_glyph
 hb_vector_draw_set_flat
 hb_vector_draw_set_precision
 hb_vector_draw_render
+hb_vector_draw_render_pdf_fragment
 hb_vector_draw_reset
 hb_vector_draw_recycle_blob
 hb_vector_paint_t
@@ -1108,6 +1109,8 @@ hb_vector_paint_glyph
 hb_vector_paint_set_flat
 hb_vector_paint_set_precision
 hb_vector_paint_render
+hb_vector_pdf_emit_stream_func_t
+hb_vector_paint_render_pdf_fragment
 hb_vector_paint_reset
 hb_vector_paint_recycle_blob
 </SECTION>

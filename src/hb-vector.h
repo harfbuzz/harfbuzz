@@ -173,6 +173,9 @@ hb_vector_draw_set_precision (hb_vector_draw_t *draw,
 HB_EXTERN hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw);
 
+HB_EXTERN hb_blob_t *
+hb_vector_draw_render_pdf_fragment (hb_vector_draw_t *draw);
+
 HB_EXTERN void
 hb_vector_draw_reset (hb_vector_draw_t *draw);
 
@@ -274,6 +277,37 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
 
 HB_EXTERN hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint);
+
+/**
+ * hb_vector_pdf_emit_stream_func_t:
+ * @body: stream object body bytes (the content that goes between
+ *        "N 0 obj\n" and "\nendobj", including dict + "\nstream\n"
+ *        + payload + "\nendstream").
+ * @body_length: length of @body in bytes.
+ * @user_data: user data pointer.
+ *
+ * Invoked for each stream object that must be emitted as an
+ * indirect PDF object in the consumer's document.  Called once
+ * per stream, in dependency order (referenced streams first).
+ * Cross-stream references in @body are already substituted with
+ * the consumer-assigned IDs returned from earlier invocations.
+ *
+ * Return value: the PDF object ID the consumer has assigned to
+ * this object.  Returning 0 indicates failure and aborts the
+ * render.
+ *
+ * XSince: REPLACEME
+ */
+typedef unsigned (*hb_vector_pdf_emit_stream_func_t) (
+    const char *body,
+    unsigned body_length,
+    void *user_data);
+
+HB_EXTERN hb_blob_t *
+hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
+                                     hb_vector_pdf_emit_stream_func_t  emit_stream,
+                                     void                             *user_data,
+                                     hb_blob_t                       **resources);
 
 HB_EXTERN void
 hb_vector_paint_reset (hb_vector_paint_t *paint);

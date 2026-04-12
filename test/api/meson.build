@@ -142,6 +142,18 @@ if not get_option('raster').disabled()
     suite: ['api', 'raster'])
 endif
 
+if not get_option('vector').disabled()
+  test('test-vector',
+    executable('test-vector', 'test-vector.cc',
+      include_directories: [incconfig],
+      dependencies: [libharfbuzz_vector_dep],
+      install: false,
+    ),
+    protocol: 'tap',
+    env: env,
+    suite: ['api', 'vector'])
+endif
+
 if not get_option('gpu').disabled()
   test('test-gpu',
     executable('test-gpu', 'test-gpu.cc',

@@ -787,6 +787,59 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   return blob;
 }
 
+/**
+ * hb_vector_draw_render_pdf_fragment:
+ * @draw: a draw context created with %HB_VECTOR_FORMAT_PDF.
+ *
+ * Returns the raw PDF content-stream bytes for the accumulated draw
+ * operations (path operators + fill), without wrapping in a PDF
+ * document.  Suitable for embedding in a consumer-owned PDF, for
+ * example as a Type 3 font CharProc.
+ *
+ * Outline draw needs no resource dictionary.  Coordinates are in
+ * font space (Y-up) and thus directly usable in PDF page space.
+ *
+ * Resets @draw on success.
+ *
+ * Return value: (transfer full) (nullable): content-stream blob,
+ * or `NULL` on failure.
+ *
+ * XSince: REPLACEME
+ */
+hb_blob_t *
+hb_vector_draw_render_pdf_fragment (hb_vector_draw_t *draw)
+{
+  if (draw->format != HB_VECTOR_FORMAT_PDF)
+    return nullptr;
+  if (!draw->has_extents)
+    return nullptr;
+  if (!draw->body.length && !draw->path.length)
+    return nullptr;
+
+  hb_vector_t<char> out;
+  hb_buf_recover_recycled (draw->recycled_blob, &out);
+  out.alloc (draw->body.length + draw->path.length + 16);
+
+  if (draw->body.length)
+    hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
+  else
+  {
+    hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
+    hb_buf_append_str (&out, "f\n");
+  }
+
+  hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
+
+  draw->path.clear ();
+  draw->defs.clear ();
+  draw->body.clear ();
+  hb_set_clear (draw->defined_glyphs);
+  draw->has_extents = false;
+  draw->extents = {0, 0, 0, 0};
+
+  return blob;
+}
+
 static hb_blob_t *
 hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 {

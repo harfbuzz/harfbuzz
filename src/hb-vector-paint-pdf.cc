@@ -1366,3 +1366,279 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 
   return blob;
 }
+
+
+/* ---- fragment render (for embedding in consumer-owned PDFs) ---- */
+
+/* An object body is a stream if it contains "\nstream\n".  PDF stream
+ * objects must stay indirect; only dict objects can be inlined. */
+static bool
+hb_pdf_body_is_stream (const hb_vector_t<char> &body)
+{
+  if (body.length < 10) return false;
+  const char *p = body.arrayZ;
+  const char *end = p + body.length - 7;
+  for (; p <= end; p++)
+    if (p[0] == '\n' && p[1] == 's' && p[2] == 't' && p[3] == 'r' &&
+        p[4] == 'e' && p[5] == 'a' && p[6] == 'm' && p[7] == '\n')
+      return true;
+  return false;
+}
+
+/* Walk @data looking for "N 0 R" where N is an object id our resources
+ * struct owns (>= 5 and in range).  For each reference:
+ *   - if the target is a stream, substitute the caller-assigned id
+ *     from @consumer_ids; emit "consumer_id 0 R".
+ *   - if the target is a non-stream (inlinable), recursively inline
+ *     its body at the reference site.
+ * Non-matching digit runs are emitted verbatim. */
+static bool
+hb_pdf_resolve_refs (const hb_pdf_resources_t *res,
+                     const unsigned *consumer_ids, /* [res->objects.length] */
+                     const char *data, unsigned len,
+                     hb_vector_t<char> *out,
+                     unsigned depth)
+{
+  if (unlikely (depth > 32))
+  {
+    hb_buf_append_len (out, data, len);
+    return false;
+  }
+
+  unsigned i = 0;
+  while (i < len)
+  {
+    if (data[i] >= '1' && data[i] <= '9')
+    {
+      unsigned start = i;
+      unsigned num = 0;
+      while (i < len && data[i] >= '0' && data[i] <= '9')
+      {
+        if (num > 100000000u) { num = 0; break; }
+        num = num * 10 + (unsigned) (data[i++] - '0');
+      }
+
+      if (i + 4 <= len &&
+          data[i] == ' ' && data[i + 1] == '0' &&
+          data[i + 2] == ' ' && data[i + 3] == 'R' &&
+          num >= 5 && (num - 5) < res->objects.length)
+      {
+        unsigned obj_idx = num - 5;
+        const auto &obj = res->objects.arrayZ[obj_idx];
+        if (hb_pdf_body_is_stream (obj.data))
+        {
+          unsigned cid = consumer_ids[obj_idx];
+          if (unlikely (!cid))
+          {
+            /* Stream hasn't been assigned an id yet — bail. */
+            return false;
+          }
+          hb_buf_append_unsigned (out, cid);
+          hb_buf_append_str (out, " 0 R");
+          i += 4; /* skip " 0 R" */
+          continue;
+        }
+        else
+        {
+          if (unlikely (!hb_pdf_resolve_refs (res, consumer_ids,
+                                              obj.data.arrayZ, obj.data.length,
+                                              out, depth + 1)))
+            return false;
+          i += 4; /* skip " 0 R" */
+          continue;
+        }
+      }
+
+      hb_buf_append_len (out, data + start, i - start);
+    }
+    else
+    {
+      hb_buf_append_c (out, data[i]);
+      i++;
+    }
+  }
+  return true;
+}
+
+/**
+ * hb_vector_paint_render_pdf_fragment:
+ * @paint: a paint context created with %HB_VECTOR_FORMAT_PDF.
+ * @emit_stream: (nullable): callback invoked for each stream object
+ *               that must be emitted as an indirect PDF object in
+ *               the consumer's document.  May be `NULL` only if no
+ *               streams are expected; rendering fails otherwise.
+ * @user_data: user data for @emit_stream.
+ * @resources: (out) (nullable): receives a PDF dictionary value
+ *             (e.g. `<< /ExtGState << ... >> /Shading << ... >> >>`)
+ *             with non-stream resource objects inlined and stream
+ *             references substituted using consumer-assigned object
+ *             IDs.  May be `NULL` if not needed.
+ *
+ * Renders accumulated paint operations into parts suitable for
+ * embedding in a consumer-owned PDF document (for example as a
+ * Type 3 font CharProc).  The returned blob is the PDF content
+ * stream (drawing operators only; uses symbolic resource names
+ * like `/GS0`, `/SH0`, `/Im0`).  Stream objects that cannot be
+ * inlined as dictionary values (XObject images, XObject SMasks,
+ * Type 6 Coons patch shadings) are handed to @emit_stream in
+ * dependency order; the consumer writes each as an indirect
+ * object and returns its PDF object id, which HarfBuzz then
+ * substitutes into any later bodies and into the resource
+ * dictionary.
+ *
+ * Resets @paint on success.
+ *
+ * Return value: (transfer full) (nullable): content-stream blob,
+ * or `NULL` on failure (including a callback returning 0).
+ *
+ * XSince: REPLACEME
+ */
+hb_blob_t *
+hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
+                                     hb_vector_pdf_emit_stream_func_t  emit_stream,
+                                     void                             *user_data,
+                                     hb_blob_t                       **resources)
+{
+  if (resources) *resources = nullptr;
+
+  if (paint->format != HB_VECTOR_FORMAT_PDF)
+    return nullptr;
+  if (!paint->has_extents)
+    return nullptr;
+  if (!paint->group_stack.length ||
+      !paint->group_stack.arrayZ[0].length)
+    return nullptr;
+
+  hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
+  unsigned n_objects = res ? res->objects.length : 0;
+
+  unsigned *consumer_ids = nullptr;
+  if (n_objects)
+  {
+    consumer_ids = (unsigned *) hb_calloc (n_objects, sizeof (unsigned));
+    if (unlikely (!consumer_ids))
+      return nullptr;
+  }
+
+  /* Emit stream objects in creation (dependency) order, substituting
+   * refs in each body before handing it to the callback. */
+  bool ok = true;
+  for (unsigned i = 0; i < n_objects && ok; i++)
+  {
+    const auto &obj = res->objects.arrayZ[i];
+    if (!hb_pdf_body_is_stream (obj.data))
+      continue;
+
+    if (unlikely (!emit_stream))
+    {
+      ok = false;
+      break;
+    }
+
+    hb_vector_t<char> resolved;
+    resolved.alloc (obj.data.length + 16);
+    if (unlikely (!hb_pdf_resolve_refs (res, consumer_ids,
+                                        obj.data.arrayZ, obj.data.length,
+                                        &resolved, 0)))
+    {
+      ok = false;
+      break;
+    }
+
+    unsigned cid = emit_stream (resolved.arrayZ, resolved.length, user_data);
+    if (unlikely (!cid))
+    {
+      ok = false;
+      break;
+    }
+    consumer_ids[i] = cid;
+  }
+
+  hb_blob_t *content_blob = nullptr;
+  hb_blob_t *resources_blob = nullptr;
+
+  if (ok)
+  {
+    const auto &content = paint->group_stack.arrayZ[0];
+    content_blob = hb_blob_create_or_fail (content.arrayZ, content.length,
+                                           HB_MEMORY_MODE_DUPLICATE,
+                                           nullptr, nullptr);
+    if (unlikely (!content_blob))
+      ok = false;
+  }
+
+  if (ok && resources)
+  {
+    hb_vector_t<char> out;
+    bool has_any = res &&
+      (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length);
+
+    if (has_any)
+    {
+      out.alloc (256);
+      hb_buf_append_str (&out, "<<");
+      if (res->extgstate_dict.length)
+      {
+        hb_buf_append_str (&out, " /ExtGState << ");
+        ok = hb_pdf_resolve_refs (res, consumer_ids,
+                                  res->extgstate_dict.arrayZ,
+                                  res->extgstate_dict.length,
+                                  &out, 0) && ok;
+        hb_buf_append_str (&out, ">>");
+      }
+      if (ok && res->shading_dict.length)
+      {
+        hb_buf_append_str (&out, " /Shading << ");
+        ok = hb_pdf_resolve_refs (res, consumer_ids,
+                                  res->shading_dict.arrayZ,
+                                  res->shading_dict.length,
+                                  &out, 0) && ok;
+        hb_buf_append_str (&out, ">>");
+      }
+      if (ok && res->xobject_dict.length)
+      {
+        hb_buf_append_str (&out, " /XObject << ");
+        ok = hb_pdf_resolve_refs (res, consumer_ids,
+                                  res->xobject_dict.arrayZ,
+                                  res->xobject_dict.length,
+                                  &out, 0) && ok;
+        hb_buf_append_str (&out, ">>");
+      }
+      hb_buf_append_str (&out, " >>");
+    }
+    else
+    {
+      out.alloc (8);
+      hb_buf_append_str (&out, "<< >>");
+    }
+
+    if (ok)
+    {
+      resources_blob = hb_blob_create_or_fail (out.arrayZ, out.length,
+                                               HB_MEMORY_MODE_DUPLICATE,
+                                               nullptr, nullptr);
+      if (unlikely (!resources_blob))
+        ok = false;
+    }
+  }
+
+  hb_free (consumer_ids);
+
+  if (!ok)
+  {
+    hb_blob_destroy (content_blob);
+    hb_blob_destroy (resources_blob);
+    return nullptr;
+  }
+
+  if (resources) *resources = resources_blob;
+
+  /* Reset paint state (mirrors hb_vector_paint_render). */
+  hb_pdf_free_resources (paint);
+  paint->group_stack.clear ();
+  paint->path.clear ();
+  paint->has_extents = false;
+  paint->extents = {0, 0, 0, 0};
+
+  return content_blob;
+}
