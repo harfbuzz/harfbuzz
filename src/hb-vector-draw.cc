@@ -491,7 +491,7 @@ hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
                                   const hb_glyph_extents_t *glyph_extents)
 {
   hb_bool_t has_extents = draw->has_extents;
-  hb_bool_t ret = hb_svg_set_glyph_extents_common (draw->transform,
+  hb_bool_t ret = hb_vector_set_glyph_extents_common (draw->transform,
 						   draw->x_scale_factor,
 						   draw->y_scale_factor,
 						   glyph_extents,
@@ -562,7 +562,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
       hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, ty};
 
       hb_bool_t has_extents = draw->has_extents;
-      hb_svg_set_glyph_extents_common (extents_transform,
+      hb_vector_set_glyph_extents_common (extents_transform,
                                        draw->x_scale_factor,
                                        draw->y_scale_factor,
                                        &ge,

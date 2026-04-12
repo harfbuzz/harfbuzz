@@ -34,7 +34,7 @@
 #include <string.h>
 
 HB_INTERNAL const char *
-hb_svg_decimal_point_get (void);
+hb_vector_decimal_point_get (void);
 
 static inline bool
 hb_buf_append_len (hb_vector_t<char> *buf,
@@ -93,7 +93,7 @@ hb_buf_append_num (hb_vector_t<char> *buf,
   char out[128];
   snprintf (out, sizeof (out), float_formats[effective_precision], (double) v);
 
-  const char *decimal_point = hb_svg_decimal_point_get ();
+  const char *decimal_point = hb_vector_decimal_point_get ();
 
   if (decimal_point[0] != '.' || decimal_point[1] != '\0')
   {
@@ -121,7 +121,7 @@ hb_buf_append_num (hb_vector_t<char> *buf,
 }
 
 static inline unsigned
-hb_svg_scale_precision (unsigned precision)
+hb_vector_scale_precision (unsigned precision)
 {
   return precision < 7 ? 7 : precision;
 }
@@ -144,7 +144,7 @@ hb_color_lerp (hb_color_t c0, hb_color_t c1, float t)
  * pre-sorted by offset. */
 template <typename Func>
 static inline void
-hb_sweep_gradient_tiles (hb_color_stop_t *stops,
+hb_vector_sweep_gradient_tiles (hb_color_stop_t *stops,
 			 unsigned n_stops,
 			 hb_paint_extend_t extend,
 			 float start_angle,

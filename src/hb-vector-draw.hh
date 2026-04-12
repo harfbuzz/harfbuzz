@@ -31,7 +31,7 @@ struct hb_vector_draw_t
   void append_xy (float x, float y)
   {
     float tx, ty;
-    hb_svg_transform_point (transform, x_scale_factor, y_scale_factor, x, y, &tx, &ty);
+    hb_vector_transform_point (transform, x_scale_factor, y_scale_factor, x, y, &tx, &ty);
     hb_buf_append_num (&path, tx, precision);
     switch (format)
     {

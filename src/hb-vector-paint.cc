@@ -42,7 +42,7 @@ hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector
       paint->x_scale_factor == 1.f && paint->y_scale_factor == 1.f)
     return;
 
-  unsigned sprec = hb_svg_scale_precision (paint->precision);
+  unsigned sprec = hb_vector_scale_precision (paint->precision);
   hb_buf_append_str (buf, "<g transform=\"matrix(");
   hb_buf_append_num (buf, paint->transform.xx / paint->x_scale_factor, sprec, true);
   hb_buf_append_c (buf, ',');
@@ -69,8 +69,8 @@ hb_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector
   hb_buf_append_str (buf, "</g>\n");
 }
 
-static inline hb_svg_color_glyph_cache_key_t
-hb_svg_color_glyph_cache_key (hb_codepoint_t glyph,
+static inline hb_vector_color_glyph_cache_key_t
+hb_vector_color_glyph_cache_key (hb_codepoint_t glyph,
                               unsigned palette,
                               hb_color_t foreground)
 {
@@ -78,7 +78,7 @@ hb_svg_color_glyph_cache_key (hb_codepoint_t glyph,
 }
 
 static hb_bool_t
-hb_svg_get_color_stops (hb_vector_paint_t *paint,
+hb_vector_get_color_stops (hb_vector_paint_t *paint,
                         hb_color_line_t *color_line,
                         hb_vector_t<hb_color_stop_t> *stops)
 {
@@ -118,7 +118,7 @@ hb_svg_extend_mode_str (hb_paint_extend_t ext)
 }
 
 static int
-hb_svg_color_stop_cmp (const void *a, const void *b)
+hb_vector_color_stop_cmp (const void *a, const void *b)
 {
   const hb_color_stop_t *x = (const hb_color_stop_t *) a;
   const hb_color_stop_t *y = (const hb_color_stop_t *) b;
@@ -431,7 +431,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  unsigned sprec = hb_svg_scale_precision (paint->precision);
+  unsigned sprec = hb_vector_scale_precision (paint->precision);
   hb_buf_append_str (&body, "<g transform=\"matrix(");
   hb_buf_append_num (&body, xx, sprec, true);
   hb_buf_append_c (&body, ',');
@@ -636,10 +636,10 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
+  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
 
   unsigned grad_id = paint->gradient_counter++;
 
@@ -678,10 +678,10 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
+  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
 
   unsigned grad_id = paint->gradient_counter++;
 
@@ -727,15 +727,15 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
+  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
 
   auto *body = &paint->current_body ();
   unsigned precision = paint->precision;
   float radius = 32767.f;
-  hb_sweep_gradient_tiles (stops.arrayZ, stops.length,
+  hb_vector_sweep_gradient_tiles (stops.arrayZ, stops.length,
 			   hb_color_line_get_extend (color_line),
 			   start_angle, end_angle,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
@@ -1100,7 +1100,7 @@ hb_vector_paint_set_glyph_extents (hb_vector_paint_t *paint,
                                    const hb_glyph_extents_t *glyph_extents)
 {
   hb_bool_t has_extents = paint->has_extents;
-  hb_bool_t ret = hb_svg_set_glyph_extents_common (paint->transform,
+  hb_bool_t ret = hb_vector_set_glyph_extents_common (paint->transform,
 						   paint->x_scale_factor,
 						   paint->y_scale_factor,
 						   glyph_extents,
@@ -1252,7 +1252,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     {
       hb_bool_t has_extents = paint->has_extents;
       hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, ty};
-      hb_bool_t ret = hb_svg_set_glyph_extents_common (extents_transform,
+      hb_bool_t ret = hb_vector_set_glyph_extents_common (extents_transform,
 							paint->x_scale_factor,
 							paint->y_scale_factor,
 							&ge,
@@ -1298,7 +1298,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     case HB_VECTOR_FORMAT_SVG:
     {
       bool can_cache = !paint->flat;
-      hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
+      hb_vector_color_glyph_cache_key_t cache_key = hb_vector_color_glyph_cache_key (glyph,
 										(unsigned) paint->palette,
 										paint->foreground);
       if (can_cache)

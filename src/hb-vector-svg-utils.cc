@@ -31,21 +31,21 @@
 
 #include <string.h>
 
-struct hb_svg_decimal_point_t
+struct hb_vector_decimal_point_t
 {
   char value[8];
 };
 
-static hb_svg_decimal_point_t hb_svg_decimal_point_default = {{'.', '\0'}};
+static hb_vector_decimal_point_t hb_vector_decimal_point_default = {{'.', '\0'}};
 
 static inline void free_static_svg_decimal_point ();
 
-static struct hb_svg_decimal_point_lazy_loader_t
-  : hb_lazy_loader_t<hb_svg_decimal_point_t, hb_svg_decimal_point_lazy_loader_t>
+static struct hb_vector_decimal_point_lazy_loader_t
+  : hb_lazy_loader_t<hb_vector_decimal_point_t, hb_vector_decimal_point_lazy_loader_t>
 {
-  static hb_svg_decimal_point_t *create ()
+  static hb_vector_decimal_point_t *create ()
   {
-    auto *p = (hb_svg_decimal_point_t *) hb_calloc (1, sizeof (hb_svg_decimal_point_t));
+    auto *p = (hb_vector_decimal_point_t *) hb_calloc (1, sizeof (hb_vector_decimal_point_t));
     if (!p)
       return nullptr;
 
@@ -72,11 +72,11 @@ static struct hb_svg_decimal_point_lazy_loader_t
     return p;
   }
 
-  static void destroy (hb_svg_decimal_point_t *p)
+  static void destroy (hb_vector_decimal_point_t *p)
   { hb_free (p); }
 
-  static const hb_svg_decimal_point_t *get_null ()
-  { return &hb_svg_decimal_point_default; }
+  static const hb_vector_decimal_point_t *get_null ()
+  { return &hb_vector_decimal_point_default; }
 } static_svg_decimal_point;
 
 static inline void
@@ -86,7 +86,7 @@ free_static_svg_decimal_point ()
 }
 
 const char *
-hb_svg_decimal_point_get (void)
+hb_vector_decimal_point_get (void)
 {
   return static_svg_decimal_point.get_unconst ()->value;
 }
