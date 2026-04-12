@@ -78,5 +78,6 @@ struct hb_vector_paint_t
 /* Implemented in hb-vector-paint-pdf.cc */
 HB_INTERNAL hb_paint_funcs_t * hb_vector_paint_pdf_funcs_get ();
 HB_INTERNAL hb_blob_t * hb_vector_paint_render_pdf (hb_vector_paint_t *paint);
+HB_INTERNAL void hb_vector_paint_pdf_free_resources (hb_vector_paint_t *paint);
 
 #endif /* HB_VECTOR_PAINT_HH */

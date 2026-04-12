@@ -882,6 +882,8 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
   if (!hb_object_should_destroy (paint))
     return;
 
+  if (paint->format == HB_VECTOR_FORMAT_PDF)
+    hb_vector_paint_pdf_free_resources (paint);
   hb_blob_destroy (paint->recycled_blob);
   hb_set_destroy (paint->defined_outlines);
   hb_set_destroy (paint->defined_clips);
@@ -1422,6 +1424,8 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
   paint->extents = {0, 0, 0, 0};
   paint->has_extents = false;
 
+  if (paint->format == HB_VECTOR_FORMAT_PDF)
+    hb_vector_paint_pdf_free_resources (paint);
   paint->defs.clear ();
   paint->path.clear ();
   paint->group_stack.clear ();

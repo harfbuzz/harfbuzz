@@ -270,6 +270,14 @@ hb_pdf_free_resources (hb_vector_paint_t *paint)
   paint->defs.clear ();
 }
 
+/* HB_INTERNAL wrapper so the PDF-agnostic paint code (destroy,
+ * clear_render_state) can release any lingering PDF resources. */
+void
+hb_vector_paint_pdf_free_resources (hb_vector_paint_t *paint)
+{
+  hb_pdf_free_resources (paint);
+}
+
 
 /* ---- helpers ---- */
 
@@ -1628,6 +1636,14 @@ hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
   {
     hb_blob_destroy (content_blob);
     hb_blob_destroy (resources_blob);
+    /* Reset paint state on failure too; any partially-accumulated
+     * resources would otherwise leak when the caller destroys the
+     * paint context. */
+    hb_pdf_free_resources (paint);
+    paint->group_stack.clear ();
+    paint->path.clear ();
+    paint->has_extents = false;
+    paint->extents = {0, 0, 0, 0};
     return nullptr;
   }
 
