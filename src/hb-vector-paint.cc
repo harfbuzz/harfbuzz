@@ -1544,11 +1544,60 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
   paint->captured_scratch.clear ();
 }
 
+static hb_blob_t *
+hb_vector_paint_render_svg (hb_vector_paint_t *paint)
+{
+  if (!paint->has_extents)
+    return nullptr;
+
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return nullptr;
+
+  hb_vector_t<char> out;
+  hb_buf_recover_recycled (paint->recycled_blob, &out);
+  unsigned estimated = paint->defs.length +
+		       paint->group_stack.arrayZ[0].length +
+		       320;
+  out.alloc (estimated);
+  hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
+  hb_buf_append_num (&out, paint->extents.x, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, paint->extents.y, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, paint->extents.width, paint->precision);
+  hb_buf_append_c (&out, ' ');
+  hb_buf_append_num (&out, paint->extents.height, paint->precision);
+  hb_buf_append_str (&out, "\" width=\"");
+  hb_buf_append_num (&out, paint->extents.width, paint->precision);
+  hb_buf_append_str (&out, "\" height=\"");
+  hb_buf_append_num (&out, paint->extents.height, paint->precision);
+  hb_buf_append_str (&out, "\">\n");
+
+  if (paint->defs.length)
+  {
+    hb_buf_append_str (&out, "<defs>\n");
+    hb_buf_append_len (&out, paint->defs.arrayZ, paint->defs.length);
+    hb_buf_append_str (&out, "</defs>\n");
+  }
+
+  hb_svg_paint_append_global_transform_prefix (paint, &out);
+  hb_buf_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
+  hb_svg_paint_append_global_transform_suffix (paint, &out);
+
+  hb_buf_append_str (&out, "</svg>\n");
+
+  hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
+
+  hb_vector_paint_clear_render_state (paint);
+
+  return blob;
+}
+
 /**
  * hb_vector_paint_render:
  * @paint: a paint context.
  *
- * Renders accumulated paint content to an SVG blob.
+ * Renders accumulated paint content to an output blob.
  *
  * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
  *
@@ -1559,56 +1608,11 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
 {
   switch (paint->format)
   {
+    case HB_VECTOR_FORMAT_SVG:
+      return hb_vector_paint_render_svg (paint);
+
     case HB_VECTOR_FORMAT_PDF:
       return hb_vector_paint_render_pdf (paint);
-
-    case HB_VECTOR_FORMAT_SVG:
-    {
-      if (!paint->has_extents)
-	return nullptr;
-
-      if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
-	return nullptr;
-
-      hb_vector_t<char> out;
-      hb_buf_recover_recycled (paint->recycled_blob, &out);
-      unsigned estimated = paint->defs.length +
-			   paint->group_stack.arrayZ[0].length +
-			   320;
-      out.alloc (estimated);
-      hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
-      hb_buf_append_num (&out, paint->extents.x, paint->precision);
-      hb_buf_append_c (&out, ' ');
-      hb_buf_append_num (&out, paint->extents.y, paint->precision);
-      hb_buf_append_c (&out, ' ');
-      hb_buf_append_num (&out, paint->extents.width, paint->precision);
-      hb_buf_append_c (&out, ' ');
-      hb_buf_append_num (&out, paint->extents.height, paint->precision);
-      hb_buf_append_str (&out, "\" width=\"");
-      hb_buf_append_num (&out, paint->extents.width, paint->precision);
-      hb_buf_append_str (&out, "\" height=\"");
-      hb_buf_append_num (&out, paint->extents.height, paint->precision);
-      hb_buf_append_str (&out, "\">\n");
-
-      if (paint->defs.length)
-      {
-	hb_buf_append_str (&out, "<defs>\n");
-	hb_buf_append_len (&out, paint->defs.arrayZ, paint->defs.length);
-	hb_buf_append_str (&out, "</defs>\n");
-      }
-
-      hb_svg_paint_append_global_transform_prefix (paint, &out);
-      hb_buf_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-      hb_svg_paint_append_global_transform_suffix (paint, &out);
-
-      hb_buf_append_str (&out, "</svg>\n");
-
-      hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
-
-      hb_vector_paint_clear_render_state (paint);
-
-      return blob;
-    }
 
     case HB_VECTOR_FORMAT_INVALID: default:
       return nullptr;
