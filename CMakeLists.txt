@@ -282,9 +282,10 @@ set (vector_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-zlib.cc
      ${PROJECT_SOURCE_DIR}/src/hb-zlib.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-draw.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-draw.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-path.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-paint.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-paint.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-path.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-subset.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-subset.hh

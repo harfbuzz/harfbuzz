@@ -273,6 +273,7 @@ hb_base_sources = files(
   'hb-unicode.hh',
   'hb-utf.hh',
   'hb-vector.hh',
+  'hb-vector-draw.hh',
   'hb.hh',
 )
 
@@ -752,9 +753,10 @@ hb_vector_sources = files(
   'hb-zlib.cc',
   'hb-zlib.hh',
   'hb-vector.cc',
-  'hb-vector-svg-draw.cc',
+  'hb-vector-draw.cc',
   'hb-vector-svg-path.cc',
-  'hb-vector-svg-paint.cc',
+  'hb-vector-paint.cc',
+  'hb-vector-paint-pdf.cc',
   'hb-vector-svg-path.hh',
   'hb-vector-svg-subset.cc',
   'hb-vector-svg-subset.hh',

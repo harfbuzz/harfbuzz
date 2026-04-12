@@ -43,6 +43,7 @@ HB_BEGIN_DECLS
 typedef enum {
   HB_VECTOR_FORMAT_INVALID = HB_TAG_NONE,
   HB_VECTOR_FORMAT_SVG = HB_TAG ('s','v','g',' '),
+  HB_VECTOR_FORMAT_PDF = HB_TAG ('p','d','f',' '),
 } hb_vector_format_t;
 
 /**
@@ -161,11 +162,11 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN void
-hb_vector_svg_set_flat (hb_vector_draw_t *draw,
+hb_vector_draw_set_flat (hb_vector_draw_t *draw,
                         hb_bool_t flat);
 
 HB_EXTERN void
-hb_vector_svg_set_precision (hb_vector_draw_t *draw,
+hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision);
 
 HB_EXTERN hb_blob_t *
@@ -263,11 +264,11 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN void
-hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
+hb_vector_paint_set_flat (hb_vector_paint_t *paint,
                               hb_bool_t flat);
 
 HB_EXTERN void
-hb_vector_svg_paint_set_precision (hb_vector_paint_t *paint,
+hb_vector_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision);
 
 HB_EXTERN hb_blob_t *

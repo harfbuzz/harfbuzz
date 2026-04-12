@@ -291,6 +291,8 @@ hb_paint_funcs_set_sweep_gradient_func
 hb_paint_composite_mode_t
 hb_paint_push_group_func_t
 hb_paint_funcs_set_push_group_func
+hb_paint_push_group_for_func_t
+hb_paint_funcs_set_push_group_for_func
 hb_paint_pop_group_func_t
 hb_paint_funcs_set_pop_group_func
 hb_paint_custom_palette_color_func_t
@@ -310,6 +312,7 @@ hb_paint_linear_gradient
 hb_paint_radial_gradient
 hb_paint_sweep_gradient
 hb_paint_push_group
+hb_paint_push_group_for
 hb_paint_pop_group
 hb_paint_custom_palette_color
 </SECTION>
@@ -1078,8 +1081,8 @@ hb_vector_draw_get_extents
 hb_vector_draw_set_glyph_extents
 hb_vector_draw_get_funcs
 hb_vector_draw_glyph
-hb_vector_svg_set_flat
-hb_vector_svg_set_precision
+hb_vector_draw_set_flat
+hb_vector_draw_set_precision
 hb_vector_draw_render
 hb_vector_draw_reset
 hb_vector_draw_recycle_blob
@@ -1102,8 +1105,8 @@ hb_vector_paint_set_custom_palette_color
 hb_vector_paint_clear_custom_palette_colors
 hb_vector_paint_get_funcs
 hb_vector_paint_glyph
-hb_vector_svg_paint_set_flat
-hb_vector_svg_paint_set_precision
+hb_vector_paint_set_flat
+hb_vector_paint_set_precision
 hb_vector_paint_render
 hb_vector_paint_reset
 hb_vector_paint_recycle_blob

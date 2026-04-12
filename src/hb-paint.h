@@ -661,6 +661,28 @@ typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
                                             void *user_data);
 
 /**
+ * hb_paint_push_group_for_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @mode: the compositing mode that will be used when the group is popped
+ * @user_data: User data pointer passed to hb_paint_funcs_set_push_group_for_func()
+ *
+ * A virtual method for the #hb_paint_funcs_t to use
+ * an intermediate surface for subsequent paint calls,
+ * with the compositing mode known in advance.
+ *
+ * This is like #hb_paint_push_group_func_t, but the
+ * compositing mode is provided at push time. By default
+ * this calls #hb_paint_push_group_func_t.
+ *
+ * XSince: REPLACEME
+ */
+typedef void (*hb_paint_push_group_for_func_t) (hb_paint_funcs_t *funcs,
+                                                void *paint_data,
+                                                hb_paint_composite_mode_t mode,
+                                                void *user_data);
+
+/**
  * hb_paint_pop_group_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
@@ -917,6 +939,23 @@ hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
                                     hb_destroy_func_t           destroy);
 
 /**
+ * hb_paint_funcs_set_push_group_for_func:
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-group-for callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the push-group-for callback on the paint functions struct.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN void
+hb_paint_funcs_set_push_group_for_func (hb_paint_funcs_t               *funcs,
+                                        hb_paint_push_group_for_func_t  func,
+                                        void                           *user_data,
+                                        hb_destroy_func_t               destroy);
+
+/**
  * hb_paint_funcs_set_pop_group_func:
  * @funcs: A paint functions struct
  * @func: (closure user_data) (destroy destroy) (scope notified): The pop-group callback
@@ -1025,6 +1064,10 @@ hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
 
 HB_EXTERN void
 hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data);
+
+HB_EXTERN void
+hb_paint_push_group_for (hb_paint_funcs_t *funcs, void *paint_data,
+                         hb_paint_composite_mode_t mode);
 
 HB_EXTERN void
 hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,

@@ -43,6 +43,7 @@
   HB_PAINT_FUNC_IMPLEMENT (radial_gradient) \
   HB_PAINT_FUNC_IMPLEMENT (sweep_gradient) \
   HB_PAINT_FUNC_IMPLEMENT (push_group) \
+  HB_PAINT_FUNC_IMPLEMENT (push_group_for) \
   HB_PAINT_FUNC_IMPLEMENT (pop_group) \
   HB_PAINT_FUNC_IMPLEMENT (custom_palette_color) \
   /* ^--- Add new callbacks here */
@@ -146,6 +147,11 @@ struct hb_paint_funcs_t
   void push_group (void *paint_data)
   { func.push_group (this, paint_data,
                      !user_data ? nullptr : user_data->push_group); }
+  void push_group_for (void *paint_data,
+                       hb_paint_composite_mode_t mode)
+  { func.push_group_for (this, paint_data,
+                         mode,
+                         !user_data ? nullptr : user_data->push_group_for); }
   void pop_group (void *paint_data,
                   hb_paint_composite_mode_t mode)
   { func.pop_group (this, paint_data,
