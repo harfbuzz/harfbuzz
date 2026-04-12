@@ -31,13 +31,13 @@
 #include "hb-vector.hh"
 #include "hb-draw.h"
 
-struct hb_svg_path_sink_t
+struct hb_vector_svg_path_sink_t
 {
   hb_vector_t<char> *path;
   unsigned precision;
 };
 
 HB_INTERNAL hb_draw_funcs_t *
-hb_svg_path_draw_funcs_get (void);
+hb_vector_svg_path_draw_funcs_get (void);
 
 #endif /* HB_VECTOR_SVG_PATH_HH */

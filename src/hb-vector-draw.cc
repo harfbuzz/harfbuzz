@@ -36,7 +36,7 @@
 #include <string.h>
 
 HB_UNUSED static inline bool
-hb_svg_buffer_contains (const hb_vector_t<char> &buf, const char *needle)
+hb_vector_svg_buffer_contains (const hb_vector_t<char> &buf, const char *needle)
 {
   unsigned nlen = (unsigned) strlen (needle);
   if (!nlen || buf.length < nlen)
@@ -598,8 +598,8 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
       if (needs_def)
       {
 	draw->path.clear ();
-	hb_svg_path_sink_t sink = {&draw->path, draw->precision};
-	hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
+	hb_vector_svg_path_sink_t sink = {&draw->path, draw->precision};
+	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;
 	hb_buf_append_str (&draw->defs, "<path id=\"p");
@@ -613,8 +613,8 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
       if (draw->flat)
       {
 	draw->path.clear ();
-	hb_svg_path_sink_t sink = {&draw->path, draw->precision};
-	hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
+	hb_vector_svg_path_sink_t sink = {&draw->path, draw->precision};
+	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 
 	if (!draw->path.length)
 	  return false;
@@ -629,7 +629,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 	hb_buf_append_str (&draw->body, "<path d=\"");
 	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
 	hb_buf_append_str (&draw->body, "\" transform=\"");
-	hb_svg_append_instance_transform (&draw->body,
+	hb_vector_svg_append_instance_transform (&draw->body,
 					  draw->precision,
 					  draw->x_scale_factor,
 					  draw->y_scale_factor,
@@ -648,7 +648,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
       hb_buf_append_str (&draw->body, "<use href=\"#p");
       hb_buf_append_unsigned (&draw->body, glyph);
       hb_buf_append_str (&draw->body, "\" transform=\"");
-      hb_svg_append_instance_transform (&draw->body,
+      hb_vector_svg_append_instance_transform (&draw->body,
 					draw->precision,
 					draw->x_scale_factor,
 					draw->y_scale_factor,

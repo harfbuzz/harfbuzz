@@ -34,7 +34,7 @@
 #include <string.h>
 
 static void
-hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
+hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
@@ -59,7 +59,7 @@ hb_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector
 }
 
 static void
-hb_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
+hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
@@ -106,7 +106,7 @@ hb_vector_get_color_stops (hb_vector_paint_t *paint,
 }
 
 static const char *
-hb_svg_extend_mode_str (hb_paint_extend_t ext)
+hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
 {
   switch (ext)
   {
@@ -128,7 +128,7 @@ hb_vector_color_stop_cmp (const void *a, const void *b)
 }
 
 static void
-hb_svg_emit_color_stops (hb_vector_paint_t *paint,
+hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
                          hb_vector_t<char> *buf,
                          hb_vector_t<hb_color_stop_t> *stops)
 {
@@ -155,7 +155,7 @@ hb_svg_emit_color_stops (hb_vector_paint_t *paint,
 }
 
 static const char *
-hb_svg_composite_mode_str (hb_paint_composite_mode_t mode)
+hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
 {
   switch (mode)
   {
@@ -192,23 +192,23 @@ hb_svg_composite_mode_str (hb_paint_composite_mode_t mode)
   }
 }
 
-struct hb_svg_point_t { float x, y; };
-struct hb_svg_rgba_t { float r, g, b, a; };
+struct hb_vector_svg_point_t { float x, y; };
+struct hb_vector_svg_rgba_t { float r, g, b, a; };
 
 static inline float
-hb_svg_lerp (float a, float b, float t)
+hb_vector_svg_lerp (float a, float b, float t)
 { return a + (b - a) * t; }
 
 static inline float
-hb_svg_clamp01 (float v)
+hb_vector_svg_clamp01 (float v)
 {
   if (v < 0.f) return 0.f;
   if (v > 1.f) return 1.f;
   return v;
 }
 
-static inline hb_svg_rgba_t
-hb_svg_rgba_from_hb_color (hb_color_t c)
+static inline hb_vector_svg_rgba_t
+hb_vector_svg_rgba_from_hb_color (hb_color_t c)
 {
   return {(float) hb_color_get_red (c) / 255.f,
           (float) hb_color_get_green (c) / 255.f,
@@ -217,82 +217,82 @@ hb_svg_rgba_from_hb_color (hb_color_t c)
 }
 
 static inline hb_color_t
-hb_svg_hb_color_from_rgba (const hb_svg_rgba_t &c)
+hb_vector_svg_hb_color_from_rgba (const hb_vector_svg_rgba_t &c)
 {
-  unsigned r = (unsigned) roundf (hb_svg_clamp01 (c.r) * 255.f);
-  unsigned g = (unsigned) roundf (hb_svg_clamp01 (c.g) * 255.f);
-  unsigned b = (unsigned) roundf (hb_svg_clamp01 (c.b) * 255.f);
-  unsigned a = (unsigned) roundf (hb_svg_clamp01 (c.a) * 255.f);
+  unsigned r = (unsigned) roundf (hb_vector_svg_clamp01 (c.r) * 255.f);
+  unsigned g = (unsigned) roundf (hb_vector_svg_clamp01 (c.g) * 255.f);
+  unsigned b = (unsigned) roundf (hb_vector_svg_clamp01 (c.b) * 255.f);
+  unsigned a = (unsigned) roundf (hb_vector_svg_clamp01 (c.a) * 255.f);
   return HB_COLOR (b, g, r, a);
 }
 
-static inline hb_svg_rgba_t
-hb_svg_lerp_rgba (const hb_svg_rgba_t &c0,
-                  const hb_svg_rgba_t &c1,
+static inline hb_vector_svg_rgba_t
+hb_vector_svg_lerp_rgba (const hb_vector_svg_rgba_t &c0,
+                  const hb_vector_svg_rgba_t &c1,
                   float t)
 {
-  return {hb_svg_lerp (c0.r, c1.r, t),
-          hb_svg_lerp (c0.g, c1.g, t),
-          hb_svg_lerp (c0.b, c1.b, t),
-          hb_svg_lerp (c0.a, c1.a, t)};
+  return {hb_vector_svg_lerp (c0.r, c1.r, t),
+          hb_vector_svg_lerp (c0.g, c1.g, t),
+          hb_vector_svg_lerp (c0.b, c1.b, t),
+          hb_vector_svg_lerp (c0.a, c1.a, t)};
 }
 
-static inline float hb_svg_dot (const hb_svg_point_t &p, const hb_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
-static inline hb_svg_point_t hb_svg_add (const hb_svg_point_t &p, const hb_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
-static inline hb_svg_point_t hb_svg_sub (const hb_svg_point_t &p, const hb_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
-static inline hb_svg_point_t hb_svg_scale (const hb_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
+static inline float hb_vector_svg_dot (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
+static inline hb_vector_svg_point_t hb_vector_svg_add (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
+static inline hb_vector_svg_point_t hb_vector_svg_sub (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
+static inline hb_vector_svg_point_t hb_vector_svg_scale (const hb_vector_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
 
-static inline hb_svg_point_t
-hb_svg_normalize (const hb_svg_point_t &p)
+static inline hb_vector_svg_point_t
+hb_vector_svg_normalize (const hb_vector_svg_point_t &p)
 {
-  float len = sqrtf (hb_svg_dot (p, p));
+  float len = sqrtf (hb_vector_svg_dot (p, p));
   if (len == 0.f) return {0.f, 0.f};
-  return hb_svg_scale (p, 1.f / len);
+  return hb_vector_svg_scale (p, 1.f / len);
 }
 
 static void
-hb_svg_add_sweep_patch (hb_vector_t<char> *body,
+hb_vector_svg_add_sweep_patch (hb_vector_t<char> *body,
                         unsigned precision,
                         float cx, float cy, float radius,
-                        float a0, const hb_svg_rgba_t &c0_in,
-                        float a1, const hb_svg_rgba_t &c1_in)
+                        float a0, const hb_vector_svg_rgba_t &c0_in,
+                        float a1, const hb_vector_svg_rgba_t &c1_in)
 {
   static const float max_angle = HB_PI / 16.f;
-  hb_svg_point_t center = {cx, cy};
+  hb_vector_svg_point_t center = {cx, cy};
   int num_splits = (int) ceilf (fabsf (a1 - a0) / max_angle);
   if (num_splits < 1) num_splits = 1;
 
-  hb_svg_point_t p0 = {cosf (a0), sinf (a0)};
-  hb_svg_rgba_t color0 = c0_in;
+  hb_vector_svg_point_t p0 = {cosf (a0), sinf (a0)};
+  hb_vector_svg_rgba_t color0 = c0_in;
 
   for (int a = 0; a < num_splits; a++)
   {
     float k = (a + 1.f) / num_splits;
-    float angle1 = hb_svg_lerp (a0, a1, k);
-    hb_svg_rgba_t color1 = hb_svg_lerp_rgba (c0_in, c1_in, k);
+    float angle1 = hb_vector_svg_lerp (a0, a1, k);
+    hb_vector_svg_rgba_t color1 = hb_vector_svg_lerp_rgba (c0_in, c1_in, k);
 
-    hb_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
-    hb_svg_point_t sp0 = hb_svg_add (center, hb_svg_scale (p0, radius));
-    hb_svg_point_t sp1 = hb_svg_add (center, hb_svg_scale (p1, radius));
+    hb_vector_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
+    hb_vector_svg_point_t sp0 = hb_vector_svg_add (center, hb_vector_svg_scale (p0, radius));
+    hb_vector_svg_point_t sp1 = hb_vector_svg_add (center, hb_vector_svg_scale (p1, radius));
 
-    hb_svg_point_t A = hb_svg_normalize (hb_svg_add (p0, p1));
-    hb_svg_point_t U = {-A.y, A.x};
-    float up0 = hb_svg_dot (U, p0);
-    float up1 = hb_svg_dot (U, p1);
+    hb_vector_svg_point_t A = hb_vector_svg_normalize (hb_vector_svg_add (p0, p1));
+    hb_vector_svg_point_t U = {-A.y, A.x};
+    float up0 = hb_vector_svg_dot (U, p0);
+    float up1 = hb_vector_svg_dot (U, p1);
     if (fabsf (up0) < 1e-6f || fabsf (up1) < 1e-6f)
     {
       p0 = p1;
       color0 = color1;
       continue;
     }
-    hb_svg_point_t C0 = hb_svg_add (A, hb_svg_scale (U, hb_svg_dot (hb_svg_sub (p0, A), p0) / up0));
-    hb_svg_point_t C1 = hb_svg_add (A, hb_svg_scale (U, hb_svg_dot (hb_svg_sub (p1, A), p1) / up1));
+    hb_vector_svg_point_t C0 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p0, A), p0) / up0));
+    hb_vector_svg_point_t C1 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p1, A), p1) / up1));
 
-    hb_svg_point_t sc0 = hb_svg_add (center, hb_svg_scale (hb_svg_add (C0, hb_svg_scale (hb_svg_sub (C0, p0), 0.33333f)), radius));
-    hb_svg_point_t sc1 = hb_svg_add (center, hb_svg_scale (hb_svg_add (C1, hb_svg_scale (hb_svg_sub (C1, p1), 0.33333f)), radius));
+    hb_vector_svg_point_t sc0 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C0, hb_vector_svg_scale (hb_vector_svg_sub (C0, p0), 0.33333f)), radius));
+    hb_vector_svg_point_t sc1 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C1, hb_vector_svg_scale (hb_vector_svg_sub (C1, p1), 0.33333f)), radius));
 
-    hb_svg_rgba_t mid_color = hb_svg_lerp_rgba (color0, color1, 0.5f);
-    hb_color_t mid = hb_svg_hb_color_from_rgba (mid_color);
+    hb_vector_svg_rgba_t mid_color = hb_vector_svg_lerp_rgba (color0, color1, 0.5f);
+    hb_color_t mid = hb_vector_svg_hb_color_from_rgba (mid_color);
 
     hb_buf_append_str (body, "<path d=\"M");
     hb_buf_append_num (body, center.x, precision);
@@ -484,8 +484,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_svg_path_sink_t sink = {&paint->path, paint->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
+    hb_vector_svg_path_sink_t sink = {&paint->path, paint->precision};
+    hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     hb_buf_append_str (&paint->defs, "<path id=\"p");
     hb_buf_append_unsigned (&paint->defs, glyph);
     hb_buf_append_str (&paint->defs, "\" d=\"");
@@ -654,9 +654,9 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "\" y2=\"");
   hb_buf_append_num (&paint->defs, y1 + (y1 - y2), paint->precision);
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
-  hb_buf_append_str (&paint->defs, hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");
-  hb_svg_emit_color_stops (paint, &paint->defs, &stops);
+  hb_vector_svg_emit_color_stops (paint, &paint->defs, &stops);
   hb_buf_append_str (&paint->defs, "</linearGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
@@ -703,9 +703,9 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
     hb_buf_append_num (&paint->defs, r0, paint->precision);
   }
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
-  hb_buf_append_str (&paint->defs, hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");
-  hb_svg_emit_color_stops (paint, &paint->defs, &stops);
+  hb_vector_svg_emit_color_stops (paint, &paint->defs, &stops);
   hb_buf_append_str (&paint->defs, "</radialGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
@@ -739,9 +739,9 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
 			   hb_color_line_get_extend (color_line),
 			   start_angle, end_angle,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
-			   { hb_svg_add_sweep_patch (body, precision, cx, cy, radius,
-						     a0, hb_svg_rgba_from_hb_color (c0),
-						     a1, hb_svg_rgba_from_hb_color (c1)); });
+			   { hb_vector_svg_add_sweep_patch (body, precision, cx, cy, radius,
+						     a0, hb_vector_svg_rgba_from_hb_color (c0),
+						     a1, hb_vector_svg_rgba_from_hb_color (c1)); });
 }
 
 static void
@@ -771,7 +771,7 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   hb_vector_t<char> group = paint->group_stack.pop ();
   auto &body = paint->current_body ();
 
-  const char *blend = hb_svg_composite_mode_str (mode);
+  const char *blend = hb_vector_svg_composite_mode_str (mode);
   if (blend)
   {
     hb_buf_append_str (&body, "<g style=\"mix-blend-mode:");
@@ -1310,7 +1310,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	  hb_buf_append_str (&body, "<use href=\"#cg");
 	  hb_buf_append_unsigned (&body, def_id);
 	  hb_buf_append_str (&body, "\" transform=\"");
-	  hb_svg_append_instance_transform (&body, paint->precision,
+	  hb_vector_svg_append_instance_transform (&body, paint->precision,
 					    paint->x_scale_factor,
 					    paint->y_scale_factor,
 					    xx, yx, xy, yy, tx, ty);
@@ -1355,7 +1355,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	hb_buf_append_str (&body, "<use href=\"#cg");
 	hb_buf_append_unsigned (&body, def_id);
 	hb_buf_append_str (&body, "\" transform=\"");
-	hb_svg_append_instance_transform (&body, paint->precision,
+	hb_vector_svg_append_instance_transform (&body, paint->precision,
 					  paint->x_scale_factor,
 					  paint->y_scale_factor,
 					  xx, yx, xy, yy, tx, ty);
@@ -1364,7 +1364,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
       }
 
       hb_buf_append_str (&paint->current_body (), "<g transform=\"");
-      hb_svg_append_instance_transform (&paint->current_body (), paint->precision,
+      hb_vector_svg_append_instance_transform (&paint->current_body (), paint->precision,
 					paint->x_scale_factor,
 					paint->y_scale_factor,
 					xx, yx, xy, yy, tx, ty);
@@ -1476,9 +1476,9 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     hb_buf_append_str (&out, "</defs>\n");
   }
 
-  hb_svg_paint_append_global_transform_prefix (paint, &out);
+  hb_vector_svg_paint_append_global_transform_prefix (paint, &out);
   hb_buf_append_len (&out, paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-  hb_svg_paint_append_global_transform_suffix (paint, &out);
+  hb_vector_svg_paint_append_global_transform_suffix (paint, &out);
 
   hb_buf_append_str (&out, "</svg>\n");
 

@@ -308,7 +308,7 @@ hb_vector_set_glyph_extents_common (const hb_transform_t<> &transform,
 }
 
 static inline void
-hb_svg_append_instance_transform (hb_vector_t<char> *out,
+hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
                                   unsigned precision,
                                   float x_scale_factor,
                                   float y_scale_factor,
