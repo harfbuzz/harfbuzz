@@ -2,41 +2,38 @@
 
 #include <hb-vector.h>
 
-extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
+static void
+exercise_format (const _fuzzing_shape_input_t *input,
+		 hb_vector_format_t format,
+		 unsigned precision,
+		 bool flat_draw,
+		 bool flat_paint,
+		 volatile unsigned *counter)
 {
-  alloc_state = _fuzzing_alloc_state (data, size);
-
-  _fuzzing_shape_input_t input;
-  if (_fuzzing_prepare_shape_input (data, size, 30, 30, &input) == HB_FUZZING_SHAPE_INPUT_MALFORMED)
-    return 0;
-
-  hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (HB_VECTOR_FORMAT_SVG);
-  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG);
+  hb_vector_draw_t  *draw  = hb_vector_draw_create_or_fail  (format);
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (format);
   if (!draw || !paint)
   {
     hb_vector_draw_destroy (draw);
     hb_vector_paint_destroy (paint);
-    return 0;
+    return;
   }
   hb_vector_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
 
-  unsigned precision = size ? data[size - 1] % 5 : 0;
-  hb_vector_draw_set_precision (draw, precision);
+  hb_vector_draw_set_precision  (draw,  precision);
   hb_vector_paint_set_precision (paint, precision);
-  hb_vector_draw_set_flat (draw, size > 1 ? !!(data[size - 2] & 1) : false);
-  hb_vector_paint_set_flat (paint, size > 2 ? !!(data[size - 3] & 1) : false);
+  hb_vector_draw_set_flat  (draw,  flat_draw);
+  hb_vector_paint_set_flat (paint, flat_paint);
 
-  unsigned glyph_count = hb_face_get_glyph_count (input.face);
+  unsigned glyph_count = hb_face_get_glyph_count (input->face);
   unsigned limit = glyph_count > 16 ? 16 : glyph_count;
-
-  volatile unsigned counter = !glyph_count;
 
   for (unsigned gid = 0; gid < limit; gid++)
   {
     float x = (float) ((gid % 4) * 40);
     float y = (float) ((gid / 4) * 40);
-    hb_vector_draw_glyph (draw, input.font, gid, x, y, HB_VECTOR_EXTENTS_MODE_EXPAND);
-    hb_vector_paint_glyph (paint, input.font, gid, x, y, HB_VECTOR_EXTENTS_MODE_EXPAND);
+    hb_vector_draw_glyph  (draw,  input->font, gid, x, y, HB_VECTOR_EXTENTS_MODE_EXPAND);
+    hb_vector_paint_glyph (paint, input->font, gid, x, y, HB_VECTOR_EXTENTS_MODE_EXPAND);
   }
 
   hb_blob_t *draw_blob = hb_vector_draw_render (draw);
@@ -44,9 +41,9 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     unsigned length = 0;
     const char *blob_data = hb_blob_get_data (draw_blob, &length);
-    counter += length;
+    *counter += length;
     if (blob_data && length)
-      counter += (unsigned char) blob_data[0];
+      *counter += (unsigned char) blob_data[0];
     hb_vector_draw_recycle_blob (draw, draw_blob);
   }
 
@@ -55,13 +52,36 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     unsigned length = 0;
     const char *blob_data = hb_blob_get_data (paint_blob, &length);
-    counter += length;
+    *counter += length;
     if (blob_data && length)
-      counter += (unsigned char) blob_data[0];
+      *counter += (unsigned char) blob_data[0];
     hb_vector_paint_recycle_blob (paint, paint_blob);
   }
 
   hb_vector_draw_destroy (draw);
   hb_vector_paint_destroy (paint);
+}
+
+extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
+{
+  alloc_state = _fuzzing_alloc_state (data, size);
+
+  _fuzzing_shape_input_t input;
+  if (_fuzzing_prepare_shape_input (data, size, 30, 30, &input) == HB_FUZZING_SHAPE_INPUT_MALFORMED)
+    return 0;
+
+  unsigned precision = size ? data[size - 1] % 5 : 0;
+  bool flat_draw  = size > 1 && (data[size - 2] & 1);
+  bool flat_paint = size > 2 && (data[size - 3] & 1);
+
+  unsigned glyph_count = hb_face_get_glyph_count (input.face);
+  volatile unsigned counter = !glyph_count;
+
+  /* Exercise both output formats.  Each has its own serializer, path
+   * encoder, gradient machinery, and (for PDF) indexed-PNG SMask +
+   * Type 6 Coons-patch encoder. */
+  exercise_format (&input, HB_VECTOR_FORMAT_SVG, precision, flat_draw, flat_paint, &counter);
+  exercise_format (&input, HB_VECTOR_FORMAT_PDF, precision, flat_draw, flat_paint, &counter);
+
   return counter ? 0 : 0;
 }
