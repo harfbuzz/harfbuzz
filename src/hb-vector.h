@@ -166,9 +166,15 @@ HB_EXTERN void
 hb_vector_draw_set_flat (hb_vector_draw_t *draw,
                         hb_bool_t flat);
 
+HB_EXTERN hb_bool_t
+hb_vector_draw_get_flat (const hb_vector_draw_t *draw);
+
 HB_EXTERN void
 hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision);
+
+HB_EXTERN unsigned
+hb_vector_draw_get_precision (const hb_vector_draw_t *draw);
 
 HB_EXTERN hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw);
@@ -244,9 +250,15 @@ HB_EXTERN void
 hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
                                 hb_color_t foreground);
 
+HB_EXTERN hb_color_t
+hb_vector_paint_get_foreground (const hb_vector_paint_t *paint);
+
 HB_EXTERN void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette);
+
+HB_EXTERN int
+hb_vector_paint_get_palette (const hb_vector_paint_t *paint);
 
 HB_EXTERN void
 hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
@@ -271,9 +283,15 @@ HB_EXTERN void
 hb_vector_paint_set_flat (hb_vector_paint_t *paint,
                               hb_bool_t flat);
 
+HB_EXTERN hb_bool_t
+hb_vector_paint_get_flat (const hb_vector_paint_t *paint);
+
 HB_EXTERN void
 hb_vector_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision);
+
+HB_EXTERN unsigned
+hb_vector_paint_get_precision (const hb_vector_paint_t *paint);
 
 HB_EXTERN hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint);

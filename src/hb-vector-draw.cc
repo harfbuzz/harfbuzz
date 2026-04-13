@@ -676,6 +676,23 @@ hb_vector_draw_set_flat (hb_vector_draw_t *draw,
 }
 
 /**
+ * hb_vector_draw_get_flat:
+ * @draw: a draw context.
+ *
+ * Returns the flatten flag previously set on @draw, or `false` if
+ * none was set.
+ *
+ * Return value: the flatten flag.
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_vector_draw_get_flat (const hb_vector_draw_t *draw)
+{
+  return draw->flat;
+}
+
+/**
  * hb_vector_draw_set_precision:
  * @draw: a draw context.
  * @precision: decimal precision.
@@ -689,6 +706,23 @@ hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision)
 {
   draw->precision = hb_min (precision, 12u);
+}
+
+/**
+ * hb_vector_draw_get_precision:
+ * @draw: a draw context.
+ *
+ * Returns the numeric output precision previously set on @draw,
+ * or the default if none was set.
+ *
+ * Return value: the precision.
+ *
+ * XSince: REPLACEME
+ */
+unsigned
+hb_vector_draw_get_precision (const hb_vector_draw_t *draw)
+{
+  return draw->precision;
 }
 
 static hb_blob_t *
