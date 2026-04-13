@@ -571,6 +571,13 @@ extern "C" void  hb_free_impl(void *ptr);
 #include "hb-object.hh"	// Requires: hb-atomic hb-mutex hb-vector
 
 
+/* Library-internal alias for hb::unique_ptr defined in hb-cplusplus.hh.
+ * Unique-ownership RAII wrapper around an HB object; destroys on scope exit
+ * via the type's hb_*_destroy() function.  Usage: hb_unique_ptr_t<hb_blob_t>.
+ * Matches the hb_*_t naming used elsewhere in internal code. */
+template <typename T> using hb_unique_ptr_t = hb::unique_ptr<T>;
+
+
 /* Our src/test-*.cc use hb_assert(), such that it's not compiled out under NDEBUG.
  * https://github.com/harfbuzz/harfbuzz/issues/5418 */
 #define hb_always_assert(x) \
