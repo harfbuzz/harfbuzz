@@ -2201,11 +2201,23 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
 hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint)
 {
-  hb_raster_image_t *result = nullptr;
+  /* Common per-exit state reset.  Runs on every return path,
+   * including the early-return failure cases below. */
+  HB_SCOPE_GUARD ({
+    paint->transform_stack.clear ();
+    paint->release_all_clips ();
+    for (auto *s : paint->surface_stack)
+      paint->release_surface (s);
+    paint->surface_stack.clear ();
+    hb_raster_draw_reset (paint->clip_rdr);
+    paint->has_extents = false;
+    paint->fixed_extents = {};
+  });
 
   if (unlikely (!paint->has_extents))
-    goto fail;
+    return nullptr;
 
+  hb_raster_image_t *result;
   if (paint->surface_stack.length)
   {
     result = paint->surface_stack[0];
@@ -2219,28 +2231,10 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
   {
     result = paint->acquire_surface ();
     if (unlikely (!result))
-      goto fail;
+      return nullptr;
   }
 
-  /* Clean up stacks and reset auto-extents for next glyph. */
-  paint->transform_stack.clear ();
-  paint->release_all_clips ();
-  hb_raster_draw_reset (paint->clip_rdr);
-  paint->has_extents = false;
-  paint->fixed_extents = {};
-
   return result;
-
-fail:
-  paint->transform_stack.clear ();
-  paint->release_all_clips ();
-  for (auto *s : paint->surface_stack)
-    paint->release_surface (s);
-  paint->surface_stack.clear ();
-  hb_raster_draw_reset (paint->clip_rdr);
-  paint->has_extents = false;
-  paint->fixed_extents = {};
-  return nullptr;
 }
 
 /**
