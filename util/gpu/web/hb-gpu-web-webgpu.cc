@@ -245,6 +245,13 @@ struct demo_renderer_webgpu_t : demo_renderer_t
 
   void set_debug (bool enabled) override { debug_mode = enabled; }
   void set_stem_darkening (bool enabled) override { stem_mode = enabled; }
+  void set_palette (const float *rgba, unsigned count) override
+  {
+    if (count > 256) count = 256;
+    float buf[256 * 4] = {};
+    memcpy (buf, rgba, count * 4 * sizeof (float));
+    wgpuQueueWriteBuffer (g_queue, g_palette_buf, 0, buf, sizeof (buf));
+  }
   bool debug_mode = false;
   bool stem_mode = true;
 
@@ -417,6 +424,7 @@ web_load_font (const char *data, int len)
 
   demo_font_destroy (current_demo_font);
   current_demo_font = demo_font_create (font, renderer->get_atlas ());
+  { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, palette, 256); if (n) renderer->set_palette (palette, n); }
 
   rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
@@ -1009,6 +1017,7 @@ init_demo ()
   current_face = hb_face_create (current_blob, 0);
   current_font = hb_font_create (current_face);
   current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
+  { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, palette, 256); if (n) renderer->set_palette (palette, n); }
 
   current_text = strdup (default_text_combined);
 

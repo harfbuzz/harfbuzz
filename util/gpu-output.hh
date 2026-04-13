@@ -141,6 +141,11 @@ struct gpu_output_t
     });
 
     demo_font_ = demo_font_create (font, renderer->get_atlas ());
+    {
+      float palette[256 * 4] = {};
+      unsigned n = demo_font_get_palette (demo_font_, palette, 256);
+      if (n) renderer->set_palette (palette, n);
+    }
     buf = demo_buffer_create ();
 
     demo_point_t top_left = {0, 0};

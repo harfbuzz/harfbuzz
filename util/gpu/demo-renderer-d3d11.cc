@@ -204,11 +204,11 @@ float4 ps_main (PSInput input) : SV_Target {
       device->CreateShaderResourceView (atlas.srv_buf, &srvd, &atlas.srv);
     }
 
-    /* Palette: 256 float4, zero-filled for now. */
+    /* Palette: 256 float4, updated via set_palette(). */
     {
       D3D11_BUFFER_DESC pbd = {};
       pbd.ByteWidth = 256 * 4 * sizeof (float);
-      pbd.Usage = D3D11_USAGE_IMMUTABLE;
+      pbd.Usage = D3D11_USAGE_DEFAULT;
       pbd.BindFlags = D3D11_BIND_SHADER_RESOURCE;
       pbd.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
       pbd.StructureByteStride = 16;
@@ -293,6 +293,13 @@ float4 ps_main (PSInput input) : SV_Target {
   void set_background (float r, float g, float b, float a) override { bg_r = r; bg_g = g; bg_b = b; bg_a = a; }
   void set_debug (bool e) override { debug_val = e ? 1.f : 0.f; }
   void set_stem_darkening (bool e) override { stem_val = e ? 1.f : 0.f; }
+  void set_palette (const float *rgba, unsigned count) override
+  {
+    if (count > 256) count = 256;
+    float buf[256 * 4] = {};
+    memcpy (buf, rgba, count * 4 * sizeof (float));
+    ctx->UpdateSubresource (palette_buf, 0, nullptr, buf, 0, 0);
+  }
   bool set_srgb (bool) override { return false; }
   void toggle_vsync (bool &v) override { v = !v; vsync_on = v; }
 

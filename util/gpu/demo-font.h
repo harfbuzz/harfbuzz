@@ -39,6 +39,14 @@ demo_font_lookup_glyph (demo_font_t  *font,
 			unsigned int  glyph_index,
 			glyph_info_t *glyph_info);
 
+/* Returns the face's palette (index 0) as premultiplied-alpha
+ * RGBA floats.  Writes up to `capacity` entries to `out`; returns
+ * the number of entries written. */
+unsigned
+demo_font_get_palette (demo_font_t *font,
+		       float       *out,
+		       unsigned     capacity);
+
 void
 demo_font_clear_cache (demo_font_t *font);
 

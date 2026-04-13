@@ -18,66 +18,9 @@ struct demo_font_t {
   demo_atlas_t    *atlas;
   hb_gpu_paint_t  *p;
 
-  bool palette_uploaded;
-
   unsigned int num_glyphs;
   unsigned int sum_bytes;
 };
-
-static unsigned
-demo_font_get_palette (hb_face_t *face, float *palette)
-{
-  unsigned count = hb_ot_color_palette_get_colors (face, 0, 0, NULL, NULL);
-  if (!count) return 0;
-  if (count > 256) count = 256;
-
-  hb_color_t colors[256];
-  unsigned returned = count;
-  hb_ot_color_palette_get_colors (face, 0, 0, &returned, colors);
-
-  for (unsigned i = 0; i < returned; i++)
-  {
-    palette[i * 4 + 0] = hb_color_get_red   (colors[i]) / 255.f;
-    palette[i * 4 + 1] = hb_color_get_green (colors[i]) / 255.f;
-    palette[i * 4 + 2] = hb_color_get_blue  (colors[i]) / 255.f;
-    palette[i * 4 + 3] = hb_color_get_alpha (colors[i]) / 255.f;
-  }
-
-  return returned;
-}
-
-static void
-demo_font_upload_palette_gl (hb_face_t *face)
-{
-  GLint program;
-  glGetIntegerv (GL_CURRENT_PROGRAM, &program);
-  if (!program) return;
-
-  GLint loc = glGetUniformLocation (program, "hb_gpu_palette");
-  if (loc < 0)
-    loc = glGetUniformLocation (program, "hb_gpu_palette[0]");
-  if (loc < 0) return;
-
-  float palette[256 * 4] = {0};
-  unsigned count = demo_font_get_palette (face, palette);
-  if (!count) return;
-
-  glUniform4fv (loc, 256, palette);
-}
-
-static void
-demo_font_upload_palette (hb_face_t *face, demo_atlas_t *atlas)
-{
-  if (demo_atlas_is_external (atlas))
-  {
-    float palette[256 * 4] = {0};
-    unsigned count = demo_font_get_palette (face, palette);
-    if (count)
-      demo_atlas_upload_palette (atlas, palette, 256);
-  }
-  else
-    demo_font_upload_palette_gl (face);
-}
 
 demo_font_t *
 demo_font_create (hb_font_t    *hb_font,
@@ -90,10 +33,6 @@ demo_font_create (hb_font_t    *hb_font,
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
   font->p = hb_gpu_paint_create_or_fail ();
-  /* Palette uniform needs a bound GL program; demo_font_create is
-   * called before the renderer's program is made current.  Upload
-   * lazily on the first glyph request. */
-  font->palette_uploaded = false;
 
   return font;
 }
@@ -125,18 +64,36 @@ demo_font_get_font (demo_font_t *font)
   return font->font;
 }
 
+unsigned
+demo_font_get_palette (demo_font_t *font,
+		       float       *out,
+		       unsigned     capacity)
+{
+  unsigned count = hb_ot_color_palette_get_colors (font->face, 0, 0, NULL, NULL);
+  if (!count) return 0;
+  if (count > capacity) count = capacity;
+
+  hb_color_t colors[256];
+  unsigned returned = count;
+  if (returned > 256) returned = 256;
+  hb_ot_color_palette_get_colors (font->face, 0, 0, &returned, colors);
+
+  for (unsigned i = 0; i < returned; i++)
+  {
+    out[i * 4 + 0] = hb_color_get_red   (colors[i]) / 255.f;
+    out[i * 4 + 1] = hb_color_get_green (colors[i]) / 255.f;
+    out[i * 4 + 2] = hb_color_get_blue  (colors[i]) / 255.f;
+    out[i * 4 + 3] = hb_color_get_alpha (colors[i]) / 255.f;
+  }
+  return returned;
+}
+
 
 static void
 _demo_font_upload_glyph (demo_font_t  *font,
 			 unsigned int  glyph_index,
 			 glyph_info_t *glyph_info)
 {
-  if (!font->palette_uploaded)
-  {
-    demo_font_upload_palette (font->face, font->atlas);
-    font->palette_uploaded = true;
-  }
-
   hb_gpu_paint_clear (font->p);
   hb_gpu_paint_glyph (font->p, font->font, glyph_index);
 
