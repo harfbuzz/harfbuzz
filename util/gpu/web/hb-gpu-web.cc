@@ -188,9 +188,22 @@ static void
 cursor_func (GLFWwindow *window, double x, double y)
 { demo_view_motion_func (vu, x, y); }
 
+static const char *arg_text = nullptr;
+static const char *arg_font = nullptr;
+
 int
-main ()
+main (int argc, char **argv)
 {
+  /* Accept --text=... and --font=... so the JS shell can forward
+   * URL parameters.  Everything else is ignored. */
+  for (int i = 1; i < argc; i++)
+  {
+    if (!strncmp (argv[i], "--text=", 7))
+      arg_text = argv[i] + 7;
+    else if (!strncmp (argv[i], "--font=", 7))
+      arg_font = argv[i] + 7;
+  }
+
   if (!glfwInit ())
   {
     fprintf (stderr, "Failed to initialize GLFW\n");
@@ -239,7 +252,9 @@ main ()
   current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
   { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, 0, palette, 256); if (n) renderer->set_palette (palette, n); }
 
-  current_text = strdup (default_text_combined);
+  current_text = strdup (arg_text ? arg_text : default_text_combined);
+  if (arg_text)
+    custom_text = true;
 
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};

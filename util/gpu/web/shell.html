@@ -536,8 +536,17 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   window.addEventListener('keyup', blockKeysIfModal, true);
   window.addEventListener('keypress', blockKeysIfModal, true);
 
+  /* URL parameters: forwarded to C main() as argv so main can
+   * apply them before first frame (no default-demo flash). */
+  var urlParams = new URLSearchParams(location.search);
+  var moduleArgs = [];
+  var urlText = urlParams.get('text');
+  var urlFont = urlParams.get('font');
+  if (urlText) moduleArgs.push('--text=' + urlText);
+
   var Module = {
     canvas: canvas,
+    arguments: moduleArgs,
     onRuntimeInitialized: function () {
       if (!window._webgpuError && !window._webglError) {
         document.getElementById('loading').style.display = 'none';
@@ -588,11 +597,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       document.getElementById('text-apply').addEventListener('click', function () {
         var text = textArea.value.trim();
         if (!text) { textModal.style.display = 'none'; return; }
-        var len = lengthBytesUTF8(text) + 1;
-        var buf = _malloc(len);
-        stringToUTF8(text, buf, len);
-        _web_set_text(buf);
-        _free(buf);
+        applyText(text);
         textModal.style.display = 'none';
       });
 
@@ -612,6 +617,37 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           _free(buf);
         };
         reader.readAsArrayBuffer(file);
+      }
+
+      function applyText(text) {
+        var len = lengthBytesUTF8(text) + 1;
+        var buf = _malloc(len);
+        stringToUTF8(text, buf, len);
+        _web_set_text(buf);
+        _free(buf);
+        requestRedraw();
+      }
+
+      /* ?text= is applied pre-main via Module.arguments; here we
+       * handle the async ?font= fetch.  Text (if any) is re-applied
+       * after the font loads. */
+      if (urlFont) {
+        fetch(urlFont)
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.arrayBuffer();
+          })
+          .then(function (ab) {
+            var data = new Uint8Array(ab);
+            var buf = _malloc(data.length);
+            HEAPU8.set(data, buf);
+            _web_load_font(buf, data.length);
+            _free(buf);
+            if (urlText) applyText(urlText);
+          })
+          .catch(function (err) {
+            console.warn('?font= fetch failed: ' + err.message);
+          });
       }
     }
   };

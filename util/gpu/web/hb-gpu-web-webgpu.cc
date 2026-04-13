@@ -360,6 +360,8 @@ static hb_face_t *current_face;
 static hb_font_t *current_font;
 static char *current_text;
 static bool custom_text;
+static const char *arg_text = nullptr;
+static const char *arg_font = nullptr;
 
 
 /* ---- Buffer rebuild ---- */
@@ -1019,7 +1021,9 @@ init_demo ()
   current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
   { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, 0, palette, 256); if (n) renderer->set_palette (palette, n); }
 
-  current_text = strdup (default_text_combined);
+  current_text = strdup (arg_text ? arg_text : default_text_combined);
+  if (arg_text)
+    custom_text = true;
 
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
@@ -1064,8 +1068,16 @@ init_demo ()
 
 
 int
-main ()
+main (int argc, char **argv)
 {
+  for (int i = 1; i < argc; i++)
+  {
+    if (!strncmp (argv[i], "--text=", 7))
+      arg_text = argv[i] + 7;
+    else if (!strncmp (argv[i], "--font=", 7))
+      arg_font = argv[i] + 7;
+  }
+
   emscripten_get_canvas_element_size ("#canvas", &canvas_w, &canvas_h);
   double css_w_d, css_h_d;
   emscripten_get_element_css_size ("#canvas", &css_w_d, &css_h_d);
