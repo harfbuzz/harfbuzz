@@ -176,6 +176,9 @@ HB_EXTERN void *
 hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
 			    hb_user_data_key_t   *key);
 
+HB_EXTERN hb_paint_funcs_t *
+hb_gpu_paint_get_funcs (void);
+
 HB_EXTERN hb_bool_t
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_font_t      *font,

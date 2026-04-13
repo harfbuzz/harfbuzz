@@ -257,6 +257,53 @@ struct hb_gpu_paint_t
   /* Font scale (set by hb_gpu_paint_glyph()). */
   int x_scale = 0;
   int y_scale = 0;
+
+  /* Accumulator state (cleared by hb_gpu_paint_clear). */
+
+  /* Flat int16 op stream.  Each op is a sequence of i16 words
+   * whose total length is determined by the op type (see the
+   * design notes at the top of this file). */
+  hb_vector_t<int16_t> ops;
+  unsigned num_ops = 0;
+
+  /* Clip-glyph Slug sub-blobs collected during paint walk.
+   * Referenced by sub_blob_index recorded inside ops;
+   * hb_gpu_paint_encode() concatenates them after the op stream and
+   * patches the recorded indices into texel offsets. */
+  hb_vector_t<hb_blob_t *> sub_blobs;
+
+  /* Paint-callback scratch: next color/gradient op consumes these. */
+  bool pending_clip = false;
+  hb_codepoint_t pending_clip_glyph = 0;
+  hb_font_t     *pending_clip_font  = nullptr;  /* borrowed */
+  unsigned       pending_palette_index = 0;     /* written by
+                                                 * custom_palette_color_func;
+                                                 * ignored when the color
+                                                 * callback reports
+                                                 * is_foreground */
+
+  /* Set when the paint walk emits v1-only callbacks we do not yet
+   * support.  hb_gpu_paint_encode() returns NULL in that case. */
+  bool unsupported = false;
+
+  /* Extents in font design units, accumulated across layers. */
+  int ext_min_x =  0x7fffffff;
+  int ext_min_y =  0x7fffffff;
+  int ext_max_x = -0x7fffffff;
+  int ext_max_y = -0x7fffffff;
+
+  /* Scratch: used to rasterize each clip-glyph outline. */
+  hb_gpu_draw_t *scratch_draw = nullptr;
+
+  /* Recycled output blob. */
+  hb_blob_t *recycled_blob = nullptr;
+
+  ~hb_gpu_paint_t ()
+  {
+    for (hb_blob_t *b : sub_blobs) hb_blob_destroy (b);
+    hb_gpu_draw_destroy (scratch_draw);
+    hb_blob_destroy (recycled_blob);
+  }
 };
 
 
