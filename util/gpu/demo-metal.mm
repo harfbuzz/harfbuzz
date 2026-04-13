@@ -59,26 +59,23 @@ vertex VertexOut vertex_main(VertexIn in [[stage_in]],
 
 fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
-                              device const short4* atlas [[buffer(0)]]) {
-  float coverage = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
-
-  /* Stem darkening / thinning at small sizes. */
-  if (uniforms.stem_darkening > 0.0)
-    coverage = hb_gpu_stem_darken(coverage,
-      dot(uniforms.foreground.rgb, float3(1.0 / 3.0)),
-      1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y));
+                              device const short4* atlas [[buffer(0)]],
+                              constant float4* palette [[buffer(2)]]) {
+  /* Paint interpreter returns premultiplied RGBA. */
+  float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
+                          atlas, palette);
 
   if (uniforms.gamma != 1.0)
-    coverage = pow(coverage, uniforms.gamma);
+    c.a = pow(c.a, uniforms.gamma);
 
   if (uniforms.debug > 0.0) {
     int2 counts = _hb_gpu_curve_counts(in.texcoord, in.glyphLoc, atlas);
     float r = clamp(float(counts.x) / 8.0, 0.0, 1.0);
     float g = clamp(float(counts.y) / 8.0, 0.0, 1.0);
-    return float4(r, g, coverage, max(max(r, g), coverage));
+    return float4(r, g, c.a, max(max(r, g), c.a));
   }
 
-  return float4(uniforms.foreground.xyz, uniforms.foreground.w * coverage);
+  return c;
 }
 
 )msl";
@@ -108,6 +105,10 @@ struct demo_renderer_metal_t : demo_renderer_t
   unsigned int atlas_cursor;    /* in texels */
   id<MTLBuffer> atlasBuffer;
   bool atlas_dirty;
+
+  /* Palette buffer (256 x float4).  Currently zero-filled; real
+   * palette upload is a TODO (see demo-font.cc for the GL path). */
+  id<MTLBuffer> paletteBuffer;
 
   /* Cached vertex buffer */
   id<MTLBuffer> vertexBuffer;
@@ -312,6 +313,7 @@ struct demo_renderer_metal_t : demo_renderer_t
 	[encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
 	[encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
 	[encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+	[encoder setFragmentBuffer:paletteBuffer offset:0 atIndex:2];
 
 	[encoder drawPrimitives:MTLPrimitiveTypeTriangle
 		    vertexStart:0
@@ -363,6 +365,7 @@ struct demo_renderer_metal_t : demo_renderer_t
 	[encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
 	[encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
 	[encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+	[encoder setFragmentBuffer:paletteBuffer offset:0 atIndex:2];
 
 	[encoder drawPrimitives:MTLPrimitiveTypeTriangle
 		    vertexStart:0
@@ -405,14 +408,17 @@ demo_renderer_create_metal (GLFWwindow *window)
   nswindow.contentView.wantsLayer = YES;
 
   /* Compile shaders */
-  const char *vert_common = hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
-  const char *vert_src    = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
-  const char *frag_common = hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
-  const char *frag_src    = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
+  const char *vert_common = hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
+  const char *vert_src    = hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_common = hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_draw   = hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_paint  = hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
 
   NSString *preamble = @"#include <metal_stdlib>\nusing namespace metal;\n";
-  NSString *source = [NSString stringWithFormat:@"%@%s%s%s%s%s",
-		      preamble, vert_common, vert_src, frag_common, frag_src, demo_metal_shader_source];
+  NSString *source = [NSString stringWithFormat:@"%@%s%s%s%s%s%s",
+		      preamble, vert_common, vert_src,
+		      frag_common, frag_draw, frag_paint,
+		      demo_metal_shader_source];
 
   NSError *error = nil;
   id<MTLLibrary> library = [r->device newLibraryWithSource:source
@@ -479,6 +485,12 @@ demo_renderer_create_metal (GLFWwindow *window)
   r->atlasBuffer = [r->device newBufferWithLength:atlas_capacity * TEXEL_SIZE
 					  options:MTLResourceStorageModeShared];
   r->atlas_dirty = false;
+
+  /* Palette: 256 float4 entries, zero-filled for now.  Real upload
+   * from the font's active palette is TODO. */
+  r->paletteBuffer = [r->device newBufferWithLength:256 * 4 * sizeof (float)
+					    options:MTLResourceStorageModeShared];
+  memset (r->paletteBuffer.contents, 0, 256 * 4 * sizeof (float));
 
   /* Create atlas wrapper for demo_font_t */
   demo_atlas_backend_t backend = {
