@@ -75,7 +75,9 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 	       : hb_gpu_palette[palette_index];
       col.a *= alpha;
 
-      float cov = hb_gpu_draw (renderCoord, uint (payload));
+      /* payload is a blob-relative texel offset; sub-blobs live
+       * inside the paint blob at atlas offset `base`. */
+      float cov = hb_gpu_draw (renderCoord, uint (base + payload));
       vec4 src  = col * cov;
       /* SRC_OVER with premultiplied source. */
       acc = src + acc * (1.0 - src.a);

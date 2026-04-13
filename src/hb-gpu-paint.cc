@@ -71,7 +71,10 @@ hb_gpu_paint_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pending_clip = true;
   c->pending_clip_glyph = glyph;
   c->pending_clip_font  = font;
-  c->pending_palette_index = 0;
+  /* Don't reset pending_palette_index here: COLR's paint emitter
+   * calls custom_palette_color BEFORE push_clip_glyph, so the
+   * index set by the custom-palette-color callback must survive
+   * this call and be consumed by the next color callback. */
 }
 
 static void

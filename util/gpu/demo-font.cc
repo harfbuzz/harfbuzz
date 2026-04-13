@@ -17,6 +17,8 @@ struct demo_font_t {
   demo_atlas_t    *atlas;
   hb_gpu_paint_t  *p;
 
+  bool palette_uploaded;
+
   unsigned int num_glyphs;
   unsigned int sum_bytes;
 };
@@ -29,6 +31,8 @@ demo_font_upload_palette (hb_face_t *face)
   if (!program) return;
 
   GLint loc = glGetUniformLocation (program, "hb_gpu_palette");
+  if (loc < 0)
+    loc = glGetUniformLocation (program, "hb_gpu_palette[0]");
   if (loc < 0) return;
 
   unsigned count = hb_ot_color_palette_get_colors (face, 0, 0, NULL, NULL);
@@ -62,8 +66,10 @@ demo_font_create (hb_font_t    *hb_font,
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
   font->p = hb_gpu_paint_create_or_fail ();
-
-  demo_font_upload_palette (font->face);
+  /* Palette uniform needs a bound GL program; demo_font_create is
+   * called before the renderer's program is made current.  Upload
+   * lazily on the first glyph request. */
+  font->palette_uploaded = false;
 
   return font;
 }
@@ -101,6 +107,12 @@ _demo_font_upload_glyph (demo_font_t  *font,
 			 unsigned int  glyph_index,
 			 glyph_info_t *glyph_info)
 {
+  if (!font->palette_uploaded)
+  {
+    demo_font_upload_palette (font->face);
+    font->palette_uploaded = true;
+  }
+
   hb_gpu_paint_clear (font->p);
   hb_gpu_paint_glyph (font->p, font->font, glyph_index);
 
