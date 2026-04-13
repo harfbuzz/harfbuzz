@@ -21,6 +21,21 @@ gpu_demo_sources = files(
   'trackball.hh',
 )
 
+demo_shader_sources = [
+  [ 'demo-vertex.glsl',   'demo-vertex-glsl.hh' ],
+  [ 'demo-fragment.glsl', 'demo-fragment-glsl.hh' ],
+]
+
+demo_shader_helper = find_program('../../src/gen-gpu-shader-artifacts.py')
+foreach p: demo_shader_sources
+  gpu_demo_sources += custom_target('@0@'.format(p.get(1)),
+    build_by_default: true,
+    input: p.get(0),
+    output: p.get(1),
+    command: [ demo_shader_helper, '@OUTPUT@',
+	       meson.current_source_dir(), '@INPUT@' ])
+endforeach
+
 if host_machine.system() == 'darwin'
   gpu_demo_sources += files(
     'demo-metal.mm',
