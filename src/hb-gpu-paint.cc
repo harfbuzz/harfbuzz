@@ -316,10 +316,16 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
   hb_font_get_scale (font, &paint->x_scale, &paint->y_scale);
   /* Sentinel foreground (zero).  The encoder never stores the
    * actual foreground value -- it just records the is_foreground
-   * flag; the shader resolves foreground per quad. */
-  return hb_font_paint_glyph_or_fail (font, glyph,
-				      hb_gpu_paint_get_funcs (), paint,
-				      0, HB_COLOR (0, 0, 0, 0));
+   * flag; the shader resolves foreground per quad.
+   *
+   * Use hb_font_paint_glyph (not _or_fail) so that non-color
+   * glyphs still produce a blob: harfbuzz synthesizes
+   * push_clip_glyph + color(is_foreground=true) + pop_clip, which
+   * our callbacks turn into a single LAYER_SOLID op. */
+  hb_font_paint_glyph (font, glyph,
+		       hb_gpu_paint_get_funcs (), paint,
+		       0, HB_COLOR (0, 0, 0, 0));
+  return !paint->unsupported;
 }
 
 /**

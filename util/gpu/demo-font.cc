@@ -4,6 +4,8 @@
 
 #include "demo-font.h"
 
+#include <hb-ot.h>
+
 #include <map>
 
 typedef std::map<unsigned int, glyph_info_t> glyph_cache_t;
@@ -13,11 +15,41 @@ struct demo_font_t {
   hb_font_t       *font;
   glyph_cache_t   *glyph_cache;
   demo_atlas_t    *atlas;
-  hb_gpu_draw_t  *g;
+  hb_gpu_paint_t  *p;
 
   unsigned int num_glyphs;
   unsigned int sum_bytes;
 };
+
+static void
+demo_font_upload_palette (hb_face_t *face)
+{
+  GLint program;
+  glGetIntegerv (GL_CURRENT_PROGRAM, &program);
+  if (!program) return;
+
+  GLint loc = glGetUniformLocation (program, "hb_gpu_palette");
+  if (loc < 0) return;
+
+  unsigned count = hb_ot_color_palette_get_colors (face, 0, 0, NULL, NULL);
+  if (!count) return;
+  if (count > 256) count = 256;
+
+  hb_color_t colors[256];
+  unsigned returned = count;
+  hb_ot_color_palette_get_colors (face, 0, 0, &returned, colors);
+
+  float palette[256 * 4] = {0};
+  for (unsigned i = 0; i < returned; i++)
+  {
+    palette[i * 4 + 0] = hb_color_get_red   (colors[i]) / 255.f;
+    palette[i * 4 + 1] = hb_color_get_green (colors[i]) / 255.f;
+    palette[i * 4 + 2] = hb_color_get_blue  (colors[i]) / 255.f;
+    palette[i * 4 + 3] = hb_color_get_alpha (colors[i]) / 255.f;
+  }
+
+  glUniform4fv (loc, 256, palette);
+}
 
 demo_font_t *
 demo_font_create (hb_font_t    *hb_font,
@@ -29,7 +61,9 @@ demo_font_create (hb_font_t    *hb_font,
   font->font = hb_font_reference (hb_font);
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
-  font->g = hb_gpu_draw_create_or_fail ();
+  font->p = hb_gpu_paint_create_or_fail ();
+
+  demo_font_upload_palette (font->face);
 
   return font;
 }
@@ -40,7 +74,7 @@ demo_font_destroy (demo_font_t *font)
   if (!font)
     return;
 
-  hb_gpu_draw_destroy (font->g);
+  hb_gpu_paint_destroy (font->p);
   demo_atlas_destroy (font->atlas);
   delete font->glyph_cache;
   hb_font_destroy (font->font);
@@ -67,13 +101,11 @@ _demo_font_upload_glyph (demo_font_t  *font,
 			 unsigned int  glyph_index,
 			 glyph_info_t *glyph_info)
 {
-  hb_gpu_draw_reset (font->g);
+  hb_gpu_paint_clear (font->p);
+  hb_gpu_paint_glyph (font->p, font->font, glyph_index);
 
-  hb_gpu_draw_glyph (font->g, font->font, glyph_index);
-
-  /* Get extents in font design units */
   hb_glyph_extents_t hb_ext;
-  hb_blob_t *blob = hb_gpu_draw_encode (font->g, &hb_ext);
+  hb_blob_t *blob = hb_gpu_paint_encode (font->p, &hb_ext);
   if (!blob)
     die ("Failed encoding glyph");
 
@@ -97,7 +129,7 @@ _demo_font_upload_glyph (demo_font_t  *font,
   font->num_glyphs++;
   font->sum_bytes += len;
 
-  hb_gpu_draw_recycle_blob (font->g, blob);
+  hb_gpu_paint_recycle_blob (font->p, blob);
 }
 
 void

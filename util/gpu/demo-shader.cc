@@ -46,30 +46,26 @@ out vec4 fragColor;
 
 void main ()
 {
-  float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
-
-  /* Stem darkening / thinning at small sizes.
-   * Light text on dark: stems get too fat → thin them (exponent > 1).
-   * Dark text on light: stems get too thin → darken them (exponent < 1).
-   * The foreground brightness tells us which mode we're in. */
-  if (u_stem_darkening > 0.0)
-    coverage = hb_gpu_stem_darken (coverage,
-      dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
-      hb_gpu_ppem (v_texcoord, v_glyphLoc));
+  /* The paint interpreter returns a premultiplied RGBA.  For
+   * non-color glyphs the encoder synthesizes a single
+   * LAYER_SOLID with is_foreground=true, so the result is
+   * u_foreground * coverage -- same visual as the old draw
+   * path.  For COLRv0 glyphs it returns the composited color. */
+  vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
 
   if (u_gamma != 1.0)
-    coverage = pow (coverage, u_gamma);
+    c.a = pow (c.a, u_gamma);
 
   if (u_debug > 0.0)
   {
     ivec2 counts = _hb_gpu_curve_counts (v_texcoord, v_glyphLoc);
     float r = clamp (float (counts.x) / 8.0, 0.0, 1.0);
     float g = clamp (float (counts.y) / 8.0, 0.0, 1.0);
-    fragColor = vec4 (r, g, coverage, max (max (r, g), coverage));
+    fragColor = vec4 (r, g, c.a, max (max (r, g), c.a));
     return;
   }
 
-  fragColor = vec4 (u_foreground.rgb, u_foreground.a * coverage);
+  fragColor = c;
 }
 )glsl";
 
@@ -164,8 +160,9 @@ demo_shader_create_program (void)
 				  vert_sources);
 
   const GLchar *frag_sources[] = {preamble,
-				  hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
-				  hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
+				  hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
+				  hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
+				  hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
 				  demo_fragment_glsl};
   fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
 				    ARRAY_LEN (frag_sources),
