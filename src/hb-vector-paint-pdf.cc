@@ -481,6 +481,7 @@ hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
   unsigned raw_len = (width + 1) * height; /* 1 filter byte per row + width bytes */
   uint8_t *raw = (uint8_t *) hb_malloc (raw_len);
   if (!raw) return false;
+  HB_SCOPE_GUARD (hb_free (raw));
 
   z_stream stream = {};
   stream.next_in = (Bytef *) idat_data;
@@ -489,38 +490,25 @@ hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
   stream.avail_out = raw_len;
 
   if (inflateInit (&stream) != Z_OK)
-  {
-    hb_free (raw);
     return false;
-  }
   int status = inflate (&stream, Z_FINISH);
   inflateEnd (&stream);
   if (status != Z_STREAM_END)
-  {
-    hb_free (raw);
     return false;
-  }
 
   /* Un-filter and map to alpha. */
   if (!out->resize (width * height))
-  {
-    hb_free (raw);
     return false;
-  }
 
   uint8_t *unfiltered = (uint8_t *) hb_malloc (width);
   if (!unfiltered)
-  {
-    hb_free (raw);
     return false;
-  }
+  HB_SCOPE_GUARD (hb_free (unfiltered));
+
   uint8_t *prev_unfiltered = (uint8_t *) hb_calloc (width, 1);
   if (!prev_unfiltered)
-  {
-    hb_free (unfiltered);
-    hb_free (raw);
     return false;
-  }
+  HB_SCOPE_GUARD (hb_free (prev_unfiltered));
 
   for (unsigned y = 0; y < height; y++)
   {
@@ -565,9 +553,6 @@ hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
     unfiltered = tmp;
   }
 
-  hb_free (unfiltered);
-  hb_free (prev_unfiltered);
-  hb_free (raw);
   return true;
 #endif
 }

@@ -28,6 +28,7 @@ hb_blob_decompress_gzip (hb_blob_t *blob,
 
   if (inflateInit2 (&stream, 16 + MAX_WBITS) != Z_OK)
     return nullptr;
+  HB_SCOPE_GUARD (inflateEnd (&stream));
 
   uint32_t expected_size = 0;
   hb_gzip_get_uncompressed_size ((const char *) compressed,
@@ -38,27 +39,25 @@ hb_blob_decompress_gzip (hb_blob_t *blob,
                              (size_t) max_output_len);
   char *output = (char *) hb_malloc (allocated);
   if (!output)
-  {
-    inflateEnd (&stream);
     return nullptr;
-  }
+  auto output_guard = hb_make_scope_guard ([&]() { hb_free (output); });
 
   int status = Z_OK;
   while (true)
   {
     size_t produced = (size_t) stream.total_out;
     if (unlikely (produced >= (size_t) max_output_len))
-      goto fail;
+      return nullptr;
 
     if (produced == allocated)
     {
       size_t new_allocated = hb_min (allocated * 2, (size_t) max_output_len);
       if (unlikely (new_allocated <= allocated))
-        goto fail;
+        return nullptr;
 
       char *new_output = (char *) hb_realloc (output, new_allocated);
       if (unlikely (!new_output))
-        goto fail;
+        return nullptr;
 
       output = new_output;
       allocated = new_allocated;
@@ -74,25 +73,18 @@ hb_blob_decompress_gzip (hb_blob_t *blob,
     if ((status == Z_OK || status == Z_BUF_ERROR) && stream.avail_out == 0)
       continue;
 
-    goto fail;
+    return nullptr;
   }
 
-  inflateEnd (&stream);
-
   if (unlikely ((size_t) stream.total_out > (size_t) max_output_len))
-    goto fail_free;
+    return nullptr;
 
+  output_guard.release ();
   return hb_blob_create_or_fail (output,
                                  (unsigned) stream.total_out,
                                  HB_MEMORY_MODE_WRITABLE,
                                  output,
                                  hb_free);
-
-fail:
-  inflateEnd (&stream);
-fail_free:
-  hb_free (output);
-  return nullptr;
 #endif
 }
 
