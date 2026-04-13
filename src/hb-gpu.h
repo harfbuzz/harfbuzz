@@ -117,6 +117,9 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
 			   hb_glyph_extents_t *extents);
 
 HB_EXTERN void
+hb_gpu_draw_clear (hb_gpu_draw_t *draw);
+
+HB_EXTERN void
 hb_gpu_draw_reset (hb_gpu_draw_t *draw);
 
 HB_EXTERN void

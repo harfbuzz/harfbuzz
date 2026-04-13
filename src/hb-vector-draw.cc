@@ -777,12 +777,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 
   hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
 
-  draw->path.clear ();
-  draw->defs.clear ();
-  draw->body.clear ();
-  hb_set_clear (draw->defined_glyphs);
-  draw->has_extents = false;
-  draw->extents = {0, 0, 0, 0};
+  hb_vector_draw_clear (draw);
 
   return blob;
 }
@@ -835,12 +830,7 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 
   hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
 
-  draw->path.clear ();
-  draw->defs.clear ();
-  draw->body.clear ();
-  hb_set_clear (draw->defined_glyphs);
-  draw->has_extents = false;
-  draw->extents = {0, 0, 0, 0};
+  hb_vector_draw_clear (draw);
 
   return blob;
 }
@@ -872,6 +862,28 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
 }
 
 /**
+ * hb_vector_draw_clear:
+ * @draw: a draw context.
+ *
+ * Discards accumulated draw output so @draw can be reused for
+ * another render.  User configuration (transform, scale factors,
+ * precision, flat) is preserved.  Call hb_vector_draw_reset() to
+ * also reset user configuration to defaults.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_clear (hb_vector_draw_t *draw)
+{
+  draw->extents = {0, 0, 0, 0};
+  draw->has_extents = false;
+  draw->defs.clear ();
+  draw->body.clear ();
+  draw->path.clear ();
+  hb_set_clear (draw->defined_glyphs);
+}
+
+/**
  * hb_vector_draw_reset:
  * @draw: a draw context.
  *
@@ -885,14 +897,9 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->transform = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
-  draw->extents = {0, 0, 0, 0};
-  draw->has_extents = false;
   draw->precision = 2;
   draw->flat = false;
-  draw->defs.clear ();
-  draw->body.clear ();
-  draw->path.clear ();
-  hb_set_clear (draw->defined_glyphs);
+  hb_vector_draw_clear (draw);
 }
 
 /**

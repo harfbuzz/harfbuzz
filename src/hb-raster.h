@@ -206,6 +206,9 @@ HB_EXTERN hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw);
 
 HB_EXTERN void
+hb_raster_draw_clear (hb_raster_draw_t *draw);
+
+HB_EXTERN void
 hb_raster_draw_reset (hb_raster_draw_t *draw);
 
 HB_EXTERN void
@@ -307,6 +310,9 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint);
+
+HB_EXTERN void
+hb_raster_paint_clear (hb_raster_paint_t *paint);
 
 HB_EXTERN void
 hb_raster_paint_reset (hb_raster_paint_t *paint);

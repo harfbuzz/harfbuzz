@@ -174,6 +174,9 @@ HB_EXTERN hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw);
 
 HB_EXTERN void
+hb_vector_draw_clear (hb_vector_draw_t *draw);
+
+HB_EXTERN void
 hb_vector_draw_reset (hb_vector_draw_t *draw);
 
 HB_EXTERN void
@@ -274,6 +277,9 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
 
 HB_EXTERN hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint);
+
+HB_EXTERN void
+hb_vector_paint_clear (hb_vector_paint_t *paint);
 
 HB_EXTERN void
 hb_vector_paint_reset (hb_vector_paint_t *paint);
