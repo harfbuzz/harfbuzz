@@ -185,6 +185,13 @@ HB_DEFINE_VTABLE (vector_paint, nullptr);
 
 #endif
 
+
+#ifdef HB_GPU_H
+
+HB_DEFINE_VTABLE (gpu_draw, nullptr);
+
+#endif
+
 #undef HB_DEFINE_VTABLE
 
 
