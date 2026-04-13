@@ -1145,4 +1145,11 @@ hb_gpu_draw_encode
 hb_gpu_draw_clear
 hb_gpu_draw_reset
 hb_gpu_draw_recycle_blob
+hb_gpu_paint_t
+hb_gpu_paint_create_or_fail
+hb_gpu_paint_reference
+hb_gpu_paint_destroy
+hb_gpu_paint_set_user_data
+hb_gpu_paint_get_user_data
+hb_gpu_paint_shader_source
 </SECTION>

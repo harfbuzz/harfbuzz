@@ -854,6 +854,8 @@ hb_gpu_sources = files(
   'hb-gpu-shaders.cc',
   'hb-gpu-draw.cc',
   'hb-gpu-draw-shaders.cc',
+  'hb-gpu-paint.cc',
+  'hb-gpu-paint-shaders.cc',
   'hb-static.cc',
 )
 

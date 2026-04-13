@@ -145,12 +145,49 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
 			    hb_blob_t      *blob);
 
 
+/**
+ * hb_gpu_paint_t:
+ *
+ * An opaque GPU color-glyph encoder.  Accumulates color-glyph
+ * paint state via paint callbacks, then encodes it into a compact
+ * blob for GPU rendering.
+ *
+ * XSince: REPLACEME
+ */
+typedef struct hb_gpu_paint_t hb_gpu_paint_t;
+
+HB_EXTERN hb_gpu_paint_t *
+hb_gpu_paint_create_or_fail (void);
+
+HB_EXTERN hb_gpu_paint_t *
+hb_gpu_paint_reference (hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_destroy (hb_gpu_paint_t *paint);
+
+HB_EXTERN hb_bool_t
+hb_gpu_paint_set_user_data (hb_gpu_paint_t     *paint,
+			    hb_user_data_key_t *key,
+			    void               *data,
+			    hb_destroy_func_t   destroy,
+			    hb_bool_t           replace);
+
+HB_EXTERN void *
+hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
+			    hb_user_data_key_t   *key);
+
+HB_EXTERN const char *
+hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
+			    hb_gpu_shader_lang_t  lang);
+
+
 HB_END_DECLS
 
 
 #if defined(__cplusplus) && defined(HB_CPLUSPLUS_HH)
 namespace hb {
-HB_DEFINE_VTABLE (gpu_draw, nullptr);
+HB_DEFINE_VTABLE (gpu_draw,  nullptr);
+HB_DEFINE_VTABLE (gpu_paint, nullptr);
 } // namespace hb
 #endif
 
