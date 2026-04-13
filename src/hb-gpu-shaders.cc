@@ -28,14 +28,14 @@
 
 #include "hb-gpu.h"
 
-#include "hb-gpu-fragment-glsl.hh"
-#include "hb-gpu-vertex-glsl.hh"
-#include "hb-gpu-fragment-msl.hh"
-#include "hb-gpu-vertex-msl.hh"
-#include "hb-gpu-fragment-wgsl.hh"
-#include "hb-gpu-vertex-wgsl.hh"
-#include "hb-gpu-fragment-hlsl.hh"
-#include "hb-gpu-vertex-hlsl.hh"
+#include "hb-gpu-draw-fragment-glsl.hh"
+#include "hb-gpu-draw-vertex-glsl.hh"
+#include "hb-gpu-draw-fragment-msl.hh"
+#include "hb-gpu-draw-vertex-msl.hh"
+#include "hb-gpu-draw-fragment-wgsl.hh"
+#include "hb-gpu-draw-vertex-wgsl.hh"
+#include "hb-gpu-draw-fragment-hlsl.hh"
+#include "hb-gpu-draw-vertex-hlsl.hh"
 
 
 /**
@@ -64,18 +64,18 @@ hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,
   switch (stage) {
   case HB_GPU_SHADER_STAGE_FRAGMENT:
     switch (lang) {
-    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_fragment_glsl;
-    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_fragment_msl;
-    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_fragment_wgsl;
-    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_fragment_hlsl;
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_draw_fragment_glsl;
+    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_draw_fragment_msl;
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_draw_fragment_wgsl;
+    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_draw_fragment_hlsl;
     default: return nullptr;
     }
   case HB_GPU_SHADER_STAGE_VERTEX:
     switch (lang) {
-    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_vertex_glsl;
-    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_vertex_msl;
-    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_vertex_wgsl;
-    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_vertex_hlsl;
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_draw_vertex_glsl;
+    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_draw_vertex_msl;
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_draw_vertex_wgsl;
+    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_draw_vertex_hlsl;
     default: return nullptr;
     }
   default:

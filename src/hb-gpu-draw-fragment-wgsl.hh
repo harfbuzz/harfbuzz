@@ -1,4 +1,4 @@
-static const char *hb_gpu_fragment_wgsl =
+static const char *hb_gpu_draw_fragment_wgsl =
 "/*\n"
 " * Copyright (C) 2026  Behdad Esfahbod\n"
 " * Copyright (C) 2017  Eric Lengyel\n"
