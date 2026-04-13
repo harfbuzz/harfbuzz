@@ -39,7 +39,7 @@ struct PairSet : ValueBase
   {
     const ValueFormat *valueFormats;
     unsigned int len1; /* valueFormats[0].get_len() */
-    unsigned int stride; /* bytes */
+    size_t stride; /* bytes */
   };
 
   bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
