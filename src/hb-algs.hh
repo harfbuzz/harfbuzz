@@ -1692,8 +1692,11 @@ template <typename F>
 struct hb_scope_guard_t
 {
   explicit hb_scope_guard_t (F &&f) : f (std::move (f)), active (true) {}
+  hb_scope_guard_t (hb_scope_guard_t &&o) noexcept
+    : f (std::move (o.f)), active (o.active) { o.active = false; }
   hb_scope_guard_t (const hb_scope_guard_t &) = delete;
   hb_scope_guard_t &operator= (const hb_scope_guard_t &) = delete;
+  hb_scope_guard_t &operator= (hb_scope_guard_t &&) = delete;
   ~hb_scope_guard_t () { if (active) f (); }
 
   /* Release: dismiss the guard so the cleanup does NOT run.  Use
