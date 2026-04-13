@@ -1117,14 +1117,13 @@ _hb_ft_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data
   buffer = (FT_Byte *) hb_malloc (length);
   if (!buffer)
     return nullptr;
+  auto buffer_guard = hb_make_scope_guard ([&]() { hb_free (buffer); });
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, buffer, &length);
   if (error)
-  {
-    hb_free (buffer);
     return nullptr;
-  }
 
+  buffer_guard.release ();
   return hb_blob_create ((const char *) buffer, length,
 			 HB_MEMORY_MODE_WRITABLE,
 			 buffer, hb_free);

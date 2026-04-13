@@ -627,16 +627,19 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
       stops[i].offset = 1 - stops[i].offset;
   }
 
+  auto angles_guard = hb_make_scope_guard ([&]() {
+    if (angles != angles_) hb_free (angles);
+  });
+  auto colors_guard = hb_make_scope_guard ([&]() {
+    if (colors != colors_) hb_free (colors);
+  });
+
   if (n_stops > PREALLOCATED_COLOR_STOPS)
   {
     angles = (float *) hb_malloc (sizeof (float) * n_stops);
     colors = (hb_cairo_color_t *) hb_malloc (sizeof (hb_cairo_color_t) * n_stops);
     if (unlikely (!angles || !colors))
-    {
-      hb_free (angles);
-      hb_free (colors);
       return;
-    }
   }
 
   for (unsigned i = 0; i < n_stops; i++)
@@ -673,7 +676,7 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
 					     0.,       &color0,
 					     HB_2_PI, &color0,
 					     pattern);
-      goto done;
+      return;
     }
 
     _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
@@ -710,7 +713,7 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
 					     angles[n_stops - 1], &color0,
 					     HB_2_PI,            &color0,
 					     pattern);
-      goto done;
+      return;
     }
   }
   else
@@ -720,7 +723,7 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
 
     span = angles[n_stops - 1] - angles[0];
     if (!span)
-      goto done;
+      return;
 
     k = 0;
     if (angles[0] >= 0)
@@ -804,7 +807,7 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
 						 a0,       c0,
 						 HB_2_PI, &color,
 						 pattern);
-	  goto done;
+	  return;
 	}
 	else
 	{
@@ -817,12 +820,6 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
     }
   }
 
-done:
-
-  if (angles != angles_)
-    hb_free (angles);
-  if (colors != colors_)
-    hb_free (colors);
 }
 
 void

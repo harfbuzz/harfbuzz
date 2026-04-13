@@ -166,25 +166,25 @@ _hb_paint_funcs_set_middle (hb_paint_funcs_t  *funcs,
                             void              *user_data,
                             hb_destroy_func_t  destroy)
 {
+  auto destroy_guard = hb_make_scope_guard ([&]() {
+    if (destroy) destroy (user_data);
+  });
+
   if (user_data && !funcs->user_data)
   {
     funcs->user_data = (decltype (funcs->user_data)) hb_calloc (1, sizeof (*funcs->user_data));
     if (unlikely (!funcs->user_data))
-      goto fail;
+      return false;
   }
   if (destroy && !funcs->destroy)
   {
     funcs->destroy = (decltype (funcs->destroy)) hb_calloc (1, sizeof (*funcs->destroy));
     if (unlikely (!funcs->destroy))
-      goto fail;
+      return false;
   }
 
+  destroy_guard.release ();
   return true;
-
-fail:
-  if (destroy)
-    (destroy) (user_data);
-  return false;
 }
 
 #define HB_PAINT_FUNC_IMPLEMENT(name)                                           \

@@ -1113,7 +1113,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   /* Inverse transform: pixel → glyph space */
   hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f) goto done;
+  if (fabsf (det) < 1e-10f) return;
 
   {
     float inv_det = 1.f / det;
@@ -1127,7 +1127,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     /* Gradient direction vector and denominator for projection */
     float dx = gx1 - gx0, dy = gy1 - gy0;
     float denom = dx * dx + dy * dy;
-    if (denom < 1e-10f) goto done;
+    if (denom < 1e-10f) return;
     float inv_denom = 1.f / denom;
 
     unsigned stride = surf->extents.stride;
@@ -1215,8 +1215,6 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-done:
-  (void) stops_;
 }
 
 static void
@@ -1263,7 +1261,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   /* Inverse transform */
   hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f) goto done;
+  if (fabsf (det) < 1e-10f) return;
 
   {
     float inv_det = 1.f / det;
@@ -1494,8 +1492,6 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-done:
-  (void) stops_;
 }
 
 static void
@@ -1540,7 +1536,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   /* Inverse transform */
   hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f || fabsf (angle_range) < 1e-10f) goto done;
+  if (fabsf (det) < 1e-10f || fabsf (angle_range) < 1e-10f) return;
 
   {
     float inv_det = 1.f / det;
@@ -1646,8 +1642,6 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-done:
-  (void) stops_;
 }
 
 static hb_bool_t
@@ -2207,11 +2201,23 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
 hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint)
 {
-  hb_raster_image_t *result = nullptr;
+  /* Common per-exit state reset.  Runs on every return path,
+   * including the early-return failure cases below. */
+  HB_SCOPE_GUARD ({
+    paint->transform_stack.clear ();
+    paint->release_all_clips ();
+    for (auto *s : paint->surface_stack)
+      paint->release_surface (s);
+    paint->surface_stack.clear ();
+    hb_raster_draw_reset (paint->clip_rdr);
+    paint->has_extents = false;
+    paint->fixed_extents = {};
+  });
 
   if (unlikely (!paint->has_extents))
-    goto fail;
+    return nullptr;
 
+  hb_raster_image_t *result;
   if (paint->surface_stack.length)
   {
     result = paint->surface_stack[0];
@@ -2225,28 +2231,10 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
   {
     result = paint->acquire_surface ();
     if (unlikely (!result))
-      goto fail;
+      return nullptr;
   }
 
-  /* Clean up stacks and reset auto-extents for next glyph. */
-  paint->transform_stack.clear ();
-  paint->release_all_clips ();
-  hb_raster_draw_reset (paint->clip_rdr);
-  paint->has_extents = false;
-  paint->fixed_extents = {};
-
   return result;
-
-fail:
-  paint->transform_stack.clear ();
-  paint->release_all_clips ();
-  for (auto *s : paint->surface_stack)
-    paint->release_surface (s);
-  paint->surface_stack.clear ();
-  hb_raster_draw_reset (paint->clip_rdr);
-  paint->has_extents = false;
-  paint->fixed_extents = {};
-  return nullptr;
 }
 
 /**

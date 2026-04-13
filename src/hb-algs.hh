@@ -1673,4 +1673,51 @@ double solve_itp (func_t f,
 }
 
 
+/*
+ * Scope guard: runs a callable at scope exit (RAII cleanup for
+ * non-HB-type resources — raw malloc'd buffers, paired init/end
+ * calls like inflateInit/inflateEnd, FT_Done_* handles, etc.).
+ *
+ * Prefer hb_unique_ptr_t<hb_blob_t> etc. for HB types; this is
+ * for the long tail of cleanup that those wrappers don't cover.
+ *
+ * Usage:
+ *   void *buf = hb_malloc (len);
+ *   if (!buf) return false;
+ *   HB_SCOPE_GUARD (hb_free (buf));
+ *   ... multiple fallible operations ...
+ *   return true;  // buf freed automatically on any return path
+ */
+template <typename F>
+struct hb_scope_guard_t
+{
+  explicit hb_scope_guard_t (F &&f) : f (std::move (f)), active (true) {}
+  hb_scope_guard_t (hb_scope_guard_t &&o) noexcept
+    : f (std::move (o.f)), active (o.active) { o.active = false; }
+  hb_scope_guard_t (const hb_scope_guard_t &) = delete;
+  hb_scope_guard_t &operator= (const hb_scope_guard_t &) = delete;
+  hb_scope_guard_t &operator= (hb_scope_guard_t &&) = delete;
+  ~hb_scope_guard_t () { if (active) f (); }
+
+  /* Release: dismiss the guard so the cleanup does NOT run.  Use
+   * when transferring ownership out of the scope. */
+  void release () { active = false; }
+
+  private:
+  F f;
+  bool active;
+};
+
+template <typename F>
+static inline hb_scope_guard_t<F> hb_make_scope_guard (F &&f)
+{ return hb_scope_guard_t<F> (std::forward<F> (f)); }
+
+#define HB_SCOPE_GUARD_NAME_(line) hb_scope_guard_##line
+#define HB_SCOPE_GUARD_NAME(line) HB_SCOPE_GUARD_NAME_(line)
+#define HB_SCOPE_GUARD(stmt) \
+  auto HB_SCOPE_GUARD_NAME(__LINE__) = \
+    hb_make_scope_guard ([&]() { stmt; }); \
+  (void) HB_SCOPE_GUARD_NAME(__LINE__)
+
+
 #endif /* HB_ALGS_HH */
