@@ -28,6 +28,7 @@
 
 #include "hb-vector-paint.hh"
 #include "hb-blob.hh"
+#include "hb-paint.hh"
 #include "hb-vector-svg-path.hh"
 
 #include <math.h>
@@ -735,7 +736,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   auto *body = &paint->current_body ();
   unsigned precision = paint->precision;
   float radius = 32767.f;
-  hb_vector_sweep_gradient_tiles (stops.arrayZ, stops.length,
+  hb_sweep_gradient_tiles (stops.arrayZ, stops.length,
 			   hb_color_line_get_extend (color_line),
 			   start_angle, end_angle,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)

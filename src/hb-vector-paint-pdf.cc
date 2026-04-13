@@ -28,6 +28,7 @@
 
 #include "hb-vector-paint.hh"
 #include "hb-vector-draw.hh"
+#include "hb-paint.hh"
 
 #include <math.h>
 #include <stdio.h>
@@ -1055,7 +1056,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   hb_vector_t<char> mesh;
   mesh.alloc (256);
 
-  hb_vector_sweep_gradient_tiles (stops, n_stops, extend,
+  hb_sweep_gradient_tiles (stops, n_stops, extend,
 			   start_angle, end_angle,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
 			   { hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
