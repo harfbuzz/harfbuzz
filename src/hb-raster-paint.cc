@@ -2189,7 +2189,7 @@ hb_raster_paint_get_funcs (void)
  *
  * Return value: `true` if painting succeeded, `false` otherwise.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_raster_paint_glyph (hb_raster_paint_t *paint,
