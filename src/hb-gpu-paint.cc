@@ -122,3 +122,49 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
 {
   return hb_object_get_user_data (paint, key);
 }
+
+
+/**
+ * hb_gpu_paint_shader_source:
+ * @stage: pipeline stage (vertex or fragment)
+ * @lang: shader language variant
+ *
+ * Returns the paint-renderer-specific shader source for the
+ * specified stage and language.  The returned string is static
+ * and must not be freed.
+ *
+ * This source assumes the shared helpers returned by
+ * hb_gpu_shader_source() are concatenated ahead of it.  The
+ * caller should assemble the full shader as
+ * `#version`-directive + hb_gpu_shader_source() +
+ * hb_gpu_paint_shader_source() + caller's `main()`.
+ *
+ * The paint-renderer shaders have not yet been implemented; this
+ * function currently returns an empty string for supported
+ * @stage / @lang combinations so callers can concatenate
+ * unconditionally.
+ *
+ * Return value: (transfer none):
+ * A shader source string, or `NULL` if @stage or @lang is
+ * unsupported.
+ *
+ * XSince: REPLACEME
+ **/
+const char *
+hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
+			    hb_gpu_shader_lang_t  lang)
+{
+  switch (stage) {
+  case HB_GPU_SHADER_STAGE_FRAGMENT:
+  case HB_GPU_SHADER_STAGE_VERTEX:
+    switch (lang) {
+    case HB_GPU_SHADER_LANG_GLSL:
+    case HB_GPU_SHADER_LANG_MSL:
+    case HB_GPU_SHADER_LANG_WGSL:
+    case HB_GPU_SHADER_LANG_HLSL: return "";
+    default: return nullptr;
+    }
+  default:
+    return nullptr;
+  }
+}
