@@ -311,7 +311,7 @@ static const char *hb_gpu_draw_fragment_hlsl =
 " * brightness:  foreground brightness in [0, 1]\n"
 " * ppem:        pixels per em at this fragment\n"
 " */\n"
-"float hb_gpu_draw_darken (float coverage, float brightness, float ppem)\n"
+"float hb_gpu_stem_darken (float coverage, float brightness, float ppem)\n"
 "{\n"
 "  return pow (coverage,\n"
 "	      lerp (pow (2.0, brightness - 0.5), 1.0,\n"

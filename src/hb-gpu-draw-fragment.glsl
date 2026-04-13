@@ -324,7 +324,7 @@ float hb_gpu_draw (vec2 renderCoord, uint glyphLoc_)
  * brightness:  foreground brightness in [0, 1]
  * ppem:        pixels per em at this fragment
  */
-float hb_gpu_draw_darken (float coverage, float brightness, float ppem)
+float hb_gpu_stem_darken (float coverage, float brightness, float ppem)
 {
   return pow (coverage,
 	      mix (pow (2.0, brightness - 0.5), 1.0,

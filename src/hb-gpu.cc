@@ -300,7 +300,7 @@
  * # Stem darkening
  *
  * |[<!-- language="plain" -->
- * float hb_gpu_draw_darken (float coverage, float brightness, float ppem);
+ * float hb_gpu_stem_darken (float coverage, float brightness, float ppem);
  * ]|
  *
  * Optional stem darkening adjusts coverage at small sizes so
@@ -323,6 +323,6 @@
  * float brightness = dot (u_foreground.rgb, vec3 (1.0 / 3.0));
  * float ppem = 1.0 / max (fwidth (v_texcoord).x,
  *                          fwidth (v_texcoord).y);
- * coverage = hb_gpu_draw_darken (coverage, brightness, ppem);
+ * coverage = hb_gpu_stem_darken (coverage, brightness, ppem);
  * ]|
  **/

@@ -53,7 +53,7 @@ void main ()
    * Dark text on light: stems get too thin → darken them (exponent < 1).
    * The foreground brightness tells us which mode we're in. */
   if (u_stem_darkening > 0.0)
-    coverage = hb_gpu_draw_darken (coverage,
+    coverage = hb_gpu_stem_darken (coverage,
       dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
       hb_gpu_ppem (v_texcoord, v_glyphLoc));
 

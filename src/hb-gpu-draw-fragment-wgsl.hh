@@ -319,7 +319,7 @@ static const char *hb_gpu_draw_fragment_wgsl =
 " * brightness:  foreground brightness in [0, 1]\n"
 " * ppem:        pixels per em at this fragment\n"
 " */\n"
-"fn hb_gpu_draw_darken (coverage: f32, brightness: f32, ppem: f32) -> f32\n"
+"fn hb_gpu_stem_darken (coverage: f32, brightness: f32, ppem: f32) -> f32\n"
 "{\n"
 "  return pow (coverage,\n"
 "	      mix (pow (2.0, brightness - 0.5), 1.0,\n"

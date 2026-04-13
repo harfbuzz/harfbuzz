@@ -106,7 +106,7 @@ struct VertexOutput {
   var coverage = hb_gpu_draw (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
 
   if (u.stem_darkening > 0.0) {
-    coverage = hb_gpu_draw_darken (coverage,
+    coverage = hb_gpu_stem_darken (coverage,
       dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
       1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y));
   }

@@ -318,7 +318,7 @@ fn hb_gpu_draw (renderCoord: vec2f, glyphLoc_: u32,
  * brightness:  foreground brightness in [0, 1]
  * ppem:        pixels per em at this fragment
  */
-fn hb_gpu_draw_darken (coverage: f32, brightness: f32, ppem: f32) -> f32
+fn hb_gpu_stem_darken (coverage: f32, brightness: f32, ppem: f32) -> f32
 {
   return pow (coverage,
 	      mix (pow (2.0, brightness - 0.5), 1.0,
