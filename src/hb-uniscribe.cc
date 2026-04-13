@@ -321,7 +321,7 @@ _hb_generate_unique_face_name (wchar_t *face_name, unsigned int *plen)
 
 /* Destroys blob. */
 static hb_blob_t *
-_hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
+_hb_rename_font (hb_blob_t *blob_in, wchar_t *new_name)
 {
   /* Create a copy of the font data, with the 'name' table replaced by a
    * table that names the font with our private F_* name created above.
@@ -332,8 +332,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
    * full, PS. All of them point to the same name data with our unique name.
    */
 
-  blob = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (blob);
-  HB_SCOPE_GUARD (hb_blob_destroy (blob));
+  hb_unique_ptr_t<hb_blob_t> blob (hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (blob_in));
 
   unsigned int length, new_length, name_str_len;
   const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
