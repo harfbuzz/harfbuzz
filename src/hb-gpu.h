@@ -96,6 +96,11 @@ hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
 		       int            x_scale,
 		       int            y_scale);
 
+HB_EXTERN void
+hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
+		       int                 *x_scale,
+		       int                 *y_scale);
+
 /* Draw */
 
 HB_EXTERN hb_draw_funcs_t *

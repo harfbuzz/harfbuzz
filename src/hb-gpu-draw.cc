@@ -1015,6 +1015,26 @@ hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
 }
 
 /**
+ * hb_gpu_draw_get_scale:
+ * @draw: a GPU shape encoder
+ * @x_scale: (out): horizontal scale
+ * @y_scale: (out): vertical scale
+ *
+ * Gets the font scale previously set via hb_gpu_draw_set_scale() or
+ * hb_gpu_draw_glyph().
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
+		       int                 *x_scale,
+		       int                 *y_scale)
+{
+  if (x_scale) *x_scale = draw->x_scale;
+  if (y_scale) *y_scale = draw->y_scale;
+}
+
+/**
  * hb_gpu_draw_glyph:
  * @draw: a GPU shape encoder
  * @font: font to draw from
