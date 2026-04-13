@@ -39,7 +39,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     unsigned min_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
     if (vertex_len < min_size) return false;
     hb_barrier ();
@@ -623,7 +623,7 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
 
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < u.format.v.get_size ()) return false;
     hb_barrier ();
 
