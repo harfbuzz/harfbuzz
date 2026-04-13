@@ -122,7 +122,7 @@ hb_raster_image_deserialize_from_png_or_fail (hb_raster_image_t *image,
 					      hb_blob_t         *png);
 
 HB_EXTERN hb_blob_t *
-hb_raster_image_serialize_to_png_or_fail (hb_raster_image_t *image);
+hb_raster_image_serialize_to_png_or_fail (const hb_raster_image_t *image);
 
 
 /* hb_raster_draw_t */
