@@ -2054,6 +2054,57 @@ hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 }
 
 /**
+ * hb_raster_paint_get_foreground:
+ * @paint: a paint context
+ *
+ * Returns the foreground color previously set on @paint, or the
+ * default opaque black if none was set.
+ *
+ * Return value: the foreground color.
+ *
+ * XSince: REPLACEME
+ **/
+hb_color_t
+hb_raster_paint_get_foreground (const hb_raster_paint_t *paint)
+{
+  return paint->foreground;
+}
+
+/**
+ * hb_raster_paint_set_palette:
+ * @paint: a paint context
+ * @palette: palette index
+ *
+ * Selects which font palette is used when paint callbacks look up
+ * indexed colors.  Default is palette 0.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_set_palette (hb_raster_paint_t *paint,
+			     unsigned           palette)
+{
+  paint->palette = palette;
+}
+
+/**
+ * hb_raster_paint_get_palette:
+ * @paint: a paint context
+ *
+ * Returns the palette index previously set on @paint, or 0 if none
+ * was set.
+ *
+ * Return value: the palette index.
+ *
+ * XSince: REPLACEME
+ **/
+unsigned
+hb_raster_paint_get_palette (const hb_raster_paint_t *paint)
+{
+  return paint->palette;
+}
+
+/**
  * hb_raster_paint_clear_custom_palette_colors:
  * @paint: a paint context.
  *
@@ -2128,12 +2179,13 @@ hb_raster_paint_get_funcs (void)
  * @glyph: glyph ID to paint
  * @pen_x: glyph origin x in font coordinates (pre-transform)
  * @pen_y: glyph origin y in font coordinates (pre-transform)
- * @palette: palette index
- * @foreground: foreground color
  *
  * Convenience wrapper to paint one color glyph at (@pen_x, @pen_y) using
- * the paint context's current transform. The pen coordinates are applied
- * before minification and transformed by the current affine transform.
+ * the paint context's current transform, palette, and foreground color.
+ * The pen coordinates are applied before minification and transformed by
+ * the current affine transform.  Configure palette and foreground via
+ * hb_raster_paint_set_palette() and hb_raster_paint_set_foreground()
+ * before calling.
  *
  * Return value: `true` if painting succeeded, `false` otherwise.
  *
@@ -2144,9 +2196,7 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
 		       hb_font_t        *font,
 		       hb_codepoint_t    glyph,
 		       float             pen_x,
-		       float             pen_y,
-		       unsigned           palette,
-		       hb_color_t         foreground)
+		       float             pen_y)
 {
   float xx = paint->base_transform.xx;
   float yx = paint->base_transform.yx;
@@ -2171,7 +2221,7 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_raster_paint_get_funcs (), paint,
-						palette, foreground);
+						paint->palette, paint->foreground);
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
   return ret;
 }

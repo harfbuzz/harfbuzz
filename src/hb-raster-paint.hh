@@ -111,6 +111,7 @@ struct hb_raster_paint_t
   hb_raster_extents_t fixed_extents      = {};
   bool                has_extents  = false;
   hb_color_t          foreground         = HB_COLOR (0, 0, 0, 255);
+  unsigned            palette            = 0;
   hb_map_t           *custom_palette     = nullptr;
 
   /* Stacks */

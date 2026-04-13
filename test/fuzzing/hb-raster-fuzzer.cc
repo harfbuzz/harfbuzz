@@ -30,7 +30,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     float x = (float) ((gid % 4) * 40);
     float y = (float) ((gid / 4) * 40);
     hb_raster_draw_glyph (draw, input.font, gid, x, y);
-    hb_raster_paint_glyph (paint, input.font, gid, x, y, 0, HB_COLOR (0, 0, 0, 255));
+    hb_raster_paint_glyph (paint, input.font, gid, x, y);
   }
 
   hb_raster_image_t *draw_image = hb_raster_draw_render (draw);
