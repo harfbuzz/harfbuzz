@@ -66,17 +66,24 @@ demo_font_get_font (demo_font_t *font)
 
 unsigned
 demo_font_get_palette (demo_font_t *font,
+		       unsigned     palette_index,
 		       float       *out,
 		       unsigned     capacity)
 {
-  unsigned count = hb_ot_color_palette_get_colors (font->face, 0, 0, NULL, NULL);
+  unsigned palette_count = hb_ot_color_palette_get_count (font->face);
+  if (!palette_count) return 0;
+  if (palette_index >= palette_count) palette_index = 0;
+
+  unsigned count = hb_ot_color_palette_get_colors (font->face, palette_index,
+						   0, NULL, NULL);
   if (!count) return 0;
   if (count > capacity) count = capacity;
 
   hb_color_t colors[256];
   unsigned returned = count;
   if (returned > 256) returned = 256;
-  hb_ot_color_palette_get_colors (font->face, 0, 0, &returned, colors);
+  hb_ot_color_palette_get_colors (font->face, palette_index, 0,
+				  &returned, colors);
 
   for (unsigned i = 0; i < returned; i++)
   {

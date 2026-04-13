@@ -35,6 +35,7 @@
 
 #include "options.hh"
 #include "font-options.hh"
+#include "view-options.hh"
 
 #define WINDOW_W 700
 #define WINDOW_H 700
@@ -48,6 +49,7 @@ struct gpu_output_t
   hb_bool_t demo = false;
   hb_bool_t bench = false;
   char *type_text = nullptr;
+  view_options_t view;
 
   static gboolean
   parse_bench (const char *name G_GNUC_UNUSED,
@@ -85,6 +87,8 @@ struct gpu_output_t
 		       "Options for GPU rendering",
 		       this,
 		       false);
+
+    view.add_options (parser);
   }
 
   template <typename app_t>
@@ -143,7 +147,21 @@ struct gpu_output_t
     demo_font_ = demo_font_create (font, renderer->get_atlas ());
     {
       float palette[256 * 4] = {};
-      unsigned n = demo_font_get_palette (demo_font_, palette, 256);
+      unsigned n = demo_font_get_palette (demo_font_, view.palette, palette, 256);
+      if (view.custom_palette_entries)
+      {
+	for (unsigned i = 0; i < view.custom_palette_entries->len; i++)
+	{
+	  auto &e = g_array_index (view.custom_palette_entries,
+				   view_options_t::custom_palette_entry_t, i);
+	  if (e.index >= 256) continue;
+	  palette[e.index * 4 + 0] = e.color.r / 255.f;
+	  palette[e.index * 4 + 1] = e.color.g / 255.f;
+	  palette[e.index * 4 + 2] = e.color.b / 255.f;
+	  palette[e.index * 4 + 3] = e.color.a / 255.f;
+	  if (e.index + 1 > n) n = e.index + 1;
+	}
+      }
       if (n) renderer->set_palette (palette, n);
     }
     buf = demo_buffer_create ();
@@ -267,6 +285,20 @@ struct gpu_output_t
     demo_font_print_stats (demo_font_);
     demo_view_print_help (vu);
     demo_view_setup (vu);
+
+    /* Apply view-options foreground/background.  These default to
+     * #000000 / #FFFFFF which match the demo's default LIGHT mode,
+     * so always setting them is a no-op unless the user passed a
+     * flag.  The dark-mode toggle (b key) mutates renderer state
+     * afterwards and stays in effect. */
+    renderer->set_foreground (view.foreground_color.r / 255.f,
+			      view.foreground_color.g / 255.f,
+			      view.foreground_color.b / 255.f,
+			      view.foreground_color.a / 255.f);
+    renderer->set_background (view.background_color.r / 255.f,
+			      view.background_color.g / 255.f,
+			      view.background_color.b / 255.f,
+			      view.background_color.a / 255.f);
 
     if (type_text)
       demo_view_type (vu, type_text);
