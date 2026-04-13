@@ -60,6 +60,8 @@ jobs:
         meson compile -Cbuild
     - name: Generate Documentation
       run: ninja -Cbuild harfbuzz-doc
+    - name: Run Doc Tests
+      run: meson test -Cbuild --print-errorlogs harfbuzz-doc-check
     - name: Build Web Demos
       run: |
         bash util/gpu/web/build.sh
