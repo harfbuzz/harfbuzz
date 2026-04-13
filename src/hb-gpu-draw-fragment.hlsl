@@ -265,11 +265,11 @@ float _hb_gpu_draw_single (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
  */
-float hb_gpu_draw (float2 renderCoord, uint glyphLoc_)
+/* The MSAA-aware implementation.  Caller supplies pixelsPerEm so
+ * this function can be invoked from non-uniform control flow (for
+ * example from a paint op-stream branch). */
+float _hb_gpu_draw_impl (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc_)
 {
-  float2 emsPerPixel = fwidth (renderCoord);
-  float2 pixelsPerEm = 1.0 / emsPerPixel;
-
   float c = _hb_gpu_draw_single (renderCoord, pixelsPerEm, glyphLoc_);
 
 #ifndef HB_GPU_NO_MSAA
@@ -277,6 +277,7 @@ float hb_gpu_draw (float2 renderCoord, uint glyphLoc_)
 
   if (ppem < 16.0)
   {
+    float2 emsPerPixel = 1.0 / pixelsPerEm;
     float2 d = emsPerPixel * (1.0 / 3.0);
     float msaa = 0.25 *
       (_hb_gpu_draw_single (renderCoord + float2 (-d.x, -d.y), pixelsPerEm, glyphLoc_) +
@@ -289,6 +290,12 @@ float hb_gpu_draw (float2 renderCoord, uint glyphLoc_)
 #endif
 
   return c;
+}
+
+float hb_gpu_draw (float2 renderCoord, uint glyphLoc_)
+{
+  float2 pixelsPerEm = 1.0 / fwidth (renderCoord);
+  return _hb_gpu_draw_impl (renderCoord, pixelsPerEm, glyphLoc_);
 }
 
 /* Stem darkening for small sizes.

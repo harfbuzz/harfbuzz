@@ -21,6 +21,16 @@ void main ()
    * path.  For COLRv0 glyphs it returns the composited color. */
   vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
 
+  /* Stem darkening: scale the premultiplied value by the
+   * alpha-channel darkening ratio so RGB and A stay in lockstep. */
+  if (u_stem_darkening > 0.0 && c.a > 0.0)
+  {
+    float darkened = hb_gpu_stem_darken (c.a,
+      dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
+      1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
+    c *= darkened / c.a;
+  }
+
   if (u_gamma != 1.0)
     c.a = pow (c.a, u_gamma);
 

@@ -49,6 +49,11 @@ uniform vec4 hb_gpu_palette[HB_GPU_PALETTE_SIZE];
  */
 vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 {
+  /* fwidth once, at uniform control flow: every per-layer
+   * coverage sample below uses this pre-computed pixelsPerEm via
+   * _hb_gpu_draw_impl. */
+  vec2 pixelsPerEm = 1.0 / fwidth (renderCoord);
+
   int base    = int (glyphLoc);
   ivec4 h0    = hb_gpu_fetch (base);      /* (num_ops, _, _, _) */
   ivec4 h2    = hb_gpu_fetch (base + 2);  /* (ops_offset, _, _, _) */
@@ -77,7 +82,8 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 
       /* payload is a blob-relative texel offset; sub-blobs live
        * inside the paint blob at atlas offset `base`. */
-      float cov = hb_gpu_draw (renderCoord, uint (base + payload));
+      float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+				     uint (base + payload));
       vec4 src  = col * cov;
       /* SRC_OVER with premultiplied source. */
       acc = src + acc * (1.0 - src.a);

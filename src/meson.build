@@ -840,6 +840,7 @@ hb_gpu_shader_sources = [
   [ 'hb-gpu-paint-fragment.glsl', 'hb-gpu-paint-fragment-glsl.hh' ],
   [ 'hb-gpu-paint-fragment.msl',  'hb-gpu-paint-fragment-msl.hh' ],
   [ 'hb-gpu-paint-fragment.wgsl', 'hb-gpu-paint-fragment-wgsl.hh' ],
+  [ 'hb-gpu-paint-fragment.hlsl', 'hb-gpu-paint-fragment-hlsl.hh' ],
 ]
 
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')

@@ -280,18 +280,25 @@ fn _hb_gpu_draw_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
  * glyphLoc:       texel offset of glyph blob in atlas
  * hb_gpu_atlas:   storage buffer pointer to the atlas
  */
-fn hb_gpu_draw (renderCoord: vec2f, glyphLoc_: u32,
-                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+/* The MSAA-aware implementation.  Caller supplies pixelsPerEm so
+ * this function can be invoked from non-uniform control flow (for
+ * example inside an op-stream branch in hb-gpu-paint-fragment.wgsl,
+ * where WGSL would otherwise reject an fwidth call). */
+fn _hb_gpu_draw_impl (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
+                      hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
-  let emsPerPixel = fwidth (renderCoord);
-  let pixelsPerEm = 1.0 / emsPerPixel;
-
   var c = _hb_gpu_draw_single (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 
-  let ppem = hb_gpu_ppem (renderCoord, glyphLoc_, hb_gpu_atlas);
+  /* Inline ppem from pixelsPerEm so we don't re-enter hb_gpu_ppem
+   * (which would call fwidth again -- rejected by WGSL when this
+   * function is invoked from non-uniform control flow). */
+  let gi_pp = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  let ppem = min (gi_pp.scale.x, gi_pp.scale.y) *
+             min (pixelsPerEm.x, pixelsPerEm.y);
 
   if (ppem < 16.0)
   {
+    let emsPerPixel = 1.0 / pixelsPerEm;
     let d = emsPerPixel * (1.0 / 3.0);
     let msaa = 0.25 *
       (_hb_gpu_draw_single (renderCoord + vec2f (-d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
@@ -303,6 +310,13 @@ fn hb_gpu_draw (renderCoord: vec2f, glyphLoc_: u32,
   }
 
   return c;
+}
+
+fn hb_gpu_draw (renderCoord: vec2f, glyphLoc_: u32,
+                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+{
+  let pixelsPerEm = 1.0 / fwidth (renderCoord);
+  return _hb_gpu_draw_impl (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 }
 
 /* Stem darkening for small sizes.

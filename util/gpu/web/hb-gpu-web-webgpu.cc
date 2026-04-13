@@ -104,8 +104,20 @@ struct VertexOutput {
 }
 
 @fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
+  /* Compute ppem up front so fwidth is called at uniform control
+   * flow, before the non-uniform branches below. */
+  let fw = fwidth (in.texcoord);
+  let ppem = 1.0 / max (fw.x, fw.y);
+
   var c = hb_gpu_paint (in.texcoord, in.glyphLoc, u.foreground,
                         &hb_gpu_atlas, &hb_gpu_palette);
+
+  if (u.stem_darkening > 0.0 && c.a > 0.0) {
+    let darkened = hb_gpu_stem_darken (c.a,
+      dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
+      ppem);
+    c = c * (darkened / c.a);
+  }
 
   if (u.gamma != 1.0) {
     c.a = pow (c.a, u.gamma);

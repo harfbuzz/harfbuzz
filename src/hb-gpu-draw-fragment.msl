@@ -271,12 +271,13 @@ float _hb_gpu_draw_single (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc
  * glyphLoc:       texel offset of glyph blob in atlas
  * hb_gpu_atlas:   device pointer to the atlas buffer
  */
-float hb_gpu_draw (float2 renderCoord, uint glyphLoc_,
-		     device const short4* hb_gpu_atlas)
+/* The MSAA-aware implementation.  Caller supplies pixelsPerEm so
+ * this function can be invoked from non-uniform control flow (for
+ * example from a paint op-stream branch where a recomputed fwidth
+ * would be rejected by strict derivative-uniformity rules). */
+float _hb_gpu_draw_impl (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc_,
+			 device const short4* hb_gpu_atlas)
 {
-  float2 emsPerPixel = fwidth (renderCoord);
-  float2 pixelsPerEm = 1.0 / emsPerPixel;
-
   float c = _hb_gpu_draw_single (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 
 #ifndef HB_GPU_NO_MSAA
@@ -284,6 +285,7 @@ float hb_gpu_draw (float2 renderCoord, uint glyphLoc_,
 
   if (ppem < 16.0)
   {
+    float2 emsPerPixel = 1.0 / pixelsPerEm;
     float2 d = emsPerPixel * (1.0 / 3.0);
     float msaa = 0.25 *
       (_hb_gpu_draw_single (renderCoord + float2 (-d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
@@ -296,6 +298,13 @@ float hb_gpu_draw (float2 renderCoord, uint glyphLoc_,
 #endif
 
   return c;
+}
+
+float hb_gpu_draw (float2 renderCoord, uint glyphLoc_,
+		     device const short4* hb_gpu_atlas)
+{
+  float2 pixelsPerEm = 1.0 / fwidth (renderCoord);
+  return _hb_gpu_draw_impl (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 }
 
 /* Stem darkening for small sizes.

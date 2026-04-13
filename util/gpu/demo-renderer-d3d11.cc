@@ -45,6 +45,10 @@ struct demo_renderer_d3d11_t : demo_renderer_t
     bool dirty;
   } atlas;
 
+  /* Palette (zero-filled for now; real upload is a TODO). */
+  ID3D11Buffer *palette_buf;
+  ID3D11ShaderResourceView *palette_srv;
+
   /* State */
   float bg_r, bg_g, bg_b, bg_a;
   float fg_r, fg_g, fg_b, fg_a;
@@ -123,30 +127,25 @@ PSInput vs_main (VSInput input) {
 }
 
 float4 ps_main (PSInput input) : SV_Target {
-  float coverage = hb_gpu_draw (input.texcoord, input.glyphLoc);
-  if (stem_darkening > 0.0) {
-    float2 fw = fwidth (input.texcoord);
-    float ppem = 1.0 / max (fw.x, fw.y);
-    float sf = smoothstep (8.0, 48.0, ppem);
-    bool light = dot (foreground.rgb, float3 (1,1,1)) > 1.5;
-    float se = light ? lerp (1.4, 1.0, sf) : lerp (0.7, 1.0, sf);
-    coverage = pow (coverage, se);
-  }
+  float4 c = hb_gpu_paint (input.texcoord, input.glyphLoc, foreground);
   if (gamma != 1.0)
-    coverage = pow (coverage, gamma);
-  return float4 (foreground.rgb, foreground.a * coverage);
+    c.a = pow (c.a, gamma);
+  return c;
 }
 )hlsl";
 
     std::string full;
-    full += "StructuredBuffer<int4> hb_gpu_atlas : register(t0);\n";
-    full += hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
+    full += "StructuredBuffer<int4>   hb_gpu_atlas   : register(t0);\n";
+    full += "StructuredBuffer<float4> hb_gpu_palette : register(t1);\n";
+    full += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
-    full += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
-    full += hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
-    full += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
+    full += "\n";
+    full += hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
     full += hlsl_demo;
 
@@ -203,6 +202,25 @@ float4 ps_main (PSInput input) : SV_Target {
       srvd.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
       srvd.Buffer.NumElements = atlas.capacity;
       device->CreateShaderResourceView (atlas.srv_buf, &srvd, &atlas.srv);
+    }
+
+    /* Palette: 256 float4, zero-filled for now. */
+    {
+      D3D11_BUFFER_DESC pbd = {};
+      pbd.ByteWidth = 256 * 4 * sizeof (float);
+      pbd.Usage = D3D11_USAGE_IMMUTABLE;
+      pbd.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+      pbd.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+      pbd.StructureByteStride = 16;
+      float zero[256 * 4] = {};
+      D3D11_SUBRESOURCE_DATA init = { zero, 0, 0 };
+      device->CreateBuffer (&pbd, &init, &palette_buf);
+
+      D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
+      srvd.Format = DXGI_FORMAT_UNKNOWN;
+      srvd.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+      srvd.Buffer.NumElements = 256;
+      device->CreateShaderResourceView (palette_buf, &srvd, &palette_srv);
     }
 
     /* Atlas backend callbacks */
@@ -349,7 +367,8 @@ float4 ps_main (PSInput input) : SV_Target {
       ctx->PSSetShader (ps, nullptr, 0);
       ctx->VSSetConstantBuffers (0, 1, &cbuf);
       ctx->PSSetConstantBuffers (0, 1, &cbuf);
-      ctx->PSSetShaderResources (0, 1, &atlas.srv);
+      ID3D11ShaderResourceView *srvs[2] = { atlas.srv, palette_srv };
+      ctx->PSSetShaderResources (0, 2, srvs);
       ctx->OMSetBlendState (blend_state, nullptr, 0xffffffff);
       UINT stride = sizeof (glyph_vertex_t), offset = 0;
       ctx->IASetVertexBuffers (0, 1, &vbuf, &stride, &offset);
