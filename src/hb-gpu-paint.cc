@@ -529,16 +529,20 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint HB_UNUSED,
  * specified stage and language.  The returned string is static
  * and must not be freed.
  *
- * This source assumes the shared helpers returned by
- * hb_gpu_shader_source() are concatenated ahead of it.  The
- * caller should assemble the full shader as
- * `#version`-directive + hb_gpu_shader_source() +
- * hb_gpu_paint_shader_source() + caller's `main()`.
+ * This source assumes both the shared helpers
+ * (hb_gpu_shader_source()) and the draw-renderer helpers
+ * (hb_gpu_draw_shader_source()) are concatenated ahead of it --
+ * the paint interpreter invokes hb_gpu_draw() to compute
+ * clip-glyph coverage.  Full assembly:
  *
- * The paint-renderer shaders have not yet been implemented; this
- * function currently returns an empty string for supported
- * @stage / @lang combinations so callers can concatenate
- * unconditionally.
+ *   [#version] + hb_gpu_shader_source ()
+ *             + hb_gpu_draw_shader_source ()
+ *             + hb_gpu_paint_shader_source ()
+ *             + caller's main ()
+ *
+ * Only GLSL fragment is implemented today; other languages and
+ * the vertex stage return the empty string so callers can
+ * concatenate unconditionally.
  *
  * Return value: (transfer none):
  * A shader source string, or `NULL` if @stage or @lang is
@@ -546,12 +550,21 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint HB_UNUSED,
  *
  * XSince: REPLACEME
  **/
+#include "hb-gpu-paint-fragment-glsl.hh"
+
 const char *
 hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
 			    hb_gpu_shader_lang_t  lang)
 {
   switch (stage) {
   case HB_GPU_SHADER_STAGE_FRAGMENT:
+    switch (lang) {
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_paint_fragment_glsl;
+    case HB_GPU_SHADER_LANG_MSL:
+    case HB_GPU_SHADER_LANG_WGSL:
+    case HB_GPU_SHADER_LANG_HLSL: return "";
+    default: return nullptr;
+    }
   case HB_GPU_SHADER_STAGE_VERTEX:
     switch (lang) {
     case HB_GPU_SHADER_LANG_GLSL:

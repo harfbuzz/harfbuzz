@@ -25,6 +25,7 @@ decl_map = {
     'hb-gpu-draw-fragment-msl.hh': 'hb_gpu_draw_fragment_msl',
     'hb-gpu-draw-fragment-wgsl.hh': 'hb_gpu_draw_fragment_wgsl',
     'hb-gpu-draw-fragment-hlsl.hh': 'hb_gpu_draw_fragment_hlsl',
+    'hb-gpu-paint-fragment-glsl.hh': 'hb_gpu_paint_fragment_glsl',
 }
 
 decl = decl_map.get(hh)
