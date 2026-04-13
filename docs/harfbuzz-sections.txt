@@ -1151,5 +1151,10 @@ hb_gpu_paint_reference
 hb_gpu_paint_destroy
 hb_gpu_paint_set_user_data
 hb_gpu_paint_get_user_data
+hb_gpu_paint_glyph
+hb_gpu_paint_encode
+hb_gpu_paint_clear
+hb_gpu_paint_reset
+hb_gpu_paint_recycle_blob
 hb_gpu_paint_shader_source
 </SECTION>

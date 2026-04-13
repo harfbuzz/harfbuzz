@@ -123,6 +123,114 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
   return hb_object_get_user_data (paint, key);
 }
 
+/**
+ * hb_gpu_paint_glyph:
+ * @paint: a GPU color-glyph paint encoder
+ * @font: font to paint from
+ * @glyph: glyph ID to paint
+ *
+ * Convenience wrapper that feeds a color glyph's paint tree into
+ * the encoder via hb_font_paint_glyph_or_fail().  The font's scale
+ * is stashed on @paint for later use by the encoder.
+ *
+ * Palette index and foreground color are fixed at 0 and opaque
+ * black for now; future versions will expose setters.
+ *
+ * Return value: `true` if the glyph was successfully painted into
+ * the encoder, `false` if the glyph has no color paint or painting
+ * failed.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
+		    hb_font_t      *font,
+		    hb_codepoint_t  glyph)
+{
+  hb_font_get_scale (font, &paint->x_scale, &paint->y_scale);
+  return hb_font_paint_glyph_or_fail (font, glyph,
+				      hb_paint_funcs_get_empty (),
+				      paint,
+				      0,
+				      HB_COLOR (0, 0, 0, 255));
+}
+
+/**
+ * hb_gpu_paint_encode:
+ * @paint: a GPU color-glyph paint encoder
+ * @extents: (out): receives the glyph's ink extents
+ *
+ * Encodes the accumulated paint state into a GPU-renderable blob
+ * and writes the glyph's ink extents to @extents.
+ *
+ * The paint encoder is currently a stub; this function returns
+ * `NULL` until the encoder is implemented.
+ *
+ * Return value: (transfer full):
+ * A newly allocated blob, or `NULL` on failure (including the stub
+ * state).
+ *
+ * XSince: REPLACEME
+ **/
+hb_blob_t *
+hb_gpu_paint_encode (hb_gpu_paint_t     *paint HB_UNUSED,
+		     hb_glyph_extents_t *extents HB_UNUSED)
+{
+  return nullptr;
+}
+
+/**
+ * hb_gpu_paint_clear:
+ * @paint: a GPU color-glyph paint encoder
+ *
+ * Discards accumulated paint state so @paint can be reused for
+ * another encode.  User configuration (font scale) is preserved.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_clear (hb_gpu_paint_t *paint HB_UNUSED)
+{
+  /* No accumulated state yet. */
+}
+
+/**
+ * hb_gpu_paint_reset:
+ * @paint: a GPU color-glyph paint encoder
+ *
+ * Resets @paint, discarding accumulated state and user
+ * configuration.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_reset (hb_gpu_paint_t *paint)
+{
+  paint->x_scale = 0;
+  paint->y_scale = 0;
+  hb_gpu_paint_clear (paint);
+}
+
+/**
+ * hb_gpu_paint_recycle_blob:
+ * @paint: a GPU color-glyph paint encoder
+ * @blob: (transfer full): a blob previously returned by hb_gpu_paint_encode()
+ *
+ * Returns a blob to the encoder for potential reuse.  The caller
+ * transfers ownership of @blob.
+ *
+ * The paint encoder is a stub; this function simply destroys the
+ * blob.  A future version may reclaim the underlying buffer.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint HB_UNUSED,
+			   hb_blob_t      *blob)
+{
+  hb_blob_destroy (blob);
+}
+
 
 /**
  * hb_gpu_paint_shader_source:

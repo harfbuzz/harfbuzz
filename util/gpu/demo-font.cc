@@ -4,6 +4,8 @@
 
 #include "demo-font.h"
 
+#include <hb-ot.h>
+
 #include <map>
 
 typedef std::map<unsigned int, glyph_info_t> glyph_cache_t;
@@ -13,7 +15,8 @@ struct demo_font_t {
   hb_font_t       *font;
   glyph_cache_t   *glyph_cache;
   demo_atlas_t    *atlas;
-  hb_gpu_draw_t  *g;
+  hb_gpu_draw_t   *g;
+  hb_gpu_paint_t  *p;
 
   unsigned int num_glyphs;
   unsigned int sum_bytes;
@@ -30,6 +33,7 @@ demo_font_create (hb_font_t    *hb_font,
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
   font->g = hb_gpu_draw_create_or_fail ();
+  font->p = hb_gpu_paint_create_or_fail ();
 
   return font;
 }
@@ -40,6 +44,7 @@ demo_font_destroy (demo_font_t *font)
   if (!font)
     return;
 
+  hb_gpu_paint_destroy (font->p);
   hb_gpu_draw_destroy (font->g);
   demo_atlas_destroy (font->atlas);
   delete font->glyph_cache;
@@ -67,15 +72,31 @@ _demo_font_upload_glyph (demo_font_t  *font,
 			 unsigned int  glyph_index,
 			 glyph_info_t *glyph_info)
 {
-  hb_gpu_draw_reset (font->g);
-
-  hb_gpu_draw_glyph (font->g, font->font, glyph_index);
-
-  /* Get extents in font design units */
   hb_glyph_extents_t hb_ext;
-  hb_blob_t *blob = hb_gpu_draw_encode (font->g, &hb_ext);
+  hb_blob_t *blob = nullptr;
+  bool is_paint = false;
+
+  /* Try the paint path for color glyphs; fall back to draw on
+   * failure (including the current stub state where encode always
+   * returns NULL). */
+  if (hb_ot_color_glyph_has_paint (font->face, glyph_index))
+  {
+    hb_gpu_paint_clear (font->p);
+    if (hb_gpu_paint_glyph (font->p, font->font, glyph_index))
+    {
+      blob = hb_gpu_paint_encode (font->p, &hb_ext);
+      is_paint = blob != nullptr;
+    }
+  }
+
   if (!blob)
-    die ("Failed encoding glyph");
+  {
+    hb_gpu_draw_clear (font->g);
+    hb_gpu_draw_glyph (font->g, font->font, glyph_index);
+    blob = hb_gpu_draw_encode (font->g, &hb_ext);
+    if (!blob)
+      die ("Failed encoding glyph");
+  }
 
   unsigned int len = hb_blob_get_length (blob);
 
@@ -97,7 +118,10 @@ _demo_font_upload_glyph (demo_font_t  *font,
   font->num_glyphs++;
   font->sum_bytes += len;
 
-  hb_gpu_draw_recycle_blob (font->g, blob);
+  if (is_paint)
+    hb_gpu_paint_recycle_blob (font->p, blob);
+  else
+    hb_gpu_draw_recycle_blob (font->g, blob);
 }
 
 void

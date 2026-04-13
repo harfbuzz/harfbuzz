@@ -176,6 +176,25 @@ HB_EXTERN void *
 hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
 			    hb_user_data_key_t   *key);
 
+HB_EXTERN hb_bool_t
+hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
+		    hb_font_t      *font,
+		    hb_codepoint_t  glyph);
+
+HB_EXTERN hb_blob_t *
+hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
+		     hb_glyph_extents_t *extents);
+
+HB_EXTERN void
+hb_gpu_paint_clear (hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_reset (hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
+			   hb_blob_t      *blob);
+
 HB_EXTERN const char *
 hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
 			    hb_gpu_shader_lang_t  lang);

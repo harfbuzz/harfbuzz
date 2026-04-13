@@ -253,6 +253,10 @@
 struct hb_gpu_paint_t
 {
   hb_object_header_t header;
+
+  /* Font scale (set by hb_gpu_paint_glyph()). */
+  int x_scale = 0;
+  int y_scale = 0;
 };
 
 
