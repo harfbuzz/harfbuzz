@@ -35,6 +35,7 @@ HB_BEGIN_DECLS
  * hb_vector_format_t:
  * @HB_VECTOR_FORMAT_INVALID: Invalid format.
  * @HB_VECTOR_FORMAT_SVG: SVG output.
+ * @HB_VECTOR_FORMAT_PDF: PDF output.
  *
  * Output format for vector conversion.
  *
