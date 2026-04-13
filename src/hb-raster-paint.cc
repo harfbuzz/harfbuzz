@@ -2203,16 +2203,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 {
   /* Common per-exit state reset.  Runs on every return path,
    * including the early-return failure cases below. */
-  HB_SCOPE_GUARD ({
-    paint->transform_stack.clear ();
-    paint->release_all_clips ();
-    for (auto *s : paint->surface_stack)
-      paint->release_surface (s);
-    paint->surface_stack.clear ();
-    hb_raster_draw_reset (paint->clip_rdr);
-    paint->has_extents = false;
-    paint->fixed_extents = {};
-  });
+  HB_SCOPE_GUARD (hb_raster_paint_clear (paint));
 
   if (unlikely (!paint->has_extents))
     return nullptr;
@@ -2238,6 +2229,31 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 }
 
 /**
+ * hb_raster_paint_clear:
+ * @paint: a paint context
+ *
+ * Discards accumulated paint output so @paint can be reused for
+ * another render.  User configuration (base transform, scale
+ * factors, foreground, custom palette colors) is preserved.  Call
+ * hb_raster_paint_reset() to also reset user configuration to
+ * defaults.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_clear (hb_raster_paint_t *paint)
+{
+  paint->fixed_extents = {};
+  paint->has_extents = false;
+  paint->transform_stack.clear ();
+  paint->release_all_clips ();
+  for (auto *s : paint->surface_stack)
+    paint->release_surface (s);
+  paint->surface_stack.clear ();
+  hb_raster_draw_reset (paint->clip_rdr);
+}
+
+/**
  * hb_raster_paint_reset:
  * @paint: a paint context
  *
@@ -2252,15 +2268,9 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->base_transform = {1, 0, 0, 1, 0, 0};
   paint->x_scale_factor = 1.f;
   paint->y_scale_factor = 1.f;
-  paint->fixed_extents = {};
-  paint->has_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   hb_raster_paint_clear_custom_palette_colors (paint);
-  paint->transform_stack.clear ();
-  paint->release_all_clips ();
-  for (auto *s : paint->surface_stack)
-    paint->release_surface (s);
-  paint->surface_stack.clear ();
+  hb_raster_paint_clear (paint);
 }
 
 /**

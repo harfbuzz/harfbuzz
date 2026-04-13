@@ -372,6 +372,12 @@ encode_curve_info (const hb_gpu_curve_t *c)
 hb_blob_t *
 hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 {
+  /* Unlike hb_vector_*_render and hb_raster_*_render, encode() does
+   * NOT auto-clear — the encoded extents live on @draw (not on the
+   * returned blob) and callers typically read them via
+   * hb_gpu_draw_get_extents() after encode().  Call
+   * hb_gpu_draw_clear() explicitly before the next glyph. */
+
   if (unlikely (!draw->success))
     return nullptr;
 
@@ -1073,16 +1079,17 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
 }
 
 /**
- * hb_gpu_draw_reset:
+ * hb_gpu_draw_clear:
  * @draw: a GPU shape encoder
  *
- * Resets the encoder, discarding all accumulated outlines.
- * The internal encode buffer is kept for reuse.
+ * Discards accumulated outlines so @draw can be reused for another
+ * encode.  User configuration (font scale) is preserved.  Call
+ * hb_gpu_draw_reset() to also reset user configuration to defaults.
  *
- * Since: 14.0.0
+ * XSince: REPLACEME
  **/
 void
-hb_gpu_draw_reset (hb_gpu_draw_t *draw)
+hb_gpu_draw_clear (hb_gpu_draw_t *draw)
 {
   draw->start_x = draw->start_y = 0;
   draw->current_x = draw->current_y = 0;
@@ -1095,6 +1102,23 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
   draw->ext_min_y =  HUGE_VAL;
   draw->ext_max_x = -HUGE_VAL;
   draw->ext_max_y = -HUGE_VAL;
+}
+
+/**
+ * hb_gpu_draw_reset:
+ * @draw: a GPU shape encoder
+ *
+ * Resets the encoder, discarding all accumulated outlines and
+ * resetting user configuration to defaults.
+ *
+ * Since: 14.0.0
+ **/
+void
+hb_gpu_draw_reset (hb_gpu_draw_t *draw)
+{
+  draw->x_scale = 0;
+  draw->y_scale = 0;
+  hb_gpu_draw_clear (draw);
 }
 
 /**

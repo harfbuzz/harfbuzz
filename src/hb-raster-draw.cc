@@ -405,15 +405,32 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 }
 
 /**
+ * hb_raster_draw_clear:
+ * @draw: a rasterizer
+ *
+ * Discards accumulated geometry and extents so @draw can be reused
+ * for another render.  User configuration (transform, scale factors)
+ * is preserved.  Call hb_raster_draw_reset() to also reset user
+ * configuration to defaults.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_clear (hb_raster_draw_t *draw)
+{
+  draw->fixed_extents     = {};
+  draw->has_extents = false;
+  draw->edges.clear ();
+  draw->active_edges.clear ();
+}
+
+/**
  * hb_raster_draw_reset:
  * @draw: a rasterizer
  *
  * Resets the rasterizer to its initial state, clearing all accumulated
  * geometry, the transform, and fixed extents.  The object can then be
  * reused for a new glyph.
- *
- * Internal scratch buffers and recycled image cache are preserved for
- * reuse across subsequent renders.
  *
  * Since: 13.0.0
  **/
@@ -423,10 +440,7 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->transform         = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor    = 1.f;
   draw->y_scale_factor    = 1.f;
-  draw->fixed_extents     = {};
-  draw->has_extents = false;
-  draw->edges.clear ();
-  draw->active_edges.clear ();
+  hb_raster_draw_clear (draw);
 }
 
 /**
@@ -1283,11 +1297,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
   /* ── 3. Allocate or reuse image ─────────────────────────────────── */
   /* Reset one-shot state on every exit path. */
-  HB_SCOPE_GUARD ({
-    draw->edges.clear ();
-    draw->has_extents = false;
-    draw->fixed_extents = {};
-  });
+  HB_SCOPE_GUARD (hb_raster_draw_clear (draw));
 
   hb_raster_image_t *image;
   if (draw->recycled_image)

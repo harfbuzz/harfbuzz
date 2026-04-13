@@ -254,8 +254,8 @@ hb_pdf_get_resources (hb_vector_paint_t *paint)
   return res;
 }
 
-static void
-hb_pdf_free_resources (hb_vector_paint_t *paint)
+void
+hb_vector_paint_pdf_free_resources (hb_vector_paint_t *paint)
 {
   if (paint->defs.length >= sizeof (void *))
   {
@@ -1342,12 +1342,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 
   hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
 
-  /* Reset state. */
-  hb_pdf_free_resources (paint);
-  paint->group_stack.clear ();
-  paint->path.clear ();
-  paint->has_extents = false;
-  paint->extents = {0, 0, 0, 0};
+  hb_vector_paint_clear (paint);
 
   return blob;
 }

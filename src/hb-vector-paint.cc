@@ -882,6 +882,8 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
   if (!hb_object_should_destroy (paint))
     return;
 
+  if (paint->format == HB_VECTOR_FORMAT_PDF)
+    hb_vector_paint_pdf_free_resources (paint);
   hb_blob_destroy (paint->recycled_blob);
   hb_set_destroy (paint->defined_outlines);
   hb_set_destroy (paint->defined_clips);
@@ -1416,12 +1418,26 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
   paint->precision = hb_min (precision, 12u);
 }
 
-static void
-hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
+/**
+ * hb_vector_paint_clear:
+ * @paint: a paint context.
+ *
+ * Discards accumulated paint output so @paint can be reused for
+ * another render.  User configuration (transform, scale factors,
+ * precision, flat, foreground, palette, custom palette colors)
+ * is preserved.  Call hb_vector_paint_reset() to also reset
+ * user configuration to defaults.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_paint_clear (hb_vector_paint_t *paint)
 {
   paint->extents = {0, 0, 0, 0};
   paint->has_extents = false;
 
+  if (paint->format == HB_VECTOR_FORMAT_PDF)
+    hb_vector_paint_pdf_free_resources (paint);
   paint->defs.clear ();
   paint->path.clear ();
   paint->group_stack.clear ();
@@ -1484,7 +1500,7 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
 
   hb_blob_t *blob = hb_buf_blob_from (&paint->recycled_blob, &out);
 
-  hb_vector_paint_clear_render_state (paint);
+  hb_vector_paint_clear (paint);
 
   return blob;
 }
@@ -1533,7 +1549,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->palette = 0;
   paint->precision = 2;
   paint->flat = false;
-  hb_vector_paint_clear_render_state (paint);
+  hb_vector_paint_clear (paint);
 }
 
 /**
