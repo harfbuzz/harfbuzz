@@ -405,8 +405,8 @@ demo_renderer_create_metal (GLFWwindow *window)
   nswindow.contentView.wantsLayer = YES;
 
   /* Compile shaders */
-  const char *vert_src = hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_MSL);
-  const char *frag_src = hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_MSL);
+  const char *vert_src = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_src = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
 
   NSString *preamble = @"#include <metal_stdlib>\nusing namespace metal;\n";
   NSString *source = [NSString stringWithFormat:@"%@%s%s%s",

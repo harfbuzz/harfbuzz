@@ -831,9 +831,9 @@ static void
 create_pipeline ()
 {
   std::string wgsl;
-  wgsl += hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
   wgsl += wgsl_demo_shader;
 

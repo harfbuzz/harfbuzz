@@ -156,14 +156,14 @@ demo_shader_create_program (void)
 #endif
 
   const GLchar *vert_sources[] = {preamble,
-				  hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_GLSL),
+				  hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL),
 				  demo_vertex_glsl};
   vertex_shader = compile_shader (GL_VERTEX_SHADER,
 				  ARRAY_LEN (vert_sources),
 				  vert_sources);
 
   const GLchar *frag_sources[] = {preamble,
-				  hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_GLSL),
+				  hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
 				  demo_fragment_glsl};
   fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
 				    ARRAY_LEN (frag_sources),

@@ -39,62 +39,45 @@
 
 
 /**
- * hb_gpu_shader_fragment_source:
+ * hb_gpu_draw_shader_source:
+ * @stage: pipeline stage (vertex or fragment)
  * @lang: shader language variant
  *
- * Returns the fragment shader source for the specified shader
- * language.  The returned string is static and must not be freed.
+ * Returns the shader source for the hb_gpu_draw_t renderer for the
+ * specified stage and language.  The returned string is static and
+ * must not be freed.
  *
- * The caller should prepend a `#version` directive and append
- * their own `main()` function, then pass the combined sources
+ * For GLSL, the caller should prepend a `#version` directive and
+ * append their own `main()` function, then pass the combined sources
  * to `glShaderSource()`.
  *
  * Return value: (transfer none):
- * A shader source string, or `NULL` if @lang is unsupported.
+ * A shader source string, or `NULL` if @stage or @lang is
+ * unsupported.
  *
- * Since: 14.0.0
+ * XSince: REPLACEME
  **/
 const char *
-hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang)
+hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,
+			   hb_gpu_shader_lang_t  lang)
 {
-  switch (lang) {
-  case HB_GPU_SHADER_LANG_GLSL:
-    return hb_gpu_fragment_glsl;
-  case HB_GPU_SHADER_LANG_MSL:
-    return hb_gpu_fragment_msl;
-  case HB_GPU_SHADER_LANG_WGSL:
-    return hb_gpu_fragment_wgsl;
-  case HB_GPU_SHADER_LANG_HLSL:
-    return hb_gpu_fragment_hlsl;
-  default:
-    return nullptr;
-  }
-}
-
-/**
- * hb_gpu_shader_vertex_source:
- * @lang: shader language variant
- *
- * Returns the vertex shader source for the specified shader
- * language.  The returned string is static and must not be freed.
- *
- * Return value: (transfer none):
- * A shader source string, or `NULL` if @lang is unsupported.
- *
- * Since: 14.0.0
- **/
-const char *
-hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang)
-{
-  switch (lang) {
-  case HB_GPU_SHADER_LANG_GLSL:
-    return hb_gpu_vertex_glsl;
-  case HB_GPU_SHADER_LANG_MSL:
-    return hb_gpu_vertex_msl;
-  case HB_GPU_SHADER_LANG_WGSL:
-    return hb_gpu_vertex_wgsl;
-  case HB_GPU_SHADER_LANG_HLSL:
-    return hb_gpu_vertex_hlsl;
+  switch (stage) {
+  case HB_GPU_SHADER_STAGE_FRAGMENT:
+    switch (lang) {
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_fragment_glsl;
+    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_fragment_msl;
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_fragment_wgsl;
+    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_fragment_hlsl;
+    default: return nullptr;
+    }
+  case HB_GPU_SHADER_STAGE_VERTEX:
+    switch (lang) {
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_vertex_glsl;
+    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_vertex_msl;
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_vertex_wgsl;
+    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_vertex_hlsl;
+    default: return nullptr;
+    }
   default:
     return nullptr;
   }

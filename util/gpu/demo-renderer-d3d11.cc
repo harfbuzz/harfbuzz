@@ -140,9 +140,9 @@ float4 ps_main (PSInput input) : SV_Target {
 
     std::string full;
     full += "StructuredBuffer<int4> hb_gpu_atlas : register(t0);\n";
-    full += hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
-    full += hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
     full += hlsl_demo;
 

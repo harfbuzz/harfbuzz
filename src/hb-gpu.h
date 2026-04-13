@@ -50,11 +50,23 @@ typedef enum {
   HB_GPU_SHADER_LANG_HLSL,
 } hb_gpu_shader_lang_t;
 
-HB_EXTERN const char *
-hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang);
+/**
+ * hb_gpu_shader_stage_t:
+ * @HB_GPU_SHADER_STAGE_VERTEX: Vertex shader stage.
+ * @HB_GPU_SHADER_STAGE_FRAGMENT: Fragment shader stage.
+ *
+ * Shader pipeline stage.
+ *
+ * XSince: REPLACEME
+ */
+typedef enum {
+  HB_GPU_SHADER_STAGE_VERTEX,
+  HB_GPU_SHADER_STAGE_FRAGMENT,
+} hb_gpu_shader_stage_t;
 
 HB_EXTERN const char *
-hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang);
+hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,
+			   hb_gpu_shader_lang_t  lang);
 
 
 /**
