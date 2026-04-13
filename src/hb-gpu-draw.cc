@@ -1086,9 +1086,6 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
  * encode.  User configuration (font scale) is preserved.  Call
  * hb_gpu_draw_reset() to also reset user configuration to defaults.
  *
- * The internal encode buffer is kept for reuse across subsequent
- * encodes.
- *
  * XSince: REPLACEME
  **/
 void
@@ -1112,8 +1109,7 @@ hb_gpu_draw_clear (hb_gpu_draw_t *draw)
  * @draw: a GPU shape encoder
  *
  * Resets the encoder, discarding all accumulated outlines and
- * resetting user configuration to defaults.  The internal encode
- * buffer is kept for reuse.
+ * resetting user configuration to defaults.
  *
  * Since: 14.0.0
  **/

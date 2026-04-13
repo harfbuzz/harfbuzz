@@ -413,9 +413,6 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
  * is preserved.  Call hb_raster_draw_reset() to also reset user
  * configuration to defaults.
  *
- * Internal scratch buffers and recycled image cache are preserved
- * for reuse across subsequent renders.
- *
  * XSince: REPLACEME
  **/
 void
@@ -434,9 +431,6 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
  * Resets the rasterizer to its initial state, clearing all accumulated
  * geometry, the transform, and fixed extents.  The object can then be
  * reused for a new glyph.
- *
- * Internal scratch buffers and recycled image cache are preserved for
- * reuse across subsequent renders.
  *
  * Since: 13.0.0
  **/
