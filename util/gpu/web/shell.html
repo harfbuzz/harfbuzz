@@ -154,7 +154,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     backendSel.value = 'webgpu.html';
   backendSel.addEventListener('change', function () {
     backendSel.blur();
-    location.href = backendSel.value;
+    location.href = backendSel.value + location.search;
   });
 
   /* Early WebGL2 availability check */
@@ -583,9 +583,11 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       var textArea = document.getElementById('text-area');
       var textBtn = document.getElementById('text-btn');
 
+      var textOnOpen = '';
       textBtn.addEventListener('click', function () {
         var ptr = _web_get_text();
-        textArea.value = UTF8ToString(ptr);
+        textOnOpen = UTF8ToString(ptr);
+        textArea.value = textOnOpen;
         textModal.style.display = 'flex';
         textArea.focus();
       });
@@ -597,7 +599,13 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       document.getElementById('text-apply').addEventListener('click', function () {
         var text = textArea.value.trim();
         if (!text) { textModal.style.display = 'none'; return; }
-        applyText(text);
+        if (text !== textOnOpen) {
+          applyText(text);
+          /* Reflect custom text in the URL so it's copy/pasteable. */
+          var url = new URL(location.href);
+          url.searchParams.set('text', text);
+          history.replaceState(null, '', url.toString());
+        }
         textModal.style.display = 'none';
       });
 
@@ -630,8 +638,12 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
 
       /* ?text= is applied pre-main via Module.arguments; here we
        * handle the async ?font= fetch.  Text (if any) is re-applied
-       * after the font loads. */
-      if (urlFont) {
+       * after the font loads.
+       *
+       * For WebGPU, init_demo is async -- wait for the C side to
+       * signal readiness before calling exported functions. */
+      function startFontFetch () {
+        if (!urlFont) return;
         fetch(urlFont)
           .then(function (r) {
             if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -648,6 +660,11 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           .catch(function (err) {
             console.warn('?font= fetch failed: ' + err.message);
           });
+      }
+      if (isWebGPU) {
+        window._webDemoReady = startFontFetch;
+      } else {
+        startFontFetch ();
       }
     }
   };

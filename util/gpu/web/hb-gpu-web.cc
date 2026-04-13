@@ -259,7 +259,12 @@ main (int argc, char **argv)
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
+  /* When ?font= is pending, skip initial glyph upload -- the
+   * async font load will replace the font anyway, and we'd
+   * upload defaults-into-atlas just to throw them away.  Buffer
+   * stays empty until web_load_font's rebuild_buffer runs. */
+  if (!arg_font)
+    demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
 
   demo_font_print_stats (current_demo_font);
 

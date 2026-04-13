@@ -1028,7 +1028,10 @@ init_demo ()
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
+  /* Skip initial glyph upload if ?font= is pending.  Prevents
+   * wasting atlas capacity on the default font's glyphs. */
+  if (!arg_font)
+    demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
 
   demo_font_print_stats (current_demo_font);
 
@@ -1061,6 +1064,12 @@ init_demo ()
   });
 
   printf ("WebGPU demo initialized\n");
+
+  /* Signal JS that async init is complete so URL-param ?font=
+   * fetches can safely call _web_load_font. */
+  EM_ASM ({
+    if (typeof window._webDemoReady === 'function') window._webDemoReady ();
+  });
 
   /* Start render loop */
   emscripten_set_main_loop (main_loop_iter, 0, 0);
