@@ -106,7 +106,9 @@ hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
     }
   }
   hb_gpu_draw_clear (c->scratch_draw);
-  hb_gpu_draw_glyph (c->scratch_draw, c->pending_clip_font, c->pending_clip_glyph);
+  if (!hb_gpu_draw_glyph (c->scratch_draw, c->pending_clip_font, c->pending_clip_glyph))
+    return;  /* Clip glyph has no outline -- skip the layer. */
+
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
   if (unlikely (!blob || !c->sub_blobs.push (blob)))

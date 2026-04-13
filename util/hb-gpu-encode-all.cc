@@ -81,10 +81,13 @@ main (int argc, char **argv)
     return 1;
   }
 
-  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
-  if (!draw)
+  hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+  hb_gpu_draw_t  *draw  = hb_gpu_draw_create_or_fail ();
+  if (!paint || !draw)
   {
-    fprintf (stderr, "Failed to create GPU draw.\n");
+    fprintf (stderr, "Failed to create GPU encoder.\n");
+    hb_gpu_paint_destroy (paint);
+    hb_gpu_draw_destroy (draw);
     hb_font_destroy (font);
     hb_face_destroy (face);
     hb_blob_destroy (blob);
@@ -92,12 +95,13 @@ main (int argc, char **argv)
   }
 
   unsigned num_encoded = 0;
+  unsigned num_fallback = 0;
   unsigned num_empty = 0;
   unsigned num_failed = 0;
   uint64_t total_bytes = 0;
   unsigned max_bytes = 0;
   unsigned max_gid = 0;
-  uint64_t outline_ns = 0;
+  uint64_t paint_ns = 0;
   uint64_t encode_ns = 0;
 
   typedef std::chrono::steady_clock clock;
@@ -106,17 +110,28 @@ main (int argc, char **argv)
   for (unsigned iter = 0; iter < num_iters; iter++)
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
-    hb_gpu_draw_reset (draw);
+    hb_gpu_paint_clear (paint);
 
     clock::time_point t0 = clock::now ();
-    hb_gpu_draw_glyph (draw, font, gid);
+    hb_gpu_paint_glyph (paint, font, gid);
     clock::time_point t1 = clock::now ();
 
-    hb_blob_t *encoded = hb_gpu_draw_encode (draw, nullptr);
+    hb_blob_t *encoded = hb_gpu_paint_encode (paint, nullptr);
     clock::time_point t2 = clock::now ();
 
-    outline_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (t1 - t0).count ();
-    encode_ns  += std::chrono::duration_cast<std::chrono::nanoseconds> (t2 - t1).count ();
+    paint_ns  += std::chrono::duration_cast<std::chrono::nanoseconds> (t1 - t0).count ();
+    encode_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (t2 - t1).count ();
+
+    bool is_fallback = false;
+    if (!encoded)
+    {
+      /* Paint did not produce a blob (v1 feature, empty glyph).
+       * Fall back to the draw encoder. */
+      hb_gpu_draw_clear (draw);
+      hb_gpu_draw_glyph (draw, font, gid);
+      encoded = hb_gpu_draw_encode (draw, nullptr);
+      is_fallback = true;
+    }
 
     if (!encoded)
     {
@@ -135,7 +150,8 @@ main (int argc, char **argv)
 	num_empty++;
       else
       {
-	num_encoded++;
+	if (is_fallback) num_fallback++;
+	else             num_encoded++;
 	if (len > max_bytes)
 	{
 	  max_bytes = len;
@@ -144,14 +160,19 @@ main (int argc, char **argv)
       }
       total_bytes += len;
     }
-    hb_gpu_draw_recycle_blob (draw, encoded);
+    if (is_fallback)
+      hb_gpu_draw_recycle_blob (draw, encoded);
+    else
+      hb_gpu_paint_recycle_blob (paint, encoded);
   }
 
   uint64_t wall_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (clock::now () - wall_start).count ();
 
   printf ("font:     %s\n", font_path);
   printf ("glyphs:   %u\n", glyph_count);
-  printf ("encoded:  %u\n", num_encoded);
+  printf ("paint:    %u\n", num_encoded);
+  if (num_fallback)
+    printf ("draw fb:  %u\n", num_fallback);
   printf ("empty:    %u\n", num_empty);
   if (num_failed)
     printf ("FAILED:   %u\n", num_failed);
@@ -164,9 +185,9 @@ main (int argc, char **argv)
 	    max_bytes / 1024., max_gid);
   }
   uint64_t total_glyphs = (uint64_t) glyph_count * num_iters;
-  printf ("outline:  %.3fms (%.1fus/glyph)\n",
-	  outline_ns / 1e6 / num_iters,
-	  total_glyphs ? outline_ns / 1e3 / total_glyphs : 0.);
+  printf ("paint:    %.3fms (%.1fus/glyph)\n",
+	  paint_ns / 1e6 / num_iters,
+	  total_glyphs ? paint_ns / 1e3 / total_glyphs : 0.);
   printf ("encode:   %.3fms (%.1fus/glyph)\n",
 	  encode_ns / 1e6 / num_iters,
 	  total_glyphs ? encode_ns / 1e3 / total_glyphs : 0.);
@@ -174,6 +195,7 @@ main (int argc, char **argv)
 	  wall_ns / 1e6 / num_iters,
 	  wall_ns ? total_glyphs * 1e9 / wall_ns : 0.);
 
+  hb_gpu_paint_destroy (paint);
   hb_gpu_draw_destroy (draw);
   hb_font_destroy (font);
   hb_face_destroy (face);
