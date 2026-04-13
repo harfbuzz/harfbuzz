@@ -27,11 +27,8 @@
 #include "hb.hh"
 
 #include "hb-vector-draw.hh"
-#include "hb-blob.hh"
-#include "hb-map.hh"
 #include "hb-vector-svg-path.hh"
 
-#include <algorithm>
 #include <math.h>
 #include <string.h>
 

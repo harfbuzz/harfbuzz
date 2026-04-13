@@ -27,12 +27,10 @@
 #include "hb.hh"
 
 #include "hb-vector-paint.hh"
-#include "hb-blob.hh"
 #include "hb-paint.hh"
 #include "hb-vector-svg-path.hh"
 
 #include <math.h>
-#include <string.h>
 
 static void
 hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
