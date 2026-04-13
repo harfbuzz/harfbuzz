@@ -169,40 +169,37 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
 {
   char error[128];
   hb_wasm_face_data_t *data = nullptr;
-  hb_blob_t *wasm_blob = nullptr;
   wasm_module_t wasm_module = nullptr;
 
-  wasm_blob = hb_face_reference_table (face, HB_WASM_TAG_WASM);
+  hb_blob_t *wasm_blob = hb_face_reference_table (face, HB_WASM_TAG_WASM);
+  auto blob_guard = hb_make_scope_guard ([&]() { hb_blob_destroy (wasm_blob); });
+
   unsigned length = hb_blob_get_length (wasm_blob);
   if (!length)
-    goto fail;
+    return nullptr;
 
   if (!_hb_wasm_init ())
-    goto fail;
+    return nullptr;
 
   wasm_module = wasm_runtime_load ((uint8_t *) hb_blob_get_data_writable (wasm_blob, nullptr),
 				   length, error, sizeof (error));
   if (unlikely (!wasm_module))
   {
     DEBUG_MSG (WASM, nullptr, "Load wasm module failed: %s", error);
-    goto fail;
+    return nullptr;
   }
+  auto module_guard = hb_make_scope_guard ([&]() { wasm_runtime_unload (wasm_module); });
 
   data = (hb_wasm_face_data_t *) hb_calloc (1, sizeof (hb_wasm_face_data_t));
   if (unlikely (!data))
-    goto fail;
+    return nullptr;
 
   data->wasm_blob = wasm_blob;
   data->wasm_module = wasm_module;
 
+  blob_guard.release ();
+  module_guard.release ();
   return data;
-
-fail:
-  if (wasm_module)
-      wasm_runtime_unload (wasm_module);
-  hb_blob_destroy (wasm_blob);
-  hb_free (data);
-  return nullptr;
 }
 
 static hb_wasm_shape_plan_t *

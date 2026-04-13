@@ -1113,7 +1113,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   /* Inverse transform: pixel → glyph space */
   hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f) goto done;
+  if (fabsf (det) < 1e-10f) return;
 
   {
     float inv_det = 1.f / det;
@@ -1127,7 +1127,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     /* Gradient direction vector and denominator for projection */
     float dx = gx1 - gx0, dy = gy1 - gy0;
     float denom = dx * dx + dy * dy;
-    if (denom < 1e-10f) goto done;
+    if (denom < 1e-10f) return;
     float inv_denom = 1.f / denom;
 
     unsigned stride = surf->extents.stride;
@@ -1215,8 +1215,6 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-done:
-  (void) stops_;
 }
 
 static void
@@ -1263,7 +1261,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   /* Inverse transform */
   hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f) goto done;
+  if (fabsf (det) < 1e-10f) return;
 
   {
     float inv_det = 1.f / det;
@@ -1494,8 +1492,6 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-done:
-  (void) stops_;
 }
 
 static void
@@ -1540,7 +1536,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   /* Inverse transform */
   hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f || fabsf (angle_range) < 1e-10f) goto done;
+  if (fabsf (det) < 1e-10f || fabsf (angle_range) < 1e-10f) return;
 
   {
     float inv_det = 1.f / det;
@@ -1646,8 +1642,6 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-done:
-  (void) stops_;
 }
 
 static hb_bool_t

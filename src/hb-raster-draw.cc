@@ -1282,6 +1282,13 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     ext.stride = (ext.width + 3u) & ~3u;
 
   /* ── 3. Allocate or reuse image ─────────────────────────────────── */
+  /* Reset one-shot state on every exit path. */
+  HB_SCOPE_GUARD ({
+    draw->edges.clear ();
+    draw->has_extents = false;
+    draw->fixed_extents = {};
+  });
+
   hb_raster_image_t *image;
   if (draw->recycled_image)
   {
@@ -1291,15 +1298,12 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   else
   {
     image = hb_raster_image_create_or_fail ();
-    if (unlikely (!image)) goto fail;
+    if (unlikely (!image)) return nullptr;
   }
+  auto image_guard = hb_make_scope_guard ([&]() { hb_raster_image_destroy (image); });
 
   if (unlikely (!image->configure (HB_RASTER_FORMAT_A8, ext)))
-  {
-    hb_raster_image_destroy (image);
-    image = nullptr;
-    goto fail;
-  }
+    return nullptr;
   image->clear ();
 
   /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
@@ -1307,7 +1311,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   {
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))
-      goto fail;
+      return nullptr;
     hb_memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
     hb_memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
@@ -1317,7 +1321,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     if (ext.height > old_buckets)
     {
       if (unlikely (!draw->edge_buckets.resize (ext.height)))
-	goto fail;
+	return nullptr;
     }
     for (unsigned i = 0; i < hb_min (ext.height, old_buckets); i++)
       draw->edge_buckets.arrayZ[i].clear ();
@@ -1380,16 +1384,6 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     }
   }
 
-done:
-  /* ── 6. Reset one-shot state ────────────────────────────────────── */
-  draw->edges.clear ();
-  draw->has_extents = false;
-  draw->fixed_extents     = {};
-
+  image_guard.release ();
   return image;
-
-fail:
-  hb_raster_image_destroy (image);
-  image = nullptr;
-  goto done;
 }

@@ -116,25 +116,25 @@ _hb_draw_funcs_set_middle (hb_draw_funcs_t   *dfuncs,
 			   void              *user_data,
 			   hb_destroy_func_t  destroy)
 {
+  auto destroy_guard = hb_make_scope_guard ([&]() {
+    if (destroy) destroy (user_data);
+  });
+
   if (user_data && !dfuncs->user_data)
   {
     dfuncs->user_data = (decltype (dfuncs->user_data)) hb_calloc (1, sizeof (*dfuncs->user_data));
     if (unlikely (!dfuncs->user_data))
-      goto fail;
+      return false;
   }
   if (destroy && !dfuncs->destroy)
   {
     dfuncs->destroy = (decltype (dfuncs->destroy)) hb_calloc (1, sizeof (*dfuncs->destroy));
     if (unlikely (!dfuncs->destroy))
-      goto fail;
+      return false;
   }
 
+  destroy_guard.release ();
   return true;
-
-fail:
-  if (destroy)
-    (destroy) (user_data);
-  return false;
 }
 
 #define HB_DRAW_FUNC_IMPLEMENT(name)						\
