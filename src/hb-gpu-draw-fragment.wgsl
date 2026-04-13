@@ -27,18 +27,11 @@
  */
 
 
-/* Requires WGSL (WebGPU Shading Language). */
-
-
-const HB_GPU_UNITS_PER_EM: f32 = 4.0;
-const HB_GPU_INV_UNITS: f32 = 1.0 / 4.0;
-
-
-fn hb_gpu_fetch (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
-                  offset: i32) -> vec4<i32>
-{
-  return (*hb_gpu_atlas)[offset];
-}
+/* Draw-renderer fragment shader.
+ *
+ * Assumes the shared fragment helpers (hb-gpu-fragment.wgsl) are
+ * prepended to this source.
+ */
 
 
 fn _hb_gpu_calc_root_code (y1: f32, y2: f32, y3: f32) -> u32

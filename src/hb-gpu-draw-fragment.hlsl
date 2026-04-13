@@ -27,24 +27,11 @@
  */
 
 
-/* Requires Shader Model 5.0+.
+/* Draw-renderer fragment shader.
  *
- * The caller must declare:
- *   StructuredBuffer<int4> hb_gpu_atlas : register(t0);
+ * Assumes the shared fragment helpers (hb-gpu-fragment.hlsl) are
+ * prepended to this source.
  */
-
-
-#ifndef HB_GPU_UNITS_PER_EM
-#define HB_GPU_UNITS_PER_EM 4
-#endif
-
-#define HB_GPU_INV_UNITS (1.0 / (float) HB_GPU_UNITS_PER_EM)
-
-
-int4 hb_gpu_fetch (int offset)
-{
-  return hb_gpu_atlas[offset];
-}
 
 
 uint _hb_gpu_calc_root_code (float y1, float y2, float y3)

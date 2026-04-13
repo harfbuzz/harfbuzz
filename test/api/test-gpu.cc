@@ -182,6 +182,8 @@ test_draw_funcs (void)
 static void
 test_shader_sources (void)
 {
+  g_assert_nonnull (hb_gpu_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL));
+  g_assert_nonnull (hb_gpu_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL));
   g_assert_nonnull (hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL));
   g_assert_nonnull (hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL));
 }

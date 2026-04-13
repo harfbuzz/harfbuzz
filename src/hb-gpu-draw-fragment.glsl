@@ -27,38 +27,11 @@
  */
 
 
-/* Requires GLSL 3.30 or GLSL ES 3.00.
+/* Draw-renderer fragment shader.
  *
- * For GLSL ES 3.00 / WebGL2, define HB_GPU_ATLAS_2D before
- * including this source.  The atlas is then a 2D isampler2D
- * texture of known width (set via hb_gpu_atlas_width uniform)
- * instead of an isamplerBuffer.
+ * Assumes the shared fragment helpers (hb-gpu-fragment.glsl) are
+ * prepended to this source.
  */
-
-
-#ifndef HB_GPU_UNITS_PER_EM
-#define HB_GPU_UNITS_PER_EM 4
-#endif
-
-#define HB_GPU_INV_UNITS float(1.0 / float(HB_GPU_UNITS_PER_EM))
-
-
-#ifdef HB_GPU_ATLAS_2D
-uniform highp isampler2D hb_gpu_atlas;
-uniform int hb_gpu_atlas_width;
-ivec4 hb_gpu_fetch (int offset)
-{
-  return texelFetch (hb_gpu_atlas,
-		     ivec2 (offset % hb_gpu_atlas_width,
-			    offset / hb_gpu_atlas_width), 0);
-}
-#else
-uniform isamplerBuffer hb_gpu_atlas;
-ivec4 hb_gpu_fetch (int offset)
-{
-  return texelFetch (hb_gpu_atlas, offset);
-}
-#endif
 
 
 uint _hb_gpu_calc_root_code (float y1, float y2, float y3)

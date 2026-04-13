@@ -101,20 +101,26 @@
  *
  * ## Shader compilation
  *
- * The library provides GLSL source strings for a vertex helper
- * function and a fragment rendering function.  Prepend a #version
- * directive and append your own main():
+ * The library provides GLSL source strings for shared helpers
+ * (atlas access, vertex dilation) and for the draw-renderer stage
+ * code.  Prepend a #version directive, concatenate shared and
+ * draw sources in order, and append your own main():
  *
  * |[<!-- language="plain" -->
  * const char *vert_sources[] = {
  *     "#version 330\n",
+ *     hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX,
+ *                                HB_GPU_SHADER_LANG_GLSL),
  *     hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX,
  *                                HB_GPU_SHADER_LANG_GLSL),
  *     your_vertex_main
  * };
- * glShaderSource (vert_shader, 3, vert_sources, NULL);
+ * glShaderSource (vert_shader, 4, vert_sources, NULL);
  * // Same pattern for the fragment shader.
  * ]|
+ *
+ * hb_gpu_draw_shader_source() returns an empty string for the
+ * vertex stage, so the assembly order above is safe.
  *
  * ## Vertex shader
  *

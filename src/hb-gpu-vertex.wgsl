@@ -1,9 +1,5 @@
 /*
  * Copyright (C) 2026  Behdad Esfahbod
- * Copyright (C) 2017  Eric Lengyel
- *
- * Based on the Slug algorithm by Eric Lengyel:
- * https://github.com/EricLengyel/Slug
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
