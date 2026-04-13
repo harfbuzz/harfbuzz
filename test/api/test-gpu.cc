@@ -83,15 +83,13 @@ test_empty_encode (void)
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
   g_assert_nonnull (draw);
 
-  /* Encode with no curves should return empty blob. */
-  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  /* Encode with no curves should return empty blob and zero extents. */
+  hb_glyph_extents_t ext;
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
   g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
   hb_blob_destroy (blob);
 
-  /* Extents should be zero. */
-  hb_glyph_extents_t ext;
-  hb_gpu_draw_get_extents (draw, &ext);
   g_assert_cmpint (ext.x_bearing, ==, 0);
   g_assert_cmpint (ext.y_bearing, ==, 0);
   g_assert_cmpint (ext.width, ==, 0);
@@ -117,17 +115,15 @@ test_encode_glyph (void)
 
   hb_gpu_draw_glyph (draw, font, gid);
 
-  /* Encode should produce non-empty blob. */
-  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  /* Encode should produce non-empty blob with non-zero extents. */
+  hb_glyph_extents_t ext;
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
   g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
 
   /* Blob size should be a multiple of 8 (RGBA16I texels). */
   g_assert_cmpuint (hb_blob_get_length (blob) % 8, ==, 0);
 
-  /* Extents should be non-zero. */
-  hb_glyph_extents_t ext;
-  hb_gpu_draw_get_extents (draw, &ext);
   g_assert_cmpint (ext.width, >, 0);
   g_assert_cmpint (ext.height, <, 0); /* height is negative (y-down) */
 
@@ -151,20 +147,20 @@ test_reset (void)
 
   /* Draw, encode, reset, encode again — should work. */
   hb_gpu_draw_glyph (draw, font, gid);
-  hb_blob_t *blob1 = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob1 = hb_gpu_draw_encode (draw, nullptr);
   g_assert_cmpuint (hb_blob_get_length (blob1), >, 0);
   hb_blob_destroy (blob1);
 
   hb_gpu_draw_reset (draw);
 
   /* After reset, encode should be empty. */
-  hb_blob_t *blob2 = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob2 = hb_gpu_draw_encode (draw, nullptr);
   g_assert_cmpuint (hb_blob_get_length (blob2), ==, 0);
   hb_blob_destroy (blob2);
 
   /* Draw again after reset. */
   hb_gpu_draw_glyph (draw, font, gid);
-  hb_blob_t *blob3 = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob3 = hb_gpu_draw_encode (draw, nullptr);
   g_assert_cmpuint (hb_blob_get_length (blob3), >, 0);
   hb_blob_destroy (blob3);
 
@@ -203,7 +199,7 @@ test_encode_quantizes_extents_outward (void)
   hb_draw_line_to (funcs, draw, &st, 0.76f, 0.76f);
   hb_draw_close_path (funcs, draw, &st);
 
-  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
   g_assert_nonnull (blob);
 
   unsigned texel_count;
@@ -236,7 +232,7 @@ test_encode_preserves_touching_contours (void)
   hb_draw_quadratic_to (funcs, draw, &st, -0.75f, 0.25f, -0.25f, -1.f);
   hb_draw_close_path (funcs, draw, &st);
 
-  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
   g_assert_nonnull (blob);
 
   g_assert_true (blob_has_texel (blob, {0, 0, -3, 1}));
@@ -259,7 +255,7 @@ test_recycle_blob (void)
   hb_draw_line_to (funcs, draw, &st, 0.f, 1.f);
   hb_draw_close_path (funcs, draw, &st);
 
-  hb_blob_t *blob = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
   g_assert_nonnull (blob);
   unsigned first_length = hb_blob_get_length (blob);
   g_assert_cmpuint (first_length, >, 0);
@@ -278,7 +274,7 @@ test_recycle_blob (void)
   hb_draw_quadratic_to (funcs, draw, &st, 1.f, -0.5f, 0.25f, 0.25f);
   hb_draw_close_path (funcs, draw, &st);
 
-  hb_blob_t *blob2 = hb_gpu_draw_encode (draw);
+  hb_blob_t *blob2 = hb_gpu_draw_encode (draw, nullptr);
   g_assert_nonnull (blob2);
   g_assert_cmpuint (hb_blob_get_length (blob2), >, first_length);
 
@@ -301,7 +297,8 @@ test_extents_saturate_overflow (void)
   hb_draw_close_path (funcs, draw, &st);
 
   hb_glyph_extents_t ext;
-  hb_gpu_draw_get_extents (draw, &ext);
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, &ext);
+  hb_blob_destroy (blob);
 
   g_assert_cmpint (ext.x_bearing, ==, G_MININT32);
   g_assert_cmpint (ext.y_bearing, ==, 1);

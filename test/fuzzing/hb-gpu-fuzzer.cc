@@ -25,10 +25,8 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     hb_gpu_draw_glyph (draw, input.font, gid);
 
     hb_glyph_extents_t extents;
-    hb_gpu_draw_get_extents (draw, &extents);
+    hb_blob_t *blob = hb_gpu_draw_encode (draw, &extents);
     counter += extents.width;
-
-    hb_blob_t *blob = hb_gpu_draw_encode (draw);
     if (blob)
     {
       unsigned length = 0;
