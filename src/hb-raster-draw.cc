@@ -196,7 +196,7 @@ hb_raster_draw_set_user_data (hb_raster_draw_t   *draw,
  * Since: 13.0.0
  **/
 void *
-hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
+hb_raster_draw_get_user_data (const hb_raster_draw_t   *draw,
 			      hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (draw, key);
@@ -1299,18 +1299,17 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   /* Reset one-shot state on every exit path. */
   HB_SCOPE_GUARD (hb_raster_draw_clear (draw));
 
-  hb_raster_image_t *image;
+  hb_unique_ptr_t<hb_raster_image_t> image;
   if (draw->recycled_image)
   {
-    image = draw->recycled_image;
+    image = hb_unique_ptr_t<hb_raster_image_t> (draw->recycled_image);
     draw->recycled_image = nullptr;
   }
   else
   {
-    image = hb_raster_image_create_or_fail ();
+    image = hb_unique_ptr_t<hb_raster_image_t> (hb_raster_image_create_or_fail ());
     if (unlikely (!image)) return nullptr;
   }
-  auto image_guard = hb_make_scope_guard ([&]() { hb_raster_image_destroy (image); });
 
   if (unlikely (!image->configure (HB_RASTER_FORMAT_A8, ext)))
     return nullptr;
@@ -1394,6 +1393,5 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     }
   }
 
-  image_guard.release ();
-  return image;
+  return image.release ();
 }

@@ -171,8 +171,7 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
   hb_wasm_face_data_t *data = nullptr;
   wasm_module_t wasm_module = nullptr;
 
-  hb_blob_t *wasm_blob = hb_face_reference_table (face, HB_WASM_TAG_WASM);
-  auto blob_guard = hb_make_scope_guard ([&]() { hb_blob_destroy (wasm_blob); });
+  hb_unique_ptr_t<hb_blob_t> wasm_blob (hb_face_reference_table (face, HB_WASM_TAG_WASM));
 
   unsigned length = hb_blob_get_length (wasm_blob);
   if (!length)
@@ -194,10 +193,9 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return nullptr;
 
-  data->wasm_blob = wasm_blob;
+  data->wasm_blob = wasm_blob.release ();
   data->wasm_module = wasm_module;
 
-  blob_guard.release ();
   module_guard.release ();
   return data;
 }

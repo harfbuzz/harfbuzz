@@ -918,7 +918,7 @@ hb_raster_image_set_user_data (hb_raster_image_t  *image,
  * Since: 13.0.0
  **/
 void *
-hb_raster_image_get_user_data (hb_raster_image_t  *image,
+hb_raster_image_get_user_data (const hb_raster_image_t  *image,
 			       hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (image, key);
