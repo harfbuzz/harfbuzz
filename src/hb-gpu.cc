@@ -256,7 +256,7 @@
  * The fragment library provides two functions:
  *
  * |[<!-- language="plain" -->
- * float hb_gpu_render (vec2 renderCoord, uint glyphLoc);
+ * float hb_gpu_draw (vec2 renderCoord, uint glyphLoc);
  * ]|
  *
  * It requires the `hb_gpu_atlas` uniform to be bound to the
@@ -288,7 +288,7 @@
  * out vec4 fragColor;
  *
  * void main () {
- *   float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
+ *   float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
  *   fragColor = vec4 (0.0, 0.0, 0.0, coverage);
  * }
  * ]|
@@ -300,7 +300,7 @@
  * # Stem darkening
  *
  * |[<!-- language="plain" -->
- * float hb_gpu_darken (float coverage, float brightness, float ppem);
+ * float hb_gpu_draw_darken (float coverage, float brightness, float ppem);
  * ]|
  *
  * Optional stem darkening adjusts coverage at small sizes so
@@ -308,7 +308,7 @@
  *
  * Parameters:
  *
- * - coverage: the output of hb_gpu_render.
+ * - coverage: the output of hb_gpu_draw.
  *
  * - brightness: foreground brightness in [0, 1], computed as
  *   `dot (foreground.rgb, vec3 (1.0 / 3.0))`.
@@ -319,10 +319,10 @@
  * Example:
  *
  * |[<!-- language="plain" -->
- * float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
+ * float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
  * float brightness = dot (u_foreground.rgb, vec3 (1.0 / 3.0));
  * float ppem = 1.0 / max (fwidth (v_texcoord).x,
  *                          fwidth (v_texcoord).y);
- * coverage = hb_gpu_darken (coverage, brightness, ppem);
+ * coverage = hb_gpu_draw_darken (coverage, brightness, ppem);
  * ]|
  **/

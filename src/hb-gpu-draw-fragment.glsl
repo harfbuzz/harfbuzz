@@ -172,7 +172,7 @@ ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
 }
 
 /* Single-sample coverage in [0, 1]. */
-float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
+float _hb_gpu_draw_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
 {
 
   _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
@@ -292,12 +292,12 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
  */
-float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
+float hb_gpu_draw (vec2 renderCoord, uint glyphLoc_)
 {
   vec2 emsPerPixel = fwidth (renderCoord);
   vec2 pixelsPerEm = 1.0 / emsPerPixel;
 
-  float c = _hb_gpu_render_single (renderCoord, pixelsPerEm, glyphLoc_);
+  float c = _hb_gpu_draw_single (renderCoord, pixelsPerEm, glyphLoc_);
 
 #ifndef HB_GPU_NO_MSAA
   float ppem = hb_gpu_ppem (renderCoord, glyphLoc_);
@@ -306,10 +306,10 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   {
     vec2 d = emsPerPixel * (1.0 / 3.0);
     float msaa = 0.25 *
-      (_hb_gpu_render_single (renderCoord + vec2 (-d.x, -d.y), pixelsPerEm, glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x, -d.y), pixelsPerEm, glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 (-d.x,  d.y), pixelsPerEm, glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x,  d.y), pixelsPerEm, glyphLoc_));
+      (_hb_gpu_draw_single (renderCoord + vec2 (-d.x, -d.y), pixelsPerEm, glyphLoc_) +
+       _hb_gpu_draw_single (renderCoord + vec2 ( d.x, -d.y), pixelsPerEm, glyphLoc_) +
+       _hb_gpu_draw_single (renderCoord + vec2 (-d.x,  d.y), pixelsPerEm, glyphLoc_) +
+       _hb_gpu_draw_single (renderCoord + vec2 ( d.x,  d.y), pixelsPerEm, glyphLoc_));
 
     c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
   }
@@ -320,11 +320,11 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 
 /* Stem darkening for small sizes.
  *
- * coverage:    output of hb_gpu_render
+ * coverage:    output of hb_gpu_draw
  * brightness:  foreground brightness in [0, 1]
  * ppem:        pixels per em at this fragment
  */
-float hb_gpu_darken (float coverage, float brightness, float ppem)
+float hb_gpu_draw_darken (float coverage, float brightness, float ppem)
 {
   return pow (coverage,
 	      mix (pow (2.0, brightness - 0.5), 1.0,

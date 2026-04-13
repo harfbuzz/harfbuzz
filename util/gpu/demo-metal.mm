@@ -60,11 +60,11 @@ vertex VertexOut vertex_main(VertexIn in [[stage_in]],
 fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
                               device const short4* atlas [[buffer(0)]]) {
-  float coverage = hb_gpu_render(in.texcoord, in.glyphLoc, atlas);
+  float coverage = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
 
   /* Stem darkening / thinning at small sizes. */
   if (uniforms.stem_darkening > 0.0)
-    coverage = hb_gpu_darken(coverage,
+    coverage = hb_gpu_draw_darken(coverage,
       dot(uniforms.foreground.rgb, float3(1.0 / 3.0)),
       1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y));
 

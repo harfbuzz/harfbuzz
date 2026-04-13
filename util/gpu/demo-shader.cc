@@ -46,14 +46,14 @@ out vec4 fragColor;
 
 void main ()
 {
-  float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
+  float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
 
   /* Stem darkening / thinning at small sizes.
    * Light text on dark: stems get too fat → thin them (exponent > 1).
    * Dark text on light: stems get too thin → darken them (exponent < 1).
    * The foreground brightness tells us which mode we're in. */
   if (u_stem_darkening > 0.0)
-    coverage = hb_gpu_darken (coverage,
+    coverage = hb_gpu_draw_darken (coverage,
       dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
       hb_gpu_ppem (v_texcoord, v_glyphLoc));
 
