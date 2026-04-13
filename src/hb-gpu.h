@@ -106,7 +106,7 @@ hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
 HB_EXTERN hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (void);
 
-HB_EXTERN void
+HB_EXTERN hb_bool_t
 hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
 			  hb_font_t      *font,
 			  hb_codepoint_t  codepoint);

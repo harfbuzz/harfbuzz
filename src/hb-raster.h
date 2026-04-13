@@ -195,7 +195,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t          *draw,
 HB_EXTERN hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void);
 
-HB_EXTERN void
+HB_EXTERN hb_bool_t
 hb_raster_draw_glyph (hb_raster_draw_t *draw,
 		      hb_font_t       *font,
 		      hb_codepoint_t   glyph,

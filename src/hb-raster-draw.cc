@@ -963,9 +963,12 @@ hb_raster_draw_get_funcs (void)
  * rasterizer's current transform. The pen coordinates are applied before
  * minification and are transformed by the current affine transform.
  *
+ * Return value: `true` if the glyph was drawn, `false` if the font has
+ * no outlines for @glyph.
+ *
  * Since: 13.0.0
  **/
-void
+hb_bool_t
 hb_raster_draw_glyph (hb_raster_draw_t *draw,
 		      hb_font_t       *font,
 		      hb_codepoint_t   glyph,
@@ -983,8 +986,10 @@ hb_raster_draw_glyph (hb_raster_draw_t *draw,
 				xx, yx, xy, yy,
 				dx + xx * pen_x + xy * pen_y,
 				dy + yx * pen_x + yy * pen_y);
-  hb_font_draw_glyph (font, glyph, hb_raster_draw_get_funcs (), draw);
+  hb_bool_t ret = hb_font_draw_glyph_or_fail (font, glyph,
+					      hb_raster_draw_get_funcs (), draw);
   hb_raster_draw_set_transform (draw, xx, yx, xy, yy, dx, dy);
+  return ret;
 }
 
 
