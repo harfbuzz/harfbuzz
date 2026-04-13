@@ -31,19 +31,25 @@
 /**
  * SECTION:hb-gpu
  * @title: hb-gpu
- * @short_description: GPU shape encoding
+ * @short_description: GPU text rendering
  * @include: hb-gpu.h
  *
- * This module implements the
- * [Slug](https://github.com/EricLengyel/Slug) GPU text
- * rasterization algorithm by Eric Lengyel.  Glyph outlines are
- * encoded on the CPU into compact blobs that the GPU decodes
- * and rasterizes directly in the fragment shader, with no
- * intermediate bitmap atlas.
+ * This module provides GPU-side text rendering.  Glyph data is
+ * encoded on the CPU into compact blobs that the GPU decodes and
+ * rasterizes directly in the fragment shader, with no intermediate
+ * bitmap atlas.
  *
  * See the [live web demo](https://harfbuzz.github.io/hb-gpu-demo/).
  *
- * # Encoding
+ * # Draw
+ *
+ * The draw renderer implements the
+ * [Slug](https://github.com/EricLengyel/Slug) algorithm by Eric
+ * Lengyel.  It produces an antialiased coverage mask in the
+ * fragment shader, suitable for compositing over any background
+ * or multiplying with any foreground color.
+ *
+ * ## Encoding
  *
  * Each glyph is encoded independently into an opaque blob of
  * RGBA16I texels (8 bytes each).  Typical encoding flow:
@@ -69,7 +75,7 @@
  * allow buffer reuse; call hb_gpu_draw_reset() before each new
  * glyph.
  *
- * # Atlas setup
+ * ## Atlas setup
  *
  * All encoded blobs are uploaded into a single GL_TEXTURE_BUFFER
  * backed by a GL_RGBA16I format buffer.  Each glyph occupies a
@@ -93,7 +99,7 @@
  *                  hb_blob_get_data (blob, NULL));
  * ]|
  *
- * # Shader compilation
+ * ## Shader compilation
  *
  * The library provides GLSL source strings for a vertex helper
  * function and a fragment rendering function.  Prepend a #version
@@ -110,7 +116,7 @@
  * // Same pattern for the fragment shader.
  * ]|
  *
- * # Vertex shader
+ * ## Vertex shader
  *
  * The vertex library provides one function:
  *
@@ -189,7 +195,7 @@
  * }
  * ]|
  *
- * # Font scale
+ * ## Font scale
  *
  * The encoder works in font design units (upem).  For best
  * results, do not set a scale on the #hb_font_t passed to
@@ -206,7 +212,7 @@
  * blob and extents will be in the scaled coordinate space,
  * and you must adjust emPerPos accordingly.
  *
- * # Dilation
+ * ## Dilation
  *
  * Each glyph is rendered on a screen-aligned quad whose
  * corners match the glyph's bounding box.  Without dilation,
@@ -232,7 +238,7 @@
  * 2x2 inverse of the em-to-object linear transform, stored
  * row-major.
  *
- * ## Static dilation alternative
+ * ### Static dilation alternative
  *
  * Applications that do not need perspective correctness (e.g.
  * strictly 2D rendering at known sizes) can skip hb_gpu_dilate
@@ -251,7 +257,7 @@
  * the need for the MVP matrix and viewport size in the vertex
  * shader.
  *
- * # Fragment shader
+ * ## Fragment shader
  *
  * The fragment library provides two functions:
  *
@@ -297,7 +303,7 @@
  * (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) to composite
  * over a background, or multiplied with any color.
  *
- * # Stem darkening
+ * ## Stem darkening
  *
  * |[<!-- language="plain" -->
  * float hb_gpu_stem_darken (float coverage, float brightness, float ppem);
