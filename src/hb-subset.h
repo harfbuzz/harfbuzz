@@ -243,13 +243,13 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
 */
 
 HB_EXTERN hb_blob_t*
-hb_subset_cff_get_charstring_data (hb_face_t* face, hb_codepoint_t glyph_index);
+hb_subset_cff_get_charstring_data (hb_face_t* face, hb_codepoint_t glyph);
 
 HB_EXTERN hb_blob_t*
 hb_subset_cff_get_charstrings_index (hb_face_t* face);
 
 HB_EXTERN hb_blob_t*
-hb_subset_cff2_get_charstring_data (hb_face_t* face, hb_codepoint_t glyph_index);
+hb_subset_cff2_get_charstring_data (hb_face_t* face, hb_codepoint_t glyph);
 
 HB_EXTERN hb_blob_t*
 hb_subset_cff2_get_charstrings_index (hb_face_t* face);
