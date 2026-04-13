@@ -848,7 +848,7 @@ endforeach
 hb_gpu_sources = files(
   'hb-gpu.cc',
   'hb-gpu-draw.cc',
-  'hb-gpu-shaders.cc',
+  'hb-gpu-draw-shaders.cc',
   'hb-static.cc',
 )
 
