@@ -247,7 +247,12 @@ hb_pdf_get_resources (hb_vector_paint_t *paint)
     auto *res = (hb_pdf_resources_t *) hb_calloc (1, sizeof (hb_pdf_resources_t));
     if (unlikely (!res)) return nullptr;
     new (res) hb_pdf_resources_t ();
-    paint->defs.resize (sizeof (void *));
+    if (unlikely (!paint->defs.resize (sizeof (void *))))
+    {
+      res->~hb_pdf_resources_t ();
+      hb_free (res);
+      return nullptr;
+    }
     memcpy (paint->defs.arrayZ, &res, sizeof (void *));
   }
   hb_pdf_resources_t *res;
