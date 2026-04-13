@@ -85,7 +85,7 @@ hb_gpu_draw_set_user_data (hb_gpu_draw_t     *draw,
 			     hb_bool_t           replace);
 
 HB_EXTERN void *
-hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
+hb_gpu_draw_get_user_data (const hb_gpu_draw_t     *draw,
 			     hb_user_data_key_t *key);
 
 
@@ -125,5 +125,12 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
 
 
 HB_END_DECLS
+
+
+#if defined(__cplusplus) && defined(HB_CPLUSPLUS_HH)
+namespace hb {
+HB_DEFINE_VTABLE (gpu_draw, nullptr);
+} // namespace hb
+#endif
 
 #endif /* HB_GPU_H */

@@ -192,7 +192,8 @@ HB_DEFINE_VTABLE (gpu_draw, nullptr);
 
 #endif
 
-#undef HB_DEFINE_VTABLE
+/* HB_DEFINE_VTABLE stays available for subsystem headers' paired tail
+ * blocks (see hb-raster.h, hb-vector.h, hb-gpu.h, hb-subset.h). */
 
 
 } // namespace hb

@@ -298,4 +298,12 @@ hb_subset_plan_get_user_data (const hb_subset_plan_t *plan,
 
 HB_END_DECLS
 
+
+#if defined(__cplusplus) && defined(HB_CPLUSPLUS_HH)
+namespace hb {
+HB_DEFINE_VTABLE (subset_input, nullptr);
+HB_DEFINE_VTABLE (subset_plan,  nullptr);
+} // namespace hb
+#endif
+
 #endif /* HB_SUBSET_H */

@@ -114,7 +114,7 @@ hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
                               hb_bool_t           replace);
 
 HB_EXTERN void *
-hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
+hb_vector_draw_get_user_data (const hb_vector_draw_t   *draw,
                               hb_user_data_key_t *key);
 
 HB_EXTERN void
@@ -203,7 +203,7 @@ hb_vector_paint_set_user_data (hb_vector_paint_t  *paint,
                                hb_bool_t           replace);
 
 HB_EXTERN void *
-hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
+hb_vector_paint_get_user_data (const hb_vector_paint_t  *paint,
                                hb_user_data_key_t *key);
 
 HB_EXTERN void
@@ -289,5 +289,13 @@ hb_vector_paint_recycle_blob (hb_vector_paint_t *paint,
                               hb_blob_t *blob);
 
 HB_END_DECLS
+
+
+#if defined(__cplusplus) && defined(HB_CPLUSPLUS_HH)
+namespace hb {
+HB_DEFINE_VTABLE (vector_draw,  nullptr);
+HB_DEFINE_VTABLE (vector_paint, nullptr);
+} // namespace hb
+#endif
 
 #endif /* HB_VECTOR_H */

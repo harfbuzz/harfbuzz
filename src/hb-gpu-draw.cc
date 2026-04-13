@@ -969,7 +969,7 @@ hb_gpu_draw_set_user_data (hb_gpu_draw_t     *draw,
  * Since: 14.0.0
  **/
 void *
-hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
+hb_gpu_draw_get_user_data (const hb_gpu_draw_t     *draw,
 			     hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (draw, key);

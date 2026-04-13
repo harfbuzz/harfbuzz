@@ -1814,7 +1814,7 @@ hb_raster_paint_set_user_data (hb_raster_paint_t  *paint,
  * Since: 13.0.0
  **/
 void *
-hb_raster_paint_get_user_data (hb_raster_paint_t  *paint,
+hb_raster_paint_get_user_data (const hb_raster_paint_t  *paint,
 			       hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (paint, key);
