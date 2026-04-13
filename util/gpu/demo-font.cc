@@ -71,15 +71,13 @@ _demo_font_upload_glyph (demo_font_t  *font,
 
   hb_gpu_draw_glyph (font->g, font->font, glyph_index);
 
-  hb_blob_t *blob = hb_gpu_draw_encode (font->g);
+  /* Get extents in font design units */
+  hb_glyph_extents_t hb_ext;
+  hb_blob_t *blob = hb_gpu_draw_encode (font->g, &hb_ext);
   if (!blob)
     die ("Failed encoding glyph");
 
   unsigned int len = hb_blob_get_length (blob);
-
-  /* Get extents in font design units */
-  hb_glyph_extents_t hb_ext;
-  hb_gpu_draw_get_extents (font->g, &hb_ext);
 
   glyph_info->extents.min_x = hb_ext.x_bearing;
   glyph_info->extents.max_x = hb_ext.x_bearing + hb_ext.width;

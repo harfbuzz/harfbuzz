@@ -355,13 +355,18 @@ encode_curve_info (const hb_gpu_curve_t *c)
 /**
  * hb_gpu_draw_encode:
  * @draw: a GPU shape encoder
+ * @extents: (out) (nullable): where to store the computed glyph
+ *           extents (in font units, Y-up).  Pass `NULL` if not
+ *           needed.
  *
  * Encodes the accumulated outlines into a compact blob
  * suitable for GPU rendering.  The blob data is an array of
  * RGBA16I texels (8 bytes each) to be uploaded to a texture
  * buffer object.
  *
- * The returned blob owns its own copy of the data.
+ * The returned blob owns its own copy of the data.  On success
+ * @draw is auto-cleared so it can be reused for the next glyph;
+ * user configuration (font scale) is preserved.
  *
  * Return value: (transfer full):
  * An #hb_blob_t containing the encoded data, or
@@ -369,14 +374,18 @@ encode_curve_info (const hb_gpu_curve_t *c)
  *
  * Since: 14.0.0
  **/
+static void
+_hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
+			  hb_glyph_extents_t *extents);
+
 hb_blob_t *
-hb_gpu_draw_encode (hb_gpu_draw_t *draw)
+hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
+                    hb_glyph_extents_t *extents)
 {
-  /* Unlike hb_vector_*_render and hb_raster_*_render, encode() does
-   * NOT auto-clear — the encoded extents live on @draw (not on the
-   * returned blob) and callers typically read them via
-   * hb_gpu_draw_get_extents() after encode().  Call
-   * hb_gpu_draw_clear() explicitly before the next glyph. */
+  /* Capture computed extents before auto-clear wipes them. */
+  if (extents)
+    _hb_gpu_draw_get_extents (draw, extents);
+  HB_SCOPE_GUARD (hb_gpu_draw_clear (draw));
 
   if (unlikely (!draw->success))
     return nullptr;
@@ -1031,18 +1040,9 @@ hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
 		       draw);
 }
 
-/**
- * hb_gpu_draw_get_extents:
- * @draw: a GPU shape encoder
- * @extents: (out): glyph extents
- *
- * Fetches the extents of the accumulated outlines.
- *
- * Since: 14.0.0
- **/
-void
-hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
-			   hb_glyph_extents_t *extents)
+static void
+_hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
+			  hb_glyph_extents_t *extents)
 {
   if (unlikely (!draw->success) ||
       draw->num_curves == 0 ||

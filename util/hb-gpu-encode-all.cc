@@ -112,7 +112,7 @@ main (int argc, char **argv)
     hb_gpu_draw_glyph (draw, font, gid);
     clock::time_point t1 = clock::now ();
 
-    hb_blob_t *encoded = hb_gpu_draw_encode (draw);
+    hb_blob_t *encoded = hb_gpu_draw_encode (draw, nullptr);
     clock::time_point t2 = clock::now ();
 
     outline_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (t1 - t0).count ();
