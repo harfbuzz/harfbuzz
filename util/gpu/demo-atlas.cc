@@ -165,6 +165,21 @@ demo_atlas_alloc (demo_atlas_t *at,
   return offset;
 }
 
+hb_bool_t
+demo_atlas_is_external (demo_atlas_t *at)
+{
+  return at->ext.ctx != nullptr;
+}
+
+void
+demo_atlas_upload_palette (demo_atlas_t *at,
+			   const float  *rgba,
+			   unsigned int  count)
+{
+  if (at->ext.ctx && at->ext.upload_palette)
+    at->ext.upload_palette (at->ext.ctx, rgba, count);
+}
+
 unsigned int
 demo_atlas_get_used (demo_atlas_t *at)
 {

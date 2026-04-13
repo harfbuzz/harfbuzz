@@ -35,6 +35,14 @@ demo_atlas_clear (demo_atlas_t *at);
 void
 demo_atlas_set_uniforms (demo_atlas_t *at);
 
+hb_bool_t
+demo_atlas_is_external (demo_atlas_t *at);
+
+void
+demo_atlas_upload_palette (demo_atlas_t *at,
+			   const float  *rgba,
+			   unsigned int  count);
+
 
 /* Create an atlas backed by external callbacks (for Metal, etc.) */
 typedef struct {
@@ -42,6 +50,7 @@ typedef struct {
   unsigned int (*alloc) (void *ctx, const char *data, unsigned int len_bytes);
   unsigned int (*get_used) (void *ctx);
   void (*clear) (void *ctx);
+  void (*upload_palette) (void *ctx, const float *rgba, unsigned int count);
 } demo_atlas_backend_t;
 
 demo_atlas_t *

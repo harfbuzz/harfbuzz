@@ -181,6 +181,14 @@ struct demo_renderer_metal_t : demo_renderer_t
     self->atlas_dirty = true;
   }
 
+  static void
+  atlas_upload_palette_cb (void *ctx, const float *rgba, unsigned int count)
+  {
+    auto *self = (demo_renderer_metal_t *) ctx;
+    if (count > 256) count = 256;
+    memcpy (self->paletteBuffer.contents, rgba, count * 4 * sizeof (float));
+  }
+
   demo_atlas_t *get_atlas () override
   {
     return atlas;
@@ -498,6 +506,7 @@ demo_renderer_create_metal (GLFWwindow *window)
     demo_renderer_metal_t::atlas_alloc_cb,
     demo_renderer_metal_t::atlas_get_used_cb,
     demo_renderer_metal_t::atlas_clear_cb,
+    demo_renderer_metal_t::atlas_upload_palette_cb,
   };
   r->atlas = demo_atlas_create_external (&backend);
 

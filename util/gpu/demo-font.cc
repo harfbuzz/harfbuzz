@@ -3,6 +3,7 @@
  */
 
 #include "demo-font.h"
+#include "demo-atlas.h"
 
 #include <hb-ot.h>
 
@@ -23,8 +24,30 @@ struct demo_font_t {
   unsigned int sum_bytes;
 };
 
+static unsigned
+demo_font_get_palette (hb_face_t *face, float *palette)
+{
+  unsigned count = hb_ot_color_palette_get_colors (face, 0, 0, NULL, NULL);
+  if (!count) return 0;
+  if (count > 256) count = 256;
+
+  hb_color_t colors[256];
+  unsigned returned = count;
+  hb_ot_color_palette_get_colors (face, 0, 0, &returned, colors);
+
+  for (unsigned i = 0; i < returned; i++)
+  {
+    palette[i * 4 + 0] = hb_color_get_red   (colors[i]) / 255.f;
+    palette[i * 4 + 1] = hb_color_get_green (colors[i]) / 255.f;
+    palette[i * 4 + 2] = hb_color_get_blue  (colors[i]) / 255.f;
+    palette[i * 4 + 3] = hb_color_get_alpha (colors[i]) / 255.f;
+  }
+
+  return returned;
+}
+
 static void
-demo_font_upload_palette (hb_face_t *face)
+demo_font_upload_palette_gl (hb_face_t *face)
 {
   GLint program;
   glGetIntegerv (GL_CURRENT_PROGRAM, &program);
@@ -35,24 +58,25 @@ demo_font_upload_palette (hb_face_t *face)
     loc = glGetUniformLocation (program, "hb_gpu_palette[0]");
   if (loc < 0) return;
 
-  unsigned count = hb_ot_color_palette_get_colors (face, 0, 0, NULL, NULL);
-  if (!count) return;
-  if (count > 256) count = 256;
-
-  hb_color_t colors[256];
-  unsigned returned = count;
-  hb_ot_color_palette_get_colors (face, 0, 0, &returned, colors);
-
   float palette[256 * 4] = {0};
-  for (unsigned i = 0; i < returned; i++)
-  {
-    palette[i * 4 + 0] = hb_color_get_red   (colors[i]) / 255.f;
-    palette[i * 4 + 1] = hb_color_get_green (colors[i]) / 255.f;
-    palette[i * 4 + 2] = hb_color_get_blue  (colors[i]) / 255.f;
-    palette[i * 4 + 3] = hb_color_get_alpha (colors[i]) / 255.f;
-  }
+  unsigned count = demo_font_get_palette (face, palette);
+  if (!count) return;
 
   glUniform4fv (loc, 256, palette);
+}
+
+static void
+demo_font_upload_palette (hb_face_t *face, demo_atlas_t *atlas)
+{
+  if (demo_atlas_is_external (atlas))
+  {
+    float palette[256 * 4] = {0};
+    unsigned count = demo_font_get_palette (face, palette);
+    if (count)
+      demo_atlas_upload_palette (atlas, palette, 256);
+  }
+  else
+    demo_font_upload_palette_gl (face);
 }
 
 demo_font_t *
@@ -109,7 +133,7 @@ _demo_font_upload_glyph (demo_font_t  *font,
 {
   if (!font->palette_uploaded)
   {
-    demo_font_upload_palette (font->face);
+    demo_font_upload_palette (font->face, font->atlas);
     font->palette_uploaded = true;
   }
 
