@@ -4644,7 +4644,7 @@ struct GSUBGPOSVersion1_2
   public:
   DEFINE_SIZE_MIN (4 + 3 * Types::size);
 
-  unsigned int get_size () const
+  size_t get_size () const
   {
     return min_size +
 	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
@@ -4726,7 +4726,7 @@ struct GSUBGPOSVersion1_2
 
 struct GSUBGPOS
 {
-  unsigned int get_size () const
+  size_t get_size () const
   {
     switch (u.version.major) {
     case 1: hb_barrier (); return u.version1.get_size ();

@@ -257,7 +257,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
    * Other methods.
    */
 
-  unsigned int get_size () const { return length * this->get_item_size (); }
+  size_t get_size () const { return length * this->get_item_size (); }
 
   /*
    * Reverse the order of items in this array in the range [start, end).
