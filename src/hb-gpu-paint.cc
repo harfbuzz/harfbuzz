@@ -129,30 +129,25 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
  * @font: font to paint from
  * @glyph: glyph ID to paint
  *
- * Convenience wrapper that feeds a color glyph's paint tree into
- * the encoder via hb_font_paint_glyph_or_fail().  The font's scale
- * is stashed on @paint for later use by the encoder.
+ * Convenience wrapper that will feed a color glyph's paint tree
+ * into the encoder via hb_font_paint_glyph_or_fail().
  *
- * Palette index and foreground color are fixed at 0 and opaque
- * black for now; future versions will expose setters.
+ * The paint encoder is currently a stub; this function stashes the
+ * font scale on @paint for the future encoder and returns `false`
+ * for every glyph until the real encoder is implemented.
  *
  * Return value: `true` if the glyph was successfully painted into
- * the encoder, `false` if the glyph has no color paint or painting
- * failed.
+ * the encoder, `false` otherwise (including the stub state).
  *
  * XSince: REPLACEME
  **/
 hb_bool_t
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_font_t      *font,
-		    hb_codepoint_t  glyph)
+		    hb_codepoint_t  glyph HB_UNUSED)
 {
   hb_font_get_scale (font, &paint->x_scale, &paint->y_scale);
-  return hb_font_paint_glyph_or_fail (font, glyph,
-				      hb_paint_funcs_get_empty (),
-				      paint,
-				      0,
-				      HB_COLOR (0, 0, 0, 255));
+  return false;
 }
 
 /**
