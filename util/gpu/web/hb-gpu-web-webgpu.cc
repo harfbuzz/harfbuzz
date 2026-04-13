@@ -72,6 +72,7 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> hb_gpu_atlas: array<vec4<i32>>;
+@group(0) @binding(2) var<storage, read> hb_gpu_palette: array<vec4f>;
 
 struct VertexInput {
   @location(0) position: vec2f,
@@ -103,26 +104,21 @@ struct VertexOutput {
 }
 
 @fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
-  var coverage = hb_gpu_draw (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
-
-  if (u.stem_darkening > 0.0) {
-    coverage = hb_gpu_stem_darken (coverage,
-      dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
-      1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y));
-  }
+  var c = hb_gpu_paint (in.texcoord, in.glyphLoc, u.foreground,
+                        &hb_gpu_atlas, &hb_gpu_palette);
 
   if (u.gamma != 1.0) {
-    coverage = pow (coverage, u.gamma);
+    c.a = pow (c.a, u.gamma);
   }
 
   if (u.debug > 0.0) {
     let counts = _hb_gpu_curve_counts (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
     let r = clamp (f32 (counts.x) / 8.0, 0.0, 1.0);
     let g = clamp (f32 (counts.y) / 8.0, 0.0, 1.0);
-    return vec4f (r, g, coverage, max (max (r, g), coverage));
+    return vec4f (r, g, c.a, max (max (r, g), c.a));
   }
 
-  return vec4f (u.foreground.rgb, u.foreground.a * coverage);
+  return c;
 }
 )wgsl";
 
@@ -191,6 +187,7 @@ static WGPUQueue g_queue;
 static WGPUSurface g_surface;
 static WGPURenderPipeline g_pipeline;
 static WGPUBuffer g_uniform_buf;
+static WGPUBuffer g_palette_buf;
 static WGPUBuffer g_vertex_buf;
 static unsigned g_vertex_buf_capacity;
 static WGPUBindGroup g_bind_group;
@@ -831,13 +828,15 @@ static void
 create_pipeline ()
 {
   std::string wgsl;
-  wgsl += hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
   wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += "\n";
+  wgsl += hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
   wgsl += wgsl_demo_shader;
 
@@ -909,17 +908,20 @@ create_pipeline ()
 static void
 create_bind_group ()
 {
-  WGPUBindGroupEntry entries[2] = {};
+  WGPUBindGroupEntry entries[3] = {};
   entries[0].binding = 0;
   entries[0].buffer = g_uniform_buf;
   entries[0].size = sizeof (Uniforms);
   entries[1].binding = 1;
   entries[1].buffer = atlas.buf;
   entries[1].size = atlas.capacity * 4 * sizeof (int32_t);
+  entries[2].binding = 2;
+  entries[2].buffer = g_palette_buf;
+  entries[2].size = 256 * 4 * sizeof (float);
 
   WGPUBindGroupDescriptor bgDesc = {};
   bgDesc.layout = wgpuRenderPipelineGetBindGroupLayout (g_pipeline, 0);
-  bgDesc.entryCount = 2;
+  bgDesc.entryCount = 3;
   bgDesc.entries = entries;
 
   if (g_bind_group)
@@ -962,6 +964,14 @@ init_demo ()
   uniDesc.size = sizeof (Uniforms);
   uniDesc.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
   g_uniform_buf = wgpuDeviceCreateBuffer (g_device, &uniDesc);
+
+  /* Palette storage buffer: 256 vec4f, zero-filled for now. */
+  WGPUBufferDescriptor palDesc = {};
+  palDesc.size = 256 * 4 * sizeof (float);
+  palDesc.usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst;
+  g_palette_buf = wgpuDeviceCreateBuffer (g_device, &palDesc);
+  float zero_palette[256 * 4] = {};
+  wgpuQueueWriteBuffer (g_queue, g_palette_buf, 0, zero_palette, sizeof (zero_palette));
 
   /* Create pipeline and bind group */
   create_pipeline ();

@@ -48,8 +48,9 @@ static inline void glTexParameteri (GLenum, GLenum, GLint) {}
 static inline void glTexImage2D (GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void *) {}
 static inline void glTexSubImage2D (GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void *) {}
 static inline void glTexBuffer (GLenum, GLenum, GLuint) {}
-static inline GLint glGetUniformLocation (GLuint, const GLchar *) { return 0; }
+static inline GLint glGetUniformLocation (GLuint, const GLchar *) { return -1; }
 static inline void glUniform1i (GLint, GLint) {}
+static inline void glUniform4fv (GLint, GLsizei, const GLfloat *) {}
 static inline GLenum glGetError () { return 0; }
 
 /* GLFW type and constant stubs */

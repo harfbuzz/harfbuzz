@@ -563,6 +563,7 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint HB_UNUSED,
  **/
 #include "hb-gpu-paint-fragment-glsl.hh"
 #include "hb-gpu-paint-fragment-msl.hh"
+#include "hb-gpu-paint-fragment-wgsl.hh"
 
 const char *
 hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
@@ -573,7 +574,7 @@ hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
     switch (lang) {
     case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_paint_fragment_glsl;
     case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_paint_fragment_msl;
-    case HB_GPU_SHADER_LANG_WGSL:
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_paint_fragment_wgsl;
     case HB_GPU_SHADER_LANG_HLSL: return "";
     default: return nullptr;
     }
