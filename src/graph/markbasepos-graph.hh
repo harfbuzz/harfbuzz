@@ -38,7 +38,7 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
 {
   bool sanitize (graph_t::vertex_t& vertex, unsigned class_count) const
   {
-    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < AnchorMatrix::min_size) return false;
     hb_barrier ();
 
@@ -126,7 +126,7 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     unsigned min_size = MarkArray::min_size;
     if (vertex_len < min_size) return false;
     hb_barrier ();
@@ -207,7 +207,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     return vertex_len >= MarkBasePosFormat1::static_size;
   }
 
@@ -492,7 +492,7 @@ struct MarkBasePos : public OT::Layout::GPOS_impl::MarkBasePos
 
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < u.format.v.get_size ()) return false;
     hb_barrier ();
 
