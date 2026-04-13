@@ -254,8 +254,9 @@ hb_vector_transform_point (const hb_transform_t<> &t,
 {
   float xx = x, yy = y;
   t.transform_point (xx, yy);
-  *tx = xx / (x_scale_factor > 0 ? x_scale_factor : 1.f);
-  *ty = yy / (y_scale_factor > 0 ? y_scale_factor : 1.f);
+  /* Setters force scale factors > 0; trust them here. */
+  *tx = xx / x_scale_factor;
+  *ty = yy / y_scale_factor;
 }
 
 static inline hb_bool_t

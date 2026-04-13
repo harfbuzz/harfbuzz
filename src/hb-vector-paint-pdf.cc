@@ -247,7 +247,12 @@ hb_pdf_get_resources (hb_vector_paint_t *paint)
     auto *res = (hb_pdf_resources_t *) hb_calloc (1, sizeof (hb_pdf_resources_t));
     if (unlikely (!res)) return nullptr;
     new (res) hb_pdf_resources_t ();
-    paint->defs.resize (sizeof (void *));
+    if (unlikely (!paint->defs.resize (sizeof (void *))))
+    {
+      res->~hb_pdf_resources_t ();
+      hb_free (res);
+      return nullptr;
+    }
     memcpy (paint->defs.arrayZ, &res, sizeof (void *));
   }
   hb_pdf_resources_t *res;
@@ -1250,7 +1255,8 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   out.alloc (content.length + num_extra * 128 + 1024);
 
   hb_vector_t<unsigned> offsets;
-  offsets.resize (total_objects);
+  if (unlikely (!offsets.resize (total_objects)))
+    return nullptr;
 
   hb_buf_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
 

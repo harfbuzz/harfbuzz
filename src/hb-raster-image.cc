@@ -984,7 +984,7 @@ hb_raster_image_clear (hb_raster_image_t *image)
  * Since: 13.0.0
  **/
 const uint8_t *
-hb_raster_image_get_buffer (hb_raster_image_t *image)
+hb_raster_image_get_buffer (const hb_raster_image_t *image)
 {
   return image->get_buffer ();
 }
@@ -999,7 +999,7 @@ hb_raster_image_get_buffer (hb_raster_image_t *image)
  * Since: 13.0.0
  **/
 void
-hb_raster_image_get_extents (hb_raster_image_t   *image,
+hb_raster_image_get_extents (const hb_raster_image_t   *image,
 			     hb_raster_extents_t *extents)
 {
   if (extents)
@@ -1018,7 +1018,7 @@ hb_raster_image_get_extents (hb_raster_image_t   *image,
  * Since: 13.0.0
  **/
 hb_raster_format_t
-hb_raster_image_get_format (hb_raster_image_t *image)
+hb_raster_image_get_format (const hb_raster_image_t *image)
 {
   return image->format;
 }

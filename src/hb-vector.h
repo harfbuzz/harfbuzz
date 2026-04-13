@@ -124,7 +124,7 @@ hb_vector_draw_set_transform (hb_vector_draw_t *draw,
                               float dx, float dy);
 
 HB_EXTERN void
-hb_vector_draw_get_transform (hb_vector_draw_t *draw,
+hb_vector_draw_get_transform (const hb_vector_draw_t *draw,
                               float *xx, float *yx,
                               float *xy, float *yy,
                               float *dx, float *dy);
@@ -135,7 +135,7 @@ hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
                                  float y_scale_factor);
 
 HB_EXTERN void
-hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
+hb_vector_draw_get_scale_factor (const hb_vector_draw_t *draw,
                                  float *x_scale_factor,
                                  float *y_scale_factor);
 
@@ -144,7 +144,7 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
                             const hb_vector_extents_t *extents);
 
 HB_EXTERN hb_bool_t
-hb_vector_draw_get_extents (hb_vector_draw_t *draw,
+hb_vector_draw_get_extents (const hb_vector_draw_t *draw,
                             hb_vector_extents_t *extents);
 
 HB_EXTERN hb_bool_t
@@ -213,7 +213,7 @@ hb_vector_paint_set_transform (hb_vector_paint_t *paint,
                                float dx, float dy);
 
 HB_EXTERN void
-hb_vector_paint_get_transform (hb_vector_paint_t *paint,
+hb_vector_paint_get_transform (const hb_vector_paint_t *paint,
                                float *xx, float *yx,
                                float *xy, float *yy,
                                float *dx, float *dy);
@@ -224,7 +224,7 @@ hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
                                   float y_scale_factor);
 
 HB_EXTERN void
-hb_vector_paint_get_scale_factor (hb_vector_paint_t *paint,
+hb_vector_paint_get_scale_factor (const hb_vector_paint_t *paint,
                                   float *x_scale_factor,
                                   float *y_scale_factor);
 
@@ -233,7 +233,7 @@ hb_vector_paint_set_extents (hb_vector_paint_t *paint,
                              const hb_vector_extents_t *extents);
 
 HB_EXTERN hb_bool_t
-hb_vector_paint_get_extents (hb_vector_paint_t *paint,
+hb_vector_paint_get_extents (const hb_vector_paint_t *paint,
                              hb_vector_extents_t *extents);
 
 HB_EXTERN hb_bool_t

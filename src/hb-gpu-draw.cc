@@ -1015,29 +1015,52 @@ hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
 }
 
 /**
+ * hb_gpu_draw_get_scale:
+ * @draw: a GPU shape encoder
+ * @x_scale: (out): horizontal scale
+ * @y_scale: (out): vertical scale
+ *
+ * Gets the font scale previously set via hb_gpu_draw_set_scale() or
+ * hb_gpu_draw_glyph().
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
+		       int                 *x_scale,
+		       int                 *y_scale)
+{
+  if (x_scale) *x_scale = draw->x_scale;
+  if (y_scale) *y_scale = draw->y_scale;
+}
+
+/**
  * hb_gpu_draw_glyph:
  * @draw: a GPU shape encoder
  * @font: font to draw from
- * @codepoint: glyph ID to draw
+ * @glyph: glyph ID to draw
  *
  * Convenience wrapper that draws a single glyph outline into the
  * encoder using hb_font_draw_glyph().  Also sets the font scale
  * on the encoder.
  *
+ * Return value: `true` if the glyph was drawn, `false` if the font
+ * has no outlines for @glyph.
+ *
  * Since: 14.0.0
  **/
-void
-hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
-			  hb_font_t      *font,
-			  hb_codepoint_t  codepoint)
+hb_bool_t
+hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
+		   hb_font_t      *font,
+		   hb_codepoint_t  glyph)
 {
   int x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
   hb_gpu_draw_set_scale (draw, x_scale, y_scale);
 
-  hb_font_draw_glyph (font, codepoint,
-		       hb_gpu_draw_get_funcs (),
-		       draw);
+  return hb_font_draw_glyph_or_fail (font, glyph,
+				     hb_gpu_draw_get_funcs (),
+				     draw);
 }
 
 static void

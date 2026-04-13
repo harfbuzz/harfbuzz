@@ -825,14 +825,14 @@ if not get_option('vector').disabled()
 endif
 
 hb_gpu_shader_sources = [
-  [ 'hb-gpu-fragment.glsl', 'hb-gpu-fragment-glsl.hh' ],
-  [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.hh' ],
-  [ 'hb-gpu-fragment.wgsl', 'hb-gpu-fragment-wgsl.hh' ],
-  [ 'hb-gpu-vertex.wgsl', 'hb-gpu-vertex-wgsl.hh' ],
-  [ 'hb-gpu-fragment.msl', 'hb-gpu-fragment-msl.hh' ],
-  [ 'hb-gpu-vertex.msl', 'hb-gpu-vertex-msl.hh' ],
-  [ 'hb-gpu-fragment.hlsl', 'hb-gpu-fragment-hlsl.hh' ],
-  [ 'hb-gpu-vertex.hlsl', 'hb-gpu-vertex-hlsl.hh' ],
+  [ 'hb-gpu-draw-fragment.glsl', 'hb-gpu-draw-fragment-glsl.hh' ],
+  [ 'hb-gpu-draw-vertex.glsl',   'hb-gpu-draw-vertex-glsl.hh' ],
+  [ 'hb-gpu-draw-fragment.wgsl', 'hb-gpu-draw-fragment-wgsl.hh' ],
+  [ 'hb-gpu-draw-vertex.wgsl',   'hb-gpu-draw-vertex-wgsl.hh' ],
+  [ 'hb-gpu-draw-fragment.msl',  'hb-gpu-draw-fragment-msl.hh' ],
+  [ 'hb-gpu-draw-vertex.msl',    'hb-gpu-draw-vertex-msl.hh' ],
+  [ 'hb-gpu-draw-fragment.hlsl', 'hb-gpu-draw-fragment-hlsl.hh' ],
+  [ 'hb-gpu-draw-vertex.hlsl',   'hb-gpu-draw-vertex-hlsl.hh' ],
 ]
 
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
@@ -848,7 +848,7 @@ endforeach
 hb_gpu_sources = files(
   'hb-gpu.cc',
   'hb-gpu-draw.cc',
-  'hb-gpu-shaders.cc',
+  'hb-gpu-draw-shaders.cc',
   'hb-static.cc',
 )
 

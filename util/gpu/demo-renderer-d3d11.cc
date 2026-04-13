@@ -123,7 +123,7 @@ PSInput vs_main (VSInput input) {
 }
 
 float4 ps_main (PSInput input) : SV_Target {
-  float coverage = hb_gpu_render (input.texcoord, input.glyphLoc);
+  float coverage = hb_gpu_draw (input.texcoord, input.glyphLoc);
   if (stem_darkening > 0.0) {
     float2 fw = fwidth (input.texcoord);
     float ppem = 1.0 / max (fw.x, fw.y);
@@ -140,9 +140,9 @@ float4 ps_main (PSInput input) : SV_Target {
 
     std::string full;
     full += "StructuredBuffer<int4> hb_gpu_atlas : register(t0);\n";
-    full += hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
-    full += hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_HLSL);
+    full += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
     full += hlsl_demo;
 

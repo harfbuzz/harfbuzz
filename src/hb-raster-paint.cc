@@ -1859,7 +1859,7 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
  * Since: 13.0.0
  **/
 void
-hb_raster_paint_get_transform (hb_raster_paint_t *paint,
+hb_raster_paint_get_transform (const hb_raster_paint_t *paint,
 			       float *xx, float *yx,
 			       float *xy, float *yy,
 			       float *dx, float *dy)
@@ -1903,7 +1903,7 @@ hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
  * Since: 13.0.0
  **/
 void
-hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
+hb_raster_paint_get_scale_factor (const hb_raster_paint_t *paint,
 				  float *x_scale_factor,
 				  float *y_scale_factor)
 {
@@ -1950,7 +1950,7 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
  * Since: 13.0.0
  **/
 hb_bool_t
-hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
+hb_raster_paint_get_extents (const hb_raster_paint_t   *paint,
 			     hb_raster_extents_t *extents)
 {
   if (!paint->has_extents)

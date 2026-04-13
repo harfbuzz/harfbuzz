@@ -27,13 +27,7 @@
  */
 
 
-/* Requires GLSL 3.30 or GLSL ES 3.00.
- *
- * For GLSL ES 3.00 / WebGL2, define HB_GPU_ATLAS_2D before
- * including this source.  The atlas is then a 2D isampler2D
- * texture of known width (set via hb_gpu_atlas_width uniform)
- * instead of an isamplerBuffer.
- */
+/* Requires Metal Shading Language 2.0. */
 
 
 #ifndef HB_GPU_UNITS_PER_EM
@@ -43,29 +37,17 @@
 #define HB_GPU_INV_UNITS float(1.0 / float(HB_GPU_UNITS_PER_EM))
 
 
-#ifdef HB_GPU_ATLAS_2D
-uniform highp isampler2D hb_gpu_atlas;
-uniform int hb_gpu_atlas_width;
-ivec4 hb_gpu_fetch (int offset)
+int4 hb_gpu_fetch (device const short4* hb_gpu_atlas, int offset)
 {
-  return texelFetch (hb_gpu_atlas,
-		     ivec2 (offset % hb_gpu_atlas_width,
-			    offset / hb_gpu_atlas_width), 0);
+  return int4 (hb_gpu_atlas[offset]);
 }
-#else
-uniform isamplerBuffer hb_gpu_atlas;
-ivec4 hb_gpu_fetch (int offset)
-{
-  return texelFetch (hb_gpu_atlas, offset);
-}
-#endif
 
 
 uint _hb_gpu_calc_root_code (float y1, float y2, float y3)
 {
-  uint i1 = floatBitsToUint (y1) >> 31U;
-  uint i2 = floatBitsToUint (y2) >> 30U;
-  uint i3 = floatBitsToUint (y3) >> 29U;
+  uint i1 = as_type<uint> (y1) >> 31U;
+  uint i2 = as_type<uint> (y2) >> 30U;
+  uint i3 = as_type<uint> (y3) >> 29U;
 
   uint shift = (i2 & 2U) | (i1 & ~2U);
   shift = (i3 & 4U) | (shift & ~4U);
@@ -73,7 +55,7 @@ uint _hb_gpu_calc_root_code (float y1, float y2, float y3)
   return (0x2E74U >> shift) & 0x0101U;
 }
 
-vec2 _hb_gpu_solve_horiz_poly (vec2 a, vec2 b, vec2 p1)
+float2 _hb_gpu_solve_horiz_poly (float2 a, float2 b, float2 p1)
 {
   float ra = 1.0 / a.y;
   float rb = 0.5 / b.y;
@@ -85,11 +67,11 @@ vec2 _hb_gpu_solve_horiz_poly (vec2 a, vec2 b, vec2 p1)
   if (a.y == 0.0)
     t1 = t2 = p1.y * rb;
 
-  return vec2 ((a.x * t1 - b.x * 2.0) * t1 + p1.x,
-	       (a.x * t2 - b.x * 2.0) * t2 + p1.x);
+  return float2 ((a.x * t1 - b.x * 2.0) * t1 + p1.x,
+		 (a.x * t2 - b.x * 2.0) * t2 + p1.x);
 }
 
-vec2 _hb_gpu_solve_vert_poly (vec2 a, vec2 b, vec2 p1)
+float2 _hb_gpu_solve_vert_poly (float2 a, float2 b, float2 p1)
 {
   float ra = 1.0 / a.x;
   float rb = 0.5 / b.x;
@@ -101,8 +83,8 @@ vec2 _hb_gpu_solve_vert_poly (vec2 a, vec2 b, vec2 p1)
   if (a.x == 0.0)
     t1 = t2 = p1.x * rb;
 
-  return vec2 ((a.y * t1 - b.y * 2.0) * t1 + p1.y,
-	       (a.y * t2 - b.y * 2.0) * t2 + p1.y);
+  return float2 ((a.y * t1 - b.y * 2.0) * t1 + p1.y,
+		 (a.y * t2 - b.y * 2.0) * t2 + p1.y);
 }
 
 float _hb_gpu_calc_coverage (float xcov, float ycov, float xwgt, float ywgt)
@@ -119,31 +101,32 @@ struct _hb_gpu_glyph_info
 {
   int glyphLoc;
   int bandBase;
-  ivec2 bandIndex;
+  int2 bandIndex;
   int numHBands;
   int numVBands;
-  vec2 scale;
+  float2 scale;
 };
 
-_hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
+_hb_gpu_glyph_info _hb_gpu_decode_glyph (float2 renderCoord, uint glyphLoc_,
+					  device const short4* hb_gpu_atlas)
 {
   _hb_gpu_glyph_info gi;
   gi.glyphLoc = int (glyphLoc_);
 
-  ivec4 header0 = hb_gpu_fetch (gi.glyphLoc);
-  ivec4 header1 = hb_gpu_fetch (gi.glyphLoc + 1);
-  vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS;
+  int4 header0 = hb_gpu_fetch (hb_gpu_atlas, gi.glyphLoc);
+  int4 header1 = hb_gpu_fetch (hb_gpu_atlas, gi.glyphLoc + 1);
+  float4 ext = float4 (header0) * HB_GPU_INV_UNITS;
   gi.numHBands = header1.r;
   gi.numVBands = header1.g;
-  gi.scale = vec2 (float (header1.b), float (header1.a));
+  gi.scale = float2 (float (header1.b), float (header1.a));
 
-  vec2 extSize = ext.zw - ext.xy;
-  vec2 bandScale = vec2 (float (gi.numVBands), float (gi.numHBands)) / max (extSize, vec2 (1.0 / 65536.0));
-  vec2 bandOffset = -ext.xy * bandScale;
+  float2 extSize = ext.zw - ext.xy;
+  float2 bandScale = float2 (float (gi.numVBands), float (gi.numHBands)) / max (extSize, float2 (1.0 / 65536.0));
+  float2 bandOffset = -ext.xy * bandScale;
 
-  gi.bandIndex = clamp (ivec2 (renderCoord * bandScale + bandOffset),
-			ivec2 (0, 0),
-			ivec2 (gi.numVBands - 1, gi.numHBands - 1));
+  gi.bandIndex = clamp (int2 (renderCoord * bandScale + bandOffset),
+			int2 (0, 0),
+			int2 (gi.numVBands - 1, gi.numHBands - 1));
 
   gi.bandBase = gi.glyphLoc + 2;
   return gi;
@@ -154,28 +137,31 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
  * renderCoord:  em-space sample position
  * glyphLoc:     texel offset of glyph blob in atlas
  */
-float hb_gpu_ppem (vec2 renderCoord, uint glyphLoc_)
+float hb_gpu_ppem (float2 renderCoord, uint glyphLoc_,
+		   device const short4* hb_gpu_atlas)
 {
-  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
-  vec2 emsPerPixel = fwidth (renderCoord);
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  float2 emsPerPixel = fwidth (renderCoord);
   return min (gi.scale.x, gi.scale.y) /
 	 max (emsPerPixel.x, emsPerPixel.y);
 }
 
 /* Return per-pixel curve counts: (horizontal, vertical). */
-ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
+int2 _hb_gpu_curve_counts (float2 renderCoord, uint glyphLoc_,
+			   device const short4* hb_gpu_atlas)
 {
-  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
-  int hCount = hb_gpu_fetch (gi.bandBase + gi.bandIndex.y).r;
-  int vCount = hb_gpu_fetch (gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
-  return ivec2 (hCount, vCount);
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  int hCount = hb_gpu_fetch (hb_gpu_atlas, gi.bandBase + gi.bandIndex.y).r;
+  int vCount = hb_gpu_fetch (hb_gpu_atlas, gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
+  return int2 (hCount, vCount);
 }
 
 /* Single-sample coverage in [0, 1]. */
-float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
+float _hb_gpu_draw_single (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc_,
+			     device const short4* hb_gpu_atlas)
 {
 
-  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
   int glyphLoc = gi.glyphLoc;
   int bandBase = gi.bandBase;
   int numHBands = gi.numHBands;
@@ -183,7 +169,7 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
   float xcov = 0.0;
   float xwgt = 0.0;
 
-  ivec4 hbandData = hb_gpu_fetch (bandBase + gi.bandIndex.y);
+  int4 hbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + gi.bandIndex.y);
   int hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   float hSplit = float (hbandData.a) * HB_GPU_INV_UNITS;
@@ -192,16 +178,16 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
 
   for (int ci = 0; ci < hCurveCount; ci++)
   {
-    int curveOffset = hb_gpu_fetch (glyphLoc + hDataOffset + ci).r + 32768;
+    int curveOffset = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + hDataOffset + ci).r + 32768;
 
-    ivec4 raw12 = hb_gpu_fetch (glyphLoc + curveOffset);
-    ivec4 raw3 = hb_gpu_fetch (glyphLoc + curveOffset + 1);
+    int4 raw12 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset);
+    int4 raw3 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
 
-    vec4 q12 = vec4 (raw12) * HB_GPU_INV_UNITS;
-    vec2 q3 = vec2 (raw3.rg) * HB_GPU_INV_UNITS;
+    float4 q12 = float4 (raw12) * HB_GPU_INV_UNITS;
+    float2 q3 = float2 (raw3.rg) * HB_GPU_INV_UNITS;
 
-    vec4 p12 = q12 - vec4 (renderCoord, renderCoord);
-    vec2 p3 = q3 - renderCoord;
+    float4 p12 = q12 - float4 (renderCoord, renderCoord);
+    float2 p3 = q3 - renderCoord;
 
     if (hLeftRay) {
       if (min (min (p12.x, p12.z), p3.x) * pixelsPerEm.x > 0.5) break;
@@ -212,12 +198,12 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
     uint code = _hb_gpu_calc_root_code (p12.y, p12.w, p3.y);
     if (code != 0U)
     {
-      vec2 a = q12.xy - q12.zw * 2.0 + q3;
-      vec2 b = q12.xy - q12.zw;
-      vec2 r = _hb_gpu_solve_horiz_poly (a, b, p12.xy) * pixelsPerEm.x;
+      float2 a = q12.xy - q12.zw * 2.0 + q3;
+      float2 b = q12.xy - q12.zw;
+      float2 r = _hb_gpu_solve_horiz_poly (a, b, p12.xy) * pixelsPerEm.x;
       /* For leftward ray: saturate(0.5 - r) counts coverage from the left */
-      vec2 cov = hLeftRay ? clamp (vec2 (0.5) - r, 0.0, 1.0)
-			  : clamp (r + vec2 (0.5), 0.0, 1.0);
+      float2 cov = hLeftRay ? clamp (float2 (0.5) - r, 0.0, 1.0)
+			    : clamp (r + float2 (0.5), 0.0, 1.0);
 
       if ((code & 1U) != 0U)
       {
@@ -236,7 +222,7 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
   float ycov = 0.0;
   float ywgt = 0.0;
 
-  ivec4 vbandData = hb_gpu_fetch (bandBase + numHBands + gi.bandIndex.x);
+  int4 vbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + numHBands + gi.bandIndex.x);
   int vCurveCount = vbandData.r;
   float vSplit = float (vbandData.a) * HB_GPU_INV_UNITS;
   bool vLeftRay = (renderCoord.y < vSplit);
@@ -244,16 +230,16 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
 
   for (int ci = 0; ci < vCurveCount; ci++)
   {
-    int curveOffset = hb_gpu_fetch (glyphLoc + vDataOffset + ci).r + 32768;
+    int curveOffset = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + vDataOffset + ci).r + 32768;
 
-    ivec4 raw12 = hb_gpu_fetch (glyphLoc + curveOffset);
-    ivec4 raw3 = hb_gpu_fetch (glyphLoc + curveOffset + 1);
+    int4 raw12 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset);
+    int4 raw3 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
 
-    vec4 q12 = vec4 (raw12) * HB_GPU_INV_UNITS;
-    vec2 q3 = vec2 (raw3.rg) * HB_GPU_INV_UNITS;
+    float4 q12 = float4 (raw12) * HB_GPU_INV_UNITS;
+    float2 q3 = float2 (raw3.rg) * HB_GPU_INV_UNITS;
 
-    vec4 p12 = q12 - vec4 (renderCoord, renderCoord);
-    vec2 p3 = q3 - renderCoord;
+    float4 p12 = q12 - float4 (renderCoord, renderCoord);
+    float2 p3 = q3 - renderCoord;
 
     if (vLeftRay) {
       if (min (min (p12.y, p12.w), p3.y) * pixelsPerEm.y > 0.5) break;
@@ -264,11 +250,11 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
     uint code = _hb_gpu_calc_root_code (p12.x, p12.z, p3.x);
     if (code != 0U)
     {
-      vec2 a = q12.xy - q12.zw * 2.0 + q3;
-      vec2 b = q12.xy - q12.zw;
-      vec2 r = _hb_gpu_solve_vert_poly (a, b, p12.xy) * pixelsPerEm.y;
-      vec2 cov = vLeftRay ? clamp (vec2 (0.5) - r, 0.0, 1.0)
-			  : clamp (r + vec2 (0.5), 0.0, 1.0);
+      float2 a = q12.xy - q12.zw * 2.0 + q3;
+      float2 b = q12.xy - q12.zw;
+      float2 r = _hb_gpu_solve_vert_poly (a, b, p12.xy) * pixelsPerEm.y;
+      float2 cov = vLeftRay ? clamp (float2 (0.5) - r, 0.0, 1.0)
+			    : clamp (r + float2 (0.5), 0.0, 1.0);
 
       if ((code & 1U) != 0U)
       {
@@ -289,27 +275,29 @@ float _hb_gpu_render_single (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
 
 /* Return coverage in [0, 1].
  *
- * renderCoord:  em-space sample position
- * glyphLoc:     texel offset of glyph blob in atlas
+ * renderCoord:    em-space sample position
+ * glyphLoc:       texel offset of glyph blob in atlas
+ * hb_gpu_atlas:   device pointer to the atlas buffer
  */
-float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
+float hb_gpu_draw (float2 renderCoord, uint glyphLoc_,
+		     device const short4* hb_gpu_atlas)
 {
-  vec2 emsPerPixel = fwidth (renderCoord);
-  vec2 pixelsPerEm = 1.0 / emsPerPixel;
+  float2 emsPerPixel = fwidth (renderCoord);
+  float2 pixelsPerEm = 1.0 / emsPerPixel;
 
-  float c = _hb_gpu_render_single (renderCoord, pixelsPerEm, glyphLoc_);
+  float c = _hb_gpu_draw_single (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 
 #ifndef HB_GPU_NO_MSAA
-  float ppem = hb_gpu_ppem (renderCoord, glyphLoc_);
+  float ppem = hb_gpu_ppem (renderCoord, glyphLoc_, hb_gpu_atlas);
 
   if (ppem < 16.0)
   {
-    vec2 d = emsPerPixel * (1.0 / 3.0);
+    float2 d = emsPerPixel * (1.0 / 3.0);
     float msaa = 0.25 *
-      (_hb_gpu_render_single (renderCoord + vec2 (-d.x, -d.y), pixelsPerEm, glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x, -d.y), pixelsPerEm, glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 (-d.x,  d.y), pixelsPerEm, glyphLoc_) +
-       _hb_gpu_render_single (renderCoord + vec2 ( d.x,  d.y), pixelsPerEm, glyphLoc_));
+      (_hb_gpu_draw_single (renderCoord + float2 (-d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_draw_single (renderCoord + float2 ( d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_draw_single (renderCoord + float2 (-d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_draw_single (renderCoord + float2 ( d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas));
 
     c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
   }
@@ -320,11 +308,11 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 
 /* Stem darkening for small sizes.
  *
- * coverage:    output of hb_gpu_render
+ * coverage:    output of hb_gpu_draw
  * brightness:  foreground brightness in [0, 1]
  * ppem:        pixels per em at this fragment
  */
-float hb_gpu_darken (float coverage, float brightness, float ppem)
+float hb_gpu_stem_darken (float coverage, float brightness, float ppem)
 {
   return pow (coverage,
 	      mix (pow (2.0, brightness - 0.5), 1.0,

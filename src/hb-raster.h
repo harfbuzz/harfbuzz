@@ -108,14 +108,14 @@ HB_EXTERN void
 hb_raster_image_clear (hb_raster_image_t *image);
 
 HB_EXTERN const uint8_t *
-hb_raster_image_get_buffer (hb_raster_image_t *image);
+hb_raster_image_get_buffer (const hb_raster_image_t *image);
 
 HB_EXTERN void
-hb_raster_image_get_extents (hb_raster_image_t   *image,
+hb_raster_image_get_extents (const hb_raster_image_t   *image,
 			     hb_raster_extents_t *extents);
 
 HB_EXTERN hb_raster_format_t
-hb_raster_image_get_format (hb_raster_image_t *image);
+hb_raster_image_get_format (const hb_raster_image_t *image);
 
 HB_EXTERN hb_bool_t
 hb_raster_image_deserialize_from_png_or_fail (hb_raster_image_t *image,
@@ -170,12 +170,12 @@ hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
 				 float y_scale_factor);
 
 HB_EXTERN void
-hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
+hb_raster_draw_get_scale_factor (const hb_raster_draw_t *draw,
 				 float *x_scale_factor,
 				 float *y_scale_factor);
 
 HB_EXTERN void
-hb_raster_draw_get_transform (hb_raster_draw_t *draw,
+hb_raster_draw_get_transform (const hb_raster_draw_t *draw,
 			      float *xx, float *yx,
 			      float *xy, float *yy,
 			      float *dx, float *dy);
@@ -185,7 +185,7 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents);
 
 HB_EXTERN hb_bool_t
-hb_raster_draw_get_extents (hb_raster_draw_t    *draw,
+hb_raster_draw_get_extents (const hb_raster_draw_t    *draw,
 			    hb_raster_extents_t *extents);
 
 HB_EXTERN hb_bool_t
@@ -195,7 +195,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t          *draw,
 HB_EXTERN hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void);
 
-HB_EXTERN void
+HB_EXTERN hb_bool_t
 hb_raster_draw_glyph (hb_raster_draw_t *draw,
 		      hb_font_t       *font,
 		      hb_codepoint_t   glyph,
@@ -257,7 +257,7 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 			       float dx, float dy);
 
 HB_EXTERN void
-hb_raster_paint_get_transform (hb_raster_paint_t *paint,
+hb_raster_paint_get_transform (const hb_raster_paint_t *paint,
 			       float *xx, float *yx,
 			       float *xy, float *yy,
 			       float *dx, float *dy);
@@ -268,7 +268,7 @@ hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
 				  float y_scale_factor);
 
 HB_EXTERN void
-hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
+hb_raster_paint_get_scale_factor (const hb_raster_paint_t *paint,
 				  float *x_scale_factor,
 				  float *y_scale_factor);
 
@@ -277,7 +277,7 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 			     const hb_raster_extents_t *extents);
 
 HB_EXTERN hb_bool_t
-hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
+hb_raster_paint_get_extents (const hb_raster_paint_t   *paint,
 			     hb_raster_extents_t *extents);
 
 HB_EXTERN hb_bool_t

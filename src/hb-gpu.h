@@ -50,11 +50,23 @@ typedef enum {
   HB_GPU_SHADER_LANG_HLSL,
 } hb_gpu_shader_lang_t;
 
-HB_EXTERN const char *
-hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang);
+/**
+ * hb_gpu_shader_stage_t:
+ * @HB_GPU_SHADER_STAGE_VERTEX: Vertex shader stage.
+ * @HB_GPU_SHADER_STAGE_FRAGMENT: Fragment shader stage.
+ *
+ * Shader pipeline stage.
+ *
+ * XSince: REPLACEME
+ */
+typedef enum {
+  HB_GPU_SHADER_STAGE_VERTEX,
+  HB_GPU_SHADER_STAGE_FRAGMENT,
+} hb_gpu_shader_stage_t;
 
 HB_EXTERN const char *
-hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang);
+hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,
+			   hb_gpu_shader_lang_t  lang);
 
 
 /**
@@ -96,15 +108,20 @@ hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
 		       int            x_scale,
 		       int            y_scale);
 
+HB_EXTERN void
+hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
+		       int                 *x_scale,
+		       int                 *y_scale);
+
 /* Draw */
 
 HB_EXTERN hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (void);
 
-HB_EXTERN void
-hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
-			  hb_font_t      *font,
-			  hb_codepoint_t  codepoint);
+HB_EXTERN hb_bool_t
+hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
+		   hb_font_t      *font,
+		   hb_codepoint_t  glyph);
 
 
 /* Encode */

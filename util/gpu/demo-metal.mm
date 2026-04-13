@@ -60,11 +60,11 @@ vertex VertexOut vertex_main(VertexIn in [[stage_in]],
 fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
                               device const short4* atlas [[buffer(0)]]) {
-  float coverage = hb_gpu_render(in.texcoord, in.glyphLoc, atlas);
+  float coverage = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
 
   /* Stem darkening / thinning at small sizes. */
   if (uniforms.stem_darkening > 0.0)
-    coverage = hb_gpu_darken(coverage,
+    coverage = hb_gpu_stem_darken(coverage,
       dot(uniforms.foreground.rgb, float3(1.0 / 3.0)),
       1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y));
 
@@ -405,8 +405,8 @@ demo_renderer_create_metal (GLFWwindow *window)
   nswindow.contentView.wantsLayer = YES;
 
   /* Compile shaders */
-  const char *vert_src = hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_MSL);
-  const char *frag_src = hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_MSL);
+  const char *vert_src = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_src = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
 
   NSString *preamble = @"#include <metal_stdlib>\nusing namespace metal;\n";
   NSString *source = [NSString stringWithFormat:@"%@%s%s%s",

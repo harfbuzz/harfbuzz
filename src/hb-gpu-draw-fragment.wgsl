@@ -159,7 +159,7 @@ fn _hb_gpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
 }
 
 /* Single-sample coverage in [0, 1]. */
-fn _hb_gpu_render_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
+fn _hb_gpu_draw_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
                            hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
 
@@ -287,13 +287,13 @@ fn _hb_gpu_render_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32
  * glyphLoc:       texel offset of glyph blob in atlas
  * hb_gpu_atlas:   storage buffer pointer to the atlas
  */
-fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
+fn hb_gpu_draw (renderCoord: vec2f, glyphLoc_: u32,
                   hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
   let emsPerPixel = fwidth (renderCoord);
   let pixelsPerEm = 1.0 / emsPerPixel;
 
-  var c = _hb_gpu_render_single (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
+  var c = _hb_gpu_draw_single (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 
   let ppem = hb_gpu_ppem (renderCoord, glyphLoc_, hb_gpu_atlas);
 
@@ -301,10 +301,10 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
   {
     let d = emsPerPixel * (1.0 / 3.0);
     let msaa = 0.25 *
-      (_hb_gpu_render_single (renderCoord + vec2f (-d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
-       _hb_gpu_render_single (renderCoord + vec2f ( d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
-       _hb_gpu_render_single (renderCoord + vec2f (-d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
-       _hb_gpu_render_single (renderCoord + vec2f ( d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas));
+      (_hb_gpu_draw_single (renderCoord + vec2f (-d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_draw_single (renderCoord + vec2f ( d.x, -d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_draw_single (renderCoord + vec2f (-d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas) +
+       _hb_gpu_draw_single (renderCoord + vec2f ( d.x,  d.y), pixelsPerEm, glyphLoc_, hb_gpu_atlas));
 
     c = mix (c, msaa, smoothstep (16.0, 8.0, ppem));
   }
@@ -314,11 +314,11 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
 
 /* Stem darkening for small sizes.
  *
- * coverage:    output of hb_gpu_render
+ * coverage:    output of hb_gpu_draw
  * brightness:  foreground brightness in [0, 1]
  * ppem:        pixels per em at this fragment
  */
-fn hb_gpu_darken (coverage: f32, brightness: f32, ppem: f32) -> f32
+fn hb_gpu_stem_darken (coverage: f32, brightness: f32, ppem: f32) -> f32
 {
   return pow (coverage,
 	      mix (pow (2.0, brightness - 0.5), 1.0,

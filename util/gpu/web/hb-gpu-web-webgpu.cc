@@ -103,10 +103,10 @@ struct VertexOutput {
 }
 
 @fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
-  var coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
+  var coverage = hb_gpu_draw (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
 
   if (u.stem_darkening > 0.0) {
-    coverage = hb_gpu_darken (coverage,
+    coverage = hb_gpu_stem_darken (coverage,
       dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
       1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y));
   }
@@ -831,9 +831,9 @@ static void
 create_pipeline ()
 {
   std::string wgsl;
-  wgsl += hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
   wgsl += wgsl_demo_shader;
 
