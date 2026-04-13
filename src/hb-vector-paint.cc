@@ -1128,6 +1128,23 @@ hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
 }
 
 /**
+ * hb_vector_paint_get_foreground:
+ * @paint: a paint context.
+ *
+ * Returns the foreground color previously set on @paint, or the
+ * default opaque black if none was set.
+ *
+ * Return value: the foreground color.
+ *
+ * XSince: REPLACEME
+ */
+hb_color_t
+hb_vector_paint_get_foreground (const hb_vector_paint_t *paint)
+{
+  return paint->foreground;
+}
+
+/**
  * hb_vector_paint_set_palette:
  * @paint: a paint context.
  * @palette: palette index for color glyph painting.
@@ -1141,6 +1158,23 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette)
 {
   paint->palette = palette;
+}
+
+/**
+ * hb_vector_paint_get_palette:
+ * @paint: a paint context.
+ *
+ * Returns the palette index previously set on @paint, or 0 if none
+ * was set.
+ *
+ * Return value: the palette index.
+ *
+ * XSince: REPLACEME
+ */
+int
+hb_vector_paint_get_palette (const hb_vector_paint_t *paint)
+{
+  return paint->palette;
 }
 
 /**
@@ -1402,6 +1436,23 @@ hb_vector_paint_set_flat (hb_vector_paint_t *paint,
 }
 
 /**
+ * hb_vector_paint_get_flat:
+ * @paint: a paint context.
+ *
+ * Returns the flatten flag previously set on @paint, or `false` if
+ * none was set.
+ *
+ * Return value: the flatten flag.
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_vector_paint_get_flat (const hb_vector_paint_t *paint)
+{
+  return paint->flat;
+}
+
+/**
  * hb_vector_paint_set_precision:
  * @paint: a paint context.
  * @precision: decimal precision.
@@ -1415,6 +1466,23 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision)
 {
   paint->precision = hb_min (precision, 12u);
+}
+
+/**
+ * hb_vector_paint_get_precision:
+ * @paint: a paint context.
+ *
+ * Returns the numeric output precision previously set on @paint,
+ * or the default if none was set.
+ *
+ * Return value: the precision.
+ *
+ * XSince: REPLACEME
+ */
+unsigned
+hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
+{
+  return paint->precision;
 }
 
 /**

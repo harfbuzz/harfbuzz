@@ -313,8 +313,10 @@ struct raster_output_t : output_options_t<true>, view_options_t
 
 	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 	  hb_raster_paint_set_extents (pnt, &ext);
+	  hb_raster_paint_set_palette (pnt, palette);
+	  hb_raster_paint_set_foreground (pnt, glyph_fg);
 
-	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, palette, glyph_fg);
+	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y);
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	  if (img)

@@ -1060,7 +1060,7 @@ hb_raster_image_deserialize_from_png_or_fail (hb_raster_image_t *image,
  * Since: 13.1.0
  **/
 hb_blob_t *
-hb_raster_image_serialize_to_png_or_fail (hb_raster_image_t *image)
+hb_raster_image_serialize_to_png_or_fail (const hb_raster_image_t *image)
 {
   return image->serialize_to_png_or_fail ();
 }
