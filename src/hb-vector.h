@@ -303,11 +303,50 @@ typedef unsigned (*hb_vector_pdf_emit_stream_func_t) (
     unsigned body_length,
     void *user_data);
 
+/**
+ * hb_vector_pdf_resource_type_t:
+ * @HB_VECTOR_PDF_RESOURCE_EXT_G_STATE: ExtGState (alpha, blend mode).
+ * @HB_VECTOR_PDF_RESOURCE_SHADING: Shading (gradients).
+ * @HB_VECTOR_PDF_RESOURCE_X_OBJECT: XObject (images).
+ *
+ * PDF resource types emitted by hb_vector_paint_render_pdf_fragment().
+ *
+ * XSince: REPLACEME
+ */
+typedef enum {
+  HB_VECTOR_PDF_RESOURCE_EXT_G_STATE = 0,
+  HB_VECTOR_PDF_RESOURCE_SHADING = 1,
+  HB_VECTOR_PDF_RESOURCE_X_OBJECT = 2,
+} hb_vector_pdf_resource_type_t;
+
+/**
+ * hb_vector_pdf_emit_resource_func_t:
+ * @type: resource type.
+ * @name: resource name used in the content stream (e.g. "GS0", "SH0").
+ * @value: resource value — either an inline PDF dictionary
+ *         (e.g. `<< /ca 0.5 >>`) or an indirect reference using a
+ *         consumer-assigned object ID (e.g. `1001 0 R`).
+ * @value_length: length of @value in bytes.
+ * @user_data: user data pointer.
+ *
+ * Invoked once per resource entry.  The consumer collects
+ * these into its own resource dictionary, grouping by @type.
+ *
+ * XSince: REPLACEME
+ */
+typedef void (*hb_vector_pdf_emit_resource_func_t) (
+    hb_vector_pdf_resource_type_t type,
+    const char *name,
+    const char *value,
+    unsigned value_length,
+    void *user_data);
+
 HB_EXTERN hb_blob_t *
 hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
                                      hb_vector_pdf_emit_stream_func_t  emit_stream,
-                                     void                             *user_data,
-                                     hb_blob_t                       **resources);
+                                     void                             *emit_stream_user_data,
+                                     hb_vector_pdf_emit_resource_func_t  emit_resource,
+                                     void                             *emit_resource_user_data);
 
 HB_EXTERN void
 hb_vector_paint_reset (hb_vector_paint_t *paint);

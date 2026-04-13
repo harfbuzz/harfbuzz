@@ -65,12 +65,18 @@ hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
 			    unsigned width, unsigned height,
 			    const uint8_t *trns, unsigned trns_len);
 
+struct hb_pdf_resource_entry_t
+{
+  hb_vector_pdf_resource_type_t type;
+  const char *prefix; /* "GS", "SH", "Im" */
+  unsigned idx;       /* resource name index (GS0, GS1, ...) */
+  unsigned obj_idx;   /* index into objects[] */
+};
+
 struct hb_pdf_resources_t
 {
   hb_vector_t<hb_pdf_obj_t> objects;   /* extra objects, starting at id 5 */
-  hb_vector_t<char> extgstate_dict;    /* /GS0 5 0 R /GS1 6 0 R ... */
-  hb_vector_t<char> shading_dict;      /* /SH0 7 0 R ... */
-  hb_vector_t<char> xobject_dict;      /* /Im0 8 0 R ... */
+  hb_vector_t<hb_pdf_resource_entry_t> entries;
   unsigned extgstate_count = 0;
   unsigned shading_count = 0;
   unsigned xobject_count = 0;
@@ -92,14 +98,9 @@ struct hb_pdf_resources_t
     hb_buf_append_str (&obj, "<< /Type /ExtGState /ca ");
     hb_buf_append_num (&obj, alpha, 4);
     hb_buf_append_str (&obj, " >>");
-    unsigned obj_id = add_object (std::move (obj));
-
-    /* Add to resource dict. */
-    hb_buf_append_str (&extgstate_dict, "/GS");
-    hb_buf_append_unsigned (&extgstate_dict, idx);
-    hb_buf_append_c (&extgstate_dict, ' ');
-    hb_buf_append_unsigned (&extgstate_dict, obj_id);
-    hb_buf_append_str (&extgstate_dict, " 0 R ");
+    unsigned obj_idx = objects.length;
+    add_object (std::move (obj));
+    entries.push (hb_pdf_resource_entry_t {HB_VECTOR_PDF_RESOURCE_EXT_G_STATE, "GS", idx, obj_idx});
     (void) precision;
     return idx;
   }
@@ -112,13 +113,9 @@ struct hb_pdf_resources_t
     hb_buf_append_str (&obj, "<< /Type /ExtGState /BM /");
     hb_buf_append_str (&obj, bm);
     hb_buf_append_str (&obj, " >>");
-    unsigned obj_id = add_object (std::move (obj));
-
-    hb_buf_append_str (&extgstate_dict, "/GS");
-    hb_buf_append_unsigned (&extgstate_dict, idx);
-    hb_buf_append_c (&extgstate_dict, ' ');
-    hb_buf_append_unsigned (&extgstate_dict, obj_id);
-    hb_buf_append_str (&extgstate_dict, " 0 R ");
+    unsigned obj_idx = objects.length;
+    add_object (std::move (obj));
+    entries.push (hb_pdf_resource_entry_t {HB_VECTOR_PDF_RESOURCE_EXT_G_STATE, "GS", idx, obj_idx});
     return idx;
   }
 
@@ -126,13 +123,9 @@ struct hb_pdf_resources_t
   unsigned add_shading (hb_vector_t<char> &&shading_data)
   {
     unsigned idx = shading_count++;
-    unsigned obj_id = add_object (std::move (shading_data));
-
-    hb_buf_append_str (&shading_dict, "/SH");
-    hb_buf_append_unsigned (&shading_dict, idx);
-    hb_buf_append_c (&shading_dict, ' ');
-    hb_buf_append_unsigned (&shading_dict, obj_id);
-    hb_buf_append_str (&shading_dict, " 0 R ");
+    unsigned obj_idx = objects.length;
+    add_object (std::move (shading_data));
+    entries.push (hb_pdf_resource_entry_t {HB_VECTOR_PDF_RESOURCE_SHADING, "SH", idx, obj_idx});
     return idx;
   }
 
@@ -224,13 +217,9 @@ struct hb_pdf_resources_t
 
     (void) has_alpha;
 
-    unsigned obj_id = add_object (std::move (obj));
-
-    hb_buf_append_str (&xobject_dict, "/Im");
-    hb_buf_append_unsigned (&xobject_dict, idx);
-    hb_buf_append_c (&xobject_dict, ' ');
-    hb_buf_append_unsigned (&xobject_dict, obj_id);
-    hb_buf_append_str (&xobject_dict, " 0 R ");
+    unsigned obj_idx = objects.length;
+    add_object (std::move (obj));
+    entries.push (hb_pdf_resource_entry_t {HB_VECTOR_PDF_RESOURCE_X_OBJECT, "Im", idx, obj_idx});
     return idx;
   }
 };
@@ -1255,6 +1244,35 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
       !paint->group_stack.arrayZ[0].length)
     return nullptr;
 
+  /* Helper: append resource entries for one type as indirect refs
+   * (for the full-PDF render path). */
+  auto append_resource_refs = [] (hb_vector_t<char> &out,
+				  const char *type_key,
+				  hb_vector_pdf_resource_type_t match_type,
+				  const hb_pdf_resources_t *res_)
+  {
+    bool any = false;
+    for (unsigned i = 0; i < res_->entries.length; i++)
+      if (res_->entries.arrayZ[i].type == match_type)
+      { any = true; break; }
+    if (!any) return;
+
+    hb_buf_append_str (&out, type_key);
+    hb_buf_append_str (&out, " << ");
+    for (unsigned i = 0; i < res_->entries.length; i++)
+    {
+      const auto &e = res_->entries.arrayZ[i];
+      if (e.type != match_type) continue;
+      hb_buf_append_c (&out, '/');
+      hb_buf_append_str (&out, e.prefix);
+      hb_buf_append_unsigned (&out, e.idx);
+      hb_buf_append_c (&out, ' ');
+      hb_buf_append_unsigned (&out, 5 + e.obj_idx);
+      hb_buf_append_str (&out, " 0 R ");
+    }
+    hb_buf_append_str (&out, ">>");
+  };
+
   hb_vector_t<char> &content = paint->group_stack.arrayZ[0];
   hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
 
@@ -1297,29 +1315,12 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   hb_buf_append_str (&out, "]\n/Contents 4 0 R");
 
   /* Resources. */
-  bool has_resources = res &&
-    (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length);
-  if (has_resources)
+  if (res && res->entries.length)
   {
     hb_buf_append_str (&out, "\n/Resources <<");
-    if (res->extgstate_dict.length)
-    {
-      hb_buf_append_str (&out, " /ExtGState << ");
-      hb_buf_append_len (&out, res->extgstate_dict.arrayZ, res->extgstate_dict.length);
-      hb_buf_append_str (&out, ">>");
-    }
-    if (res->shading_dict.length)
-    {
-      hb_buf_append_str (&out, " /Shading << ");
-      hb_buf_append_len (&out, res->shading_dict.arrayZ, res->shading_dict.length);
-      hb_buf_append_str (&out, ">>");
-    }
-    if (res->xobject_dict.length)
-    {
-      hb_buf_append_str (&out, " /XObject << ");
-      hb_buf_append_len (&out, res->xobject_dict.arrayZ, res->xobject_dict.length);
-      hb_buf_append_str (&out, ">>");
-    }
+    append_resource_refs (out, " /ExtGState", HB_VECTOR_PDF_RESOURCE_EXT_G_STATE, res);
+    append_resource_refs (out, " /Shading", HB_VECTOR_PDF_RESOURCE_SHADING, res);
+    append_resource_refs (out, " /XObject", HB_VECTOR_PDF_RESOURCE_X_OBJECT, res);
     hb_buf_append_str (&out, " >>");
   }
 
@@ -1468,6 +1469,56 @@ hb_pdf_resolve_refs (const hb_pdf_resources_t *res,
   return true;
 }
 
+/* Emit resource entries via callback, resolving object references
+ * to either inline dicts or consumer-assigned indirect refs. */
+static bool
+hb_pdf_emit_resource_entries (const hb_pdf_resources_t *res,
+			      const unsigned *consumer_ids,
+			      hb_vector_pdf_emit_resource_func_t emit_resource,
+			      void *emit_resource_user_data)
+{
+  if (!emit_resource)
+    return true;
+
+  for (unsigned i = 0; i < res->entries.length; i++)
+  {
+    const auto &entry = res->entries.arrayZ[i];
+
+    /* Build the resource name (e.g. "GS0", "SH1"). */
+    char name[16];
+    snprintf (name, sizeof (name), "%s%u", entry.prefix, entry.idx);
+
+    const auto &obj = res->objects.arrayZ[entry.obj_idx];
+
+    if (hb_pdf_body_is_stream (obj.data))
+    {
+      /* Stream objects were already emitted via the emit_stream
+       * callback; emit an indirect reference using the
+       * consumer-assigned ID. */
+      unsigned cid = consumer_ids[entry.obj_idx];
+      if (!cid) return false;
+      char ref[32];
+      snprintf (ref, sizeof (ref), "%u 0 R", cid);
+      emit_resource (entry.type, name, ref, (unsigned) strlen (ref),
+		emit_resource_user_data);
+    }
+    else
+    {
+      /* Non-stream: resolve refs and inline the body. */
+      hb_vector_t<char> resolved;
+      resolved.alloc (obj.data.length + 64);
+      if (!hb_pdf_resolve_refs (res, consumer_ids,
+				obj.data.arrayZ, obj.data.length,
+				&resolved, 0))
+	return false;
+
+      emit_resource (entry.type, name, resolved.arrayZ, resolved.length,
+		emit_resource_user_data);
+    }
+  }
+  return true;
+}
+
 /**
  * hb_vector_paint_render_pdf_fragment:
  * @paint: a paint context created with %HB_VECTOR_FORMAT_PDF.
@@ -1475,12 +1526,12 @@ hb_pdf_resolve_refs (const hb_pdf_resources_t *res,
  *               that must be emitted as an indirect PDF object in
  *               the consumer's document.  May be `NULL` only if no
  *               streams are expected; rendering fails otherwise.
- * @user_data: user data for @emit_stream.
- * @resources: (out) (nullable): receives a PDF dictionary value
- *             (e.g. `<< /ExtGState << ... >> /Shading << ... >> >>`)
- *             with non-stream resource objects inlined and stream
- *             references substituted using consumer-assigned object
- *             IDs.  May be `NULL` if not needed.
+ * @emit_stream_user_data: user data for @emit_stream.
+ * @emit_resource: (nullable): callback invoked once per resource entry.
+ *            Receives the resource type, name (e.g. "GS0"), and
+ *            resolved value (inline dict or indirect reference
+ *            using a consumer-assigned ID).
+ * @emit_resource_user_data: user data for @emit_resource.
  *
  * Renders accumulated paint operations into parts suitable for
  * embedding in a consumer-owned PDF document (for example as a
@@ -1492,7 +1543,11 @@ hb_pdf_resolve_refs (const hb_pdf_resources_t *res,
  * dependency order; the consumer writes each as an indirect
  * object and returns its PDF object id, which HarfBuzz then
  * substitutes into any later bodies and into the resource
- * dictionary.
+ * entry values.
+ *
+ * Non-stream resource objects (Functions, simple ExtGState,
+ * Type 2/3 shadings) are inlined directly in the resource
+ * entry values.
  *
  * Resets @paint on success.
  *
@@ -1502,12 +1557,12 @@ hb_pdf_resolve_refs (const hb_pdf_resources_t *res,
  * XSince: REPLACEME
  */
 hb_blob_t *
-hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
-                                     hb_vector_pdf_emit_stream_func_t  emit_stream,
-                                     void                             *user_data,
-                                     hb_blob_t                       **resources)
+hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                  *paint,
+                                     hb_vector_pdf_emit_stream_func_t    emit_stream,
+                                     void                               *emit_stream_user_data,
+                                     hb_vector_pdf_emit_resource_func_t  emit_resource,
+                                     void                               *emit_resource_user_data)
 {
-  if (resources) *resources = nullptr;
 
   if (paint->format != HB_VECTOR_FORMAT_PDF)
     return nullptr;
@@ -1553,7 +1608,7 @@ hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
       break;
     }
 
-    unsigned cid = emit_stream (resolved.arrayZ, resolved.length, user_data);
+    unsigned cid = emit_stream (resolved.arrayZ, resolved.length, emit_stream_user_data);
     if (unlikely (!cid))
     {
       ok = false;
@@ -1563,7 +1618,6 @@ hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
   }
 
   hb_blob_t *content_blob = nullptr;
-  hb_blob_t *resources_blob = nullptr;
 
   if (ok)
   {
@@ -1575,59 +1629,10 @@ hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
       ok = false;
   }
 
-  if (ok && resources)
+  if (ok && res && emit_resource)
   {
-    hb_vector_t<char> out;
-    bool has_any = res &&
-      (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length);
-
-    if (has_any)
-    {
-      out.alloc (256);
-      hb_buf_append_str (&out, "<<");
-      if (res->extgstate_dict.length)
-      {
-        hb_buf_append_str (&out, " /ExtGState << ");
-        ok = hb_pdf_resolve_refs (res, consumer_ids,
-                                  res->extgstate_dict.arrayZ,
-                                  res->extgstate_dict.length,
-                                  &out, 0) && ok;
-        hb_buf_append_str (&out, ">>");
-      }
-      if (ok && res->shading_dict.length)
-      {
-        hb_buf_append_str (&out, " /Shading << ");
-        ok = hb_pdf_resolve_refs (res, consumer_ids,
-                                  res->shading_dict.arrayZ,
-                                  res->shading_dict.length,
-                                  &out, 0) && ok;
-        hb_buf_append_str (&out, ">>");
-      }
-      if (ok && res->xobject_dict.length)
-      {
-        hb_buf_append_str (&out, " /XObject << ");
-        ok = hb_pdf_resolve_refs (res, consumer_ids,
-                                  res->xobject_dict.arrayZ,
-                                  res->xobject_dict.length,
-                                  &out, 0) && ok;
-        hb_buf_append_str (&out, ">>");
-      }
-      hb_buf_append_str (&out, " >>");
-    }
-    else
-    {
-      out.alloc (8);
-      hb_buf_append_str (&out, "<< >>");
-    }
-
-    if (ok)
-    {
-      resources_blob = hb_blob_create_or_fail (out.arrayZ, out.length,
-                                               HB_MEMORY_MODE_DUPLICATE,
-                                               nullptr, nullptr);
-      if (unlikely (!resources_blob))
-        ok = false;
-    }
+    ok = hb_pdf_emit_resource_entries (res, consumer_ids,
+				       emit_resource, emit_resource_user_data);
   }
 
   hb_free (consumer_ids);
@@ -1635,7 +1640,6 @@ hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
   if (!ok)
   {
     hb_blob_destroy (content_blob);
-    hb_blob_destroy (resources_blob);
     /* Reset paint state on failure too; any partially-accumulated
      * resources would otherwise leak when the caller destroys the
      * paint context. */
@@ -1646,8 +1650,6 @@ hb_vector_paint_render_pdf_fragment (hb_vector_paint_t                *paint,
     paint->extents = {0, 0, 0, 0};
     return nullptr;
   }
-
-  if (resources) *resources = resources_blob;
 
   /* Reset paint state (mirrors hb_vector_paint_render). */
   hb_pdf_free_resources (paint);

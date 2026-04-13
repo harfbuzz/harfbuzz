@@ -121,13 +121,22 @@ test_paint_pdf_fragment_no_streams (void)
                                         HB_VECTOR_EXTENTS_MODE_NONE));
 
   emit_ctx_t ctx = {99, 0};
-  hb_blob_t *resources = NULL;
+  unsigned resource_count = 0;
+  auto resource_cb = +[] (hb_vector_pdf_resource_type_t type HB_UNUSED,
+                          const char *name HB_UNUSED,
+                          const char *value HB_UNUSED,
+                          unsigned value_length HB_UNUSED,
+                          void *user_data) {
+    (*(unsigned *) user_data)++;
+  };
   hb_blob_t *content = hb_vector_paint_render_pdf_fragment (paint,
                                                             emit_stream_cb,
                                                             &ctx,
-                                                            &resources);
+                                                            resource_cb,
+                                                            &resource_count);
   g_assert_nonnull (content);
   g_assert_cmpuint (ctx.call_count, ==, 0);
+  g_assert_cmpuint (resource_count, >, 0);
 
   unsigned clen = 0;
   const char *cdata = hb_blob_get_data (content, &clen);
@@ -135,15 +144,6 @@ test_paint_pdf_fragment_no_streams (void)
   g_assert_null (memfind (cdata, clen, "%PDF-"));
   g_assert_null (memfind (cdata, clen, "xref"));
 
-  g_assert_nonnull (resources);
-  unsigned rlen = 0;
-  const char *rdata = hb_blob_get_data (resources, &rlen);
-  g_assert_cmpuint (rlen, >=, 5);
-  /* Resources should be a dict (may be empty << >>). */
-  g_assert_cmpint (rdata[0], ==, '<');
-  g_assert_cmpint (rdata[1], ==, '<');
-
-  hb_blob_destroy (resources);
   hb_blob_destroy (content);
   hb_vector_paint_destroy (paint);
   hb_font_destroy (font);
@@ -168,7 +168,7 @@ test_paint_pdf_fragment_null_resources_out (void)
   hb_blob_t *content = hb_vector_paint_render_pdf_fragment (paint,
                                                             emit_stream_cb,
                                                             &ctx,
-                                                            NULL);
+                                                            NULL, NULL);
   g_assert_nonnull (content);
 
   hb_blob_destroy (content);
@@ -197,25 +197,36 @@ test_paint_pdf_fragment_with_stream (void)
                                         HB_VECTOR_EXTENTS_MODE_NONE));
 
   emit_ctx_t ctx = {1000, 0};
-  hb_blob_t *resources = NULL;
+
+  struct resource_ctx_t
+  {
+    bool found_stream_ref;
+    unsigned expected_id;
+  } rctx = {false, 1001};
+
+  auto resource_cb = +[] (hb_vector_pdf_resource_type_t type HB_UNUSED,
+                          const char *name HB_UNUSED,
+                          const char *value,
+                          unsigned value_length,
+                          void *user_data) {
+    auto *rc = (resource_ctx_t *) user_data;
+    char expected[32];
+    snprintf (expected, sizeof (expected), "%u 0 R", rc->expected_id);
+    if (memfind (value, value_length, expected))
+      rc->found_stream_ref = true;
+  };
+
   hb_blob_t *content = hb_vector_paint_render_pdf_fragment (paint,
                                                             emit_stream_cb,
                                                             &ctx,
-                                                            &resources);
+                                                            resource_cb,
+                                                            &rctx);
   g_assert_nonnull (content);
   g_assert_cmpuint (ctx.call_count, >=, 1);
-  g_assert_nonnull (resources);
+  /* The consumer-assigned id (1001) must appear in some resource
+   * value as "<id> 0 R". */
+  g_assert_true (rctx.found_stream_ref);
 
-  unsigned rlen = 0;
-  const char *rdata = hb_blob_get_data (resources, &rlen);
-  /* The consumer-assigned id (1001+) must appear in the resources
-   * dict as "<id> 0 R".  The legacy internal ids (5, 6, ...) must
-   * not appear as references. */
-  char expected[32];
-  snprintf (expected, sizeof (expected), "%u 0 R", 1001);
-  g_assert_nonnull (memfind (rdata, rlen, expected));
-
-  hb_blob_destroy (resources);
   hb_blob_destroy (content);
   hb_vector_paint_destroy (paint);
   hb_font_destroy (font);
@@ -244,13 +255,11 @@ test_paint_pdf_fragment_null_cb_with_stream_fails (void)
   hb_vector_paint_glyph (paint, font, 20, 0.f, 0.f,
                          HB_VECTOR_EXTENTS_MODE_NONE);
 
-  hb_blob_t *resources = NULL;
   hb_blob_t *content = hb_vector_paint_render_pdf_fragment (paint,
                                                             NULL,
                                                             NULL,
-                                                            &resources);
+                                                            NULL, NULL);
   g_assert_null (content);
-  g_assert_null (resources);
   (void) never_called_cb;
 
   hb_vector_paint_destroy (paint);
