@@ -28,30 +28,33 @@
 
 #include "hb-gpu.h"
 
-#include "hb-gpu-draw-fragment-glsl.hh"
-#include "hb-gpu-draw-fragment-msl.hh"
-#include "hb-gpu-draw-fragment-wgsl.hh"
-#include "hb-gpu-draw-fragment-hlsl.hh"
+#include "hb-gpu-fragment-glsl.hh"
+#include "hb-gpu-fragment-msl.hh"
+#include "hb-gpu-fragment-wgsl.hh"
+#include "hb-gpu-fragment-hlsl.hh"
+#include "hb-gpu-vertex-glsl.hh"
+#include "hb-gpu-vertex-msl.hh"
+#include "hb-gpu-vertex-wgsl.hh"
+#include "hb-gpu-vertex-hlsl.hh"
 
 
 /**
- * hb_gpu_draw_shader_source:
+ * hb_gpu_shader_source:
  * @stage: pipeline stage (vertex or fragment)
  * @lang: shader language variant
  *
- * Returns the draw-renderer-specific shader source for the
- * specified stage and language.  The returned string is static
- * and must not be freed.
+ * Returns the shared helper shader source used by the hb-gpu
+ * renderers for the specified stage and language.  The returned
+ * string is static and must not be freed.
  *
- * This source assumes the shared helpers returned by
- * hb_gpu_shader_source() are concatenated ahead of it.  The
- * caller should assemble the full shader as
- * `#version`-directive + hb_gpu_shader_source() +
- * hb_gpu_draw_shader_source() + caller's `main()`.
- *
- * The vertex stage currently has no draw-specific helpers; this
- * function returns an empty string for that stage so the caller
- * can concatenate unconditionally.
+ * The shared source defines utilities such as the atlas sampler
+ * and the `hb_gpu_fetch()` accessor for the fragment stage, and
+ * the `hb_gpu_dilate()` helper for the vertex stage.  Each
+ * renderer-specific source (for example,
+ * hb_gpu_draw_shader_source()) assumes these helpers are already
+ * in scope — callers should concatenate a `#version` directive,
+ * then this shared source, then the renderer-specific source,
+ * then their own `main()`.
  *
  * Return value: (transfer none):
  * A shader source string, or `NULL` if @stage or @lang is
@@ -60,24 +63,24 @@
  * XSince: REPLACEME
  **/
 const char *
-hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,
-			   hb_gpu_shader_lang_t  lang)
+hb_gpu_shader_source (hb_gpu_shader_stage_t stage,
+		      hb_gpu_shader_lang_t  lang)
 {
   switch (stage) {
   case HB_GPU_SHADER_STAGE_FRAGMENT:
     switch (lang) {
-    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_draw_fragment_glsl;
-    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_draw_fragment_msl;
-    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_draw_fragment_wgsl;
-    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_draw_fragment_hlsl;
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_fragment_glsl;
+    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_fragment_msl;
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_fragment_wgsl;
+    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_fragment_hlsl;
     default: return nullptr;
     }
   case HB_GPU_SHADER_STAGE_VERTEX:
     switch (lang) {
-    case HB_GPU_SHADER_LANG_GLSL:
-    case HB_GPU_SHADER_LANG_MSL:
-    case HB_GPU_SHADER_LANG_WGSL:
-    case HB_GPU_SHADER_LANG_HLSL: return "";
+    case HB_GPU_SHADER_LANG_GLSL: return hb_gpu_vertex_glsl;
+    case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_vertex_msl;
+    case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_vertex_wgsl;
+    case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_vertex_hlsl;
     default: return nullptr;
     }
   default:

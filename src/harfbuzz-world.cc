@@ -104,6 +104,7 @@
 #ifdef HB_HAS_GPU
 #include "hb-gpu-draw-shaders.cc"
 #include "hb-gpu-draw.cc"
+#include "hb-gpu-shaders.cc"
 #include "hb-gpu.cc"
 #include "hb-static.cc"
 #endif

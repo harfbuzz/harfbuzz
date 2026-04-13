@@ -65,6 +65,10 @@ typedef enum {
 } hb_gpu_shader_stage_t;
 
 HB_EXTERN const char *
+hb_gpu_shader_source (hb_gpu_shader_stage_t stage,
+		      hb_gpu_shader_lang_t  lang);
+
+HB_EXTERN const char *
 hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,
 			   hb_gpu_shader_lang_t  lang);
 
