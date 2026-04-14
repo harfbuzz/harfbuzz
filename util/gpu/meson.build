@@ -24,6 +24,9 @@ gpu_demo_sources = files(
 demo_shader_sources = [
   [ 'demo-vertex.glsl',   'demo-vertex-glsl.hh' ],
   [ 'demo-fragment.glsl', 'demo-fragment-glsl.hh' ],
+  [ 'demo-shader.msl',    'demo-shader-msl.hh'   ],
+  [ 'demo-shader.hlsl',   'demo-shader-hlsl.hh'  ],
+  [ 'demo-shader.wgsl',   'demo-shader-wgsl.hh'  ],
 ]
 
 demo_shader_helper = find_program('../../src/gen-gpu-shader-artifacts.py')

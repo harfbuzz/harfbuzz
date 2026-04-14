@@ -16,82 +16,7 @@
 
 #define TEXEL_SIZE 8  /* sizeof short4 texel */
 
-static const char *demo_metal_shader_source = R"msl(
-
-struct Uniforms {
-  float4x4 matViewProjection;
-  float2 viewport;
-  float gamma;
-  float stem_darkening;
-  float4 foreground;
-  float debug;
-};
-
-struct VertexIn {
-  float2 position [[attribute(0)]];
-  float2 texcoord [[attribute(1)]];
-  float2 normal   [[attribute(2)]];
-  float  emPerPos [[attribute(3)]];
-  uint   glyphLoc [[attribute(4)]];
-};
-
-struct VertexOut {
-  float4 position [[position]];
-  float2 texcoord;
-  uint   glyphLoc [[flat]];
-};
-
-vertex VertexOut vertex_main(VertexIn in [[stage_in]],
-                             constant Uniforms& uniforms [[buffer(1)]]) {
-  float2 pos = in.position;
-  float2 tex = in.texcoord;
-  float4 jac = float4(in.emPerPos, 0.0, 0.0, -in.emPerPos);
-
-  hb_gpu_dilate(pos, tex, in.normal, jac,
-                uniforms.matViewProjection, uniforms.viewport);
-
-  VertexOut out;
-  out.position = uniforms.matViewProjection * float4(pos, 0.0, 1.0);
-  out.texcoord = tex;
-  out.glyphLoc = in.glyphLoc;
-  return out;
-}
-
-fragment float4 fragment_main(VertexOut in [[stage_in]],
-                              constant Uniforms& uniforms [[buffer(1)]],
-                              device const short4* atlas [[buffer(0)]]) {
-#ifdef HB_GPU_DEMO_DRAW
-  float cov = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
-  float4 c = float4(uniforms.foreground.rgb * uniforms.foreground.a,
-                    uniforms.foreground.a) * cov;
-#else
-  /* Paint interpreter returns premultiplied RGBA. */
-  float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
-                          atlas);
-#endif
-
-  if (uniforms.stem_darkening > 0.0 && c.a > 0.0) {
-    float2 fw = fwidth(in.texcoord);
-    float ppem = 1.0 / max(fw.x, fw.y);
-    float brightness = dot(c.rgb, float3(1.0 / 3.0)) / c.a;
-    float darkened = hb_gpu_stem_darken(c.a, brightness, ppem);
-    c *= darkened / c.a;
-  }
-
-  if (uniforms.gamma != 1.0)
-    c.a = pow(c.a, uniforms.gamma);
-
-  if (uniforms.debug > 0.0) {
-    int2 counts = _hb_gpu_curve_counts(in.texcoord, in.glyphLoc, atlas);
-    float r = clamp(float(counts.x) / 8.0, 0.0, 1.0);
-    float g = clamp(float(counts.y) / 8.0, 0.0, 1.0);
-    return float4(r, g, c.a, max(max(r, g), c.a));
-  }
-
-  return c;
-}
-
-)msl";
+#include "demo-shader-msl.hh"
 
 
 struct demo_renderer_metal_t : demo_renderer_t
@@ -423,7 +348,7 @@ demo_renderer_create_metal (GLFWwindow *window, bool draw_only)
   NSString *source = [NSString stringWithFormat:@"%@%s%s%s%s%s",
 		      preamble, vert_common, vert_src,
 		      frag_common, frag_mode,
-		      demo_metal_shader_source];
+		      demo_shader_msl];
 
   NSError *error = nil;
   id<MTLLibrary> library = [r->device newLibraryWithSource:source
