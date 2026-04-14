@@ -213,12 +213,6 @@ struct demo_renderer_metal_t : demo_renderer_t
     uniforms.stem_darkening = enabled ? 1.f : 0.f;
   }
 
-  bool set_srgb (bool enabled [[maybe_unused]]) override
-  {
-    /* Metal uses MTLPixelFormatBGRA8Unorm_sRGB; sRGB is always on. */
-    return true;
-  }
-
   void toggle_vsync (bool &vsync) override
   {
     vsync = !vsync;
@@ -231,7 +225,7 @@ struct demo_renderer_metal_t : demo_renderer_t
     if (offscreenTexture && offscreen_w == width && offscreen_h == height)
       return;
     MTLTextureDescriptor *desc =
-      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
 							width:width
 						       height:height
 						    mipmapped:NO];
@@ -395,7 +389,7 @@ demo_renderer_create_metal (GLFWwindow *window)
   NSWindow *nswindow = glfwGetCocoaWindow (window);
   r->metalLayer = [CAMetalLayer layer];
   r->metalLayer.device = r->device;
-  r->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+  r->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
   nswindow.contentView.layer = r->metalLayer;
   nswindow.contentView.wantsLayer = YES;
 
@@ -451,7 +445,7 @@ demo_renderer_create_metal (GLFWwindow *window)
   pipelineDesc.vertexFunction = vertexFunc;
   pipelineDesc.fragmentFunction = fragmentFunc;
   pipelineDesc.vertexDescriptor = vertexDesc;
-  pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+  pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
   pipelineDesc.colorAttachments[0].blendingEnabled = YES;
   pipelineDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
   pipelineDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;

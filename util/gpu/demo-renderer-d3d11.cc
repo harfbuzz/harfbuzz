@@ -269,7 +269,6 @@ float4 ps_main (PSInput input) : SV_Target {
   void set_background (float r, float g, float b, float a) override { bg_r = r; bg_g = g; bg_b = b; bg_a = a; }
   void set_debug (bool e) override { debug_val = e ? 1.f : 0.f; }
   void set_stem_darkening (bool e) override { stem_val = e ? 1.f : 0.f; }
-  bool set_srgb (bool) override { return false; }
   void toggle_vsync (bool &v) override { v = !v; vsync_on = v; }
 
   void display (glyph_vertex_t *vertices, unsigned count,

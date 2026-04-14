@@ -111,25 +111,6 @@ struct demo_renderer_gl_t : demo_renderer_t
     demo_glstate_set_stem_darkening (st, enabled);
   }
 
-  bool set_srgb (bool enabled) override
-  {
-#if defined(GL_FRAMEBUFFER_SRGB)
-    while (glGetError () != GL_NO_ERROR)
-      ;
-    if (enabled)
-    {
-      glEnable (GL_FRAMEBUFFER_SRGB);
-      if (glGetError () != GL_NO_ERROR)
-	return false;
-    }
-    else
-      glDisable (GL_FRAMEBUFFER_SRGB);
-    return true;
-#else
-    return false;
-#endif
-  }
-
   void toggle_vsync (bool &vsync) override
   {
     vsync = !vsync;

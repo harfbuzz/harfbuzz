@@ -28,9 +28,6 @@ struct demo_renderer_t
   virtual void set_debug (bool enabled) = 0;
   virtual void set_stem_darkening (bool enabled) { (void) enabled; }
 
-  /* sRGB framebuffer control; returns false if unsupported. */
-  virtual bool set_srgb (bool enabled) = 0;
-
   /* Vsync toggle. */
   virtual void toggle_vsync (bool &vsync) = 0;
 

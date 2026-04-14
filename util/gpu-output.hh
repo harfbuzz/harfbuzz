@@ -171,7 +171,6 @@ struct gpu_output_t
 #ifdef __APPLE__
     glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    glfwWindowHint (GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
     window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU", NULL, NULL);
     if (!window) {
