@@ -543,6 +543,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var urlText = urlParams.get('text');
   var urlFont = urlParams.get('font');
   if (urlText) moduleArgs.push('--text=' + urlText);
+  if (urlFont) moduleArgs.push('--font=' + urlFont);
 
   var Module = {
     canvas: canvas,

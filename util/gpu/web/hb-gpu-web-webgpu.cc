@@ -369,8 +369,10 @@ static const char *arg_font = nullptr;
 static void
 rebuild_buffer (const char *text)
 {
+  /* strdup first -- text may alias current_text. */
+  char *new_text = strdup (text);
   free (current_text);
-  current_text = strdup (text);
+  current_text = new_text;
 
   demo_font_clear_cache (current_demo_font);
   atlas_clear_cb (&atlas);
@@ -1079,12 +1081,14 @@ init_demo ()
 int
 main (int argc, char **argv)
 {
+  /* argv is stack-allocated by Emscripten; main returns while
+   * init_demo runs async, so copy to heap to survive the unwind. */
   for (int i = 1; i < argc; i++)
   {
     if (!strncmp (argv[i], "--text=", 7))
-      arg_text = argv[i] + 7;
+      arg_text = strdup (argv[i] + 7);
     else if (!strncmp (argv[i], "--font=", 7))
-      arg_font = argv[i] + 7;
+      arg_font = strdup (argv[i] + 7);
   }
 
   emscripten_get_canvas_element_size ("#canvas", &canvas_w, &canvas_h);

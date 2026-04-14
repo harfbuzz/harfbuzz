@@ -66,8 +66,10 @@ static bool custom_text;
 static void
 rebuild_buffer (const char *text)
 {
+  /* strdup first -- text may alias current_text. */
+  char *new_text = strdup (text);
   free (current_text);
-  current_text = strdup (text);
+  current_text = new_text;
 
   demo_font_clear_cache (current_demo_font);
   demo_atlas_clear (renderer->get_atlas ());
@@ -77,7 +79,11 @@ rebuild_buffer (const char *text)
   demo_buffer_move_to (buffer, &top_left);
   demo_buffer_add_text (buffer, text, current_demo_font, 1);
   demo_view_reset (vu);
-  demo_view_display (vu, buffer);
+  /* Don't call demo_view_display here: it may run from a
+   * microtask (e.g. the font-fetch .then() callback) where the
+   * canvas back-buffer won't swap to the front.  Leave
+   * needs_redraw=true (set by demo_view_reset) so the next
+   * main_loop_iter renders inside a proper rAF tick. */
 }
 
 extern "C" {
