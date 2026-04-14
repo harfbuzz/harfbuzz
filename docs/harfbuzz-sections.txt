@@ -1152,8 +1152,6 @@ hb_gpu_paint_destroy
 hb_gpu_paint_set_user_data
 hb_gpu_paint_get_user_data
 hb_gpu_paint_get_funcs
-hb_gpu_paint_set_foreground
-hb_gpu_paint_get_foreground
 hb_gpu_paint_set_palette
 hb_gpu_paint_get_palette
 hb_gpu_paint_clear_custom_palette_colors
