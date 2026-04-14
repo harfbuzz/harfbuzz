@@ -44,7 +44,12 @@ blob_as_texels (hb_blob_t *blob,
   g_assert_cmpuint (length % sizeof (hb_gpu_test_texel_t), ==, 0);
 
   *texel_count = length / sizeof (hb_gpu_test_texel_t);
+  /* hb_blob_get_data returns malloc'd memory which is suitably
+   * aligned for any standard type; the cast is safe. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
   return (const hb_gpu_test_texel_t *) hb_blob_get_data (blob, nullptr);
+#pragma GCC diagnostic pop
 }
 
 static hb_bool_t
