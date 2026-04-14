@@ -173,6 +173,27 @@ clamp_i16 (float v)
   return (int16_t) v;
 }
 
+/* Compute the 2x2 inverse of the transform's linear part, quantize
+ * each entry to i16 Q10 (multiplier 1024) and write row-major into
+ * @out: (m00, m01, m10, m11) such that applying it gives
+ *   (M^-1 * v).x = m00 * v.x + m01 * v.y
+ *   (M^-1 * v).y = m10 * v.x + m11 * v.y
+ * Range [-32, 32), precision ~0.001 -- covers typical COLRv1
+ * PaintTransform values with headroom.  Callers who need to skip
+ * transforms for degenerate cases can check for is_identity before
+ * doing the extra work in-shader, but we always emit so the format
+ * stays uniform. */
+static inline void
+linv_q10 (const hb_transform_t<float> &t, int16_t out[4])
+{
+  float det = t.xx * t.yy - t.xy * t.yx;
+  float inv = fabsf (det) > 1e-12f ? 1.0f / det : 0.0f;
+  out[0] = clamp_i16 ( t.yy * inv * 1024.f);
+  out[1] = clamp_i16 (-t.xy * inv * 1024.f);
+  out[2] = clamp_i16 (-t.yx * inv * 1024.f);
+  out[3] = clamp_i16 ( t.xx * inv * 1024.f);
+}
+
 /* Transforming pen: applies an affine transform to each outline
  * point before forwarding to a downstream hb_draw_funcs_t.  The
  * downstream's inline draw-state bookkeeping runs against a
@@ -499,11 +520,16 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   if (clip_idx < 0) { hb_free (heap_stops); return; }
 
   /* Build gradient params sub-blob.
-   *   texel 0: (lx0, ly0, lx1, ly1) in font units (i16)
-   *   texels 1..N: color stops (2 texels each)
-   */
+   *   texel 0: (p0_rendered_x, p0_rendered_y, d_canonical_x, d_canonical_y)
+   *     i16 font units; d = p1 - p0 stored in untransformed space
+   *   texel 1: L^-1 as 4 i16 Q10 (row-major)
+   *   texels 2..N: color stops (2 texels each)
+   * The shader computes p_canonical = L^-1 * (renderCoord - p0_rendered)
+   * and evaluates t = dot(p_canonical, d) / dot(d, d) in
+   * untransformed space, so affine distortions of the axis are
+   * handled exactly rather than approximated. */
   hb_vector_t<int16_t> grad_data;
-  if (unlikely (!grad_data.resize (4)))
+  if (unlikely (!grad_data.resize (8)))
   { c->unsupported = true; hb_free (heap_stops); return; }
 
   float lx0, ly0, lx1, ly1;
@@ -514,14 +540,19 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   float dx = lx1 - lx0, dy = ly1 - ly0;
   float ax0 = lx0 + mn * dx, ay0 = ly0 + mn * dy;
   float ax1 = lx0 + mx * dx, ay1 = ly0 + mx * dy;
-  /* Bake the current transform into the axis endpoints so the
-   * shader samples in the same coord space as the clip outline. */
-  c->cur_transform.transform_point (ax0, ay0);
-  c->cur_transform.transform_point (ax1, ay1);
-  grad_data[0] = clamp_i16 (ax0);
-  grad_data[1] = clamp_i16 (ay0);
-  grad_data[2] = clamp_i16 (ax1);
-  grad_data[3] = clamp_i16 (ay1);
+  /* p0 in rendered space; d in untransformed space. */
+  float p0x_r = ax0, p0y_r = ay0;
+  c->cur_transform.transform_point (p0x_r, p0y_r);
+  grad_data[0] = clamp_i16 (p0x_r);
+  grad_data[1] = clamp_i16 (p0y_r);
+  grad_data[2] = clamp_i16 (ax1 - ax0);
+  grad_data[3] = clamp_i16 (ay1 - ay0);
+  int16_t Linv[4];
+  linv_q10 (c->cur_transform, Linv);
+  grad_data[4] = Linv[0];
+  grad_data[5] = Linv[1];
+  grad_data[6] = Linv[2];
+  grad_data[7] = Linv[3];
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
   { c->unsupported = true; hb_free (heap_stops); return; }
@@ -587,37 +618,42 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   if (clip_idx < 0) { hb_free (heap_stops); return; }
 
   /* Build gradient params sub-blob.
-   *   texel 0: (x0, y0, r0, _) in font units (i16)
-   *   texel 1: (x1, y1, r1, _) in font units (i16)
-   *   texels 2..N: color stops (2 texels each)
+   *   texel 0: (c0_rendered_x, c0_rendered_y, d_canonical_x, d_canonical_y)
+   *     where d = c1 - c0 in untransformed space
+   *   texel 1: (r0, r1, _, _) in untransformed font units (i16)
+   *   texel 2: L^-1 as 4 i16 Q10 (row-major)
+   *   texels 3..N: color stops (2 texels each)
+   * Shader computes p_canonical = L^-1 * (renderCoord - c0_rendered)
+   * then solves |p - t*d|^2 = (r0 + t*(r1-r0))^2 in the
+   * untransformed frame, so non-uniform scale / shear (which would
+   * turn the circle into an ellipse in rendered space) is handled
+   * exactly.
    */
   hb_vector_t<int16_t> grad_data;
-  if (unlikely (!grad_data.resize (8)))
+  if (unlikely (!grad_data.resize (12)))
   { c->unsupported = true; hb_free (heap_stops); return; }
   float mn, mx;
   normalize_stops (stops, got, &mn, &mx);
   float dx = x1 - x0, dy = y1 - y0, dr = r1 - r0;
   float cx0 = x0 + mn * dx, cy0 = y0 + mn * dy, cr0 = r0 + mn * dr;
   float cx1 = x0 + mx * dx, cy1 = y0 + mx * dy, cr1 = r0 + mx * dr;
-  /* Bake current transform into centers; approximate the radius
-   * scale with sqrt(|det|) (the uniform-scale assumption -- a
-   * non-uniform scale turns the circle into an ellipse which the
-   * shader does not model). */
-  c->cur_transform.transform_point (cx0, cy0);
-  c->cur_transform.transform_point (cx1, cy1);
-  float det = c->cur_transform.xx * c->cur_transform.yy
-	    - c->cur_transform.xy * c->cur_transform.yx;
-  float r_scale = sqrtf (fabsf (det));
-  cr0 *= r_scale;
-  cr1 *= r_scale;
-  grad_data[0] = clamp_i16 (cx0);
-  grad_data[1] = clamp_i16 (cy0);
-  grad_data[2] = clamp_i16 (cr0);
-  grad_data[3] = 0;
-  grad_data[4] = clamp_i16 (cx1);
-  grad_data[5] = clamp_i16 (cy1);
-  grad_data[6] = clamp_i16 (cr1);
+  /* c0 in rendered space; d (= c1 - c0) and radii in untransformed. */
+  float cx0_r = cx0, cy0_r = cy0;
+  c->cur_transform.transform_point (cx0_r, cy0_r);
+  grad_data[0] = clamp_i16 (cx0_r);
+  grad_data[1] = clamp_i16 (cy0_r);
+  grad_data[2] = clamp_i16 (cx1 - cx0);
+  grad_data[3] = clamp_i16 (cy1 - cy0);
+  grad_data[4] = clamp_i16 (cr0);
+  grad_data[5] = clamp_i16 (cr1);
+  grad_data[6] = 0;
   grad_data[7] = 0;
+  int16_t Linv[4];
+  linv_q10 (c->cur_transform, Linv);
+  grad_data[8]  = Linv[0];
+  grad_data[9]  = Linv[1];
+  grad_data[10] = Linv[2];
+  grad_data[11] = Linv[3];
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
   { c->unsupported = true; hb_free (heap_stops); return; }
@@ -714,12 +750,18 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
   if (clip_idx < 0) { hb_free (heap_stops); return; }
 
   /* Build gradient params sub-blob.
-   *   texel 0: (cx, cy, start_q14, end_q14)
-   *     angles in radians, stored as Q14 fractions of pi (so the
-   *     shader can compare directly against atan2(P-c) / pi).
-   *   texels 1..N: color stops (2 texels each) */
+   *   texel 0: (center_rendered_x, center_rendered_y,
+   *             start_q14, end_q14)
+   *     angles in radians, stored as Q14 fractions of pi; start/end
+   *     stay in untransformed space (no rotation baked in).
+   *   texel 1: L^-1 as 4 i16 Q10 (row-major)
+   *   texels 2..N: color stops (2 texels each)
+   * Shader does p = L^-1 * (renderCoord - center_rendered) and
+   * atan2 on p, so non-uniform scale / shear angular distortion is
+   * handled exactly.
+   */
   hb_vector_t<int16_t> grad_data;
-  if (unlikely (!grad_data.resize (4)))
+  if (unlikely (!grad_data.resize (8)))
   { c->unsupported = true; hb_free (heap_stops); return; }
 
   float mn, mx;
@@ -733,15 +775,19 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
     if (v >=  2.f) return  32767;
     return (int16_t) (v * 16384.f);
   };
-  /* Bake current transform into center (translation + scale +
-   * rotation); add the rotation angle to start/end. */
+  /* center in rendered space; angles stay canonical. */
   float tcx = cx, tcy = cy;
   c->cur_transform.transform_point (tcx, tcy);
-  float rot = atan2f (c->cur_transform.yx, c->cur_transform.xx);
   grad_data[0] = clamp_i16 (tcx);
   grad_data[1] = clamp_i16 (tcy);
-  grad_data[2] = rad_to_q14_pi (a_lo + rot);
-  grad_data[3] = rad_to_q14_pi (a_hi + rot);
+  grad_data[2] = rad_to_q14_pi (a_lo);
+  grad_data[3] = rad_to_q14_pi (a_hi);
+  int16_t Linv[4];
+  linv_q10 (c->cur_transform, Linv);
+  grad_data[4] = Linv[0];
+  grad_data[5] = Linv[1];
+  grad_data[6] = Linv[2];
+  grad_data[7] = Linv[3];
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
   { c->unsupported = true; hb_free (heap_stops); return; }

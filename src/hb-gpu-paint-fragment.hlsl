@@ -73,33 +73,42 @@ float4 _hb_gpu_eval_stops (int stops_base, int stop_count, float t, float4 foreg
   return col_prev;
 }
 
+/* Apply the stored 2x2 M^-1 (row-major i16 Q10) to a vector. */
+float2 _hb_gpu_apply_minv (int4 m, float2 v)
+{
+  float4 mf = (float4) m * (1.0 / 1024.0);
+  return float2 (mf.x * v.x + mf.y * v.y,
+		 mf.z * v.x + mf.w * v.y);
+}
+
 float4 _hb_gpu_sample_linear (float2 renderCoord, int grad_base,
 			      int stop_count, int extend, float4 foreground)
 {
-  int4 axis = hb_gpu_fetch (grad_base);
-  float2 p0 = float2 ((float) axis.r, (float) axis.g);
-  float2 p1 = float2 ((float) axis.b, (float) axis.a);
-  float2 d = p1 - p0;
+  int4 t0 = hb_gpu_fetch (grad_base);
+  int4 m  = hb_gpu_fetch (grad_base + 1);
+  float2 p0_r = float2 ((float) t0.r, (float) t0.g);
+  float2 d    = float2 ((float) t0.b, (float) t0.a);
   float denom = dot (d, d);
   if (denom < 1e-6) return float4 (0.0, 0.0, 0.0, 0.0);
-  float t = dot (renderCoord - p0, d) / denom;
+  float2 p = _hb_gpu_apply_minv (m, renderCoord - p0_r);
+  float t = dot (p, d) / denom;
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
 float4 _hb_gpu_sample_radial (float2 renderCoord, int grad_base,
 			      int stop_count, int extend, float4 foreground)
 {
-  int4 c0_ = hb_gpu_fetch (grad_base);
-  int4 c1_ = hb_gpu_fetch (grad_base + 1);
-  float2 c0 = float2 ((float) c0_.r, (float) c0_.g);
-  float r0 = (float) c0_.b;
-  float2 c1 = float2 ((float) c1_.r, (float) c1_.g);
-  float r1 = (float) c1_.b;
+  int4 t0 = hb_gpu_fetch (grad_base);
+  int4 t1 = hb_gpu_fetch (grad_base + 1);
+  int4 m  = hb_gpu_fetch (grad_base + 2);
+  float2 c0_r = float2 ((float) t0.r, (float) t0.g);
+  float2 cd   = float2 ((float) t0.b, (float) t0.a);
+  float r0 = (float) t1.r;
+  float r1 = (float) t1.g;
 
-  float2 cd = c1 - c0;
   float dr = r1 - r0;
-  float2 p  = renderCoord - c0;
+  float2 p  = _hb_gpu_apply_minv (m, renderCoord - c0_r);
 
   float A = dot (cd, cd) - dr * dr;
   float B = -2.0 * (dot (p, cd) + r0 * dr);
@@ -111,9 +120,9 @@ float4 _hb_gpu_sample_radial (float2 renderCoord, int grad_base,
     float disc = B * B - 4.0 * A * C;
     if (disc < 0.0) return float4 (0.0, 0.0, 0.0, 0.0);
     float sq = sqrt (disc);
-    float t1 = (-B + sq) / (2.0 * A);
-    float t2 = (-B - sq) / (2.0 * A);
-    t = (r0 + t1 * dr >= 0.0) ? t1 : t2;
+    float t1r = (-B + sq) / (2.0 * A);
+    float t2r = (-B - sq) / (2.0 * A);
+    t = (r0 + t1r * dr >= 0.0) ? t1r : t2r;
   }
   else
   {
@@ -121,25 +130,26 @@ float4 _hb_gpu_sample_radial (float2 renderCoord, int grad_base,
     t = -C / B;
   }
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (grad_base + 3, stop_count, t, foreground);
 }
 
 float4 _hb_gpu_sample_sweep (float2 renderCoord, int grad_base,
 			     int stop_count, int extend, float4 foreground)
 {
   int4 t0 = hb_gpu_fetch (grad_base);
-  float2 c = float2 ((float) t0.r, (float) t0.g);
+  int4 m  = hb_gpu_fetch (grad_base + 1);
+  float2 c_r = float2 ((float) t0.r, (float) t0.g);
   float a0 = (float) t0.b / 16384.0;
   float a1 = (float) t0.a / 16384.0;
   float span = a1 - a0;
   if (abs (span) < 1e-6) return float4 (0.0, 0.0, 0.0, 0.0);
 
-  float2 p = renderCoord - c;
+  float2 p = _hb_gpu_apply_minv (m, renderCoord - c_r);
   float ang = atan2 (p.y, p.x) / 3.14159265358979;
   if (ang < 0.0) ang += 2.0;
   float t = (ang - a0) / span;
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
 float4 _hb_gpu_composite (float4 src, float4 dst, int mode)

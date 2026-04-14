@@ -82,35 +82,44 @@ fn _hb_gpu_eval_stops (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
   return col_prev;
 }
 
+/* Apply the stored 2x2 M^-1 (row-major i16 Q10) to a vector. */
+fn _hb_gpu_apply_minv (m: vec4<i32>, v: vec2f) -> vec2f
+{
+  let mf = vec4f (m) * (1.0 / 1024.0);
+  return vec2f (mf.x * v.x + mf.y * v.y,
+                mf.z * v.x + mf.w * v.y);
+}
+
 fn _hb_gpu_sample_linear (renderCoord: vec2f, grad_base: i32,
                           stop_count: i32, extend: i32, foreground: vec4f,
                           hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
 {
-  let axis = hb_gpu_fetch (hb_gpu_atlas, grad_base);
-  let p0 = vec2f (f32 (axis.r), f32 (axis.g));
-  let p1 = vec2f (f32 (axis.b), f32 (axis.a));
-  let d = p1 - p0;
+  let t0 = hb_gpu_fetch (hb_gpu_atlas, grad_base);
+  let m  = hb_gpu_fetch (hb_gpu_atlas, grad_base + 1);
+  let p0_r = vec2f (f32 (t0.r), f32 (t0.g));
+  let d    = vec2f (f32 (t0.b), f32 (t0.a));
   let denom = dot (d, d);
   if (denom < 1e-6) { return vec4f (0.0); }
-  var t = dot (renderCoord - p0, d) / denom;
+  let p = _hb_gpu_apply_minv (m, renderCoord - p0_r);
+  var t = dot (p, d) / denom;
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 1, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 2, stop_count, t, foreground);
 }
 
 fn _hb_gpu_sample_radial (renderCoord: vec2f, grad_base: i32,
                           stop_count: i32, extend: i32, foreground: vec4f,
                           hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
 {
-  let c0_ = hb_gpu_fetch (hb_gpu_atlas, grad_base);
-  let c1_ = hb_gpu_fetch (hb_gpu_atlas, grad_base + 1);
-  let c0 = vec2f (f32 (c0_.r), f32 (c0_.g));
-  let r0 = f32 (c0_.b);
-  let c1 = vec2f (f32 (c1_.r), f32 (c1_.g));
-  let r1 = f32 (c1_.b);
+  let t0 = hb_gpu_fetch (hb_gpu_atlas, grad_base);
+  let t1 = hb_gpu_fetch (hb_gpu_atlas, grad_base + 1);
+  let m  = hb_gpu_fetch (hb_gpu_atlas, grad_base + 2);
+  let c0_r = vec2f (f32 (t0.r), f32 (t0.g));
+  let cd   = vec2f (f32 (t0.b), f32 (t0.a));
+  let r0 = f32 (t1.r);
+  let r1 = f32 (t1.g);
 
-  let cd = c1 - c0;
   let dr = r1 - r0;
-  let p  = renderCoord - c0;
+  let p  = _hb_gpu_apply_minv (m, renderCoord - c0_r);
 
   let A = dot (cd, cd) - dr * dr;
   let B = -2.0 * (dot (p, cd) + r0 * dr);
@@ -122,9 +131,9 @@ fn _hb_gpu_sample_radial (renderCoord: vec2f, grad_base: i32,
     let disc = B * B - 4.0 * A * C;
     if (disc < 0.0) { return vec4f (0.0); }
     let sq = sqrt (disc);
-    let t1 = (-B + sq) / (2.0 * A);
-    let t2 = (-B - sq) / (2.0 * A);
-    if (r0 + t1 * dr >= 0.0) { t = t1; } else { t = t2; }
+    let t1r = (-B + sq) / (2.0 * A);
+    let t2r = (-B - sq) / (2.0 * A);
+    if (r0 + t1r * dr >= 0.0) { t = t1r; } else { t = t2r; }
   }
   else
   {
@@ -132,7 +141,7 @@ fn _hb_gpu_sample_radial (renderCoord: vec2f, grad_base: i32,
     t = -C / B;
   }
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 2, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 3, stop_count, t, foreground);
 }
 
 fn _hb_gpu_sample_sweep (renderCoord: vec2f, grad_base: i32,
@@ -140,18 +149,19 @@ fn _hb_gpu_sample_sweep (renderCoord: vec2f, grad_base: i32,
                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
 {
   let t0 = hb_gpu_fetch (hb_gpu_atlas, grad_base);
-  let c = vec2f (f32 (t0.r), f32 (t0.g));
+  let m  = hb_gpu_fetch (hb_gpu_atlas, grad_base + 1);
+  let c_r = vec2f (f32 (t0.r), f32 (t0.g));
   let a0 = f32 (t0.b) / 16384.0;
   let a1 = f32 (t0.a) / 16384.0;
   let span = a1 - a0;
   if (abs (span) < 1e-6) { return vec4f (0.0); }
 
-  let p = renderCoord - c;
+  let p = _hb_gpu_apply_minv (m, renderCoord - c_r);
   var ang = atan2 (p.y, p.x) / 3.14159265358979;
   if (ang < 0.0) { ang = ang + 2.0; }
   var t = (ang - a0) / span;
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 1, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 2, stop_count, t, foreground);
 }
 
 fn _hb_gpu_composite (src: vec4f, dst: vec4f, mode: i32) -> vec4f

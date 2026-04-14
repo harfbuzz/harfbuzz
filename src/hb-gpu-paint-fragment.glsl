@@ -81,43 +81,59 @@ vec4 _hb_gpu_eval_stops (int stops_base, int stop_count, float t, vec4 foregroun
   return col_prev;
 }
 
+/* Apply the stored 2x2 M^-1 (row-major i16 Q10) to @v.  Scaling
+ * renderCoord deltas back into canonical gradient space. */
+vec2 _hb_gpu_apply_minv (ivec4 m, vec2 v)
+{
+  vec4 mf = vec4 (m) * (1.0 / 1024.0);
+  return vec2 (mf.x * v.x + mf.y * v.y,
+	       mf.z * v.x + mf.w * v.y);
+}
+
 /* Sample a linear gradient whose param blob starts at @grad_base:
- *   texel 0: (x0, y0, x1, y1) in font units (i16)
- *   texels 1..: stops (2 texels each) */
+ *   texel 0: (p0_rendered.x, p0_rendered.y, d_canonical.x, d_canonical.y)
+ *   texel 1: L^-1 as i16 Q10 (row-major)
+ *   texels 2..: stops (2 texels each)
+ * Evaluate t in untransformed space. */
 vec4 _hb_gpu_sample_linear (vec2 renderCoord, int grad_base,
 			    int stop_count, int extend, vec4 foreground)
 {
-  ivec4 axis = hb_gpu_fetch (grad_base);
-  vec2 p0 = vec2 (float (axis.r), float (axis.g));
-  vec2 p1 = vec2 (float (axis.b), float (axis.a));
-  vec2 d = p1 - p0;
+  ivec4 t0 = hb_gpu_fetch (grad_base);
+  ivec4 m  = hb_gpu_fetch (grad_base + 1);
+  vec2 p0_r = vec2 (float (t0.r), float (t0.g));
+  vec2 d    = vec2 (float (t0.b), float (t0.a));
   float denom = dot (d, d);
   if (denom < 1e-6) return vec4 (0.0);
-  float t = dot (renderCoord - p0, d) / denom;
+  vec2 p = _hb_gpu_apply_minv (m, renderCoord - p0_r);
+  float t = dot (p, d) / denom;
   t = _hb_gpu_extend_t (t, extend);
 
-  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
 /* Sample a two-circle radial gradient whose param blob starts at
  * @grad_base:
- *   texel 0: (x0, y0, r0, _)
- *   texel 1: (x1, y1, r1, _)
- *   texels 2..: stops (2 texels each)
- * Solves |P - C0 - t*(C1-C0)|^2 = (r0 + t*(r1-r0))^2 for t. */
+ *   texel 0: (c0_rendered.x, c0_rendered.y, d_canonical.x, d_canonical.y)
+ *     d = c1 - c0 in untransformed space
+ *   texel 1: (r0, r1, _, _) in untransformed font units
+ *   texel 2: L^-1 as i16 Q10 (row-major)
+ *   texels 3..: stops (2 texels each)
+ * Solves |p - t*cd|^2 = (r0 + t*(r1-r0))^2 with p in untransformed
+ * space, so non-uniform scale / shear on the transform becomes a
+ * proper ellipse-in-rendered-space instead of a scalar-fudge. */
 vec4 _hb_gpu_sample_radial (vec2 renderCoord, int grad_base,
 			    int stop_count, int extend, vec4 foreground)
 {
-  ivec4 c0_ = hb_gpu_fetch (grad_base);
-  ivec4 c1_ = hb_gpu_fetch (grad_base + 1);
-  vec2 c0 = vec2 (float (c0_.r), float (c0_.g));
-  float r0 = float (c0_.b);
-  vec2 c1 = vec2 (float (c1_.r), float (c1_.g));
-  float r1 = float (c1_.b);
+  ivec4 t0 = hb_gpu_fetch (grad_base);
+  ivec4 t1 = hb_gpu_fetch (grad_base + 1);
+  ivec4 m  = hb_gpu_fetch (grad_base + 2);
+  vec2 c0_r = vec2 (float (t0.r), float (t0.g));
+  vec2 cd   = vec2 (float (t0.b), float (t0.a));
+  float r0 = float (t1.r);
+  float r1 = float (t1.g);
 
-  vec2 cd = c1 - c0;
   float dr = r1 - r0;
-  vec2 p  = renderCoord - c0;
+  vec2 p  = _hb_gpu_apply_minv (m, renderCoord - c0_r);
 
   float A = dot (cd, cd) - dr * dr;
   float B = -2.0 * (dot (p, cd) + r0 * dr);
@@ -142,30 +158,32 @@ vec4 _hb_gpu_sample_radial (vec2 renderCoord, int grad_base,
   }
 
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (grad_base + 3, stop_count, t, foreground);
 }
 
 /* Sample a sweep gradient whose param blob starts at @grad_base:
- *   texel 0: (cx, cy, start_q14, end_q14)
- *            start/end are Q14 fractions of pi
- *   texels 1..: stops (2 texels each) */
+ *   texel 0: (center_rendered.x, center_rendered.y, start_q14, end_q14)
+ *            start/end are Q14 fractions of pi in untransformed space
+ *   texel 1: L^-1 as i16 Q10 (row-major)
+ *   texels 2..: stops (2 texels each) */
 vec4 _hb_gpu_sample_sweep (vec2 renderCoord, int grad_base,
 			   int stop_count, int extend, vec4 foreground)
 {
   ivec4 t0 = hb_gpu_fetch (grad_base);
-  vec2 c = vec2 (float (t0.r), float (t0.g));
+  ivec4 m  = hb_gpu_fetch (grad_base + 1);
+  vec2 c_r = vec2 (float (t0.r), float (t0.g));
   float a0 = float (t0.b) / 16384.0;  /* fraction of pi */
   float a1 = float (t0.a) / 16384.0;
   float span = a1 - a0;
   if (abs (span) < 1e-6) return vec4 (0.0);
 
-  vec2 p = renderCoord - c;
+  vec2 p = _hb_gpu_apply_minv (m, renderCoord - c_r);
   /* atan2 returns (-pi, pi]; normalize to [0, 2) fractions of pi. */
   float ang = atan (p.y, p.x) / 3.14159265358979;
   if (ang < 0.0) ang += 2.0;
   float t = (ang - a0) / span;
   t = _hb_gpu_extend_t (t, extend);
-  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
 /* Composite two premultiplied RGBA layers using one of the COLRv1
