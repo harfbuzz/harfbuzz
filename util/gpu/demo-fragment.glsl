@@ -14,12 +14,17 @@ out vec4 fragColor;
 
 void main ()
 {
-  /* The paint interpreter returns a premultiplied RGBA.  For
-   * non-color glyphs the encoder synthesizes a single
-   * LAYER_SOLID with is_foreground=true, so the result is
-   * u_foreground * coverage -- same visual as the old draw
-   * path.  For COLRv0 glyphs it returns the composited color. */
+#ifdef HB_GPU_DEMO_DRAW
+  /* Fast path for fonts with no color paint: call the Slug
+   * coverage sampler directly and tint by the foreground uniform.
+   * Smaller shader program, better occupancy. */
+  float cov = hb_gpu_draw (v_texcoord, v_glyphLoc);
+  vec4 c = vec4 (u_foreground.rgb * u_foreground.a, u_foreground.a) * cov;
+#else
+  /* Paint interpreter -- handles monochrome via a synthesized
+   * LAYER_SOLID and color paint trees otherwise. */
   vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
+#endif
 
   /* Stem darkening: scale the premultiplied value by the
    * alpha-channel darkening ratio so RGB and A stay in lockstep. */

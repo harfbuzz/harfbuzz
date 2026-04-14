@@ -40,16 +40,16 @@ struct demo_renderer_t
 
 #ifndef HB_GPU_NO_GLFW
 demo_renderer_t *
-demo_renderer_create_gl (GLFWwindow *window);
+demo_renderer_create_gl (GLFWwindow *window, bool draw_only);
 
 #ifdef __APPLE__
 demo_renderer_t *
-demo_renderer_create_metal (GLFWwindow *window);
+demo_renderer_create_metal (GLFWwindow *window, bool draw_only);
 #endif
 
 #ifdef _WIN32
 demo_renderer_t *
-demo_renderer_create_d3d11 (GLFWwindow *window);
+demo_renderer_create_d3d11 (GLFWwindow *window, bool draw_only);
 #endif
 #endif
 

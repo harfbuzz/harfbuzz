@@ -60,9 +60,15 @@ vertex VertexOut vertex_main(VertexIn in [[stage_in]],
 fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
                               device const short4* atlas [[buffer(0)]]) {
+#ifdef HB_GPU_DEMO_DRAW
+  float cov = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
+  float4 c = float4(uniforms.foreground.rgb * uniforms.foreground.a,
+                    uniforms.foreground.a) * cov;
+#else
   /* Paint interpreter returns premultiplied RGBA. */
   float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
                           atlas);
+#endif
 
   if (uniforms.stem_darkening > 0.0 && c.a > 0.0) {
     float2 fw = fwidth(in.texcoord);
@@ -92,6 +98,7 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
 struct demo_renderer_metal_t : demo_renderer_t
 {
   GLFWwindow *window;
+  bool draw_only;
 
   /* Metal objects */
   id<MTLDevice> device;
@@ -134,7 +141,8 @@ struct demo_renderer_metal_t : demo_renderer_t
   } uniforms;
 
 
-  demo_renderer_metal_t (GLFWwindow *window_) : window (window_)
+  demo_renderer_metal_t (GLFWwindow *window_, bool draw_only_)
+    : window (window_), draw_only (draw_only_)
   {
     uploaded_ptr = nullptr;
     uploaded_count = 0;
@@ -378,11 +386,11 @@ struct demo_renderer_metal_t : demo_renderer_t
 
 
 demo_renderer_t *
-demo_renderer_create_metal (GLFWwindow *window)
+demo_renderer_create_metal (GLFWwindow *window, bool draw_only)
 {
   @autoreleasepool {
 
-  auto *r = new demo_renderer_metal_t (window);
+  auto *r = new demo_renderer_metal_t (window, draw_only);
 
   /* Get Metal device */
   r->device = MTLCreateSystemDefaultDevice ();
@@ -406,13 +414,16 @@ demo_renderer_create_metal (GLFWwindow *window)
   const char *vert_common = hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
   const char *vert_src    = hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
   const char *frag_common = hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
-  const char *frag_draw   = hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
-  const char *frag_paint  = hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_mode   = draw_only
+    ? hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL)
+    : hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
 
-  NSString *preamble = @"#include <metal_stdlib>\nusing namespace metal;\n";
-  NSString *source = [NSString stringWithFormat:@"%@%s%s%s%s%s%s",
+  NSString *preamble = draw_only
+    ? @"#include <metal_stdlib>\nusing namespace metal;\n#define HB_GPU_DEMO_DRAW\n"
+    : @"#include <metal_stdlib>\nusing namespace metal;\n";
+  NSString *source = [NSString stringWithFormat:@"%@%s%s%s%s%s",
 		      preamble, vert_common, vert_src,
-		      frag_common, frag_draw, frag_paint,
+		      frag_common, frag_mode,
 		      demo_metal_shader_source];
 
   NSError *error = nil;

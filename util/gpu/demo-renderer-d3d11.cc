@@ -19,6 +19,7 @@
 struct demo_renderer_d3d11_t : demo_renderer_t
 {
   GLFWwindow *window;
+  bool draw_only;
   HWND hwnd;
 
   ID3D11Device *device;
@@ -66,7 +67,8 @@ struct demo_renderer_d3d11_t : demo_renderer_t
   };
 
 
-  demo_renderer_d3d11_t (GLFWwindow *window_) : window (window_)
+  demo_renderer_d3d11_t (GLFWwindow *window_, bool draw_only_)
+    : window (window_), draw_only (draw_only_)
   {
     hwnd = glfwGetWin32Window (window);
 
@@ -123,7 +125,12 @@ PSInput vs_main (VSInput input) {
 }
 
 float4 ps_main (PSInput input) : SV_Target {
+#ifdef HB_GPU_DEMO_DRAW
+  float cov = hb_gpu_draw (input.texcoord, input.glyphLoc);
+  float4 c = float4 (foreground.rgb * foreground.a, foreground.a) * cov;
+#else
   float4 c = hb_gpu_paint (input.texcoord, input.glyphLoc, foreground);
+#endif
 
   if (stem_darkening > 0.0 && c.a > 0.0) {
     float2 fw = fwidth (input.texcoord);
@@ -141,6 +148,8 @@ float4 ps_main (PSInput input) : SV_Target {
 )hlsl";
 
     std::string full;
+    if (draw_only)
+      full += "#define HB_GPU_DEMO_DRAW\n";
     full += "StructuredBuffer<int4>   hb_gpu_atlas   : register(t0);\n";
     full += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
@@ -148,9 +157,10 @@ float4 ps_main (PSInput input) : SV_Target {
     full += "\n";
     full += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
-    full += hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
-    full += "\n";
-    full += hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
+    if (draw_only)
+      full += hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
+    else
+      full += hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
     full += "\n";
     full += hlsl_demo;
 
@@ -367,9 +377,9 @@ float4 ps_main (PSInput input) : SV_Target {
 
 
 demo_renderer_t *
-demo_renderer_create_d3d11 (GLFWwindow *window)
+demo_renderer_create_d3d11 (GLFWwindow *window, bool draw_only)
 {
-  return new demo_renderer_d3d11_t (window);
+  return new demo_renderer_d3d11_t (window, draw_only);
 }
 
 #endif /* _WIN32 */

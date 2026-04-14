@@ -21,7 +21,8 @@ typedef struct demo_font_t demo_font_t;
 
 demo_font_t *
 demo_font_create (hb_font_t    *font,
-		  demo_atlas_t *atlas);
+		  demo_atlas_t *atlas,
+		  hb_bool_t     draw_only);
 
 void
 demo_font_destroy (demo_font_t *font);

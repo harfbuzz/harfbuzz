@@ -48,6 +48,8 @@ struct gpu_output_t
   hb_bool_t use_d3d11 = false;
   hb_bool_t demo = false;
   hb_bool_t bench = false;
+  hb_bool_t force_draw  = false;  /* --draw   : use monochrome draw path */
+  hb_bool_t force_paint = false;  /* --paint  : use paint path */
   char *type_text = nullptr;
   view_options_t view;
 
@@ -73,6 +75,8 @@ struct gpu_output_t
       {"bench",		0, G_OPTION_FLAG_NO_ARG,
 				G_OPTION_ARG_CALLBACK,	(gpointer) &parse_bench,"Demo in fullscreen benchmark mode",	nullptr},
       {"type",		'T', 0, G_OPTION_ARG_STRING,	&this->type_text,	"Type these keystrokes on start",	"keys"},
+      {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,	"Force monochrome draw path",		nullptr},
+      {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
 #ifdef __APPLE__
       {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
 #endif
@@ -106,6 +110,14 @@ struct gpu_output_t
     });
     if (!glfwInit ())
       fail (false, "Failed to initialize GLFW");
+
+    /* Pick draw vs paint mode.  Explicit --draw / --paint wins;
+     * otherwise auto: fonts without color paint get the draw path
+     * (smaller shader, better perf).  A mismatched pair of flags
+     * is a user error; prefer paint. */
+    draw_only = force_paint ? false
+	      : force_draw  ? true
+	      : !hb_ot_color_has_paint (face);
 
     if (use_metal)
       init_metal ();
@@ -144,7 +156,7 @@ struct gpu_output_t
       demo_view_motion_func (self->vu, x, y);
     });
 
-    demo_font_ = demo_font_create (font, renderer->get_atlas ());
+    demo_font_ = demo_font_create (font, renderer->get_atlas (), draw_only);
     demo_font_set_palette (demo_font_, view.palette);
     if (view.custom_palette_entries)
     {
@@ -192,7 +204,7 @@ struct gpu_output_t
       glViewport (0, 0, fb_width, fb_height);
     }
 
-    renderer = demo_renderer_create_gl (window);
+    renderer = demo_renderer_create_gl (window, draw_only);
   }
 
   void init_metal ()
@@ -206,7 +218,7 @@ struct gpu_output_t
       fail (false, "Failed to create GLFW window");
     }
 
-    renderer = demo_renderer_create_metal (window);
+    renderer = demo_renderer_create_metal (window, draw_only);
     if (!renderer) {
       glfwTerminate ();
       fail (false, "Failed to initialize Metal");
@@ -227,7 +239,7 @@ struct gpu_output_t
       fail (false, "Failed to create GLFW window");
     }
 
-    renderer = demo_renderer_create_d3d11 (window);
+    renderer = demo_renderer_create_d3d11 (window, draw_only);
     if (!renderer) {
       glfwTerminate ();
       fail (false, "Failed to initialize Direct3D 11");
@@ -320,6 +332,7 @@ struct gpu_output_t
 
   private:
 
+  bool   draw_only = false;
   double font_size = 1;
   hb_font_t *font = nullptr;
   hb_face_t *face = nullptr;

@@ -107,7 +107,7 @@ web_load_font (const char *data, int len)
 
   /* Flush old font state */
   demo_font_destroy (current_demo_font);
-  current_demo_font = demo_font_create (font, renderer->get_atlas ());
+  current_demo_font = demo_font_create (font, renderer->get_atlas (), false);
 
   rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
@@ -245,7 +245,7 @@ main (int argc, char **argv)
     glViewport (0, 0, fb_width, fb_height);
   }
 
-  renderer = demo_renderer_create_gl (window);
+  renderer = demo_renderer_create_gl (window, false);
   vu = demo_view_create (renderer, window);
 
   current_blob = hb_blob_create ((const char *) default_font,
@@ -254,7 +254,7 @@ main (int argc, char **argv)
 				 NULL, NULL);
   current_face = hb_face_create (current_blob, 0);
   current_font = hb_font_create (current_face);
-  current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
+  current_demo_font = demo_font_create (current_font, renderer->get_atlas (), false);
 
   current_text = strdup (arg_text ? arg_text : default_text_combined);
   if (arg_text)

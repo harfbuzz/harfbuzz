@@ -79,17 +79,19 @@ link_program (GLuint vertex_shader,
 }
 
 GLuint
-demo_shader_create_program (void)
+demo_shader_create_program (bool draw_only)
 {
   GLuint vertex_shader, fragment_shader, program;
 
 #ifdef HB_GPU_ATLAS_2D
-  const GLchar *preamble = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
+  const GLchar *version_es = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
+  const GLchar *version = version_es;
 #else
-  const GLchar *preamble = "#version 330\n";
+  const GLchar *version = "#version 330\n";
 #endif
+  const GLchar *preamble = draw_only ? "#define HB_GPU_DEMO_DRAW\n" : "";
 
-  const GLchar *vert_sources[] = {preamble,
+  const GLchar *vert_sources[] = {version, preamble,
 				  hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL),
 				  hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL),
 				  demo_vertex_glsl};
@@ -97,14 +99,19 @@ demo_shader_create_program (void)
 				  ARRAY_LEN (vert_sources),
 				  vert_sources);
 
-  const GLchar *frag_sources[] = {preamble,
-				  hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
-				  hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
-				  hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
-				  demo_fragment_glsl};
-  fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
-				    ARRAY_LEN (frag_sources),
-				    frag_sources);
+  /* Mode-specific fragment shader: each path pulls in only the
+   * helper source it actually calls, keeping the compiled program
+   * small. */
+  GLuint sc = 0;
+  const GLchar *frag_sources[5];
+  frag_sources[sc++] = version;
+  frag_sources[sc++] = preamble;
+  frag_sources[sc++] = hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL);
+  frag_sources[sc++] = draw_only
+    ? hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL)
+    : hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL);
+  frag_sources[sc++] = demo_fragment_glsl;
+  fragment_shader = compile_shader (GL_FRAGMENT_SHADER, sc, frag_sources);
 
   program = link_program (vertex_shader, fragment_shader);
   return program;
