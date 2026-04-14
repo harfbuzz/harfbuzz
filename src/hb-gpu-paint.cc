@@ -71,6 +71,7 @@ hb_gpu_paint_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pending_clip = true;
   c->pending_clip_glyph = glyph;
   c->pending_clip_font  = font;
+  c->pending_clip_transform = c->cur_transform;
 }
 
 static void
@@ -288,7 +289,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c)
   hb_gpu_draw_clear (c->scratch_draw);
 
   bool ok;
-  if (c->cur_transform.is_identity ())
+  if (c->pending_clip_transform.is_identity ())
   {
     /* Fast path: feed the glyph outline straight into the draw
      * encoder with no adapter. */
@@ -297,14 +298,16 @@ emit_clip_sub_blob (hb_gpu_paint_t *c)
   }
   else
   {
-    /* Transform each outline point before handing it off to the
-     * draw encoder's own funcs. */
+    /* Transform each outline point by the transform that was
+     * current at push_clip_glyph time -- NOT the innermost
+     * cur_transform, which may have additional PaintTransform
+     * wrappers from the paint child underneath. */
     int x_scale, y_scale;
     hb_font_get_scale (c->pending_clip_font, &x_scale, &y_scale);
     hb_gpu_draw_set_scale (c->scratch_draw, x_scale, y_scale);
 
     hb_gpu_paint_pen_t pen = {};
-    pen.transform = c->cur_transform;
+    pen.transform = c->pending_clip_transform;
     pen.dfuncs    = hb_gpu_draw_get_funcs ();
     pen.data      = c->scratch_draw;
     pen.down_st   = HB_DRAW_STATE_DEFAULT;

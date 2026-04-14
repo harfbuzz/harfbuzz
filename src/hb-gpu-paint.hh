@@ -273,6 +273,11 @@ struct hb_gpu_paint_t
   bool pending_clip = false;
   hb_codepoint_t pending_clip_glyph = 0;
   hb_font_t     *pending_clip_font  = nullptr;  /* borrowed */
+  /* Transform at the time push_clip_glyph was called.  The clip
+   * outline is defined in this (outer) coord space; a subsequent
+   * gradient params callback may run under deeper transforms,
+   * which we use for the gradient but not the clip outline. */
+  hb_transform_t<float> pending_clip_transform = {1, 0, 0, 1, 0, 0};
 
   /* Set when the paint walk emits v1-only callbacks we do not yet
    * support.  hb_gpu_paint_encode() returns NULL in that case. */
