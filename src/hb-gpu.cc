@@ -336,15 +336,18 @@
  *
  * Parameters:
  *
- * - coverage: the output of hb_gpu_draw.
+ * - coverage: a coverage / alpha value in [0, 1].  For
+ *   hb_gpu_draw() this is the returned coverage; for
+ *   hb_gpu_paint() it is the alpha of the returned vec4.
  *
- * - brightness: foreground brightness in [0, 1], computed as
- *   `dot (foreground.rgb, vec3 (1.0 / 3.0))`.
+ * - brightness: brightness of the color that will end up on
+ *   screen for this fragment, in [0, 1], computed as
+ *   `dot (straight_color.rgb, vec3 (1.0 / 3.0))`.
  *
  * - ppem: pixels per em at this fragment, computed as
  *   `1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y)`.
  *
- * Example:
+ * Example -- draw path:
  *
  * |[<!-- language="plain" -->
  * float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
@@ -352,6 +355,25 @@
  * float ppem = 1.0 / max (fwidth (v_texcoord).x,
  *                          fwidth (v_texcoord).y);
  * coverage = hb_gpu_stem_darken (coverage, brightness, ppem);
+ * ]|
+ *
+ * Example -- paint path:  hb_gpu_paint() returns premultiplied
+ * RGBA, and each paint layer has its own color, so compute
+ * brightness from the fragment's own straight (un-premultiplied)
+ * color rather than any shader uniform.  This gives the right
+ * per-layer darkening on a multi-color glyph, and reduces to the
+ * draw-path behaviour on a monochrome glyph (whose single
+ * synthesized layer's color is the foreground uniform).
+ *
+ * |[<!-- language="plain" -->
+ * vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
+ * if (c.a > 0.0) {
+ *   float brightness = dot (c.rgb, vec3 (1.0 / 3.0)) / c.a;
+ *   float ppem = 1.0 / max (fwidth (v_texcoord).x,
+ *                            fwidth (v_texcoord).y);
+ *   float darkened = hb_gpu_stem_darken (c.a, brightness, ppem);
+ *   c *= darkened / c.a;  // keep premultiplied RGB and A in sync
+ * }
  * ]|
  *
  * # Paint

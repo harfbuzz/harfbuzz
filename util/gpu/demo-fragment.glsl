@@ -27,11 +27,15 @@ void main ()
 #endif
 
   /* Stem darkening: scale the premultiplied value by the
-   * alpha-channel darkening ratio so RGB and A stay in lockstep. */
+   * alpha-channel darkening ratio so RGB and A stay in lockstep.
+   * Brightness is computed from the fragment's own straight color
+   * so each paint layer is darkened relative to its own color
+   * rather than the foreground uniform (which only matches the
+   * synthesized monochrome layer). */
   if (u_stem_darkening > 0.0 && c.a > 0.0)
   {
-    float darkened = hb_gpu_stem_darken (c.a,
-      dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
+    float brightness = dot (c.rgb, vec3 (1.0 / 3.0)) / c.a;
+    float darkened = hb_gpu_stem_darken (c.a, brightness,
       1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
     c *= darkened / c.a;
   }

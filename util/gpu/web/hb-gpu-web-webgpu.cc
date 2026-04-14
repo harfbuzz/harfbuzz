@@ -112,9 +112,8 @@ struct VertexOutput {
                         &hb_gpu_atlas);
 
   if (u.stem_darkening > 0.0 && c.a > 0.0) {
-    let darkened = hb_gpu_stem_darken (c.a,
-      dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
-      ppem);
+    let brightness = dot (c.rgb, vec3f (1.0 / 3.0)) / c.a;
+    let darkened = hb_gpu_stem_darken (c.a, brightness, ppem);
     c = c * (darkened / c.a);
   }
 

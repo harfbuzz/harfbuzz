@@ -135,9 +135,8 @@ float4 ps_main (PSInput input) : SV_Target {
   if (stem_darkening > 0.0 && c.a > 0.0) {
     float2 fw = fwidth (input.texcoord);
     float ppem = 1.0 / max (fw.x, fw.y);
-    float darkened = hb_gpu_stem_darken (c.a,
-      dot (foreground.rgb, float3 (1.0/3.0, 1.0/3.0, 1.0/3.0)),
-      ppem);
+    float brightness = dot (c.rgb, float3 (1.0/3.0, 1.0/3.0, 1.0/3.0)) / c.a;
+    float darkened = hb_gpu_stem_darken (c.a, brightness, ppem);
     c *= darkened / c.a;
   }
 
