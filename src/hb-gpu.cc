@@ -347,7 +347,7 @@
  * - ppem: pixels per em at this fragment, computed as
  *   `1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y)`.
  *
- * Example -- draw path:
+ * Example — draw path:
  *
  * |[<!-- language="plain" -->
  * float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
@@ -357,7 +357,7 @@
  * coverage = hb_gpu_stem_darken (coverage, brightness, ppem);
  * ]|
  *
- * Example -- paint path:  hb_gpu_paint() returns premultiplied
+ * Example — paint path: hb_gpu_paint() returns premultiplied
  * RGBA, and each paint layer has its own color, so compute
  * brightness from the fragment's own straight (un-premultiplied)
  * color rather than any shader uniform.  This gives the right
@@ -398,7 +398,7 @@
  * hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
  *
  * // Optional: select a palette and install any custom-palette
- * // overrides before hb_gpu_paint_glyph -- their values are baked
+ * // overrides before hb_gpu_paint_glyph — their values are baked
  * // into the encoded blob.  (The foreground color is NOT set here:
  * // it stays a shader uniform so dark-mode and color-change
  * // toggles take effect without re-encoding.)
