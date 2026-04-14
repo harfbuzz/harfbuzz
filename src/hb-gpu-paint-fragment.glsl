@@ -215,6 +215,22 @@ vec4 _hb_gpu_composite (vec4 src, vec4 dst, int mode)
   return r;
 }
 
+/* Wrap _hb_gpu_slug with a sub-glyph extents bail-out.  Many
+ * paint layers cover a small region of the outer glyph quad; for
+ * fragments outside the layer's bbox (with an AA + MSAA-spread
+ * margin) the slug coverage is exactly 0, so we can skip the
+ * band/curve walk entirely. */
+float _hb_gpu_slug_clipped (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
+{
+  ivec4 header0 = hb_gpu_fetch (int (glyphLoc_));
+  vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS;
+  vec2 margin = 2.0 / pixelsPerEm;
+  if (any (lessThan    (renderCoord, ext.xy - margin)) ||
+      any (greaterThan (renderCoord, ext.zw + margin)))
+    return 0.0;
+  return _hb_gpu_slug (renderCoord, pixelsPerEm, glyphLoc_);
+}
+
 /* Walks the paint blob's flat op stream and returns a
  * premultiplied RGBA coverage value for the current fragment.
  *
@@ -256,8 +272,8 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 	       ? foreground
 	       : vec4 (ct) / 32767.0;
 
-      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
-				     uint (base + payload));
+      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					     uint (base + payload));
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -285,8 +301,8 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
-      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
-				     uint (base + payload));
+      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					     uint (base + payload));
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
