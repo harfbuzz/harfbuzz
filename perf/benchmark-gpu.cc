@@ -48,7 +48,7 @@ static struct test_input_t
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
-static void BM_GpuEncode (benchmark::State &state,
+static void BM_GpuDrawEncode (benchmark::State &state,
 			   const test_input_t &test_input)
 {
   hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
@@ -73,6 +73,35 @@ static void BM_GpuEncode (benchmark::State &state,
     }
 
   hb_gpu_draw_destroy (draw);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void BM_GpuPaintEncode (benchmark::State &state,
+				const test_input_t &test_input)
+{
+  hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
+  if (!face)
+  {
+    state.SkipWithError ("Failed to open font file");
+    return;
+  }
+
+  hb_font_t *font = hb_font_create (face);
+  unsigned num_glyphs = hb_face_get_glyph_count (face);
+  hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+  assert (paint);
+
+  for (auto _ : state)
+    for (unsigned gid = 0; gid < num_glyphs; ++gid)
+    {
+      hb_gpu_paint_glyph (paint, font, gid);
+      hb_blob_t *blob = hb_gpu_paint_encode (paint, nullptr);
+      if (blob)
+	hb_gpu_paint_recycle_blob (paint, blob);
+    }
+
+  hb_gpu_paint_destroy (paint);
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
@@ -114,11 +143,17 @@ int main (int argc, char **argv)
   for (unsigned i = 0; i < num_tests; i++)
   {
     auto &test_input = tests[i];
-    char name[1024] = "BM_GpuEncode/";
-    const char *p = strrchr (test_input.font_path, '/');
-    strcat (name, p ? p + 1 : test_input.font_path);
+    const char *base = strrchr (test_input.font_path, '/');
+    base = base ? base + 1 : test_input.font_path;
 
-    benchmark::RegisterBenchmark (name, BM_GpuEncode, test_input)
+    char draw_name[1024] = "BM_GpuDrawEncode/";
+    strcat (draw_name, base);
+    benchmark::RegisterBenchmark (draw_name, BM_GpuDrawEncode, test_input)
+      ->Unit (benchmark::kMillisecond);
+
+    char paint_name[1024] = "BM_GpuPaintEncode/";
+    strcat (paint_name, base);
+    benchmark::RegisterBenchmark (paint_name, BM_GpuPaintEncode, test_input)
       ->Unit (benchmark::kMillisecond);
   }
 

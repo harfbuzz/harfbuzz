@@ -28,7 +28,8 @@
 #include "hb-gpu.h"
 #include <hb-ot.h>
 
-#define FONT_FILE "fonts/Roboto-Regular.abc.ttf"
+#define FONT_FILE      "fonts/Roboto-Regular.abc.ttf"
+#define COLR_FONT_FILE "fonts/test_glyphs-glyf_colr_1.ttf"
 
 struct hb_gpu_test_texel_t
 {
@@ -310,6 +311,200 @@ test_extents_saturate_overflow (void)
   hb_gpu_draw_destroy (draw);
 }
 
+/* ===== Paint encoder tests ===== */
+
+static void
+test_paint_create_destroy (void)
+{
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+
+  hb_gpu_paint_t *ref = hb_gpu_paint_reference (p);
+  g_assert_true (ref == p);
+  hb_gpu_paint_destroy (ref);
+
+  hb_gpu_paint_destroy (p);
+}
+
+static void
+test_paint_get_funcs (void)
+{
+  hb_paint_funcs_t *funcs = hb_gpu_paint_get_funcs ();
+  g_assert_nonnull (funcs);
+  /* Singleton. */
+  g_assert_true (funcs == hb_gpu_paint_get_funcs ());
+}
+
+static void
+test_paint_shader_sources (void)
+{
+  /* Fragment helpers exist for all four supported languages. */
+  g_assert_nonnull (hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL));
+  g_assert_nonnull (hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL));
+  g_assert_nonnull (hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL));
+  g_assert_nonnull (hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL));
+}
+
+static void
+test_paint_empty_encode (void)
+{
+  /* Nothing painted -> nullptr blob (no ops to encode). */
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+  hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+  g_assert_null (blob);
+  hb_gpu_paint_destroy (p);
+}
+
+static void
+test_paint_encode_monochrome (void)
+{
+  /* hb_gpu_paint_glyph synthesizes a single foreground-colored
+   * layer for non-color glyphs; the encoded blob should be
+   * non-empty and 8-byte (RGBA16I texel) aligned. */
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  g_assert_nonnull (face);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+  g_assert_true (hb_gpu_paint_glyph (p, font, gid));
+
+  hb_glyph_extents_t ext;
+  hb_blob_t *blob = hb_gpu_paint_encode (p, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  g_assert_cmpuint (hb_blob_get_length (blob) % 8, ==, 0);
+  g_assert_cmpint (ext.width, >, 0);
+  g_assert_cmpint (ext.height, <, 0);
+
+  hb_blob_destroy (blob);
+  hb_gpu_paint_destroy (p);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_paint_encode_color (void)
+{
+  /* Real COLRv1 paint tree: scan for any color glyph that we
+   * support end-to-end (the test font deliberately exercises
+   * features we may flag as unsupported, so check several rather
+   * than asserting on the first). */
+  hb_face_t *face = hb_test_open_font_file (COLR_FONT_FILE);
+  g_assert_nonnull (face);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+
+  unsigned num = hb_face_get_glyph_count (face);
+  hb_bool_t got_one = false;
+  for (unsigned i = 0; i < num; i++)
+  {
+    if (!hb_ot_color_glyph_has_paint (face, i))
+      continue;
+    if (!hb_gpu_paint_glyph (p, font, i))
+      continue;  /* unsupported feature in this glyph's tree */
+    hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+    if (!blob)
+      continue;
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    g_assert_cmpuint (hb_blob_get_length (blob) % 8, ==, 0);
+    hb_blob_destroy (blob);
+    got_one = true;
+    break;
+  }
+  g_assert_true (got_one);
+
+  hb_gpu_paint_destroy (p);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_paint_auto_clear_on_encode (void)
+{
+  /* hb_gpu_paint_encode auto-clears so the encoder can be reused
+   * straight away; user configuration (palette) is preserved. */
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  hb_gpu_paint_set_palette (p, 3);
+  g_assert_cmpuint (hb_gpu_paint_get_palette (p), ==, 3);
+
+  hb_codepoint_t gid;
+  hb_font_get_nominal_glyph (font, 'a', &gid);
+
+  hb_gpu_paint_glyph (p, font, gid);
+  hb_blob_t *blob1 = hb_gpu_paint_encode (p, nullptr);
+  g_assert_nonnull (blob1);
+  hb_blob_destroy (blob1);
+
+  /* Auto-clear: re-encoding without painting again returns nullptr. */
+  hb_blob_t *empty = hb_gpu_paint_encode (p, nullptr);
+  g_assert_null (empty);
+
+  /* Palette config is preserved. */
+  g_assert_cmpuint (hb_gpu_paint_get_palette (p), ==, 3);
+
+  /* Paint another glyph -- works because state is clean and config
+   * is still in effect. */
+  hb_font_get_nominal_glyph (font, 'b', &gid);
+  hb_gpu_paint_glyph (p, font, gid);
+  hb_blob_t *blob2 = hb_gpu_paint_encode (p, nullptr);
+  g_assert_nonnull (blob2);
+  hb_blob_destroy (blob2);
+
+  hb_gpu_paint_destroy (p);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_paint_reset (void)
+{
+  /* paint_reset wipes user configuration too (vs. paint_clear which
+   * keeps it). */
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  hb_gpu_paint_set_palette (p, 5);
+  g_assert_cmpuint (hb_gpu_paint_get_palette (p), ==, 5);
+  hb_gpu_paint_reset (p);
+  g_assert_cmpuint (hb_gpu_paint_get_palette (p), ==, 0);
+  hb_gpu_paint_destroy (p);
+}
+
+static void
+test_paint_recycle_blob (void)
+{
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  hb_codepoint_t gid;
+  hb_font_get_nominal_glyph (font, 'a', &gid);
+
+  hb_gpu_paint_glyph (p, font, gid);
+  hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+  g_assert_nonnull (blob);
+  hb_gpu_paint_recycle_blob (p, blob);
+
+  /* Encoder still works after recycling. */
+  hb_gpu_paint_glyph (p, font, gid);
+  hb_blob_t *blob2 = hb_gpu_paint_encode (p, nullptr);
+  g_assert_nonnull (blob2);
+  hb_blob_destroy (blob2);
+
+  hb_gpu_paint_destroy (p);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -325,6 +520,16 @@ main (int argc, char **argv)
   hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
   hb_test_add (test_extents_saturate_overflow);
+
+  hb_test_add (test_paint_create_destroy);
+  hb_test_add (test_paint_get_funcs);
+  hb_test_add (test_paint_shader_sources);
+  hb_test_add (test_paint_empty_encode);
+  hb_test_add (test_paint_encode_monochrome);
+  hb_test_add (test_paint_encode_color);
+  hb_test_add (test_paint_auto_clear_on_encode);
+  hb_test_add (test_paint_reset);
+  hb_test_add (test_paint_recycle_blob);
 
   return hb_test_run ();
 }
