@@ -304,6 +304,8 @@ float _hb_gpu_slug (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc_,
 #endif
 
   return c;
+}
+
 /* Stem darkening for small sizes.
  *
  * coverage:    output of hb_gpu_draw
