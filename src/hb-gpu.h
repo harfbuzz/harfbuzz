@@ -180,13 +180,6 @@ HB_EXTERN hb_paint_funcs_t *
 hb_gpu_paint_get_funcs (void);
 
 HB_EXTERN void
-hb_gpu_paint_set_foreground (hb_gpu_paint_t *paint,
-			     hb_color_t      foreground);
-
-HB_EXTERN hb_color_t
-hb_gpu_paint_get_foreground (const hb_gpu_paint_t *paint);
-
-HB_EXTERN void
 hb_gpu_paint_set_palette (hb_gpu_paint_t *paint,
 			  unsigned        palette);
 

@@ -242,7 +242,6 @@ struct hb_gpu_paint_t
   hb_object_header_t header;
 
   /* Persistent configuration (survives hb_gpu_paint_clear). */
-  hb_color_t foreground = HB_COLOR (0, 0, 0, 0xff);
   unsigned   palette    = 0;
   hb_map_t  *custom_palette = nullptr;
 

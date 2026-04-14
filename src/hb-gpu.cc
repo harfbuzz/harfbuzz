@@ -39,6 +39,21 @@
  * rasterizes directly in the fragment shader, with no intermediate
  * bitmap atlas.
  *
+ * Two renderers share the same atlas, vertex stage, and pipeline:
+ *
+ * - Draw, an antialiased monochrome coverage mask for outline
+ *   glyphs.
+ * - Paint, a premultiplied-RGBA color accumulator for COLRv0 and
+ *   COLRv1 glyphs.  Paint also renders plain monochrome outlines
+ *   (as a single foreground-colored layer), at some cost over the
+ *   Draw path.
+ *
+ * Applications typically pick one renderer per font, based on
+ * whether the font has a color paint table (see
+ * hb_ot_color_has_paint()).  The Draw path is meaningfully faster
+ * than Paint on monochrome fonts, so using Paint unconditionally
+ * leaves performance on the table.
+ *
  * See the [live web demo](https://harfbuzz.github.io/hb-gpu-demo/).
  *
  * # Draw
@@ -64,16 +79,17 @@
  * unsigned atlas_offset = upload_to_atlas (blob);
  *
  * hb_gpu_draw_recycle_blob (draw, blob);
- * hb_gpu_draw_reset (draw);
  * // repeat for more glyphs...
  *
  * hb_gpu_draw_destroy (draw);
  * ]|
  *
- * The encoder object and its internal buffers are reused across
- * glyphs.  Call hb_gpu_draw_recycle_blob() after each encode to
- * allow buffer reuse; call hb_gpu_draw_reset() before each new
- * glyph.
+ * Create the encoder once and reuse it across glyphs.
+ * hb_gpu_draw_encode() auto-clears the accumulated outlines on
+ * return, so the next call to hb_gpu_draw_glyph() starts fresh;
+ * user configuration (font scale) is preserved.  Pass the
+ * encoded blob back via hb_gpu_draw_recycle_blob() after upload
+ * to recycle the buffer across encodes.
  *
  * ## Atlas setup
  *
@@ -337,6 +353,125 @@
  *                          fwidth (v_texcoord).y);
  * coverage = hb_gpu_stem_darken (coverage, brightness, ppem);
  * ]|
+ *
+ * # Paint
+ *
+ * The paint renderer walks the font's paint tree (COLRv0 layers
+ * or COLRv1 paint subtree) and records one layer op per solid or
+ * gradient fill, each with its own clip outline encoded as a Slug
+ * (so the paint renderer reuses the draw renderer internally for
+ * clips).  Palette colors and custom overrides are resolved and
+ * baked into the blob at encode time, so the shader does not need
+ * a separate palette uniform.
+ *
+ * Monochrome (non-color) glyphs are handled transparently:
+ * hb_gpu_paint_glyph() synthesizes a single foreground-colored
+ * layer from the glyph's outline, so callers can use the paint
+ * renderer uniformly for any font.  This costs more per fragment
+ * than the Draw path, but the rendered result is the same.
+ *
+ * ## Encoding
+ *
+ * |[<!-- language="plain" -->
+ * hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+ *
+ * // Optional: select a palette and install any custom-palette
+ * // overrides before hb_gpu_paint_glyph -- their values are baked
+ * // into the encoded blob.  (The foreground color is NOT set here:
+ * // it stays a shader uniform so dark-mode and color-change
+ * // toggles take effect without re-encoding.)
+ * hb_gpu_paint_set_palette (paint, 0);
+ * hb_gpu_paint_set_custom_palette_color (paint, 2,
+ *                                        HB_COLOR (0xff, 0, 0, 0xff));
+ *
+ * hb_gpu_paint_glyph (paint, font, gid);
+ * hb_glyph_extents_t ext;
+ * hb_blob_t *blob = hb_gpu_paint_encode (paint, &ext);
+ *
+ * // Upload hb_blob_get_data(blob) to the same atlas used by draw.
+ * unsigned atlas_offset = upload_to_atlas (blob);
+ *
+ * hb_gpu_paint_recycle_blob (paint, blob);
+ * // repeat for more glyphs...
+ *
+ * hb_gpu_paint_destroy (paint);
+ * ]|
+ *
+ * As with the draw encoder, create the paint encoder once and
+ * reuse it.  hb_gpu_paint_encode() auto-clears on return; user
+ * configuration (palette, custom-palette overrides) is preserved
+ * across encodes.  Because colors are baked, changing any of that
+ * configuration afterwards requires re-encoding the affected
+ * glyphs.  The encoded blob's texel format is the same RGBA16I
+ * as the draw renderer's, so both kinds of blobs can coexist in
+ * one atlas at different offsets.
+ *
+ * ## Shader composition
+ *
+ * Same pattern as the draw renderer but using
+ * hb_gpu_paint_shader_source() for the paint-specific helpers.
+ * The vertex stage is identical — hb_gpu_paint_shader_source()
+ * returns an empty string for HB_GPU_SHADER_STAGE_VERTEX, so the
+ * fixed assembly order still works:
+ *
+ * |[<!-- language="plain" -->
+ * const char *frag_sources[] = {
+ *     "#version 330\n",
+ *     hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT,
+ *                                 HB_GPU_SHADER_LANG_GLSL),
+ *     hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT,
+ *                                 HB_GPU_SHADER_LANG_GLSL),
+ *     your_fragment_main
+ * };
+ * glShaderSource (frag_shader, 4, frag_sources, NULL);
+ * ]|
+ *
+ * The atlas setup, vertex attributes, dilation, and font scaling
+ * guidance from the Draw section all apply unchanged.
+ *
+ * ## Fragment shader
+ *
+ * The paint library provides one function:
+ *
+ * |[<!-- language="plain" -->
+ * vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground);
+ * ]|
+ *
+ * Parameters:
+ *
+ * - renderCoord: the interpolated em-space coordinate from the
+ *   vertex shader (v_texcoord), as for hb_gpu_draw().
+ *
+ * - glyphLoc: the texel offset of this glyph's encoded paint blob
+ *   in the atlas, passed as a flat varying from the vertex shader.
+ *
+ * - foreground: the foreground color used to resolve palette
+ *   entries that COLRv1 marks as "foreground color".  The encoder
+ *   only records the is-foreground flag per layer/stop; the actual
+ *   color is substituted here at render time, so runtime
+ *   foreground-color changes (e.g. a dark-mode toggle) take effect
+ *   without re-encoding any glyphs.
+ *
+ * Returns premultiplied RGBA: fully transparent outside the glyph,
+ * composited layers inside.  Use (GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+ * blending to composite over a background.
+ *
+ * A typical fragment main:
+ *
+ * |[<!-- language="plain" -->
+ * uniform vec4 u_foreground;
+ * in vec2 v_texcoord;
+ * flat in uint v_glyphLoc;
+ * out vec4 fragColor;
+ *
+ * void main () {
+ *   fragColor = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
+ * }
+ * ]|
+ *
+ * Stem darkening applies to the paint output the same way it does
+ * for draw; the alpha channel of the returned vec4 carries the
+ * coverage.  See the Draw section's Stem darkening notes.
  **/
 
 

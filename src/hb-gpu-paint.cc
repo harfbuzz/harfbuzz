@@ -982,40 +982,6 @@ hb_gpu_paint_get_funcs (void)
 }
 
 /**
- * hb_gpu_paint_set_foreground:
- * @paint: a GPU color-glyph paint encoder
- * @foreground: the foreground color
- *
- * Sets the foreground color used to resolve palette references that
- * specify the foreground sentinel (palette index 0xFFFF).
- *
- * XSince: REPLACEME
- **/
-void
-hb_gpu_paint_set_foreground (hb_gpu_paint_t *paint,
-			     hb_color_t      foreground)
-{
-  paint->foreground = foreground;
-}
-
-/**
- * hb_gpu_paint_get_foreground:
- * @paint: a GPU color-glyph paint encoder
- *
- * Returns the foreground color previously set on @paint, or the
- * default opaque black if none was set.
- *
- * Return value: the foreground color.
- *
- * XSince: REPLACEME
- **/
-hb_color_t
-hb_gpu_paint_get_foreground (const hb_gpu_paint_t *paint)
-{
-  return paint->foreground;
-}
-
-/**
  * hb_gpu_paint_set_palette:
  * @paint: a GPU color-glyph paint encoder
  * @palette: palette index
@@ -1120,7 +1086,12 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
    * our callbacks turn into a single LAYER_SOLID op. */
   hb_font_paint_glyph (font, glyph,
 		       hb_gpu_paint_get_funcs (), paint,
-		       paint->palette, paint->foreground);
+		       paint->palette,
+		       /* Foreground value is never read from our encoded
+			* blob -- the is_foreground flag routes to the
+			* shader's foreground uniform at render time -- so
+			* any sentinel works here. */
+		       HB_COLOR (0, 0, 0, 0xff));
   return !paint->unsupported;
 }
 
@@ -1132,6 +1103,10 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
  * Encodes the accumulated paint state into a GPU-renderable blob
  * and writes the glyph's ink extents to @extents.
  *
+ * On return @paint is auto-cleared so it can be reused for the
+ * next glyph; user configuration (palette, foreground, custom
+ * palette overrides) is preserved.
+ *
  * Return value: (transfer full):
  * A newly allocated blob, or `NULL` if there is nothing to encode
  * or the accumulated paint used unsupported features.
@@ -1142,6 +1117,8 @@ hb_blob_t *
 hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 		     hb_glyph_extents_t *extents)
 {
+  HB_SCOPE_GUARD (hb_gpu_paint_clear (paint));
+
   if (unlikely (paint->unsupported || paint->num_ops == 0))
     return nullptr;
 
@@ -1317,7 +1294,6 @@ hb_gpu_paint_reset (hb_gpu_paint_t *paint)
 {
   paint->x_scale = 0;
   paint->y_scale = 0;
-  paint->foreground = HB_COLOR (0, 0, 0, 0xff);
   paint->palette = 0;
   hb_map_destroy (paint->custom_palette);
   paint->custom_palette = nullptr;

@@ -82,15 +82,6 @@ demo_font_set_palette (demo_font_t *font, unsigned palette_index)
 }
 
 void
-demo_font_set_foreground (demo_font_t *font, hb_color_t foreground)
-{
-  if (font->draw_only)
-    return;
-  hb_gpu_paint_set_foreground (font->p, foreground);
-  demo_font_clear_cache (font);
-}
-
-void
 demo_font_clear_custom_palette_colors (demo_font_t *font)
 {
   if (font->draw_only)

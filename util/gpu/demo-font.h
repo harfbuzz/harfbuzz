@@ -48,10 +48,6 @@ demo_font_set_palette (demo_font_t *font,
 		       unsigned     palette_index);
 
 void
-demo_font_set_foreground (demo_font_t *font,
-			  hb_color_t   foreground);
-
-void
 demo_font_clear_custom_palette_colors (demo_font_t *font);
 
 hb_bool_t
