@@ -917,7 +917,16 @@ hb_gpu_paint_reference (hb_gpu_paint_t *paint)
 void
 hb_gpu_paint_destroy (hb_gpu_paint_t *paint)
 {
-  if (!hb_object_destroy (paint)) return;
+  if (!hb_object_should_destroy (paint))
+    return;
+
+  hb_map_destroy (paint->custom_palette);
+  for (hb_blob_t *b : paint->sub_blobs)
+    hb_blob_destroy (b);
+  hb_gpu_draw_destroy (paint->scratch_draw);
+  hb_blob_destroy (paint->recycled_blob);
+
+  hb_object_actually_destroy (paint);
   hb_free (paint);
 }
 

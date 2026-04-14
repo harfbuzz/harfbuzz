@@ -294,13 +294,6 @@ struct hb_gpu_paint_t
   /* Recycled output blob. */
   hb_blob_t *recycled_blob = nullptr;
 
-  ~hb_gpu_paint_t ()
-  {
-    hb_map_destroy (custom_palette);
-    for (hb_blob_t *b : sub_blobs) hb_blob_destroy (b);
-    hb_gpu_draw_destroy (scratch_draw);
-    hb_blob_destroy (recycled_blob);
-  }
 };
 
 

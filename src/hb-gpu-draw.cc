@@ -844,7 +844,12 @@ hb_gpu_draw_reference (hb_gpu_draw_t *draw)
 void
 hb_gpu_draw_destroy (hb_gpu_draw_t *draw)
 {
-  if (!hb_object_destroy (draw)) return;
+  if (!hb_object_should_destroy (draw))
+    return;
+
+  hb_blob_destroy (draw->recycled_blob);
+
+  hb_object_actually_destroy (draw);
   hb_free (draw);
 }
 
