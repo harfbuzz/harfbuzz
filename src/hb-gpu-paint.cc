@@ -82,14 +82,10 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
 }
 
 static void
-hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
-		    void             *paint_data,
-		    hb_bool_t         is_foreground,
-		    hb_color_t        color,
-		    void             *user_data HB_UNUSED)
+hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
+			 hb_bool_t       is_foreground,
+			 hb_color_t      color)
 {
-  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
-
   if (unlikely (!c->pending_clip))
     return;
 
@@ -158,6 +154,69 @@ hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
   c->num_ops++;
 }
 
+static void
+hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
+		    void             *paint_data,
+		    hb_bool_t         is_foreground,
+		    hb_color_t        color,
+		    void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_emit_solid ((hb_gpu_paint_t *) paint_data, is_foreground, color);
+}
+
+/* Gradients: emit a flat LAYER_SOLID using the first color stop.
+ * A placeholder until real gradient ops land. */
+static void
+hb_gpu_paint_gradient_first_stop (hb_gpu_paint_t   *c,
+				  hb_color_line_t  *color_line)
+{
+  if (unlikely (!c->pending_clip))
+    return;
+
+  hb_color_stop_t stop;
+  unsigned count = 1;
+  unsigned got = hb_color_line_get_color_stops (color_line, 0, &count, &stop);
+  if (unlikely (!got))
+    return;  /* No stops -- skip the layer. */
+
+  hb_gpu_paint_emit_solid (c, stop.is_foreground, stop.color);
+}
+
+static void
+hb_gpu_paint_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
+			      void             *paint_data,
+			      hb_color_line_t  *color_line,
+			      float x0 HB_UNUSED, float y0 HB_UNUSED,
+			      float x1 HB_UNUSED, float y1 HB_UNUSED,
+			      float x2 HB_UNUSED, float y2 HB_UNUSED,
+			      void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_gradient_first_stop ((hb_gpu_paint_t *) paint_data, color_line);
+}
+
+static void
+hb_gpu_paint_radial_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
+			      void             *paint_data,
+			      hb_color_line_t  *color_line,
+			      float x0 HB_UNUSED, float y0 HB_UNUSED, float r0 HB_UNUSED,
+			      float x1 HB_UNUSED, float y1 HB_UNUSED, float r1 HB_UNUSED,
+			      void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_gradient_first_stop ((hb_gpu_paint_t *) paint_data, color_line);
+}
+
+static void
+hb_gpu_paint_sweep_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
+			     void             *paint_data,
+			     hb_color_line_t  *color_line,
+			     float x0 HB_UNUSED, float y0 HB_UNUSED,
+			     float start_angle HB_UNUSED,
+			     float end_angle   HB_UNUSED,
+			     void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_gradient_first_stop ((hb_gpu_paint_t *) paint_data, color_line);
+}
+
 static inline void free_static_gpu_paint_funcs ();
 
 static struct hb_gpu_paint_funcs_lazy_loader_t
@@ -167,10 +226,13 @@ static struct hb_gpu_paint_funcs_lazy_loader_t
   {
     hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
 
-    hb_paint_funcs_set_push_clip_glyph_func       (funcs, hb_gpu_paint_push_clip_glyph, nullptr, nullptr);
-    hb_paint_funcs_set_pop_clip_func              (funcs, hb_gpu_paint_pop_clip,        nullptr, nullptr);
-    hb_paint_funcs_set_color_func                 (funcs, hb_gpu_paint_color,           nullptr, nullptr);
-    hb_paint_funcs_set_custom_palette_color_func  (funcs, hb_gpu_paint_custom_palette_color, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_glyph_func       (funcs, hb_gpu_paint_push_clip_glyph,       nullptr, nullptr);
+    hb_paint_funcs_set_pop_clip_func              (funcs, hb_gpu_paint_pop_clip,              nullptr, nullptr);
+    hb_paint_funcs_set_color_func                 (funcs, hb_gpu_paint_color,                 nullptr, nullptr);
+    hb_paint_funcs_set_linear_gradient_func       (funcs, hb_gpu_paint_linear_gradient,       nullptr, nullptr);
+    hb_paint_funcs_set_radial_gradient_func       (funcs, hb_gpu_paint_radial_gradient,       nullptr, nullptr);
+    hb_paint_funcs_set_sweep_gradient_func        (funcs, hb_gpu_paint_sweep_gradient,        nullptr, nullptr);
+    hb_paint_funcs_set_custom_palette_color_func  (funcs, hb_gpu_paint_custom_palette_color,  nullptr, nullptr);
 
     hb_paint_funcs_make_immutable (funcs);
 
