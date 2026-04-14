@@ -39,15 +39,24 @@ demo_font_lookup_glyph (demo_font_t  *font,
 			unsigned int  glyph_index,
 			glyph_info_t *glyph_info);
 
-/* Returns the face's palette at `palette_index` as RGBA floats.
- * Writes up to `capacity` entries to `out`; returns the number of
- * entries written.  Falls back to palette 0 if `palette_index` is
- * out of range. */
-unsigned
-demo_font_get_palette (demo_font_t *font,
-		       unsigned     palette_index,
-		       float       *out,
-		       unsigned     capacity);
+/* Forward paint-encoder configuration to the underlying
+ * hb_gpu_paint_t and clear the glyph cache (colors are baked into
+ * encoded blobs, so palette / override changes invalidate them). */
+void
+demo_font_set_palette (demo_font_t *font,
+		       unsigned     palette_index);
+
+void
+demo_font_set_foreground (demo_font_t *font,
+			  hb_color_t   foreground);
+
+void
+demo_font_clear_custom_palette_colors (demo_font_t *font);
+
+hb_bool_t
+demo_font_set_custom_palette_color (demo_font_t *font,
+				    unsigned int color_index,
+				    hb_color_t   color);
 
 void
 demo_font_clear_cache (demo_font_t *font);

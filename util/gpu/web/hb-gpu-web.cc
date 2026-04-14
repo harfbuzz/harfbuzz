@@ -108,7 +108,6 @@ web_load_font (const char *data, int len)
   /* Flush old font state */
   demo_font_destroy (current_demo_font);
   current_demo_font = demo_font_create (font, renderer->get_atlas ());
-  { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, 0, palette, 256); if (n) renderer->set_palette (palette, n); }
 
   rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
@@ -256,7 +255,6 @@ main (int argc, char **argv)
   current_face = hb_face_create (current_blob, 0);
   current_font = hb_font_create (current_face);
   current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
-  { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, 0, palette, 256); if (n) renderer->set_palette (palette, n); }
 
   current_text = strdup (arg_text ? arg_text : default_text_combined);
   if (arg_text)

@@ -42,10 +42,5 @@ demo_glstate_set_debug (demo_glstate_t *st, bool enabled);
 void
 demo_glstate_set_stem_darkening (demo_glstate_t *st, bool enabled);
 
-void
-demo_glstate_set_palette (demo_glstate_t *st,
-			  const float    *rgba,
-			  unsigned        count);
-
 
 #endif /* DEMO_GLSTATE_H */

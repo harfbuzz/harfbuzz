@@ -72,7 +72,6 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> hb_gpu_atlas: array<vec4<i32>>;
-@group(0) @binding(2) var<storage, read> hb_gpu_palette: array<vec4f>;
 
 struct VertexInput {
   @location(0) position: vec2f,
@@ -110,7 +109,7 @@ struct VertexOutput {
   let ppem = 1.0 / max (fw.x, fw.y);
 
   var c = hb_gpu_paint (in.texcoord, in.glyphLoc, u.foreground,
-                        &hb_gpu_atlas, &hb_gpu_palette);
+                        &hb_gpu_atlas);
 
   if (u.stem_darkening > 0.0 && c.a > 0.0) {
     let darkened = hb_gpu_stem_darken (c.a,
@@ -199,7 +198,6 @@ static WGPUQueue g_queue;
 static WGPUSurface g_surface;
 static WGPURenderPipeline g_pipeline;
 static WGPUBuffer g_uniform_buf;
-static WGPUBuffer g_palette_buf;
 static WGPUBuffer g_vertex_buf;
 static unsigned g_vertex_buf_capacity;
 static WGPUBindGroup g_bind_group;
@@ -245,13 +243,6 @@ struct demo_renderer_webgpu_t : demo_renderer_t
 
   void set_debug (bool enabled) override { debug_mode = enabled; }
   void set_stem_darkening (bool enabled) override { stem_mode = enabled; }
-  void set_palette (const float *rgba, unsigned count) override
-  {
-    if (count > 256) count = 256;
-    float buf[256 * 4] = {};
-    memcpy (buf, rgba, count * 4 * sizeof (float));
-    wgpuQueueWriteBuffer (g_queue, g_palette_buf, 0, buf, sizeof (buf));
-  }
   bool debug_mode = false;
   bool stem_mode = true;
 
@@ -428,7 +419,6 @@ web_load_font (const char *data, int len)
 
   demo_font_destroy (current_demo_font);
   current_demo_font = demo_font_create (font, renderer->get_atlas ());
-  { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, 0, palette, 256); if (n) renderer->set_palette (palette, n); }
 
   rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
@@ -932,20 +922,17 @@ create_pipeline ()
 static void
 create_bind_group ()
 {
-  WGPUBindGroupEntry entries[3] = {};
+  WGPUBindGroupEntry entries[2] = {};
   entries[0].binding = 0;
   entries[0].buffer = g_uniform_buf;
   entries[0].size = sizeof (Uniforms);
   entries[1].binding = 1;
   entries[1].buffer = atlas.buf;
   entries[1].size = atlas.capacity * 4 * sizeof (int32_t);
-  entries[2].binding = 2;
-  entries[2].buffer = g_palette_buf;
-  entries[2].size = 256 * 4 * sizeof (float);
 
   WGPUBindGroupDescriptor bgDesc = {};
   bgDesc.layout = wgpuRenderPipelineGetBindGroupLayout (g_pipeline, 0);
-  bgDesc.entryCount = 3;
+  bgDesc.entryCount = 2;
   bgDesc.entries = entries;
 
   if (g_bind_group)
@@ -989,14 +976,6 @@ init_demo ()
   uniDesc.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
   g_uniform_buf = wgpuDeviceCreateBuffer (g_device, &uniDesc);
 
-  /* Palette storage buffer: 256 vec4f, zero-filled for now. */
-  WGPUBufferDescriptor palDesc = {};
-  palDesc.size = 256 * 4 * sizeof (float);
-  palDesc.usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst;
-  g_palette_buf = wgpuDeviceCreateBuffer (g_device, &palDesc);
-  float zero_palette[256 * 4] = {};
-  wgpuQueueWriteBuffer (g_queue, g_palette_buf, 0, zero_palette, sizeof (zero_palette));
-
   /* Create pipeline and bind group */
   create_pipeline ();
 
@@ -1021,7 +1000,6 @@ init_demo ()
   current_face = hb_face_create (current_blob, 0);
   current_font = hb_font_create (current_face);
   current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
-  { float palette[256*4] = {}; unsigned n = demo_font_get_palette (current_demo_font, 0, palette, 256); if (n) renderer->set_palette (palette, n); }
 
   current_text = strdup (arg_text ? arg_text : default_text_combined);
   if (arg_text)

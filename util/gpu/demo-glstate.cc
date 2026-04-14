@@ -92,17 +92,3 @@ demo_glstate_set_stem_darkening (demo_glstate_t *st, bool enabled)
   glUniform1f (glGetUniformLocation (st->program, "u_stem_darkening"), enabled ? 1.f : 0.f);
 }
 
-void
-demo_glstate_set_palette (demo_glstate_t *st,
-			  const float    *rgba,
-			  unsigned        count)
-{
-  GLint loc = glGetUniformLocation (st->program, "hb_gpu_palette");
-  if (loc < 0)
-    loc = glGetUniformLocation (st->program, "hb_gpu_palette[0]");
-  if (loc < 0) return;
-
-  if (count > 256) count = 256;
-  glUniform4fv (loc, count, rgba);
-}
-

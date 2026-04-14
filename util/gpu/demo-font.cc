@@ -64,35 +64,35 @@ demo_font_get_font (demo_font_t *font)
   return font->font;
 }
 
-unsigned
-demo_font_get_palette (demo_font_t *font,
-		       unsigned     palette_index,
-		       float       *out,
-		       unsigned     capacity)
+void
+demo_font_set_palette (demo_font_t *font, unsigned palette_index)
 {
-  unsigned palette_count = hb_ot_color_palette_get_count (font->face);
-  if (!palette_count) return 0;
-  if (palette_index >= palette_count) palette_index = 0;
+  hb_gpu_paint_set_palette (font->p, palette_index);
+  demo_font_clear_cache (font);
+}
 
-  unsigned count = hb_ot_color_palette_get_colors (font->face, palette_index,
-						   0, NULL, NULL);
-  if (!count) return 0;
-  if (count > capacity) count = capacity;
+void
+demo_font_set_foreground (demo_font_t *font, hb_color_t foreground)
+{
+  hb_gpu_paint_set_foreground (font->p, foreground);
+  demo_font_clear_cache (font);
+}
 
-  hb_color_t colors[256];
-  unsigned returned = count;
-  if (returned > 256) returned = 256;
-  hb_ot_color_palette_get_colors (font->face, palette_index, 0,
-				  &returned, colors);
+void
+demo_font_clear_custom_palette_colors (demo_font_t *font)
+{
+  hb_gpu_paint_clear_custom_palette_colors (font->p);
+  demo_font_clear_cache (font);
+}
 
-  for (unsigned i = 0; i < returned; i++)
-  {
-    out[i * 4 + 0] = hb_color_get_red   (colors[i]) / 255.f;
-    out[i * 4 + 1] = hb_color_get_green (colors[i]) / 255.f;
-    out[i * 4 + 2] = hb_color_get_blue  (colors[i]) / 255.f;
-    out[i * 4 + 3] = hb_color_get_alpha (colors[i]) / 255.f;
-  }
-  return returned;
+hb_bool_t
+demo_font_set_custom_palette_color (demo_font_t *font,
+				    unsigned int color_index,
+				    hb_color_t   color)
+{
+  hb_bool_t ok = hb_gpu_paint_set_custom_palette_color (font->p, color_index, color);
+  demo_font_clear_cache (font);
+  return ok;
 }
 
 

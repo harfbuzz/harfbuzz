@@ -28,13 +28,6 @@ struct demo_renderer_t
   virtual void set_debug (bool enabled) = 0;
   virtual void set_stem_darkening (bool enabled) { (void) enabled; }
 
-  /* Upload a palette for the hb_gpu_palette uniform/buffer.
-   * rgba: count entries, 4 floats each (RGBA [0..1]).  Backends
-   * that support fewer entries clamp; backends that don't support
-   * colour paint at all may no-op. */
-  virtual void set_palette (const float *rgba, unsigned count)
-  { (void) rgba; (void) count; }
-
   /* sRGB framebuffer control; returns false if unsupported. */
   virtual bool set_srgb (bool enabled) = 0;
 

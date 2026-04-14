@@ -145,24 +145,16 @@ struct gpu_output_t
     });
 
     demo_font_ = demo_font_create (font, renderer->get_atlas ());
+    demo_font_set_palette (demo_font_, view.palette);
+    if (view.custom_palette_entries)
     {
-      float palette[256 * 4] = {};
-      unsigned n = demo_font_get_palette (demo_font_, view.palette, palette, 256);
-      if (view.custom_palette_entries)
+      for (unsigned i = 0; i < view.custom_palette_entries->len; i++)
       {
-	for (unsigned i = 0; i < view.custom_palette_entries->len; i++)
-	{
-	  auto &e = g_array_index (view.custom_palette_entries,
-				   view_options_t::custom_palette_entry_t, i);
-	  if (e.index >= 256) continue;
-	  palette[e.index * 4 + 0] = e.color.r / 255.f;
-	  palette[e.index * 4 + 1] = e.color.g / 255.f;
-	  palette[e.index * 4 + 2] = e.color.b / 255.f;
-	  palette[e.index * 4 + 3] = e.color.a / 255.f;
-	  if (e.index + 1 > n) n = e.index + 1;
-	}
+	auto &e = g_array_index (view.custom_palette_entries,
+				 view_options_t::custom_palette_entry_t, i);
+	hb_color_t c = HB_COLOR (e.color.b, e.color.g, e.color.r, e.color.a);
+	demo_font_set_custom_palette_color (demo_font_, e.index, c);
       }
-      if (n) renderer->set_palette (palette, n);
     }
     buf = demo_buffer_create ();
 

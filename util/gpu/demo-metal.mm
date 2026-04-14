@@ -59,11 +59,10 @@ vertex VertexOut vertex_main(VertexIn in [[stage_in]],
 
 fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
-                              device const short4* atlas [[buffer(0)]],
-                              constant float4* palette [[buffer(2)]]) {
+                              device const short4* atlas [[buffer(0)]]) {
   /* Paint interpreter returns premultiplied RGBA. */
   float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
-                          atlas, palette);
+                          atlas);
 
   if (uniforms.gamma != 1.0)
     c.a = pow(c.a, uniforms.gamma);
@@ -105,10 +104,6 @@ struct demo_renderer_metal_t : demo_renderer_t
   unsigned int atlas_cursor;    /* in texels */
   id<MTLBuffer> atlasBuffer;
   bool atlas_dirty;
-
-  /* Palette buffer (256 x float4).  Currently zero-filled; real
-   * palette upload is a TODO (see demo-font.cc for the GL path). */
-  id<MTLBuffer> paletteBuffer;
 
   /* Cached vertex buffer */
   id<MTLBuffer> vertexBuffer;
@@ -185,13 +180,6 @@ struct demo_renderer_metal_t : demo_renderer_t
   {
     return atlas;
   }
-
-  void set_palette (const float *rgba, unsigned count) override
-  {
-    if (count > 256) count = 256;
-    memcpy (paletteBuffer.contents, rgba, count * 4 * sizeof (float));
-  }
-
 
   /* -- State -- */
 
@@ -319,7 +307,6 @@ struct demo_renderer_metal_t : demo_renderer_t
 	[encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
 	[encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
 	[encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
-	[encoder setFragmentBuffer:paletteBuffer offset:0 atIndex:2];
 
 	[encoder drawPrimitives:MTLPrimitiveTypeTriangle
 		    vertexStart:0
@@ -371,7 +358,6 @@ struct demo_renderer_metal_t : demo_renderer_t
 	[encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
 	[encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
 	[encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
-	[encoder setFragmentBuffer:paletteBuffer offset:0 atIndex:2];
 
 	[encoder drawPrimitives:MTLPrimitiveTypeTriangle
 		    vertexStart:0
@@ -491,12 +477,6 @@ demo_renderer_create_metal (GLFWwindow *window)
   r->atlasBuffer = [r->device newBufferWithLength:atlas_capacity * TEXEL_SIZE
 					  options:MTLResourceStorageModeShared];
   r->atlas_dirty = false;
-
-  /* Palette: 256 float4 entries, zero-filled for now.  Real upload
-   * from the font's active palette is TODO. */
-  r->paletteBuffer = [r->device newBufferWithLength:256 * 4 * sizeof (float)
-					    options:MTLResourceStorageModeShared];
-  memset (r->paletteBuffer.contents, 0, 256 * 4 * sizeof (float));
 
   /* Create atlas wrapper for demo_font_t */
   demo_atlas_backend_t backend = {
