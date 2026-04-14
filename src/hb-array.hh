@@ -227,11 +227,22 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
       hb_qsort (arrayZ, length, this->get_item_size (), cmp);
     return hb_sorted_array_t<Type> (*this);
   }
+  /* std::sort wants a strict-weak `a < b` boolean, but our other
+   * qsort overload (and most existing call sites) follow the C
+   * qsort convention of returning negative / zero / positive ints.
+   * Adapt to either via overload resolution: bool passes through;
+   * any other arithmetic return type is treated as the int signed
+   * comparator. */
+  template <typename T> static bool _qsort_lt (T v) { return v < 0; }
+  static bool _qsort_lt (bool v) { return v; }
+
   template <typename Compar>
   hb_sorted_array_t<Type> qsort (Compar compar)
   {
     if (likely (length))
-      std::sort (arrayZ, arrayZ + length, compar);
+      std::sort (arrayZ, arrayZ + length,
+		 [&] (const Type &a, const Type &b)
+		 { return _qsort_lt (compar (a, b)); });
     return hb_sorted_array_t<Type> (*this);
   }
 
