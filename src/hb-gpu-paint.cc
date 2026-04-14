@@ -81,6 +81,42 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pending_clip = false;
 }
 
+/* Emit a 1-texel control op.  Used for PUSH_GROUP / POP_GROUP. */
+static void
+emit_control_op (hb_gpu_paint_t *c, int16_t op_type, int16_t aux)
+{
+  if (unlikely (!c->ops.resize (c->ops.length + 4)))
+  {
+    c->unsupported = true;
+    return;
+  }
+  int16_t *o = &c->ops.arrayZ[c->ops.length - 4];
+  o[0] = op_type;
+  o[1] = aux;
+  o[2] = 0;
+  o[3] = 0;
+  c->num_ops++;
+}
+
+static void
+hb_gpu_paint_push_group (hb_paint_funcs_t *funcs HB_UNUSED,
+			 void             *paint_data,
+			 void             *user_data HB_UNUSED)
+{
+  emit_control_op ((hb_gpu_paint_t *) paint_data,
+		   HB_GPU_PAINT_OP_PUSH_GROUP, 0);
+}
+
+static void
+hb_gpu_paint_pop_group (hb_paint_funcs_t    *funcs HB_UNUSED,
+			void                *paint_data,
+			hb_paint_composite_mode_t mode,
+			void                *user_data HB_UNUSED)
+{
+  emit_control_op ((hb_gpu_paint_t *) paint_data,
+		   HB_GPU_PAINT_OP_POP_GROUP, (int16_t) mode);
+}
+
 /* Quantize unsigned byte 0..255 to signed Q15 0..32767. */
 static inline int16_t
 color_to_q15 (unsigned byte_value)
@@ -576,6 +612,8 @@ static struct hb_gpu_paint_funcs_lazy_loader_t
 
     hb_paint_funcs_set_push_clip_glyph_func       (funcs, hb_gpu_paint_push_clip_glyph,       nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func              (funcs, hb_gpu_paint_pop_clip,              nullptr, nullptr);
+    hb_paint_funcs_set_push_group_func            (funcs, hb_gpu_paint_push_group,            nullptr, nullptr);
+    hb_paint_funcs_set_pop_group_func             (funcs, hb_gpu_paint_pop_group,             nullptr, nullptr);
     hb_paint_funcs_set_color_func                 (funcs, hb_gpu_paint_color,                 nullptr, nullptr);
     hb_paint_funcs_set_linear_gradient_func       (funcs, hb_gpu_paint_linear_gradient,       nullptr, nullptr);
     hb_paint_funcs_set_radial_gradient_func       (funcs, hb_gpu_paint_radial_gradient,       nullptr, nullptr);

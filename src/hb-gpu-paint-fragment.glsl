@@ -168,6 +168,53 @@ vec4 _hb_gpu_sample_sweep (vec2 renderCoord, int grad_base,
   return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
 }
 
+/* Composite two premultiplied RGBA layers using one of the COLRv1
+ * compositing modes.  Unsupported modes fall back to SRC_OVER.
+ * Values match hb_paint_composite_mode_t. */
+vec4 _hb_gpu_composite (vec4 src, vec4 dst, int mode)
+{
+  vec4 r = src + dst * (1.0 - src.a);  /* SRC_OVER default */
+
+  if      (mode == 0)  r = vec4 (0.0);                       /* CLEAR */
+  else if (mode == 1)  r = src;                              /* SRC */
+  else if (mode == 2)  r = dst;                              /* DST */
+  else if (mode == 4)  r = dst + src * (1.0 - dst.a);        /* DST_OVER */
+  else if (mode == 5)  r = src * dst.a;                      /* SRC_IN */
+  else if (mode == 6)  r = dst * src.a;                      /* DST_IN */
+  else if (mode == 7)  r = src * (1.0 - dst.a);              /* SRC_OUT */
+  else if (mode == 8)  r = dst * (1.0 - src.a);              /* DST_OUT */
+  else if (mode == 9)                                        /* SRC_ATOP */
+    r = src * dst.a + dst * (1.0 - src.a);
+  else if (mode == 10)                                       /* DST_ATOP */
+    r = dst * src.a + src * (1.0 - dst.a);
+  else if (mode == 11)                                       /* XOR */
+    r = src * (1.0 - dst.a) + dst * (1.0 - src.a);
+  else if (mode == 12)                                       /* PLUS */
+    r = min (src + dst, vec4 (1.0));
+  else if (mode == 13) {                                     /* SCREEN (premul) */
+    r.rgb = src.rgb + dst.rgb - src.rgb * dst.rgb;
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  else if (mode == 15) {                                     /* DARKEN */
+    r.rgb = min (src.rgb * dst.a, dst.rgb * src.a)
+          + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a);
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  else if (mode == 16) {                                     /* LIGHTEN */
+    r.rgb = max (src.rgb * dst.a, dst.rgb * src.a)
+          + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a);
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  else if (mode == 23) {                                     /* MULTIPLY (premul) */
+    r.rgb = src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a)
+          + src.rgb * dst.rgb;
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  /* SRC_OVER (3) and any unsupported mode use the default `r`. */
+
+  return r;
+}
+
 /* Walks the paint blob's flat op stream and returns a
  * premultiplied RGBA coverage value for the current fragment.
  *
@@ -175,6 +222,8 @@ vec4 _hb_gpu_sample_sweep (vec2 renderCoord, int grad_base,
  * foreground: caller-supplied foreground color, used when an op
  *             sets the is_foreground flag.
  */
+#define HB_GPU_PAINT_GROUP_DEPTH 4
+
 vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 {
   /* fwidth once, at uniform control flow: every per-layer
@@ -189,6 +238,8 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
   int cursor  = base + h2.r;
 
   vec4 acc = vec4 (0.0);
+  vec4 group_stack[HB_GPU_PAINT_GROUP_DEPTH];
+  int sp = 0;
 
   for (int i = 0; i < num_ops; i++)
   {
@@ -241,9 +292,27 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 
       cursor += 2;
     }
+    else if (op_type == 2)  /* PUSH_GROUP */
+    {
+      if (sp < HB_GPU_PAINT_GROUP_DEPTH) {
+        group_stack[sp] = acc;
+        sp++;
+      }
+      acc = vec4 (0.0);
+      cursor += 1;
+    }
+    else if (op_type == 3)  /* POP_GROUP */
+    {
+      if (sp > 0) {
+        sp--;
+        vec4 src = acc;
+        vec4 dst = group_stack[sp];
+        acc = _hb_gpu_composite (src, dst, aux);
+      }
+      cursor += 1;
+    }
     else
     {
-      /* PUSH_GROUP, POP_GROUP not yet handled. */
       break;
     }
   }

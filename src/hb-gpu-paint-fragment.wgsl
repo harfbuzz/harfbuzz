@@ -154,6 +154,46 @@ fn _hb_gpu_sample_sweep (renderCoord: vec2f, grad_base: i32,
   return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 1, stop_count, t, foreground);
 }
 
+fn _hb_gpu_composite (src: vec4f, dst: vec4f, mode: i32) -> vec4f
+{
+  var r = src + dst * (1.0 - src.a);
+
+  if      (mode == 0)  { r = vec4f (0.0); }
+  else if (mode == 1)  { r = src; }
+  else if (mode == 2)  { r = dst; }
+  else if (mode == 4)  { r = dst + src * (1.0 - dst.a); }
+  else if (mode == 5)  { r = src * dst.a; }
+  else if (mode == 6)  { r = dst * src.a; }
+  else if (mode == 7)  { r = src * (1.0 - dst.a); }
+  else if (mode == 8)  { r = dst * (1.0 - src.a); }
+  else if (mode == 9)  { r = src * dst.a + dst * (1.0 - src.a); }
+  else if (mode == 10) { r = dst * src.a + src * (1.0 - dst.a); }
+  else if (mode == 11) { r = src * (1.0 - dst.a) + dst * (1.0 - src.a); }
+  else if (mode == 12) { r = min (src + dst, vec4f (1.0)); }
+  else if (mode == 13) {
+    r = vec4f (src.rgb + dst.rgb - src.rgb * dst.rgb,
+               src.a + dst.a - src.a * dst.a);
+  }
+  else if (mode == 15) {
+    r = vec4f (min (src.rgb * dst.a, dst.rgb * src.a)
+             + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a),
+               src.a + dst.a - src.a * dst.a);
+  }
+  else if (mode == 16) {
+    r = vec4f (max (src.rgb * dst.a, dst.rgb * src.a)
+             + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a),
+               src.a + dst.a - src.a * dst.a);
+  }
+  else if (mode == 23) {
+    r = vec4f (src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a)
+             + src.rgb * dst.rgb,
+               src.a + dst.a - src.a * dst.a);
+  }
+  return r;
+}
+
+const HB_GPU_PAINT_GROUP_DEPTH: i32 = 4;
+
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
 {
@@ -172,6 +212,8 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
   var cursor  = base + h2.r;
 
   var acc = vec4f (0.0);
+  var group_stack: array<vec4f, HB_GPU_PAINT_GROUP_DEPTH>;
+  var sp: i32 = 0;
 
   for (var i: i32 = 0; i < num_ops; i = i + 1)
   {
@@ -226,8 +268,22 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
       acc = src + acc * (1.0 - src.a);
 
       cursor = cursor + 2;
+    } else if (op_type == 2) {  // PUSH_GROUP
+      if (sp < HB_GPU_PAINT_GROUP_DEPTH) {
+        group_stack[sp] = acc;
+        sp = sp + 1;
+      }
+      acc = vec4f (0.0);
+      cursor = cursor + 1;
+    } else if (op_type == 3) {  // POP_GROUP
+      if (sp > 0) {
+        sp = sp - 1;
+        let src = acc;
+        let dst = group_stack[sp];
+        acc = _hb_gpu_composite (src, dst, aux);
+      }
+      cursor = cursor + 1;
     } else {
-      /* PUSH_GROUP, POP_GROUP not yet handled. */
       break;
     }
   }

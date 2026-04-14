@@ -142,6 +142,46 @@ float4 _hb_gpu_sample_sweep (float2 renderCoord, int grad_base,
   return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
 }
 
+float4 _hb_gpu_composite (float4 src, float4 dst, int mode)
+{
+  float4 r = src + dst * (1.0 - src.a);
+
+  if      (mode == 0)  r = float4 (0.0, 0.0, 0.0, 0.0);
+  else if (mode == 1)  r = src;
+  else if (mode == 2)  r = dst;
+  else if (mode == 4)  r = dst + src * (1.0 - dst.a);
+  else if (mode == 5)  r = src * dst.a;
+  else if (mode == 6)  r = dst * src.a;
+  else if (mode == 7)  r = src * (1.0 - dst.a);
+  else if (mode == 8)  r = dst * (1.0 - src.a);
+  else if (mode == 9)  r = src * dst.a + dst * (1.0 - src.a);
+  else if (mode == 10) r = dst * src.a + src * (1.0 - dst.a);
+  else if (mode == 11) r = src * (1.0 - dst.a) + dst * (1.0 - src.a);
+  else if (mode == 12) r = min (src + dst, float4 (1.0, 1.0, 1.0, 1.0));
+  else if (mode == 13) {
+    r.rgb = src.rgb + dst.rgb - src.rgb * dst.rgb;
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  else if (mode == 15) {
+    r.rgb = min (src.rgb * dst.a, dst.rgb * src.a)
+          + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a);
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  else if (mode == 16) {
+    r.rgb = max (src.rgb * dst.a, dst.rgb * src.a)
+          + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a);
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  else if (mode == 23) {
+    r.rgb = src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a)
+          + src.rgb * dst.rgb;
+    r.a = src.a + dst.a - src.a * dst.a;
+  }
+  return r;
+}
+
+#define HB_GPU_PAINT_GROUP_DEPTH 4
+
 float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 {
   /* fwidth once, at uniform control flow. */
@@ -154,6 +194,8 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
   int cursor  = base + h2.r;
 
   float4 acc = float4 (0.0, 0.0, 0.0, 0.0);
+  float4 group_stack[HB_GPU_PAINT_GROUP_DEPTH];
+  int sp = 0;
 
   for (int i = 0; i < num_ops; i++)
   {
@@ -204,9 +246,27 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 
       cursor += 2;
     }
+    else if (op_type == 2)
+    {
+      if (sp < HB_GPU_PAINT_GROUP_DEPTH) {
+        group_stack[sp] = acc;
+        sp++;
+      }
+      acc = float4 (0.0, 0.0, 0.0, 0.0);
+      cursor += 1;
+    }
+    else if (op_type == 3)
+    {
+      if (sp > 0) {
+        sp--;
+        float4 src = acc;
+        float4 dst = group_stack[sp];
+        acc = _hb_gpu_composite (src, dst, aux);
+      }
+      cursor += 1;
+    }
     else
     {
-      /* PUSH_GROUP, POP_GROUP not yet handled. */
       break;
     }
   }
