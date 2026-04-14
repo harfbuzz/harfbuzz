@@ -28,6 +28,7 @@
 
 #include "hb-gpu.h"
 #include "hb-gpu-paint.hh"
+#include "hb-draw.hh"
 #include "hb-machinery.hh"
 
 
@@ -79,6 +80,36 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
   c->pending_clip = false;
+}
+
+static void
+hb_gpu_paint_push_transform (hb_paint_funcs_t *funcs HB_UNUSED,
+			     void             *paint_data,
+			     float xx, float yx,
+			     float xy, float yy,
+			     float dx, float dy,
+			     void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+  if (unlikely (!c->transform_stack.push (c->cur_transform)))
+  {
+    c->unsupported = true;
+    return;
+  }
+  hb_transform_t<float> t (xx, yx, xy, yy, dx, dy);
+  c->cur_transform.multiply (t);  /* cur = cur * t */
+}
+
+static void
+hb_gpu_paint_pop_transform (hb_paint_funcs_t *funcs HB_UNUSED,
+			    void             *paint_data,
+			    void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+  if (unlikely (!c->transform_stack.length))
+    return;
+  c->cur_transform = c->transform_stack.arrayZ[c->transform_stack.length - 1];
+  c->transform_stack.shrink (c->transform_stack.length - 1);
 }
 
 /* Emit a 1-texel control op.  Used for PUSH_GROUP / POP_GROUP. */
@@ -141,6 +172,103 @@ clamp_i16 (float v)
   return (int16_t) v;
 }
 
+/* Transforming pen: applies an affine transform to each outline
+ * point before forwarding to a downstream hb_draw_funcs_t.  The
+ * downstream's inline draw-state bookkeeping runs against a
+ * separate state (down_st) so transformed-space updates don't
+ * pollute the caller's pre-transform state. */
+struct hb_gpu_paint_pen_t
+{
+  hb_transform_t<float> transform;
+  hb_draw_funcs_t  *dfuncs;
+  void             *data;
+  hb_draw_state_t   down_st;
+};
+
+static void
+hb_gpu_paint_pen_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			  void *data, hb_draw_state_t *st HB_UNUSED,
+			  float to_x, float to_y,
+			  void *user_data HB_UNUSED)
+{
+  auto *c = (hb_gpu_paint_pen_t *) data;
+  c->transform.transform_point (to_x, to_y);
+  c->dfuncs->move_to (c->data, c->down_st, to_x, to_y);
+}
+
+static void
+hb_gpu_paint_pen_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			  void *data, hb_draw_state_t *st HB_UNUSED,
+			  float to_x, float to_y,
+			  void *user_data HB_UNUSED)
+{
+  auto *c = (hb_gpu_paint_pen_t *) data;
+  c->transform.transform_point (to_x, to_y);
+  c->dfuncs->line_to (c->data, c->down_st, to_x, to_y);
+}
+
+static void
+hb_gpu_paint_pen_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			       void *data, hb_draw_state_t *st HB_UNUSED,
+			       float c_x, float c_y,
+			       float to_x, float to_y,
+			       void *user_data HB_UNUSED)
+{
+  auto *c = (hb_gpu_paint_pen_t *) data;
+  c->transform.transform_point (c_x, c_y);
+  c->transform.transform_point (to_x, to_y);
+  c->dfuncs->quadratic_to (c->data, c->down_st, c_x, c_y, to_x, to_y);
+}
+
+static void
+hb_gpu_paint_pen_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			   void *data, hb_draw_state_t *st HB_UNUSED,
+			   float c1_x, float c1_y,
+			   float c2_x, float c2_y,
+			   float to_x, float to_y,
+			   void *user_data HB_UNUSED)
+{
+  auto *c = (hb_gpu_paint_pen_t *) data;
+  c->transform.transform_point (c1_x, c1_y);
+  c->transform.transform_point (c2_x, c2_y);
+  c->transform.transform_point (to_x, to_y);
+  c->dfuncs->cubic_to (c->data, c->down_st, c1_x, c1_y, c2_x, c2_y, to_x, to_y);
+}
+
+static void
+hb_gpu_paint_pen_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			     void *data, hb_draw_state_t *st HB_UNUSED,
+			     void *user_data HB_UNUSED)
+{
+  auto *c = (hb_gpu_paint_pen_t *) data;
+  c->dfuncs->close_path (c->data, c->down_st);
+}
+
+static inline void free_static_gpu_paint_pen_funcs ();
+
+static struct hb_gpu_paint_pen_funcs_lazy_loader_t
+  : hb_draw_funcs_lazy_loader_t<hb_gpu_paint_pen_funcs_lazy_loader_t>
+{
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_set_move_to_func      (funcs, hb_gpu_paint_pen_move_to,      nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func      (funcs, hb_gpu_paint_pen_line_to,      nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, hb_gpu_paint_pen_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func     (funcs, hb_gpu_paint_pen_cubic_to,     nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func   (funcs, hb_gpu_paint_pen_close_path,   nullptr, nullptr);
+    hb_draw_funcs_make_immutable (funcs);
+    hb_atexit (free_static_gpu_paint_pen_funcs);
+    return funcs;
+  }
+} static_gpu_paint_pen_funcs;
+
+static inline void
+free_static_gpu_paint_pen_funcs ()
+{
+  static_gpu_paint_pen_funcs.free_instance ();
+}
+
 /* Rasterize the pending clip glyph's outline into a new sub-blob
  * and accumulate its extents.  Returns the sub_blob index (>= 0)
  * on success, or -1 if the outline is empty / the layer should be
@@ -158,7 +286,37 @@ emit_clip_sub_blob (hb_gpu_paint_t *c)
     }
   }
   hb_gpu_draw_clear (c->scratch_draw);
-  if (!hb_gpu_draw_glyph (c->scratch_draw, c->pending_clip_font, c->pending_clip_glyph))
+
+  bool ok;
+  if (c->cur_transform.is_identity ())
+  {
+    /* Fast path: feed the glyph outline straight into the draw
+     * encoder with no adapter. */
+    ok = hb_gpu_draw_glyph (c->scratch_draw, c->pending_clip_font,
+			    c->pending_clip_glyph);
+  }
+  else
+  {
+    /* Transform each outline point before handing it off to the
+     * draw encoder's own funcs. */
+    int x_scale, y_scale;
+    hb_font_get_scale (c->pending_clip_font, &x_scale, &y_scale);
+    hb_gpu_draw_set_scale (c->scratch_draw, x_scale, y_scale);
+
+    hb_gpu_paint_pen_t pen = {};
+    pen.transform = c->cur_transform;
+    pen.dfuncs    = hb_gpu_draw_get_funcs ();
+    pen.data      = c->scratch_draw;
+    pen.down_st   = HB_DRAW_STATE_DEFAULT;
+    ok = hb_font_draw_glyph_or_fail (c->pending_clip_font,
+				     c->pending_clip_glyph,
+				     static_gpu_paint_pen_funcs.get_unconst (),
+				     &pen);
+    /* Close any trailing open path on the downstream state, since
+     * hb_font_draw_glyph_or_fail only closes via our pen's state. */
+    pen.dfuncs->close_path (pen.data, pen.down_st);
+  }
+  if (!ok)
     return -1;  /* Clip glyph has no outline -- skip. */
 
   hb_glyph_extents_t ext;
@@ -351,10 +509,16 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   float mn, mx;
   normalize_stops (stops, got, &mn, &mx);
   float dx = lx1 - lx0, dy = ly1 - ly0;
-  grad_data[0] = clamp_i16 (lx0 + mn * dx);
-  grad_data[1] = clamp_i16 (ly0 + mn * dy);
-  grad_data[2] = clamp_i16 (lx0 + mx * dx);
-  grad_data[3] = clamp_i16 (ly0 + mx * dy);
+  float ax0 = lx0 + mn * dx, ay0 = ly0 + mn * dy;
+  float ax1 = lx0 + mx * dx, ay1 = ly0 + mx * dy;
+  /* Bake the current transform into the axis endpoints so the
+   * shader samples in the same coord space as the clip outline. */
+  c->cur_transform.transform_point (ax0, ay0);
+  c->cur_transform.transform_point (ax1, ay1);
+  grad_data[0] = clamp_i16 (ax0);
+  grad_data[1] = clamp_i16 (ay0);
+  grad_data[2] = clamp_i16 (ax1);
+  grad_data[3] = clamp_i16 (ay1);
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
   { c->unsupported = true; hb_free (heap_stops); return; }
@@ -430,13 +594,26 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   float mn, mx;
   normalize_stops (stops, got, &mn, &mx);
   float dx = x1 - x0, dy = y1 - y0, dr = r1 - r0;
-  grad_data[0] = clamp_i16 (x0 + mn * dx);
-  grad_data[1] = clamp_i16 (y0 + mn * dy);
-  grad_data[2] = clamp_i16 (r0 + mn * dr);
+  float cx0 = x0 + mn * dx, cy0 = y0 + mn * dy, cr0 = r0 + mn * dr;
+  float cx1 = x0 + mx * dx, cy1 = y0 + mx * dy, cr1 = r0 + mx * dr;
+  /* Bake current transform into centers; approximate the radius
+   * scale with sqrt(|det|) (the uniform-scale assumption -- a
+   * non-uniform scale turns the circle into an ellipse which the
+   * shader does not model). */
+  c->cur_transform.transform_point (cx0, cy0);
+  c->cur_transform.transform_point (cx1, cy1);
+  float det = c->cur_transform.xx * c->cur_transform.yy
+	    - c->cur_transform.xy * c->cur_transform.yx;
+  float r_scale = sqrtf (fabsf (det));
+  cr0 *= r_scale;
+  cr1 *= r_scale;
+  grad_data[0] = clamp_i16 (cx0);
+  grad_data[1] = clamp_i16 (cy0);
+  grad_data[2] = clamp_i16 (cr0);
   grad_data[3] = 0;
-  grad_data[4] = clamp_i16 (x0 + mx * dx);
-  grad_data[5] = clamp_i16 (y0 + mx * dy);
-  grad_data[6] = clamp_i16 (r0 + mx * dr);
+  grad_data[4] = clamp_i16 (cx1);
+  grad_data[5] = clamp_i16 (cy1);
+  grad_data[6] = clamp_i16 (cr1);
   grad_data[7] = 0;
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
@@ -553,10 +730,15 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
     if (v >=  2.f) return  32767;
     return (int16_t) (v * 16384.f);
   };
-  grad_data[0] = clamp_i16 (cx);
-  grad_data[1] = clamp_i16 (cy);
-  grad_data[2] = rad_to_q14_pi (a_lo);
-  grad_data[3] = rad_to_q14_pi (a_hi);
+  /* Bake current transform into center (translation + scale +
+   * rotation); add the rotation angle to start/end. */
+  float tcx = cx, tcy = cy;
+  c->cur_transform.transform_point (tcx, tcy);
+  float rot = atan2f (c->cur_transform.yx, c->cur_transform.xx);
+  grad_data[0] = clamp_i16 (tcx);
+  grad_data[1] = clamp_i16 (tcy);
+  grad_data[2] = rad_to_q14_pi (a_lo + rot);
+  grad_data[3] = rad_to_q14_pi (a_hi + rot);
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
   { c->unsupported = true; hb_free (heap_stops); return; }
@@ -610,6 +792,8 @@ static struct hb_gpu_paint_funcs_lazy_loader_t
   {
     hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
 
+    hb_paint_funcs_set_push_transform_func        (funcs, hb_gpu_paint_push_transform,        nullptr, nullptr);
+    hb_paint_funcs_set_pop_transform_func         (funcs, hb_gpu_paint_pop_transform,         nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func       (funcs, hb_gpu_paint_push_clip_glyph,       nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func              (funcs, hb_gpu_paint_pop_clip,              nullptr, nullptr);
     hb_paint_funcs_set_push_group_func            (funcs, hb_gpu_paint_push_group,            nullptr, nullptr);
@@ -1062,6 +1246,8 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
   paint->sub_blobs.resize (0);
   paint->pending_clip = false;
   paint->unsupported = false;
+  paint->cur_transform = {1, 0, 0, 1, 0, 0};
+  paint->transform_stack.resize (0);
   paint->ext_min_x =  0x7fffffff;
   paint->ext_min_y =  0x7fffffff;
   paint->ext_max_x = -0x7fffffff;

@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 #include "hb-gpu.h"
+#include "hb-geometry.hh"
 #include "hb-map.hh"
 #include "hb-object.hh"
 
@@ -244,6 +245,11 @@ struct hb_gpu_paint_t
   hb_color_t foreground = HB_COLOR (0, 0, 0, 0xff);
   unsigned   palette    = 0;
   hb_map_t  *custom_palette = nullptr;
+
+  /* Current effective affine (stack is grown/shrunk by
+   * push_transform / pop_transform callbacks). */
+  hb_transform_t<float> cur_transform = {1, 0, 0, 1, 0, 0};
+  hb_vector_t<hb_transform_t<float>> transform_stack;
 
   /* Font scale (set by hb_gpu_paint_glyph()). */
   int x_scale = 0;
