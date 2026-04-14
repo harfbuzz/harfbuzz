@@ -46,16 +46,15 @@ static hb_bool_t
 hb_gpu_paint_custom_palette_color (hb_paint_funcs_t *funcs HB_UNUSED,
 				   void             *paint_data,
 				   unsigned          color_index,
-				   hb_color_t       *color HB_UNUSED,
+				   hb_color_t       *color,
 				   void             *user_data HB_UNUSED)
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
-  /* Stash the palette index.  The next color / gradient-stop
-   * callback will read it so the encoded blob carries indices
-   * rather than resolved RGBA.  Return false so harfbuzz still
-   * resolves the color from the palette for the callback -- we
-   * ignore the resolved value downstream. */
-  c->pending_palette_index = color_index;
+  if (likely (c->custom_palette && hb_map_has (c->custom_palette, color_index)))
+  {
+    *color = hb_map_get (c->custom_palette, color_index);
+    return true;
+  }
   return false;
 }
 
@@ -71,10 +70,6 @@ hb_gpu_paint_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pending_clip = true;
   c->pending_clip_glyph = glyph;
   c->pending_clip_font  = font;
-  /* Don't reset pending_palette_index here: COLR's paint emitter
-   * calls custom_palette_color BEFORE push_clip_glyph, so the
-   * index set by the custom-palette-color callback must survive
-   * this call and be consumed by the next color callback. */
 }
 
 static void
@@ -90,7 +85,7 @@ static void
 hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
 		    void             *paint_data,
 		    hb_bool_t         is_foreground,
-		    hb_color_t        color HB_UNUSED,
+		    hb_color_t        color,
 		    void             *user_data HB_UNUSED)
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
@@ -135,10 +130,12 @@ hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
   unsigned sub_blob_index = c->sub_blobs.length - 1;
 
   /* Emit LAYER_SOLID op: 2 texels (8 int16s).
-   *   op_type, aux, payload_hi, payload_lo,
-   *   palette_index, flags, alpha_q15, _reserved
+   *   texel 0: op_type, flags, payload_hi, payload_lo
+   *   texel 1: r_q15, g_q15, b_q15, a_q15
    * Payload holds the sub_blob index; hb_gpu_paint_encode()
-   * patches it into a texel offset at serialize time. */
+   * patches it into a texel offset at serialize time.
+   * flags bit 0: use shader foreground uniform instead of the
+   * baked color (so runtime foreground-color changes still work). */
   if (unlikely (!c->ops.resize (c->ops.length + 8)))
   {
     c->unsupported = true;
@@ -146,13 +143,18 @@ hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
   }
   int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
   o[0] = HB_GPU_PAINT_OP_LAYER_SOLID;
-  o[1] = 0;
+  o[1] = (int16_t) (is_foreground ? 1 : 0);
   o[2] = (int16_t) ((sub_blob_index >> 16) & 0xffff);
   o[3] = (int16_t) (sub_blob_index & 0xffff);
-  o[4] = (int16_t) (is_foreground ? 0 : c->pending_palette_index);
-  o[5] = (int16_t) (is_foreground ? 1 : 0);
-  o[6] = 0x7fff;  /* alpha_q15 = 1.0 */
-  o[7] = 0;
+  /* Quantize RGBA to signed Q15 (0..1 -> 0..32767).  hb_color_t is
+   * BGRA-ordered in bytes; getters normalize. */
+  auto to_q15 = [] (unsigned v) -> int16_t {
+    return (int16_t) ((v * 32767u + 127u) / 255u);
+  };
+  o[4] = to_q15 (hb_color_get_red   (color));
+  o[5] = to_q15 (hb_color_get_green (color));
+  o[6] = to_q15 (hb_color_get_blue  (color));
+  o[7] = to_q15 (hb_color_get_alpha (color));
   c->num_ops++;
 }
 
@@ -299,6 +301,118 @@ hb_gpu_paint_get_funcs (void)
 }
 
 /**
+ * hb_gpu_paint_set_foreground:
+ * @paint: a GPU color-glyph paint encoder
+ * @foreground: the foreground color
+ *
+ * Sets the foreground color used to resolve palette references that
+ * specify the foreground sentinel (palette index 0xFFFF).
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_set_foreground (hb_gpu_paint_t *paint,
+			     hb_color_t      foreground)
+{
+  paint->foreground = foreground;
+}
+
+/**
+ * hb_gpu_paint_get_foreground:
+ * @paint: a GPU color-glyph paint encoder
+ *
+ * Returns the foreground color previously set on @paint, or the
+ * default opaque black if none was set.
+ *
+ * Return value: the foreground color.
+ *
+ * XSince: REPLACEME
+ **/
+hb_color_t
+hb_gpu_paint_get_foreground (const hb_gpu_paint_t *paint)
+{
+  return paint->foreground;
+}
+
+/**
+ * hb_gpu_paint_set_palette:
+ * @paint: a GPU color-glyph paint encoder
+ * @palette: palette index
+ *
+ * Selects which font palette is used when paint callbacks look up
+ * indexed colors.  Default is palette 0.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_set_palette (hb_gpu_paint_t *paint,
+			  unsigned        palette)
+{
+  paint->palette = palette;
+}
+
+/**
+ * hb_gpu_paint_get_palette:
+ * @paint: a GPU color-glyph paint encoder
+ *
+ * Returns the palette index previously set on @paint, or 0 if none
+ * was set.
+ *
+ * Return value: the palette index.
+ *
+ * XSince: REPLACEME
+ **/
+unsigned
+hb_gpu_paint_get_palette (const hb_gpu_paint_t *paint)
+{
+  return paint->palette;
+}
+
+/**
+ * hb_gpu_paint_clear_custom_palette_colors:
+ * @paint: a GPU color-glyph paint encoder
+ *
+ * Clears all custom palette color overrides previously set on @paint.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_clear_custom_palette_colors (hb_gpu_paint_t *paint)
+{
+  if (paint->custom_palette)
+    hb_map_clear (paint->custom_palette);
+}
+
+/**
+ * hb_gpu_paint_set_custom_palette_color:
+ * @paint: a GPU color-glyph paint encoder
+ * @color_index: palette index to override
+ * @color: replacement color
+ *
+ * Overrides one font palette color entry.  Overrides are keyed by
+ * @color_index and persist on @paint until cleared (or replaced for
+ * the same index).
+ *
+ * Return value: `true` if the override was set; `false` on allocation failure.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
+				       unsigned int    color_index,
+				       hb_color_t      color)
+{
+  if (unlikely (!paint->custom_palette))
+  {
+    paint->custom_palette = hb_map_create ();
+    if (unlikely (!paint->custom_palette))
+      return false;
+  }
+  hb_map_set (paint->custom_palette, color_index, color);
+  return hb_map_allocation_successful (paint->custom_palette);
+}
+
+/**
  * hb_gpu_paint_glyph:
  * @paint: a GPU color-glyph paint encoder
  * @font: font to paint from
@@ -319,17 +433,13 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_codepoint_t  glyph)
 {
   hb_font_get_scale (font, &paint->x_scale, &paint->y_scale);
-  /* Sentinel foreground (zero).  The encoder never stores the
-   * actual foreground value -- it just records the is_foreground
-   * flag; the shader resolves foreground per quad.
-   *
-   * Use hb_font_paint_glyph (not _or_fail) so that non-color
+  /* Use hb_font_paint_glyph (not _or_fail) so that non-color
    * glyphs still produce a blob: harfbuzz synthesizes
    * push_clip_glyph + color(is_foreground=true) + pop_clip, which
    * our callbacks turn into a single LAYER_SOLID op. */
   hb_font_paint_glyph (font, glyph,
 		       hb_gpu_paint_get_funcs (), paint,
-		       0, HB_COLOR (0, 0, 0, 0));
+		       paint->palette, paint->foreground);
   return !paint->unsupported;
 }
 
@@ -485,7 +595,6 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
     hb_blob_destroy (b);
   paint->sub_blobs.resize (0);
   paint->pending_clip = false;
-  paint->pending_palette_index = 0;
   paint->unsupported = false;
   paint->ext_min_x =  0x7fffffff;
   paint->ext_min_y =  0x7fffffff;
@@ -507,6 +616,10 @@ hb_gpu_paint_reset (hb_gpu_paint_t *paint)
 {
   paint->x_scale = 0;
   paint->y_scale = 0;
+  paint->foreground = HB_COLOR (0, 0, 0, 0xff);
+  paint->palette = 0;
+  hb_map_destroy (paint->custom_palette);
+  paint->custom_palette = nullptr;
   hb_gpu_paint_clear (paint);
 }
 

@@ -33,13 +33,6 @@
  */
 
 
-#ifndef HB_GPU_PALETTE_SIZE
-#define HB_GPU_PALETTE_SIZE 256
-#endif
-
-uniform vec4 hb_gpu_palette[HB_GPU_PALETTE_SIZE];
-
-
 /* Walks the paint blob's flat op stream and returns a
  * premultiplied RGBA coverage value for the current fragment.
  *
@@ -66,19 +59,16 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
   {
     ivec4 op    = hb_gpu_fetch (cursor);
     int op_type = op.r;
+    int flags   = op.g;
     int payload = (op.b << 16) | (op.a & 0xffff);
 
     if (op_type == 0)  /* LAYER_SOLID */
     {
+      /* texel 1 holds RGBA as signed Q15. */
       ivec4 ct = hb_gpu_fetch (cursor + 1);
-      int palette_index = ct.r;
-      int flags         = ct.g;
-      float alpha       = float (ct.b) / 32767.0;
-
       vec4 col = ((flags & 1) != 0)
 	       ? foreground
-	       : hb_gpu_palette[palette_index];
-      col.a *= alpha;
+	       : vec4 (ct) / 32767.0;
 
       /* payload is a blob-relative texel offset; sub-blobs live
        * inside the paint blob at atlas offset `base`. */

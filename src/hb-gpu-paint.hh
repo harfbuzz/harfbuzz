@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 #include "hb-gpu.h"
+#include "hb-map.hh"
 #include "hb-object.hh"
 
 
@@ -78,16 +79,13 @@
  * op_type values:
  *
  *   0  LAYER_SOLID
- *        aux      = 0
+ *        aux      = flags (bit 0 = is_foreground)
  *        payload  = clip_glyph_offset (texel index)
  *        followed by one extra texel:
- *          (palette_index:i16, flags:i16,
- *           alpha_q15:i16, reserved:i16)
- *        flags bit 0: is_foreground -- sample
- *                     hb_gpu_foreground uniform instead of
- *                     hb_gpu_palette[palette_index]
- *        alpha_q15:   modulation applied on top of the looked-up
- *                     color, 0..0x7FFF
+ *          (r_q15:i16, g_q15:i16, b_q15:i16, a_q15:i16)
+ *        flags bit 0: is_foreground -- use the shader's foreground
+ *                     uniform/varying instead of the baked color
+ *                     (so runtime foreground changes still work)
  *
  *   1  LAYER_GRADIENT
  *        aux      = gradient subtype  (0=linear, 1=radial, 2=sweep)
@@ -151,27 +149,17 @@
  *
  * Returns premultiplied RGBA.  The caller passes foreground in
  * explicitly; sourcing it from a uniform, a per-quad flat varying,
- * or anywhere else is the caller's decision.  A per-quad attribute
- * is the natural choice for styled text runs (no state flushes
- * between colored glyphs); a uniform is fine for single-color
- * rendering.
+ * or anywhere else is the caller's decision.
  *
- * Palette lookups target:
- *
- *   uniform vec4 hb_gpu_palette[HB_GPU_PALETTE_SIZE];
- *
- * This is the same implicit-global relationship hb_gpu_draw has with
- * hb_gpu_atlas / hb_gpu_fetch.  HB_GPU_PALETTE_SIZE defaults to 256
- * -- enough for real COLRv1 fonts (Noto Color Emoji uses ~150
- * entries).  The caller fills the uniform from
- * hb_ot_color_palette_get_colors() for whichever palette is active
- * and updates it whenever the palette changes (dark/light mode,
- * user overrides) -- no re-encoding.
- *
- * Color stops and solid-fill colors in the blob carry a
- * palette_index + flags rather than resolved RGBA, so blobs are
- * palette-independent.  The is_foreground flag routes to the
- * foreground parameter instead of the palette array.
+ * Colors are baked into the blob at encode time (as signed Q15
+ * RGBA in a single texel per layer).  There is no runtime palette
+ * buffer to bind or size.  Palette selection and per-run custom
+ * palette overrides are set on the encoder via
+ * hb_gpu_paint_set_palette() / hb_gpu_paint_set_custom_palette_color();
+ * changing either invalidates previously encoded blobs and requires
+ * re-encoding.  The is_foreground flag still routes through the
+ * shader's foreground parameter so a dark-mode toggle does not
+ * require re-encoding.
  *
  * --- Fragment-shader contract ------------------------------------
  *
@@ -183,9 +171,7 @@
  *   for op in ops:
  *     LAYER_SOLID:
  *       cov = hb_gpu_draw (texcoord, clip_glyph_offset)
- *       col = is_foreground ? v_foreground
- *                           : hb_gpu_palette[palette_index]
- *       col.a *= alpha_q15 / 32767
+ *       col = is_foreground ? v_foreground : rgba_q15 / 32767
  *       acc = src_over (col * cov, acc)
  *     LAYER_GRADIENT:
  *       cov = hb_gpu_draw (texcoord, clip_glyph_offset)
@@ -254,6 +240,11 @@ struct hb_gpu_paint_t
 {
   hb_object_header_t header;
 
+  /* Persistent configuration (survives hb_gpu_paint_clear). */
+  hb_color_t foreground = HB_COLOR (0, 0, 0, 0xff);
+  unsigned   palette    = 0;
+  hb_map_t  *custom_palette = nullptr;
+
   /* Font scale (set by hb_gpu_paint_glyph()). */
   int x_scale = 0;
   int y_scale = 0;
@@ -276,11 +267,6 @@ struct hb_gpu_paint_t
   bool pending_clip = false;
   hb_codepoint_t pending_clip_glyph = 0;
   hb_font_t     *pending_clip_font  = nullptr;  /* borrowed */
-  unsigned       pending_palette_index = 0;     /* written by
-                                                 * custom_palette_color_func;
-                                                 * ignored when the color
-                                                 * callback reports
-                                                 * is_foreground */
 
   /* Set when the paint walk emits v1-only callbacks we do not yet
    * support.  hb_gpu_paint_encode() returns NULL in that case. */
@@ -300,6 +286,7 @@ struct hb_gpu_paint_t
 
   ~hb_gpu_paint_t ()
   {
+    hb_map_destroy (custom_palette);
     for (hb_blob_t *b : sub_blobs) hb_blob_destroy (b);
     hb_gpu_draw_destroy (scratch_draw);
     hb_blob_destroy (recycled_blob);

@@ -29,14 +29,13 @@
  * the draw-renderer fragment helpers (hb-gpu-draw-fragment.wgsl)
  * are prepended to this source.
  *
- * atlas and palette are passed as explicit storage-buffer pointer
- * parameters, matching WGSL's scoping rules.
+ * atlas is passed as an explicit storage-buffer pointer parameter,
+ * matching WGSL's scoping rules.
  */
 
 
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
-                 hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
-                 hb_gpu_palette: ptr<storage, array<vec4f>, read>) -> vec4f
+                 hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
 {
   /* Compute pixelsPerEm once here at uniform control flow.  WGSL
    * rejects fwidth inside a loop-conditional branch, so we call
@@ -58,21 +57,18 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
   {
     let op      = hb_gpu_fetch (hb_gpu_atlas, cursor);
     let op_type = op.r;
+    let flags   = op.g;
     let payload = (op.b << 16) | (op.a & 0xffff);
 
     if (op_type == 0) {  // LAYER_SOLID
+      // texel 1 holds RGBA as signed Q15.
       let ct = hb_gpu_fetch (hb_gpu_atlas, cursor + 1);
-      let palette_index = ct.r;
-      let flags         = ct.g;
-      let alpha         = f32 (ct.b) / 32767.0;
-
       var col: vec4f;
       if ((flags & 1) != 0) {
         col = foreground;
       } else {
-        col = (*hb_gpu_palette)[palette_index];
+        col = vec4f (ct) / 32767.0;
       }
-      col.a = col.a * alpha;
 
       let cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
                                    u32 (base + payload), hb_gpu_atlas);

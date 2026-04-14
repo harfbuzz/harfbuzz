@@ -27,10 +27,7 @@
  *
  * Assumes the shared fragment helpers (hb-gpu-fragment.hlsl) and
  * the draw-renderer fragment helpers (hb-gpu-draw-fragment.hlsl)
- * are prepended to this source.  The caller must also declare the
- * palette buffer before this source, e.g.:
- *
- *   StructuredBuffer<float4> hb_gpu_palette : register(t1);
+ * are prepended to this source.
  */
 
 
@@ -51,19 +48,16 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
   {
     int4 op     = hb_gpu_fetch (cursor);
     int op_type = op.r;
+    int flags   = op.g;
     int payload = (op.b << 16) | (op.a & 0xffff);
 
     if (op_type == 0)  /* LAYER_SOLID */
     {
+      /* texel 1 holds RGBA as signed Q15. */
       int4 ct = hb_gpu_fetch (cursor + 1);
-      int palette_index = ct.r;
-      int flags         = ct.g;
-      float alpha       = (float) ct.b / 32767.0;
-
       float4 col = ((flags & 1) != 0)
 		 ? foreground
-		 : hb_gpu_palette[palette_index];
-      col.a *= alpha;
+		 : (float4) ct / 32767.0;
 
       float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
 				     (uint) (base + payload));

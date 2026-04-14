@@ -28,15 +28,11 @@
  * Assumes the shared fragment helpers (hb-gpu-fragment.msl) and
  * the draw-renderer fragment helpers (hb-gpu-draw-fragment.msl)
  * are prepended to this source.
- *
- * The palette array is passed as a pointer parameter, same pattern
- * as the atlas.  Callers typically supply it as a constant buffer.
  */
 
 
 float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground,
-		     device const short4* hb_gpu_atlas,
-		     constant float4* hb_gpu_palette)
+		     device const short4* hb_gpu_atlas)
 {
   /* fwidth once, at uniform control flow. */
   float2 pixelsPerEm = 1.0 / fwidth (renderCoord);
@@ -53,19 +49,16 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground,
   {
     int4 op     = int4 (hb_gpu_atlas[cursor]);
     int op_type = op.r;
+    int flags   = op.g;
     int payload = (op.b << 16) | (op.a & 0xffff);
 
     if (op_type == 0)  /* LAYER_SOLID */
     {
+      /* texel 1 holds RGBA as signed Q15. */
       int4 ct = int4 (hb_gpu_atlas[cursor + 1]);
-      int palette_index = ct.r;
-      int flags         = ct.g;
-      float alpha       = float (ct.b) / 32767.0;
-
       float4 col = ((flags & 1) != 0)
 		 ? foreground
-		 : hb_gpu_palette[palette_index];
-      col.a *= alpha;
+		 : float4 (ct) / 32767.0;
 
       float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
 				     uint (base + payload), hb_gpu_atlas);
