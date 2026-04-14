@@ -211,7 +211,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 		 ? foreground
 		 : (float4) ct / 32767.0;
 
-      float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
 				     (uint) (base + payload));
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
@@ -239,7 +239,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
-      float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
 				     (uint) (base + payload));
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);

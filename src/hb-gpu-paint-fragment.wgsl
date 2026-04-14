@@ -199,7 +199,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
 {
   /* Compute pixelsPerEm once here at uniform control flow.  WGSL
    * rejects fwidth inside a loop-conditional branch, so we call
-   * _hb_gpu_draw_impl (the MSAA-aware implementation that takes a
+   * _hb_gpu_slug (the MSAA-aware implementation that takes a
    * pre-computed pixelsPerEm) instead of the top-level
    * hb_gpu_draw() which would re-call fwidth. */
   let emsPerPixel = fwidth (renderCoord);
@@ -232,7 +232,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
         col = vec4f (ct) / 32767.0;
       }
 
-      let cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+      let cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
                                    u32 (base + payload), hb_gpu_atlas);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
@@ -262,7 +262,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                                      hb_gpu_atlas);
       }
 
-      let cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+      let cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
                                    u32 (base + payload), hb_gpu_atlas);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);

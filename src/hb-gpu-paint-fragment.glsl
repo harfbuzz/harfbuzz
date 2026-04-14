@@ -228,7 +228,7 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 {
   /* fwidth once, at uniform control flow: every per-layer
    * coverage sample below uses this pre-computed pixelsPerEm via
-   * _hb_gpu_draw_impl. */
+   * _hb_gpu_slug. */
   vec2 pixelsPerEm = 1.0 / fwidth (renderCoord);
 
   int base    = int (glyphLoc);
@@ -256,7 +256,7 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 	       ? foreground
 	       : vec4 (ct) / 32767.0;
 
-      float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
 				     uint (base + payload));
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
@@ -285,7 +285,7 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
-      float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
+      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
 				     uint (base + payload));
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
