@@ -81,27 +81,49 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pending_clip = false;
 }
 
-static void
-hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
-			 hb_bool_t       is_foreground,
-			 hb_color_t      color)
+/* Quantize unsigned byte 0..255 to signed Q15 0..32767. */
+static inline int16_t
+color_to_q15 (unsigned byte_value)
 {
-  if (unlikely (!c->pending_clip))
-    return;
+  return (int16_t) ((byte_value * 32767u + 127u) / 255u);
+}
 
-  /* Rasterize the clip-glyph outline into a Slug-format sub-blob. */
+static inline void
+color_to_q15_rgba (hb_color_t color, int16_t out[4])
+{
+  out[0] = color_to_q15 (hb_color_get_red   (color));
+  out[1] = color_to_q15 (hb_color_get_green (color));
+  out[2] = color_to_q15 (hb_color_get_blue  (color));
+  out[3] = color_to_q15 (hb_color_get_alpha (color));
+}
+
+static inline int16_t
+clamp_i16 (float v)
+{
+  if (v <= -32768.f) return -32768;
+  if (v >=  32767.f) return  32767;
+  return (int16_t) v;
+}
+
+/* Rasterize the pending clip glyph's outline into a new sub-blob
+ * and accumulate its extents.  Returns the sub_blob index (>= 0)
+ * on success, or -1 if the outline is empty / the layer should be
+ * skipped.  Sets c->unsupported on hard failure. */
+static int
+emit_clip_sub_blob (hb_gpu_paint_t *c)
+{
   if (unlikely (!c->scratch_draw))
   {
     c->scratch_draw = hb_gpu_draw_create_or_fail ();
     if (unlikely (!c->scratch_draw))
     {
       c->unsupported = true;
-      return;
+      return -1;
     }
   }
   hb_gpu_draw_clear (c->scratch_draw);
   if (!hb_gpu_draw_glyph (c->scratch_draw, c->pending_clip_font, c->pending_clip_glyph))
-    return;  /* Clip glyph has no outline -- skip the layer. */
+    return -1;  /* Clip glyph has no outline -- skip. */
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
@@ -109,7 +131,7 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
   {
     hb_blob_destroy (blob);
     c->unsupported = true;
-    return;
+    return -1;
   }
 
   /* Accumulate extents: x_bearing/y_bearing are top-left, width
@@ -123,7 +145,20 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
   c->ext_min_y = hb_min (c->ext_min_y, hb_min (y0, y1));
   c->ext_max_y = hb_max (c->ext_max_y, hb_max (y0, y1));
 
-  unsigned sub_blob_index = c->sub_blobs.length - 1;
+  return (int) (c->sub_blobs.length - 1);
+}
+
+static void
+hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
+			 hb_bool_t       is_foreground,
+			 hb_color_t      color)
+{
+  if (unlikely (!c->pending_clip))
+    return;
+
+  int clip_idx = emit_clip_sub_blob (c);
+  if (clip_idx < 0)
+    return;
 
   /* Emit LAYER_SOLID op: 2 texels (8 int16s).
    *   texel 0: op_type, flags, payload_hi, payload_lo
@@ -140,17 +175,145 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
   int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
   o[0] = HB_GPU_PAINT_OP_LAYER_SOLID;
   o[1] = (int16_t) (is_foreground ? 1 : 0);
-  o[2] = (int16_t) ((sub_blob_index >> 16) & 0xffff);
-  o[3] = (int16_t) (sub_blob_index & 0xffff);
-  /* Quantize RGBA to signed Q15 (0..1 -> 0..32767).  hb_color_t is
-   * BGRA-ordered in bytes; getters normalize. */
-  auto to_q15 = [] (unsigned v) -> int16_t {
-    return (int16_t) ((v * 32767u + 127u) / 255u);
-  };
-  o[4] = to_q15 (hb_color_get_red   (color));
-  o[5] = to_q15 (hb_color_get_green (color));
-  o[6] = to_q15 (hb_color_get_blue  (color));
-  o[7] = to_q15 (hb_color_get_alpha (color));
+  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
+  o[3] = (int16_t) (clip_idx & 0xffff);
+  color_to_q15_rgba (color, o + 4);
+  c->num_ops++;
+}
+
+/* Reduce the 3-point anchor COLRv1 linear-gradient spec to a
+ * 2-point axis (the perpendicular foot of p1 onto the p0-p2
+ * normal).  Same derivation as hb_raster_paint's reduce_anchors. */
+static inline void
+reduce_linear_anchors (float x0, float y0,
+		       float x1, float y1,
+		       float x2, float y2,
+		       float *xx0, float *yy0,
+		       float *xx1, float *yy1)
+{
+  float q2x = x2 - x0, q2y = y2 - y0;
+  float q1x = x1 - x0, q1y = y1 - y0;
+  float s = q2x * q2x + q2y * q2y;
+  if (s < 1e-6f)
+  {
+    *xx0 = x0; *yy0 = y0;
+    *xx1 = x1; *yy1 = y1;
+    return;
+  }
+  float k = (q2x * q1x + q2y * q1y) / s;
+  *xx0 = x0;
+  *yy0 = y0;
+  *xx1 = x1 - k * q2x;
+  *yy1 = y1 - k * q2y;
+}
+
+/* Append a color line (@count stops) to @grad_data in the encoded
+ * stop format used by gradient ops: 2 texels per stop.
+ *   texel a: (offset_q15, flags, _, _) with flags bit 0 = is_foreground
+ *   texel b: (r_q15, g_q15, b_q15, a_q15)
+ * Returns false on allocation failure. */
+static bool
+append_color_stops (hb_vector_t<int16_t> &grad_data,
+		    const hb_color_stop_t *stops,
+		    unsigned count)
+{
+  unsigned base = grad_data.length;
+  if (unlikely (!grad_data.resize (base + count * 8)))
+    return false;
+  int16_t *p = grad_data.arrayZ + base;
+  for (unsigned i = 0; i < count; i++)
+  {
+    float off = stops[i].offset;
+    if (off < -1.f) off = -1.f;
+    else if (off > 1.f) off = 1.f;
+    p[0] = (int16_t) (off * 32767.f);
+    p[1] = (int16_t) (stops[i].is_foreground ? 1 : 0);
+    p[2] = 0;
+    p[3] = 0;
+    color_to_q15_rgba (stops[i].color, p + 4);
+    p += 8;
+  }
+  return true;
+}
+
+static void
+hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
+			  hb_color_line_t *color_line,
+			  float x0, float y0,
+			  float x1, float y1,
+			  float x2, float y2)
+{
+  if (unlikely (!c->pending_clip))
+    return;
+
+  /* Resolve stops (triggers custom_palette_color, etc). */
+  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (unlikely (!count))
+    return;
+  hb_color_stop_t stack_stops[16];
+  hb_color_stop_t *stops = stack_stops;
+  hb_color_stop_t *heap_stops = nullptr;
+  if (count > 16)
+  {
+    heap_stops = (hb_color_stop_t *) hb_malloc (count * sizeof (hb_color_stop_t));
+    if (unlikely (!heap_stops)) { c->unsupported = true; return; }
+    stops = heap_stops;
+  }
+  unsigned got = count;
+  hb_color_line_get_color_stops (color_line, 0, &got, stops);
+
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+
+  /* Emit clip sub-blob first. */
+  int clip_idx = emit_clip_sub_blob (c);
+  if (clip_idx < 0) { hb_free (heap_stops); return; }
+
+  /* Build gradient params sub-blob.
+   *   texel 0: (lx0, ly0, lx1, ly1) in font units (i16)
+   *   texels 1..N: color stops (2 texels each)
+   */
+  hb_vector_t<int16_t> grad_data;
+  if (unlikely (!grad_data.resize (4)))
+  { c->unsupported = true; hb_free (heap_stops); return; }
+
+  float lx0, ly0, lx1, ly1;
+  reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &lx0, &ly0, &lx1, &ly1);
+  grad_data[0] = clamp_i16 (lx0);
+  grad_data[1] = clamp_i16 (ly0);
+  grad_data[2] = clamp_i16 (lx1);
+  grad_data[3] = clamp_i16 (ly1);
+
+  if (unlikely (!append_color_stops (grad_data, stops, got)))
+  { c->unsupported = true; hb_free (heap_stops); return; }
+  hb_free (heap_stops);
+
+  unsigned grad_bytes = grad_data.length * sizeof (int16_t);
+  hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
+					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
+					 nullptr, nullptr);
+  if (unlikely (!grad_blob || !c->sub_blobs.push (grad_blob)))
+  {
+    hb_blob_destroy (grad_blob);
+    c->unsupported = true;
+    return;
+  }
+  unsigned grad_idx = c->sub_blobs.length - 1;
+
+  /* Emit LAYER_GRADIENT op: 2 texels.
+   *   texel 0: (op_type, subtype, clip_payload_hi, clip_payload_lo)
+   *   texel 1: (grad_payload_hi, grad_payload_lo, extend_mode, stop_count)
+   */
+  if (unlikely (!c->ops.resize (c->ops.length + 8)))
+  { c->unsupported = true; return; }
+  int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
+  o[0] = HB_GPU_PAINT_OP_LAYER_GRADIENT;
+  o[1] = 0;  /* subtype: 0 = linear */
+  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
+  o[3] = (int16_t) (clip_idx & 0xffff);
+  o[4] = (int16_t) ((grad_idx >> 16) & 0xffff);
+  o[5] = (int16_t) (grad_idx & 0xffff);
+  o[6] = (int16_t) extend;
+  o[7] = (int16_t) got;
   c->num_ops++;
 }
 
@@ -186,12 +349,13 @@ static void
 hb_gpu_paint_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 			      void             *paint_data,
 			      hb_color_line_t  *color_line,
-			      float x0 HB_UNUSED, float y0 HB_UNUSED,
-			      float x1 HB_UNUSED, float y1 HB_UNUSED,
-			      float x2 HB_UNUSED, float y2 HB_UNUSED,
+			      float x0, float y0,
+			      float x1, float y1,
+			      float x2, float y2,
 			      void             *user_data HB_UNUSED)
 {
-  hb_gpu_paint_gradient_first_stop ((hb_gpu_paint_t *) paint_data, color_line);
+  hb_gpu_paint_emit_linear ((hb_gpu_paint_t *) paint_data, color_line,
+			    x0, y0, x1, y1, x2, y2);
 }
 
 static void
@@ -593,7 +757,6 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
     switch (op_type)
     {
       case HB_GPU_PAINT_OP_LAYER_SOLID:
-      case HB_GPU_PAINT_OP_LAYER_GRADIENT:
       {
 	unsigned idx = ((uint16_t) ops_out[i + 2] << 16)
 		     |  (uint16_t) ops_out[i + 3];
@@ -602,6 +765,25 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 	  unsigned off = sub_offsets[idx];
 	  ops_out[i + 2] = (int16_t) ((off >> 16) & 0xffff);
 	  ops_out[i + 3] = (int16_t) (off & 0xffff);
+	}
+	i += 8;  /* 2 texels */
+	break;
+      }
+      case HB_GPU_PAINT_OP_LAYER_GRADIENT:
+      {
+	/* Two sub-blob references: clip at [i+2,i+3], gradient
+	 * params at [i+4,i+5]. */
+	for (unsigned slot = 0; slot < 2; slot++)
+	{
+	  unsigned p = i + 2 + slot * 2;
+	  unsigned idx = ((uint16_t) ops_out[p] << 16)
+		       |  (uint16_t) ops_out[p + 1];
+	  if (idx < sub_offsets_count)
+	  {
+	    unsigned off = sub_offsets[idx];
+	    ops_out[p]     = (int16_t) ((off >> 16) & 0xffff);
+	    ops_out[p + 1] = (int16_t) (off & 0xffff);
+	  }
 	}
 	i += 8;  /* 2 texels */
 	break;
