@@ -104,12 +104,9 @@ _demo_font_upload_glyph (demo_font_t  *font,
   hb_gpu_paint_clear (font->p);
   hb_gpu_paint_glyph (font->p, font->font, glyph_index);
 
-  hb_glyph_extents_t hb_ext;
+  hb_glyph_extents_t hb_ext = {};
   hb_blob_t *blob = hb_gpu_paint_encode (font->p, &hb_ext);
-  if (!blob)
-    die ("Failed encoding glyph");
-
-  unsigned int len = hb_blob_get_length (blob);
+  unsigned int len = blob ? hb_blob_get_length (blob) : 0;
 
   glyph_info->extents.min_x = hb_ext.x_bearing;
   glyph_info->extents.max_x = hb_ext.x_bearing + hb_ext.width;
@@ -129,7 +126,8 @@ _demo_font_upload_glyph (demo_font_t  *font,
   font->num_glyphs++;
   font->sum_bytes += len;
 
-  hb_gpu_paint_recycle_blob (font->p, blob);
+  if (blob)
+    hb_gpu_paint_recycle_blob (font->p, blob);
 }
 
 void
