@@ -318,6 +318,82 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
 }
 
 static void
+hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
+			  hb_color_line_t *color_line,
+			  float x0, float y0, float r0,
+			  float x1, float y1, float r1)
+{
+  if (unlikely (!c->pending_clip))
+    return;
+
+  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (unlikely (!count))
+    return;
+  hb_color_stop_t stack_stops[16];
+  hb_color_stop_t *stops = stack_stops;
+  hb_color_stop_t *heap_stops = nullptr;
+  if (count > 16)
+  {
+    heap_stops = (hb_color_stop_t *) hb_malloc (count * sizeof (hb_color_stop_t));
+    if (unlikely (!heap_stops)) { c->unsupported = true; return; }
+    stops = heap_stops;
+  }
+  unsigned got = count;
+  hb_color_line_get_color_stops (color_line, 0, &got, stops);
+
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+
+  int clip_idx = emit_clip_sub_blob (c);
+  if (clip_idx < 0) { hb_free (heap_stops); return; }
+
+  /* Build gradient params sub-blob.
+   *   texel 0: (x0, y0, r0, _) in font units (i16)
+   *   texel 1: (x1, y1, r1, _) in font units (i16)
+   *   texels 2..N: color stops (2 texels each)
+   */
+  hb_vector_t<int16_t> grad_data;
+  if (unlikely (!grad_data.resize (8)))
+  { c->unsupported = true; hb_free (heap_stops); return; }
+  grad_data[0] = clamp_i16 (x0);
+  grad_data[1] = clamp_i16 (y0);
+  grad_data[2] = clamp_i16 (r0);
+  grad_data[3] = 0;
+  grad_data[4] = clamp_i16 (x1);
+  grad_data[5] = clamp_i16 (y1);
+  grad_data[6] = clamp_i16 (r1);
+  grad_data[7] = 0;
+
+  if (unlikely (!append_color_stops (grad_data, stops, got)))
+  { c->unsupported = true; hb_free (heap_stops); return; }
+  hb_free (heap_stops);
+
+  unsigned grad_bytes = grad_data.length * sizeof (int16_t);
+  hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
+					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
+					 nullptr, nullptr);
+  if (unlikely (!grad_blob || !c->sub_blobs.push (grad_blob)))
+  {
+    hb_blob_destroy (grad_blob);
+    c->unsupported = true;
+    return;
+  }
+  unsigned grad_idx = c->sub_blobs.length - 1;
+
+  if (unlikely (!c->ops.resize (c->ops.length + 8)))
+  { c->unsupported = true; return; }
+  int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
+  o[0] = HB_GPU_PAINT_OP_LAYER_GRADIENT;
+  o[1] = 1;  /* subtype: 1 = radial */
+  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
+  o[3] = (int16_t) (clip_idx & 0xffff);
+  o[4] = (int16_t) ((grad_idx >> 16) & 0xffff);
+  o[5] = (int16_t) (grad_idx & 0xffff);
+  o[6] = (int16_t) extend;
+  o[7] = (int16_t) got;
+  c->num_ops++;
+}
+
+static void
 hb_gpu_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
 		    void             *paint_data,
 		    hb_bool_t         is_foreground,
@@ -362,11 +438,12 @@ static void
 hb_gpu_paint_radial_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 			      void             *paint_data,
 			      hb_color_line_t  *color_line,
-			      float x0 HB_UNUSED, float y0 HB_UNUSED, float r0 HB_UNUSED,
-			      float x1 HB_UNUSED, float y1 HB_UNUSED, float r1 HB_UNUSED,
+			      float x0, float y0, float r0,
+			      float x1, float y1, float r1,
 			      void             *user_data HB_UNUSED)
 {
-  hb_gpu_paint_gradient_first_stop ((hb_gpu_paint_t *) paint_data, color_line);
+  hb_gpu_paint_emit_radial ((hb_gpu_paint_t *) paint_data, color_line,
+			    x0, y0, r0, x1, y1, r1);
 }
 
 static void

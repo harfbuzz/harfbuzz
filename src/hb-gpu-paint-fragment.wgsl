@@ -58,20 +58,10 @@ fn _hb_gpu_extend_t (t: f32, extend: i32) -> f32
   return clamp (t, 0.0, 1.0);
 }
 
-fn _hb_gpu_sample_linear (renderCoord: vec2f, grad_base: i32,
-                          stop_count: i32, extend: i32, foreground: vec4f,
-                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
+fn _hb_gpu_eval_stops (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
+                       stops_base: i32, stop_count: i32,
+                       t: f32, foreground: vec4f) -> vec4f
 {
-  let axis = hb_gpu_fetch (hb_gpu_atlas, grad_base);
-  let p0 = vec2f (f32 (axis.r), f32 (axis.g));
-  let p1 = vec2f (f32 (axis.b), f32 (axis.a));
-  let d = p1 - p0;
-  let denom = dot (d, d);
-  if (denom < 1e-6) { return vec4f (0.0); }
-  var t = dot (renderCoord - p0, d) / denom;
-  t = _hb_gpu_extend_t (t, extend);
-
-  let stops_base = grad_base + 1;
   var off_prev: f32;
   var col_prev = _hb_gpu_stop_color (hb_gpu_atlas, stops_base, 0, foreground, &off_prev);
   if (t <= off_prev) { return col_prev; }
@@ -90,6 +80,59 @@ fn _hb_gpu_sample_linear (renderCoord: vec2f, grad_base: i32,
     off_prev = off;
   }
   return col_prev;
+}
+
+fn _hb_gpu_sample_linear (renderCoord: vec2f, grad_base: i32,
+                          stop_count: i32, extend: i32, foreground: vec4f,
+                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
+{
+  let axis = hb_gpu_fetch (hb_gpu_atlas, grad_base);
+  let p0 = vec2f (f32 (axis.r), f32 (axis.g));
+  let p1 = vec2f (f32 (axis.b), f32 (axis.a));
+  let d = p1 - p0;
+  let denom = dot (d, d);
+  if (denom < 1e-6) { return vec4f (0.0); }
+  var t = dot (renderCoord - p0, d) / denom;
+  t = _hb_gpu_extend_t (t, extend);
+  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 1, stop_count, t, foreground);
+}
+
+fn _hb_gpu_sample_radial (renderCoord: vec2f, grad_base: i32,
+                          stop_count: i32, extend: i32, foreground: vec4f,
+                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
+{
+  let c0_ = hb_gpu_fetch (hb_gpu_atlas, grad_base);
+  let c1_ = hb_gpu_fetch (hb_gpu_atlas, grad_base + 1);
+  let c0 = vec2f (f32 (c0_.r), f32 (c0_.g));
+  let r0 = f32 (c0_.b);
+  let c1 = vec2f (f32 (c1_.r), f32 (c1_.g));
+  let r1 = f32 (c1_.b);
+
+  let cd = c1 - c0;
+  let dr = r1 - r0;
+  let p  = renderCoord - c0;
+
+  let A = dot (cd, cd) - dr * dr;
+  let B = -2.0 * (dot (p, cd) + r0 * dr);
+  let C = dot (p, p) - r0 * r0;
+
+  var t: f32;
+  if (abs (A) > 1e-6)
+  {
+    let disc = B * B - 4.0 * A * C;
+    if (disc < 0.0) { return vec4f (0.0); }
+    let sq = sqrt (disc);
+    let t1 = (-B + sq) / (2.0 * A);
+    let t2 = (-B - sq) / (2.0 * A);
+    if (r0 + t1 * dr >= 0.0) { t = t1; } else { t = t2; }
+  }
+  else
+  {
+    if (abs (B) < 1e-6) { return vec4f (0.0); }
+    t = -C / B;
+  }
+  t = _hb_gpu_extend_t (t, extend);
+  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 2, stop_count, t, foreground);
 }
 
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
@@ -143,6 +186,11 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
       var col = vec4f (0.0);
       if (aux == 0) {
         col = _hb_gpu_sample_linear (renderCoord,
+                                     base + grad_payload,
+                                     stop_count, extend, foreground,
+                                     hb_gpu_atlas);
+      } else if (aux == 1) {
+        col = _hb_gpu_sample_radial (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground,
                                      hb_gpu_atlas);

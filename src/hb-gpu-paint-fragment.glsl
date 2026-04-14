@@ -57,22 +57,10 @@ float _hb_gpu_extend_t (float t, int extend)
   return clamp (t, 0.0, 1.0);  /* PAD (default) */
 }
 
-/* Sample a linear gradient whose param blob starts at @grad_base:
- *   texel 0: (x0, y0, x1, y1) in font units (i16)
- *   texels 1..: stops (2 texels each) */
-vec4 _hb_gpu_sample_linear (vec2 renderCoord, int grad_base,
-			    int stop_count, int extend, vec4 foreground)
+/* Walk stops starting at @stops_base and return the sampled color
+ * at @t.  Same logic reused by all gradient subtypes. */
+vec4 _hb_gpu_eval_stops (int stops_base, int stop_count, float t, vec4 foreground)
 {
-  ivec4 axis = hb_gpu_fetch (grad_base);
-  vec2 p0 = vec2 (float (axis.r), float (axis.g));
-  vec2 p1 = vec2 (float (axis.b), float (axis.a));
-  vec2 d = p1 - p0;
-  float denom = dot (d, d);
-  if (denom < 1e-6) return vec4 (0.0);
-  float t = dot (renderCoord - p0, d) / denom;
-  t = _hb_gpu_extend_t (t, extend);
-
-  int stops_base = grad_base + 1;
   float off_prev;
   vec4 col_prev = _hb_gpu_stop_color (stops_base, 0, foreground, off_prev);
   if (t <= off_prev)
@@ -91,6 +79,70 @@ vec4 _hb_gpu_sample_linear (vec2 renderCoord, int grad_base,
     off_prev = off;
   }
   return col_prev;
+}
+
+/* Sample a linear gradient whose param blob starts at @grad_base:
+ *   texel 0: (x0, y0, x1, y1) in font units (i16)
+ *   texels 1..: stops (2 texels each) */
+vec4 _hb_gpu_sample_linear (vec2 renderCoord, int grad_base,
+			    int stop_count, int extend, vec4 foreground)
+{
+  ivec4 axis = hb_gpu_fetch (grad_base);
+  vec2 p0 = vec2 (float (axis.r), float (axis.g));
+  vec2 p1 = vec2 (float (axis.b), float (axis.a));
+  vec2 d = p1 - p0;
+  float denom = dot (d, d);
+  if (denom < 1e-6) return vec4 (0.0);
+  float t = dot (renderCoord - p0, d) / denom;
+  t = _hb_gpu_extend_t (t, extend);
+
+  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+}
+
+/* Sample a two-circle radial gradient whose param blob starts at
+ * @grad_base:
+ *   texel 0: (x0, y0, r0, _)
+ *   texel 1: (x1, y1, r1, _)
+ *   texels 2..: stops (2 texels each)
+ * Solves |P - C0 - t*(C1-C0)|^2 = (r0 + t*(r1-r0))^2 for t. */
+vec4 _hb_gpu_sample_radial (vec2 renderCoord, int grad_base,
+			    int stop_count, int extend, vec4 foreground)
+{
+  ivec4 c0_ = hb_gpu_fetch (grad_base);
+  ivec4 c1_ = hb_gpu_fetch (grad_base + 1);
+  vec2 c0 = vec2 (float (c0_.r), float (c0_.g));
+  float r0 = float (c0_.b);
+  vec2 c1 = vec2 (float (c1_.r), float (c1_.g));
+  float r1 = float (c1_.b);
+
+  vec2 cd = c1 - c0;
+  float dr = r1 - r0;
+  vec2 p  = renderCoord - c0;
+
+  float A = dot (cd, cd) - dr * dr;
+  float B = -2.0 * (dot (p, cd) + r0 * dr);
+  float C = dot (p, p) - r0 * r0;
+
+  float t;
+  if (abs (A) > 1e-6)
+  {
+    float disc = B * B - 4.0 * A * C;
+    if (disc < 0.0) return vec4 (0.0);
+    float sq = sqrt (disc);
+    /* Prefer the larger root; fall back to the smaller if the
+     * larger gives a negative interpolated radius. */
+    float t1 = (-B + sq) / (2.0 * A);
+    float t2 = (-B - sq) / (2.0 * A);
+    t = (r0 + t1 * dr >= 0.0) ? t1 : t2;
+  }
+  else
+  {
+    if (abs (B) < 1e-6) return vec4 (0.0);
+    t = -C / B;
+  }
+
+  t = _hb_gpu_extend_t (t, extend);
+  return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
 /* Walks the paint blob's flat op stream and returns a
@@ -146,11 +198,15 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
       int stop_count   = op2.a;
 
       vec4 col = vec4 (0.0);
-      if (aux == 0)  /* linear */
+      if (aux == 0)       /* linear */
         col = _hb_gpu_sample_linear (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground);
-      /* Radial / sweep fall through as transparent for now. */
+      else if (aux == 1)  /* radial */
+        col = _hb_gpu_sample_radial (renderCoord,
+                                     base + grad_payload,
+                                     stop_count, extend, foreground);
+      /* Sweep falls through as transparent for now. */
 
       float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
 				     uint (base + payload));
