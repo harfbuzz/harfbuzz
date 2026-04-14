@@ -145,6 +145,29 @@ vec4 _hb_gpu_sample_radial (vec2 renderCoord, int grad_base,
   return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
+/* Sample a sweep gradient whose param blob starts at @grad_base:
+ *   texel 0: (cx, cy, start_q14, end_q14)
+ *            start/end are Q14 fractions of pi
+ *   texels 1..: stops (2 texels each) */
+vec4 _hb_gpu_sample_sweep (vec2 renderCoord, int grad_base,
+			   int stop_count, int extend, vec4 foreground)
+{
+  ivec4 t0 = hb_gpu_fetch (grad_base);
+  vec2 c = vec2 (float (t0.r), float (t0.g));
+  float a0 = float (t0.b) / 16384.0;  /* fraction of pi */
+  float a1 = float (t0.a) / 16384.0;
+  float span = a1 - a0;
+  if (abs (span) < 1e-6) return vec4 (0.0);
+
+  vec2 p = renderCoord - c;
+  /* atan2 returns (-pi, pi]; normalize to [0, 2) fractions of pi. */
+  float ang = atan (p.y, p.x) / 3.14159265358979;
+  if (ang < 0.0) ang += 2.0;
+  float t = (ang - a0) / span;
+  t = _hb_gpu_extend_t (t, extend);
+  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+}
+
 /* Walks the paint blob's flat op stream and returns a
  * premultiplied RGBA coverage value for the current fragment.
  *
@@ -206,7 +229,10 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
         col = _hb_gpu_sample_radial (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground);
-      /* Sweep falls through as transparent for now. */
+      else if (aux == 2)  /* sweep */
+        col = _hb_gpu_sample_sweep  (renderCoord,
+                                     base + grad_payload,
+                                     stop_count, extend, foreground);
 
       float cov = _hb_gpu_draw_impl (renderCoord, pixelsPerEm,
 				     uint (base + payload));

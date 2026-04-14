@@ -135,6 +135,25 @@ fn _hb_gpu_sample_radial (renderCoord: vec2f, grad_base: i32,
   return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 2, stop_count, t, foreground);
 }
 
+fn _hb_gpu_sample_sweep (renderCoord: vec2f, grad_base: i32,
+                         stop_count: i32, extend: i32, foreground: vec4f,
+                         hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
+{
+  let t0 = hb_gpu_fetch (hb_gpu_atlas, grad_base);
+  let c = vec2f (f32 (t0.r), f32 (t0.g));
+  let a0 = f32 (t0.b) / 16384.0;
+  let a1 = f32 (t0.a) / 16384.0;
+  let span = a1 - a0;
+  if (abs (span) < 1e-6) { return vec4f (0.0); }
+
+  let p = renderCoord - c;
+  var ang = atan2 (p.y, p.x) / 3.14159265358979;
+  if (ang < 0.0) { ang = ang + 2.0; }
+  var t = (ang - a0) / span;
+  t = _hb_gpu_extend_t (t, extend);
+  return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 1, stop_count, t, foreground);
+}
+
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
 {
@@ -191,6 +210,11 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                                      hb_gpu_atlas);
       } else if (aux == 1) {
         col = _hb_gpu_sample_radial (renderCoord,
+                                     base + grad_payload,
+                                     stop_count, extend, foreground,
+                                     hb_gpu_atlas);
+      } else if (aux == 2) {
+        col = _hb_gpu_sample_sweep  (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground,
                                      hb_gpu_atlas);

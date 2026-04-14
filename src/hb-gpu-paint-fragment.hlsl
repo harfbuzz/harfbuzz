@@ -124,6 +124,24 @@ float4 _hb_gpu_sample_radial (float2 renderCoord, int grad_base,
   return _hb_gpu_eval_stops (grad_base + 2, stop_count, t, foreground);
 }
 
+float4 _hb_gpu_sample_sweep (float2 renderCoord, int grad_base,
+			     int stop_count, int extend, float4 foreground)
+{
+  int4 t0 = hb_gpu_fetch (grad_base);
+  float2 c = float2 ((float) t0.r, (float) t0.g);
+  float a0 = (float) t0.b / 16384.0;
+  float a1 = (float) t0.a / 16384.0;
+  float span = a1 - a0;
+  if (abs (span) < 1e-6) return float4 (0.0, 0.0, 0.0, 0.0);
+
+  float2 p = renderCoord - c;
+  float ang = atan2 (p.y, p.x) / 3.14159265358979;
+  if (ang < 0.0) ang += 2.0;
+  float t = (ang - a0) / span;
+  t = _hb_gpu_extend_t (t, extend);
+  return _hb_gpu_eval_stops (grad_base + 1, stop_count, t, foreground);
+}
+
 float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 {
   /* fwidth once, at uniform control flow. */
@@ -172,6 +190,10 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
                                      stop_count, extend, foreground);
       else if (aux == 1)
         col = _hb_gpu_sample_radial (renderCoord,
+                                     base + grad_payload,
+                                     stop_count, extend, foreground);
+      else if (aux == 2)
+        col = _hb_gpu_sample_sweep  (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
