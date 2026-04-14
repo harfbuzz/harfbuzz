@@ -305,6 +305,8 @@ static const char *hb_gpu_fragment_msl =
 "#endif\n"
 "\n"
 "  return c;\n"
+"}\n"
+"\n"
 "/* Stem darkening for small sizes.\n"
 " *\n"
 " * coverage:    output of hb_gpu_draw\n"
