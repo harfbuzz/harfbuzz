@@ -28,6 +28,7 @@
 
 #include "hb-gpu.h"
 #include "hb-gpu-draw.hh"
+#include "hb-gpu.hh"
 #include "hb-gpu-cu2qu.hh"
 #include "hb-machinery.hh"
 
@@ -264,20 +265,6 @@ struct hb_gpu_texel_t
 {
   int16_t r, g, b, a;
 };
-
-struct hb_gpu_blob_data_t
-{
-  char *buf;
-  unsigned capacity;
-};
-
-static void
-_hb_gpu_blob_data_destroy (void *user_data)
-{
-  auto *bd = (hb_gpu_blob_data_t *) user_data;
-  hb_free (bd->buf);
-  hb_free (bd);
-}
 
 static hb_position_t
 clamp_to_hb_position (double v)
@@ -630,47 +617,13 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
 					   sizeof (hb_gpu_texel_t),
 					   &needed_bytes)))
     return nullptr;
-  hb_gpu_texel_t *buf = nullptr;
   unsigned buf_capacity = 0;
-  hb_gpu_blob_data_t *recycled_bd = nullptr;
   char *replaced_recycled_buf = nullptr;
-
-  if (draw->recycled_blob &&
-      draw->recycled_blob->destroy == _hb_gpu_blob_data_destroy)
-  {
-    recycled_bd = (hb_gpu_blob_data_t *) draw->recycled_blob->user_data;
-    if (recycled_bd->capacity >= needed_bytes)
-    {
-      buf = (hb_gpu_texel_t *) (void *) recycled_bd->buf;
-      buf_capacity = recycled_bd->capacity;
-    }
-    else
-    {
-      unsigned alloc_bytes = needed_bytes;
-      if (unlikely (hb_unsigned_add_overflows (needed_bytes,
-					       needed_bytes / 2,
-					       &alloc_bytes)))
-	alloc_bytes = needed_bytes;
-      char *new_buf = (char *) hb_realloc (recycled_bd->buf, alloc_bytes);
-      if (new_buf)
-      {
-	recycled_bd->buf = new_buf;
-	recycled_bd->capacity = alloc_bytes;
-	buf = (hb_gpu_texel_t *) (void *) new_buf;
-	buf_capacity = alloc_bytes;
-      }
-      else
-	replaced_recycled_buf = recycled_bd->buf;
-    }
-  }
-
-  if (!buf)
-  {
-    buf_capacity = needed_bytes;
-    buf = (hb_gpu_texel_t *) hb_malloc (needed_bytes);
-    if (unlikely (!buf))
-      return nullptr;
-  }
+  char *buf_raw = _hb_gpu_blob_acquire (draw->recycled_blob, needed_bytes,
+					&buf_capacity, &replaced_recycled_buf);
+  if (unlikely (!buf_raw))
+    return nullptr;
+  hb_gpu_texel_t *buf = (hb_gpu_texel_t *) (void *) buf_raw;
 
   unsigned curve_data_offset = header_len;
   if (unlikely (hb_unsigned_add_overflows (curve_data_offset,
@@ -680,8 +633,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
 					   total_curve_indices,
 					   &curve_data_offset)))
   {
-    if (!recycled_bd || buf != (hb_gpu_texel_t *) (void *) recycled_bd->buf)
-      hb_free (buf);
+    _hb_gpu_blob_abort ((char *) buf, draw->recycled_blob);
     return nullptr;
   }
 
@@ -698,8 +650,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
   /* Pack curve data with shared endpoints */
   if (unlikely (!s.curve_texel_offset.resize (num_curves)))
   {
-    if (!recycled_bd || buf != (hb_gpu_texel_t *) (void *) recycled_bd->buf)
-      hb_free (buf);
+    _hb_gpu_blob_abort ((char *) buf, draw->recycled_blob);
     return nullptr;
   }
 
@@ -839,45 +790,10 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
     buf[hdr].a = vband_split;
   }
 
-  if (draw->recycled_blob)
-  {
-    hb_blob_t *blob = draw->recycled_blob;
-    draw->recycled_blob = nullptr;
-
-    if (blob->destroy == _hb_gpu_blob_data_destroy)
-    {
-      /* Our blob — update the closure's buf pointer (may have been realloc'd). */
-      auto *bd = (hb_gpu_blob_data_t *) blob->user_data;
-      if (replaced_recycled_buf &&
-	  replaced_recycled_buf != (char *) buf)
-	hb_free (replaced_recycled_buf);
-      bd->buf = (char *) buf;
-      bd->capacity = buf_capacity;
-      blob->data = (const char *) buf;
-      blob->length = needed_bytes;
-      return blob;
-    }
-
-    /* Foreign blob — can't reuse buffer, replace entirely. */
-    blob->replace_buffer ((const char *) buf, needed_bytes,
-			  HB_MEMORY_MODE_WRITABLE,
-			  buf, free);
-    return blob;
-  }
-
-  /* No recycled blob — create new one with closure. */
-  hb_gpu_blob_data_t *bd = (hb_gpu_blob_data_t *) hb_malloc (sizeof (*bd));
-  if (unlikely (!bd))
-  {
-    hb_free (buf);
-    return nullptr;
-  }
-  bd->buf = (char *) buf;
-  bd->capacity = buf_capacity;
-
-  return hb_blob_create ((const char *) buf, needed_bytes,
-			 HB_MEMORY_MODE_WRITABLE,
-			 bd, _hb_gpu_blob_data_destroy);
+  hb_blob_t *recycled = draw->recycled_blob;
+  draw->recycled_blob = nullptr;
+  return _hb_gpu_blob_finalize ((char *) buf, buf_capacity, needed_bytes,
+				recycled, replaced_recycled_buf);
 }
 
 
@@ -1162,11 +1078,7 @@ void
 hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
 			    hb_blob_t      *blob)
 {
-  hb_blob_destroy (draw->recycled_blob);
-  draw->recycled_blob = nullptr;
-  if (!blob || blob == hb_blob_get_empty ())
-    return;
-  draw->recycled_blob = blob;
+  _hb_gpu_blob_recycle (&draw->recycled_blob, blob);
 }
 
 
