@@ -180,6 +180,22 @@ float4 _hb_gpu_composite (float4 src, float4 dst, int mode)
   return r;
 }
 
+/* Wrap _hb_gpu_slug with a sub-glyph extents bail-out.  Many
+ * paint layers cover a small region of the outer glyph quad; for
+ * fragments outside the layer's bbox (with an AA + MSAA-spread
+ * margin) the slug coverage is exactly 0, so we can skip the
+ * band/curve walk entirely. */
+float _hb_gpu_slug_clipped (float2 renderCoord, float2 pixelsPerEm, uint glyphLoc_)
+{
+  int4 header0 = hb_gpu_fetch ((int) glyphLoc_);
+  float4 ext = (float4) header0 * HB_GPU_INV_UNITS;
+  float2 margin = 2.0 / pixelsPerEm;
+  if (any (renderCoord < ext.xy - margin) ||
+      any (renderCoord > ext.zw + margin))
+    return 0.0;
+  return _hb_gpu_slug (renderCoord, pixelsPerEm, glyphLoc_);
+}
+
 #define HB_GPU_PAINT_GROUP_DEPTH 4
 
 float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
@@ -211,8 +227,8 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 		 ? foreground
 		 : (float4) ct / 32767.0;
 
-      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
-				     (uint) (base + payload));
+      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					     (uint) (base + payload));
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -239,8 +255,8 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
-      float cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
-				     (uint) (base + payload));
+      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					     (uint) (base + payload));
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 

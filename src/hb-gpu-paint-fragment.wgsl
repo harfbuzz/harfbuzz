@@ -192,6 +192,24 @@ fn _hb_gpu_composite (src: vec4f, dst: vec4f, mode: i32) -> vec4f
   return r;
 }
 
+/* Wrap _hb_gpu_slug with a sub-glyph extents bail-out.  Many
+ * paint layers cover a small region of the outer glyph quad; for
+ * fragments outside the layer's bbox (with an AA + MSAA-spread
+ * margin) the slug coverage is exactly 0, so we can skip the
+ * band/curve walk entirely. */
+fn _hb_gpu_slug_clipped (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
+                         hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+{
+  let header0 = hb_gpu_fetch (hb_gpu_atlas, i32 (glyphLoc_));
+  let ext = vec4f (header0) * HB_GPU_INV_UNITS;
+  let margin = 2.0 / pixelsPerEm;
+  if (any (renderCoord < ext.xy - margin) ||
+      any (renderCoord > ext.zw + margin)) {
+    return 0.0;
+  }
+  return _hb_gpu_slug (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
+}
+
 const HB_GPU_PAINT_GROUP_DEPTH: i32 = 4;
 
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
@@ -232,8 +250,8 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
         col = vec4f (ct) / 32767.0;
       }
 
-      let cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
-                                   u32 (base + payload), hb_gpu_atlas);
+      let cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                           u32 (base + payload), hb_gpu_atlas);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -262,8 +280,8 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                                      hb_gpu_atlas);
       }
 
-      let cov = _hb_gpu_slug (renderCoord, pixelsPerEm,
-                                   u32 (base + payload), hb_gpu_atlas);
+      let cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                           u32 (base + payload), hb_gpu_atlas);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
