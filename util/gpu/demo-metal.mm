@@ -64,6 +64,15 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
   float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
                           atlas);
 
+  if (uniforms.stem_darkening > 0.0 && c.a > 0.0) {
+    float2 fw = fwidth(in.texcoord);
+    float ppem = 1.0 / max(fw.x, fw.y);
+    float darkened = hb_gpu_stem_darken(c.a,
+      dot(uniforms.foreground.rgb, float3(1.0 / 3.0)),
+      ppem);
+    c *= darkened / c.a;
+  }
+
   if (uniforms.gamma != 1.0)
     c.a = pow(c.a, uniforms.gamma);
 
