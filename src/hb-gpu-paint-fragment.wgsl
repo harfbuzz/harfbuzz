@@ -164,41 +164,51 @@ fn _hb_gpu_sample_sweep (renderCoord: vec2f, grad_base: i32,
   return _hb_gpu_eval_stops (hb_gpu_atlas, grad_base + 2, stop_count, t, foreground);
 }
 
-fn _hb_gpu_composite (src: vec4f, dst: vec4f, mode: i32) -> vec4f
+fn _hb_gpu_composite (src: vec4f, dst: vec4f, mode_in: i32) -> vec4f
 {
-  var r = src + dst * (1.0 - src.a);
+  var r = src + dst * (1.0 - src.a);  /* SRC_OVER default */
 
-  if      (mode == 0)  { r = vec4f (0.0); }
-  else if (mode == 1)  { r = src; }
-  else if (mode == 2)  { r = dst; }
-  else if (mode == 4)  { r = dst + src * (1.0 - dst.a); }
-  else if (mode == 5)  { r = src * dst.a; }
-  else if (mode == 6)  { r = dst * src.a; }
-  else if (mode == 7)  { r = src * (1.0 - dst.a); }
-  else if (mode == 8)  { r = dst * (1.0 - src.a); }
-  else if (mode == 9)  { r = src * dst.a + dst * (1.0 - src.a); }
-  else if (mode == 10) { r = dst * src.a + src * (1.0 - dst.a); }
-  else if (mode == 11) { r = src * (1.0 - dst.a) + dst * (1.0 - src.a); }
-  else if (mode == 12) { r = min (src + dst, vec4f (1.0)); }
-  else if (mode == 13) {
+  /* Mode numbers match hb_paint_composite_mode_t.  Approximate
+   * unsupported modes with the nearest Porter-Duff mode we do
+   * implement; DIFFERENCE / EXCLUSION / HSL_* still fall through to
+   * SRC_OVER below. */
+  var mode = mode_in;
+  if      (mode == 14 || mode == 18 || mode == 19) { mode = 23; } /* OVERLAY / COLOR_BURN / HARD_LIGHT -> MULTIPLY */
+  else if (mode == 17 || mode == 20)               { mode = 13; } /* COLOR_DODGE / SOFT_LIGHT -> SCREEN */
+
+  if      (mode == 0)  { r = vec4f (0.0); }                    /* CLEAR */
+  else if (mode == 1)  { r = src; }                            /* SRC */
+  else if (mode == 2)  { r = dst; }                            /* DST */
+  else if (mode == 4)  { r = dst + src * (1.0 - dst.a); }      /* DST_OVER */
+  else if (mode == 5)  { r = src * dst.a; }                    /* SRC_IN */
+  else if (mode == 6)  { r = dst * src.a; }                    /* DST_IN */
+  else if (mode == 7)  { r = src * (1.0 - dst.a); }            /* SRC_OUT */
+  else if (mode == 8)  { r = dst * (1.0 - src.a); }            /* DST_OUT */
+  else if (mode == 9)  { r = src * dst.a + dst * (1.0 - src.a); }  /* SRC_ATOP */
+  else if (mode == 10) { r = dst * src.a + src * (1.0 - dst.a); }  /* DST_ATOP */
+  else if (mode == 11) { r = src * (1.0 - dst.a) + dst * (1.0 - src.a); }  /* XOR */
+  else if (mode == 12) { r = min (src + dst, vec4f (1.0)); }   /* PLUS */
+  else if (mode == 13) {                                       /* SCREEN (premul) */
     r = vec4f (src.rgb + dst.rgb - src.rgb * dst.rgb,
                src.a + dst.a - src.a * dst.a);
   }
-  else if (mode == 15) {
+  else if (mode == 15) {                                       /* DARKEN */
     r = vec4f (min (src.rgb * dst.a, dst.rgb * src.a)
              + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a),
                src.a + dst.a - src.a * dst.a);
   }
-  else if (mode == 16) {
+  else if (mode == 16) {                                       /* LIGHTEN */
     r = vec4f (max (src.rgb * dst.a, dst.rgb * src.a)
              + src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a),
                src.a + dst.a - src.a * dst.a);
   }
-  else if (mode == 23) {
+  else if (mode == 23) {                                       /* MULTIPLY (premul) */
     r = vec4f (src.rgb * (1.0 - dst.a) + dst.rgb * (1.0 - src.a)
              + src.rgb * dst.rgb,
                src.a + dst.a - src.a * dst.a);
   }
+  /* SRC_OVER (3) and DIFFERENCE / EXCLUSION / HSL_* (21, 22, 24-27)
+   * fall through to the SRC_OVER default. */
   return r;
 }
 

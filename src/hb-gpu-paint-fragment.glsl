@@ -193,6 +193,14 @@ vec4 _hb_gpu_composite (vec4 src, vec4 dst, int mode)
 {
   vec4 r = src + dst * (1.0 - src.a);  /* SRC_OVER default */
 
+  /* Approximate unsupported COLRv1 modes with the nearest Porter-Duff
+   * mode we do implement.  Better a recognizable rendering than a
+   * silent SRC_OVER fallback.  DIFFERENCE / EXCLUSION / HSL_* are
+   * not similar enough to anything we have, so they still fall
+   * through to SRC_OVER below. */
+  if      (mode == 14 || mode == 18 || mode == 19) mode = 23; /* OVERLAY / COLOR_BURN / HARD_LIGHT -> MULTIPLY */
+  else if (mode == 17 || mode == 20)               mode = 13; /* COLOR_DODGE / SOFT_LIGHT -> SCREEN */
+
   if      (mode == 0)  r = vec4 (0.0);                       /* CLEAR */
   else if (mode == 1)  r = src;                              /* SRC */
   else if (mode == 2)  r = dst;                              /* DST */
@@ -228,7 +236,8 @@ vec4 _hb_gpu_composite (vec4 src, vec4 dst, int mode)
           + src.rgb * dst.rgb;
     r.a = src.a + dst.a - src.a * dst.a;
   }
-  /* SRC_OVER (3) and any unsupported mode use the default `r`. */
+  /* SRC_OVER (3) and DIFFERENCE / EXCLUSION / HSL_* (21, 22, 24-27)
+   * fall through to the SRC_OVER default. */
 
   return r;
 }
