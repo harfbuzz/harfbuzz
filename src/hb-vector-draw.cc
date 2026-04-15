@@ -599,7 +599,9 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;
-	hb_buf_append_str (&draw->defs, "<path id=\"p");
+	hb_buf_append_str (&draw->defs, "<path id=\"");
+	hb_buf_append_len (&draw->defs, draw->id_prefix.arrayZ, draw->id_prefix.length);
+	hb_buf_append_c  (&draw->defs, 'p');
 	hb_buf_append_unsigned (&draw->defs, glyph);
 	hb_buf_append_str (&draw->defs, "\" d=\"");
 	hb_buf_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
@@ -642,7 +644,9 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
       float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
       float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
 
-      hb_buf_append_str (&draw->body, "<use href=\"#p");
+      hb_buf_append_str (&draw->body, "<use href=\"#");
+      hb_buf_append_len (&draw->body, draw->id_prefix.arrayZ, draw->id_prefix.length);
+      hb_buf_append_c  (&draw->body, 'p');
       hb_buf_append_unsigned (&draw->body, glyph);
       hb_buf_append_str (&draw->body, "\" transform=\"");
       hb_vector_svg_append_instance_transform (&draw->body,
@@ -690,6 +694,50 @@ hb_bool_t
 hb_vector_draw_get_flat (const hb_vector_draw_t *draw)
 {
   return draw->flat;
+}
+
+/**
+ * hb_vector_draw_svg_set_prefix:
+ * @draw: a draw context.
+ * @prefix: a null-terminated ASCII string to prepend to every emitted
+ *          SVG `id` and `url(#...)` reference, or `NULL` for none.
+ *
+ * Namespaces the draw's SVG output.  Callers that inject multiple
+ * hb-vector SVGs into the same document must set a distinct prefix
+ * per context so that the short IDs hb-vector uses for shared glyph
+ * outlines don't collide in the DOM.
+ *
+ * No effect on PDF output.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_svg_set_prefix (hb_vector_draw_t *draw,
+                               const char *prefix)
+{
+  draw->id_prefix.resize (0);
+  if (prefix)
+    hb_buf_append_str (&draw->id_prefix, prefix);
+}
+
+/**
+ * hb_vector_draw_svg_get_prefix:
+ * @draw: a draw context.
+ *
+ * Returns the SVG id prefix previously set on @draw, or `""` if
+ * none was set.
+ *
+ * Return value: the SVG id prefix.
+ *
+ * XSince: REPLACEME
+ */
+const char *
+hb_vector_draw_svg_get_prefix (const hb_vector_draw_t *draw)
+{
+  if (!draw->id_prefix.length) return "";
+  const_cast<hb_vector_t<char> &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
+  draw->id_prefix.arrayZ[draw->id_prefix.length] = '\0';
+  return draw->id_prefix.arrayZ;
 }
 
 /**
