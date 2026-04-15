@@ -1139,12 +1139,18 @@ hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
  * @font: font to paint from
  * @glyph: glyph ID to paint
  *
- * Convenience wrapper that feeds a color glyph's paint tree into
- * the encoder via hb_font_paint_glyph_or_fail().  The font's scale
- * is stashed on @paint for use by hb_gpu_paint_encode().
+ * Convenience wrapper that feeds @glyph's paint tree into the
+ * encoder via hb_font_paint_glyph().  Non-color glyphs are handled
+ * transparently: harfbuzz synthesizes a single foreground-colored
+ * layer from the outline, which our callbacks turn into a single
+ * LAYER_SOLID op.  The font's scale is stashed on @paint for use
+ * by hb_gpu_paint_encode().
  *
- * Return value: `true` if the glyph has color paint data and was
- * accumulated without error, `false` otherwise.
+ * Return value: `true` if the paint walk completed without hitting
+ * an encoder limitation; `false` if some part of the paint tree
+ * used a feature this encoder does not support (e.g. PaintImage,
+ * group-stack overflow), in which case hb_gpu_paint_encode() will
+ * return `NULL`.
  *
  * XSince: REPLACEME
  **/
