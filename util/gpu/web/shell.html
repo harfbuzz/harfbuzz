@@ -67,6 +67,13 @@ else
   #help-modal pre { background: #333; color: #ccc; font: 14px monospace;
                     padding: 24px 32px; border-radius: 8px; border: 1px solid #666;
                     line-height: 1.8; }
+  /* Embed mode (?embed=1): hide UI chrome; host page drives
+   * the demo via postMessage. */
+  html.embed #controls,
+  html.embed #fps,
+  html.embed #help,
+  html.embed #help-mobile,
+  html.embed #text-btn { display: none !important; }
 </style>
 </head>
 <body>
@@ -545,6 +552,16 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   if (urlText) moduleArgs.push('--text=' + urlText);
   if (urlFont) moduleArgs.push('--font=' + urlFont);
 
+  /* Embed mode: hide the demo's own chrome (font picker,
+   * text button, backend selector, help overlays) so a host
+   * page embedding this in an iframe can drive it purely
+   * through postMessage.  The canvas-only view keeps the
+   * FPS counter and the loading overlay. */
+  var embedMode = urlParams.get('embed') === '1';
+  if (embedMode) {
+    document.documentElement.classList.add('embed');
+  }
+
   var Module = {
     canvas: canvas,
     arguments: moduleArgs,
@@ -636,6 +653,32 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         _free(buf);
         requestRedraw();
       }
+
+      function applyFontBytes(bytes) {
+        var data = new Uint8Array(bytes);
+        var buf = _malloc(data.length);
+        HEAPU8.set(data, buf);
+        _web_load_font(buf, data.length);
+        _free(buf);
+      }
+
+      /* Embed-mode message protocol: host page drives the
+       * demo with { kind: 'text', value }  and
+       * { kind: 'font', bytes: ArrayBuffer }.  No origin
+       * check -- hb-gpu-demo is read-only w.r.t. the host. */
+      window.addEventListener('message', function (e) {
+        var d = e.data;
+        if (!d || typeof d !== 'object') return;
+        if (d.kind === 'text' && typeof d.value === 'string')
+          applyText(d.value);
+        else if (d.kind === 'font' && d.bytes)
+          applyFontBytes(d.bytes);
+      });
+
+      /* Tell any parent frame we're ready to receive
+       * messages.  Host may have queued them during load. */
+      if (window.parent && window.parent !== window)
+        window.parent.postMessage({ kind: 'ready' }, '*');
 
       /* ?text= is applied pre-main via Module.arguments; here we
        * handle the async ?font= fetch.  Text (if any) is re-applied
