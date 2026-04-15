@@ -40,22 +40,42 @@ live, interactive widget backing it.
   /docs                       link out to API, GitHub, tarballs
 ```
 
-## Interactive demos (wasm modules)
+## Interactive demos
 
-Status: only **GPU** has a ready web build (under
-`util/gpu/web/`).  The other four demos need to be developed.
+Status: only the **GPU** web demo is ready (under
+`util/gpu/web/`).  Shaping, subsetting, raster, and vector all
+need wasm bindings and UI glue.
 
-| Demo        | Wasm size (est.) | Scope of work                    |
-| ----------- | ---------------- | -------------------------------- |
-| Shaping     | 200-300 KB       | port `hb-shape` CLI to wasm      |
-| Subsetting  | 400-500 KB       | port `hb-subset` CLI to wasm     |
-| Raster      | 500-700 KB       | `hb-raster` + canvas blit        |
-| Vector      | 600-800 KB       | `hb-vector` + SVG/PDF I/O        |
-| GPU         | ~2 MB            | done (`hb-gpu-web` + WebGPU)     |
+### One combined wasm, not five
 
-Approach mirrors `util/gpu/web/build.sh`: single-TU
-`harfbuzz-world.cc` compiled per-demo with `em++`, exporting a
-narrow C API, loaded via Emscripten `Module`.
+Each sub-library would bring its own ~500 KB HarfBuzz core if
+shipped separately.  Aggregate over five demos = ~3.7 MB across
+a full visit.  A single combined wasm built from
+`harfbuzz-world.cc` (which already ties in all the sub-libraries)
+is ~1.5 MB, loaded once, cached for every page afterwards.
+
+| Component           | Wasm size (est.) |
+| ------------------- | ---------------- |
+| Core + shaping      | ~500 KB          |
+| + subsetter         | +200 KB          |
+| + raster            | +100 KB          |
+| + vector            | +150 KB          |
+| + gpu (WebGL/WebGPU)| +500 KB          |
+| **Combined**        | **~1.5 MB**      |
+
+### Loading strategy
+
+- Homepage renders without wasm (static content + hero image).
+- First demo interaction triggers wasm download.
+- Browser caches the module; subsequent page navigations are
+  instant.
+- Optional: prefetch on hover over demo cards so typing into a
+  demo never shows a spinner.
+
+The existing `util/gpu/web/build.sh` is the template.  Add
+Emscripten exports for the shape / subset / raster / vector
+entry points to `harfbuzz-world.cc`, build one `.wasm`, wire
+JS glue on each page to the relevant exports.
 
 ## Page patterns
 
