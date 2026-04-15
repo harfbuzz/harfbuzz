@@ -35,7 +35,6 @@
 
 #include "options.hh"
 #include "font-options.hh"
-#include "output-options.hh"
 #include "view-options.hh"
 
 #include <vector>
@@ -43,14 +42,14 @@
 #define WINDOW_W 700
 #define WINDOW_H 700
 
-static const char *gpu_supported_formats[] = {
-  "ppm",
-  nullptr
-};
-
 struct gpu_output_t
 {
   static constexpr bool repeat_shape = false;
+
+  ~gpu_output_t ()
+  {
+    g_free (output_file);
+  }
 
   hb_bool_t use_metal = false;
   hb_bool_t use_d3d11 = false;
@@ -59,8 +58,8 @@ struct gpu_output_t
   hb_bool_t force_draw  = false;  /* --draw   : use monochrome draw path */
   hb_bool_t force_paint = false;  /* --paint  : use paint path */
   char *type_text = nullptr;
+  char *output_file = nullptr;  /* PPM only; "-" for stdout */
   view_options_t view;
-  output_options_t<false> output;
 
   static gboolean
   parse_bench (const char *name G_GNUC_UNUSED,
@@ -86,6 +85,7 @@ struct gpu_output_t
       {"type",		'T', 0, G_OPTION_ARG_STRING,	&this->type_text,	"Type these keystrokes on start",	"keys"},
       {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,	"Force monochrome draw path",		nullptr},
       {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
+      {"output-file",	'o', 0, G_OPTION_ARG_STRING,	&this->output_file,	"Render one frame to PPM file (\"-\" for stdout) and exit","filename"},
 #ifdef __APPLE__
       {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
 #endif
@@ -102,7 +102,6 @@ struct gpu_output_t
 		       false);
 
     view.add_options (parser);
-    output.add_options (parser, gpu_supported_formats);
   }
 
   template <typename app_t>
@@ -193,7 +192,7 @@ struct gpu_output_t
 #ifdef __APPLE__
     glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    if (output.output_file)
+    if (output_file)
       glfwWindowHint (GLFW_VISIBLE, GLFW_FALSE);
 
     window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU", NULL, NULL);
@@ -263,12 +262,27 @@ struct gpu_output_t
 
   void write_output_file ()
   {
-    /* Only PPM is supported right now; output_options_t already
-     * rejected unknown formats. */
     int fb_w = 0, fb_h = 0;
     glfwGetFramebufferSize (window, &fb_w, &fb_h);
     if (fb_w <= 0 || fb_h <= 0)
       fail (false, "Framebuffer has zero size");
+
+    FILE *fp;
+    bool use_stdout = (0 == strcmp (output_file, "-"));
+    if (use_stdout)
+    {
+#if defined(_WIN32) || defined(__CYGWIN__)
+      setmode (fileno (stdout), O_BINARY);
+#endif
+      fp = stdout;
+    }
+    else
+    {
+      fp = fopen (output_file, "wb");
+      if (!fp)
+	fail (false, "Cannot open output file `%s': %s",
+	      output_file, strerror (errno));
+    }
 
     /* glReadPixels delivers rows bottom-up; PPM writes top-down,
      * so we flip while assembling. */
@@ -276,11 +290,13 @@ struct gpu_output_t
     glPixelStorei (GL_PACK_ALIGNMENT, 1);
     glReadPixels (0, 0, fb_w, fb_h, GL_RGB, GL_UNSIGNED_BYTE, pixels.data ());
 
-    fprintf (output.out_fp, "P6\n%d %d\n255\n", fb_w, fb_h);
+    fprintf (fp, "P6\n%d %d\n255\n", fb_w, fb_h);
     const unsigned row_bytes = (unsigned) fb_w * 3u;
     for (int y = fb_h - 1; y >= 0; y--)
-      fwrite (pixels.data () + (size_t) y * row_bytes, 1, row_bytes,
-	      output.out_fp);
+      fwrite (pixels.data () + (size_t) y * row_bytes, 1, row_bytes, fp);
+
+    if (!use_stdout)
+      fclose (fp);
   }
 
   void new_line ()
@@ -346,7 +362,7 @@ struct gpu_output_t
     glfwPollEvents ();
     demo_view_display (vu, buf);
 
-    if (output.output_file)
+    if (output_file)
       write_output_file ();
     else
     {
