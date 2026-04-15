@@ -2,14 +2,16 @@ Overview of changes leading to NEXT (REPLACEME)
 =====================================
 
 - GPU library:
-  * New color-glyph paint renderer.  hb_gpu_paint_t walks a font's
-    paint tree (COLRv0 or COLRv1) and encodes its layers -- solid
-    fills, linear / radial / sweep gradients, transforms, composite
-    groups -- into a compact blob.  A new fragment-shader function
-    hb_gpu_paint() renders the blob in premultiplied RGBA;
-    monochrome glyphs are handled transparently via a synthesized
-    foreground-colored layer.  Shader sources provided in GLSL,
-    WGSL, MSL, and HLSL.
+
+  * New color-glyph paint renderer, based on design by Lê Duy Quang.
+    hb_gpu_paint_t walks a font's paint tree (COLRv0 or COLRv1) and
+    encodes its layers -- solid fills, linear / radial / sweep
+    gradients, transforms, composite groups -- into a compact blob.
+    A new fragment-shader function hb_gpu_paint() renders the blob
+    in premultiplied RGBA; monochrome glyphs are handled
+    transparently via a synthesized foreground-colored layer.
+    Shader sources provided in GLSL, WGSL, MSL, and HLSL.
+
   * Paint encoder limitations: the encoder sets `unsupported` and
     returns NULL when `num_ops` would exceed 32767, `push_group`
     nests deeper than 4, or the paint tree calls back through the
