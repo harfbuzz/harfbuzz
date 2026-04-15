@@ -766,7 +766,7 @@ on_adapter (WGPURequestAdapterStatus status,
       window._webgpuError = true;
       var el = document.getElementById ('loading');
       if (el) {
-        el.style.display = '';
+        el.style.display = "";
         var html = 'WebGPU adapter not available.<br>' +
                  '<a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
                  'style="color:#88f">Browser support status</a>';
@@ -1040,7 +1040,7 @@ main (int argc, char **argv)
       window._webgpuError = true;
       var el = document.getElementById ('loading');
       if (el) {
-        el.style.display = '';
+        el.style.display = "";
         el.innerHTML = 'WebGPU is not available in this browser.<br>' +
           '<a href="index.html" style="color:#88f">Try the WebGL version</a>';
         el.style.font = '18px sans-serif';
