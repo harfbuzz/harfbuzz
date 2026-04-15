@@ -837,6 +837,10 @@ hb_gpu_shader_sources = [
   [ 'hb-gpu-draw-fragment.wgsl', 'hb-gpu-draw-fragment-wgsl.hh' ],
   [ 'hb-gpu-draw-fragment.msl',  'hb-gpu-draw-fragment-msl.hh' ],
   [ 'hb-gpu-draw-fragment.hlsl', 'hb-gpu-draw-fragment-hlsl.hh' ],
+  [ 'hb-gpu-paint-fragment.glsl', 'hb-gpu-paint-fragment-glsl.hh' ],
+  [ 'hb-gpu-paint-fragment.msl',  'hb-gpu-paint-fragment-msl.hh' ],
+  [ 'hb-gpu-paint-fragment.wgsl', 'hb-gpu-paint-fragment-wgsl.hh' ],
+  [ 'hb-gpu-paint-fragment.hlsl', 'hb-gpu-paint-fragment-hlsl.hh' ],
 ]
 
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
@@ -851,9 +855,8 @@ endforeach
 
 hb_gpu_sources = files(
   'hb-gpu.cc',
-  'hb-gpu-shaders.cc',
   'hb-gpu-draw.cc',
-  'hb-gpu-draw-shaders.cc',
+  'hb-gpu-paint.cc',
   'hb-static.cc',
 )
 

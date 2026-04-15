@@ -35,7 +35,6 @@ struct demo_view_t {
   bool debug;
   bool stem_darkening = true;
   double screen_angle; /* 2D screen-space rotation from pinch */
-  enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
   int buttons;
@@ -238,31 +237,13 @@ demo_view_toggle_vsync (demo_view_t *vu)
   LOGI ("Setting vsync %s.\n", vu->vsync ? "on" : "off");
 }
 
+/* Gamma 2.2 coverage correction: the exponent flips in dark mode
+ * so thin strokes don't over-darken against the light-on-dark
+ * contrast. */
 static void
-demo_view_set_gamma_mode (demo_view_t *vu, int mode)
+demo_view_update_gamma (demo_view_t *vu)
 {
-  vu->renderer->set_srgb (false);
-
-  if (mode == demo_view_t::GAMMA_SRGB)
-  {
-    if (!vu->renderer->set_srgb (true))
-      mode = demo_view_t::GAMMA_2_2;
-  }
-
-  vu->gamma_mode = (decltype(vu->gamma_mode)) mode;
-  float gamma = mode == demo_view_t::GAMMA_2_2 ? (vu->dark_mode ? 1.f/2.2f : 2.2f) : 1.f;
-  vu->renderer->set_gamma (gamma);
-
-  const char *names[] = {"sRGB", "gamma 2.2", "none"};
-  LOGI ("Gamma correction: %s.\n", names[mode]);
-  vu->needs_redraw = true;
-}
-
-static void
-demo_view_cycle_gamma (demo_view_t *vu)
-{
-  int next = (vu->gamma_mode + 1) % 3;
-  demo_view_set_gamma_mode (vu, next);
+  vu->renderer->set_gamma (vu->dark_mode ? 1.f / 2.2f : 2.2f);
 }
 
 #define LIGHT_FG 0.f, 0.f, 0.f, 1.f
@@ -285,7 +266,7 @@ demo_view_toggle_dark (demo_view_t *vu)
     vu->renderer->set_foreground (LIGHT_FG);
     vu->renderer->set_background (LIGHT_BG);
   }
-  demo_view_set_gamma_mode (vu, vu->gamma_mode);
+  demo_view_update_gamma (vu);
   vu->needs_redraw = true;
 }
 
@@ -404,9 +385,6 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       break;
     case GLFW_KEY_SLASH:
       demo_view_print_help (vu);
-      break;
-    case GLFW_KEY_G:
-      demo_view_cycle_gamma (vu);
       break;
     case GLFW_KEY_B:
       demo_view_toggle_dark (vu);
@@ -723,7 +701,6 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("  Space                     Toggle animation\n");
   LOGI ("  f                         Toggle fullscreen\n");
   LOGI ("  b                         Toggle dark mode\n");
-  LOGI ("  g                         Cycle gamma (sRGB/2.2/none)\n");
   LOGI ("  s                         Toggle stem darkening\n");
   LOGI ("  d                         Toggle debug heatmap\n");
   LOGI ("  v                         Toggle vsync\n");
@@ -824,7 +801,7 @@ demo_view_setup (demo_view_t *vu)
   vu->renderer->setup ();
   vu->renderer->set_foreground (LIGHT_FG);
   vu->renderer->set_background (LIGHT_BG);
-  demo_view_set_gamma_mode (vu, demo_view_t::GAMMA_SRGB);
+  demo_view_update_gamma (vu);
   vu->stem_darkening = true;
   vu->renderer->set_stem_darkening (true);
 }

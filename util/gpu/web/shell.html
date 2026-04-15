@@ -94,7 +94,7 @@ else
 Keyboard:                        Mouse:
   space     toggle animation       drag          pan
   b         dark mode              scroll        zoom
-  g         gamma (2.2/none)       right-drag    rotate
+                                   right-drag    rotate
   s         stem darkening         click         toggle animation
   d         debug heatmap          dblclick      reset view
   r         reset view             middle-drag   zoom
@@ -113,7 +113,7 @@ Shortcuts:                       Text editor:
 </pre></div>
 <div id="help">
 <span id="help-desktop">drag: pan · scroll: zoom · click: animate · dblclick: reset · right-drag: rotate<br>
-space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset · ?: help</span>
+space: animate · b: dark mode · s: stem · d: debug · r: reset · ?: help</span>
 <span id="help-mobile">drag: pan · pinch: zoom/rotate · 3-finger: 3D rotate<br>
 tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
 </div>
@@ -154,7 +154,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     backendSel.value = 'webgpu.html';
   backendSel.addEventListener('change', function () {
     backendSel.blur();
-    location.href = backendSel.value;
+    location.href = backendSel.value + location.search;
   });
 
   /* Early WebGL2 availability check */
@@ -536,8 +536,18 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   window.addEventListener('keyup', blockKeysIfModal, true);
   window.addEventListener('keypress', blockKeysIfModal, true);
 
+  /* URL parameters: forwarded to C main() as argv so main can
+   * apply them before first frame (no default-demo flash). */
+  var urlParams = new URLSearchParams(location.search);
+  var moduleArgs = [];
+  var urlText = urlParams.get('text');
+  var urlFont = urlParams.get('font');
+  if (urlText) moduleArgs.push('--text=' + urlText);
+  if (urlFont) moduleArgs.push('--font=' + urlFont);
+
   var Module = {
     canvas: canvas,
+    arguments: moduleArgs,
     onRuntimeInitialized: function () {
       if (!window._webgpuError && !window._webglError) {
         document.getElementById('loading').style.display = 'none';
@@ -574,9 +584,11 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       var textArea = document.getElementById('text-area');
       var textBtn = document.getElementById('text-btn');
 
+      var textOnOpen = '';
       textBtn.addEventListener('click', function () {
         var ptr = _web_get_text();
-        textArea.value = UTF8ToString(ptr);
+        textOnOpen = UTF8ToString(ptr);
+        textArea.value = textOnOpen;
         textModal.style.display = 'flex';
         textArea.focus();
       });
@@ -588,11 +600,13 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       document.getElementById('text-apply').addEventListener('click', function () {
         var text = textArea.value.trim();
         if (!text) { textModal.style.display = 'none'; return; }
-        var len = lengthBytesUTF8(text) + 1;
-        var buf = _malloc(len);
-        stringToUTF8(text, buf, len);
-        _web_set_text(buf);
-        _free(buf);
+        if (text !== textOnOpen) {
+          applyText(text);
+          /* Reflect custom text in the URL so it's copy/pasteable. */
+          var url = new URL(location.href);
+          url.searchParams.set('text', text);
+          history.replaceState(null, '', url.toString());
+        }
         textModal.style.display = 'none';
       });
 
@@ -612,6 +626,46 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           _free(buf);
         };
         reader.readAsArrayBuffer(file);
+      }
+
+      function applyText(text) {
+        var len = lengthBytesUTF8(text) + 1;
+        var buf = _malloc(len);
+        stringToUTF8(text, buf, len);
+        _web_set_text(buf);
+        _free(buf);
+        requestRedraw();
+      }
+
+      /* ?text= is applied pre-main via Module.arguments; here we
+       * handle the async ?font= fetch.  Text (if any) is re-applied
+       * after the font loads.
+       *
+       * For WebGPU, init_demo is async -- wait for the C side to
+       * signal readiness before calling exported functions. */
+      function startFontFetch () {
+        if (!urlFont) return;
+        fetch(urlFont)
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.arrayBuffer();
+          })
+          .then(function (ab) {
+            var data = new Uint8Array(ab);
+            var buf = _malloc(data.length);
+            HEAPU8.set(data, buf);
+            _web_load_font(buf, data.length);
+            _free(buf);
+            if (urlText) applyText(urlText);
+          })
+          .catch(function (err) {
+            console.warn('?font= fetch failed: ' + err.message);
+          });
+      }
+      if (isWebGPU) {
+        window._webDemoReady = startFontFetch;
+      } else {
+        startFontFetch ();
       }
     }
   };

@@ -4,74 +4,8 @@
 
 #include "demo-shader.h"
 
-static const char *demo_vertex_glsl = R"glsl(
-uniform mat4 u_matViewProjection;
-uniform vec2 u_viewport;
-
-in vec2 a_position;
-in vec2 a_texcoord;
-in vec2 a_normal;
-in float a_emPerPos;
-in uint a_glyphLoc;
-
-out vec2 v_texcoord;
-flat out uint v_glyphLoc;
-
-void main ()
-{
-  vec2 pos = a_position;
-  vec2 tex = a_texcoord;
-
-  vec4 jac = vec4 (a_emPerPos, 0.0, 0.0, -a_emPerPos);
-
-  hb_gpu_dilate (pos, tex, a_normal, jac,
-		 u_matViewProjection, u_viewport);
-
-  gl_Position = u_matViewProjection * vec4 (pos, 0.0, 1.0);
-  v_texcoord = tex;
-  v_glyphLoc = a_glyphLoc;
-}
-)glsl";
-
-static const char *demo_fragment_glsl = R"glsl(
-uniform float u_gamma;
-uniform float u_debug;
-uniform float u_stem_darkening;
-uniform vec4 u_foreground;
-
-in vec2 v_texcoord;
-flat in uint v_glyphLoc;
-
-out vec4 fragColor;
-
-void main ()
-{
-  float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
-
-  /* Stem darkening / thinning at small sizes.
-   * Light text on dark: stems get too fat → thin them (exponent > 1).
-   * Dark text on light: stems get too thin → darken them (exponent < 1).
-   * The foreground brightness tells us which mode we're in. */
-  if (u_stem_darkening > 0.0)
-    coverage = hb_gpu_stem_darken (coverage,
-      dot (u_foreground.rgb, vec3 (1.0 / 3.0)),
-      hb_gpu_ppem (v_texcoord, v_glyphLoc));
-
-  if (u_gamma != 1.0)
-    coverage = pow (coverage, u_gamma);
-
-  if (u_debug > 0.0)
-  {
-    ivec2 counts = _hb_gpu_curve_counts (v_texcoord, v_glyphLoc);
-    float r = clamp (float (counts.x) / 8.0, 0.0, 1.0);
-    float g = clamp (float (counts.y) / 8.0, 0.0, 1.0);
-    fragColor = vec4 (r, g, coverage, max (max (r, g), coverage));
-    return;
-  }
-
-  fragColor = vec4 (u_foreground.rgb, u_foreground.a * coverage);
-}
-)glsl";
+#include "demo-vertex-glsl.hh"
+#include "demo-fragment-glsl.hh"
 
 
 
@@ -145,17 +79,19 @@ link_program (GLuint vertex_shader,
 }
 
 GLuint
-demo_shader_create_program (void)
+demo_shader_create_program (bool draw_only)
 {
   GLuint vertex_shader, fragment_shader, program;
 
 #ifdef HB_GPU_ATLAS_2D
-  const GLchar *preamble = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
+  const GLchar *version_es = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
+  const GLchar *version = version_es;
 #else
-  const GLchar *preamble = "#version 330\n";
+  const GLchar *version = "#version 330\n";
 #endif
+  const GLchar *preamble = draw_only ? "#define HB_GPU_DEMO_DRAW\n" : "";
 
-  const GLchar *vert_sources[] = {preamble,
+  const GLchar *vert_sources[] = {version, preamble,
 				  hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL),
 				  hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_GLSL),
 				  demo_vertex_glsl};
@@ -163,13 +99,19 @@ demo_shader_create_program (void)
 				  ARRAY_LEN (vert_sources),
 				  vert_sources);
 
-  const GLchar *frag_sources[] = {preamble,
-				  hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
-				  hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL),
-				  demo_fragment_glsl};
-  fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
-				    ARRAY_LEN (frag_sources),
-				    frag_sources);
+  /* Mode-specific fragment shader: each path pulls in only the
+   * helper source it actually calls, keeping the compiled program
+   * small. */
+  GLuint sc = 0;
+  const GLchar *frag_sources[5];
+  frag_sources[sc++] = version;
+  frag_sources[sc++] = preamble;
+  frag_sources[sc++] = hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL);
+  frag_sources[sc++] = draw_only
+    ? hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL)
+    : hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_GLSL);
+  frag_sources[sc++] = demo_fragment_glsl;
+  fragment_shader = compile_shader (GL_FRAGMENT_SHADER, sc, frag_sources);
 
   program = link_program (vertex_shader, fragment_shader);
   return program;

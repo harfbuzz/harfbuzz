@@ -12,24 +12,11 @@ CURRENT_SOURCE_DIR = sys.argv[2]
 INPUT = sys.argv[3]
 
 hh = os.path.basename(OUTPUT)
-decl_map = {
-    'hb-gpu-fragment-glsl.hh': 'hb_gpu_fragment_glsl',
-    'hb-gpu-vertex-glsl.hh': 'hb_gpu_vertex_glsl',
-    'hb-gpu-fragment-msl.hh': 'hb_gpu_fragment_msl',
-    'hb-gpu-vertex-msl.hh': 'hb_gpu_vertex_msl',
-    'hb-gpu-fragment-wgsl.hh': 'hb_gpu_fragment_wgsl',
-    'hb-gpu-vertex-wgsl.hh': 'hb_gpu_vertex_wgsl',
-    'hb-gpu-fragment-hlsl.hh': 'hb_gpu_fragment_hlsl',
-    'hb-gpu-vertex-hlsl.hh': 'hb_gpu_vertex_hlsl',
-    'hb-gpu-draw-fragment-glsl.hh': 'hb_gpu_draw_fragment_glsl',
-    'hb-gpu-draw-fragment-msl.hh': 'hb_gpu_draw_fragment_msl',
-    'hb-gpu-draw-fragment-wgsl.hh': 'hb_gpu_draw_fragment_wgsl',
-    'hb-gpu-draw-fragment-hlsl.hh': 'hb_gpu_draw_fragment_hlsl',
-}
-
-decl = decl_map.get(hh)
-if not decl:
-    sys.exit(f'Unknown shader output: {hh}')
+# Decl name derives from the .hh filename: hyphens -> underscores,
+# strip the .hh suffix.  Example: hb-gpu-fragment-glsl.hh -> hb_gpu_fragment_glsl.
+if not hh.endswith('.hh'):
+    sys.exit(f'Output must end with .hh: {hh}')
+decl = hh[:-len('.hh')].replace('-', '_')
 
 # Stringize the GLSL source into a C string literal
 with open(INPUT, 'r') as f:

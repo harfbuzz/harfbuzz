@@ -81,24 +81,33 @@ main (int argc, char **argv)
     return 1;
   }
 
-  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
-  if (!draw)
+  hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+  hb_gpu_draw_t  *draw  = hb_gpu_draw_create_or_fail ();
+  if (!paint || !draw)
   {
-    fprintf (stderr, "Failed to create GPU draw.\n");
+    fprintf (stderr, "Failed to create GPU encoder.\n");
+    hb_gpu_paint_destroy (paint);
+    hb_gpu_draw_destroy (draw);
     hb_font_destroy (font);
     hb_face_destroy (face);
     hb_blob_destroy (blob);
     return 1;
   }
 
-  unsigned num_encoded = 0;
+  unsigned num_paint_encoded = 0;
+  unsigned num_draw_encoded  = 0;
   unsigned num_empty = 0;
   unsigned num_failed = 0;
-  uint64_t total_bytes = 0;
-  unsigned max_bytes = 0;
-  unsigned max_gid = 0;
-  uint64_t outline_ns = 0;
-  uint64_t encode_ns = 0;
+  uint64_t paint_bytes = 0;
+  uint64_t draw_bytes  = 0;
+  unsigned paint_max_bytes = 0;
+  unsigned draw_max_bytes  = 0;
+  unsigned paint_max_gid = 0;
+  unsigned draw_max_gid  = 0;
+  uint64_t paint_walk_ns   = 0;
+  uint64_t paint_encode_ns = 0;
+  uint64_t draw_walk_ns    = 0;
+  uint64_t draw_encode_ns  = 0;
 
   typedef std::chrono::steady_clock clock;
   clock::time_point wall_start = clock::now ();
@@ -106,17 +115,33 @@ main (int argc, char **argv)
   for (unsigned iter = 0; iter < num_iters; iter++)
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
-    hb_gpu_draw_reset (draw);
+    hb_gpu_paint_clear (paint);
 
     clock::time_point t0 = clock::now ();
-    hb_gpu_draw_glyph (draw, font, gid);
+    hb_gpu_paint_glyph (paint, font, gid);
     clock::time_point t1 = clock::now ();
 
-    hb_blob_t *encoded = hb_gpu_draw_encode (draw, nullptr);
+    hb_blob_t *encoded = hb_gpu_paint_encode (paint, nullptr);
     clock::time_point t2 = clock::now ();
 
-    outline_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (t1 - t0).count ();
-    encode_ns  += std::chrono::duration_cast<std::chrono::nanoseconds> (t2 - t1).count ();
+    paint_walk_ns   += std::chrono::duration_cast<std::chrono::nanoseconds> (t1 - t0).count ();
+    paint_encode_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (t2 - t1).count ();
+
+    bool is_fallback = false;
+    if (!encoded)
+    {
+      /* Paint did not produce a blob (v1 feature, empty glyph).
+       * Fall back to the draw encoder. */
+      hb_gpu_draw_clear (draw);
+      clock::time_point f0 = clock::now ();
+      hb_gpu_draw_glyph (draw, font, gid);
+      clock::time_point f1 = clock::now ();
+      encoded = hb_gpu_draw_encode (draw, nullptr);
+      clock::time_point f2 = clock::now ();
+      draw_walk_ns   += std::chrono::duration_cast<std::chrono::nanoseconds> (f1 - f0).count ();
+      draw_encode_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (f2 - f1).count ();
+      is_fallback = true;
+    }
 
     if (!encoded)
     {
@@ -133,47 +158,75 @@ main (int argc, char **argv)
       unsigned len = hb_blob_get_length (encoded);
       if (len == 0)
 	num_empty++;
+      else if (is_fallback)
+      {
+	num_draw_encoded++;
+	draw_bytes += len;
+	if (len > draw_max_bytes) { draw_max_bytes = len; draw_max_gid = gid; }
+      }
       else
       {
-	num_encoded++;
-	if (len > max_bytes)
-	{
-	  max_bytes = len;
-	  max_gid = gid;
-	}
+	num_paint_encoded++;
+	paint_bytes += len;
+	if (len > paint_max_bytes) { paint_max_bytes = len; paint_max_gid = gid; }
       }
-      total_bytes += len;
     }
-    hb_gpu_draw_recycle_blob (draw, encoded);
+    if (is_fallback)
+      hb_gpu_draw_recycle_blob (draw, encoded);
+    else
+      hb_gpu_paint_recycle_blob (paint, encoded);
   }
 
   uint64_t wall_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (clock::now () - wall_start).count ();
 
-  printf ("font:     %s\n", font_path);
-  printf ("glyphs:   %u\n", glyph_count);
-  printf ("encoded:  %u\n", num_encoded);
-  printf ("empty:    %u\n", num_empty);
+  printf ("font:          %s\n", font_path);
+  printf ("glyphs:        %u\n", glyph_count);
+  printf ("empty:         %u\n", num_empty);
   if (num_failed)
-    printf ("FAILED:   %u\n", num_failed);
-  printf ("total:    %.2f KiB\n", total_bytes / 1024.);
-  if (num_encoded)
-  {
-    printf ("avg:      %.2f KiB/glyph (non-empty)\n",
-	    total_bytes / 1024. / num_encoded);
-    printf ("max:      %.2f KiB (gid %u)\n",
-	    max_bytes / 1024., max_gid);
-  }
+    printf ("FAILED:        %u\n", num_failed);
+
   uint64_t total_glyphs = (uint64_t) glyph_count * num_iters;
-  printf ("outline:  %.3fms (%.1fus/glyph)\n",
-	  outline_ns / 1e6 / num_iters,
-	  total_glyphs ? outline_ns / 1e3 / total_glyphs : 0.);
-  printf ("encode:   %.3fms (%.1fus/glyph)\n",
-	  encode_ns / 1e6 / num_iters,
-	  total_glyphs ? encode_ns / 1e3 / total_glyphs : 0.);
+
+  if (num_paint_encoded)
+  {
+    printf ("\n");
+    printf ("paint encoded: %u\n", num_paint_encoded);
+    printf ("  total:       %.2f KiB\n", paint_bytes / 1024.);
+    printf ("  avg:         %.2f KiB/glyph\n",
+	    paint_bytes / 1024. / num_paint_encoded);
+    printf ("  max:         %.2f KiB (gid %u)\n",
+	    paint_max_bytes / 1024., paint_max_gid);
+    printf ("  walk:        %.3fms (%.1fus/glyph)\n",
+	    paint_walk_ns / 1e6 / num_iters,
+	    total_glyphs ? paint_walk_ns / 1e3 / total_glyphs : 0.);
+    printf ("  encode:      %.3fms (%.1fus/glyph)\n",
+	    paint_encode_ns / 1e6 / num_iters,
+	    total_glyphs ? paint_encode_ns / 1e3 / total_glyphs : 0.);
+  }
+
+  if (num_draw_encoded)
+  {
+    printf ("\n");
+    printf ("draw fallback: %u\n", num_draw_encoded);
+    printf ("  total:       %.2f KiB\n", draw_bytes / 1024.);
+    printf ("  avg:         %.2f KiB/glyph\n",
+	    draw_bytes / 1024. / num_draw_encoded);
+    printf ("  max:         %.2f KiB (gid %u)\n",
+	    draw_max_bytes / 1024., draw_max_gid);
+    printf ("  walk:        %.3fms (%.1fus/glyph)\n",
+	    draw_walk_ns / 1e6 / num_iters,
+	    num_draw_encoded ? draw_walk_ns / 1e3 / num_draw_encoded : 0.);
+    printf ("  encode:      %.3fms (%.1fus/glyph)\n",
+	    draw_encode_ns / 1e6 / num_iters,
+	    num_draw_encoded ? draw_encode_ns / 1e3 / num_draw_encoded : 0.);
+  }
+
+  printf ("\n");
   printf ("wall:     %.3fms (%.0f glyphs/s)\n",
 	  wall_ns / 1e6 / num_iters,
 	  wall_ns ? total_glyphs * 1e9 / wall_ns : 0.);
 
+  hb_gpu_paint_destroy (paint);
   hb_gpu_draw_destroy (draw);
   hb_font_destroy (font);
   hb_face_destroy (face);

@@ -17,11 +17,11 @@ struct demo_renderer_gl_t : demo_renderer_t
   unsigned int uploaded_count;
   unsigned uploaded_generation;
 
-  demo_renderer_gl_t (GLFWwindow *window_)
+  demo_renderer_gl_t (GLFWwindow *window_, bool draw_only)
     : window (window_), vao_ready (false),
       uploaded_count (0), uploaded_generation (0)
   {
-    st = demo_glstate_create ();
+    st = demo_glstate_create (draw_only);
     glGenVertexArrays (1, &vao_name);
     glGenBuffers (1, &buf_name);
   }
@@ -111,25 +111,6 @@ struct demo_renderer_gl_t : demo_renderer_t
     demo_glstate_set_stem_darkening (st, enabled);
   }
 
-  bool set_srgb (bool enabled) override
-  {
-#if defined(GL_FRAMEBUFFER_SRGB)
-    while (glGetError () != GL_NO_ERROR)
-      ;
-    if (enabled)
-    {
-      glEnable (GL_FRAMEBUFFER_SRGB);
-      if (glGetError () != GL_NO_ERROR)
-	return false;
-    }
-    else
-      glDisable (GL_FRAMEBUFFER_SRGB);
-    return true;
-#else
-    return false;
-#endif
-  }
-
   void toggle_vsync (bool &vsync) override
   {
     vsync = !vsync;
@@ -172,7 +153,7 @@ struct demo_renderer_gl_t : demo_renderer_t
 
 
 demo_renderer_t *
-demo_renderer_create_gl (GLFWwindow *window)
+demo_renderer_create_gl (GLFWwindow *window, bool draw_only)
 {
-  return new demo_renderer_gl_t (window);
+  return new demo_renderer_gl_t (window, draw_only);
 }

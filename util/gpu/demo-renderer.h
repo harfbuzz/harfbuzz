@@ -28,9 +28,6 @@ struct demo_renderer_t
   virtual void set_debug (bool enabled) = 0;
   virtual void set_stem_darkening (bool enabled) { (void) enabled; }
 
-  /* sRGB framebuffer control; returns false if unsupported. */
-  virtual bool set_srgb (bool enabled) = 0;
-
   /* Vsync toggle. */
   virtual void toggle_vsync (bool &vsync) = 0;
 
@@ -43,16 +40,16 @@ struct demo_renderer_t
 
 #ifndef HB_GPU_NO_GLFW
 demo_renderer_t *
-demo_renderer_create_gl (GLFWwindow *window);
+demo_renderer_create_gl (GLFWwindow *window, bool draw_only);
 
 #ifdef __APPLE__
 demo_renderer_t *
-demo_renderer_create_metal (GLFWwindow *window);
+demo_renderer_create_metal (GLFWwindow *window, bool draw_only);
 #endif
 
 #ifdef _WIN32
 demo_renderer_t *
-demo_renderer_create_d3d11 (GLFWwindow *window);
+demo_renderer_create_d3d11 (GLFWwindow *window, bool draw_only);
 #endif
 #endif
 

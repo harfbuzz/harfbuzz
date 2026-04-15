@@ -1,3 +1,61 @@
+Overview of changes leading to NEXT (REPLACEME)
+=====================================
+- GPU library: New color-glyph paint renderer.  hb_gpu_paint_t walks
+  a font's paint tree (COLRv0 or COLRv1) and encodes its layers --
+  solid fills, linear / radial / sweep gradients, transforms,
+  composite groups -- into a compact blob.  A new fragment-shader
+  function `hb_gpu_paint()` renders the blob in premultiplied RGBA;
+  monochrome glyphs are handled transparently via a synthesized
+  foreground-colored layer.  Shader sources provided in GLSL, WGSL,
+  MSL, and HLSL.  Foreground color is a shader uniform; palette
+  index, custom-palette overrides, and the transform are applied at
+  encode time and baked into the blob.
+- GPU library: hb-gpu utility gains --draw / --paint flags with
+  per-font auto-detect via hb_ot_color_has_paint().
+- GPU library: gradient ops now carry the inverse of the transform's
+  linear part, so non-uniform scale / shear render exactly instead
+  of being approximated by sqrt(|det|) on radius and ignored on
+  sweep angles.
+- GPU library: paint encoder limitations.  The encoder now sets
+  `unsupported` (and hb_gpu_paint_encode() returns NULL) when:
+    * `num_ops` would exceed 32767 (the i16 header field's limit);
+    * `push_group` nests deeper than 4 (the fragment shader's
+      HB_GPU_PAINT_GROUP_DEPTH);
+    * a paint tree calls back through `image` (PaintImage isn't
+      representable by the slug+gradient encoder).
+  Other partial-coverage features:
+    * Nested glyph clips: up to 3 levels are intersected exactly;
+      deeper nests set `unsupported`.
+    * Composite modes OVERLAY / COLOR_BURN / HARD_LIGHT are
+      approximated as MULTIPLY; COLOR_DODGE / SOFT_LIGHT as SCREEN;
+      DIFFERENCE / EXCLUSION / HSL_HUE..HSL_LUMINOSITY fall through
+      to SRC_OVER.
+    * `push_clip_rectangle` is silently ignored (the rendered output
+      is bigger than it should be but doesn't fail).
+- New API:
+  +hb_gpu_paint_t
+  +hb_gpu_paint_create_or_fail()
+  +hb_gpu_paint_reference()
+  +hb_gpu_paint_destroy()
+  +hb_gpu_paint_set_user_data()
+  +hb_gpu_paint_get_user_data()
+  +hb_gpu_paint_get_funcs()
+  +hb_gpu_paint_set_palette()
+  +hb_gpu_paint_get_palette()
+  +hb_gpu_paint_set_custom_palette_color()
+  +hb_gpu_paint_clear_custom_palette_colors()
+  +hb_gpu_paint_set_scale()
+  +hb_gpu_paint_get_scale()
+  +hb_gpu_paint_glyph()
+  +hb_gpu_paint_encode()
+  +hb_gpu_paint_clear()
+  +hb_gpu_paint_reset()
+  +hb_gpu_paint_recycle_blob()
+  +hb_gpu_paint_shader_source()
+  +HB_GPU_SHADER_STAGE_VERTEX
+  +HB_GPU_SHADER_STAGE_FRAGMENT
+
+
 Overview of changes leading to 14.1.0
 Saturday, April 4, 2026
 =====================================

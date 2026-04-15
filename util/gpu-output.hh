@@ -35,6 +35,7 @@
 
 #include "options.hh"
 #include "font-options.hh"
+#include "view-options.hh"
 
 #define WINDOW_W 700
 #define WINDOW_H 700
@@ -47,7 +48,10 @@ struct gpu_output_t
   hb_bool_t use_d3d11 = false;
   hb_bool_t demo = false;
   hb_bool_t bench = false;
+  hb_bool_t force_draw  = false;  /* --draw   : use monochrome draw path */
+  hb_bool_t force_paint = false;  /* --paint  : use paint path */
   char *type_text = nullptr;
+  view_options_t view;
 
   static gboolean
   parse_bench (const char *name G_GNUC_UNUSED,
@@ -71,6 +75,8 @@ struct gpu_output_t
       {"bench",		0, G_OPTION_FLAG_NO_ARG,
 				G_OPTION_ARG_CALLBACK,	(gpointer) &parse_bench,"Demo in fullscreen benchmark mode",	nullptr},
       {"type",		'T', 0, G_OPTION_ARG_STRING,	&this->type_text,	"Type these keystrokes on start",	"keys"},
+      {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,	"Force monochrome draw path",		nullptr},
+      {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
 #ifdef __APPLE__
       {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
 #endif
@@ -85,6 +91,8 @@ struct gpu_output_t
 		       "Options for GPU rendering",
 		       this,
 		       false);
+
+    view.add_options (parser);
   }
 
   template <typename app_t>
@@ -102,6 +110,14 @@ struct gpu_output_t
     });
     if (!glfwInit ())
       fail (false, "Failed to initialize GLFW");
+
+    /* Pick draw vs paint mode.  Explicit --draw / --paint wins;
+     * otherwise auto: fonts without color paint get the draw path
+     * (smaller shader, better perf).  A mismatched pair of flags
+     * is a user error; prefer paint. */
+    draw_only = force_paint ? false
+	      : force_draw  ? true
+	      : !hb_ot_color_has_paint (face);
 
     if (use_metal)
       init_metal ();
@@ -140,7 +156,18 @@ struct gpu_output_t
       demo_view_motion_func (self->vu, x, y);
     });
 
-    demo_font_ = demo_font_create (font, renderer->get_atlas ());
+    demo_font_ = demo_font_create (font, renderer->get_atlas (), draw_only);
+    demo_font_set_palette (demo_font_, view.palette);
+    if (view.custom_palette_entries)
+    {
+      for (unsigned i = 0; i < view.custom_palette_entries->len; i++)
+      {
+	auto &e = g_array_index (view.custom_palette_entries,
+				 view_options_t::custom_palette_entry_t, i);
+	hb_color_t c = HB_COLOR (e.color.b, e.color.g, e.color.r, e.color.a);
+	demo_font_set_custom_palette_color (demo_font_, e.index, c);
+      }
+    }
     buf = demo_buffer_create ();
 
     demo_point_t top_left = {0, 0};
@@ -156,7 +183,6 @@ struct gpu_output_t
 #ifdef __APPLE__
     glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    glfwWindowHint (GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
     window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU", NULL, NULL);
     if (!window) {
@@ -178,7 +204,7 @@ struct gpu_output_t
       glViewport (0, 0, fb_width, fb_height);
     }
 
-    renderer = demo_renderer_create_gl (window);
+    renderer = demo_renderer_create_gl (window, draw_only);
   }
 
   void init_metal ()
@@ -192,7 +218,7 @@ struct gpu_output_t
       fail (false, "Failed to create GLFW window");
     }
 
-    renderer = demo_renderer_create_metal (window);
+    renderer = demo_renderer_create_metal (window, draw_only);
     if (!renderer) {
       glfwTerminate ();
       fail (false, "Failed to initialize Metal");
@@ -213,7 +239,7 @@ struct gpu_output_t
       fail (false, "Failed to create GLFW window");
     }
 
-    renderer = demo_renderer_create_d3d11 (window);
+    renderer = demo_renderer_create_d3d11 (window, draw_only);
     if (!renderer) {
       glfwTerminate ();
       fail (false, "Failed to initialize Direct3D 11");
@@ -263,6 +289,20 @@ struct gpu_output_t
     demo_view_print_help (vu);
     demo_view_setup (vu);
 
+    /* Apply view-options foreground/background.  These default to
+     * #000000 / #FFFFFF which match the demo's default LIGHT mode,
+     * so always setting them is a no-op unless the user passed a
+     * flag.  The dark-mode toggle (b key) mutates renderer state
+     * afterwards and stays in effect. */
+    renderer->set_foreground (view.foreground_color.r / 255.f,
+			      view.foreground_color.g / 255.f,
+			      view.foreground_color.b / 255.f,
+			      view.foreground_color.a / 255.f);
+    renderer->set_background (view.background_color.r / 255.f,
+			      view.background_color.g / 255.f,
+			      view.background_color.b / 255.f,
+			      view.background_color.a / 255.f);
+
     if (type_text)
       demo_view_type (vu, type_text);
     if (bench)
@@ -292,6 +332,7 @@ struct gpu_output_t
 
   private:
 
+  bool   draw_only = false;
   double font_size = 1;
   hb_font_t *font = nullptr;
   hb_face_t *face = nullptr;

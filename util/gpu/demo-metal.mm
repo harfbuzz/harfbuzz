@@ -16,77 +16,13 @@
 
 #define TEXEL_SIZE 8  /* sizeof short4 texel */
 
-static const char *demo_metal_shader_source = R"msl(
-
-struct Uniforms {
-  float4x4 matViewProjection;
-  float2 viewport;
-  float gamma;
-  float stem_darkening;
-  float4 foreground;
-  float debug;
-};
-
-struct VertexIn {
-  float2 position [[attribute(0)]];
-  float2 texcoord [[attribute(1)]];
-  float2 normal   [[attribute(2)]];
-  float  emPerPos [[attribute(3)]];
-  uint   glyphLoc [[attribute(4)]];
-};
-
-struct VertexOut {
-  float4 position [[position]];
-  float2 texcoord;
-  uint   glyphLoc [[flat]];
-};
-
-vertex VertexOut vertex_main(VertexIn in [[stage_in]],
-                             constant Uniforms& uniforms [[buffer(1)]]) {
-  float2 pos = in.position;
-  float2 tex = in.texcoord;
-  float4 jac = float4(in.emPerPos, 0.0, 0.0, -in.emPerPos);
-
-  hb_gpu_dilate(pos, tex, in.normal, jac,
-                uniforms.matViewProjection, uniforms.viewport);
-
-  VertexOut out;
-  out.position = uniforms.matViewProjection * float4(pos, 0.0, 1.0);
-  out.texcoord = tex;
-  out.glyphLoc = in.glyphLoc;
-  return out;
-}
-
-fragment float4 fragment_main(VertexOut in [[stage_in]],
-                              constant Uniforms& uniforms [[buffer(1)]],
-                              device const short4* atlas [[buffer(0)]]) {
-  float coverage = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
-
-  /* Stem darkening / thinning at small sizes. */
-  if (uniforms.stem_darkening > 0.0)
-    coverage = hb_gpu_stem_darken(coverage,
-      dot(uniforms.foreground.rgb, float3(1.0 / 3.0)),
-      1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y));
-
-  if (uniforms.gamma != 1.0)
-    coverage = pow(coverage, uniforms.gamma);
-
-  if (uniforms.debug > 0.0) {
-    int2 counts = _hb_gpu_curve_counts(in.texcoord, in.glyphLoc, atlas);
-    float r = clamp(float(counts.x) / 8.0, 0.0, 1.0);
-    float g = clamp(float(counts.y) / 8.0, 0.0, 1.0);
-    return float4(r, g, coverage, max(max(r, g), coverage));
-  }
-
-  return float4(uniforms.foreground.xyz, uniforms.foreground.w * coverage);
-}
-
-)msl";
+#include "demo-shader-msl.hh"
 
 
 struct demo_renderer_metal_t : demo_renderer_t
 {
   GLFWwindow *window;
+  bool draw_only;
 
   /* Metal objects */
   id<MTLDevice> device;
@@ -129,7 +65,8 @@ struct demo_renderer_metal_t : demo_renderer_t
   } uniforms;
 
 
-  demo_renderer_metal_t (GLFWwindow *window_) : window (window_)
+  demo_renderer_metal_t (GLFWwindow *window_, bool draw_only_)
+    : window (window_), draw_only (draw_only_)
   {
     uploaded_ptr = nullptr;
     uploaded_count = 0;
@@ -185,7 +122,6 @@ struct demo_renderer_metal_t : demo_renderer_t
     return atlas;
   }
 
-
   /* -- State -- */
 
   void setup () override {}
@@ -218,12 +154,6 @@ struct demo_renderer_metal_t : demo_renderer_t
     uniforms.stem_darkening = enabled ? 1.f : 0.f;
   }
 
-  bool set_srgb (bool enabled [[maybe_unused]]) override
-  {
-    /* Metal uses MTLPixelFormatBGRA8Unorm_sRGB; sRGB is always on. */
-    return true;
-  }
-
   void toggle_vsync (bool &vsync) override
   {
     vsync = !vsync;
@@ -236,7 +166,7 @@ struct demo_renderer_metal_t : demo_renderer_t
     if (offscreenTexture && offscreen_w == width && offscreen_h == height)
       return;
     MTLTextureDescriptor *desc =
-      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
 							width:width
 						       height:height
 						    mipmapped:NO];
@@ -380,11 +310,11 @@ struct demo_renderer_metal_t : demo_renderer_t
 
 
 demo_renderer_t *
-demo_renderer_create_metal (GLFWwindow *window)
+demo_renderer_create_metal (GLFWwindow *window, bool draw_only)
 {
   @autoreleasepool {
 
-  auto *r = new demo_renderer_metal_t (window);
+  auto *r = new demo_renderer_metal_t (window, draw_only);
 
   /* Get Metal device */
   r->device = MTLCreateSystemDefaultDevice ();
@@ -400,19 +330,25 @@ demo_renderer_create_metal (GLFWwindow *window)
   NSWindow *nswindow = glfwGetCocoaWindow (window);
   r->metalLayer = [CAMetalLayer layer];
   r->metalLayer.device = r->device;
-  r->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+  r->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
   nswindow.contentView.layer = r->metalLayer;
   nswindow.contentView.wantsLayer = YES;
 
   /* Compile shaders */
-  const char *vert_common = hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
-  const char *vert_src    = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
-  const char *frag_common = hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
-  const char *frag_src    = hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
+  const char *vert_common = hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
+  const char *vert_src    = hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_common = hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
+  const char *frag_mode   = draw_only
+    ? hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL)
+    : hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_MSL);
 
-  NSString *preamble = @"#include <metal_stdlib>\nusing namespace metal;\n";
+  NSString *preamble = draw_only
+    ? @"#include <metal_stdlib>\nusing namespace metal;\n#define HB_GPU_DEMO_DRAW\n"
+    : @"#include <metal_stdlib>\nusing namespace metal;\n";
   NSString *source = [NSString stringWithFormat:@"%@%s%s%s%s%s",
-		      preamble, vert_common, vert_src, frag_common, frag_src, demo_metal_shader_source];
+		      preamble, vert_common, vert_src,
+		      frag_common, frag_mode,
+		      demo_shader_msl];
 
   NSError *error = nil;
   id<MTLLibrary> library = [r->device newLibraryWithSource:source
@@ -453,7 +389,7 @@ demo_renderer_create_metal (GLFWwindow *window)
   pipelineDesc.vertexFunction = vertexFunc;
   pipelineDesc.fragmentFunction = fragmentFunc;
   pipelineDesc.vertexDescriptor = vertexDesc;
-  pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+  pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
   pipelineDesc.colorAttachments[0].blendingEnabled = YES;
   pipelineDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
   pipelineDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;

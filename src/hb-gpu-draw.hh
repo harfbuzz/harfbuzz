@@ -116,8 +116,6 @@ struct hb_gpu_draw_t
   /* Recycled blob for encode output */
   hb_blob_t *recycled_blob = nullptr;
 
-  ~hb_gpu_draw_t () { hb_blob_destroy (recycled_blob); }
-
   /* Internal accumulation methods */
   HB_INTERNAL void acc_move_to (double x, double y);
   HB_INTERNAL void acc_line_to (double x, double y);

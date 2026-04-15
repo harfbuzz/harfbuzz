@@ -3,6 +3,9 @@
  */
 
 #include "demo-font.h"
+#include "demo-atlas.h"
+
+#include <hb-ot.h>
 
 #include <map>
 
@@ -13,7 +16,9 @@ struct demo_font_t {
   hb_font_t       *font;
   glyph_cache_t   *glyph_cache;
   demo_atlas_t    *atlas;
-  hb_gpu_draw_t  *g;
+  hb_gpu_paint_t  *p;
+  hb_gpu_draw_t   *d;
+  bool             draw_only;
 
   unsigned int num_glyphs;
   unsigned int sum_bytes;
@@ -21,7 +26,8 @@ struct demo_font_t {
 
 demo_font_t *
 demo_font_create (hb_font_t    *hb_font,
-		  demo_atlas_t *atlas)
+		  demo_atlas_t *atlas,
+		  hb_bool_t     draw_only)
 {
   demo_font_t *font = (demo_font_t *) calloc (1, sizeof (demo_font_t));
 
@@ -29,7 +35,11 @@ demo_font_create (hb_font_t    *hb_font,
   font->font = hb_font_reference (hb_font);
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
-  font->g = hb_gpu_draw_create_or_fail ();
+  font->draw_only = draw_only;
+  if (draw_only)
+    font->d = hb_gpu_draw_create_or_fail ();
+  else
+    font->p = hb_gpu_paint_create_or_fail ();
 
   return font;
 }
@@ -40,7 +50,8 @@ demo_font_destroy (demo_font_t *font)
   if (!font)
     return;
 
-  hb_gpu_draw_destroy (font->g);
+  hb_gpu_paint_destroy (font->p);
+  hb_gpu_draw_destroy (font->d);
   demo_atlas_destroy (font->atlas);
   delete font->glyph_cache;
   hb_font_destroy (font->font);
@@ -61,23 +72,57 @@ demo_font_get_font (demo_font_t *font)
   return font->font;
 }
 
+void
+demo_font_set_palette (demo_font_t *font, unsigned palette_index)
+{
+  if (font->draw_only)
+    return;
+  hb_gpu_paint_set_palette (font->p, palette_index);
+  demo_font_clear_cache (font);
+}
+
+void
+demo_font_clear_custom_palette_colors (demo_font_t *font)
+{
+  if (font->draw_only)
+    return;
+  hb_gpu_paint_clear_custom_palette_colors (font->p);
+  demo_font_clear_cache (font);
+}
+
+hb_bool_t
+demo_font_set_custom_palette_color (demo_font_t *font,
+				    unsigned int color_index,
+				    hb_color_t   color)
+{
+  if (font->draw_only)
+    return false;
+  hb_bool_t ok = hb_gpu_paint_set_custom_palette_color (font->p, color_index, color);
+  demo_font_clear_cache (font);
+  return ok;
+}
+
 
 static void
 _demo_font_upload_glyph (demo_font_t  *font,
 			 unsigned int  glyph_index,
 			 glyph_info_t *glyph_info)
 {
-  hb_gpu_draw_reset (font->g);
-
-  hb_gpu_draw_glyph (font->g, font->font, glyph_index);
-
-  /* Get extents in font design units */
-  hb_glyph_extents_t hb_ext;
-  hb_blob_t *blob = hb_gpu_draw_encode (font->g, &hb_ext);
-  if (!blob)
-    die ("Failed encoding glyph");
-
-  unsigned int len = hb_blob_get_length (blob);
+  hb_glyph_extents_t hb_ext = {};
+  hb_blob_t *blob;
+  if (font->draw_only)
+  {
+    hb_gpu_draw_clear (font->d);
+    hb_gpu_draw_glyph (font->d, font->font, glyph_index);
+    blob = hb_gpu_draw_encode (font->d, &hb_ext);
+  }
+  else
+  {
+    hb_gpu_paint_clear (font->p);
+    hb_gpu_paint_glyph (font->p, font->font, glyph_index);
+    blob = hb_gpu_paint_encode (font->p, &hb_ext);
+  }
+  unsigned int len = blob ? hb_blob_get_length (blob) : 0;
 
   glyph_info->extents.min_x = hb_ext.x_bearing;
   glyph_info->extents.max_x = hb_ext.x_bearing + hb_ext.width;
@@ -97,7 +142,13 @@ _demo_font_upload_glyph (demo_font_t  *font,
   font->num_glyphs++;
   font->sum_bytes += len;
 
-  hb_gpu_draw_recycle_blob (font->g, blob);
+  if (blob)
+  {
+    if (font->draw_only)
+      hb_gpu_draw_recycle_blob (font->d, blob);
+    else
+      hb_gpu_paint_recycle_blob (font->p, blob);
+  }
 }
 
 void

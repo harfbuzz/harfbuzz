@@ -66,8 +66,10 @@ static bool custom_text;
 static void
 rebuild_buffer (const char *text)
 {
+  /* strdup first -- text may alias current_text. */
+  char *new_text = strdup (text);
   free (current_text);
-  current_text = strdup (text);
+  current_text = new_text;
 
   demo_font_clear_cache (current_demo_font);
   demo_atlas_clear (renderer->get_atlas ());
@@ -77,7 +79,11 @@ rebuild_buffer (const char *text)
   demo_buffer_move_to (buffer, &top_left);
   demo_buffer_add_text (buffer, text, current_demo_font, 1);
   demo_view_reset (vu);
-  demo_view_display (vu, buffer);
+  /* Don't call demo_view_display here: it may run from a
+   * microtask (e.g. the font-fetch .then() callback) where the
+   * canvas back-buffer won't swap to the front.  Leave
+   * needs_redraw=true (set by demo_view_reset) so the next
+   * main_loop_iter renders inside a proper rAF tick. */
 }
 
 extern "C" {
@@ -101,7 +107,7 @@ web_load_font (const char *data, int len)
 
   /* Flush old font state */
   demo_font_destroy (current_demo_font);
-  current_demo_font = demo_font_create (font, renderer->get_atlas ());
+  current_demo_font = demo_font_create (font, renderer->get_atlas (), false);
 
   rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
@@ -187,9 +193,22 @@ static void
 cursor_func (GLFWwindow *window, double x, double y)
 { demo_view_motion_func (vu, x, y); }
 
+static const char *arg_text = nullptr;
+static const char *arg_font = nullptr;
+
 int
-main ()
+main (int argc, char **argv)
 {
+  /* Accept --text=... and --font=... so the JS shell can forward
+   * URL parameters.  Everything else is ignored. */
+  for (int i = 1; i < argc; i++)
+  {
+    if (!strncmp (argv[i], "--text=", 7))
+      arg_text = argv[i] + 7;
+    else if (!strncmp (argv[i], "--font=", 7))
+      arg_font = argv[i] + 7;
+  }
+
   if (!glfwInit ())
   {
     fprintf (stderr, "Failed to initialize GLFW\n");
@@ -226,7 +245,7 @@ main ()
     glViewport (0, 0, fb_width, fb_height);
   }
 
-  renderer = demo_renderer_create_gl (window);
+  renderer = demo_renderer_create_gl (window, false);
   vu = demo_view_create (renderer, window);
 
   current_blob = hb_blob_create ((const char *) default_font,
@@ -235,14 +254,21 @@ main ()
 				 NULL, NULL);
   current_face = hb_face_create (current_blob, 0);
   current_font = hb_font_create (current_face);
-  current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
+  current_demo_font = demo_font_create (current_font, renderer->get_atlas (), false);
 
-  current_text = strdup (default_text_combined);
+  current_text = strdup (arg_text ? arg_text : default_text_combined);
+  if (arg_text)
+    custom_text = true;
 
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
+  /* When ?font= is pending, skip initial glyph upload -- the
+   * async font load will replace the font anyway, and we'd
+   * upload defaults-into-atlas just to throw them away.  Buffer
+   * stays empty until web_load_font's rebuild_buffer runs. */
+  if (!arg_font)
+    demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
 
   demo_font_print_stats (current_demo_font);
 

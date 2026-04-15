@@ -10,12 +10,17 @@ struct demo_glstate_t {
 };
 
 demo_glstate_t *
-demo_glstate_create (void)
+demo_glstate_create (bool draw_only)
 {
   demo_glstate_t *st = (demo_glstate_t *) calloc (1, sizeof (demo_glstate_t));
 
-  st->program = demo_shader_create_program ();
+  st->program = demo_shader_create_program (draw_only);
   st->atlas = demo_atlas_create (1024 * 1024);
+
+  /* Bind the program so demo_font_t can upload the palette
+   * uniform during glyph upload (which happens before the first
+   * render, i.e. before demo_view_setup re-binds it). */
+  glUseProgram (st->program);
 
   return st;
 }

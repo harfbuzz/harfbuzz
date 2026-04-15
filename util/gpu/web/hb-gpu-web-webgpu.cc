@@ -60,71 +60,7 @@
 
 /* ---- WGSL demo shader ---- */
 
-static const char *wgsl_demo_shader = R"wgsl(
-struct Uniforms {
-  mvp: mat4x4f,
-  viewport: vec2f,
-  gamma: f32,
-  stem_darkening: f32,
-  foreground: vec4f,
-  debug: f32,
-};
-
-@group(0) @binding(0) var<uniform> u: Uniforms;
-@group(0) @binding(1) var<storage, read> hb_gpu_atlas: array<vec4<i32>>;
-
-struct VertexInput {
-  @location(0) position: vec2f,
-  @location(1) texcoord: vec2f,
-  @location(2) normal: vec2f,
-  @location(3) emPerPos: f32,
-  @location(4) glyphLoc: u32,
-};
-
-struct VertexOutput {
-  @builtin(position) clip_position: vec4f,
-  @location(0) texcoord: vec2f,
-  @location(1) @interpolate(flat) glyphLoc: u32,
-};
-
-@vertex fn vs_main (in: VertexInput) -> VertexOutput {
-  var pos = in.position;
-  var tc = in.texcoord;
-  let jac = vec4f (in.emPerPos, 0.0, 0.0, -in.emPerPos);
-  let result = hb_gpu_dilate (pos, tc, in.normal, jac, u.mvp, u.viewport);
-  pos = result[0];
-  tc = result[1];
-
-  var out: VertexOutput;
-  out.clip_position = u.mvp * vec4f (pos, 0.0, 1.0);
-  out.texcoord = tc;
-  out.glyphLoc = in.glyphLoc;
-  return out;
-}
-
-@fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
-  var coverage = hb_gpu_draw (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
-
-  if (u.stem_darkening > 0.0) {
-    coverage = hb_gpu_stem_darken (coverage,
-      dot (u.foreground.rgb, vec3f (1.0 / 3.0)),
-      1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y));
-  }
-
-  if (u.gamma != 1.0) {
-    coverage = pow (coverage, u.gamma);
-  }
-
-  if (u.debug > 0.0) {
-    let counts = _hb_gpu_curve_counts (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
-    let r = clamp (f32 (counts.x) / 8.0, 0.0, 1.0);
-    let g = clamp (f32 (counts.y) / 8.0, 0.0, 1.0);
-    return vec4f (r, g, coverage, max (max (r, g), coverage));
-  }
-
-  return vec4f (u.foreground.rgb, u.foreground.a * coverage);
-}
-)wgsl";
+#include "../demo-shader-wgsl.hh"
 
 
 /* ---- Uniform buffer layout (must match WGSL struct) ---- */
@@ -239,8 +175,6 @@ struct demo_renderer_webgpu_t : demo_renderer_t
   bool debug_mode = false;
   bool stem_mode = true;
 
-  bool set_srgb (bool enabled) override { return false; /* no sRGB framebuffer */ }
-
   void toggle_vsync (bool &vsync) override { /* always vsync in browser */ }
 
   void display (glyph_vertex_t *vertices, unsigned int count,
@@ -344,6 +278,8 @@ static hb_face_t *current_face;
 static hb_font_t *current_font;
 static char *current_text;
 static bool custom_text;
+static const char *arg_text = nullptr;
+static const char *arg_font = nullptr;
 
 
 /* ---- Buffer rebuild ---- */
@@ -351,8 +287,10 @@ static bool custom_text;
 static void
 rebuild_buffer (const char *text)
 {
+  /* strdup first -- text may alias current_text. */
+  char *new_text = strdup (text);
   free (current_text);
-  current_text = strdup (text);
+  current_text = new_text;
 
   demo_font_clear_cache (current_demo_font);
   atlas_clear_cb (&atlas);
@@ -407,7 +345,7 @@ web_load_font (const char *data, int len)
   current_font = font;
 
   demo_font_destroy (current_demo_font);
-  current_demo_font = demo_font_create (font, renderer->get_atlas ());
+  current_demo_font = demo_font_create (font, renderer->get_atlas (), false);
 
   rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
@@ -831,15 +769,17 @@ static void
 create_pipeline ()
 {
   std::string wgsl;
-  wgsl += hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
   wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += hb_gpu_shader_source      (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_shader_source       (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += hb_gpu_draw_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += hb_gpu_draw_shader_source  (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
   wgsl += "\n";
-  wgsl += wgsl_demo_shader;
+  wgsl += hb_gpu_paint_shader_source (HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_WGSL);
+  wgsl += "\n";
+  wgsl += demo_shader_wgsl;
 
   WGPUShaderSourceWGSL wgslSrc = {};
   wgslSrc.chain.sType = WGPUSType_ShaderSourceWGSL;
@@ -986,14 +926,19 @@ init_demo ()
 				 NULL, NULL);
   current_face = hb_face_create (current_blob, 0);
   current_font = hb_font_create (current_face);
-  current_demo_font = demo_font_create (current_font, renderer->get_atlas ());
+  current_demo_font = demo_font_create (current_font, renderer->get_atlas (), false);
 
-  current_text = strdup (default_text_combined);
+  current_text = strdup (arg_text ? arg_text : default_text_combined);
+  if (arg_text)
+    custom_text = true;
 
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
+  /* Skip initial glyph upload if ?font= is pending.  Prevents
+   * wasting atlas capacity on the default font's glyphs. */
+  if (!arg_font)
+    demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
 
   demo_font_print_stats (current_demo_font);
 
@@ -1027,14 +972,30 @@ init_demo ()
 
   printf ("WebGPU demo initialized\n");
 
+  /* Signal JS that async init is complete so URL-param ?font=
+   * fetches can safely call _web_load_font. */
+  EM_ASM ({
+    if (typeof window._webDemoReady === 'function') window._webDemoReady ();
+  });
+
   /* Start render loop */
   emscripten_set_main_loop (main_loop_iter, 0, 0);
 }
 
 
 int
-main ()
+main (int argc, char **argv)
 {
+  /* argv is stack-allocated by Emscripten; main returns while
+   * init_demo runs async, so copy to heap to survive the unwind. */
+  for (int i = 1; i < argc; i++)
+  {
+    if (!strncmp (argv[i], "--text=", 7))
+      arg_text = strdup (argv[i] + 7);
+    else if (!strncmp (argv[i], "--font=", 7))
+      arg_font = strdup (argv[i] + 7);
+  }
+
   emscripten_get_canvas_element_size ("#canvas", &canvas_w, &canvas_h);
   double css_w_d, css_h_d;
   emscripten_get_element_css_size ("#canvas", &css_w_d, &css_h_d);

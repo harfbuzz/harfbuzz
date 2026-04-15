@@ -145,12 +145,96 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
 			    hb_blob_t      *blob);
 
 
+/**
+ * hb_gpu_paint_t:
+ *
+ * An opaque GPU color-glyph encoder.  Accumulates color-glyph
+ * paint state via paint callbacks, then encodes it into a compact
+ * blob for GPU rendering.
+ *
+ * XSince: REPLACEME
+ */
+typedef struct hb_gpu_paint_t hb_gpu_paint_t;
+
+HB_EXTERN hb_gpu_paint_t *
+hb_gpu_paint_create_or_fail (void);
+
+HB_EXTERN hb_gpu_paint_t *
+hb_gpu_paint_reference (hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_destroy (hb_gpu_paint_t *paint);
+
+HB_EXTERN hb_bool_t
+hb_gpu_paint_set_user_data (hb_gpu_paint_t     *paint,
+			    hb_user_data_key_t *key,
+			    void               *data,
+			    hb_destroy_func_t   destroy,
+			    hb_bool_t           replace);
+
+HB_EXTERN void *
+hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
+			    hb_user_data_key_t   *key);
+
+HB_EXTERN hb_paint_funcs_t *
+hb_gpu_paint_get_funcs (void);
+
+HB_EXTERN void
+hb_gpu_paint_set_palette (hb_gpu_paint_t *paint,
+			  unsigned        palette);
+
+HB_EXTERN unsigned
+hb_gpu_paint_get_palette (const hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_clear_custom_palette_colors (hb_gpu_paint_t *paint);
+
+HB_EXTERN hb_bool_t
+hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
+				       unsigned int    color_index,
+				       hb_color_t      color);
+
+HB_EXTERN void
+hb_gpu_paint_set_scale (hb_gpu_paint_t *paint,
+			int             x_scale,
+			int             y_scale);
+
+HB_EXTERN void
+hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
+			int                  *x_scale,
+			int                  *y_scale);
+
+HB_EXTERN hb_bool_t
+hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
+		    hb_font_t      *font,
+		    hb_codepoint_t  glyph);
+
+HB_EXTERN hb_blob_t *
+hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
+		     hb_glyph_extents_t *extents);
+
+HB_EXTERN void
+hb_gpu_paint_clear (hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_reset (hb_gpu_paint_t *paint);
+
+HB_EXTERN void
+hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
+			   hb_blob_t      *blob);
+
+HB_EXTERN const char *
+hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
+			    hb_gpu_shader_lang_t  lang);
+
+
 HB_END_DECLS
 
 
 #if defined(__cplusplus) && defined(HB_CPLUSPLUS_HH)
 namespace hb {
-HB_DEFINE_VTABLE (gpu_draw, nullptr);
+HB_DEFINE_VTABLE (gpu_draw,  nullptr);
+HB_DEFINE_VTABLE (gpu_paint, nullptr);
 } // namespace hb
 #endif
 

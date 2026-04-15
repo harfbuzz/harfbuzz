@@ -14,7 +14,7 @@
 typedef struct demo_glstate_t demo_glstate_t;
 
 demo_glstate_t *
-demo_glstate_create (void);
+demo_glstate_create (bool draw_only);
 
 void
 demo_glstate_destroy (demo_glstate_t *st);
