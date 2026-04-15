@@ -344,6 +344,29 @@
 	</varlistentry>
       </variablelist>
     </section>
-    
+
+    <section id="building.world">
+      <title>Single-file build with <filename>harfbuzz-world.cc</filename></title>
+      <para>
+	For projects that want HarfBuzz embedded without any
+	build-system glue, the source ships a single-file
+	amalgamation at <filename>src/harfbuzz-world.cc</filename>
+	that <code>#include</code>s every <code>.cc</code> in the
+	library so the whole thing compiles as one translation
+	unit.  Pair it with the <literal>HB_TINY</literal> /
+	<literal>HB_HAS_*</literal> compile-time switches (see
+	<link linkend="configuration">Configuration options</link>
+	above) to pick which subsystems get pulled in.
+      </para>
+      <para>
+	A live in-browser playground built against this exact
+	file lives at
+	<ulink url="https://harfbuzz-world.cc/">harfbuzz-world.cc</ulink>;
+	its
+	<ulink url="https://github.com/harfbuzz/harfbuzz-world.cc">source</ulink>
+	is a worked example of dropping HarfBuzz into a project.
+      </para>
+    </section>
+
   </section>
 </chapter>
