@@ -37,6 +37,7 @@
 #include "font-options.hh"
 #include "view-options.hh"
 
+#include <string>
 #include <vector>
 
 #define WINDOW_W 700
@@ -58,6 +59,13 @@ struct gpu_output_t
   hb_bool_t force_draw  = false;  /* --draw   : use monochrome draw path */
   hb_bool_t force_paint = false;  /* --paint  : use paint path */
   hb_bool_t show_extents = false; /* --show-extents */
+  /* Initial state for interactive toggles; each corresponds to
+   * a keyboard shortcut in demo_view_t. */
+  hb_bool_t dark             = false;  /* --dark              -> b */
+  hb_bool_t no_vsync         = false;  /* --no-vsync          -> v */
+  hb_bool_t fullscreen       = false;  /* --fullscreen        -> f */
+  hb_bool_t no_stem_darken   = false;  /* --no-stem-darken    -> s */
+  hb_bool_t debug            = false;  /* --debug             -> d */
   char *type_text = nullptr;
   char *output_file = nullptr;  /* PPM only; "-" for stdout */
   view_options_t view;
@@ -88,6 +96,13 @@ struct gpu_output_t
       {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
       {"output-file",	'o', 0, G_OPTION_ARG_STRING,	&this->output_file,	"Render one frame to PPM file (\"-\" for stdout) and exit","filename"},
       {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,	"Draw a frame around each glyph's ink extents",	nullptr},
+      /* Interactive-toggle defaults.  Each mirrors a keybinding
+       * in the running demo. */
+      {"dark",		0, 0, G_OPTION_ARG_NONE,	&this->dark,		"Start in dark mode (toggle: b)",	nullptr},
+      {"no-vsync",	0, 0, G_OPTION_ARG_NONE,	&this->no_vsync,	"Start with vsync off (toggle: v)",	nullptr},
+      {"fullscreen",	0, 0, G_OPTION_ARG_NONE,	&this->fullscreen,	"Start fullscreen (toggle: f)",		nullptr},
+      {"no-stem-darken",0, 0, G_OPTION_ARG_NONE,	&this->no_stem_darken,	"Start with stem darkening off (toggle: s)",nullptr},
+      {"debug",		0, 0, G_OPTION_ARG_NONE,	&this->debug,		"Start with debug heatmap on (toggle: d)",nullptr},
       /* Reuse the storage in `view` for the four options hb-gpu
        * actually honors.  view_options_t::post_parse() does the
        * parsing for us; gpu_output_t::post_parse() below forwards
@@ -368,6 +383,17 @@ struct gpu_output_t
 			      view.background_color.g / 255.f,
 			      view.background_color.b / 255.f,
 			      view.background_color.a / 255.f);
+
+    /* Apply cmdline-driven toggle defaults via the same keystroke
+     * path the user would use interactively. */
+    std::string toggles;
+    if (dark)            toggles += 'b';
+    if (no_vsync)        toggles += 'v';
+    if (fullscreen)      toggles += 'f';
+    if (no_stem_darken)  toggles += 's';
+    if (debug)           toggles += 'd';
+    if (!toggles.empty ())
+      demo_view_type (vu, toggles.c_str ());
 
     if (type_text)
       demo_view_type (vu, type_text);
