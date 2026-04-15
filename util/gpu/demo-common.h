@@ -31,7 +31,7 @@
 #endif
 
 
-#define LOGI(...) ((void) fprintf (stdout, __VA_ARGS__))
+#define LOGI(...) ((void) fprintf (stderr, __VA_ARGS__))
 #define LOGW(...) ((void) fprintf (stderr, __VA_ARGS__))
 #define LOGE(...) ((void) fprintf (stderr, __VA_ARGS__), abort ())
 
