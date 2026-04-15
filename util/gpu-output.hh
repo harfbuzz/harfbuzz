@@ -86,6 +86,14 @@ struct gpu_output_t
       {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,	"Force monochrome draw path",		nullptr},
       {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
       {"output-file",	'o', 0, G_OPTION_ARG_STRING,	&this->output_file,	"Render one frame to PPM file (\"-\" for stdout) and exit","filename"},
+      /* Reuse the storage in `view` for the four options hb-gpu
+       * actually honors.  view_options_t::post_parse() does the
+       * parsing for us; gpu_output_t::post_parse() below forwards
+       * to it. */
+      {"background",	0, 0, G_OPTION_ARG_STRING,	&this->view.back,		"Set background color (default: " DEFAULT_BACK ")","rrggbb/rrggbbaa"},
+      {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->view.fore,		"Set foreground color (default: " DEFAULT_FORE ")","rrggbb/rrggbbaa"},
+      {"font-palette",	0, 0, G_OPTION_ARG_INT,		&this->view.palette,		"Set font palette (default: 0)",	"index"},
+      {"custom-palette",0, 0, G_OPTION_ARG_STRING,	&this->view.custom_palette,	"Custom palette",			"comma-separated colors"},
 #ifdef __APPLE__
       {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
 #endif
@@ -98,10 +106,14 @@ struct gpu_output_t
 		       "gpu",
 		       "GPU options:",
 		       "Options for GPU rendering",
-		       this,
-		       false);
+		       this);
+  }
 
-    view.add_options (parser);
+  void post_parse (GError **error)
+  {
+    /* Delegate to view_options_t: parses foreground / background
+     * / custom-palette strings into rgba_color_t / GArray. */
+    view.post_parse (error);
   }
 
   template <typename app_t>
