@@ -557,7 +557,11 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
    * page embedding this in an iframe can drive it purely
    * through postMessage.  The canvas-only view keeps the
    * FPS counter and the loading overlay. */
-  var embedMode = urlParams.get('embed') === '1';
+  /* Any presence of ?embed (with or without a value, except
+   * explicit =0 / =false) turns on embed mode. */
+  var embedMode = urlParams.has('embed') &&
+                  urlParams.get('embed') !== '0' &&
+                  urlParams.get('embed') !== 'false';
   if (embedMode) {
     document.documentElement.classList.add('embed');
   }
