@@ -116,16 +116,6 @@ hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
   }
 }
 
-static int
-hb_vector_color_stop_cmp (const void *a, const void *b)
-{
-  const hb_color_stop_t *x = (const hb_color_stop_t *) a;
-  const hb_color_stop_t *y = (const hb_color_stop_t *) b;
-  if (x->offset < y->offset) return -1;
-  if (x->offset > y->offset) return 1;
-  return 0;
-}
-
 static void
 hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
                          hb_vector_t<char> *buf,
@@ -655,7 +645,12 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
+  /* Sort + rescale stops to [0, 1]; shift the gradient axis
+   * by the original (mn, mx) so the visible gradient stays
+   * put.  SVG <stop offset="..."> requires offsets in [0,1];
+   * out-of-range stops would otherwise be silently clamped. */
+  float mn, mx;
+  hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
 
   const char *pfx = paint->id_prefix.arrayZ;
   unsigned pfx_len = paint->id_prefix.length;
@@ -666,19 +661,23 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   float lx0, ly0, lx1, ly1;
   hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2,
 				  &lx0, &ly0, &lx1, &ly1);
+  float gx0 = lx0 + mn * (lx1 - lx0);
+  float gy0 = ly0 + mn * (ly1 - ly0);
+  float gx1 = lx0 + mx * (lx1 - lx0);
+  float gy1 = ly0 + mx * (ly1 - ly0);
 
   hb_buf_append_str (&paint->defs, "<linearGradient id=\"");
   hb_buf_append_len (&paint->defs, pfx, pfx_len);
   hb_buf_append_str (&paint->defs, "gr");
   hb_buf_append_unsigned (&paint->defs, grad_id);
   hb_buf_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" x1=\"");
-  hb_buf_append_num (&paint->defs, lx0, paint->precision);
+  hb_buf_append_num (&paint->defs, gx0, paint->precision);
   hb_buf_append_str (&paint->defs, "\" y1=\"");
-  hb_buf_append_num (&paint->defs, ly0, paint->precision);
+  hb_buf_append_num (&paint->defs, gy0, paint->precision);
   hb_buf_append_str (&paint->defs, "\" x2=\"");
-  hb_buf_append_num (&paint->defs, lx1, paint->precision);
+  hb_buf_append_num (&paint->defs, gx1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" y2=\"");
-  hb_buf_append_num (&paint->defs, ly1, paint->precision);
+  hb_buf_append_num (&paint->defs, gy1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
   hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");
@@ -709,7 +708,17 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
+  float mn, mx;
+  hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+
+  /* Shift centers + radii by (mn, mx) along the gradient axis
+   * to compensate for rescaling stops to [0, 1]. */
+  float gx0 = x0 + mn * (x1 - x0);
+  float gy0 = y0 + mn * (y1 - y0);
+  float gr0 = r0 + mn * (r1 - r0);
+  float gx1 = x0 + mx * (x1 - x0);
+  float gy1 = y0 + mx * (y1 - y0);
+  float gr1 = r0 + mx * (r1 - r0);
 
   const char *pfx = paint->id_prefix.arrayZ;
   unsigned pfx_len = paint->id_prefix.length;
@@ -720,19 +729,19 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "gr");
   hb_buf_append_unsigned (&paint->defs, grad_id);
   hb_buf_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" cx=\"");
-  hb_buf_append_num (&paint->defs, x1, paint->precision);
+  hb_buf_append_num (&paint->defs, gx1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" cy=\"");
-  hb_buf_append_num (&paint->defs, y1, paint->precision);
+  hb_buf_append_num (&paint->defs, gy1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" r=\"");
-  hb_buf_append_num (&paint->defs, r1, paint->precision);
+  hb_buf_append_num (&paint->defs, gr1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" fx=\"");
-  hb_buf_append_num (&paint->defs, x0, paint->precision);
+  hb_buf_append_num (&paint->defs, gx0, paint->precision);
   hb_buf_append_str (&paint->defs, "\" fy=\"");
-  hb_buf_append_num (&paint->defs, y0, paint->precision);
-  if (r0 > 0)
+  hb_buf_append_num (&paint->defs, gy0, paint->precision);
+  if (gr0 > 0)
   {
     hb_buf_append_str (&paint->defs, "\" fr=\"");
-    hb_buf_append_num (&paint->defs, r0, paint->precision);
+    hb_buf_append_num (&paint->defs, gr0, paint->precision);
   }
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
   hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
@@ -764,14 +773,20 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
-  qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_vector_color_stop_cmp);
+  float mn, mx;
+  hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+
+  /* Shift the angle range to compensate for rescaling stops
+   * to [0, 1]. */
+  float ga0 = start_angle + mn * (end_angle - start_angle);
+  float ga1 = start_angle + mx * (end_angle - start_angle);
 
   auto *body = &paint->current_body ();
   unsigned precision = paint->precision;
   float radius = 32767.f;
   hb_sweep_gradient_tiles (stops.arrayZ, stops.length,
 			   hb_color_line_get_extend (color_line),
-			   start_angle, end_angle,
+			   ga0, ga1,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
 			   { hb_vector_svg_add_sweep_patch (body, precision, cx, cy, radius,
 						     a0, hb_vector_svg_rgba_from_hb_color (c0),
