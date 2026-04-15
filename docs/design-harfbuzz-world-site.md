@@ -57,11 +57,13 @@ side by side — not by mixing scripts in one line.
   /raster                     b&w + color raster PPM/PNG
   /vector                     SVG / PDF download, live
   /gpu                        live 3D text, hb-gpu WebGL demo
+  /integration                how to ship HarfBuzz in your project
   /about                      credits, links, license
 ```
 
 Shape, subset, and varfonts are the "why HarfBuzz" pages.
 Raster, vector, gpu are the "how you render" pages.
+Integration is the conversion surface — see below.
 
 ## Visual / brand
 
@@ -194,6 +196,38 @@ at any resolution."
 Embeds the existing `hb-gpu-web` demo.  Text is rendered via
 outline blobs plus a slug shader — no CPU rasterization per
 frame.  FPS counter.
+
+### integration
+
+Not a demo — the "OK I'm convinced, how do I use this?" page.
+This is the site's primary conversion surface (visitor leaves
+knowing where to start).
+
+Content:
+
+- **Package managers** matrix: one-liner install commands for
+  apt, brew, pacman, vcpkg, nix, and friends.
+- **Language bindings** row: C (native), Rust (harfrust),
+  Python (uharfbuzz), JS (wasm via harfbuzz-world), Go, Ruby,
+  etc.
+- **Drop-in single-TU**: compile the one
+  `harfbuzz-world.cc` file into your project — no build
+  system required.  Eat our own dog food: the site itself is
+  built this way.
+- **CMake / Meson snippets** for the "I already have a build
+  system" case.
+- Deep links to `BUILD.md` for the full matrix and to
+  `docs/` for API reference.
+
+Placement (the page is not a tile, so it needs explicit
+findability):
+
+- **Header nav** — always visible: *Demos · Integration · About.*
+- **Homepage after-grid CTA** — below the tile grid: a
+  prominent "Ready to integrate? →" card.
+- **Per-demo cross-link** — every demo's structured
+  explainer already links to the API docs; add a second
+  link, "→ How to integrate this in your project."
 
 ## Presets
 
