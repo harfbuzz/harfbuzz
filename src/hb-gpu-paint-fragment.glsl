@@ -293,47 +293,72 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 
     if (op_type == 0)  /* LAYER_SOLID */
     {
-      /* texel 1 holds RGBA as signed Q15. */
-      ivec4 ct = hb_gpu_fetch (cursor + 1);
+      /* texel 1: (clip2_hi, clip2_lo, 0, 0) -- valid only if HAS_CLIP2.
+       * texel 2: RGBA as signed Q15. */
+      ivec4 op2 = hb_gpu_fetch (cursor + 1);
+      int clip2_payload = (op2.r << 16) | (op2.g & 0xffff);
+      int clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
+      ivec4 ct = hb_gpu_fetch (cursor + 2);
       vec4 col = ((aux & 1) != 0)
 	       ? foreground
 	       : vec4 (ct) / 32767.0;
 
       float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
 					     uint (base + payload));
+      if ((aux & 0x100) != 0)  /* HAS_CLIP2 (HAS_CLIP3 implies it) */
+      {
+        cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					 uint (base + clip2_payload));
+        if ((aux & 0x200) != 0)  /* HAS_CLIP3 */
+          cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					   uint (base + clip3_payload));
+      }
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
-      cursor += 2;
+      cursor += 3;
     }
     else if (op_type == 1)  /* LAYER_GRADIENT */
     {
-      /* texel 1: (grad_payload_hi, grad_payload_lo, extend, stop_count) */
+      /* texel 1: (clip2_hi, clip2_lo, 0, 0) -- valid only if HAS_CLIP2.
+       * texel 2: (grad_payload_hi, grad_payload_lo, extend, stop_count) */
       ivec4 op2 = hb_gpu_fetch (cursor + 1);
-      int grad_payload = (op2.r << 16) | (op2.g & 0xffff);
-      int extend       = op2.b;
-      int stop_count   = op2.a;
+      int clip2_payload = (op2.r << 16) | (op2.g & 0xffff);
+      int clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
+      ivec4 op3 = hb_gpu_fetch (cursor + 2);
+      int grad_payload = (op3.r << 16) | (op3.g & 0xffff);
+      int extend       = op3.b;
+      int stop_count   = op3.a;
+      int subtype      = aux & 0xff;
 
       vec4 col = vec4 (0.0);
-      if (aux == 0)       /* linear */
+      if (subtype == 0)       /* linear */
         col = _hb_gpu_sample_linear (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground);
-      else if (aux == 1)  /* radial */
+      else if (subtype == 1)  /* radial */
         col = _hb_gpu_sample_radial (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground);
-      else if (aux == 2)  /* sweep */
+      else if (subtype == 2)  /* sweep */
         col = _hb_gpu_sample_sweep  (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
       float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
 					     uint (base + payload));
+      if ((aux & 0x100) != 0)  /* HAS_CLIP2 (HAS_CLIP3 implies it) */
+      {
+        cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					 uint (base + clip2_payload));
+        if ((aux & 0x200) != 0)  /* HAS_CLIP3 */
+          cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+					   uint (base + clip3_payload));
+      }
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
-      cursor += 2;
+      cursor += 3;
     }
     else if (op_type == 2)  /* PUSH_GROUP */
     {

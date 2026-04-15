@@ -273,15 +273,22 @@ struct hb_gpu_paint_t
    * which matches HB_GPU_PAINT_GROUP_DEPTH in the fragment shader. */
   unsigned group_depth = 0;
 
-  /* Paint-callback scratch: next color/gradient op consumes these. */
-  bool pending_clip = false;
-  hb_codepoint_t pending_clip_glyph = 0;
-  hb_font_t     *pending_clip_font  = nullptr;  /* borrowed */
-  /* Transform at the time push_clip_glyph was called.  The clip
-   * outline is defined in this (outer) coord space; a subsequent
-   * gradient params callback may run under deeper transforms,
-   * which we use for the gradient but not the clip outline. */
-  hb_transform_t<float> pending_clip_transform = {1, 0, 0, 1, 0, 0};
+  /* Stack of pending clips.  Each color/gradient op consumes the
+   * current state of this stack: the layer is rendered where ALL
+   * stacked clips are opaque (intersection).  Capped at depth
+   * HB_GPU_PAINT_MAX_CLIP_DEPTH; deeper pushes set `unsupported`.
+   * The transform is the one current at push_clip_glyph time --
+   * the clip outline is defined in that coord space, a subsequent
+   * gradient params callback may run under deeper transforms which
+   * we use for the gradient but not the clip outline. */
+  struct pending_clip_t
+  {
+    hb_codepoint_t        glyph;
+    hb_font_t            *font;     /* borrowed */
+    hb_transform_t<float> transform;
+  };
+  pending_clip_t clip_stack[3];
+  unsigned       clip_depth = 0;
 
   /* Set when the paint walk emits v1-only callbacks we do not yet
    * support.  hb_gpu_paint_encode() returns NULL in that case. */

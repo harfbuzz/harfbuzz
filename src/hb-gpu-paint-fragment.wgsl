@@ -261,8 +261,13 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
     let payload = (op.b << 16) | (op.a & 0xffff);
 
     if (op_type == 0) {  // LAYER_SOLID
-      // texel 1 holds RGBA as signed Q15.
-      let ct = hb_gpu_fetch (hb_gpu_atlas, cursor + 1);
+      // texel 1: (clip2_hi, clip2_lo, clip3_hi, clip3_lo) -- valid
+      //          per HAS_CLIP2 / HAS_CLIP3 flag bits.
+      // texel 2: RGBA as signed Q15.
+      let op2 = hb_gpu_fetch (hb_gpu_atlas, cursor + 1);
+      let clip2_payload = (op2.r << 16) | (op2.g & 0xffff);
+      let clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
+      let ct = hb_gpu_fetch (hb_gpu_atlas, cursor + 2);
       var col: vec4f;
       if ((aux & 1) != 0) {
         col = foreground;
@@ -270,42 +275,62 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
         col = vec4f (ct) / 32767.0;
       }
 
-      let cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+      var cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
                                            u32 (base + payload), hb_gpu_atlas);
+      if ((aux & 0x100) != 0) {  // HAS_CLIP2 (HAS_CLIP3 implies it)
+        cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                              u32 (base + clip2_payload), hb_gpu_atlas);
+        if ((aux & 0x200) != 0) {  // HAS_CLIP3
+          cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                                u32 (base + clip3_payload), hb_gpu_atlas);
+        }
+      }
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
-      cursor = cursor + 2;
+      cursor = cursor + 3;
     } else if (op_type == 1) {  // LAYER_GRADIENT
       let op2 = hb_gpu_fetch (hb_gpu_atlas, cursor + 1);
-      let grad_payload = (op2.r << 16) | (op2.g & 0xffff);
-      let extend = op2.b;
-      let stop_count = op2.a;
+      let clip2_payload = (op2.r << 16) | (op2.g & 0xffff);
+      let clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
+      let op3 = hb_gpu_fetch (hb_gpu_atlas, cursor + 2);
+      let grad_payload = (op3.r << 16) | (op3.g & 0xffff);
+      let extend = op3.b;
+      let stop_count = op3.a;
+      let subtype = aux & 0xff;
 
       var col = vec4f (0.0);
-      if (aux == 0) {
+      if (subtype == 0) {
         col = _hb_gpu_sample_linear (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground,
                                      hb_gpu_atlas);
-      } else if (aux == 1) {
+      } else if (subtype == 1) {
         col = _hb_gpu_sample_radial (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground,
                                      hb_gpu_atlas);
-      } else if (aux == 2) {
+      } else if (subtype == 2) {
         col = _hb_gpu_sample_sweep  (renderCoord,
                                      base + grad_payload,
                                      stop_count, extend, foreground,
                                      hb_gpu_atlas);
       }
 
-      let cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+      var cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
                                            u32 (base + payload), hb_gpu_atlas);
+      if ((aux & 0x100) != 0) {  // HAS_CLIP2 (HAS_CLIP3 implies it)
+        cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                              u32 (base + clip2_payload), hb_gpu_atlas);
+        if ((aux & 0x200) != 0) {  // HAS_CLIP3
+          cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                                u32 (base + clip3_payload), hb_gpu_atlas);
+        }
+      }
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
-      cursor = cursor + 2;
+      cursor = cursor + 3;
     } else if (op_type == 2) {  // PUSH_GROUP
       if (sp < HB_GPU_PAINT_GROUP_DEPTH) {
         group_stack[sp] = acc;

@@ -49,6 +49,13 @@ enum {
  * that would render incorrectly. */
 #define HB_GPU_PAINT_MAX_OPS         0x7fff /* num_ops is i16 in the blob header */
 #define HB_GPU_PAINT_MAX_GROUP_DEPTH 4      /* matches HB_GPU_PAINT_GROUP_DEPTH in fragment shader */
+#define HB_GPU_PAINT_MAX_CLIP_DEPTH  3      /* shader can intersect up to 3 clip outlines per layer */
+
+/* Layer-op flag bits (LAYER_SOLID texel 0 .g, LAYER_GRADIENT
+ * texel 0 .g where bits 0-7 hold the gradient subtype). */
+#define HB_GPU_PAINT_FLAG_IS_FOREGROUND  0x0001
+#define HB_GPU_PAINT_FLAG_HAS_CLIP2      0x0100
+#define HB_GPU_PAINT_FLAG_HAS_CLIP3      0x0200
 
 static hb_bool_t
 hb_gpu_paint_custom_palette_color (hb_paint_funcs_t *funcs HB_UNUSED,
@@ -75,12 +82,14 @@ hb_gpu_paint_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
 
-  /* Nested glyph clips: only depth 1 is faithfully stored; deeper
-   * pushes overwrite the outer clip.  TODO: extend to depth 2. */
-  c->pending_clip = true;
-  c->pending_clip_glyph = glyph;
-  c->pending_clip_font  = font;
-  c->pending_clip_transform = c->cur_transform;
+  if (unlikely (c->clip_depth >= HB_GPU_PAINT_MAX_CLIP_DEPTH))
+  {
+    c->unsupported = true;
+    c->clip_depth++;
+    return;
+  }
+  c->clip_stack[c->clip_depth] = { glyph, font, c->cur_transform };
+  c->clip_depth++;
 }
 
 static void
@@ -89,7 +98,7 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
 		       void             *user_data HB_UNUSED)
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
-  c->pending_clip = false;
+  if (likely (c->clip_depth > 0)) c->clip_depth--;
 }
 
 static void
@@ -314,12 +323,13 @@ free_static_gpu_paint_pen_funcs ()
   static_gpu_paint_pen_funcs.free_instance ();
 }
 
-/* Rasterize the pending clip glyph's outline into a new sub-blob
- * and accumulate its extents.  Returns the sub_blob index (>= 0)
- * on success, or -1 if the outline is empty / the layer should be
+/* Rasterize @clip's glyph outline into a new sub-blob and
+ * accumulate its extents.  Returns the sub_blob index (>= 0) on
+ * success, or -1 if the outline is empty / the layer should be
  * skipped.  Sets c->unsupported on hard failure. */
 static int
-emit_clip_sub_blob (hb_gpu_paint_t *c)
+emit_clip_sub_blob (hb_gpu_paint_t *c,
+		    const hb_gpu_paint_t::pending_clip_t &clip)
 {
   if (unlikely (!c->scratch_draw))
   {
@@ -333,12 +343,11 @@ emit_clip_sub_blob (hb_gpu_paint_t *c)
   hb_gpu_draw_clear (c->scratch_draw);
 
   bool ok;
-  if (c->pending_clip_transform.is_identity ())
+  if (clip.transform.is_identity ())
   {
     /* Fast path: feed the glyph outline straight into the draw
      * encoder with no adapter. */
-    ok = hb_gpu_draw_glyph (c->scratch_draw, c->pending_clip_font,
-			    c->pending_clip_glyph);
+    ok = hb_gpu_draw_glyph (c->scratch_draw, clip.font, clip.glyph);
   }
   else
   {
@@ -347,16 +356,15 @@ emit_clip_sub_blob (hb_gpu_paint_t *c)
      * cur_transform, which may have additional PaintTransform
      * wrappers from the paint child underneath. */
     int x_scale, y_scale;
-    hb_font_get_scale (c->pending_clip_font, &x_scale, &y_scale);
+    hb_font_get_scale (clip.font, &x_scale, &y_scale);
     hb_gpu_draw_set_scale (c->scratch_draw, x_scale, y_scale);
 
     hb_gpu_paint_pen_t pen = {};
-    pen.transform = c->pending_clip_transform;
+    pen.transform = clip.transform;
     pen.dfuncs    = hb_gpu_draw_get_funcs ();
     pen.data      = c->scratch_draw;
     pen.down_st   = HB_DRAW_STATE_DEFAULT;
-    ok = hb_font_draw_glyph_or_fail (c->pending_clip_font,
-				     c->pending_clip_glyph,
+    ok = hb_font_draw_glyph_or_fail (clip.font, clip.glyph,
 				     static_gpu_paint_pen_funcs.get_unconst (),
 				     &pen);
     /* Close any trailing open path on the downstream state, since
@@ -389,12 +397,54 @@ emit_clip_sub_blob (hb_gpu_paint_t *c)
   return (int) (c->sub_blobs.length - 1);
 }
 
+/* Emit a sub-blob for every clip currently on the stack and return
+ * their indices in @out (set to -1 for unused slots).  Returns
+ * false if any clip's outline is empty (caller should skip the
+ * layer entirely) or hb_gpu_draw_encode failed. */
+static bool
+emit_all_clip_sub_blobs (hb_gpu_paint_t *c, int out[HB_GPU_PAINT_MAX_CLIP_DEPTH])
+{
+  for (unsigned i = 0; i < HB_GPU_PAINT_MAX_CLIP_DEPTH; i++)
+    out[i] = -1;
+  for (unsigned i = 0; i < c->clip_depth; i++)
+  {
+    out[i] = emit_clip_sub_blob (c, c->clip_stack[i]);
+    if (out[i] < 0)
+      return false;
+  }
+  return true;
+}
+
+/* Emit a 3-texel LAYER_GRADIENT op header (excluding the
+ * gradient-meta texel which the caller fills in).  @subtype is
+ * 0 = linear, 1 = radial, 2 = sweep. */
+static int16_t *
+emit_gradient_op_header (hb_gpu_paint_t *c, unsigned subtype,
+			 const int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH])
+{
+  if (unlikely (!c->ops.resize (c->ops.length + 12)))
+  { c->unsupported = true; return nullptr; }
+  int16_t *o = &c->ops.arrayZ[c->ops.length - 12];
+  int16_t flags = (int16_t) subtype;
+  if (clip_idx[1] >= 0) flags |= HB_GPU_PAINT_FLAG_HAS_CLIP2;
+  if (clip_idx[2] >= 0) flags |= HB_GPU_PAINT_FLAG_HAS_CLIP3;
+  o[0] = HB_GPU_PAINT_OP_LAYER_GRADIENT;
+  o[1] = flags;
+  o[2] = (int16_t) ((clip_idx[0] >> 16) & 0xffff);
+  o[3] = (int16_t) (clip_idx[0] & 0xffff);
+  o[4] = clip_idx[1] >= 0 ? (int16_t) ((clip_idx[1] >> 16) & 0xffff) : 0;
+  o[5] = clip_idx[1] >= 0 ? (int16_t) (clip_idx[1] & 0xffff) : 0;
+  o[6] = clip_idx[2] >= 0 ? (int16_t) ((clip_idx[2] >> 16) & 0xffff) : 0;
+  o[7] = clip_idx[2] >= 0 ? (int16_t) (clip_idx[2] & 0xffff) : 0;
+  return o + 8;  /* texel 2: gradient meta -- caller fills */
+}
+
 static void
 hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
 			 hb_bool_t       is_foreground,
 			 hb_color_t      color)
 {
-  if (unlikely (!c->pending_clip))
+  if (unlikely (c->clip_depth == 0))
     return;
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
@@ -402,28 +452,37 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
     return;
   }
 
-  int clip_idx = emit_clip_sub_blob (c);
-  if (clip_idx < 0)
+  int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH];
+  if (!emit_all_clip_sub_blobs (c, clip_idx))
     return;
 
-  /* Emit LAYER_SOLID op: 2 texels (8 int16s).
-   *   texel 0: op_type, flags, payload_hi, payload_lo
-   *   texel 1: r_q15, g_q15, b_q15, a_q15
-   * Payload holds the sub_blob index; hb_gpu_paint_encode()
-   * patches it into a texel offset at serialize time.
+  /* Emit LAYER_SOLID op: 3 texels (12 int16s).
+   *   texel 0: op_type, flags, clip1_hi, clip1_lo
+   *   texel 1: clip2_hi, clip2_lo, 0, 0  (only meaningful if HAS_CLIP2)
+   *   texel 2: r_q15, g_q15, b_q15, a_q15
+   * Payloads hold sub_blob indices; hb_gpu_paint_encode() patches
+   * them into texel offsets at serialize time.
    * flags bit 0: use shader foreground uniform instead of the
-   * baked color (so runtime foreground-color changes still work). */
-  if (unlikely (!c->ops.resize (c->ops.length + 8)))
+   * baked color (so runtime foreground-color changes still work).
+   * flags bit 8: a second clip outline is present in texel 1. */
+  if (unlikely (!c->ops.resize (c->ops.length + 12)))
   {
     c->unsupported = true;
     return;
   }
-  int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
+  int16_t *o = &c->ops.arrayZ[c->ops.length - 12];
+  int16_t flags = (int16_t) (is_foreground ? HB_GPU_PAINT_FLAG_IS_FOREGROUND : 0);
+  if (clip_idx[1] >= 0) flags |= HB_GPU_PAINT_FLAG_HAS_CLIP2;
+  if (clip_idx[2] >= 0) flags |= HB_GPU_PAINT_FLAG_HAS_CLIP3;
   o[0] = HB_GPU_PAINT_OP_LAYER_SOLID;
-  o[1] = (int16_t) (is_foreground ? 1 : 0);
-  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
-  o[3] = (int16_t) (clip_idx & 0xffff);
-  color_to_q15_rgba (color, o + 4);
+  o[1] = flags;
+  o[2] = (int16_t) ((clip_idx[0] >> 16) & 0xffff);
+  o[3] = (int16_t) (clip_idx[0] & 0xffff);
+  o[4] = clip_idx[1] >= 0 ? (int16_t) ((clip_idx[1] >> 16) & 0xffff) : 0;
+  o[5] = clip_idx[1] >= 0 ? (int16_t) (clip_idx[1] & 0xffff) : 0;
+  o[6] = clip_idx[2] >= 0 ? (int16_t) ((clip_idx[2] >> 16) & 0xffff) : 0;
+  o[7] = clip_idx[2] >= 0 ? (int16_t) (clip_idx[2] & 0xffff) : 0;
+  color_to_q15_rgba (color, o + 8);
   c->num_ops++;
 }
 
@@ -522,7 +581,7 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
 			  float x1, float y1,
 			  float x2, float y2)
 {
-  if (unlikely (!c->pending_clip))
+  if (unlikely (c->clip_depth == 0))
     return;
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
@@ -548,9 +607,9 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  /* Emit clip sub-blob first. */
-  int clip_idx = emit_clip_sub_blob (c);
-  if (clip_idx < 0) { hb_free (heap_stops); return; }
+  /* Emit clip sub-blob(s) first. */
+  int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH];
+  if (!emit_all_clip_sub_blobs (c, clip_idx)) { hb_free (heap_stops); return; }
 
   /* Build gradient params sub-blob.
    *   texel 0: (p0_rendered_x, p0_rendered_y, d_canonical_x, d_canonical_y)
@@ -603,21 +662,12 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   }
   unsigned grad_idx = c->sub_blobs.length - 1;
 
-  /* Emit LAYER_GRADIENT op: 2 texels.
-   *   texel 0: (op_type, subtype, clip_payload_hi, clip_payload_lo)
-   *   texel 1: (grad_payload_hi, grad_payload_lo, extend_mode, stop_count)
-   */
-  if (unlikely (!c->ops.resize (c->ops.length + 8)))
-  { c->unsupported = true; return; }
-  int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
-  o[0] = HB_GPU_PAINT_OP_LAYER_GRADIENT;
-  o[1] = 0;  /* subtype: 0 = linear */
-  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
-  o[3] = (int16_t) (clip_idx & 0xffff);
-  o[4] = (int16_t) ((grad_idx >> 16) & 0xffff);
-  o[5] = (int16_t) (grad_idx & 0xffff);
-  o[6] = (int16_t) extend;
-  o[7] = (int16_t) got;
+  int16_t *meta = emit_gradient_op_header (c, 0 /* linear */, clip_idx);
+  if (unlikely (!meta)) return;
+  meta[0] = (int16_t) ((grad_idx >> 16) & 0xffff);
+  meta[1] = (int16_t) (grad_idx & 0xffff);
+  meta[2] = (int16_t) extend;
+  meta[3] = (int16_t) got;
   c->num_ops++;
 }
 
@@ -627,7 +677,7 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
 			  float x0, float y0, float r0,
 			  float x1, float y1, float r1)
 {
-  if (unlikely (!c->pending_clip))
+  if (unlikely (c->clip_depth == 0))
     return;
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
@@ -652,8 +702,8 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  int clip_idx = emit_clip_sub_blob (c);
-  if (clip_idx < 0) { hb_free (heap_stops); return; }
+  int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH];
+  if (!emit_all_clip_sub_blobs (c, clip_idx)) { hb_free (heap_stops); return; }
 
   /* Build gradient params sub-blob.
    *   texel 0: (c0_rendered_x, c0_rendered_y, d_canonical_x, d_canonical_y)
@@ -709,17 +759,12 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   }
   unsigned grad_idx = c->sub_blobs.length - 1;
 
-  if (unlikely (!c->ops.resize (c->ops.length + 8)))
-  { c->unsupported = true; return; }
-  int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
-  o[0] = HB_GPU_PAINT_OP_LAYER_GRADIENT;
-  o[1] = 1;  /* subtype: 1 = radial */
-  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
-  o[3] = (int16_t) (clip_idx & 0xffff);
-  o[4] = (int16_t) ((grad_idx >> 16) & 0xffff);
-  o[5] = (int16_t) (grad_idx & 0xffff);
-  o[6] = (int16_t) extend;
-  o[7] = (int16_t) got;
+  int16_t *meta = emit_gradient_op_header (c, 1 /* radial */, clip_idx);
+  if (unlikely (!meta)) return;
+  meta[0] = (int16_t) ((grad_idx >> 16) & 0xffff);
+  meta[1] = (int16_t) (grad_idx & 0xffff);
+  meta[2] = (int16_t) extend;
+  meta[3] = (int16_t) got;
   c->num_ops++;
 }
 
@@ -764,7 +809,7 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
 			 float cx, float cy,
 			 float start_angle, float end_angle)
 {
-  if (unlikely (!c->pending_clip))
+  if (unlikely (c->clip_depth == 0))
     return;
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
@@ -789,8 +834,8 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  int clip_idx = emit_clip_sub_blob (c);
-  if (clip_idx < 0) { hb_free (heap_stops); return; }
+  int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH];
+  if (!emit_all_clip_sub_blobs (c, clip_idx)) { hb_free (heap_stops); return; }
 
   /* Build gradient params sub-blob.
    *   texel 0: (center_rendered_x, center_rendered_y,
@@ -848,17 +893,12 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
   }
   unsigned grad_idx = c->sub_blobs.length - 1;
 
-  if (unlikely (!c->ops.resize (c->ops.length + 8)))
-  { c->unsupported = true; return; }
-  int16_t *o = &c->ops.arrayZ[c->ops.length - 8];
-  o[0] = HB_GPU_PAINT_OP_LAYER_GRADIENT;
-  o[1] = 2;  /* subtype: 2 = sweep */
-  o[2] = (int16_t) ((clip_idx >> 16) & 0xffff);
-  o[3] = (int16_t) (clip_idx & 0xffff);
-  o[4] = (int16_t) ((grad_idx >> 16) & 0xffff);
-  o[5] = (int16_t) (grad_idx & 0xffff);
-  o[6] = (int16_t) extend;
-  o[7] = (int16_t) got;
+  int16_t *meta = emit_gradient_op_header (c, 2 /* sweep */, clip_idx);
+  if (unlikely (!meta)) return;
+  meta[0] = (int16_t) ((grad_idx >> 16) & 0xffff);
+  meta[1] = (int16_t) (grad_idx & 0xffff);
+  meta[2] = (int16_t) extend;
+  meta[3] = (int16_t) got;
   c->num_ops++;
 }
 
@@ -1325,25 +1365,24 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
     switch (op_type)
     {
       case HB_GPU_PAINT_OP_LAYER_SOLID:
-      {
-	unsigned idx = ((uint16_t) ops_out[i + 2] << 16)
-		     |  (uint16_t) ops_out[i + 3];
-	if (idx < sub_offsets_count)
-	{
-	  unsigned off = sub_offsets[idx];
-	  ops_out[i + 2] = (int16_t) ((off >> 16) & 0xffff);
-	  ops_out[i + 3] = (int16_t) (off & 0xffff);
-	}
-	i += 8;  /* 2 texels */
-	break;
-      }
       case HB_GPU_PAINT_OP_LAYER_GRADIENT:
       {
-	/* Two sub-blob references: clip at [i+2,i+3], gradient
-	 * params at [i+4,i+5]. */
-	for (unsigned slot = 0; slot < 2; slot++)
+	int16_t flags = ops_out[i + 1];
+	/* Sub-blob slots in i16 offsets within the op:
+	 *   clip1: [i+2, i+3]                     -- always present
+	 *   clip2: [i+4, i+5]                     -- only if HAS_CLIP2
+	 *   clip3: [i+6, i+7]                     -- only if HAS_CLIP3
+	 *   grad : [i+8, i+9]  (LAYER_GRADIENT only) */
+	unsigned slots[4] = {
+	  2,
+	  (flags & HB_GPU_PAINT_FLAG_HAS_CLIP2) ? 4u : 0u,
+	  (flags & HB_GPU_PAINT_FLAG_HAS_CLIP3) ? 6u : 0u,
+	  op_type == HB_GPU_PAINT_OP_LAYER_GRADIENT ? 8u : 0u
+	};
+	for (unsigned k = 0; k < 4; k++)
 	{
-	  unsigned p = i + 2 + slot * 2;
+	  if (!slots[k]) continue;
+	  unsigned p = i + slots[k];
 	  unsigned idx = ((uint16_t) ops_out[p] << 16)
 		       |  (uint16_t) ops_out[p + 1];
 	  if (idx < sub_offsets_count)
@@ -1353,7 +1392,7 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 	    ops_out[p + 1] = (int16_t) (off & 0xffff);
 	  }
 	}
-	i += 8;  /* 2 texels */
+	i += 12;  /* 3 texels */
 	break;
       }
       case HB_GPU_PAINT_OP_PUSH_GROUP:
@@ -1407,7 +1446,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
   for (hb_blob_t *b : paint->sub_blobs)
     hb_blob_destroy (b);
   paint->sub_blobs.resize (0);
-  paint->pending_clip = false;
+  paint->clip_depth = 0;
   paint->unsupported = false;
   paint->cur_transform = {1, 0, 0, 1, 0, 0};
   paint->transform_stack.resize (0);

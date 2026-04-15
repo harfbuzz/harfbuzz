@@ -24,8 +24,8 @@ Overview of changes leading to NEXT (REPLACEME)
     * a paint tree calls back through `image` (PaintImage isn't
       representable by the slug+gradient encoder).
   Other partial-coverage features:
-    * Nested glyph clips: only the innermost clip is faithfully
-      stored; deeper pushes silently override the outer clip.
+    * Nested glyph clips: up to 3 levels are intersected exactly;
+      deeper nests set `unsupported`.
     * Composite modes OVERLAY / COLOR_BURN / HARD_LIGHT are
       approximated as MULTIPLY; COLOR_DODGE / SOFT_LIGHT as SCREEN;
       DIFFERENCE / EXCLUSION / HSL_HUE..HSL_LUMINOSITY fall through
