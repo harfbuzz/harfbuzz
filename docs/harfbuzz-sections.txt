@@ -239,6 +239,9 @@ hb_draw_line_to
 hb_draw_quadratic_to
 hb_draw_cubic_to
 hb_draw_close_path
+hb_draw_line
+hb_draw_rect
+hb_draw_circle
 HB_DRAW_STATE_DEFAULT
 hb_draw_funcs_t
 hb_draw_state_t

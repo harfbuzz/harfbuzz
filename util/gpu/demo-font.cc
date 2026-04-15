@@ -144,7 +144,9 @@ _demo_font_upload_glyph (demo_font_t  *font,
 	float y = (float) (g.y_bearing + g.height) - half;  /* min_y */
 	float w = (float) g.width + sw;
 	float h = (float) -g.height + sw;                   /* positive */
-	hb_gpu_draw_rect (font->d, x, y, w, h, sw);
+	hb_draw_funcs_t *dfuncs = hb_gpu_draw_get_funcs ();
+	hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+	hb_draw_rect (dfuncs, font->d, &st, x, y, w, h, sw);
       }
     }
     blob = hb_gpu_draw_encode (font->d, &hb_ext);

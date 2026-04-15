@@ -526,10 +526,13 @@ test_shapes (void)
    * the encoder's representable range. */
   hb_gpu_draw_set_scale (draw, 1000, 1000);
 
+  hb_draw_funcs_t *dfuncs = hb_gpu_draw_get_funcs ();
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
   /* Tapered line. */
-  hb_gpu_draw_line (draw,
-		    10.f, 10.f, 4.f,
-		    50.f, 30.f, 2.f);
+  hb_draw_line (dfuncs, draw, &st,
+		10.f, 10.f, 4.f,
+		50.f, 30.f, 2.f);
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
@@ -538,16 +541,17 @@ test_shapes (void)
   hb_blob_destroy (blob);
 
   /* Degenerate line (zero length) is silently a no-op. */
-  hb_gpu_draw_line (draw,
-		    10.f, 10.f, 3.f,
-		    10.f, 10.f, 3.f);
+  hb_draw_line (dfuncs, draw, &st,
+		10.f, 10.f, 3.f,
+		10.f, 10.f, 3.f);
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
   hb_blob_destroy (blob);
 
   /* Filled rect (stroke_width = NaN). */
-  hb_gpu_draw_rect (draw, 0.f, 0.f, 20.f, 10.f,
-		    (float) std::nan (""));
+  hb_draw_rect (dfuncs, draw, &st,
+		0.f, 0.f, 20.f, 10.f,
+		(float) std::nan (""));
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
   g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
@@ -556,7 +560,8 @@ test_shapes (void)
 
   /* Stroked rect: outer edge extends stroke_width/2 beyond the
    * nominal rect on each side. */
-  hb_gpu_draw_rect (draw, 0.f, 0.f, 20.f, 10.f, 2.f);
+  hb_draw_rect (dfuncs, draw, &st,
+		0.f, 0.f, 20.f, 10.f, 2.f);
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
   g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
@@ -564,15 +569,17 @@ test_shapes (void)
   hb_blob_destroy (blob);
 
   /* Filled circle. */
-  hb_gpu_draw_circle (draw, 50.f, 50.f, 25.f,
-		      (float) std::nan (""));
+  hb_draw_circle (dfuncs, draw, &st,
+		  50.f, 50.f, 25.f,
+		  (float) std::nan (""));
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
   g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
   hb_blob_destroy (blob);
 
   /* Stroked circle. */
-  hb_gpu_draw_circle (draw, 50.f, 50.f, 25.f, 2.f);
+  hb_draw_circle (dfuncs, draw, &st,
+		  50.f, 50.f, 25.f, 2.f);
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
   g_assert_cmpuint (hb_blob_get_length (blob), >, 0);

@@ -127,22 +127,13 @@ hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
 		   hb_font_t      *font,
 		   hb_codepoint_t  glyph);
 
-/* Shape helpers.
- *
- * These build simple stroked / filled primitives into the draw
- * encoder using the same coordinate space as glyph outlines (set
- * via hb_gpu_draw_set_scale).  The resulting blob is produced by
- * hb_gpu_draw_encode() like any other shape.
- *
- * For shapes beyond these helpers, callers can feed arbitrary
- * outlines straight into the draw encoder: call
- * hb_draw_move_to() / hb_draw_line_to() / hb_draw_quadratic_to()
- * / hb_draw_cubic_to() / hb_draw_close_path() with the funcs
- * from hb_gpu_draw_get_funcs() and the hb_gpu_draw_t as data.
- *
- * For rect / circle the @stroke_width parameter selects between
- * filled and stroked: a positive finite value is the stroke width
- * of the outline; NaN means "filled" (no stroke).
+/* For arbitrary shapes beyond a single glyph, callers feed
+ * outlines straight into the draw encoder via hb_draw_move_to()
+ * / hb_draw_line_to() / hb_draw_quadratic_to() /
+ * hb_draw_cubic_to() / hb_draw_close_path() with the funcs from
+ * hb_gpu_draw_get_funcs() and the hb_gpu_draw_t as data.  The
+ * helpers hb_draw_line() / hb_draw_rect() / hb_draw_circle()
+ * cover common primitives (tapered lines, rectangles, circles).
  *
  * Coordinate system: the blob format quantizes coordinates to
  * 16 bits with a fixed scale of 4 units per coordinate step,
@@ -160,23 +151,6 @@ hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
  * quantizes to zero and vanishes.  Scale the rendered quad /
  * vertex transform externally to reach larger on-screen sizes.
  */
-
-HB_EXTERN void
-hb_gpu_draw_line (hb_gpu_draw_t *draw,
-		  float x0, float y0, float w0,
-		  float x1, float y1, float w1);
-
-HB_EXTERN void
-hb_gpu_draw_rect (hb_gpu_draw_t *draw,
-		  float x, float y,
-		  float w, float h,
-		  float stroke_width);
-
-HB_EXTERN void
-hb_gpu_draw_circle (hb_gpu_draw_t *draw,
-		    float cx, float cy,
-		    float r,
-		    float stroke_width);
 
 
 /* Encode */
