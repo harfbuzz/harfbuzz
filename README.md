@@ -55,7 +55,9 @@ Skrifa.
 For simplified builds, amalgamated sources are available:
 `harfbuzz.cc` (just libharfbuzz), `harfbuzz-subset.cc` (just
 libharfbuzz-subset), or `harfbuzz-world.cc` (everything, driven
-by a custom `hb-features.h`).
+by a custom `hb-features.h`).  For a live in-browser playground
+plus a worked example of the world.cc single-file build, see
+[harfbuzz-world.cc][26].
 
 ### Command-line tools
 
@@ -213,3 +215,4 @@ car displays, and many other places.
 [23]: https://docs.google.com/document/d/1hRd5oYQJLrt0JuwWhEJWi7wh_9rbaIJkX6IR9DW7rZQ/preview
 [24]: https://docs.google.com/document/d/1a3K6fHjsiWW36vSzwJwCwEBOgznunKs80PSpBbpfHiA/preview
 [25]: https://docs.google.com/presentation/d/1o9Exz1c-Lr-dJjA8dcBn_Vl_Y37cupmFzmclMjBE_Bc/view
+[26]: https://harfbuzz-world.cc/

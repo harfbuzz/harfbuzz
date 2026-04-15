@@ -58,3 +58,10 @@ For example, the `hb-shape` tool can be built simply as:
 
 See `CONFIG.md` for ideas on how to shrink the feature set of your custom built
 HarfBuzz library.
+
+For an everything-included amalgamation that wires up the optional subsystems
+(subset, raster, vector, gpu, etc.) behind `HB_HAS_*` flags, use
+`src/harfbuzz-world.cc`.  A live in-browser playground that builds against
+exactly that file lives at <https://harfbuzz-world.cc/> — its
+[source](https://github.com/harfbuzz/harfbuzz-world.cc) is a worked example
+of dropping HarfBuzz into a project with no build-system glue.
