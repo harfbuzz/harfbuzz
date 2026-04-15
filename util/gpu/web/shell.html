@@ -146,6 +146,19 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
+  /* When embedded in an iframe, script executes before the
+   * iframe has done layout, so clientWidth/clientHeight
+   * are 0 and resizeCanvas() above installs a 0x0 GL
+   * backbuffer.  A plain 'resize' window event never fires
+   * just because the iframe sized itself, so watch the
+   * canvas with ResizeObserver and pick up its first real
+   * size whenever it appears. */
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(function () {
+      resizeCanvas();
+      requestRedraw();
+    }).observe(canvas);
+  }
   window.addEventListener('focus', handleResume);
   window.addEventListener('pageshow', handleResume);
   document.addEventListener('visibilitychange', function () {
