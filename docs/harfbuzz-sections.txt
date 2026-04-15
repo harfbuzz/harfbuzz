@@ -1088,8 +1088,8 @@ hb_vector_draw_get_funcs
 hb_vector_draw_glyph
 hb_vector_draw_set_precision
 hb_vector_draw_get_precision
-hb_vector_draw_svg_set_prefix
-hb_vector_draw_svg_get_prefix
+hb_vector_draw_set_svg_prefix
+hb_vector_draw_get_svg_prefix
 hb_vector_draw_render
 hb_vector_draw_clear
 hb_vector_draw_reset
@@ -1117,8 +1117,8 @@ hb_vector_paint_get_funcs
 hb_vector_paint_glyph
 hb_vector_paint_set_precision
 hb_vector_paint_get_precision
-hb_vector_paint_svg_set_prefix
-hb_vector_paint_svg_get_prefix
+hb_vector_paint_set_svg_prefix
+hb_vector_paint_get_svg_prefix
 hb_vector_paint_render
 hb_vector_paint_clear
 hb_vector_paint_reset

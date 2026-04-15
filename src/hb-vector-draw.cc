@@ -635,7 +635,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 }
 
 /**
- * hb_vector_draw_svg_set_prefix:
+ * hb_vector_draw_set_svg_prefix:
  * @draw: a draw context.
  * @prefix: a null-terminated ASCII string to prepend to every emitted
  *          SVG `id` and `url(#...)` reference, or `NULL` for none.
@@ -650,7 +650,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
  * XSince: REPLACEME
  */
 void
-hb_vector_draw_svg_set_prefix (hb_vector_draw_t *draw,
+hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
                                const char *prefix)
 {
   draw->id_prefix.resize (0);
@@ -659,7 +659,7 @@ hb_vector_draw_svg_set_prefix (hb_vector_draw_t *draw,
 }
 
 /**
- * hb_vector_draw_svg_get_prefix:
+ * hb_vector_draw_get_svg_prefix:
  * @draw: a draw context.
  *
  * Returns the SVG id prefix previously set on @draw, or `""` if
@@ -670,7 +670,7 @@ hb_vector_draw_svg_set_prefix (hb_vector_draw_t *draw,
  * XSince: REPLACEME
  */
 const char *
-hb_vector_draw_svg_get_prefix (const hb_vector_draw_t *draw)
+hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw)
 {
   if (!draw->id_prefix.length) return "";
   const_cast<hb_vector_t<char> &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);

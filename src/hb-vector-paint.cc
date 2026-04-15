@@ -1452,7 +1452,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 }
 
 /**
- * hb_vector_paint_svg_set_prefix:
+ * hb_vector_paint_set_svg_prefix:
  * @paint: a paint context.
  * @prefix: a null-terminated ASCII string to prepend to every emitted
  *          SVG `id` and `url(#...)` reference, or `NULL` for none.
@@ -1468,7 +1468,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
  * XSince: REPLACEME
  */
 void
-hb_vector_paint_svg_set_prefix (hb_vector_paint_t *paint,
+hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
                                 const char *prefix)
 {
   paint->id_prefix.resize (0);
@@ -1477,12 +1477,12 @@ hb_vector_paint_svg_set_prefix (hb_vector_paint_t *paint,
 }
 
 /**
- * hb_vector_paint_svg_get_prefix:
+ * hb_vector_paint_get_svg_prefix:
  * @paint: a paint context.
  *
  * Returns the SVG id prefix previously set on @paint, or `""` if
  * none was set.  The pointer remains valid until the next call to
- * hb_vector_paint_svg_set_prefix() or hb_vector_paint_reset() on the
+ * hb_vector_paint_set_svg_prefix() or hb_vector_paint_reset() on the
  * same context.
  *
  * Return value: the SVG id prefix.
@@ -1490,7 +1490,7 @@ hb_vector_paint_svg_set_prefix (hb_vector_paint_t *paint,
  * XSince: REPLACEME
  */
 const char *
-hb_vector_paint_svg_get_prefix (const hb_vector_paint_t *paint)
+hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
 {
   if (!paint->id_prefix.length) return "";
   /* id_prefix is appended via hb_buf_append_str which does NOT

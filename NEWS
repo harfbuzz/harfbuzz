@@ -33,6 +33,13 @@ Overview of changes leading to NEXT (REPLACEME)
     can be embedded directly in PDF documents -- useful for PDF
     producers such as LibreOffice that want crisp, resolution-
     independent color emoji.
+  * New per-render SVG id prefix API
+    (hb_vector_{draw,paint}_set_svg_prefix): callers that
+    embed several hb-vector-produced SVGs in the same
+    document can namespace each one's emitted ids
+    (clipPaths, gradients, color-glyph cache) so url(#...)
+    refs across snippets no longer resolve to the wrong
+    target.
   * Drop glyph-source rendering of SVG-in-OT fonts.
 
 - Raster library:
@@ -90,11 +97,15 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_vector_draw_clear()
   +hb_vector_draw_get_flat()
   +hb_vector_draw_get_precision()
+  +hb_vector_draw_set_svg_prefix()
+  +hb_vector_draw_get_svg_prefix()
   +hb_vector_paint_clear()
   +hb_vector_paint_get_flat()
   +hb_vector_paint_get_precision()
   +hb_vector_paint_get_foreground()
   +hb_vector_paint_get_palette()
+  +hb_vector_paint_set_svg_prefix()
+  +hb_vector_paint_get_svg_prefix()
 
 - Removed API, GPU library:
   -hb_gpu_shader_fragment_source()   (replaced by hb_gpu_shader_source(stage))
