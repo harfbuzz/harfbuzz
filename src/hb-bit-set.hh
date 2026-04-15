@@ -117,11 +117,9 @@ struct hb_bit_set_t
 
   void clear ()
   {
-    /* Always zero length and population, even when in error state,
-     * so a stale set can't leak pages into a subsequent reuse. */
-    pages.clear ();
-    page_map.clear ();
-    population = 0;
+    resize (0);
+    if (likely (successful))
+      population = 0;
   }
   bool is_empty () const
   {
