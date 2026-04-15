@@ -28,6 +28,7 @@
 
 #include "hb-raster-paint.hh"
 #include "hb-machinery.hh"
+#include "hb-paint.hh"
 
 #include <math.h>
 
@@ -1038,30 +1039,6 @@ lookup_gradient_lut (const uint32_t *lut,
   return lut[idx];
 }
 
-static void
-reduce_anchors (float x0, float y0,
-		float x1, float y1,
-		float x2, float y2,
-		float *xx0, float *yy0,
-		float *xx1, float *yy1)
-{
-  float q2x = x2 - x0, q2y = y2 - y0;
-  float q1x = x1 - x0, q1y = y1 - y0;
-  float s = q2x * q2x + q2y * q2y;
-  if (s < 0.000001f)
-  {
-    *xx0 = x0; *yy0 = y0;
-    *xx1 = x1; *yy1 = y1;
-    return;
-  }
-  float k = (q2x * q1x + q2y * q1y) / s;
-  *xx0 = x0;
-  *yy0 = y0;
-  *xx1 = x1 - k * q2x;
-  *yy1 = y1 - k * q2y;
-}
-
-
 /*
  * Gradient paint callbacks
  */
@@ -1102,7 +1079,8 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   /* Reduce 3-point anchor to 2-point gradient axis */
   float lx0, ly0, lx1, ly1;
-  reduce_anchors (x0, y0, x1, y1, x2, y2, &lx0, &ly0, &lx1, &ly1);
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2,
+				  &lx0, &ly0, &lx1, &ly1);
 
   /* Apply normalization to endpoints */
   float gx0 = lx0 + mn * (lx1 - lx0);

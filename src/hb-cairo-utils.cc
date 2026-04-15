@@ -200,37 +200,6 @@ _hb_cairo_paint_glyph_image (hb_cairo_context_t *c,
 }
 
 static void
-_hb_cairo_reduce_anchors (float x0, float y0,
-			  float x1, float y1,
-			  float x2, float y2,
-			  float *xx0, float *yy0,
-			  float *xx1, float *yy1)
-{
-  float q1x, q1y, q2x, q2y;
-  float s;
-  float k;
-
-  q2x = x2 - x0;
-  q2y = y2 - y0;
-  q1x = x1 - x0;
-  q1y = y1 - y0;
-
-  s = q2x * q2x + q2y * q2y;
-  if (s < 0.000001f)
-    {
-      *xx0 = x0; *yy0 = y0;
-      *xx1 = x1; *yy1 = y1;
-      return;
-    }
-
-  k = (q2x * q1x + q2y * q1y) / s;
-  *xx0 = x0;
-  *yy0 = y0;
-  *xx1 = x1 - k * q2x;
-  *yy1 = y1 - k * q2y;
-}
-
-static void
 _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
 				unsigned int len,
 				float *omin,
@@ -326,7 +295,7 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
     return;
   _hb_cairo_normalize_color_line (stops, len, &min, &max);
 
-  _hb_cairo_reduce_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
 
   xxx0 = xx0 + min * (xx1 - xx0);
   yyy0 = yy0 + min * (yy1 - yy0);
