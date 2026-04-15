@@ -78,7 +78,6 @@
 #define HB_NO_OT_FONT_GLYPH_NAMES
 #define HB_NO_SETLOCALE
 #define HB_NO_STYLE
-#define HB_NO_SUBSET_LAYOUT
 #define HB_NO_VERTICAL
 #define HB_NO_VAR
 
