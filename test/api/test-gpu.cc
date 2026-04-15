@@ -532,7 +532,8 @@ test_shapes (void)
   /* Tapered line. */
   hb_draw_line (dfuncs, draw, &st,
 		10.f, 10.f, 4.f,
-		50.f, 30.f, 2.f);
+		50.f, 30.f, 2.f,
+		HB_DRAW_LINE_CAP_BUTT);
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);
@@ -543,9 +544,24 @@ test_shapes (void)
   /* Degenerate line (zero length) is silently a no-op. */
   hb_draw_line (dfuncs, draw, &st,
 		10.f, 10.f, 3.f,
-		10.f, 10.f, 3.f);
+		10.f, 10.f, 3.f,
+		HB_DRAW_LINE_CAP_BUTT);
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
+
+  /* NaN second width defaults to first; square cap extends each
+   * end by half the stroke width along the line direction.
+   * Horizontal line of length 40, stroke width 4: with butt
+   * caps the bbox width would be 40, with square caps it's
+   * 40 + 4 = 44. */
+  hb_draw_line (dfuncs, draw, &st,
+		10.f, 10.f, 4.f,
+		50.f, 10.f, (float) std::nan (""),
+		HB_DRAW_LINE_CAP_SQUARE);
+  blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpint (ext.width, ==, 44);
   hb_blob_destroy (blob);
 
   /* Filled rect (stroke_width = NaN). */

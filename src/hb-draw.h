@@ -347,11 +347,30 @@ hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
  * width of the outline; NaN means "filled" (no stroke).
  */
 
+/**
+ * hb_draw_line_cap_t:
+ * @HB_DRAW_LINE_CAP_BUTT:   No cap; the line ends exactly at
+ *   its endpoint.
+ * @HB_DRAW_LINE_CAP_SQUARE: Square cap; the line is extended
+ *   past its endpoint by half the local stroke width.  Useful
+ *   for composing closed shapes from line segments (e.g. a
+ *   rectangle made from four lines).
+ *
+ * End-cap shape for hb_draw_line().
+ *
+ * XSince: REPLACEME
+ **/
+typedef enum {
+  HB_DRAW_LINE_CAP_BUTT   = 0,
+  HB_DRAW_LINE_CAP_SQUARE = 1,
+} hb_draw_line_cap_t;
+
 HB_EXTERN void
 hb_draw_line (hb_draw_funcs_t *dfuncs, void *draw_data,
 	      hb_draw_state_t *st,
 	      float x0, float y0, float w0,
-	      float x1, float y1, float w1);
+	      float x1, float y1, float w1,
+	      hb_draw_line_cap_t cap);
 
 HB_EXTERN void
 hb_draw_rect (hb_draw_funcs_t *dfuncs, void *draw_data,

@@ -473,12 +473,18 @@ hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
  * @x1: end X coordinate
  * @y1: end Y coordinate
  * @w1: stroke width at the end
+ * @cap: end-cap shape (butt or square)
  *
- * Emits a tapered line segment as a filled trapezoid with butt
- * caps.  @w0 and @w1 are the full stroke widths at the start and
- * end points respectively; they may differ for a tapered stroke
- * or match for a uniform one.  Pass `NaN` for @w1 to use @w0
- * (uniform stroke) without repeating the value.
+ * Emits a tapered line segment as a filled trapezoid.  @w0 and
+ * @w1 are the full stroke widths at the start and end points
+ * respectively; they may differ for a tapered stroke or match
+ * for a uniform one.  Pass `NaN` for @w1 to use @w0 (uniform
+ * stroke) without repeating the value.
+ *
+ * With #HB_DRAW_LINE_CAP_SQUARE each endpoint is extended along
+ * the line direction by half its local stroke width, so four
+ * `hb_draw_line()` calls form a closed rectangle without gaps
+ * at the corners.
  *
  * XSince: REPLACEME
  **/
@@ -486,18 +492,28 @@ void
 hb_draw_line (hb_draw_funcs_t *dfuncs, void *draw_data,
 	      hb_draw_state_t *st,
 	      float x0, float y0, float w0,
-	      float x1, float y1, float w1)
+	      float x1, float y1, float w1,
+	      hb_draw_line_cap_t cap)
 {
   if (std::isnan (w1)) w1 = w0;
   float dx = x1 - x0, dy = y1 - y0;
   float len = sqrtf (dx * dx + dy * dy);
   if (len <= 0.f)
     return;
-  /* Unit normal perpendicular to the line direction. */
-  float nx = -dy / len;
-  float ny =  dx / len;
+  /* Unit tangent and normal to the line direction. */
+  float tx = dx / len;
+  float ty = dy / len;
+  float nx = -ty;
+  float ny =  tx;
   float h0 = 0.5f * w0;
   float h1 = 0.5f * w1;
+  /* Square caps: extend each endpoint outward along the line
+   * tangent by half its local stroke width. */
+  if (cap == HB_DRAW_LINE_CAP_SQUARE)
+  {
+    x0 -= tx * h0; y0 -= ty * h0;
+    x1 += tx * h1; y1 += ty * h1;
+  }
   /* Trapezoid corners (counter-clockwise). */
   float ax = x0 + nx * h0, ay = y0 + ny * h0;
   float bx = x1 + nx * h1, by = y1 + ny * h1;
