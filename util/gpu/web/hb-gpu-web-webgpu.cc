@@ -379,6 +379,14 @@ web_set_variations (const char *settings)
   rebuild_buffer (custom_text ? current_text : default_text_en);
 }
 
+EMSCRIPTEN_KEEPALIVE void
+web_set_palette (unsigned palette_index)
+{
+  if (!current_demo_font) return;
+  demo_font_set_palette (current_demo_font, palette_index);
+  rebuild_buffer (custom_text ? current_text : default_text_en);
+}
+
 EMSCRIPTEN_KEEPALIVE const char *
 web_get_text ()
 {
