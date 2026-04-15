@@ -44,6 +44,12 @@ enum {
   HB_GPU_PAINT_OP_POP_GROUP      = 3,
 };
 
+/* Encoder limits.  Hitting any of these flips paint->unsupported and
+ * makes hb_gpu_paint_encode() return NULL rather than emit a blob
+ * that would render incorrectly. */
+#define HB_GPU_PAINT_MAX_OPS         0x7fff /* num_ops is i16 in the blob header */
+#define HB_GPU_PAINT_MAX_GROUP_DEPTH 4      /* matches HB_GPU_PAINT_GROUP_DEPTH in fragment shader */
+
 static hb_bool_t
 hb_gpu_paint_custom_palette_color (hb_paint_funcs_t *funcs HB_UNUSED,
 				   void             *paint_data,
@@ -69,6 +75,8 @@ hb_gpu_paint_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
 
+  /* Nested glyph clips: only depth 1 is faithfully stored; deeper
+   * pushes overwrite the outer clip.  TODO: extend to depth 2. */
   c->pending_clip = true;
   c->pending_clip_glyph = glyph;
   c->pending_clip_font  = font;
@@ -118,6 +126,11 @@ hb_gpu_paint_pop_transform (hb_paint_funcs_t *funcs HB_UNUSED,
 static void
 emit_control_op (hb_gpu_paint_t *c, int16_t op_type, int16_t aux)
 {
+  if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
+  {
+    c->unsupported = true;
+    return;
+  }
   if (unlikely (!c->ops.resize (c->ops.length + 4)))
   {
     c->unsupported = true;
@@ -136,8 +149,14 @@ hb_gpu_paint_push_group (hb_paint_funcs_t *funcs HB_UNUSED,
 			 void             *paint_data,
 			 void             *user_data HB_UNUSED)
 {
-  emit_control_op ((hb_gpu_paint_t *) paint_data,
-		   HB_GPU_PAINT_OP_PUSH_GROUP, 0);
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+  c->group_depth++;
+  if (unlikely (c->group_depth > HB_GPU_PAINT_MAX_GROUP_DEPTH))
+  {
+    c->unsupported = true;
+    return;
+  }
+  emit_control_op (c, HB_GPU_PAINT_OP_PUSH_GROUP, 0);
 }
 
 static void
@@ -146,8 +165,11 @@ hb_gpu_paint_pop_group (hb_paint_funcs_t    *funcs HB_UNUSED,
 			hb_paint_composite_mode_t mode,
 			void                *user_data HB_UNUSED)
 {
-  emit_control_op ((hb_gpu_paint_t *) paint_data,
-		   HB_GPU_PAINT_OP_POP_GROUP, (int16_t) mode);
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+  bool was_in_range = c->group_depth <= HB_GPU_PAINT_MAX_GROUP_DEPTH;
+  if (likely (c->group_depth > 0)) c->group_depth--;
+  if (was_in_range)
+    emit_control_op (c, HB_GPU_PAINT_OP_POP_GROUP, (int16_t) mode);
 }
 
 /* Quantize unsigned byte 0..255 to signed Q15 0..32767. */
@@ -374,6 +396,11 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
 {
   if (unlikely (!c->pending_clip))
     return;
+  if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
+  {
+    c->unsupported = true;
+    return;
+  }
 
   int clip_idx = emit_clip_sub_blob (c);
   if (clip_idx < 0)
@@ -497,6 +524,11 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
 {
   if (unlikely (!c->pending_clip))
     return;
+  if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
+  {
+    c->unsupported = true;
+    return;
+  }
 
   /* Resolve stops (triggers custom_palette_color, etc). */
   unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
@@ -597,6 +629,11 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
 {
   if (unlikely (!c->pending_clip))
     return;
+  if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
+  {
+    c->unsupported = true;
+    return;
+  }
 
   unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
   if (unlikely (!count))
@@ -729,6 +766,11 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
 {
   if (unlikely (!c->pending_clip))
     return;
+  if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
+  {
+    c->unsupported = true;
+    return;
+  }
 
   unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
   if (unlikely (!count))
@@ -833,6 +875,26 @@ hb_gpu_paint_sweep_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 			   cx, cy, start_angle, end_angle);
 }
 
+/* PaintImage isn't representable by our slug+gradient encoder; mark
+ * unsupported so the caller learns the glyph won't render rather
+ * than getting a partial blob.  PaintRectangleClip is intentionally
+ * left to the default no-op: the encoder simply ignores the
+ * rectangle (output is bigger than it should be, but renders). */
+static hb_bool_t
+hb_gpu_paint_image (hb_paint_funcs_t   *funcs   HB_UNUSED,
+		    void               *paint_data,
+		    hb_blob_t          *image   HB_UNUSED,
+		    unsigned int        width   HB_UNUSED,
+		    unsigned int        height  HB_UNUSED,
+		    hb_tag_t            format  HB_UNUSED,
+		    float               slant   HB_UNUSED,
+		    hb_glyph_extents_t *extents HB_UNUSED,
+		    void               *user_data HB_UNUSED)
+{
+  ((hb_gpu_paint_t *) paint_data)->unsupported = true;
+  return false;
+}
+
 static inline void free_static_gpu_paint_funcs ();
 
 static struct hb_gpu_paint_funcs_lazy_loader_t
@@ -853,6 +915,8 @@ static struct hb_gpu_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_radial_gradient_func       (funcs, hb_gpu_paint_radial_gradient,       nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func        (funcs, hb_gpu_paint_sweep_gradient,        nullptr, nullptr);
     hb_paint_funcs_set_custom_palette_color_func  (funcs, hb_gpu_paint_custom_palette_color,  nullptr, nullptr);
+    /* PaintImage can't be represented by our slug+gradient encoder. */
+    hb_paint_funcs_set_image_func                 (funcs, hb_gpu_paint_image,                 nullptr, nullptr);
 
     hb_paint_funcs_make_immutable (funcs);
 

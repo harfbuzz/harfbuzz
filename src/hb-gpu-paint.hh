@@ -268,6 +268,11 @@ struct hb_gpu_paint_t
    * patches the recorded indices into texel offsets. */
   hb_vector_t<hb_blob_t *> sub_blobs;
 
+  /* Nesting depth of push_group / pop_group.  We bail (set
+   * `unsupported`) if it exceeds HB_GPU_PAINT_MAX_GROUP_DEPTH,
+   * which matches HB_GPU_PAINT_GROUP_DEPTH in the fragment shader. */
+  unsigned group_depth = 0;
+
   /* Paint-callback scratch: next color/gradient op consumes these. */
   bool pending_clip = false;
   hb_codepoint_t pending_clip_glyph = 0;

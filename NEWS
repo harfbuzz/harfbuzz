@@ -16,6 +16,22 @@ Overview of changes leading to NEXT (REPLACEME)
   linear part, so non-uniform scale / shear render exactly instead
   of being approximated by sqrt(|det|) on radius and ignored on
   sweep angles.
+- GPU library: paint encoder limitations.  The encoder now sets
+  `unsupported` (and hb_gpu_paint_encode() returns NULL) when:
+    * `num_ops` would exceed 32767 (the i16 header field's limit);
+    * `push_group` nests deeper than 4 (the fragment shader's
+      HB_GPU_PAINT_GROUP_DEPTH);
+    * a paint tree calls back through `image` (PaintImage isn't
+      representable by the slug+gradient encoder).
+  Other partial-coverage features:
+    * Nested glyph clips: only the innermost clip is faithfully
+      stored; deeper pushes silently override the outer clip.
+    * Composite modes OVERLAY / COLOR_BURN / HARD_LIGHT are
+      approximated as MULTIPLY; COLOR_DODGE / SOFT_LIGHT as SCREEN;
+      DIFFERENCE / EXCLUSION / HSL_HUE..HSL_LUMINOSITY fall through
+      to SRC_OVER.
+    * `push_clip_rectangle` is silently ignored (the rendered output
+      is bigger than it should be but doesn't fail).
 - New API:
   +hb_gpu_paint_t
   +hb_gpu_paint_create_or_fail()
