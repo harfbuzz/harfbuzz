@@ -661,18 +661,24 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   unsigned pfx_len = paint->id_prefix.length;
   unsigned grad_id = paint->gradient_counter++;
 
+  /* Reduce COLR's 3-anchor (P0, P1, P2) to SVG's 2-point
+   * (start, end) gradient. */
+  float lx0, ly0, lx1, ly1;
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2,
+				  &lx0, &ly0, &lx1, &ly1);
+
   hb_buf_append_str (&paint->defs, "<linearGradient id=\"");
   hb_buf_append_len (&paint->defs, pfx, pfx_len);
   hb_buf_append_str (&paint->defs, "gr");
   hb_buf_append_unsigned (&paint->defs, grad_id);
   hb_buf_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" x1=\"");
-  hb_buf_append_num (&paint->defs, x0, paint->precision);
+  hb_buf_append_num (&paint->defs, lx0, paint->precision);
   hb_buf_append_str (&paint->defs, "\" y1=\"");
-  hb_buf_append_num (&paint->defs, y0, paint->precision);
+  hb_buf_append_num (&paint->defs, ly0, paint->precision);
   hb_buf_append_str (&paint->defs, "\" x2=\"");
-  hb_buf_append_num (&paint->defs, x1 + (x1 - x2), paint->precision);
+  hb_buf_append_num (&paint->defs, lx1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" y2=\"");
-  hb_buf_append_num (&paint->defs, y1 + (y1 - y2), paint->precision);
+  hb_buf_append_num (&paint->defs, ly1, paint->precision);
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
   hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");

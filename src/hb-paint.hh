@@ -451,4 +451,35 @@ done:
 }
 
 
+/* Reduce a COLRv1 linear gradient's 3-anchor spec (P0=color
+ * stop 0, P1=color stop 1, P2=rotation reference) to the
+ * 2-point axis (P0, P1') used by SVG / cairo / our raster
+ * backend.  P1' is the foot of P1 on the line through P0
+ * perpendicular to (P2 - P0); the resulting axis is the
+ * gradient's actual direction (perpendicular to the
+ * rotation line).  Degenerate (P0 == P2): pass-through. */
+static inline void
+hb_paint_reduce_linear_anchors (float x0, float y0,
+				float x1, float y1,
+				float x2, float y2,
+				float *xx0, float *yy0,
+				float *xx1, float *yy1)
+{
+  float q2x = x2 - x0, q2y = y2 - y0;
+  float s = q2x * q2x + q2y * q2y;
+  if (s < 1e-6f)
+  {
+    *xx0 = x0; *yy0 = y0;
+    *xx1 = x1; *yy1 = y1;
+    return;
+  }
+  float q1x = x1 - x0, q1y = y1 - y0;
+  float k = (q2x * q1x + q2y * q1y) / s;
+  *xx0 = x0;
+  *yy0 = y0;
+  *xx1 = x1 - k * q2x;
+  *yy1 = y1 - k * q2y;
+}
+
+
 #endif /* HB_PAINT_HH */
