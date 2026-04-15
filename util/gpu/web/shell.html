@@ -691,6 +691,15 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         _free(buf);
       }
 
+      function applyVariations(settings) {
+        var len = lengthBytesUTF8(settings) + 1;
+        var buf = _malloc(len);
+        stringToUTF8(settings, buf, len);
+        _web_set_variations(buf);
+        _free(buf);
+        requestRedraw();
+      }
+
       /* Embed-mode message protocol: host page drives the
        * demo with { kind: 'text', value }  and
        * { kind: 'font', bytes: ArrayBuffer }.  No origin
@@ -702,6 +711,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           applyText(d.value);
         else if (d.kind === 'font' && d.bytes)
           applyFontBytes(d.bytes);
+        else if (d.kind === 'variations' && typeof d.value === 'string')
+          applyVariations(d.value);
       });
 
       /* Tell any parent frame we're ready to receive

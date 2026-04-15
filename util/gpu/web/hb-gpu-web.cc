@@ -120,6 +120,32 @@ web_set_text (const char *utf8)
   rebuild_buffer (utf8);
 }
 
+/* Apply a comma-separated list of variation settings
+ * ("wght=400,wdth=100") to the current font, then rebuild
+ * the buffer so the new axis values take effect.  Cheap
+ * to call repeatedly: suitable for live slider updates. */
+EMSCRIPTEN_KEEPALIVE void
+web_set_variations (const char *settings)
+{
+  if (!current_font) return;
+
+  /* Caps the axis count: no font ships close to this. */
+  hb_variation_t vars[32];
+  unsigned n = 0;
+  const char *p = settings;
+  while (p && *p && n < (sizeof vars / sizeof vars[0]))
+  {
+    const char *end = strchr (p, ',');
+    int len = end ? (int) (end - p) : (int) strlen (p);
+    if (hb_variation_from_string (p, len, &vars[n]))
+      n++;
+    p = end ? end + 1 : nullptr;
+  }
+  hb_font_set_variations (current_font, vars, n);
+
+  rebuild_buffer (custom_text ? current_text : default_text_en);
+}
+
 EMSCRIPTEN_KEEPALIVE const char *
 web_get_text ()
 {
