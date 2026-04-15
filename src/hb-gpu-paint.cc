@@ -31,6 +31,7 @@
 #include "hb-gpu.hh"
 #include "hb-draw.hh"
 #include "hb-machinery.hh"
+#include "hb-paint.hh"
 
 
 /* ---- Paint callbacks ---- */
@@ -486,65 +487,6 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
   c->num_ops++;
 }
 
-/* Reduce the 3-point anchor COLRv1 linear-gradient spec to a
- * 2-point axis (the perpendicular foot of p1 onto the p0-p2
- * normal).  Same derivation as hb_raster_paint's reduce_anchors. */
-static inline void
-reduce_linear_anchors (float x0, float y0,
-		       float x1, float y1,
-		       float x2, float y2,
-		       float *xx0, float *yy0,
-		       float *xx1, float *yy1)
-{
-  float q2x = x2 - x0, q2y = y2 - y0;
-  float q1x = x1 - x0, q1y = y1 - y0;
-  float s = q2x * q2x + q2y * q2y;
-  if (s < 1e-6f)
-  {
-    *xx0 = x0; *yy0 = y0;
-    *xx1 = x1; *yy1 = y1;
-    return;
-  }
-  float k = (q2x * q1x + q2y * q1y) / s;
-  *xx0 = x0;
-  *yy0 = y0;
-  *xx1 = x1 - k * q2x;
-  *yy1 = y1 - k * q2y;
-}
-
-/* Sort @stops by offset, find their [min, max] offset range, and
- * normalize offsets to [0, 1] by rescaling in place.  Returns
- * (mn, mx) so the caller can shift the gradient's geometry along
- * the axis (linear) / centers+radii (radial) / start+end angles
- * (sweep) to preserve the rendered gradient position.  When all
- * stops share the same offset the normalization is a no-op and the
- * resulting gradient is degenerate; callers treat that case as
- * transparent. */
-static void
-normalize_stops (hb_color_stop_t *stops, unsigned count,
-		 float *omn, float *omx)
-{
-  if (unlikely (!count))
-  {
-    *omn = *omx = 0.f;
-    return;
-  }
-
-  hb_array_t<hb_color_stop_t> (stops, count)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return a.offset < b.offset ? -1 : a.offset > b.offset ? 1 : 0;
-    });
-
-  float mn = stops[0].offset;
-  float mx = stops[count - 1].offset;
-  if (mn != mx)
-    for (unsigned i = 0; i < count; i++)
-      stops[i].offset = (stops[i].offset - mn) / (mx - mn);
-
-  *omn = mn;
-  *omx = mx;
-}
-
 /* Append a color line (@count stops) to @grad_data in the encoded
  * stop format used by gradient ops: 2 texels per stop.
  *   texel a: (offset_q15, flags, _, _) with flags bit 0 = is_foreground
@@ -625,10 +567,10 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   { c->unsupported = true; hb_free (heap_stops); return; }
 
   float lx0, ly0, lx1, ly1;
-  reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &lx0, &ly0, &lx1, &ly1);
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &lx0, &ly0, &lx1, &ly1);
   /* Normalize stops to [0,1]; shift axis endpoints to compensate. */
   float mn, mx;
-  normalize_stops (stops, got, &mn, &mx);
+  hb_paint_normalize_color_line (stops, got, &mn, &mx);
   float dx = lx1 - lx0, dy = ly1 - ly0;
   float ax0 = lx0 + mn * dx, ay0 = ly0 + mn * dy;
   float ax1 = lx0 + mx * dx, ay1 = ly0 + mx * dy;
@@ -721,7 +663,7 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   if (unlikely (!grad_data.resize (12)))
   { c->unsupported = true; hb_free (heap_stops); return; }
   float mn, mx;
-  normalize_stops (stops, got, &mn, &mx);
+  hb_paint_normalize_color_line (stops, got, &mn, &mx);
   float dx = x1 - x0, dy = y1 - y0, dr = r1 - r0;
   float cx0 = x0 + mn * dx, cy0 = y0 + mn * dy, cr0 = r0 + mn * dr;
   float cx1 = x0 + mx * dx, cy1 = y0 + mx * dy, cr1 = r0 + mx * dr;
@@ -853,7 +795,7 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
   { c->unsupported = true; hb_free (heap_stops); return; }
 
   float mn, mx;
-  normalize_stops (stops, got, &mn, &mx);
+  hb_paint_normalize_color_line (stops, got, &mn, &mx);
   float a_span = end_angle - start_angle;
   float a_lo = start_angle + mn * a_span;
   float a_hi = start_angle + mx * a_span;

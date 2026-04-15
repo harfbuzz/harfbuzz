@@ -533,7 +533,7 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
     extend == CAIRO_EXTEND_REFLECT ? HB_PAINT_EXTEND_REFLECT :
 				     HB_PAINT_EXTEND_PAD;
 
-  hb_sweep_gradient_tiles (stops, n_stops, hb_extend,
+  hb_paint_sweep_gradient_tiles (stops, n_stops, hb_extend,
 			   start_angle, end_angle,
 			   [&](float a0, hb_color_t c0, float a1, hb_color_t c1) {
     hb_cairo_color_t cc0 = _hb_cairo_color_from_hb_color (c0);

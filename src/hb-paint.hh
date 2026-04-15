@@ -272,7 +272,7 @@ hb_color_lerp (hb_color_t c0, hb_color_t c1, float t)
  * sweep-gradient implementations. */
 template <typename Func>
 static inline void
-hb_sweep_gradient_tiles (hb_color_stop_t *stops,
+hb_paint_sweep_gradient_tiles (hb_color_stop_t *stops,
 			 unsigned n_stops,
 			 hb_paint_extend_t extend,
 			 float start_angle,

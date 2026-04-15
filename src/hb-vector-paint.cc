@@ -784,7 +784,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   auto *body = &paint->current_body ();
   unsigned precision = paint->precision;
   float radius = 32767.f;
-  hb_sweep_gradient_tiles (stops.arrayZ, stops.length,
+  hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 			   hb_color_line_get_extend (color_line),
 			   ga0, ga1,
 			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
