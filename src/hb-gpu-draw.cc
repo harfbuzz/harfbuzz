@@ -52,6 +52,12 @@ acc_emit (hb_gpu_draw_t *g,
 	  double p2x, double p2y,
 	  double p3x, double p3y)
 {
+  if (unlikely (g->num_curves >= HB_GPU_DRAW_MAX_CURVES))
+  {
+    g->success = false;
+    return;
+  }
+
   hb_gpu_curve_t c = {p1x, p1y, p2x, p2y, p3x, p3y, contour_start};
   if (unlikely (!g->curves.push_or_fail (c)))
   {
