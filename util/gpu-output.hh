@@ -335,6 +335,7 @@ struct gpu_output_t
   template <typename app_t>
   void finish (hb_buffer_t *buffer_ HB_UNUSED, const app_t *app HB_UNUSED)
   {
+    hb_gpu_demo_quiet = output_file ? 1 : 0;
     demo_font_print_stats (demo_font_);
     demo_view_print_help (vu);
     demo_view_setup (vu);

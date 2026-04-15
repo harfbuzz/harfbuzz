@@ -31,7 +31,15 @@
 #endif
 
 
-#define LOGI(...) ((void) fprintf (stderr, __VA_ARGS__))
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int hb_gpu_demo_quiet;
+#ifdef __cplusplus
+}
+#endif
+
+#define LOGI(...) ((void) (hb_gpu_demo_quiet ? 0 : fprintf (stderr, __VA_ARGS__)))
 #define LOGW(...) ((void) fprintf (stderr, __VA_ARGS__))
 #define LOGE(...) ((void) fprintf (stderr, __VA_ARGS__), abort ())
 

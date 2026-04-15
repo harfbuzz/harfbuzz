@@ -9,6 +9,10 @@
 
 #include "demo-view.h"
 
+/* Global: when set, LOGI is suppressed.  Set by hb-gpu's
+ * --output-file path to keep stderr clean for scripted use. */
+int hb_gpu_demo_quiet = 0;
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #elif defined(_WIN32)
