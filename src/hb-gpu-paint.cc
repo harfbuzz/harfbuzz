@@ -1182,8 +1182,12 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
  * palette overrides) is preserved.
  *
  * Return value: (transfer full):
- * A newly allocated blob, or `NULL` if there is nothing to encode
- * or the accumulated paint used unsupported features.
+ * A newly allocated blob, or `NULL` if the paint walk hit an
+ * unsupported feature (see hb_gpu_paint_glyph()'s return value) or
+ * encoding failed (allocation failure).  When the paint accumulated
+ * no ink (e.g. a space glyph) returns the empty-blob singleton, so
+ * callers can distinguish "nothing to render" (length 0) from a
+ * real failure (`NULL`).
  *
  * XSince: REPLACEME
  **/
@@ -1193,8 +1197,14 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 {
   HB_SCOPE_GUARD (hb_gpu_paint_clear (paint));
 
-  if (unlikely (paint->unsupported || paint->num_ops == 0))
+  if (unlikely (paint->unsupported))
     return nullptr;
+  /* No ink (e.g. space glyph): return the empty-blob singleton, not
+   * nullptr.  Same convention as hb_gpu_draw_encode(); callers can
+   * distinguish "nothing to render" (length 0) from "encoder
+   * failed" (NULL). */
+  if (paint->num_ops == 0)
+    return hb_blob_get_empty ();
 
   /* Layout:
    *   header          (3 texels = 24 bytes)

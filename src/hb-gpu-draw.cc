@@ -356,8 +356,12 @@ encode_curve_info (const hb_gpu_curve_t *c)
  * user configuration (font scale) is preserved.
  *
  * Return value: (transfer full):
- * An #hb_blob_t containing the encoded data, or
- * `NULL` if encoding fails.
+ * An #hb_blob_t containing the encoded data, or `NULL` if encoding
+ * failed (allocation failure or accumulation error).  When the
+ * encoder accumulated no outline (e.g. the glyph has no ink, like a
+ * space), returns the empty-blob singleton instead of `NULL`, so
+ * callers can distinguish "nothing to render" (length 0) from a
+ * real failure (`NULL`).
  *
  * Since: 14.0.0
  **/

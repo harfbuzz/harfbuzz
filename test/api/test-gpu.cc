@@ -353,11 +353,15 @@ test_paint_shader_sources (void)
 static void
 test_paint_empty_encode (void)
 {
-  /* Nothing painted -> nullptr blob (no ops to encode). */
+  /* Nothing painted -> empty blob (no ops to encode).  Reserved for
+   * the "no ink" case; nullptr is only returned for unsupported
+   * features. */
   hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
   g_assert_nonnull (p);
   hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
-  g_assert_null (blob);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
   hb_gpu_paint_destroy (p);
 }
 
@@ -411,19 +415,18 @@ test_paint_encode_color (void)
   {
     if (!hb_ot_color_glyph_has_paint (face, i))
       continue;
-    if (!hb_gpu_paint_glyph (p, font, i))
-      continue;  /* unsupported feature (e.g. nested clip) in this glyph's tree */
+    /* paint_glyph's return is the supported flag; we don't gate
+     * on it -- encode handles both cases (returns empty blob for
+     * unsupported / empty, nullptr only on allocation failure). */
+    hb_gpu_paint_glyph (p, font, i);
     hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
-    if (!blob)
-      continue;
-    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    g_assert_nonnull (blob);
     g_assert_cmpuint (hb_blob_get_length (blob) % 8, ==, 0);
     hb_blob_destroy (blob);
   }
-  /* Test font is allowed to be entirely "unsupported features" --
-   * this test exists to confirm we don't crash / corrupt while
-   * walking a real COLRv1 paint tree, not that our encoder covers
-   * every COLRv1 feature. */
+  /* Test exists to confirm we don't crash / corrupt while walking
+   * a real COLRv1 paint tree, not that our encoder covers every
+   * COLRv1 feature. */
 
   hb_gpu_paint_destroy (p);
   hb_font_destroy (font);
@@ -450,9 +453,12 @@ test_paint_auto_clear_on_encode (void)
   g_assert_nonnull (blob1);
   hb_blob_destroy (blob1);
 
-  /* Auto-clear: re-encoding without painting again returns nullptr. */
+  /* Auto-clear: re-encoding without painting again returns the
+   * empty-blob singleton (nothing accumulated). */
   hb_blob_t *empty = hb_gpu_paint_encode (p, nullptr);
-  g_assert_null (empty);
+  g_assert_nonnull (empty);
+  g_assert_cmpuint (hb_blob_get_length (empty), ==, 0);
+  hb_blob_destroy (empty);
 
   /* Palette config is preserved. */
   g_assert_cmpuint (hb_gpu_paint_get_palette (p), ==, 3);
