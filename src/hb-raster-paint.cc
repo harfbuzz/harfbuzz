@@ -891,36 +891,6 @@ get_color_stops (hb_raster_paint_t *c,
   return true;
 }
 
-static void
-normalize_color_line (hb_color_stop_t *stops,
-		      unsigned len,
-		      float *omin, float *omax)
-{
-  if (unlikely (!len))
-  {
-    *omin = *omax = 0.f;
-    return;
-  }
-
-  hb_array_t<hb_color_stop_t> (stops, len)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return a.offset < b.offset;
-    });
-
-  float mn = stops[0].offset, mx = stops[0].offset;
-  for (unsigned i = 1; i < len; i++)
-  {
-    mn = hb_min (mn, stops[i].offset);
-    mx = hb_max (mx, stops[i].offset);
-  }
-  if (mn != mx)
-    for (unsigned i = 0; i < len; i++)
-      stops[i].offset = (stops[i].offset - mn) / (mx - mn);
-
-  *omin = mn;
-  *omax = mx;
-}
-
 static HB_ALWAYS_INLINE float
 reflect_gradient_t (float t)
 {
@@ -1066,7 +1036,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (unlikely (!get_color_stops (c, color_line, &len, &stops)))
     return;
   float mn, mx;
-  normalize_color_line (stops, len, &mn, &mx);
+  hb_paint_normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const hb_raster_clip_t &clip = c->current_clip ();
@@ -1217,7 +1187,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (unlikely (!get_color_stops (c, color_line, &len, &stops)))
     return;
   float mn, mx;
-  normalize_color_line (stops, len, &mn, &mx);
+  hb_paint_normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const hb_raster_clip_t &clip = c->current_clip ();
@@ -1495,7 +1465,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (unlikely (!get_color_stops (c, color_line, &len, &stops)))
     return;
   float mn, mx;
-  normalize_color_line (stops, len, &mn, &mx);
+  hb_paint_normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const hb_raster_clip_t &clip = c->current_clip ();

@@ -481,5 +481,40 @@ hb_paint_reduce_linear_anchors (float x0, float y0,
   *yy1 = y1 - k * q2y;
 }
 
+/* Sort @stops by offset and rescale offsets into [0, 1] in
+ * place.  Returns the original (omin, omax) so the caller can
+ * shift the gradient axis / centers / radii / angles to keep
+ * the rendered gradient in the same place visually.  Empty
+ * input is safe: returns (0, 0). */
+static inline void
+hb_paint_normalize_color_line (hb_color_stop_t *stops,
+			       unsigned len,
+			       float *omin, float *omax)
+{
+  if (unlikely (!len))
+  {
+    *omin = *omax = 0.f;
+    return;
+  }
+
+  hb_array_t<hb_color_stop_t> (stops, len)
+    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
+      return a.offset < b.offset;
+    });
+
+  float mn = stops[0].offset, mx = stops[0].offset;
+  for (unsigned i = 1; i < len; i++)
+  {
+    mn = hb_min (mn, stops[i].offset);
+    mx = hb_max (mx, stops[i].offset);
+  }
+  if (mn != mx)
+    for (unsigned i = 0; i < len; i++)
+      stops[i].offset = (stops[i].offset - mn) / (mx - mn);
+
+  *omin = mn;
+  *omax = mx;
+}
+
 
 #endif /* HB_PAINT_HH */

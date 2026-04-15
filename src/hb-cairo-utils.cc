@@ -199,36 +199,6 @@ _hb_cairo_paint_glyph_image (hb_cairo_context_t *c,
   return true;
 }
 
-static void
-_hb_cairo_normalize_color_line (hb_color_stop_t *stops,
-				unsigned int len,
-				float *omin,
-				float *omax)
-{
-  float min, max;
-
-  hb_array_t<hb_color_stop_t> (stops, len)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return a.offset < b.offset;
-    });
-
-  min = max = stops[0].offset;
-  for (unsigned int i = 0; i < len; i++)
-    {
-      min = hb_min (min, stops[i].offset);
-      max = hb_max (max, stops[i].offset);
-    }
-
-  if (min != max)
-    {
-      for (unsigned int i = 0; i < len; i++)
-        stops[i].offset = (stops[i].offset - min) / (max - min);
-    }
-
-  *omin = min;
-  *omax = max;
-}
-
 static bool
 _hb_cairo_get_color_stops (hb_cairo_context_t *c,
 			   hb_color_line_t *color_line,
@@ -293,7 +263,7 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
-  _hb_cairo_normalize_color_line (stops, len, &min, &max);
+  hb_paint_normalize_color_line (stops, len, &min, &max);
 
   hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
 
@@ -341,7 +311,7 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
 
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
-  _hb_cairo_normalize_color_line (stops, len, &min, &max);
+  hb_paint_normalize_color_line (stops, len, &min, &max);
 
   xx0 = x0 + min * (x1 - x0);
   yy0 = y0 + min * (y1 - y0);
