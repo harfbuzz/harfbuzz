@@ -35,10 +35,18 @@
 
 #include "options.hh"
 #include "font-options.hh"
+#include "output-options.hh"
 #include "view-options.hh"
+
+#include <vector>
 
 #define WINDOW_W 700
 #define WINDOW_H 700
+
+static const char *gpu_supported_formats[] = {
+  "ppm",
+  nullptr
+};
 
 struct gpu_output_t
 {
@@ -52,6 +60,7 @@ struct gpu_output_t
   hb_bool_t force_paint = false;  /* --paint  : use paint path */
   char *type_text = nullptr;
   view_options_t view;
+  output_options_t<false> output;
 
   static gboolean
   parse_bench (const char *name G_GNUC_UNUSED,
@@ -93,6 +102,7 @@ struct gpu_output_t
 		       false);
 
     view.add_options (parser);
+    output.add_options (parser, gpu_supported_formats);
   }
 
   template <typename app_t>
@@ -183,6 +193,8 @@ struct gpu_output_t
 #ifdef __APPLE__
     glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+    if (output.output_file)
+      glfwWindowHint (GLFW_VISIBLE, GLFW_FALSE);
 
     window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU", NULL, NULL);
     if (!window) {
@@ -249,6 +261,28 @@ struct gpu_output_t
 #endif
   }
 
+  void write_output_file ()
+  {
+    /* Only PPM is supported right now; output_options_t already
+     * rejected unknown formats. */
+    int fb_w = 0, fb_h = 0;
+    glfwGetFramebufferSize (window, &fb_w, &fb_h);
+    if (fb_w <= 0 || fb_h <= 0)
+      fail (false, "Framebuffer has zero size");
+
+    /* glReadPixels delivers rows bottom-up; PPM writes top-down,
+     * so we flip while assembling. */
+    std::vector<uint8_t> pixels ((size_t) fb_w * (size_t) fb_h * 3);
+    glPixelStorei (GL_PACK_ALIGNMENT, 1);
+    glReadPixels (0, 0, fb_w, fb_h, GL_RGB, GL_UNSIGNED_BYTE, pixels.data ());
+
+    fprintf (output.out_fp, "P6\n%d %d\n255\n", fb_w, fb_h);
+    const unsigned row_bytes = (unsigned) fb_w * 3u;
+    for (int y = fb_h - 1; y >= 0; y--)
+      fwrite (pixels.data () + (size_t) y * row_bytes, 1, row_bytes,
+	      output.out_fp);
+  }
+
   void new_line ()
   {
     demo_buffer_current_line (buf, font_size);
@@ -312,13 +346,18 @@ struct gpu_output_t
     glfwPollEvents ();
     demo_view_display (vu, buf);
 
-    while (!glfwWindowShouldClose (window))
+    if (output.output_file)
+      write_output_file ();
+    else
     {
-      glfwPollEvents ();
-      if (demo_view_should_redraw (vu))
-	demo_view_display (vu, buf);
-      else
-	glfwWaitEvents ();
+      while (!glfwWindowShouldClose (window))
+      {
+	glfwPollEvents ();
+	if (demo_view_should_redraw (vu))
+	  demo_view_display (vu, buf);
+	else
+	  glfwWaitEvents ();
+      }
     }
 
     demo_buffer_destroy (buf);
