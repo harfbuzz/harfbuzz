@@ -1420,7 +1420,9 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	hb_buf_append_str (&paint->defs, "</g>\n");
 
 	auto &body = paint->current_body ();
-	hb_buf_append_str (&body, "<use href=\"#cg");
+	hb_buf_append_str (&body, "<use href=\"#");
+	hb_buf_append_len (&body, paint->id_prefix.arrayZ, paint->id_prefix.length);
+	hb_buf_append_str (&body, "cg");
 	hb_buf_append_unsigned (&body, def_id);
 	hb_buf_append_str (&body, "\" transform=\"");
 	hb_vector_svg_append_instance_transform (&body, paint->precision,
