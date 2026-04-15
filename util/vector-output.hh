@@ -203,14 +203,31 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (fmt);
     hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (fmt);
 
-    hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
-    hb_vector_draw_set_extents (draw, &extents);
+    /* We feed upem-space coordinates to the draw/paint context
+     * (glyph outlines and pen positions), but downstream consumers
+     * expect pixel-sized SVG/PDF output.  Divide inputs by
+     * (upem / font_size) -- equivalently, multiply by
+     * font_size / upem -- so the output viewBox / width / height
+     * come out in pixels. */
+    float upem_to_pixel_x = (float) x_scale * scalbnf (1.f, -(int) subpixel_bits) / (float) upem;
+    float upem_to_pixel_y = (float) y_scale * scalbnf (1.f, -(int) subpixel_bits) / (float) upem;
+    float upem_per_pixel_x = 1.f / upem_to_pixel_x;
+    float upem_per_pixel_y = 1.f / upem_to_pixel_y;
+    hb_vector_extents_t pixel_extents = {
+      extents.x      * upem_to_pixel_x,
+      extents.y      * upem_to_pixel_y,
+      extents.width  * upem_to_pixel_x,
+      extents.height * upem_to_pixel_y,
+    };
+
+    hb_vector_draw_set_scale_factor (draw, upem_per_pixel_x, upem_per_pixel_y);
+    hb_vector_draw_set_extents (draw, &pixel_extents);
     hb_vector_draw_set_precision (draw, precision);
 
     if (paint)
     {
-      hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
-      hb_vector_paint_set_extents (paint, &extents);
+      hb_vector_paint_set_scale_factor (paint, upem_per_pixel_x, upem_per_pixel_y);
+      hb_vector_paint_set_extents (paint, &pixel_extents);
       hb_vector_paint_set_foreground (paint, foreground);
       hb_vector_paint_set_palette (paint, this->palette);
       apply_custom_palette (paint);
