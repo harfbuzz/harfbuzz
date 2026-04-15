@@ -75,11 +75,14 @@
   
   <section id="integration-glib">
     <title>GNOME integration, GLib, and GObject</title>
+    <para role="api-ref">
+      API reference: <link linkend="harfbuzz-hb-glib">hb-glib</link>.
+    </para>
     <para>
       As mentioned in the preceding section, HarfBuzz offers
       integration APIs to help client programs using the
       GNOME and GTK framework commonly found in desktop Linux
-      distributions. 
+      distributions.
     </para>
     <para>
       GLib is the main utility library for GNOME applications. It
@@ -162,6 +165,9 @@ hb_buffer_set_unicode_funcs(buf, glibufunctions);
   
   <section id="integration-freetype">
     <title>FreeType integration</title>
+    <para role="api-ref">
+      API reference: <link linkend="harfbuzz-hb-ft">hb-ft</link>.
+    </para>
     <para>
       FreeType is the free-software font-rendering engine included in
       desktop Linux distributions, Android, ChromeOS, iOS, and multiple Unix
@@ -313,7 +319,9 @@ hb_ft_font_set_funcs(font);
 
   <section id="integration-cairo">
     <title>Cairo integration</title>
-
+    <para role="api-ref">
+      API reference: <link linkend="harfbuzz-hb-cairo">hb-cairo</link>.
+    </para>
     <para>
       Cairo is a 2D graphics library that is frequently used together
       with GTK and Pango. Cairo supports rendering text using FreeType, or
@@ -355,6 +363,9 @@ hb_ft_font_set_funcs(font);
 
   <section id="integration-uniscribe">
     <title>Uniscribe integration</title>
+    <para role="api-ref">
+      API reference: <link linkend="harfbuzz-hb-uniscribe">hb-uniscribe</link>.
+    </para>
     <para>
       If your client program is running on Windows, HarfBuzz offers
       an additional API that can help integrate with Microsoft's
@@ -459,6 +470,9 @@ hb_ft_font_set_funcs(font);
    
   <section id="integration-coretext">
     <title>Core Text integration</title>
+    <para role="api-ref">
+      API reference: <link linkend="harfbuzz-hb-coretext">hb-coretext</link>.
+    </para>
     <para>
       If your client program is running on macOS or iOS, HarfBuzz offers
       an additional API that can help integrate with Apple's
@@ -540,6 +554,9 @@ hb_ft_font_set_funcs(font);
   
   <section id="integration-icu">
     <title>ICU integration</title>
+    <para role="api-ref">
+      API reference: <link linkend="harfbuzz-hb-icu">hb-icu</link>.
+    </para>
     <para>
       Although HarfBuzz includes its own Unicode-data functions, it
       also provides integration APIs for using the International
