@@ -20,7 +20,6 @@ struct hb_vector_draw_t
   hb_vector_extents_t extents = {0, 0, 0, 0};
   bool has_extents = false;
   unsigned precision = 2;
-  bool flat = false;
   hb_vector_t<char> id_prefix;
 
   hb_vector_t<char> defs;

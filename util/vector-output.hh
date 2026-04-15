@@ -62,7 +62,6 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     GOptionEntry entries[] =
     {
-      {"flat",       0, 0, G_OPTION_ARG_NONE,   &this->flat,          "Flatten geometry and disable reuse", nullptr},
       {"precision",  0, 0, G_OPTION_ARG_INT,    &this->precision,     "Decimal precision (default: 2)",     "N"},
       {nullptr}
     };
@@ -207,7 +206,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
     hb_vector_draw_set_extents (draw, &extents);
     hb_vector_draw_set_precision (draw, precision);
-    hb_vector_draw_set_flat (draw, flat);
 
     if (paint)
     {
@@ -218,7 +216,6 @@ struct vector_output_t : output_options_t<>, view_options_t
       apply_custom_palette (paint);
       init_palette_color_cache ();
       hb_vector_paint_set_precision (paint, precision);
-      hb_vector_paint_set_flat (paint, flat);
     }
 
     bool had_draw = false;
@@ -1076,7 +1073,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (gap) *gap = (float) fext.line_gap;
   }
 
-  hb_bool_t flat = false;
   int precision = 2;
   hb_color_t background = HB_COLOR (255, 255, 255, 255);
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);

@@ -51,7 +51,6 @@ struct hb_vector_paint_t
   int palette = 0;
   hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
   unsigned precision = 2;
-  bool flat = false;
   hb_vector_t<char> id_prefix;
 
   hb_vector_t<char> defs;
