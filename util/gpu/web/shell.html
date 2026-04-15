@@ -156,6 +156,11 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   if (typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(function () {
       resizeCanvas();
+      /* Also dispatch a window resize: emscripten's GLFW
+       * port listens for that to re-fire its framebuffer
+       * size callback into wasm, which re-sets glViewport
+       * and forces a redraw at the correct size. */
+      window.dispatchEvent(new Event('resize'));
       requestRedraw();
     }).observe(canvas);
   }
