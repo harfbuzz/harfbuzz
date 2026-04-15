@@ -1361,11 +1361,9 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 
     case HB_VECTOR_FORMAT_SVG:
     {
-      bool can_cache = !paint->flat;
       hb_vector_color_glyph_cache_key_t cache_key = hb_vector_color_glyph_cache_key (glyph,
 										(unsigned) paint->palette,
 										paint->foreground);
-      if (can_cache)
       {
 	if (paint->defined_color_glyphs.has (cache_key))
 	{
@@ -1385,7 +1383,6 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	}
       }
 
-      if (can_cache)
       {
 	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
 	  return false;
@@ -1452,39 +1449,6 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     case HB_VECTOR_FORMAT_INVALID: default:
       return false;
   }
-}
-
-/**
- * hb_vector_paint_set_flat:
- * @paint: a paint context.
- * @flat: whether to flatten paint output and disable glyph-group reuse.
- *
- * Enables or disables paint flattening.
- *
- * XSince: REPLACEME
- */
-void
-hb_vector_paint_set_flat (hb_vector_paint_t *paint,
-                              hb_bool_t flat)
-{
-  paint->flat = !!flat;
-}
-
-/**
- * hb_vector_paint_get_flat:
- * @paint: a paint context.
- *
- * Returns the flatten flag previously set on @paint, or `false` if
- * none was set.
- *
- * Return value: the flatten flag.
- *
- * XSince: REPLACEME
- */
-hb_bool_t
-hb_vector_paint_get_flat (const hb_vector_paint_t *paint)
-{
-  return paint->flat;
 }
 
 /**
@@ -1575,7 +1539,7 @@ hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
  *
  * Discards accumulated paint output so @paint can be reused for
  * another render.  User configuration (transform, scale factors,
- * precision, flat, foreground, palette, custom palette colors)
+ * precision, foreground, palette, custom palette colors)
  * is preserved.  Call hb_vector_paint_reset() to also reset
  * user configuration to defaults.
  *
@@ -1699,7 +1663,6 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->palette = 0;
   paint->precision = 2;
-  paint->flat = false;
   hb_vector_paint_clear (paint);
 }
 

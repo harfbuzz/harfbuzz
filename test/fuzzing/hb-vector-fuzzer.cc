@@ -6,8 +6,6 @@ static void
 exercise_format (const _fuzzing_shape_input_t *input,
 		 hb_vector_format_t format,
 		 unsigned precision,
-		 bool flat_draw,
-		 bool flat_paint,
 		 volatile unsigned *counter)
 {
   hb_vector_draw_t  *draw  = hb_vector_draw_create_or_fail  (format);
@@ -22,8 +20,6 @@ exercise_format (const _fuzzing_shape_input_t *input,
 
   hb_vector_draw_set_precision  (draw,  precision);
   hb_vector_paint_set_precision (paint, precision);
-  hb_vector_draw_set_flat  (draw,  flat_draw);
-  hb_vector_paint_set_flat (paint, flat_paint);
 
   unsigned glyph_count = hb_face_get_glyph_count (input->face);
   unsigned limit = glyph_count > 16 ? 16 : glyph_count;
@@ -71,8 +67,6 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     return 0;
 
   unsigned precision = size ? data[size - 1] % 5 : 0;
-  bool flat_draw  = size > 1 && (data[size - 2] & 1);
-  bool flat_paint = size > 2 && (data[size - 3] & 1);
 
   unsigned glyph_count = hb_face_get_glyph_count (input.face);
   volatile unsigned counter = !glyph_count;
@@ -80,8 +74,8 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   /* Exercise both output formats.  Each has its own serializer, path
    * encoder, gradient machinery, and (for PDF) indexed-PNG SMask +
    * Type 6 Coons-patch encoder. */
-  exercise_format (&input, HB_VECTOR_FORMAT_SVG, precision, flat_draw, flat_paint, &counter);
-  exercise_format (&input, HB_VECTOR_FORMAT_PDF, precision, flat_draw, flat_paint, &counter);
+  exercise_format (&input, HB_VECTOR_FORMAT_SVG, precision, &counter);
+  exercise_format (&input, HB_VECTOR_FORMAT_PDF, precision, &counter);
 
   return counter ? 0 : 0;
 }

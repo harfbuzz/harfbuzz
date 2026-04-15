@@ -163,13 +163,6 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN void
-hb_vector_draw_set_flat (hb_vector_draw_t *draw,
-                        hb_bool_t flat);
-
-HB_EXTERN hb_bool_t
-hb_vector_draw_get_flat (const hb_vector_draw_t *draw);
-
-HB_EXTERN void
 hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision);
 
@@ -285,13 +278,6 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       float              pen_x,
 		       float              pen_y,
 		       hb_vector_extents_mode_t extents_mode);
-
-HB_EXTERN void
-hb_vector_paint_set_flat (hb_vector_paint_t *paint,
-                              hb_bool_t flat);
-
-HB_EXTERN hb_bool_t
-hb_vector_paint_get_flat (const hb_vector_paint_t *paint);
 
 HB_EXTERN void
 hb_vector_paint_set_precision (hb_vector_paint_t *paint,
