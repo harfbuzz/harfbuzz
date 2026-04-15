@@ -477,7 +477,8 @@ hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
  * Emits a tapered line segment as a filled trapezoid with butt
  * caps.  @w0 and @w1 are the full stroke widths at the start and
  * end points respectively; they may differ for a tapered stroke
- * or match for a uniform one.
+ * or match for a uniform one.  Pass `NaN` for @w1 to use @w0
+ * (uniform stroke) without repeating the value.
  *
  * XSince: REPLACEME
  **/
@@ -487,6 +488,7 @@ hb_draw_line (hb_draw_funcs_t *dfuncs, void *draw_data,
 	      float x0, float y0, float w0,
 	      float x1, float y1, float w1)
 {
+  if (std::isnan (w1)) w1 = w0;
   float dx = x1 - x0, dy = y1 - y0;
   float len = sqrtf (dx * dx + dy * dy);
   if (len <= 0.f)
