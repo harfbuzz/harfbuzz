@@ -131,6 +131,13 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     var dpr = window.devicePixelRatio || 1;
     var width = Math.round(canvas.clientWidth * dpr);
     var height = Math.round(canvas.clientHeight * dpr);
+    /* Skip zero-sized updates -- iframe-hosted case runs
+     * this at parse time before layout, and installing a
+     * 0x0 drawing buffer then leaves GL stuck at 0x0 even
+     * after the canvas later gets a real size.  Leaving
+     * canvas.width / .height alone keeps the default 300x150
+     * buffer until ResizeObserver fires with real dims. */
+    if (!width || !height) return;
     if (canvas.width !== width)
       canvas.width = width;
     if (canvas.height !== height)
