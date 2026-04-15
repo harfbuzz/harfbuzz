@@ -110,7 +110,7 @@ hb_gpu_paint_push_transform (hb_paint_funcs_t *funcs HB_UNUSED,
 			     void             *user_data HB_UNUSED)
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
-  if (unlikely (!c->transform_stack.push (c->cur_transform)))
+  if (unlikely (!c->transform_stack.push_or_fail (c->cur_transform)))
   {
     c->unsupported = true;
     return;
@@ -376,7 +376,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
-  if (unlikely (!blob || !c->sub_blobs.push (blob)))
+  if (unlikely (!blob || !c->sub_blobs.push_or_fail (blob)))
   {
     hb_blob_destroy (blob);
     c->unsupported = true;
@@ -654,7 +654,7 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
 					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
 					 nullptr, nullptr);
-  if (unlikely (!grad_blob || !c->sub_blobs.push (grad_blob)))
+  if (unlikely (!grad_blob || !c->sub_blobs.push_or_fail (grad_blob)))
   {
     hb_blob_destroy (grad_blob);
     c->unsupported = true;
@@ -751,7 +751,7 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
 					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
 					 nullptr, nullptr);
-  if (unlikely (!grad_blob || !c->sub_blobs.push (grad_blob)))
+  if (unlikely (!grad_blob || !c->sub_blobs.push_or_fail (grad_blob)))
   {
     hb_blob_destroy (grad_blob);
     c->unsupported = true;
@@ -885,7 +885,7 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
 					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
 					 nullptr, nullptr);
-  if (unlikely (!grad_blob || !c->sub_blobs.push (grad_blob)))
+  if (unlikely (!grad_blob || !c->sub_blobs.push_or_fail (grad_blob)))
   {
     hb_blob_destroy (grad_blob);
     c->unsupported = true;
