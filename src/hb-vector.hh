@@ -182,7 +182,7 @@ struct hb_vector_t
   {
     if (unlikely (in_error ()))
       reset_error ();
-    resize (0);
+    clear ();
     return *this;
   }
 

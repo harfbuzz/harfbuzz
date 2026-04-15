@@ -1441,15 +1441,20 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 void
 hb_gpu_paint_clear (hb_gpu_paint_t *paint)
 {
-  paint->ops.resize (0);
+  /* Use reset() not resize(0): if an earlier push_or_fail() set
+   * the vector's error state (common under failing-malloc),
+   * resize(0) short-circuits without clearing length.  A
+   * subsequent clear would double-destroy the blob pointers left
+   * in the array, or keep stale ops across encodes. */
+  paint->ops.reset ();
   paint->num_ops = 0;
   for (hb_blob_t *b : paint->sub_blobs)
     hb_blob_destroy (b);
-  paint->sub_blobs.resize (0);
+  paint->sub_blobs.reset ();
   paint->clip_depth = 0;
   paint->unsupported = false;
   paint->cur_transform = {1, 0, 0, 1, 0, 0};
-  paint->transform_stack.resize (0);
+  paint->transform_stack.reset ();
   paint->ext_min_x =  0x7fffffff;
   paint->ext_min_y =  0x7fffffff;
   paint->ext_max_x = -0x7fffffff;

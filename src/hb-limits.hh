@@ -112,6 +112,10 @@
 #define HB_SVG_MAX_PATH_SEGMENTS 262144
 #endif
 
+#ifndef HB_GPU_DRAW_MAX_CURVES
+#define HB_GPU_DRAW_MAX_CURVES 65536
+#endif
+
 #ifndef HB_SVG_MAX_DOCUMENT_SIZE
 #define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
 #endif
