@@ -27,6 +27,7 @@
 #include "hb-test.h"
 #include "hb-gpu.h"
 #include <hb-ot.h>
+#include <cmath>
 
 #define FONT_FILE      "fonts/Roboto-Regular.abc.ttf"
 #define COLR_FONT_FILE "fonts/test_glyphs-glyf_colr_1.ttf"
@@ -516,6 +517,71 @@ test_paint_recycle_blob (void)
 }
 
 
+static void
+test_shapes (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+  /* Use a reasonable scale so the coordinates below stay in
+   * the encoder's representable range. */
+  hb_gpu_draw_set_scale (draw, 1000, 1000);
+
+  /* Tapered line. */
+  hb_gpu_draw_line (draw,
+		    10.f, 10.f, 4.f,
+		    50.f, 30.f, 2.f);
+  hb_glyph_extents_t ext;
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  g_assert_cmpint (ext.width, >, 0);
+  hb_blob_destroy (blob);
+
+  /* Degenerate line (zero length) is silently a no-op. */
+  hb_gpu_draw_line (draw,
+		    10.f, 10.f, 3.f,
+		    10.f, 10.f, 3.f);
+  blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
+
+  /* Filled rect (stroke_width = NaN). */
+  hb_gpu_draw_rect (draw, 0.f, 0.f, 20.f, 10.f,
+		    (float) std::nan (""));
+  blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  g_assert_cmpint (ext.width, ==, 20);
+  hb_blob_destroy (blob);
+
+  /* Stroked rect: outer edge extends stroke_width/2 beyond the
+   * nominal rect on each side. */
+  hb_gpu_draw_rect (draw, 0.f, 0.f, 20.f, 10.f, 2.f);
+  blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  g_assert_cmpint (ext.width, ==, 22);
+  hb_blob_destroy (blob);
+
+  /* Filled circle. */
+  hb_gpu_draw_circle (draw, 50.f, 50.f, 25.f,
+		      (float) std::nan (""));
+  blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  hb_blob_destroy (blob);
+
+  /* Stroked circle. */
+  hb_gpu_draw_circle (draw, 50.f, 50.f, 25.f, 2.f);
+  blob = hb_gpu_draw_encode (draw, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  hb_blob_destroy (blob);
+
+  hb_gpu_draw_destroy (draw);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -531,6 +597,7 @@ main (int argc, char **argv)
   hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
   hb_test_add (test_extents_saturate_overflow);
+  hb_test_add (test_shapes);
 
   hb_test_add (test_paint_create_destroy);
   hb_test_add (test_paint_get_funcs);
