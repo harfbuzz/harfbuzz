@@ -40,6 +40,10 @@ Overview of changes leading to NEXT (REPLACEME)
     (clipPaths, gradients, color-glyph cache) so url(#...)
     refs across snippets no longer resolve to the wrong
     target.
+  * Drop the flat-mode API.  Inlining geometry / disabling
+    glyph reuse was mainly a workaround for cross-snippet
+    SVG id collisions; the svg-prefix API above solves that
+    without giving up the cache.
   * Drop glyph-source rendering of SVG-in-OT fonts.
 
 - Raster library:
@@ -95,12 +99,10 @@ Overview of changes leading to NEXT (REPLACEME)
 - New API, Vector library:
   +HB_VECTOR_FORMAT_PDF
   +hb_vector_draw_clear()
-  +hb_vector_draw_get_flat()
   +hb_vector_draw_get_precision()
   +hb_vector_draw_set_svg_prefix()
   +hb_vector_draw_get_svg_prefix()
   +hb_vector_paint_clear()
-  +hb_vector_paint_get_flat()
   +hb_vector_paint_get_precision()
   +hb_vector_paint_get_foreground()
   +hb_vector_paint_get_palette()
@@ -112,6 +114,12 @@ Overview of changes leading to NEXT (REPLACEME)
   -hb_gpu_shader_vertex_source()     (replaced by hb_gpu_shader_source(stage))
   -hb_gpu_draw_get_extents()         (extents are now an out-parameter of hb_gpu_draw_encode())
 
+- Removed API, Vector library:
+  -hb_vector_draw_set_flat()
+  -hb_vector_draw_get_flat()
+  -hb_vector_paint_set_flat()
+  -hb_vector_paint_get_flat()
+
 - Changed API, GPU library:
   * hb_gpu_draw_glyph() now returns hb_bool_t instead of void.
   * hb_gpu_draw_encode() now takes an extents out-parameter and
@@ -119,10 +127,9 @@ Overview of changes leading to NEXT (REPLACEME)
   * hb_gpu_draw_darken() renamed to hb_gpu_stem_darken().
 
 - Changed API, Vector library:
-  * hb_vector_svg_set_flat() / hb_vector_svg_set_precision() and
-    their paint counterparts renamed to hb_vector_draw_* /
-    hb_vector_paint_* (SVG-specific naming is inaccurate with the
-    PDF backend added).
+  * hb_vector_svg_set_precision() and its paint counterpart renamed
+    to hb_vector_draw_set_precision() / hb_vector_paint_set_precision()
+    (SVG-specific naming is inaccurate with the PDF backend added).
 
 - Changed API, Raster library:
   * hb_raster_draw_glyph() now returns hb_bool_t instead of void.
