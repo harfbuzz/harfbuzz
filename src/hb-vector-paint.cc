@@ -479,6 +479,20 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
     return;
 
+  if (paint->flat)
+  {
+    /* Inline clip: emit clip-path="path('...')" so the
+     * output has no defs to reference and the whole SVG
+     * is safe to concatenate with other hb-vector output. */
+    paint->path.clear ();
+    hb_vector_svg_path_sink_t sink = {&paint->path, paint->precision};
+    hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
+    hb_buf_append_str (&paint->current_body (), "<g clip-path=\"path('");
+    hb_buf_append_len (&paint->current_body (), paint->path.arrayZ, paint->path.length);
+    hb_buf_append_str (&paint->current_body (), "')\">\n");
+    return;
+  }
+
   if (!hb_set_has (paint->defined_outlines, glyph))
   {
     hb_set_add (paint->defined_outlines, glyph);
@@ -517,6 +531,23 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
     return;
+
+  if (paint->flat)
+  {
+    /* Inline clip as a polygon via clip-path="path('...')". */
+    hb_buf_append_str (&paint->current_body (), "<g clip-path=\"path('M");
+    hb_buf_append_num (&paint->current_body (), xmin, paint->precision);
+    hb_buf_append_c (&paint->current_body (), ' ');
+    hb_buf_append_num (&paint->current_body (), ymin, paint->precision);
+    hb_buf_append_str (&paint->current_body (), "H");
+    hb_buf_append_num (&paint->current_body (), xmax, paint->precision);
+    hb_buf_append_str (&paint->current_body (), "V");
+    hb_buf_append_num (&paint->current_body (), ymax, paint->precision);
+    hb_buf_append_str (&paint->current_body (), "H");
+    hb_buf_append_num (&paint->current_body (), xmin, paint->precision);
+    hb_buf_append_str (&paint->current_body (), "Z')\">\n");
+    return;
+  }
 
   unsigned clip_id = paint->clip_rect_counter++;
   hb_buf_append_str (&paint->defs, "<clipPath id=\"c");
