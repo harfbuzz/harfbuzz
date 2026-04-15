@@ -215,6 +215,27 @@ float _hb_gpu_slug_clipped (float2 renderCoord, float2 pixelsPerEm, uint glyphLo
   return _hb_gpu_slug (renderCoord, pixelsPerEm, glyphLoc_);
 }
 
+/* Combine slug coverages from all clip outlines on the layer.
+ * Factored so the shader has one set of inlined slug walks
+ * instead of two (one per LAYER op type).  flags bits: 0x100 =
+ * HAS_CLIP2; 0x200 = HAS_CLIP3 (HAS_CLIP3 implies HAS_CLIP2). */
+float _hb_gpu_layer_coverage (float2 renderCoord, float2 pixelsPerEm,
+			      int base, int flags,
+			      int clip1_payload, int clip2_payload, int clip3_payload)
+{
+  float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+				    (uint) (base + clip1_payload));
+  if ((flags & 0x100) != 0)
+  {
+    cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+				 (uint) (base + clip2_payload));
+    if ((flags & 0x200) != 0)
+      cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+				   (uint) (base + clip3_payload));
+  }
+  return cov;
+}
+
 #define HB_GPU_PAINT_GROUP_DEPTH 4
 
 float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
@@ -252,16 +273,9 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 		 ? foreground
 		 : (float4) ct / 32767.0;
 
-      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					     (uint) (base + payload));
-      if ((aux & 0x100) != 0)  /* HAS_CLIP2 (HAS_CLIP3 implies it) */
-      {
-        cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					 (uint) (base + clip2_payload));
-        if ((aux & 0x200) != 0)  /* HAS_CLIP3 */
-          cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					   (uint) (base + clip3_payload));
-      }
+      float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
+					  base, aux,
+					  payload, clip2_payload, clip3_payload);
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -292,16 +306,9 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
-      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					     (uint) (base + payload));
-      if ((aux & 0x100) != 0)  /* HAS_CLIP2 (HAS_CLIP3 implies it) */
-      {
-        cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					 (uint) (base + clip2_payload));
-        if ((aux & 0x200) != 0)  /* HAS_CLIP3 */
-          cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					   (uint) (base + clip3_payload));
-      }
+      float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
+					  base, aux,
+					  payload, clip2_payload, clip3_payload);
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 

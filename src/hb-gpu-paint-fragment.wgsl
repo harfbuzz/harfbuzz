@@ -230,6 +230,28 @@ fn _hb_gpu_slug_clipped (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
   return _hb_gpu_slug (renderCoord, pixelsPerEm, glyphLoc_, hb_gpu_atlas);
 }
 
+/* Combine slug coverages from all clip outlines on the layer.
+ * Factored so the shader has one set of inlined slug walks
+ * instead of two (one per LAYER op type).  flags bits: 0x100 =
+ * HAS_CLIP2; 0x200 = HAS_CLIP3 (HAS_CLIP3 implies HAS_CLIP2). */
+fn _hb_gpu_layer_coverage (renderCoord: vec2f, pixelsPerEm: vec2f,
+                           base: i32, flags: i32,
+                           clip1_payload: i32, clip2_payload: i32, clip3_payload: i32,
+                           hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
+{
+  var cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                       u32 (base + clip1_payload), hb_gpu_atlas);
+  if ((flags & 0x100) != 0) {
+    cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                          u32 (base + clip2_payload), hb_gpu_atlas);
+    if ((flags & 0x200) != 0) {
+      cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+                                            u32 (base + clip3_payload), hb_gpu_atlas);
+    }
+  }
+  return cov;
+}
+
 const HB_GPU_PAINT_GROUP_DEPTH: i32 = 4;
 
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
@@ -275,16 +297,10 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
         col = vec4f (ct) / 32767.0;
       }
 
-      var cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-                                           u32 (base + payload), hb_gpu_atlas);
-      if ((aux & 0x100) != 0) {  // HAS_CLIP2 (HAS_CLIP3 implies it)
-        cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-                                              u32 (base + clip2_payload), hb_gpu_atlas);
-        if ((aux & 0x200) != 0) {  // HAS_CLIP3
-          cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-                                                u32 (base + clip3_payload), hb_gpu_atlas);
-        }
-      }
+      let cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
+                                        base, aux,
+                                        payload, clip2_payload, clip3_payload,
+                                        hb_gpu_atlas);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -317,16 +333,10 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                                      hb_gpu_atlas);
       }
 
-      var cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-                                           u32 (base + payload), hb_gpu_atlas);
-      if ((aux & 0x100) != 0) {  // HAS_CLIP2 (HAS_CLIP3 implies it)
-        cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-                                              u32 (base + clip2_payload), hb_gpu_atlas);
-        if ((aux & 0x200) != 0) {  // HAS_CLIP3
-          cov = cov * _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-                                                u32 (base + clip3_payload), hb_gpu_atlas);
-        }
-      }
+      let cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
+                                        base, aux,
+                                        payload, clip2_payload, clip3_payload,
+                                        hb_gpu_atlas);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 

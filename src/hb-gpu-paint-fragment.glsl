@@ -258,6 +258,28 @@ float _hb_gpu_slug_clipped (vec2 renderCoord, vec2 pixelsPerEm, uint glyphLoc_)
   return _hb_gpu_slug (renderCoord, pixelsPerEm, glyphLoc_);
 }
 
+/* Combine slug coverages from all clip outlines on the current
+ * layer.  Factored out of LAYER_SOLID and LAYER_GRADIENT so the
+ * shader has one set of inlined slug walks instead of two.  flags
+ * bits: 0x100 = HAS_CLIP2; 0x200 = HAS_CLIP3 (HAS_CLIP3 implies
+ * HAS_CLIP2). */
+float _hb_gpu_layer_coverage (vec2 renderCoord, vec2 pixelsPerEm,
+			      int base, int flags,
+			      int clip1_payload, int clip2_payload, int clip3_payload)
+{
+  float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+				    uint (base + clip1_payload));
+  if ((flags & 0x100) != 0)
+  {
+    cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+				 uint (base + clip2_payload));
+    if ((flags & 0x200) != 0)
+      cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
+				   uint (base + clip3_payload));
+  }
+  return cov;
+}
+
 /* Walks the paint blob's flat op stream and returns a
  * premultiplied RGBA coverage value for the current fragment.
  *
@@ -293,7 +315,8 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 
     if (op_type == 0)  /* LAYER_SOLID */
     {
-      /* texel 1: (clip2_hi, clip2_lo, 0, 0) -- valid only if HAS_CLIP2.
+      /* texel 1: (clip2_hi, clip2_lo, clip3_hi, clip3_lo) -- valid
+       *           per HAS_CLIP2 / HAS_CLIP3 flag bits.
        * texel 2: RGBA as signed Q15. */
       ivec4 op2 = hb_gpu_fetch (cursor + 1);
       int clip2_payload = (op2.r << 16) | (op2.g & 0xffff);
@@ -303,16 +326,9 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
 	       ? foreground
 	       : vec4 (ct) / 32767.0;
 
-      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					     uint (base + payload));
-      if ((aux & 0x100) != 0)  /* HAS_CLIP2 (HAS_CLIP3 implies it) */
-      {
-        cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					 uint (base + clip2_payload));
-        if ((aux & 0x200) != 0)  /* HAS_CLIP3 */
-          cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					   uint (base + clip3_payload));
-      }
+      float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
+					  base, aux,
+					  payload, clip2_payload, clip3_payload);
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -320,7 +336,8 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
     }
     else if (op_type == 1)  /* LAYER_GRADIENT */
     {
-      /* texel 1: (clip2_hi, clip2_lo, 0, 0) -- valid only if HAS_CLIP2.
+      /* texel 1: (clip2_hi, clip2_lo, clip3_hi, clip3_lo) -- valid
+       *           per HAS_CLIP2 / HAS_CLIP3 flag bits.
        * texel 2: (grad_payload_hi, grad_payload_lo, extend, stop_count) */
       ivec4 op2 = hb_gpu_fetch (cursor + 1);
       int clip2_payload = (op2.r << 16) | (op2.g & 0xffff);
@@ -345,16 +362,9 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
                                      base + grad_payload,
                                      stop_count, extend, foreground);
 
-      float cov = _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					     uint (base + payload));
-      if ((aux & 0x100) != 0)  /* HAS_CLIP2 (HAS_CLIP3 implies it) */
-      {
-        cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					 uint (base + clip2_payload));
-        if ((aux & 0x200) != 0)  /* HAS_CLIP3 */
-          cov *= _hb_gpu_slug_clipped (renderCoord, pixelsPerEm,
-					   uint (base + clip3_payload));
-      }
+      float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
+					  base, aux,
+					  payload, clip2_payload, clip3_payload);
       vec4 src = vec4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
