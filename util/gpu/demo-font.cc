@@ -19,6 +19,7 @@ struct demo_font_t {
   hb_gpu_paint_t  *p;
   hb_gpu_draw_t   *d;
   bool             draw_only;
+  bool             show_extents;
 
   unsigned int num_glyphs;
   unsigned int sum_bytes;
@@ -73,6 +74,15 @@ demo_font_get_font (demo_font_t *font)
 }
 
 void
+demo_font_set_show_extents (demo_font_t *font, hb_bool_t show)
+{
+  bool b = !!show;
+  if (font->show_extents == b) return;
+  font->show_extents = b;
+  demo_font_clear_cache (font);
+}
+
+void
 demo_font_set_palette (demo_font_t *font, unsigned palette_index)
 {
   if (font->draw_only)
@@ -114,6 +124,29 @@ _demo_font_upload_glyph (demo_font_t  *font,
   {
     hb_gpu_draw_clear (font->d);
     hb_gpu_draw_glyph (font->d, font->font, glyph_index);
+    if (font->show_extents)
+    {
+      /* Embed a stroked rectangle around the glyph's ink
+       * extents in the same blob.  Pad the nominal rect
+       * outward by stroke_width / 2 so the stroke sits
+       * entirely outside the ink box (otherwise the inner
+       * half of the stroke would knock out against the
+       * glyph shape, since both fill in the same blob). */
+      hb_glyph_extents_t g = {};
+      if (hb_font_get_glyph_extents (font->font, glyph_index, &g) &&
+	  (g.width != 0 || g.height != 0))
+      {
+	int x_scale, y_scale;
+	hb_font_get_scale (font->font, &x_scale, &y_scale);
+	float sw   = (float) (x_scale * 0.01);
+	float half = 0.5f * sw;
+	float x = (float) g.x_bearing - half;
+	float y = (float) (g.y_bearing + g.height) - half;  /* min_y */
+	float w = (float) g.width + sw;
+	float h = (float) -g.height + sw;                   /* positive */
+	hb_gpu_draw_rect (font->d, x, y, w, h, sw);
+      }
+    }
     blob = hb_gpu_draw_encode (font->d, &hb_ext);
   }
   else

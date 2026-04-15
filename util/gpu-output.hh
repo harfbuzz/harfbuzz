@@ -57,6 +57,7 @@ struct gpu_output_t
   hb_bool_t bench = false;
   hb_bool_t force_draw  = false;  /* --draw   : use monochrome draw path */
   hb_bool_t force_paint = false;  /* --paint  : use paint path */
+  hb_bool_t show_extents = false; /* --show-extents */
   char *type_text = nullptr;
   char *output_file = nullptr;  /* PPM only; "-" for stdout */
   view_options_t view;
@@ -86,6 +87,7 @@ struct gpu_output_t
       {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,	"Force monochrome draw path",		nullptr},
       {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
       {"output-file",	'o', 0, G_OPTION_ARG_STRING,	&this->output_file,	"Render one frame to PPM file (\"-\" for stdout) and exit","filename"},
+      {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,	"Draw a frame around each glyph's ink extents",	nullptr},
       /* Reuse the storage in `view` for the four options hb-gpu
        * actually honors.  view_options_t::post_parse() does the
        * parsing for us; gpu_output_t::post_parse() below forwards
@@ -179,6 +181,7 @@ struct gpu_output_t
 
     demo_font_ = demo_font_create (font, renderer->get_atlas (), draw_only);
     demo_font_set_palette (demo_font_, view.palette);
+    demo_font_set_show_extents (demo_font_, show_extents);
     if (view.custom_palette_entries)
     {
       for (unsigned i = 0; i < view.custom_palette_entries->len; i++)
