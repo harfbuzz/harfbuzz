@@ -731,7 +731,8 @@ hb_pdf_build_gradient_function (hb_pdf_resources_t *res,
 				hb_color_line_t *color_line)
 {
   unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  paint->color_stops_scratch.resize (count);
+  if (unlikely (!paint->color_stops_scratch.resize (count)))
+    return 0;
   hb_color_line_get_color_stops (color_line, 0, &count, paint->color_stops_scratch.arrayZ);
 
   if (count < 2)
@@ -1042,7 +1043,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   /* Get and sort color stops. */
   unsigned n_stops = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  paint->color_stops_scratch.resize (n_stops);
+  if (unlikely (!paint->color_stops_scratch.resize (n_stops)))
+    return;
   hb_color_line_get_color_stops (color_line, 0, &n_stops, paint->color_stops_scratch.arrayZ);
   paint->color_stops_scratch.as_array ().qsort (
     [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
