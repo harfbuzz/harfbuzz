@@ -194,6 +194,16 @@ hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
 				       unsigned int    color_index,
 				       hb_color_t      color);
 
+HB_EXTERN void
+hb_gpu_paint_set_scale (hb_gpu_paint_t *paint,
+			int             x_scale,
+			int             y_scale);
+
+HB_EXTERN void
+hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
+			int                  *x_scale,
+			int                  *y_scale);
+
 HB_EXTERN hb_bool_t
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_font_t      *font,

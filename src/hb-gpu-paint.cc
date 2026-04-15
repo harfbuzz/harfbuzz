@@ -1134,6 +1134,46 @@ hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
 }
 
 /**
+ * hb_gpu_paint_set_scale:
+ * @paint: a GPU color-glyph paint encoder
+ * @x_scale: horizontal scale (typically from hb_font_get_scale())
+ * @y_scale: vertical scale
+ *
+ * Sets the font scale used to dimension clip-glyph slug outlines
+ * inside the encoded blob.  Called automatically by
+ * hb_gpu_paint_glyph().
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_set_scale (hb_gpu_paint_t *paint,
+			int             x_scale,
+			int             y_scale)
+{
+  paint->x_scale = x_scale;
+  paint->y_scale = y_scale;
+}
+
+/**
+ * hb_gpu_paint_get_scale:
+ * @paint: a GPU color-glyph paint encoder
+ * @x_scale: (out): horizontal scale
+ * @y_scale: (out): vertical scale
+ *
+ * Fetches the font scale previously set on @paint.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
+			int                  *x_scale,
+			int                  *y_scale)
+{
+  if (x_scale) *x_scale = paint->x_scale;
+  if (y_scale) *y_scale = paint->y_scale;
+}
+
+/**
  * hb_gpu_paint_glyph:
  * @paint: a GPU color-glyph paint encoder
  * @font: font to paint from
@@ -1143,8 +1183,8 @@ hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
  * encoder via hb_font_paint_glyph().  Non-color glyphs are handled
  * transparently: harfbuzz synthesizes a single foreground-colored
  * layer from the outline, which our callbacks turn into a single
- * LAYER_SOLID op.  The font's scale is stashed on @paint for use
- * by hb_gpu_paint_encode().
+ * LAYER_SOLID op.  The font's scale is stashed on @paint via
+ * hb_gpu_paint_set_scale() for use by hb_gpu_paint_encode().
  *
  * Return value: `true` if the paint walk completed without hitting
  * an encoder limitation; `false` if some part of the paint tree
@@ -1159,7 +1199,9 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_font_t      *font,
 		    hb_codepoint_t  glyph)
 {
-  hb_font_get_scale (font, &paint->x_scale, &paint->y_scale);
+  int x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  hb_gpu_paint_set_scale (paint, x_scale, y_scale);
   /* Use hb_font_paint_glyph (not _or_fail) so that non-color
    * glyphs still produce a blob: harfbuzz synthesizes
    * push_clip_glyph + color(is_foreground=true) + pop_clip, which

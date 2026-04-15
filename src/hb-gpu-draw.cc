@@ -966,8 +966,8 @@ hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
  * @glyph: glyph ID to draw
  *
  * Convenience wrapper that draws a single glyph outline into the
- * encoder using hb_font_draw_glyph().  Also sets the font scale
- * on the encoder.
+ * encoder using hb_font_draw_glyph().  Calls hb_gpu_draw_set_scale()
+ * with the font's scale before walking the outline.
  *
  * Return value: `true` if the glyph was drawn, `false` if the font
  * has no outlines for @glyph.
