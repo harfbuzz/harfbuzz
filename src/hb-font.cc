@@ -1627,11 +1627,12 @@ hb_font_draw_glyph_or_fail (hb_font_t *font,
  *
  * Paints a color glyph.
  *
- * This function is similar to, but lower-level than,
- * hb_font_paint_glyph(). It is suitable for clients that
- * need more control.  If there are no color glyphs available,
- * it will return `false`. The client can then fall back to
- * hb_font_draw_glyph_or_fail() for the monochrome outline glyph.
+ * Succeeds if @glyph has color paint layers (COLRv0),
+ * a color paint graph (COLRv1), or a bitmap image that the
+ * font's callbacks render successfully.  Returns `false` if
+ * the font has no color data for @glyph; the client can then
+ * fall back to hb_font_draw_glyph_or_fail() for the monochrome
+ * outline.
  *
  * The painting instructions are returned by way of calls to
  * the callbacks of the @funcs object, with @paint_data passed
