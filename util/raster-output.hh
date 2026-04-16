@@ -81,12 +81,18 @@ struct raster_output_t : output_options_t<true>, view_options_t
     subpixel_bits = font_opts->subpixel_bits;
 
     hb_face_t *face = hb_font_get_face (font);
-    has_color = hb_ot_color_has_paint (face) ||
-		hb_ot_color_has_layers (face) ||
+    bool font_has_color = hb_ot_color_has_paint (face) ||
+			  hb_ot_color_has_layers (face) ||
 #ifndef HB_NO_SVG
-		hb_ot_color_has_svg (face) ||
+			  hb_ot_color_has_svg (face) ||
 #endif
-		hb_ot_color_has_png (face);
+			  hb_ot_color_has_png (face);
+    /* --paint wins over --draw; otherwise auto-detect.
+     * hb_raster_paint_glyph synthesizes paint from outlines
+     * for mono fonts, so --paint works even without color. */
+    has_color = force_paint ? true
+	      : force_draw  ? false
+	      : font_has_color;
 
     fg_color = HB_COLOR ((uint8_t) foreground_color.b,
 			 (uint8_t) foreground_color.g,
