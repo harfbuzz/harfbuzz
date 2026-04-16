@@ -631,7 +631,7 @@ struct vector_output_t : output_options_t<>, view_options_t
 
   double get_normalized_stroke_width () const
   {
-    if (!stroke_enabled || stroke_width <= 0.)
+    if (stroke_width <= 0.)
       return stroke_width;
 
     /* Stroke width is in pixels; geometry is in font-scale
