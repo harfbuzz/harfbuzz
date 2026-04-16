@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 
+#include "helper-extents-overlay.hh"
 #include "output-options.hh"
 #include "view-options.hh"
 #include "hb-vector.h"
@@ -282,12 +283,28 @@ struct vector_output_t : output_options_t<>, view_options_t
           hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
                                  extents_mode);
           had_paint = true;
+          if (show_extents)
+          {
+            hb_glyph_extents_t ge;
+            if (hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+              util_emit_extents_rect_into_paint (
+                hb_vector_paint_get_funcs (), paint,
+                &ge, pen_x, pen_y, (float) normalized_stroke_width);
+          }
         }
         else
         {
           hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
                                 extents_mode);
           had_draw = true;
+          if (show_extents)
+          {
+            hb_glyph_extents_t ge;
+            if (hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+              util_emit_extents_rect_into_draw (
+                hb_vector_draw_get_funcs (), draw,
+                &ge, pen_x, pen_y, (float) normalized_stroke_width);
+          }
         }
       }
     }
@@ -897,9 +914,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (is_draw_blob && !(foreground_use_palette && foreground_palette && foreground_palette->len))
       emit_fill_group_close ();
 
-    if (show_extents)
-      emit_extents_overlay (direction == HB_DIRECTION_INVALID ? HB_DIRECTION_LTR : direction, line_step);
-
     fputs ("</svg>\n", out_fp);
   }
 
@@ -948,9 +962,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     }
     if (paint_body.len)
       write_slice_resolving_palette_vars (paint_body);
-
-    if (show_extents)
-      emit_extents_overlay (direction == HB_DIRECTION_INVALID ? HB_DIRECTION_LTR : direction, line_step);
 
     fputs ("</svg>\n", out_fp);
   }
@@ -1030,54 +1041,6 @@ struct vector_output_t : output_options_t<>, view_options_t
                                              entry.color.a);
       custom_palette_has_value[idx] = true;
     }
-  }
-
-  void emit_extents_overlay (hb_direction_t dir, float step)
-  {
-    const bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
-    const float dot_r = hb_max (1.f, step * 0.01f);
-    fputs ("<g fill=\"#FF0000\" fill-opacity=\"0.502\" stroke=\"none\">\n", out_fp);
-    for (unsigned li = 0; li < lines.size (); li++)
-    {
-      float off_x = vertical ? -(step * (float) li) : 0.f;
-      float off_y = vertical ?  0.f                  : -(step * (float) li);
-      const line_t &line = lines[li];
-      for (const auto &g : line.glyphs)
-      {
-        fprintf (out_fp, "<circle cx=\"%.*g\" cy=\"%.*g\" r=\"%.*g\"/>\n",
-                 precision + 4, (double) (g.x + off_x),
-                 precision + 4, (double) (-(g.y + off_y)),
-                 precision + 4, (double) dot_r);
-      }
-    }
-    fputs ("</g>\n", out_fp);
-
-    fprintf (out_fp, "<g fill=\"none\" stroke=\"#FF00FF\" stroke-opacity=\"0.502\" stroke-width=\"%.*g\">\n",
-             precision + 4, normalized_stroke_width);
-    for (unsigned li = 0; li < lines.size (); li++)
-    {
-      float off_x = vertical ? -(step * (float) li) : 0.f;
-      float off_y = vertical ?  0.f                  : -(step * (float) li);
-      const line_t &line = lines[li];
-      for (const auto &g : line.glyphs)
-      {
-        hb_glyph_extents_t ge;
-        if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
-          continue;
-        float x = g.x + off_x + ge.x_bearing;
-        float y = g.y + off_y + ge.y_bearing;
-        float w = ge.width;
-        float h = ge.height;
-        if (!w || !h)
-          continue;
-        fprintf (out_fp, "<rect x=\"%.*g\" y=\"%.*g\" width=\"%.*g\" height=\"%.*g\"/>\n",
-                 precision + 4, (double) x,
-                 precision + 4, (double) (-y),
-                 precision + 4, (double) w,
-                 precision + 4, (double) (-h));
-      }
-    }
-    fputs ("</g>\n", out_fp);
   }
 
   void get_line_metrics (hb_direction_t dir, float *asc, float *desc, float *gap) const
