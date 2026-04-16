@@ -1370,21 +1370,28 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   {
     case HB_VECTOR_FORMAT_PDF:
     {
-      /* PDF: emit transform + paint directly, no caching. */
+      /* PDF: emit transform + paint directly, no caching.
+       * The paint transform and pen position are in input
+       * space; fold in 1/scale_factor here so glyph path
+       * operators (emitted raw in input space) land in
+       * pixel space, matching the MediaBox. */
       auto &body = paint->current_body ();
+      unsigned sprec = hb_vector_scale_precision (paint->precision);
+      float sx = paint->x_scale_factor;
+      float sy = paint->y_scale_factor;
       hb_buf_append_str (&body, "q\n");
       /* Font and PDF coords are both Y-up; no negation needed. */
-      hb_buf_append_num (&body, xx, paint->precision);
+      hb_buf_append_num (&body, xx / sx, sprec, true);
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, yx, paint->precision);
+      hb_buf_append_num (&body, yx / sy, sprec, true);
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, xy, paint->precision);
+      hb_buf_append_num (&body, xy / sx, sprec, true);
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, yy, paint->precision);
+      hb_buf_append_num (&body, yy / sy, sprec, true);
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, tx, paint->precision);
+      hb_buf_append_num (&body, tx / sx, paint->precision);
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, ty, paint->precision);
+      hb_buf_append_num (&body, ty / sy, paint->precision);
       hb_buf_append_str (&body, " cm\n");
 
       hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
