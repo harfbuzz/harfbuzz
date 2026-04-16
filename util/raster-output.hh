@@ -250,6 +250,14 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	    float pen_y = g.y + off_y;
 	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 	    hb_raster_draw_glyph (rdr, font, g.gid, pen_x, pen_y);
+	    if (show_extents)
+	    {
+	      hb_glyph_extents_t ge;
+	      if (hb_font_get_glyph_extents (font, g.gid, &ge))
+		util_emit_extents_rect_into_draw (
+		  hb_raster_draw_get_funcs (), rdr,
+		  &ge, pen_x, pen_y, extents_stroke_width ());
+	    }
 	  }
 	}
 
@@ -269,12 +277,16 @@ struct raster_output_t : output_options_t<true>, view_options_t
   private:
 
   struct glyph_instance_t { hb_codepoint_t gid; float x, y; };
-  struct rect_i_t { int x0, y0, x1, y1; };
   struct line_t
   {
     float advance_x = 0.f, advance_y = 0.f;
     std::vector<glyph_instance_t> glyphs;
   };
+
+  float extents_stroke_width () const
+  {
+    return scalbnf (1.f, (int) subpixel_bits);
+  }
 
   void finish_paint (float sx, float sy, float step, bool vertical, unsigned int num_iterations)
   {
@@ -325,28 +337,10 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	  if (show_extents)
 	  {
 	    hb_glyph_extents_t ge;
-	    if (hb_font_get_glyph_extents (font, g.gid, &ge) &&
-		(ge.width != 0 || ge.height != 0))
-	    {
-	      float rx = pen_x + (float) ge.x_bearing;
-	      float ry = pen_y + (float) ge.y_bearing;
-	      float rw = (float) ge.width;
-	      float rh = (float) ge.height;
-	      /* Normalize to positive w/h so the outward padding
-	       * below is unambiguous regardless of the y_bearing /
-	       * height sign convention. */
-	      if (rw < 0) { rx += rw; rw = -rw; }
-	      if (rh < 0) { ry += rh; rh = -rh; }
-	      /* Pad the nominal rect outward by stroke_width / 2 so
-	       * the stroke's inner edge sits at the ink box, instead
-	       * of straddling it (and its inner half knocking out
-	       * against the glyph ink). */
-	      float sw = scalbnf (1.f, (int) subpixel_bits);
-	      float half = 0.5f * sw;
-	      util_emit_extents_rect_paint (hb_raster_paint_get_funcs (), pnt,
-					    rx - half, ry - half,
-					    rw + sw, rh + sw, sw);
-	    }
+	    if (hb_font_get_glyph_extents (font, g.gid, &ge))
+	      util_emit_extents_rect_into_paint (
+		hb_raster_paint_get_funcs (), pnt,
+		&ge, pen_x, pen_y, extents_stroke_width ());
 	  }
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
@@ -431,6 +425,14 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	  hb_raster_draw_set_extents (rdr, &ext);
 	  hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 	  hb_raster_draw_glyph (rdr, font, g.gid, g.x + off_x, g.y + off_y);
+	  if (show_extents)
+	  {
+	    hb_glyph_extents_t ge;
+	    if (hb_font_get_glyph_extents (font, g.gid, &ge))
+	      util_emit_extents_rect_into_draw (
+		hb_raster_draw_get_funcs (), rdr,
+		&ge, g.x + off_x, g.y + off_y, extents_stroke_width ());
+	  }
 
 	  hb_raster_image_t *img = hb_raster_draw_render (rdr);
 	  if (!img) { glyph_index++; continue; }
@@ -480,15 +482,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
       }
 
       if (iter + 1 == num_iterations)
-      {
-	if (show_extents)
-	{
-	  std::vector<rect_i_t> rects;
-	  collect_ink_extents_rects (sx, sy, step, vertical, ext, rects);
-	  overlay_rects_bgra (out_buf, w, h, stride, rects);
-	}
 	write_bgra_image (out_img);
-      }
     }
 
     hb_raster_draw_reset (rdr);
@@ -624,110 +618,6 @@ struct raster_output_t : output_options_t<true>, view_options_t
       return HB_COLOR ((uint8_t) c.b, (uint8_t) c.g, (uint8_t) c.r, (uint8_t) c.a);
     }
     return fg_color;
-  }
-
-  void collect_ink_extents_rects (float sx, float sy, float step, bool vertical,
-				  const hb_raster_extents_t &ext,
-				  std::vector<rect_i_t> &rects) const
-  {
-    rects.clear ();
-    for (unsigned li = 0; li < lines.size (); li++)
-    {
-      float off_x = vertical ? -(step * (float) li) : 0.f;
-      float off_y = vertical ?  0.f                 : -(step * (float) li);
-
-      for (const auto &g : lines[li].glyphs)
-      {
-	hb_glyph_extents_t gext;
-	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
-	  continue;
-
-	float gx = (g.x + off_x) * sx;
-	float gy = (g.y + off_y) * sy;
-	float x0 = gx + gext.x_bearing * sx;
-	float y0 = gy + (gext.y_bearing + gext.height) * sy;
-	float x1 = gx + (gext.x_bearing + gext.width) * sx;
-	float y1 = gy + gext.y_bearing * sy;
-
-	int ix0 = (int) floorf (hb_min (x0, x1)) - ext.x_origin;
-	int iy0 = (int) floorf (hb_min (y0, y1)) - ext.y_origin;
-	int ix1 = (int) ceilf  (hb_max (x0, x1)) - ext.x_origin;
-	int iy1 = (int) ceilf  (hb_max (y0, y1)) - ext.y_origin;
-	rects.push_back ({ix0, iy0, ix1, iy1});
-      }
-    }
-  }
-
-  static void overlay_rects_bgra (uint8_t *buf, unsigned w, unsigned h, unsigned stride,
-				  const std::vector<rect_i_t> &rects)
-  {
-    for (const auto &rc : rects)
-    {
-      int x0 = hb_max (0, hb_min ((int) w, rc.x0));
-      int x1 = hb_max (0, hb_min ((int) w, rc.x1));
-      int y0 = hb_max (0, hb_min ((int) h, rc.y0));
-      int y1 = hb_max (0, hb_min ((int) h, rc.y1));
-      if (x1 - x0 < 1 || y1 - y0 < 1) continue;
-
-      auto blend_at = [&] (int x, int y)
-      {
-	uint32_t d;
-	hb_memcpy (&d, buf + y * stride + x * 4, 4);
-	uint8_t db = (uint8_t) (d & 0xFF);
-	uint8_t dg = (uint8_t) ((d >> 8) & 0xFF);
-	uint8_t dr = (uint8_t) ((d >> 16) & 0xFF);
-	uint8_t da = (uint8_t) (d >> 24);
-	uint8_t ob = (uint8_t) ((db + 255) / 2);
-	uint8_t og = (uint8_t) (dg / 2);
-	uint8_t orr = (uint8_t) ((dr + 255) / 2);
-	uint8_t oa = hb_max (da, (uint8_t) 128);
-	uint32_t o = (uint32_t) ob | ((uint32_t) og << 8) | ((uint32_t) orr << 16) | ((uint32_t) oa << 24);
-	hb_memcpy (buf + y * stride + x * 4, &o, 4);
-      };
-
-      for (int x = x0; x < x1; x++)
-      {
-	blend_at (x, y0);
-	blend_at (x, y1 - 1);
-      }
-      for (int y = y0; y < y1; y++)
-      {
-	blend_at (x0, y);
-	blend_at (x1 - 1, y);
-      }
-    }
-  }
-
-  static void overlay_rects_rgb (std::vector<uint8_t> &buf, unsigned w, unsigned h,
-				 const std::vector<rect_i_t> &rects)
-  {
-    for (const auto &rc : rects)
-    {
-      int x0 = hb_max (0, hb_min ((int) w, rc.x0));
-      int x1 = hb_max (0, hb_min ((int) w, rc.x1));
-      int y0 = hb_max (0, hb_min ((int) h, rc.y0));
-      int y1 = hb_max (0, hb_min ((int) h, rc.y1));
-      if (x1 - x0 < 1 || y1 - y0 < 1) continue;
-
-      auto blend_at = [&] (int x, int y)
-      {
-	uint8_t *p = &buf[(y * w + x) * 3];
-	p[0] = (uint8_t) ((p[0] + 255) / 2);
-	p[1] = (uint8_t) (p[1] / 2);
-	p[2] = (uint8_t) ((p[2] + 255) / 2);
-      };
-
-      for (int x = x0; x < x1; x++)
-      {
-	blend_at (x, y0);
-	blend_at (x, y1 - 1);
-      }
-      for (int y = y0; y < y1; y++)
-      {
-	blend_at (x0, y);
-	blend_at (x1 - 1, y);
-      }
-    }
   }
 
   static uint8_t mul8 (uint8_t a, uint8_t b)
@@ -937,13 +827,6 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	uint32_t px = src_over_premul (fg_px, bg_px);
 	hb_memcpy (dst + y * bgra_actual_ext.stride + x * 4, &px, 4);
       }
-
-    if (show_extents)
-    {
-      std::vector<rect_i_t> rects;
-      collect_ink_extents_rects (sx, sy, step, vertical, ext, rects);
-      overlay_rects_bgra (dst, ext.width, ext.height, bgra_actual_ext.stride, rects);
-    }
 
     write_bgra_image (bgra);
     hb_raster_image_destroy (bgra);
