@@ -647,6 +647,14 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 
     case HB_VECTOR_FORMAT_SVG:
     {
+      if (draw->path.length)
+      {
+	hb_buf_append_str (&draw->body, "<g transform=\"scale(1,-1)\"><path d=\"");
+	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&draw->body, "\"/></g>\n");
+	draw->path.shrink (0);
+      }
+
       if (!hb_set_has (draw->defined_glyphs, glyph))
       {
 	draw->path.clear ();
