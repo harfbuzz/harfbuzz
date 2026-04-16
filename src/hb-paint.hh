@@ -36,6 +36,8 @@
   HB_PAINT_FUNC_IMPLEMENT (color_glyph) \
   HB_PAINT_FUNC_IMPLEMENT (push_clip_glyph) \
   HB_PAINT_FUNC_IMPLEMENT (push_clip_rectangle) \
+  HB_PAINT_FUNC_IMPLEMENT (push_clip_path_start) \
+  HB_PAINT_FUNC_IMPLEMENT (push_clip_path_end) \
   HB_PAINT_FUNC_IMPLEMENT (pop_clip) \
   HB_PAINT_FUNC_IMPLEMENT (color) \
   HB_PAINT_FUNC_IMPLEMENT (image) \
@@ -103,6 +105,13 @@ struct hb_paint_funcs_t
   { func.push_clip_rectangle (this, paint_data,
                               xmin, ymin, xmax, ymax,
                               !user_data ? nullptr : user_data->push_clip_rectangle); }
+  hb_draw_funcs_t *push_clip_path_start (void *paint_data,
+                                         void **draw_data)
+  { return func.push_clip_path_start (this, paint_data, draw_data,
+                                      !user_data ? nullptr : user_data->push_clip_path_start); }
+  void push_clip_path_end (void *paint_data)
+  { func.push_clip_path_end (this, paint_data,
+                             !user_data ? nullptr : user_data->push_clip_path_end); }
   void pop_clip (void *paint_data)
   { func.pop_clip (this, paint_data,
                    !user_data ? nullptr : user_data->pop_clip); }

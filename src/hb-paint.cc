@@ -71,6 +71,15 @@ hb_paint_push_clip_rectangle_nil (hb_paint_funcs_t *funcs, void *paint_data,
                                   float xmin, float ymin, float xmax, float ymax,
                                   void *user_data) {}
 
+static hb_draw_funcs_t *
+hb_paint_push_clip_path_start_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                                   void **draw_data,
+                                   void *user_data) { if (draw_data) *draw_data = nullptr; return nullptr; }
+
+static void
+hb_paint_push_clip_path_end_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                                 void *user_data) {}
+
 static void
 hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs, void *paint_data,
                        void *user_data) {}
@@ -579,6 +588,54 @@ hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
                               float xmin, float ymin, float xmax, float ymax)
 {
   funcs->push_clip_rectangle (paint_data, xmin, ymin, xmax, ymax);
+}
+
+/**
+ * hb_paint_push_clip_path_start:
+ * @funcs: paint functions
+ * @paint_data: associated data passed by the caller
+ * @draw_data: (out) (nullable): location to receive the draw data
+ *   the caller should pass alongside the returned draw funcs.
+ *
+ * Begin clipping to an arbitrary path.  Returns a
+ * #hb_draw_funcs_t (transfer none) that the caller uses to
+ * emit the clip outline via hb_draw_*() calls, using the
+ * returned @draw_data as the draw data.  Finish the path
+ * with hb_paint_push_clip_path_end(); pop the clip later
+ * with hb_paint_pop_clip().
+ *
+ * Return value: (transfer none): draw funcs that accumulate
+ *   the clip path, or `NULL` if the backend does not implement
+ *   arbitrary-path clipping.
+ *
+ * XSince: REPLACEME
+ */
+hb_draw_funcs_t *
+hb_paint_push_clip_path_start (hb_paint_funcs_t  *funcs,
+                               void              *paint_data,
+                               void             **draw_data)
+{
+  void *scratch = nullptr;
+  if (!draw_data) draw_data = &scratch;
+  return funcs->push_clip_path_start (paint_data, draw_data);
+}
+
+/**
+ * hb_paint_push_clip_path_end:
+ * @funcs: paint functions
+ * @paint_data: associated data passed by the caller
+ *
+ * Signal that the arbitrary-clip path started by
+ * hb_paint_push_clip_path_start() is fully drawn.  The
+ * accumulated path now acts as a clip on the paint context
+ * until a matching hb_paint_pop_clip() call.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_paint_push_clip_path_end (hb_paint_funcs_t *funcs, void *paint_data)
+{
+  funcs->push_clip_path_end (paint_data);
 }
 
 /**
