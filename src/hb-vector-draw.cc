@@ -511,16 +511,34 @@ hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
 }
 
 /**
+ * hb_vector_draw_get_format:
+ * @draw: a vector draw context.
+ *
+ * Gets the output format @draw was created with.
+ *
+ * Return value: the output format.
+ *
+ * XSince: REPLACEME
+ */
+hb_vector_format_t
+hb_vector_draw_get_format (const hb_vector_draw_t *draw)
+{
+  return draw->format;
+}
+
+/**
  * hb_vector_draw_get_funcs:
+ * @draw: a vector draw context.
  *
- * Gets draw callbacks implemented by the vector draw backend.
+ * Gets draw callbacks for feeding outline data into @draw.
+ * Pass @draw as the @draw_data argument when calling them.
  *
- * Return value: (transfer none): immutable #hb_draw_funcs_t singleton.
+ * Return value: (transfer none): immutable #hb_draw_funcs_t.
  *
  * Since: 13.0.0
  */
 hb_draw_funcs_t *
-hb_vector_draw_get_funcs (void)
+hb_vector_draw_get_funcs (const hb_vector_draw_t *draw HB_UNUSED)
 {
   return hb_vector_draw_funcs_get ();
 }
@@ -583,7 +601,9 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 
   /* Flush any pending free-form path the caller accumulated
    * via hb_draw_*() on hb_vector_draw_get_funcs() before this
-   * glyph clobbers the scratch buffer. */
+   * glyph clobbers the scratch buffer.  Wrap the SVG case in
+   * the same scale(1,-1) Y-flip per-glyph <use> applies, so
+   * the free-form coords share the glyph's coord system. */
   if (draw->path.length)
   {
     switch (draw->format)
@@ -593,9 +613,9 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 	hb_buf_append_str (&draw->body, "f\n");
 	break;
       case HB_VECTOR_FORMAT_SVG:
-	hb_buf_append_str (&draw->body, "<path d=\"");
+	hb_buf_append_str (&draw->body, "<g transform=\"scale(1,-1)\"><path d=\"");
 	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
-	hb_buf_append_str (&draw->body, "\"/>\n");
+	hb_buf_append_str (&draw->body, "\"/></g>\n");
 	break;
       case HB_VECTOR_FORMAT_INVALID: default: break;
     }
@@ -900,13 +920,14 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
     hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
   if (draw->path.length)
   {
-    /* Free-form draw ops accumulated after the last glyph
-     * (e.g. extents-overlay rectangles via hb_draw_rectangle on
-     * hb_vector_draw_get_funcs) live in the scratch path
-     * and need their own <path> element. */
-    hb_buf_append_str (&out, "<path d=\"");
+    /* Free-form draw ops (e.g. extents-overlay rectangles via
+     * hb_draw_rectangle on hb_vector_draw_get_funcs) end up
+     * in the scratch path in font Y-up coords; per-glyph
+     * <use> elements apply scale(_, -sy) to convert, so wrap
+     * the leftover here in the same Y-flip. */
+    hb_buf_append_str (&out, "<g transform=\"scale(1,-1)\"><path d=\"");
     hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
-    hb_buf_append_str (&out, "\"/>\n");
+    hb_buf_append_str (&out, "\"/></g>\n");
   }
 
   hb_buf_append_str (&out, "</svg>\n");

@@ -352,7 +352,7 @@ hb_raster_paint_emit_clip_glyph_mask (hb_raster_draw_t *rdr, void *user_data)
 {
   hb_raster_paint_glyph_clip_data_t *data = (hb_raster_paint_glyph_clip_data_t *) user_data;
   /* Let draw-render choose tight glyph extents; we map by mask origin below. */
-  hb_font_draw_glyph (data->font, data->glyph, hb_raster_draw_get_funcs (), rdr);
+  hb_font_draw_glyph (data->font, data->glyph, hb_raster_draw_get_funcs (rdr), rdr);
 }
 
 static void
@@ -623,7 +623,7 @@ hb_raster_paint_push_clip_path_start (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
 
   *draw_data = rdr;
-  return hb_raster_draw_get_funcs ();
+  return hb_raster_draw_get_funcs (rdr);
 }
 
 static void
@@ -2165,10 +2165,11 @@ hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
 
 /**
  * hb_raster_paint_get_funcs:
+ * @paint: a rasterizer paint context.
  *
- * Fetches the singleton #hb_paint_funcs_t that renders color glyphs
- * into an #hb_raster_paint_t.  Pass the #hb_raster_paint_t as the
- * @paint_data argument when calling hb_font_paint_glyph().
+ * Fetches the #hb_paint_funcs_t that renders color glyphs into
+ * @paint.  Pass @paint as the @paint_data argument when calling
+ * hb_font_paint_glyph().
  *
  * Return value: (transfer none):
  * The rasterizer paint functions
@@ -2176,7 +2177,7 @@ hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
  * Since: 13.0.0
  **/
 hb_paint_funcs_t *
-hb_raster_paint_get_funcs (void)
+hb_raster_paint_get_funcs (const hb_raster_paint_t *paint HB_UNUSED)
 {
   return static_raster_paint_funcs.get_unconst ();
 }
@@ -2213,11 +2214,11 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
   hb_bool_t ret = true;
   if (fallible)
     ret = hb_font_paint_glyph_or_fail (font, glyph,
-				       hb_raster_paint_get_funcs (), paint,
+				       hb_raster_paint_get_funcs (paint), paint,
 				       paint->palette, paint->foreground);
   else
     hb_font_paint_glyph (font, glyph,
-			 hb_raster_paint_get_funcs (), paint,
+			 hb_raster_paint_get_funcs (paint), paint,
 			 paint->palette, paint->foreground);
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
   return ret;

@@ -601,11 +601,17 @@ hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
   unsigned pfx_len = paint->id_prefix.length;
   unsigned clip_id = paint->clip_path_counter++;
 
+  /* The accumulated path is in font Y-up coords (the
+   * convention used inside per-glyph <use scale(_,-sy)>
+   * wrappers); this clip is emitted at base body level
+   * (free-form between glyphs), so flip its geometry inside
+   * the clipPath via the path's own transform attribute,
+   * keeping the body's <g clip-path> at body Y-down. */
   hb_buf_append_str (&paint->defs, "<clipPath id=\"");
   hb_buf_append_len (&paint->defs, pfx, pfx_len);
   hb_buf_append_str (&paint->defs, "cp");
   hb_buf_append_unsigned (&paint->defs, clip_id);
-  hb_buf_append_str (&paint->defs, "\"><path d=\"");
+  hb_buf_append_str (&paint->defs, "\"><path transform=\"scale(1,-1)\" d=\"");
   hb_buf_append_len (&paint->defs, paint->path.arrayZ, paint->path.length);
   hb_buf_append_str (&paint->defs, "\"/></clipPath>\n");
 
@@ -1351,18 +1357,44 @@ hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
 }
 
 /**
+ * hb_vector_paint_get_format:
+ * @paint: a vector paint context.
+ *
+ * Gets the output format @paint was created with.
+ *
+ * Return value: the output format.
+ *
+ * XSince: REPLACEME
+ */
+hb_vector_format_t
+hb_vector_paint_get_format (const hb_vector_paint_t *paint)
+{
+  return paint->format;
+}
+
+/**
  * hb_vector_paint_get_funcs:
+ * @paint: a vector paint context.
  *
- * Gets paint callbacks implemented by the vector paint backend.
+ * Gets paint callbacks for emitting paint operations into @paint.
+ * Pass @paint as the @paint_data argument when calling them.
  *
- * Return value: (transfer none): immutable #hb_paint_funcs_t singleton.
+ * Return value: (transfer none): immutable #hb_paint_funcs_t.
  *
  * Since: 13.0.0
  */
 hb_paint_funcs_t *
-hb_vector_paint_get_funcs (void)
+hb_vector_paint_get_funcs (const hb_vector_paint_t *paint)
 {
-  return hb_vector_paint_funcs_get ();
+  switch (paint ? paint->format : HB_VECTOR_FORMAT_INVALID)
+  {
+    case HB_VECTOR_FORMAT_PDF:
+      return hb_vector_paint_pdf_funcs_get ();
+    case HB_VECTOR_FORMAT_SVG:
+    case HB_VECTOR_FORMAT_INVALID:
+    default:
+      return hb_vector_paint_funcs_get ();
+  }
 }
 
 static hb_bool_t
@@ -1494,12 +1526,12 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	hb_bool_t ret = true;
 	if (fallible)
 	  ret = hb_font_paint_glyph_or_fail (font, glyph,
-					     hb_vector_paint_get_funcs (), paint,
+					     hb_vector_paint_get_funcs (paint), paint,
 					     (unsigned) paint->palette,
 					     paint->foreground);
 	else
 	  hb_font_paint_glyph (font, glyph,
-			       hb_vector_paint_get_funcs (), paint,
+			       hb_vector_paint_get_funcs (paint), paint,
 			       (unsigned) paint->palette,
 			       paint->foreground);
 	if (unlikely (!ret))

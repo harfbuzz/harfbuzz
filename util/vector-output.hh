@@ -288,7 +288,7 @@ struct vector_output_t : output_options_t<>, view_options_t
             hb_glyph_extents_t ge;
             if (hb_font_get_glyph_extents (upem_font, g.gid, &ge))
               util_emit_extents_rect_into_paint (
-                hb_vector_paint_get_funcs (), paint,
+                hb_vector_paint_get_funcs (paint), paint,
                 &ge, pen_x, pen_y, (float) normalized_stroke_width);
           }
         }
@@ -302,7 +302,7 @@ struct vector_output_t : output_options_t<>, view_options_t
             hb_glyph_extents_t ge;
             if (hb_font_get_glyph_extents (upem_font, g.gid, &ge))
               util_emit_extents_rect_into_draw (
-                hb_vector_draw_get_funcs (), draw,
+                hb_vector_draw_get_funcs (draw), draw,
                 &ge, pen_x, pen_y, (float) normalized_stroke_width);
           }
         }

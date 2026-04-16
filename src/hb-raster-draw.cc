@@ -935,10 +935,11 @@ free_static_raster_draw_funcs ()
 
 /**
  * hb_raster_draw_get_funcs:
+ * @draw: a rasterizer draw context.
  *
- * Fetches the singleton #hb_draw_funcs_t that feeds outline data
- * into an #hb_raster_draw_t.  Pass the #hb_raster_draw_t as the
- * @draw_data argument when calling the draw functions.
+ * Fetches the #hb_draw_funcs_t that feeds outline data into
+ * @draw.  Pass @draw as the @draw_data argument when calling
+ * the draw functions.
  *
  * Return value: (transfer none):
  * The rasterizer draw functions
@@ -946,7 +947,7 @@ free_static_raster_draw_funcs ()
  * Since: 13.0.0
  **/
 hb_draw_funcs_t *
-hb_raster_draw_get_funcs (void)
+hb_raster_draw_get_funcs (const hb_raster_draw_t *draw HB_UNUSED)
 {
   return static_raster_draw_funcs.get_unconst ();
 }
@@ -987,7 +988,7 @@ hb_raster_draw_glyph_or_fail (hb_raster_draw_t *draw,
 				dx + xx * pen_x + xy * pen_y,
 				dy + yx * pen_x + yy * pen_y);
   hb_bool_t ret = hb_font_draw_glyph_or_fail (font, glyph,
-					      hb_raster_draw_get_funcs (), draw);
+					      hb_raster_draw_get_funcs (draw), draw);
   hb_raster_draw_set_transform (draw, xx, yx, xy, yy, dx, dy);
   return ret;
 }

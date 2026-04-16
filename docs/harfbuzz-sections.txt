@@ -1100,6 +1100,7 @@ hb_vector_draw_get_scale_factor
 hb_vector_draw_set_extents
 hb_vector_draw_get_extents
 hb_vector_draw_set_glyph_extents
+hb_vector_draw_get_format
 hb_vector_draw_get_funcs
 hb_vector_draw_glyph
 hb_vector_draw_glyph_or_fail
@@ -1130,6 +1131,7 @@ hb_vector_paint_set_palette
 hb_vector_paint_get_palette
 hb_vector_paint_set_custom_palette_color
 hb_vector_paint_clear_custom_palette_colors
+hb_vector_paint_get_format
 hb_vector_paint_get_funcs
 hb_vector_paint_glyph
 hb_vector_paint_glyph_or_fail

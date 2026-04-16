@@ -310,7 +310,7 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
   tmp.path.alloc (1024);
 
   hb_font_draw_glyph (font, glyph,
-		       hb_vector_draw_get_funcs (),
+		       hb_vector_draw_get_funcs (&tmp),
 		       &tmp);
 
   hb_buf_append_len (buf, tmp.path.arrayZ, tmp.path.length);

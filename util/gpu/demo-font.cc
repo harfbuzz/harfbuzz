@@ -133,7 +133,7 @@ _demo_font_upload_glyph (demo_font_t  *font,
       hb_glyph_extents_t g;
       if (hb_font_get_glyph_extents (font->font, glyph_index, &g))
 	util_emit_extents_rect_into_draw (
-	  hb_gpu_draw_get_funcs (), font->d,
+	  hb_gpu_draw_get_funcs (font->d), font->d,
 	  &g, /*pen_x*/ 0.f, /*pen_y*/ 0.f, sw);
     }
     blob = hb_gpu_draw_encode (font->d, &hb_ext);
@@ -147,7 +147,7 @@ _demo_font_upload_glyph (demo_font_t  *font,
       hb_glyph_extents_t g;
       if (hb_font_get_glyph_extents (font->font, glyph_index, &g))
 	util_emit_extents_rect_into_paint (
-	  hb_gpu_paint_get_funcs (), font->p,
+	  hb_gpu_paint_get_funcs (font->p), font->p,
 	  &g, /*pen_x*/ 0.f, /*pen_y*/ 0.f, sw);
     }
     blob = hb_gpu_paint_encode (font->p, &hb_ext);

@@ -908,10 +908,11 @@ hb_gpu_draw_get_user_data (const hb_gpu_draw_t     *draw,
 
 /**
  * hb_gpu_draw_get_funcs:
+ * @draw: a GPU draw context.
  *
- * Fetches the singleton #hb_draw_funcs_t that feeds outline data
- * into an #hb_gpu_draw_t.  Pass the #hb_gpu_draw_t as the
- * @draw_data argument when calling the draw functions.
+ * Fetches the #hb_draw_funcs_t that feeds outline data into
+ * @draw.  Pass @draw as the @draw_data argument when calling
+ * the draw functions.
  *
  * Return value: (transfer none):
  * The GPU draw functions
@@ -919,7 +920,7 @@ hb_gpu_draw_get_user_data (const hb_gpu_draw_t     *draw,
  * Since: 14.0.0
  **/
 hb_draw_funcs_t *
-hb_gpu_draw_get_funcs (void)
+hb_gpu_draw_get_funcs (const hb_gpu_draw_t *draw HB_UNUSED)
 {
   return static_gpu_draw_funcs.get_unconst ();
 }
@@ -991,7 +992,7 @@ hb_gpu_draw_glyph_or_fail (hb_gpu_draw_t  *draw,
   hb_gpu_draw_set_scale (draw, x_scale, y_scale);
 
   return hb_font_draw_glyph_or_fail (font, glyph,
-				     hb_gpu_draw_get_funcs (),
+				     hb_gpu_draw_get_funcs (draw),
 				     draw);
 }
 

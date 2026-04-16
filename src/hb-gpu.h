@@ -120,7 +120,7 @@ hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
 /* Draw */
 
 HB_EXTERN hb_draw_funcs_t *
-hb_gpu_draw_get_funcs (void);
+hb_gpu_draw_get_funcs (const hb_gpu_draw_t *draw);
 
 HB_EXTERN void
 hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
@@ -207,7 +207,7 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
 			    hb_user_data_key_t   *key);
 
 HB_EXTERN hb_paint_funcs_t *
-hb_gpu_paint_get_funcs (void);
+hb_gpu_paint_get_funcs (const hb_gpu_paint_t *paint);
 
 HB_EXTERN void
 hb_gpu_paint_set_palette (hb_gpu_paint_t *paint,

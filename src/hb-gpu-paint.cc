@@ -141,7 +141,7 @@ hb_gpu_paint_push_clip_path_start (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pending_clip_path = true;
 
   *draw_data = c->scratch_draw;
-  return hb_gpu_draw_get_funcs ();
+  return hb_gpu_draw_get_funcs (c->scratch_draw);
 }
 
 static void
@@ -452,7 +452,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
 
     hb_gpu_paint_pen_t pen = {};
     pen.transform = clip.transform;
-    pen.dfuncs    = hb_gpu_draw_get_funcs ();
+    pen.dfuncs    = hb_gpu_draw_get_funcs (c->scratch_draw);
     pen.data      = c->scratch_draw;
     pen.down_st   = HB_DRAW_STATE_DEFAULT;
     ok = hb_font_draw_glyph_or_fail (clip.font, clip.glyph,
@@ -1113,10 +1113,11 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
 
 /**
  * hb_gpu_paint_get_funcs:
+ * @paint: a GPU paint context.
  *
- * Fetches the singleton #hb_paint_funcs_t that feeds paint data
- * into an #hb_gpu_paint_t.  Pass the #hb_gpu_paint_t as the
- * @paint_data argument when calling the paint functions.
+ * Fetches the #hb_paint_funcs_t that feeds paint data into
+ * @paint.  Pass @paint as the @paint_data argument when
+ * calling the paint functions.
  *
  * Return value: (transfer none):
  * The GPU paint functions
@@ -1124,7 +1125,7 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
  * XSince: REPLACEME
  **/
 hb_paint_funcs_t *
-hb_gpu_paint_get_funcs (void)
+hb_gpu_paint_get_funcs (const hb_gpu_paint_t *paint HB_UNUSED)
 {
   return static_gpu_paint_funcs.get_unconst ();
 }
@@ -1306,7 +1307,7 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
   hb_font_get_scale (font, &x_scale, &y_scale);
   hb_gpu_paint_set_scale (paint, x_scale, y_scale);
   hb_font_paint_glyph (font, glyph,
-		       hb_gpu_paint_get_funcs (), paint,
+		       hb_gpu_paint_get_funcs (paint), paint,
 		       paint->palette,
 		       HB_COLOR (0, 0, 0, 0xff));
 }
