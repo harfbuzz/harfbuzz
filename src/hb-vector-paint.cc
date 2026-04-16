@@ -35,25 +35,29 @@
 static void
 hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_t<char> *buf)
 {
+  /* Skip when the paint's own transform is identity -- each
+   * instance's <use> transform already divides by scale_factor,
+   * so wrapping the body in another /scale_factor matrix would
+   * double-scale.  Only emit when the user has set a non-
+   * identity paint-level transform. */
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
-      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f &&
-      paint->x_scale_factor == 1.f && paint->y_scale_factor == 1.f)
+      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
     return;
 
   unsigned sprec = hb_vector_scale_precision (paint->precision);
   hb_buf_append_str (buf, "<g transform=\"matrix(");
-  hb_buf_append_num (buf, paint->transform.xx / paint->x_scale_factor, sprec, true);
+  hb_buf_append_num (buf, paint->transform.xx, sprec, true);
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.yx / paint->y_scale_factor, sprec, true);
+  hb_buf_append_num (buf, paint->transform.yx, sprec, true);
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.xy / paint->x_scale_factor, sprec, true);
+  hb_buf_append_num (buf, paint->transform.xy, sprec, true);
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.yy / paint->y_scale_factor, sprec, true);
+  hb_buf_append_num (buf, paint->transform.yy, sprec, true);
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.x0 / paint->x_scale_factor, paint->precision);
+  hb_buf_append_num (buf, paint->transform.x0, paint->precision);
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.y0 / paint->y_scale_factor, paint->precision);
+  hb_buf_append_num (buf, paint->transform.y0, paint->precision);
   hb_buf_append_str (buf, ")\">\n");
 }
 
@@ -62,8 +66,7 @@ hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb
 {
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
-      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f &&
-      paint->x_scale_factor == 1.f && paint->y_scale_factor == 1.f)
+      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
     return;
   hb_buf_append_str (buf, "</g>\n");
 }
@@ -1095,19 +1098,31 @@ hb_vector_paint_set_extents (hb_vector_paint_t *paint,
   if (!(extents->width > 0.f && extents->height > 0.f))
     return;
 
+  /* Caller-supplied extents are in input-space; divide by
+   * scale_factor so they end up in output-space, matching
+   * the per-glyph extents accumulated via
+   * hb_vector_set_glyph_extents_common (which applies the
+   * same divide). */
+  hb_vector_extents_t e = {
+    extents->x      / paint->x_scale_factor,
+    extents->y      / paint->y_scale_factor,
+    extents->width  / paint->x_scale_factor,
+    extents->height / paint->y_scale_factor,
+  };
+
   if (paint->has_extents)
   {
-    float x0 = hb_min (paint->extents.x, extents->x);
-    float y0 = hb_min (paint->extents.y, extents->y);
+    float x0 = hb_min (paint->extents.x, e.x);
+    float y0 = hb_min (paint->extents.y, e.y);
     float x1 = hb_max (paint->extents.x + paint->extents.width,
-		       extents->x + extents->width);
+		       e.x + e.width);
     float y1 = hb_max (paint->extents.y + paint->extents.height,
-		       extents->y + extents->height);
+		       e.y + e.height);
     paint->extents = {x0, y0, x1 - x0, y1 - y0};
   }
   else
   {
-    paint->extents = *extents;
+    paint->extents = e;
     paint->has_extents = true;
   }
 }

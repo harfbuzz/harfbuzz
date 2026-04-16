@@ -432,19 +432,31 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
   if (!(extents->width > 0.f && extents->height > 0.f))
     return;
 
+  /* Caller-supplied extents are in input-space; divide by
+   * scale_factor so they end up in output-space, matching
+   * the per-glyph extents accumulated via
+   * hb_vector_set_glyph_extents_common (which applies the
+   * same divide). */
+  hb_vector_extents_t e = {
+    extents->x      / draw->x_scale_factor,
+    extents->y      / draw->y_scale_factor,
+    extents->width  / draw->x_scale_factor,
+    extents->height / draw->y_scale_factor,
+  };
+
   if (draw->has_extents)
   {
-    float x0 = hb_min (draw->extents.x, extents->x);
-    float y0 = hb_min (draw->extents.y, extents->y);
+    float x0 = hb_min (draw->extents.x, e.x);
+    float y0 = hb_min (draw->extents.y, e.y);
     float x1 = hb_max (draw->extents.x + draw->extents.width,
-                       extents->x + extents->width);
+                       e.x + e.width);
     float y1 = hb_max (draw->extents.y + draw->extents.height,
-                       extents->y + extents->height);
+                       e.y + e.height);
     draw->extents = {x0, y0, x1 - x0, y1 - y0};
   }
   else
   {
-    draw->extents = *extents;
+    draw->extents = e;
     draw->has_extents = true;
   }
 }
