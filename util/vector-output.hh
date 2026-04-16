@@ -428,10 +428,14 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (y2 <= y1)
       y2 = y1 + 1;
 
-    x1 -= (float) margin.l;
-    y1 -= (float) margin.t;
-    x2 += (float) margin.r;
-    y2 += (float) margin.b;
+    /* Margin is specified in pixels (matching the other utils);
+     * the surrounding extents are in upem units, so convert. */
+    float upem_per_pixel_x = (float) upem * scalbnf (1.f, (int) subpixel_bits) / (float) x_scale;
+    float upem_per_pixel_y = (float) upem * scalbnf (1.f, (int) subpixel_bits) / (float) y_scale;
+    x1 -= (float) margin.l * upem_per_pixel_x;
+    y1 -= (float) margin.t * upem_per_pixel_y;
+    x2 += (float) margin.r * upem_per_pixel_x;
+    y2 += (float) margin.b * upem_per_pixel_y;
 
     extents->x = x1;
     extents->y = y1;
