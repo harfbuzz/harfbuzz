@@ -531,8 +531,9 @@ hb_pdf_build_indexed_smask (hb_vector_t<char> *out,
   if (inflateInit (&stream) != Z_OK)
     return false;
   int status = inflate (&stream, Z_FINISH);
+  unsigned long total_out = stream.total_out;
   inflateEnd (&stream);
-  if (status != Z_STREAM_END)
+  if (status != Z_STREAM_END || total_out != raw_len)
     return false;
 
   /* Un-filter and map to alpha. */
