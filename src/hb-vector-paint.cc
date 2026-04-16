@@ -28,7 +28,7 @@
 
 #include "hb-vector-paint.hh"
 #include "hb-paint.hh"
-#include "hb-vector-svg-path.hh"
+#include "hb-vector-path.hh"
 
 #include <math.h>
 
@@ -341,6 +341,8 @@ static void hb_vector_paint_push_transform (hb_paint_funcs_t *, void *,
 static void hb_vector_paint_pop_transform (hb_paint_funcs_t *, void *, void *);
 static void hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, void *);
 static void hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *, void *, float, float, float, float, void *);
+static hb_draw_funcs_t * hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *, void *, void **, void *);
+static void hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *, void *, void *);
 static void hb_vector_paint_pop_clip (hb_paint_funcs_t *, void *, void *);
 static void hb_vector_paint_color (hb_paint_funcs_t *, void *, hb_bool_t, hb_color_t, void *);
 static hb_bool_t hb_vector_paint_image (hb_paint_funcs_t *, void *, hb_blob_t *, unsigned, unsigned, hb_tag_t, float, hb_glyph_extents_t *, void *);
@@ -363,6 +365,8 @@ static struct hb_vector_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_vector_paint_pop_transform, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_vector_paint_push_clip_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_vector_paint_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_start_func (funcs, (hb_paint_push_clip_path_start_func_t) hb_vector_paint_push_clip_path_start, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_end_func (funcs, (hb_paint_push_clip_path_end_func_t) hb_vector_paint_push_clip_path_end, nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func (funcs, (hb_paint_pop_clip_func_t) hb_vector_paint_pop_clip, nullptr, nullptr);
     hb_paint_funcs_set_color_func (funcs, (hb_paint_color_func_t) hb_vector_paint_color, nullptr, nullptr);
     hb_paint_funcs_set_image_func (funcs, (hb_paint_image_func_t) hb_vector_paint_image, nullptr, nullptr);
@@ -498,8 +502,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_vector_svg_path_sink_t sink = {&paint->path, paint->precision};
-    hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
+    hb_vector_path_sink_t sink = {&paint->path, paint->precision, HB_VECTOR_FORMAT_SVG};
+    hb_font_draw_glyph (font, glyph, hb_vector_path_draw_funcs_get (), &sink);
     hb_buf_append_str (&paint->defs, "<path id=\"");
     hb_buf_append_len (&paint->defs, pfx, pfx_len);
     hb_buf_append_c  (&paint->defs, 'p');
@@ -561,6 +565,59 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->current_body (), "<g clip-path=\"url(#");
   hb_buf_append_len (&paint->current_body (), pfx, pfx_len);
   hb_buf_append_c  (&paint->current_body (), 'c');
+  hb_buf_append_unsigned (&paint->current_body (), clip_id);
+  hb_buf_append_str (&paint->current_body (), ")\">\n");
+}
+
+static hb_draw_funcs_t *
+hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
+                                      void *paint_data,
+                                      void **draw_data,
+                                      void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+  {
+    *draw_data = nullptr;
+    return nullptr;
+  }
+
+  paint->path.clear ();
+  paint->clip_path_sink = {&paint->path, paint->precision, HB_VECTOR_FORMAT_SVG};
+  *draw_data = &paint->clip_path_sink;
+  return hb_vector_path_draw_funcs_get ();
+}
+
+static void
+hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
+                                    void *paint_data,
+                                    void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
+
+  const char *pfx = paint->id_prefix.arrayZ;
+  unsigned pfx_len = paint->id_prefix.length;
+  unsigned clip_id = paint->clip_path_counter++;
+
+  /* The accumulated path is in font Y-up coords (the
+   * convention used inside per-glyph <use scale(_,-sy)>
+   * wrappers); this clip is emitted at base body level
+   * (free-form between glyphs), so flip its geometry inside
+   * the clipPath via the path's own transform attribute,
+   * keeping the body's <g clip-path> at body Y-down. */
+  hb_buf_append_str (&paint->defs, "<clipPath id=\"");
+  hb_buf_append_len (&paint->defs, pfx, pfx_len);
+  hb_buf_append_str (&paint->defs, "cp");
+  hb_buf_append_unsigned (&paint->defs, clip_id);
+  hb_buf_append_str (&paint->defs, "\"><path transform=\"scale(1,-1)\" d=\"");
+  hb_buf_append_len (&paint->defs, paint->path.arrayZ, paint->path.length);
+  hb_buf_append_str (&paint->defs, "\"/></clipPath>\n");
+
+  hb_buf_append_str (&paint->current_body (), "<g clip-path=\"url(#");
+  hb_buf_append_len (&paint->current_body (), pfx, pfx_len);
+  hb_buf_append_str (&paint->current_body (), "cp");
   hb_buf_append_unsigned (&paint->current_body (), clip_id);
   hb_buf_append_str (&paint->current_body (), ")\">\n");
 }
@@ -1300,18 +1357,44 @@ hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
 }
 
 /**
+ * hb_vector_paint_get_format:
+ * @paint: a vector paint context.
+ *
+ * Gets the output format @paint was created with.
+ *
+ * Return value: the output format.
+ *
+ * XSince: REPLACEME
+ */
+hb_vector_format_t
+hb_vector_paint_get_format (const hb_vector_paint_t *paint)
+{
+  return paint->format;
+}
+
+/**
  * hb_vector_paint_get_funcs:
+ * @paint: a vector paint context.
  *
- * Gets paint callbacks implemented by the vector paint backend.
+ * Gets paint callbacks for emitting paint operations into @paint.
+ * Pass @paint as the @paint_data argument when calling them.
  *
- * Return value: (transfer none): immutable #hb_paint_funcs_t singleton.
+ * Return value: (transfer none): immutable #hb_paint_funcs_t.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 hb_paint_funcs_t *
-hb_vector_paint_get_funcs (void)
+hb_vector_paint_get_funcs (const hb_vector_paint_t *paint)
 {
-  return hb_vector_paint_funcs_get ();
+  switch (paint ? paint->format : HB_VECTOR_FORMAT_INVALID)
+  {
+    case HB_VECTOR_FORMAT_PDF:
+      return hb_vector_paint_pdf_funcs_get ();
+    case HB_VECTOR_FORMAT_SVG:
+    case HB_VECTOR_FORMAT_INVALID:
+    default:
+      return hb_vector_paint_funcs_get ();
+  }
 }
 
 static hb_bool_t
@@ -1443,12 +1526,12 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	hb_bool_t ret = true;
 	if (fallible)
 	  ret = hb_font_paint_glyph_or_fail (font, glyph,
-					     hb_vector_paint_get_funcs (), paint,
+					     hb_vector_paint_get_funcs (paint), paint,
 					     (unsigned) paint->palette,
 					     paint->foreground);
 	else
 	  hb_font_paint_glyph (font, glyph,
-			       hb_vector_paint_get_funcs (), paint,
+			       hb_vector_paint_get_funcs (paint), paint,
 			       (unsigned) paint->palette,
 			       paint->foreground);
 	if (unlikely (!ret))
@@ -1661,6 +1744,7 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->transform_group_depth = 0;
   paint->transform_group_overflow_depth = 0;
   paint->clip_rect_counter = 0;
+  paint->clip_path_counter = 0;
   paint->gradient_counter = 0;
   paint->color_glyph_counter = 0;
   paint->color_glyph_depth = 0;

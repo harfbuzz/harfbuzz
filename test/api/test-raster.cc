@@ -36,7 +36,7 @@ static void
 draw_rect (hb_raster_draw_t *rdr,
 	   float x0, float y0, float x1, float y1)
 {
-  hb_draw_funcs_t *df = hb_raster_draw_get_funcs ();
+  hb_draw_funcs_t *df = hb_raster_draw_get_funcs (rdr);
   hb_draw_state_t  st = HB_DRAW_STATE_DEFAULT;
 
   hb_draw_move_to   (df, rdr, &st, x0, y0);

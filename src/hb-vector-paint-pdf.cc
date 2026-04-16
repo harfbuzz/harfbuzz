@@ -310,7 +310,7 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
   tmp.path.alloc (1024);
 
   hb_font_draw_glyph (font, glyph,
-		       hb_vector_draw_get_funcs (),
+		       hb_vector_draw_get_funcs (&tmp),
 		       &tmp);
 
   hb_buf_append_len (buf, tmp.path.arrayZ, tmp.path.length);
@@ -396,6 +396,39 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
   hb_buf_append_c (&body, ' ');
   hb_buf_append_num (&body, ymax - ymin, paint->precision);
   hb_buf_append_str (&body, " re W n\n");
+}
+
+static hb_draw_funcs_t *
+hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
+				   void *paint_data,
+				   void **draw_data,
+				   void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  {
+    *draw_data = nullptr;
+    return nullptr;
+  }
+
+  auto &body = paint->current_body ();
+  hb_buf_append_str (&body, "q\n");
+  /* Stream path operators straight into the body; end() seals
+   * the path with "W n" to turn it into the clip region. */
+  paint->clip_path_sink = {&body, paint->precision, HB_VECTOR_FORMAT_PDF};
+  *draw_data = &paint->clip_path_sink;
+  return hb_vector_path_draw_funcs_get ();
+}
+
+static void
+hb_pdf_paint_push_clip_path_end (hb_paint_funcs_t *,
+				 void *paint_data,
+				 void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+    return;
+  hb_buf_append_str (&paint->current_body (), "W n\n");
 }
 
 static void
@@ -1217,6 +1250,8 @@ static struct hb_pdf_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_pdf_paint_pop_transform, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_pdf_paint_push_clip_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_pdf_paint_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_start_func (funcs, (hb_paint_push_clip_path_start_func_t) hb_pdf_paint_push_clip_path_start, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_end_func (funcs, (hb_paint_push_clip_path_end_func_t) hb_pdf_paint_push_clip_path_end, nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func (funcs, (hb_paint_pop_clip_func_t) hb_pdf_paint_pop_clip, nullptr, nullptr);
     hb_paint_funcs_set_color_func (funcs, (hb_paint_color_func_t) hb_pdf_paint_color, nullptr, nullptr);
     hb_paint_funcs_set_image_func (funcs, (hb_paint_image_func_t) hb_pdf_paint_image, nullptr, nullptr);

@@ -227,6 +227,33 @@ hb_cairo_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   cairo_clip (cr);
 }
 
+static hb_draw_funcs_t *
+hb_cairo_push_clip_path_start (hb_paint_funcs_t *pfuncs HB_UNUSED,
+			       void *paint_data,
+			       void **draw_data,
+			       void *user_data HB_UNUSED)
+{
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
+
+  cairo_save (cr);
+  cairo_new_path (cr);
+  *draw_data = cr;
+  return hb_cairo_draw_get_funcs ();
+}
+
+static void
+hb_cairo_push_clip_path_end (hb_paint_funcs_t *pfuncs HB_UNUSED,
+			     void *paint_data,
+			     void *user_data HB_UNUSED)
+{
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
+
+  cairo_close_path (cr);
+  cairo_clip (cr);
+}
+
 static void
 hb_cairo_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		   void *paint_data,
@@ -428,6 +455,8 @@ static struct hb_cairo_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t<
     hb_paint_funcs_set_color_glyph_func (funcs, hb_cairo_paint_color_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, hb_cairo_push_clip_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, hb_cairo_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_start_func (funcs, hb_cairo_push_clip_path_start, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_end_func (funcs, hb_cairo_push_clip_path_end, nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func (funcs, hb_cairo_pop_clip, nullptr, nullptr);
     hb_paint_funcs_set_push_group_func (funcs, hb_cairo_push_group, nullptr, nullptr);
     hb_paint_funcs_set_pop_group_func (funcs, hb_cairo_pop_group, nullptr, nullptr);

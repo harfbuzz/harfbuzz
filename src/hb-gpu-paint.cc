@@ -89,7 +89,7 @@ hb_gpu_paint_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
     c->clip_depth++;
     return;
   }
-  c->clip_stack[c->clip_depth] = { glyph, font, c->cur_transform };
+  c->clip_stack[c->clip_depth] = { glyph, font, c->cur_transform, -1, 0, 0, 0, 0 };
   c->clip_depth++;
 }
 
@@ -100,6 +100,84 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
   if (likely (c->clip_depth > 0)) c->clip_depth--;
+}
+
+/* Arbitrary-path clip: hand the caller the same hb_gpu_draw
+ * funcs the encoder uses for glyph outlines, with scratch_draw
+ * as the accumulator.  push_clip_path_end encodes the captured
+ * geometry into a sub-blob and commits it to clip_stack just
+ * like a glyph clip.  No font ref needed — the sub-blob is a
+ * self-contained slug bundle. */
+static hb_draw_funcs_t *
+hb_gpu_paint_push_clip_path_start (hb_paint_funcs_t *funcs HB_UNUSED,
+				   void             *paint_data,
+				   void            **draw_data,
+				   void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+
+  if (unlikely (c->clip_depth >= HB_GPU_PAINT_MAX_CLIP_DEPTH))
+  {
+    c->unsupported = true;
+    *draw_data = nullptr;
+    return nullptr;
+  }
+
+  if (unlikely (!c->scratch_draw))
+  {
+    c->scratch_draw = hb_gpu_draw_create_or_fail ();
+    if (unlikely (!c->scratch_draw))
+    {
+      c->unsupported = true;
+      *draw_data = nullptr;
+      return nullptr;
+    }
+  }
+
+  hb_gpu_draw_clear (c->scratch_draw);
+  hb_gpu_draw_set_scale (c->scratch_draw, c->x_scale, c->y_scale);
+
+  c->pending_clip_path_transform = c->cur_transform;
+  c->pending_clip_path = true;
+
+  *draw_data = c->scratch_draw;
+  return hb_gpu_draw_get_funcs (c->scratch_draw);
+}
+
+static void
+hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
+				 void             *paint_data,
+				 void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+
+  if (unlikely (!c->pending_clip_path))
+    return;
+  c->pending_clip_path = false;
+
+  hb_glyph_extents_t ext;
+  hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
+  if (unlikely (!blob || !c->sub_blobs.push_or_fail (blob)))
+  {
+    hb_blob_destroy (blob);
+    c->unsupported = true;
+    return;
+  }
+  int idx = (int) (c->sub_blobs.length - 1);
+
+  int x0 = ext.x_bearing;
+  int x1 = ext.x_bearing + ext.width;
+  int y0 = ext.y_bearing;
+  int y1 = ext.y_bearing + ext.height;
+
+  c->clip_stack[c->clip_depth] = {
+    HB_CODEPOINT_INVALID, nullptr,
+    c->pending_clip_path_transform,
+    idx,
+    hb_min (x0, x1), hb_min (y0, y1),
+    hb_max (x0, x1), hb_max (y0, y1),
+  };
+  c->clip_depth++;
 }
 
 static void
@@ -332,6 +410,18 @@ static int
 emit_clip_sub_blob (hb_gpu_paint_t *c,
 		    const hb_gpu_paint_t::pending_clip_t &clip)
 {
+  /* Path clips were already encoded into sub_blobs at
+   * push_clip_path_end time; just accumulate extents and hand
+   * back the pre-baked index. */
+  if (clip.sub_blob_index >= 0)
+  {
+    c->ext_min_x = hb_min (c->ext_min_x, clip.ext_x0);
+    c->ext_max_x = hb_max (c->ext_max_x, clip.ext_x1);
+    c->ext_min_y = hb_min (c->ext_min_y, clip.ext_y0);
+    c->ext_max_y = hb_max (c->ext_max_y, clip.ext_y1);
+    return clip.sub_blob_index;
+  }
+
   if (unlikely (!c->scratch_draw))
   {
     c->scratch_draw = hb_gpu_draw_create_or_fail ();
@@ -362,7 +452,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
 
     hb_gpu_paint_pen_t pen = {};
     pen.transform = clip.transform;
-    pen.dfuncs    = hb_gpu_draw_get_funcs ();
+    pen.dfuncs    = hb_gpu_draw_get_funcs (c->scratch_draw);
     pen.data      = c->scratch_draw;
     pen.down_st   = HB_DRAW_STATE_DEFAULT;
     ok = hb_font_draw_glyph_or_fail (clip.font, clip.glyph,
@@ -889,6 +979,8 @@ static struct hb_gpu_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_push_transform_func        (funcs, hb_gpu_paint_push_transform,        nullptr, nullptr);
     hb_paint_funcs_set_pop_transform_func         (funcs, hb_gpu_paint_pop_transform,         nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func       (funcs, hb_gpu_paint_push_clip_glyph,       nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_start_func  (funcs, hb_gpu_paint_push_clip_path_start,  nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_path_end_func    (funcs, hb_gpu_paint_push_clip_path_end,    nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func              (funcs, hb_gpu_paint_pop_clip,              nullptr, nullptr);
     hb_paint_funcs_set_push_group_func            (funcs, hb_gpu_paint_push_group,            nullptr, nullptr);
     hb_paint_funcs_set_pop_group_func             (funcs, hb_gpu_paint_pop_group,             nullptr, nullptr);
@@ -1021,10 +1113,11 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
 
 /**
  * hb_gpu_paint_get_funcs:
+ * @paint: a GPU paint context.
  *
- * Fetches the singleton #hb_paint_funcs_t that feeds paint data
- * into an #hb_gpu_paint_t.  Pass the #hb_gpu_paint_t as the
- * @paint_data argument when calling the paint functions.
+ * Fetches the #hb_paint_funcs_t that feeds paint data into
+ * @paint.  Pass @paint as the @paint_data argument when
+ * calling the paint functions.
  *
  * Return value: (transfer none):
  * The GPU paint functions
@@ -1032,7 +1125,7 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
  * XSince: REPLACEME
  **/
 hb_paint_funcs_t *
-hb_gpu_paint_get_funcs (void)
+hb_gpu_paint_get_funcs (const hb_gpu_paint_t *paint HB_UNUSED)
 {
   return static_gpu_paint_funcs.get_unconst ();
 }
@@ -1181,7 +1274,7 @@ hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
   hb_font_get_scale (font, &x_scale, &y_scale);
   hb_gpu_paint_set_scale (paint, x_scale, y_scale);
   return hb_font_paint_glyph_or_fail (font, glyph,
-				      hb_gpu_paint_get_funcs (), paint,
+				      hb_gpu_paint_get_funcs (paint), paint,
 				      paint->palette,
 				      /* Foreground value is never read
 				       * from our encoded blob -- the
@@ -1214,7 +1307,7 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
   hb_font_get_scale (font, &x_scale, &y_scale);
   hb_gpu_paint_set_scale (paint, x_scale, y_scale);
   hb_font_paint_glyph (font, glyph,
-		       hb_gpu_paint_get_funcs (), paint,
+		       hb_gpu_paint_get_funcs (paint), paint,
 		       paint->palette,
 		       HB_COLOR (0, 0, 0, 0xff));
 }
@@ -1414,6 +1507,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
     hb_blob_destroy (b);
   paint->sub_blobs.reset ();
   paint->clip_depth = 0;
+  paint->pending_clip_path = false;
   paint->unsupported = false;
   paint->cur_transform = {1, 0, 0, 1, 0, 0};
   paint->transform_stack.reset ();

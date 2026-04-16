@@ -283,12 +283,25 @@ struct hb_gpu_paint_t
    * we use for the gradient but not the clip outline. */
   struct pending_clip_t
   {
-    hb_codepoint_t        glyph;
-    hb_font_t            *font;     /* borrowed */
+    hb_codepoint_t        glyph;    /* HB_CODEPOINT_INVALID for path clips */
+    hb_font_t            *font;     /* borrowed; nullptr for path clips */
     hb_transform_t<float> transform;
+    /* Path clips are encoded into a sub-blob at push_clip_path_end
+     * time; glyph clips re-encode per consuming layer.  For path
+     * clips, sub_blob_index is the pre-baked index and ext_* the
+     * captured design-unit extents.  For glyph clips, sub_blob_index
+     * is -1 and the ext_* fields are unused. */
+    int                   sub_blob_index;
+    int                   ext_x0, ext_y0, ext_x1, ext_y1;
   };
   pending_clip_t clip_stack[3];
   unsigned       clip_depth = 0;
+
+  /* Carries the cur_transform captured at push_clip_path_start
+   * through to push_clip_path_end, where the encoded clip is
+   * committed to clip_stack. */
+  hb_transform_t<float> pending_clip_path_transform = {};
+  bool                  pending_clip_path = false;
 
   /* Set when the paint walk emits v1-only callbacks we do not yet
    * support.  hb_gpu_paint_encode() returns NULL in that case. */

@@ -553,7 +553,7 @@ _hb_draw_rect_contour (hb_draw_funcs_t *dfuncs, void *draw_data,
 }
 
 /**
- * hb_draw_rect:
+ * hb_draw_rectangle:
  * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
@@ -579,11 +579,11 @@ _hb_draw_rect_contour (hb_draw_funcs_t *dfuncs, void *draw_data,
  * XSince: REPLACEME
  **/
 void
-hb_draw_rect (hb_draw_funcs_t *dfuncs, void *draw_data,
-	      hb_draw_state_t *st,
-	      float x, float y,
-	      float w, float h,
-	      float stroke_width)
+hb_draw_rectangle (hb_draw_funcs_t *dfuncs, void *draw_data,
+		   hb_draw_state_t *st,
+		   float x, float y,
+		   float w, float h,
+		   float stroke_width)
 {
   if (std::isnan (stroke_width))
   {
@@ -596,6 +596,12 @@ hb_draw_rect (hb_draw_funcs_t *dfuncs, void *draw_data,
 
   if (stroke_width <= 0.f || !std::isfinite (stroke_width))
     return;
+
+  /* Normalize to non-negative width/height so the stroke math
+   * below (outer grows by sw, inner shrinks by sw) produces the
+   * expected outer-contains-inner ring regardless of w/h signs. */
+  if (w < 0.f) { x += w; w = -w; }
+  if (h < 0.f) { y += h; h = -h; }
   /* w or h == 0 is still meaningful when stroking: a stroked
    * zero-height rect is a horizontal line of length w; zero
    * width is a vertical line.  Both degenerate to a single

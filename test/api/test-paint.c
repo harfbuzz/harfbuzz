@@ -630,12 +630,176 @@ test_color_stops_ft (void)
     g_test_skip ("FreeType COLRv1 support not present");
 }
 
+
+/* ── Arbitrary-path clip API (push_clip_path_start/_end) ─────────── */
+
+static void
+test_push_clip_path_nil_returns_null (void)
+{
+  /* Unset callbacks fall through to nil stubs; start must return
+   * NULL + clear draw_data so callers know the backend can't do
+   * arbitrary-path clipping. */
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  void *draw_data = (void *) 0xdeadbeef;
+  hb_draw_funcs_t *df = hb_paint_push_clip_path_start (funcs, NULL, &draw_data);
+  g_assert_null (df);
+  g_assert_null (draw_data);
+
+  /* end is a no-op on the nil stub. */
+  hb_paint_push_clip_path_end (funcs, NULL);
+
+  /* Also: NULL draw_data must be accepted; the entry point routes
+   * it through an internal scratch. */
+  df = hb_paint_push_clip_path_start (funcs, NULL, NULL);
+  g_assert_null (df);
+
+  hb_paint_funcs_destroy (funcs);
+}
+
+typedef struct
+{
+  int              move_to_calls;
+  int              line_to_calls;
+  int              close_path_calls;
+  float            last_x, last_y;
+  hb_bool_t        start_called;
+  hb_bool_t        end_called;
+  int              pop_clip_calls;
+  hb_draw_funcs_t *start_draw_funcs_out;
+} clip_path_rec_t;
+
+static void
+clip_path_sink_move_to (hb_draw_funcs_t *funcs HB_UNUSED,
+                        void *draw_data,
+                        hb_draw_state_t *st HB_UNUSED,
+                        float x, float y,
+                        void *user_data HB_UNUSED)
+{
+  clip_path_rec_t *r = (clip_path_rec_t *) draw_data;
+  r->move_to_calls++;
+  r->last_x = x; r->last_y = y;
+}
+
+static void
+clip_path_sink_line_to (hb_draw_funcs_t *funcs HB_UNUSED,
+                        void *draw_data,
+                        hb_draw_state_t *st HB_UNUSED,
+                        float x, float y,
+                        void *user_data HB_UNUSED)
+{
+  clip_path_rec_t *r = (clip_path_rec_t *) draw_data;
+  r->line_to_calls++;
+  r->last_x = x; r->last_y = y;
+}
+
+static void
+clip_path_sink_close_path (hb_draw_funcs_t *funcs HB_UNUSED,
+                           void *draw_data,
+                           hb_draw_state_t *st HB_UNUSED,
+                           void *user_data HB_UNUSED)
+{
+  clip_path_rec_t *r = (clip_path_rec_t *) draw_data;
+  r->close_path_calls++;
+}
+
+static hb_draw_funcs_t *
+clip_path_start_cb (hb_paint_funcs_t *pfuncs HB_UNUSED,
+                    void *paint_data,
+                    void **draw_data,
+                    void *user_data HB_UNUSED)
+{
+  clip_path_rec_t *r = (clip_path_rec_t *) paint_data;
+  r->start_called = TRUE;
+  *draw_data = r;
+  return r->start_draw_funcs_out;
+}
+
+static void
+clip_path_end_cb (hb_paint_funcs_t *pfuncs HB_UNUSED,
+                  void *paint_data,
+                  void *user_data HB_UNUSED)
+{
+  clip_path_rec_t *r = (clip_path_rec_t *) paint_data;
+  r->end_called = TRUE;
+}
+
+static void
+clip_path_pop_clip_cb (hb_paint_funcs_t *pfuncs HB_UNUSED,
+                       void *paint_data,
+                       void *user_data HB_UNUSED)
+{
+  clip_path_rec_t *r = (clip_path_rec_t *) paint_data;
+  r->pop_clip_calls++;
+}
+
+/* Round-trip: registered start/end fire in order, the returned
+ * draw-funcs + draw-data propagate to the caller, and every
+ * hb_draw_*() call on those funcs reaches the accumulator. */
+static void
+test_push_clip_path_round_trip (void)
+{
+  hb_draw_funcs_t *sink = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func    (sink, clip_path_sink_move_to,    NULL, NULL);
+  hb_draw_funcs_set_line_to_func    (sink, clip_path_sink_line_to,    NULL, NULL);
+  hb_draw_funcs_set_close_path_func (sink, clip_path_sink_close_path, NULL, NULL);
+  hb_draw_funcs_make_immutable (sink);
+
+  clip_path_rec_t r = {0};
+  r.start_draw_funcs_out = sink;
+
+  hb_paint_funcs_t *pfuncs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_push_clip_path_start_func (pfuncs, clip_path_start_cb,    NULL, NULL);
+  hb_paint_funcs_set_push_clip_path_end_func   (pfuncs, clip_path_end_cb,      NULL, NULL);
+  hb_paint_funcs_set_pop_clip_func             (pfuncs, clip_path_pop_clip_cb, NULL, NULL);
+  hb_paint_funcs_make_immutable (pfuncs);
+
+  void *draw_data = NULL;
+  hb_draw_funcs_t *df = hb_paint_push_clip_path_start (pfuncs, &r, &draw_data);
+
+  g_assert_true (r.start_called);
+  g_assert_nonnull (df);
+  g_assert_true (df == sink);
+  g_assert_true (draw_data == &r);
+
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to    (df, draw_data, &st, 1.f, 2.f);
+  hb_draw_line_to    (df, draw_data, &st, 3.f, 4.f);
+  hb_draw_line_to    (df, draw_data, &st, 5.f, 6.f);
+  hb_draw_close_path (df, draw_data, &st);
+
+  g_assert_cmpint (r.move_to_calls, ==, 1);
+  /* hb_draw_close_path synthesizes a line_to back to the contour
+   * start, so our two explicit line_tos show up as three. */
+  g_assert_cmpint (r.line_to_calls, ==, 3);
+  g_assert_cmpint (r.close_path_calls, ==, 1);
+  /* The synthetic closing line_to took the pen back to the
+   * move_to point (1, 2). */
+  g_assert_cmpfloat (r.last_x, ==, 1.f);
+  g_assert_cmpfloat (r.last_y, ==, 2.f);
+
+  hb_paint_push_clip_path_end (pfuncs, &r);
+  g_assert_true (r.end_called);
+
+  hb_paint_pop_clip (pfuncs, &r);
+  g_assert_cmpint (r.pop_clip_calls, ==, 1);
+
+  hb_paint_funcs_destroy (pfuncs);
+  hb_draw_funcs_destroy (sink);
+}
+
+
 int
 main (int argc, char **argv)
 {
   int status = 0;
 
   hb_test_init (&argc, &argv);
+
+  /* Register font-free API tests first so the missing-font bail
+   * below doesn't prevent them from running. */
+  hb_test_add (test_push_clip_path_nil_returns_null);
+  hb_test_add (test_push_clip_path_round_trip);
+
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {
     hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ot);

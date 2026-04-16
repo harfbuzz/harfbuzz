@@ -179,11 +179,11 @@ test_reset (void)
 static void
 test_draw_funcs (void)
 {
-  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (nullptr);
   g_assert_nonnull (funcs);
 
-  /* Should be the same singleton each time. */
-  g_assert_true (funcs == hb_gpu_draw_get_funcs ());
+  /* Should be the same instance each time. */
+  g_assert_true (funcs == hb_gpu_draw_get_funcs (nullptr));
 }
 
 static void
@@ -201,7 +201,7 @@ test_encode_quantizes_extents_outward (void)
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
   g_assert_nonnull (draw);
 
-  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
   hb_draw_move_to (funcs, draw, &st, 0.24f, 0.24f);
   hb_draw_line_to (funcs, draw, &st, 0.76f, 0.24f);
@@ -229,7 +229,7 @@ test_encode_preserves_touching_contours (void)
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
   g_assert_nonnull (draw);
 
-  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
 
   hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
@@ -256,7 +256,7 @@ test_recycle_blob (void)
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
   g_assert_nonnull (draw);
 
-  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
 
   hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
@@ -297,7 +297,7 @@ test_extents_saturate_overflow (void)
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
   g_assert_nonnull (draw);
 
-  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs ();
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
 
   hb_draw_move_to (funcs, draw, &st, -0x1p31f, 0.f);
@@ -335,10 +335,10 @@ test_paint_create_destroy (void)
 static void
 test_paint_get_funcs (void)
 {
-  hb_paint_funcs_t *funcs = hb_gpu_paint_get_funcs ();
+  hb_paint_funcs_t *funcs = hb_gpu_paint_get_funcs (nullptr);
   g_assert_nonnull (funcs);
-  /* Singleton. */
-  g_assert_true (funcs == hb_gpu_paint_get_funcs ());
+  /* Same instance each call. */
+  g_assert_true (funcs == hb_gpu_paint_get_funcs (nullptr));
 }
 
 static void
@@ -528,7 +528,7 @@ test_shapes (void)
    * the encoder's representable range. */
   hb_gpu_draw_set_scale (draw, 1000, 1000);
 
-  hb_draw_funcs_t *dfuncs = hb_gpu_draw_get_funcs ();
+  hb_draw_funcs_t *dfuncs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
 
   /* Tapered line. */
@@ -567,7 +567,7 @@ test_shapes (void)
   hb_blob_destroy (blob);
 
   /* Filled rect (stroke_width = NaN). */
-  hb_draw_rect (dfuncs, draw, &st,
+  hb_draw_rectangle (dfuncs, draw, &st,
 		0.f, 0.f, 20.f, 10.f,
 		(float) std::nan (""));
   blob = hb_gpu_draw_encode (draw, &ext);
@@ -578,7 +578,7 @@ test_shapes (void)
 
   /* Stroked rect: outer edge extends stroke_width/2 beyond the
    * nominal rect on each side. */
-  hb_draw_rect (dfuncs, draw, &st,
+  hb_draw_rectangle (dfuncs, draw, &st,
 		0.f, 0.f, 20.f, 10.f, 2.f);
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);

@@ -56,6 +56,31 @@ Overview of changes leading to NEXT (REPLACEME)
 - Various fuzzer fixes for `harfbuzz-raster`, `harfbuzz-vector`,
   and `harfbuzz-gpu` libraries.
 
+- Paint API:
+  * New arbitrary-path clip:
+    hb_paint_push_clip_path_start / _end let callers clip to
+    a caller-supplied outline, not just a font glyph.
+    push_clip_path_start returns the draw-funcs (and matching
+    draw data) for the backend's path accumulator; the caller
+    drives hb_draw_*() into it, then calls
+    push_clip_path_end, followed by painted ops, then
+    hb_paint_pop_clip() to release the clip.  Implemented for
+    all paint backends: vector (SVG defs + clipPath + url ref),
+    vector PDF (q / path / W n), raster (path rendered to an
+    alpha mask, intersected with the current clip), and GPU
+    (the path is encoded into a Slug sub-blob so the fragment
+    shader clips against it the same way it clips against
+    glyph outlines).
+
+- New API, Draw:
+  +hb_draw_line()
+  +hb_draw_rectangle()
+  +hb_draw_circle()
+  +hb_draw_line_cap_t
+  +HB_DRAW_LINE_CAP_BUTT
+  +HB_DRAW_LINE_CAP_ROUND
+  +HB_DRAW_LINE_CAP_SQUARE
+
 - New API, Paint:
   +hb_paint_push_group_for()
   +hb_paint_funcs_set_push_group_for_func()
@@ -64,6 +89,12 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_paint_normalize_color_line()
   +hb_paint_sweep_gradient_tiles()
   +hb_paint_sweep_gradient_tile_func_t
+  +hb_paint_push_clip_path_start()
+  +hb_paint_push_clip_path_end()
+  +hb_paint_funcs_set_push_clip_path_start_func()
+  +hb_paint_funcs_set_push_clip_path_end_func()
+  +hb_paint_push_clip_path_start_func_t
+  +hb_paint_push_clip_path_end_func_t
 
 - New API, GPU library:
   +hb_gpu_paint_t
@@ -107,11 +138,13 @@ Overview of changes leading to NEXT (REPLACEME)
   +HB_VECTOR_FORMAT_PDF
   +hb_vector_draw_clear()
   +hb_vector_draw_get_precision()
+  +hb_vector_draw_get_format()
   +hb_vector_draw_glyph_or_fail()
   +hb_vector_draw_set_svg_prefix()
   +hb_vector_draw_get_svg_prefix()
   +hb_vector_paint_clear()
   +hb_vector_paint_get_precision()
+  +hb_vector_paint_get_format()
   +hb_vector_paint_get_foreground()
   +hb_vector_paint_get_palette()
   +hb_vector_paint_glyph_or_fail()
@@ -163,6 +196,19 @@ Overview of changes leading to NEXT (REPLACEME)
 
 - Changed API, general:
   * Many read-only getters gained const on their object argument.
+  * Six public draw / paint funcs getters across raster,
+    vector, and gpu now take a const-pointer to the relevant
+    context instance instead of being singletons:
+      hb_raster_draw_get_funcs (const hb_raster_draw_t *)
+      hb_raster_paint_get_funcs (const hb_raster_paint_t *)
+      hb_vector_draw_get_funcs (const hb_vector_draw_t *)
+      hb_vector_paint_get_funcs (const hb_vector_paint_t *)
+      hb_gpu_draw_get_funcs (const hb_gpu_draw_t *)
+      hb_gpu_paint_get_funcs (const hb_gpu_paint_t *)
+    This is what lets vector_paint dispatch to SVG- vs PDF-
+    flavored callbacks transparently when called from outside
+    code; the others currently use the instance for symmetry
+    only.
 
 
 Overview of changes leading to 14.1.0

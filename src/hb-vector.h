@@ -151,8 +151,11 @@ HB_EXTERN hb_bool_t
 hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
                                   const hb_glyph_extents_t *glyph_extents);
 
+HB_EXTERN hb_vector_format_t
+hb_vector_draw_get_format (const hb_vector_draw_t *draw);
+
 HB_EXTERN hb_draw_funcs_t *
-hb_vector_draw_get_funcs (void);
+hb_vector_draw_get_funcs (const hb_vector_draw_t *draw);
 
 HB_EXTERN void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
@@ -276,8 +279,11 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
 HB_EXTERN void
 hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint);
 
+HB_EXTERN hb_vector_format_t
+hb_vector_paint_get_format (const hb_vector_paint_t *paint);
+
 HB_EXTERN hb_paint_funcs_t *
-hb_vector_paint_get_funcs (void);
+hb_vector_paint_get_funcs (const hb_vector_paint_t *paint);
 
 HB_EXTERN void
 hb_vector_paint_glyph (hb_vector_paint_t *paint,
