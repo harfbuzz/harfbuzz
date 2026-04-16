@@ -762,16 +762,13 @@ hb_pdf_build_interpolation_function (hb_vector_t<char> *obj,
   hb_buf_append_str (obj, "] >>");
 }
 
-/* Build a stitching function (Type 3) for multiple color stops. */
+/* Build a stitching function (Type 3) from pre-populated
+ * paint->color_stops_scratch (already sorted+normalized). */
 static unsigned
-hb_pdf_build_gradient_function (hb_pdf_resources_t *res,
-				hb_vector_paint_t *paint,
-				hb_color_line_t *color_line)
+hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
+					   hb_vector_paint_t *paint)
 {
-  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (unlikely (!paint->color_stops_scratch.resize (count)))
-    return 0;
-  hb_color_line_get_color_stops (color_line, 0, &count, paint->color_stops_scratch.arrayZ);
+  unsigned count = paint->color_stops_scratch.length;
 
   if (count < 2)
   {
@@ -860,19 +857,34 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   if (unlikely (!res))
     return;
 
-  unsigned func_id = hb_pdf_build_gradient_function (res, paint, color_line);
+  /* Fetch, normalize stops to [0,1], and adjust coordinates. */
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (!count || unlikely (!stops.resize (count)))
+    return;
+  hb_color_line_get_color_stops (color_line, 0, &count, stops.arrayZ);
+  stops.length = count;
+
+  float mn, mx;
+  hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  float gx0 = x0 + mn * (x1 - x0);
+  float gy0 = y0 + mn * (y1 - y0);
+  float gx1 = x0 + mx * (x1 - x0);
+  float gy1 = y0 + mx * (y1 - y0);
+
+  unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
   /* Build Type 2 (axial) shading. */
   hb_vector_t<char> sh;
   hb_buf_append_str (&sh, "<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
   hb_buf_append_str (&sh, "/Coords [");
-  hb_buf_append_num (&sh, x0, paint->precision);
+  hb_buf_append_num (&sh, gx0, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, y0, paint->precision);
+  hb_buf_append_num (&sh, gy0, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, x1, paint->precision);
+  hb_buf_append_num (&sh, gx1, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, y1, paint->precision);
+  hb_buf_append_num (&sh, gy1, paint->precision);
   hb_buf_append_str (&sh, "]\n/Function ");
   hb_buf_append_unsigned (&sh, func_id);
   hb_buf_append_str (&sh, " 0 R\n");
@@ -906,23 +918,40 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   if (unlikely (!res))
     return;
 
-  unsigned func_id = hb_pdf_build_gradient_function (res, paint, color_line);
+  /* Fetch, normalize stops to [0,1], and adjust coordinates. */
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (!count || unlikely (!stops.resize (count)))
+    return;
+  hb_color_line_get_color_stops (color_line, 0, &count, stops.arrayZ);
+  stops.length = count;
+
+  float mn, mx;
+  hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  float gx0 = x0 + mn * (x1 - x0);
+  float gy0 = y0 + mn * (y1 - y0);
+  float gr0 = r0 + mn * (r1 - r0);
+  float gx1 = x0 + mx * (x1 - x0);
+  float gy1 = y0 + mx * (y1 - y0);
+  float gr1 = r0 + mx * (r1 - r0);
+
+  unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
   /* Build Type 3 (radial) shading. */
   hb_vector_t<char> sh;
   hb_buf_append_str (&sh, "<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
   hb_buf_append_str (&sh, "/Coords [");
-  hb_buf_append_num (&sh, x0, paint->precision);
+  hb_buf_append_num (&sh, gx0, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, y0, paint->precision);
+  hb_buf_append_num (&sh, gy0, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, r0, paint->precision);
+  hb_buf_append_num (&sh, gr0, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, x1, paint->precision);
+  hb_buf_append_num (&sh, gx1, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, y1, paint->precision);
+  hb_buf_append_num (&sh, gy1, paint->precision);
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, r1, paint->precision);
+  hb_buf_append_num (&sh, gr1, paint->precision);
   hb_buf_append_str (&sh, "]\n/Function ");
   hb_buf_append_unsigned (&sh, func_id);
   hb_buf_append_str (&sh, " 0 R\n");
