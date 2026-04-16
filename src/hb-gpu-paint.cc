@@ -1274,7 +1274,7 @@ hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
   hb_font_get_scale (font, &x_scale, &y_scale);
   hb_gpu_paint_set_scale (paint, x_scale, y_scale);
   return hb_font_paint_glyph_or_fail (font, glyph,
-				      hb_gpu_paint_get_funcs (), paint,
+				      hb_gpu_paint_get_funcs (paint), paint,
 				      paint->palette,
 				      /* Foreground value is never read
 				       * from our encoded blob -- the
