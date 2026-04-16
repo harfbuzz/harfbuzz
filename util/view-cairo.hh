@@ -108,20 +108,16 @@ view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert
     {
       cairo_save (cr);
 
-      cairo_set_source_rgba (cr, 1., 0., 0., .5);
-      cairo_set_line_width (cr, 10);
-      cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
-      for (unsigned i = 0; i < l.num_glyphs; i++) {
-	cairo_move_to (cr, l.glyphs[i].x, l.glyphs[i].y);
-	cairo_rel_line_to (cr, 0, 0);
-      }
-      cairo_stroke (cr);
-
-      cairo_restore (cr);
-      cairo_save (cr);
-
-      cairo_set_source_rgba (cr, 1., 0., 1., .5);
-      cairo_set_line_width (cr, 3);
+      /* Foreground for parity with the other utils' --show-
+       * extents overlay (raster, vector, gpu).  Stroked rect
+       * around each glyph's ink box, plus a filled dot at the
+       * pen origin. */
+      cairo_set_source_rgba (cr,
+			     foreground_color.r / 255.,
+			     foreground_color.g / 255.,
+			     foreground_color.b / 255.,
+			     foreground_color.a / 255.);
+      cairo_set_line_width (cr, 1);
       for (unsigned i = 0; i < l.num_glyphs; i++)
       {
 	hb_glyph_extents_t hb_extents;
@@ -136,6 +132,13 @@ view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert
 	}
       }
       cairo_stroke (cr);
+
+      /* Filled origin dot. */
+      for (unsigned i = 0; i < l.num_glyphs; i++)
+      {
+	cairo_arc (cr, l.glyphs[i].x, l.glyphs[i].y, 2., 0., 2 * G_PI);
+	cairo_fill (cr);
+      }
 
       cairo_restore (cr);
     }
