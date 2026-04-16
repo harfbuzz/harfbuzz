@@ -319,6 +319,10 @@ hb_paint_push_group
 hb_paint_push_group_for
 hb_paint_pop_group
 hb_paint_custom_palette_color
+hb_paint_reduce_linear_anchors
+hb_paint_normalize_color_line
+hb_paint_sweep_gradient_tile_func_t
+hb_paint_sweep_gradient_tiles
 </SECTION>
 
 <SECTION>

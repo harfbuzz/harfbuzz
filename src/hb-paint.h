@@ -1078,6 +1078,58 @@ hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,
                                unsigned int color_index,
                                hb_color_t *color);
 
+
+/*
+ * Gradient helpers for paint backends.
+ *
+ * These are small, self-contained utilities that every COLRv1
+ * renderer ends up reinventing.  Exposed here so third-party
+ * paint backends can consume a single canonical implementation
+ * instead of forking one per project.
+ */
+
+HB_EXTERN void
+hb_paint_reduce_linear_anchors (float x0, float y0,
+                                float x1, float y1,
+                                float x2, float y2,
+                                float *xx0, float *yy0,
+                                float *xx1, float *yy1);
+
+HB_EXTERN void
+hb_paint_normalize_color_line (hb_color_stop_t *stops,
+                               unsigned int     len,
+                               float           *min,
+                               float           *max);
+
+/**
+ * hb_paint_sweep_gradient_tile_func_t:
+ * @a0: segment start angle, in radians.
+ * @c0: segment start color.
+ * @a1: segment end angle, in radians.
+ * @c1: segment end color.
+ * @user_data: user data passed to hb_paint_sweep_gradient_tiles().
+ *
+ * Callback invoked once per (a0, a1) sector of a sweep
+ * gradient tiling.  See hb_paint_sweep_gradient_tiles().
+ *
+ * XSince: REPLACEME
+ **/
+typedef void (*hb_paint_sweep_gradient_tile_func_t) (float       a0,
+                                                     hb_color_t  c0,
+                                                     float       a1,
+                                                     hb_color_t  c1,
+                                                     void       *user_data);
+
+HB_EXTERN void
+hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
+                               unsigned int                         n_stops,
+                               hb_paint_extend_t                    extend,
+                               float                                start_angle,
+                               float                                end_angle,
+                               hb_paint_sweep_gradient_tile_func_t  emit_patch,
+                               void                                *user_data);
+
+
 HB_END_DECLS
 
 #endif  /* HB_PAINT_H */

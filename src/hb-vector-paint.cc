@@ -315,6 +315,25 @@ hb_vector_svg_add_sweep_patch (hb_vector_t<char> *body,
   }
 }
 
+/* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
+struct hb_vector_svg_sweep_ctx_t {
+  hb_vector_t<char> *body;
+  unsigned precision;
+  float cx, cy, radius;
+};
+
+static void
+hb_vector_svg_sweep_emit_patch (float a0, hb_color_t c0,
+				float a1, hb_color_t c1,
+				void *user_data)
+{
+  auto *ctx = (hb_vector_svg_sweep_ctx_t *) user_data;
+  hb_vector_svg_add_sweep_patch (ctx->body, ctx->precision,
+				 ctx->cx, ctx->cy, ctx->radius,
+				 a0, hb_vector_svg_rgba_from_hb_color (c0),
+				 a1, hb_vector_svg_rgba_from_hb_color (c1));
+}
+
 
 static void hb_vector_paint_push_transform (hb_paint_funcs_t *, void *,
                                             float, float, float, float, float, float,
@@ -784,16 +803,14 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga0 = start_angle + mn * (end_angle - start_angle);
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
-  auto *body = &paint->current_body ();
-  unsigned precision = paint->precision;
-  float radius = 32767.f;
+  hb_vector_svg_sweep_ctx_t ctx {
+    &paint->current_body (), paint->precision, cx, cy, 32767.f
+  };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
-			   hb_color_line_get_extend (color_line),
-			   ga0, ga1,
-			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
-			   { hb_vector_svg_add_sweep_patch (body, precision, cx, cy, radius,
-						     a0, hb_vector_svg_rgba_from_hb_color (c0),
-						     a1, hb_vector_svg_rgba_from_hb_color (c1)); });
+				 hb_color_line_get_extend (color_line),
+				 ga0, ga1,
+				 hb_vector_svg_sweep_emit_patch,
+				 &ctx);
 }
 
 static void

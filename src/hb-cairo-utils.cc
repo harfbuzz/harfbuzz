@@ -518,6 +518,24 @@ _hb_cairo_color_from_hb_color (hb_color_t c)
   };
 }
 
+struct _hb_cairo_sweep_patch_ctx {
+  float cx, cy, radius;
+  cairo_pattern_t *pattern;
+};
+
+static void
+_hb_cairo_sweep_emit_patch (float a0, hb_color_t c0,
+			    float a1, hb_color_t c1,
+			    void *user_data)
+{
+  auto *ctx = (_hb_cairo_sweep_patch_ctx *) user_data;
+  hb_cairo_color_t cc0 = _hb_cairo_color_from_hb_color (c0);
+  hb_cairo_color_t cc1 = _hb_cairo_color_from_hb_color (c1);
+  _hb_cairo_add_sweep_gradient_patches1 (ctx->cx, ctx->cy, ctx->radius,
+					 a0, &cc0, a1, &cc1,
+					 ctx->pattern);
+}
+
 static void
 _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
 				      unsigned int n_stops,
@@ -533,16 +551,10 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
     extend == CAIRO_EXTEND_REFLECT ? HB_PAINT_EXTEND_REFLECT :
 				     HB_PAINT_EXTEND_PAD;
 
+  _hb_cairo_sweep_patch_ctx ctx { cx, cy, radius, pattern };
   hb_paint_sweep_gradient_tiles (stops, n_stops, hb_extend,
-			   start_angle, end_angle,
-			   [&](float a0, hb_color_t c0, float a1, hb_color_t c1) {
-    hb_cairo_color_t cc0 = _hb_cairo_color_from_hb_color (c0);
-    hb_cairo_color_t cc1 = _hb_cairo_color_from_hb_color (c1);
-    _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-					   a0, &cc0,
-					   a1, &cc1,
-					   pattern);
-  });
+				 start_angle, end_angle,
+				 _hb_cairo_sweep_emit_patch, &ctx);
 }
 
 void

@@ -1025,6 +1025,23 @@ hb_pdf_add_sweep_patch (hb_vector_t<char> *mesh,
   }
 }
 
+/* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
+struct hb_pdf_sweep_ctx_t {
+  hb_vector_t<char> *mesh;
+  float cx, cy, xlo, xhi, ylo, yhi;
+};
+
+static void
+hb_pdf_sweep_emit_patch (float a0, hb_color_t c0,
+			 float a1, hb_color_t c1,
+			 void *user_data)
+{
+  auto *ctx = (hb_pdf_sweep_ctx_t *) user_data;
+  hb_pdf_add_sweep_patch (ctx->mesh, ctx->cx, ctx->cy,
+			  ctx->xlo, ctx->xhi, ctx->ylo, ctx->yhi,
+			  a0, c0, a1, c1);
+}
+
 static void
 hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 			     void *paint_data,
@@ -1063,11 +1080,10 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   hb_vector_t<char> mesh;
   mesh.alloc (256);
 
+  hb_pdf_sweep_ctx_t ctx { &mesh, cx, cy, xlo, xhi, ylo, yhi };
   hb_paint_sweep_gradient_tiles (stops, n_stops, extend,
-			   start_angle, end_angle,
-			   [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
-			   { hb_pdf_add_sweep_patch (&mesh, cx, cy, xlo, xhi, ylo, yhi,
-						     a0, c0, a1, c1); });
+				 start_angle, end_angle,
+				 hb_pdf_sweep_emit_patch, &ctx);
 
   if (!mesh.length)
     return;
