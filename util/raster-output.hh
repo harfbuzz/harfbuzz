@@ -30,6 +30,7 @@
 #include "options.hh"
 #include "output-options.hh"
 #include "view-options.hh"
+#include "helper-extents-overlay.hh"
 #include "helper-image-output.hh"
 #include "hb-raster.h"
 #include "hb-ot.h"
@@ -321,6 +322,33 @@ struct raster_output_t : output_options_t<true>, view_options_t
 
 	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y);
 
+	  if (show_extents)
+	  {
+	    hb_glyph_extents_t ge;
+	    if (hb_font_get_glyph_extents (font, g.gid, &ge) &&
+		(ge.width != 0 || ge.height != 0))
+	    {
+	      float rx = pen_x + (float) ge.x_bearing;
+	      float ry = pen_y + (float) ge.y_bearing;
+	      float rw = (float) ge.width;
+	      float rh = (float) ge.height;
+	      /* Normalize to positive w/h so the outward padding
+	       * below is unambiguous regardless of the y_bearing /
+	       * height sign convention. */
+	      if (rw < 0) { rx += rw; rw = -rw; }
+	      if (rh < 0) { ry += rh; rh = -rh; }
+	      /* Pad the nominal rect outward by stroke_width / 2 so
+	       * the stroke's inner edge sits at the ink box, instead
+	       * of straddling it (and its inner half knocking out
+	       * against the glyph ink). */
+	      float sw = scalbnf (1.f, (int) subpixel_bits);
+	      float half = 0.5f * sw;
+	      util_emit_extents_rect_paint (hb_raster_paint_get_funcs (), pnt,
+					    rx - half, ry - half,
+					    rw + sw, rh + sw, sw);
+	    }
+	  }
+
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	  if (img)
 	  {
@@ -357,15 +385,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
       }
 
       if (iter + 1 == num_iterations)
-      {
-	if (show_extents)
-	{
-	  std::vector<rect_i_t> rects;
-	  collect_ink_extents_rects (sx, sy, step, vertical, ext, rects);
-	  overlay_rects_bgra (out_buf, w, h, stride, rects);
-	}
 	write_bgra_image (out_img);
-      }
     }
     hb_raster_image_destroy (out_img);
   }
