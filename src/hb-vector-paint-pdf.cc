@@ -123,6 +123,55 @@ struct hb_pdf_resources_t
     return idx;
   }
 
+  /* Add ExtGState with an SMask (soft mask) referencing a Form XObject
+   * that paints a DeviceGray shading.  Returns the ExtGState resource index. */
+  unsigned add_extgstate_smask (unsigned alpha_shading_id,
+				float bbox_x, float bbox_y,
+				float bbox_w, float bbox_h,
+				unsigned precision)
+  {
+    /* Form XObject: transparency group painting the alpha shading. */
+    hb_vector_t<char> form_stream;
+    hb_buf_append_str (&form_stream, "/SHa sh\n");
+
+    hb_vector_t<char> form;
+    hb_buf_append_str (&form, "<< /Type /XObject /Subtype /Form\n");
+    hb_buf_append_str (&form, "/BBox [");
+    hb_buf_append_num (&form, bbox_x, precision);
+    hb_buf_append_c (&form, ' ');
+    hb_buf_append_num (&form, bbox_y, precision);
+    hb_buf_append_c (&form, ' ');
+    hb_buf_append_num (&form, bbox_x + bbox_w, precision);
+    hb_buf_append_c (&form, ' ');
+    hb_buf_append_num (&form, bbox_y + bbox_h, precision);
+    hb_buf_append_str (&form, "]\n/Group << /S /Transparency /CS /DeviceGray >>\n");
+    hb_buf_append_str (&form, "/Resources << /Shading << /SHa ");
+    hb_buf_append_unsigned (&form, alpha_shading_id);
+    hb_buf_append_str (&form, " 0 R >> >>\n");
+    hb_buf_append_str (&form, "/Length ");
+    hb_buf_append_unsigned (&form, form_stream.length);
+    hb_buf_append_str (&form, " >>\nstream\n");
+    hb_buf_append_len (&form, form_stream.arrayZ, form_stream.length);
+    hb_buf_append_str (&form, "endstream");
+    unsigned form_id = add_object (std::move (form));
+
+    /* ExtGState with luminosity soft mask. */
+    unsigned idx = extgstate_count++;
+    hb_vector_t<char> gs;
+    hb_buf_append_str (&gs, "<< /Type /ExtGState\n");
+    hb_buf_append_str (&gs, "/SMask << /Type /Mask /S /Luminosity /G ");
+    hb_buf_append_unsigned (&gs, form_id);
+    hb_buf_append_str (&gs, " 0 R >> >>");
+    unsigned gs_id = add_object (std::move (gs));
+
+    hb_buf_append_str (&extgstate_dict, "/GS");
+    hb_buf_append_unsigned (&extgstate_dict, idx);
+    hb_buf_append_c (&extgstate_dict, ' ');
+    hb_buf_append_unsigned (&extgstate_dict, gs_id);
+    hb_buf_append_str (&extgstate_dict, " 0 R ");
+    return idx;
+  }
+
   /* Add a shading + function for a gradient, return resource name index. */
   unsigned add_shading (hb_vector_t<char> &&shading_data)
   {
@@ -740,6 +789,89 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
 
 /* ---- Gradient helpers ---- */
 
+static bool
+hb_pdf_gradient_needs_alpha (const hb_color_stop_t *stops, unsigned count)
+{
+  for (unsigned i = 0; i < count; i++)
+    if (hb_color_get_alpha (stops[i].color) != 255)
+      return true;
+  return false;
+}
+
+/* Build a PDF Type 2 (exponential interpolation) function for
+ * a single alpha stop pair (DeviceGray, scalar output). */
+static void
+hb_pdf_build_alpha_interpolation_function (hb_vector_t<char> *obj,
+					   float a0, float a1)
+{
+  hb_buf_append_str (obj, "<< /FunctionType 2 /Domain [0 1] /N 1\n");
+  hb_buf_append_str (obj, "/C0 [");
+  hb_buf_append_num (obj, a0, 4);
+  hb_buf_append_str (obj, "]\n/C1 [");
+  hb_buf_append_num (obj, a1, 4);
+  hb_buf_append_str (obj, "] >>");
+}
+
+/* Build a stitching function (Type 3) for the alpha channel of
+ * pre-populated paint->color_stops_scratch (already sorted+normalized). */
+static unsigned
+hb_pdf_build_alpha_gradient_function_from_stops (hb_pdf_resources_t *res,
+						 hb_vector_paint_t *paint)
+{
+  unsigned count = paint->color_stops_scratch.length;
+
+  if (count < 2)
+  {
+    float a = count ? hb_color_get_alpha (paint->color_stops_scratch.arrayZ[0].color) / 255.f : 1.f;
+    hb_vector_t<char> obj;
+    hb_pdf_build_alpha_interpolation_function (&obj, a, a);
+    return res->add_object (std::move (obj));
+  }
+
+  if (count == 2)
+  {
+    hb_vector_t<char> obj;
+    hb_pdf_build_alpha_interpolation_function (&obj,
+      hb_color_get_alpha (paint->color_stops_scratch.arrayZ[0].color) / 255.f,
+      hb_color_get_alpha (paint->color_stops_scratch.arrayZ[1].color) / 255.f);
+    return res->add_object (std::move (obj));
+  }
+
+  hb_vector_t<unsigned> sub_func_ids;
+  for (unsigned i = 0; i + 1 < count; i++)
+  {
+    hb_vector_t<char> sub;
+    hb_pdf_build_alpha_interpolation_function (&sub,
+      hb_color_get_alpha (paint->color_stops_scratch.arrayZ[i].color) / 255.f,
+      hb_color_get_alpha (paint->color_stops_scratch.arrayZ[i + 1].color) / 255.f);
+    sub_func_ids.push (res->add_object (std::move (sub)));
+  }
+
+  hb_vector_t<char> obj;
+  hb_buf_append_str (&obj, "<< /FunctionType 3 /Domain [0 1]\n");
+  hb_buf_append_str (&obj, "/Functions [");
+  for (unsigned i = 0; i < sub_func_ids.length; i++)
+  {
+    if (i) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_unsigned (&obj, sub_func_ids.arrayZ[i]);
+    hb_buf_append_str (&obj, " 0 R");
+  }
+  hb_buf_append_str (&obj, "]\n/Bounds [");
+  for (unsigned i = 1; i + 1 < count; i++)
+  {
+    if (i > 1) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_num (&obj, paint->color_stops_scratch.arrayZ[i].offset, 4);
+  }
+  hb_buf_append_str (&obj, "]\n/Encode [");
+  for (unsigned i = 0; i + 1 < count; i++)
+  {
+    if (i) hb_buf_append_c (&obj, ' ');
+    hb_buf_append_str (&obj, "0 1");
+  }
+  hb_buf_append_str (&obj, "] >>");
+  return res->add_object (std::move (obj));
+}
+
 /* Build a PDF Type 2 (exponential interpolation) function for
  * a single color stop pair. */
 static void
@@ -874,7 +1006,11 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
-  /* Build Type 2 (axial) shading. */
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  const char *extend_str = (extend == HB_PAINT_EXTEND_PAD)
+			    ? "/Extend [true true]\n" : "";
+
+  /* Build Type 2 (axial) shading — color only. */
   hb_vector_t<char> sh;
   hb_buf_append_str (&sh, "<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
   hb_buf_append_str (&sh, "/Coords [");
@@ -888,16 +1024,44 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&sh, "]\n/Function ");
   hb_buf_append_unsigned (&sh, func_id);
   hb_buf_append_str (&sh, " 0 R\n");
-
-  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
-  if (extend == HB_PAINT_EXTEND_PAD)
-    hb_buf_append_str (&sh, "/Extend [true true]\n");
-
+  hb_buf_append_str (&sh, extend_str);
   hb_buf_append_str (&sh, ">>");
 
   unsigned sh_idx = res->add_shading (std::move (sh));
 
   auto &body = paint->current_body ();
+
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops.arrayZ, stops.length);
+  if (needs_alpha)
+  {
+    unsigned alpha_func_id = hb_pdf_build_alpha_gradient_function_from_stops (res, paint);
+
+    hb_vector_t<char> ash;
+    hb_buf_append_str (&ash, "<< /ShadingType 2 /ColorSpace /DeviceGray\n");
+    hb_buf_append_str (&ash, "/Coords [");
+    hb_buf_append_num (&ash, gx0, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gy0, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gx1, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gy1, paint->precision);
+    hb_buf_append_str (&ash, "]\n/Function ");
+    hb_buf_append_unsigned (&ash, alpha_func_id);
+    hb_buf_append_str (&ash, " 0 R\n");
+    hb_buf_append_str (&ash, extend_str);
+    hb_buf_append_str (&ash, ">>");
+    unsigned alpha_sh_id = res->add_object (std::move (ash));
+
+    unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
+						gx0, gy0,
+						gx1 - gx0, gy1 - gy0,
+						paint->precision);
+    hb_buf_append_str (&body, "/GS");
+    hb_buf_append_unsigned (&body, gs_idx);
+    hb_buf_append_str (&body, " gs\n");
+  }
+
   hb_buf_append_str (&body, "/SH");
   hb_buf_append_unsigned (&body, sh_idx);
   hb_buf_append_str (&body, " sh\n");
@@ -937,7 +1101,11 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
-  /* Build Type 3 (radial) shading. */
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  const char *extend_str = (extend == HB_PAINT_EXTEND_PAD)
+			    ? "/Extend [true true]\n" : "";
+
+  /* Build Type 3 (radial) shading — color only. */
   hb_vector_t<char> sh;
   hb_buf_append_str (&sh, "<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
   hb_buf_append_str (&sh, "/Coords [");
@@ -955,16 +1123,52 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&sh, "]\n/Function ");
   hb_buf_append_unsigned (&sh, func_id);
   hb_buf_append_str (&sh, " 0 R\n");
-
-  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
-  if (extend == HB_PAINT_EXTEND_PAD)
-    hb_buf_append_str (&sh, "/Extend [true true]\n");
-
+  hb_buf_append_str (&sh, extend_str);
   hb_buf_append_str (&sh, ">>");
 
   unsigned sh_idx = res->add_shading (std::move (sh));
 
   auto &body = paint->current_body ();
+
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops.arrayZ, stops.length);
+  if (needs_alpha)
+  {
+    unsigned alpha_func_id = hb_pdf_build_alpha_gradient_function_from_stops (res, paint);
+
+    hb_vector_t<char> ash;
+    hb_buf_append_str (&ash, "<< /ShadingType 3 /ColorSpace /DeviceGray\n");
+    hb_buf_append_str (&ash, "/Coords [");
+    hb_buf_append_num (&ash, gx0, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gy0, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gr0, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gx1, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gy1, paint->precision);
+    hb_buf_append_c (&ash, ' ');
+    hb_buf_append_num (&ash, gr1, paint->precision);
+    hb_buf_append_str (&ash, "]\n/Function ");
+    hb_buf_append_unsigned (&ash, alpha_func_id);
+    hb_buf_append_str (&ash, " 0 R\n");
+    hb_buf_append_str (&ash, extend_str);
+    hb_buf_append_str (&ash, ">>");
+    unsigned alpha_sh_id = res->add_object (std::move (ash));
+
+    /* BBox: enclosing square of the outer circle. */
+    float cx = (gr1 >= gr0) ? gx1 : gx0;
+    float cy = (gr1 >= gr0) ? gy1 : gy0;
+    float rr = hb_max (gr0, gr1);
+    unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
+						cx - rr, cy - rr,
+						2 * rr, 2 * rr,
+						paint->precision);
+    hb_buf_append_str (&body, "/GS");
+    hb_buf_append_unsigned (&body, gs_idx);
+    hb_buf_append_str (&body, " gs\n");
+  }
+
   hb_buf_append_str (&body, "/SH");
   hb_buf_append_unsigned (&body, sh_idx);
   hb_buf_append_str (&body, " sh\n");
