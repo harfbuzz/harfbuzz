@@ -36,8 +36,17 @@ static inline void
 hb_vector_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
 {
   hb_buf_append_num (s->path, x, s->precision);
-  hb_buf_append_c   (s->path,
-                     s->format == HB_VECTOR_FORMAT_PDF ? ' ' : ',');
+  switch (s->format)
+  {
+    case HB_VECTOR_FORMAT_PDF:
+      hb_buf_append_c (s->path, ' ');
+      break;
+    case HB_VECTOR_FORMAT_SVG:
+      hb_buf_append_c (s->path, ',');
+      break;
+    case HB_VECTOR_FORMAT_INVALID: default:
+      break;
+  }
   hb_buf_append_num (s->path, y, s->precision);
 }
 

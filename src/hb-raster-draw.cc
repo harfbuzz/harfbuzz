@@ -944,7 +944,7 @@ free_static_raster_draw_funcs ()
  * Return value: (transfer none):
  * The rasterizer draw functions
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  **/
 hb_draw_funcs_t *
 hb_raster_draw_get_funcs (const hb_raster_draw_t *draw HB_UNUSED)

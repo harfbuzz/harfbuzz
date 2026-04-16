@@ -1381,7 +1381,7 @@ hb_vector_paint_get_format (const hb_vector_paint_t *paint)
  *
  * Return value: (transfer none): immutable #hb_paint_funcs_t.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 hb_paint_funcs_t *
 hb_vector_paint_get_funcs (const hb_vector_paint_t *paint)

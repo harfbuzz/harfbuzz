@@ -917,7 +917,7 @@ hb_gpu_draw_get_user_data (const hb_gpu_draw_t     *draw,
  * Return value: (transfer none):
  * The GPU draw functions
  *
- * Since: 14.0.0
+ * XSince: REPLACEME
  **/
 hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (const hb_gpu_draw_t *draw HB_UNUSED)

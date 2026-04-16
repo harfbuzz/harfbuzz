@@ -535,7 +535,7 @@ hb_vector_draw_get_format (const hb_vector_draw_t *draw)
  *
  * Return value: (transfer none): immutable #hb_draw_funcs_t.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 hb_draw_funcs_t *
 hb_vector_draw_get_funcs (const hb_vector_draw_t *draw HB_UNUSED)

@@ -2174,7 +2174,7 @@ hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
  * Return value: (transfer none):
  * The rasterizer paint functions
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  **/
 hb_paint_funcs_t *
 hb_raster_paint_get_funcs (const hb_raster_paint_t *paint HB_UNUSED)

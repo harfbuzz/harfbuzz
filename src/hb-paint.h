@@ -222,12 +222,13 @@ typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
  * @user_data: User data pointer passed to hb_paint_funcs_set_push_clip_path_start_func()
  *
  * A virtual method for the #hb_paint_funcs_t to begin clipping
- * to an arbitrary path.  The backend returns a
- * #hb_draw_funcs_t (transfer none) that the caller feeds the
- * clip outline to via hb_draw_*() calls, plus a
- * @draw_data value (transfer none) to pass alongside those
- * calls.  The path is closed by a matching call to the
- * #hb_paint_push_clip_path_end_func_t vfunc; the clip remains
+ * to an arbitrary path.  The backend returns an
+ * #hb_draw_funcs_t it owns (the caller must not free it)
+ * that the caller feeds the clip outline to via hb_draw_*()
+ * calls, plus a @draw_data value to pass alongside those
+ * calls.  Both are only valid until the matching
+ * #hb_paint_push_clip_path_end_func_t call; no other paint
+ * calls should be made in between.  The clip remains
  * in effect until a later #hb_paint_pop_clip_func_t call.
  *
  * Return value: (transfer none): draw funcs that accumulate

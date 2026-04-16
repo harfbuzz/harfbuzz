@@ -597,10 +597,14 @@ hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
  * @draw_data: (out) (nullable): location to receive the draw data
  *   the caller should pass alongside the returned draw funcs.
  *
- * Begin clipping to an arbitrary path.  Returns a
- * #hb_draw_funcs_t (transfer none) that the caller uses to
- * emit the clip outline via hb_draw_*() calls, using the
- * returned @draw_data as the draw data.  Finish the path
+ * Begin clipping to an arbitrary path.  Returns an
+ * #hb_draw_funcs_t owned by the backend (the caller must not
+ * free it) that the caller uses to emit the clip outline via
+ * hb_draw_*() calls, using the returned @draw_data as the
+ * draw data.  The returned draw funcs and draw data are only
+ * valid until the matching hb_paint_push_clip_path_end() call;
+ * no other paint calls should be made between start and end
+ * except hb_draw_*() on the returned funcs.  Finish the path
  * with hb_paint_push_clip_path_end(); pop the clip later
  * with hb_paint_pop_clip().
  *
