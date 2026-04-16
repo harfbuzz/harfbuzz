@@ -415,9 +415,9 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
   hb_buf_append_str (&body, "q\n");
   /* Stream path operators straight into the body; end() seals
    * the path with "W n" to turn it into the clip region. */
-  paint->clip_path_sink = {&body, paint->precision, HB_VECTOR_FORMAT_PDF};
+  paint->clip_path_sink = {&body, paint->precision};
   *draw_data = &paint->clip_path_sink;
-  return hb_vector_path_draw_funcs_get ();
+  return hb_vector_pdf_path_draw_funcs_get ();
 }
 
 static void

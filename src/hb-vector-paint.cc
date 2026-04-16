@@ -502,8 +502,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_vector_path_sink_t sink = {&paint->path, paint->precision, HB_VECTOR_FORMAT_SVG};
-    hb_font_draw_glyph (font, glyph, hb_vector_path_draw_funcs_get (), &sink);
+    hb_vector_path_sink_t sink = {&paint->path, paint->precision};
+    hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     hb_buf_append_str (&paint->defs, "<path id=\"");
     hb_buf_append_len (&paint->defs, pfx, pfx_len);
     hb_buf_append_c  (&paint->defs, 'p');
@@ -583,9 +583,9 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   paint->path.clear ();
-  paint->clip_path_sink = {&paint->path, paint->precision, HB_VECTOR_FORMAT_SVG};
+  paint->clip_path_sink = {&paint->path, paint->precision};
   *draw_data = &paint->clip_path_sink;
-  return hb_vector_path_draw_funcs_get ();
+  return hb_vector_svg_path_draw_funcs_get ();
 }
 
 static void

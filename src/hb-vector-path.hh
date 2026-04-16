@@ -41,10 +41,15 @@ struct hb_vector_path_sink_t
 {
   hb_vector_t<char> *path;
   unsigned precision;
-  hb_vector_format_t format;
 };
 
 HB_INTERNAL hb_draw_funcs_t *
-hb_vector_path_draw_funcs_get (void);
+hb_vector_svg_path_draw_funcs_get ();
+
+HB_INTERNAL hb_draw_funcs_t *
+hb_vector_pdf_path_draw_funcs_get ();
+
+HB_INTERNAL hb_draw_funcs_t *
+hb_vector_path_draw_funcs_get (hb_vector_format_t format);
 
 #endif /* HB_VECTOR_PATH_HH */

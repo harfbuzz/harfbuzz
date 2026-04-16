@@ -647,8 +647,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       if (!hb_set_has (draw->defined_glyphs, glyph))
       {
 	draw->path.clear ();
-	hb_vector_path_sink_t sink = {&draw->path, draw->precision, HB_VECTOR_FORMAT_SVG};
-	hb_font_draw_glyph (font, glyph, hb_vector_path_draw_funcs_get (), &sink);
+	hb_vector_path_sink_t sink = {&draw->path, draw->precision};
+	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;
 	hb_buf_append_str (&draw->defs, "<path id=\"");
