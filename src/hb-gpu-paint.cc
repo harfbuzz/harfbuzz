@@ -348,7 +348,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
   {
     /* Fast path: feed the glyph outline straight into the draw
      * encoder with no adapter. */
-    ok = hb_gpu_draw_glyph (c->scratch_draw, clip.font, clip.glyph);
+    ok = hb_gpu_draw_glyph_or_fail (c->scratch_draw, clip.font, clip.glyph);
   }
   else
   {
@@ -1156,27 +1156,57 @@ hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
 }
 
 /**
+ * hb_gpu_paint_glyph_or_fail:
+ * @paint: a GPU color-glyph paint encoder
+ * @font: font to paint from
+ * @glyph: glyph ID to paint
+ *
+ * Feeds @glyph's paint tree into the encoder.  Fails (returns
+ * `false`) if @font has no paint data for @glyph; encoder-level
+ * limitations (unsupported paint ops, group-stack overflow) do
+ * NOT fail here -- they surface later from
+ * hb_gpu_paint_encode() which returns `NULL`.
+ *
+ * Return value: `true` if the font had paint data for @glyph,
+ * `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
+			    hb_font_t      *font,
+			    hb_codepoint_t  glyph)
+{
+  int x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  hb_gpu_paint_set_scale (paint, x_scale, y_scale);
+  return hb_font_paint_glyph_or_fail (font, glyph,
+				      hb_gpu_paint_get_funcs (), paint,
+				      paint->palette,
+				      /* Foreground value is never read
+				       * from our encoded blob -- the
+				       * is_foreground flag routes to the
+				       * shader's foreground uniform at
+				       * render time -- so any sentinel
+				       * works here. */
+				      HB_COLOR (0, 0, 0, 0xff));
+}
+
+/**
  * hb_gpu_paint_glyph:
  * @paint: a GPU color-glyph paint encoder
  * @font: font to paint from
  * @glyph: glyph ID to paint
  *
- * Convenience wrapper that feeds @glyph's paint tree into the
- * encoder via hb_font_paint_glyph().  Non-color glyphs are handled
+ * Feeds @glyph into the encoder.  Unlike
+ * hb_gpu_paint_glyph_or_fail(), non-color glyphs are handled
  * transparently: harfbuzz synthesizes a single foreground-colored
  * layer from the outline, which our callbacks turn into a single
- * LAYER_SOLID op.  The font's scale is stashed on @paint via
- * hb_gpu_paint_set_scale() for use by hb_gpu_paint_encode().
+ * LAYER_SOLID op.
  *
- * Return value: `true` if the paint walk completed without hitting
- * an encoder limitation; `false` if some part of the paint tree
- * used a feature this encoder does not support (e.g. PaintImage,
- * group-stack overflow), in which case hb_gpu_paint_encode() will
- * return `NULL`.
- *
- * XSince: REPLACEME
+ * Since: 14.0.0
  **/
-hb_bool_t
+void
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_font_t      *font,
 		    hb_codepoint_t  glyph)
@@ -1184,19 +1214,10 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
   int x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
   hb_gpu_paint_set_scale (paint, x_scale, y_scale);
-  /* Use hb_font_paint_glyph (not _or_fail) so that non-color
-   * glyphs still produce a blob: harfbuzz synthesizes
-   * push_clip_glyph + color(is_foreground=true) + pop_clip, which
-   * our callbacks turn into a single LAYER_SOLID op. */
   hb_font_paint_glyph (font, glyph,
 		       hb_gpu_paint_get_funcs (), paint,
 		       paint->palette,
-		       /* Foreground value is never read from our encoded
-			* blob -- the is_foreground flag routes to the
-			* shader's foreground uniform at render time -- so
-			* any sentinel works here. */
 		       HB_COLOR (0, 0, 0, 0xff));
-  return !paint->unsupported;
 }
 
 /**

@@ -85,16 +85,20 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_gpu_paint_reset()
   +hb_gpu_paint_recycle_blob()
   +hb_gpu_paint_shader_source()
+  +hb_gpu_paint_glyph_or_fail()
   +HB_GPU_SHADER_STAGE_VERTEX
   +HB_GPU_SHADER_STAGE_FRAGMENT
   +hb_gpu_shader_source()
   +hb_gpu_draw_shader_source()
   +hb_gpu_draw_clear()
   +hb_gpu_draw_get_scale()
+  +hb_gpu_draw_glyph_or_fail()
 
 - New API, Raster library:
   +hb_raster_draw_clear()
+  +hb_raster_draw_glyph_or_fail()
   +hb_raster_paint_clear()
+  +hb_raster_paint_glyph_or_fail()
   +hb_raster_paint_set_palette()
   +hb_raster_paint_get_palette()
   +hb_raster_paint_get_foreground()
@@ -103,12 +107,14 @@ Overview of changes leading to NEXT (REPLACEME)
   +HB_VECTOR_FORMAT_PDF
   +hb_vector_draw_clear()
   +hb_vector_draw_get_precision()
+  +hb_vector_draw_glyph_or_fail()
   +hb_vector_draw_set_svg_prefix()
   +hb_vector_draw_get_svg_prefix()
   +hb_vector_paint_clear()
   +hb_vector_paint_get_precision()
   +hb_vector_paint_get_foreground()
   +hb_vector_paint_get_palette()
+  +hb_vector_paint_glyph_or_fail()
   +hb_vector_paint_set_svg_prefix()
   +hb_vector_paint_get_svg_prefix()
 
@@ -124,7 +130,18 @@ Overview of changes leading to NEXT (REPLACEME)
   -hb_vector_paint_get_flat()
 
 - Changed API, GPU library:
-  * hb_gpu_draw_glyph() now returns hb_bool_t instead of void.
+  * hb_gpu_draw_glyph() now returns void (was hb_bool_t).  Use
+    hb_gpu_draw_glyph_or_fail() if you need the success status.
+  * hb_gpu_paint_glyph() now returns void (was hb_bool_t) and
+    internally synthesizes a foreground-colored layer for
+    non-color glyphs via hb_font_paint_glyph(), so every glyph
+    with an outline produces output.  Use
+    hb_gpu_paint_glyph_or_fail() -- which delegates to
+    hb_font_paint_glyph_or_fail() -- if you need to distinguish
+    color vs synthesized paint.  Encoder-level limits
+    (unsupported ops, group-stack overflow) no longer fail
+    paint_glyph; they surface from hb_gpu_paint_encode()
+    returning NULL.
   * hb_gpu_draw_encode() now takes an extents out-parameter and
     auto-clears the encoder on return.
   * hb_gpu_draw_darken() renamed to hb_gpu_stem_darken().
@@ -133,9 +150,16 @@ Overview of changes leading to NEXT (REPLACEME)
   * hb_vector_svg_set_precision() and its paint counterpart renamed
     to hb_vector_draw_set_precision() / hb_vector_paint_set_precision()
     (SVG-specific naming is inaccurate with the PDF backend added).
+  * hb_vector_draw_glyph() / hb_vector_paint_glyph() now return
+    void (were hb_bool_t).  Paint additionally gains a draw
+    fallback for non-color glyphs.  Use the matching _or_fail()
+    variants for the bool return.
 
 - Changed API, Raster library:
-  * hb_raster_draw_glyph() now returns hb_bool_t instead of void.
+  * hb_raster_draw_glyph() / hb_raster_paint_glyph() now return
+    void (were hb_bool_t).  Paint additionally gains a draw
+    fallback for non-color glyphs.  Use the matching _or_fail()
+    variants for the bool return.
 
 - Changed API, general:
   * Many read-only getters gained const on their object argument.

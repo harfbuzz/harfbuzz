@@ -1045,6 +1045,7 @@ hb_raster_draw_clear
 hb_raster_draw_reset
 hb_raster_draw_get_funcs
 hb_raster_draw_glyph
+hb_raster_draw_glyph_or_fail
 hb_raster_draw_render
 hb_raster_draw_recycle_image
 hb_raster_paint_t
@@ -1068,6 +1069,7 @@ hb_raster_paint_clear_custom_palette_colors
 hb_raster_paint_set_custom_palette_color
 hb_raster_paint_get_funcs
 hb_raster_paint_glyph
+hb_raster_paint_glyph_or_fail
 hb_raster_paint_render
 hb_raster_paint_clear
 hb_raster_paint_reset
@@ -1094,6 +1096,7 @@ hb_vector_draw_get_extents
 hb_vector_draw_set_glyph_extents
 hb_vector_draw_get_funcs
 hb_vector_draw_glyph
+hb_vector_draw_glyph_or_fail
 hb_vector_draw_set_precision
 hb_vector_draw_get_precision
 hb_vector_draw_set_svg_prefix
@@ -1123,6 +1126,7 @@ hb_vector_paint_set_custom_palette_color
 hb_vector_paint_clear_custom_palette_colors
 hb_vector_paint_get_funcs
 hb_vector_paint_glyph
+hb_vector_paint_glyph_or_fail
 hb_vector_paint_set_precision
 hb_vector_paint_get_precision
 hb_vector_paint_set_svg_prefix
@@ -1149,6 +1153,7 @@ hb_gpu_draw_get_funcs
 hb_gpu_draw_set_scale
 hb_gpu_draw_get_scale
 hb_gpu_draw_glyph
+hb_gpu_draw_glyph_or_fail
 hb_gpu_draw_encode
 hb_gpu_draw_clear
 hb_gpu_draw_reset
@@ -1167,6 +1172,7 @@ hb_gpu_paint_set_custom_palette_color
 hb_gpu_paint_set_scale
 hb_gpu_paint_get_scale
 hb_gpu_paint_glyph
+hb_gpu_paint_glyph_or_fail
 hb_gpu_paint_encode
 hb_gpu_paint_clear
 hb_gpu_paint_reset

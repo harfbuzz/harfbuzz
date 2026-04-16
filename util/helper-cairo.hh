@@ -37,6 +37,7 @@
 #include <cairo.h>
 #include <hb.h>
 #include <hb-cairo.h>
+#include <hb-ot.h>
 
 #include "helper-cairo-ansi.hh"
 #ifdef CAIRO_HAS_SVG_SURFACE
@@ -119,6 +120,24 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1,18,0)
+  /* Pick draw vs paint mode.  --paint wins over --draw;
+   * otherwise auto-detect: route mono fonts through the
+   * cheaper outline path (NO_COLOR) and color fonts through
+   * the paint pipeline (cairo's default color mode). */
+  hb_face_t *hb_face = hb_font_get_face (font);
+  bool font_has_color = hb_ot_color_has_paint (hb_face) ||
+			hb_ot_color_has_layers (hb_face) ||
+#ifndef HB_NO_SVG
+			hb_ot_color_has_svg (hb_face) ||
+#endif
+			hb_ot_color_has_png (hb_face);
+  bool use_paint = view_opts->force_paint ? true
+		 : view_opts->force_draw  ? false
+		 : font_has_color;
+  if (!use_paint)
+    cairo_font_options_set_color_mode (font_options, CAIRO_COLOR_MODE_NO_COLOR);
+#endif
 #ifdef CAIRO_COLOR_PALETTE_DEFAULT
   cairo_font_options_set_color_palette (font_options, view_opts->palette);
 #endif

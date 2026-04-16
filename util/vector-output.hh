@@ -234,6 +234,21 @@ struct vector_output_t : output_options_t<>, view_options_t
       foreground_use_palette && foreground_palette && foreground_palette->len;
     unsigned palette_glyph_index = 0;
 
+    /* Pick draw vs paint mode.  --paint wins over --draw;
+     * otherwise auto-detect via the font's color tables.
+     * hb_vector_paint_glyph synthesizes paint from outlines
+     * for mono fonts, so --paint works even without color. */
+    hb_face_t *face = hb_font_get_face (font);
+    bool font_has_color = hb_ot_color_has_paint (face) ||
+			  hb_ot_color_has_layers (face) ||
+#ifndef HB_NO_SVG
+			  hb_ot_color_has_svg (face) ||
+#endif
+			  hb_ot_color_has_png (face);
+    bool use_paint = force_paint ? true
+		   : force_draw  ? false
+		   : font_has_color;
+
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID)
       dir = HB_DIRECTION_LTR;
@@ -256,7 +271,7 @@ struct vector_output_t : output_options_t<>, view_options_t
         float pen_x = g.x + off_x;
         float pen_y = g.y + off_y;
 
-        if (paint)
+        if (use_paint && paint)
         {
           if (use_foreground_palette)
           {
@@ -267,17 +282,16 @@ struct vector_output_t : output_options_t<>, view_options_t
           }
 
           hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-          if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
-                                     extents_mode))
-          {
-            had_paint = true;
-            continue;
-          }
+          hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
+                                 extents_mode);
+          had_paint = true;
         }
-
-        if (hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
-                                  extents_mode))
+        else
+        {
+          hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
+                                extents_mode);
           had_draw = true;
+        }
       }
     }
 

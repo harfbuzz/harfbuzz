@@ -122,10 +122,15 @@ hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
 HB_EXTERN hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (void);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN void
 hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
 		   hb_font_t      *font,
 		   hb_codepoint_t  glyph);
+
+HB_EXTERN hb_bool_t
+hb_gpu_draw_glyph_or_fail (hb_gpu_draw_t  *draw,
+			   hb_font_t      *font,
+			   hb_codepoint_t  glyph);
 
 /* For arbitrary shapes beyond a single glyph, callers feed
  * outlines straight into the draw encoder via hb_draw_move_to()
@@ -229,10 +234,15 @@ hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
 			int                  *x_scale,
 			int                  *y_scale);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN void
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
 		    hb_font_t      *font,
 		    hb_codepoint_t  glyph);
+
+HB_EXTERN hb_bool_t
+hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
+			    hb_font_t      *font,
+			    hb_codepoint_t  glyph);
 
 HB_EXTERN hb_blob_t *
 hb_gpu_paint_encode (hb_gpu_paint_t     *paint,

@@ -56,8 +56,6 @@ struct gpu_output_t
   hb_bool_t use_d3d11 = false;
   hb_bool_t demo = false;
   hb_bool_t bench = false;
-  hb_bool_t force_draw  = false;  /* --draw   : use monochrome draw path */
-  hb_bool_t force_paint = false;  /* --paint  : use paint path */
   hb_bool_t show_extents = false; /* --show-extents */
   /* Initial state for interactive toggles; each corresponds to
    * a keyboard shortcut in demo_view_t. */
@@ -92,8 +90,8 @@ struct gpu_output_t
       {"bench",		0, G_OPTION_FLAG_NO_ARG,
 				G_OPTION_ARG_CALLBACK,	(gpointer) &parse_bench,"Demo in fullscreen benchmark mode",	nullptr},
       {"type",		'T', 0, G_OPTION_ARG_STRING,	&this->type_text,	"Type these keystrokes on start",	"keys"},
-      {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,	"Force monochrome draw path",		nullptr},
-      {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,	"Force color paint path",		nullptr},
+      {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->view.force_draw,	"Force monochrome draw path",		nullptr},
+      {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->view.force_paint,	"Force color paint path",		nullptr},
       {"output-file",	'o', 0, G_OPTION_ARG_STRING,	&this->output_file,	"Render one frame to PPM file (\"-\" for stdout) and exit","filename"},
       {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,	"Draw a frame around each glyph's ink extents",	nullptr},
       /* Interactive-toggle defaults.  Each mirrors a keybinding
@@ -153,8 +151,8 @@ struct gpu_output_t
      * otherwise auto: fonts without color paint get the draw path
      * (smaller shader, better perf).  A mismatched pair of flags
      * is a user error; prefer paint. */
-    draw_only = force_paint ? false
-	      : force_draw  ? true
+    draw_only = view.force_paint ? false
+	      : view.force_draw  ? true
 	      : !hb_ot_color_has_paint (face);
 
     if (use_metal)

@@ -242,6 +242,8 @@ struct view_options_t
   hb_bool_t logical = false;
   hb_bool_t ink = false;
   hb_bool_t show_extents = false;
+  hb_bool_t force_draw = false;   /* --draw  : use mono outline path */
+  hb_bool_t force_paint = false;  /* --paint : use color paint path */
 
   bool parse_custom_palette_entries (GError **error)
   {
@@ -375,6 +377,8 @@ view_options_t::add_options (option_parser_t *parser)
     {"logical",		0, 0, G_OPTION_ARG_NONE,	&this->logical,		"Render to logical box instead of union of logical and ink boxes",	nullptr},
     {"ink",		0, 0, G_OPTION_ARG_NONE,	&this->ink,			"Render to ink box instead of union of logical and ink boxes",	nullptr},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Draw glyph extents",							nullptr},
+    {"draw",		0, 0, G_OPTION_ARG_NONE,	&this->force_draw,		"Force monochrome draw path (overrides auto-detect)",	nullptr},
+    {"paint",		0, 0, G_OPTION_ARG_NONE,	&this->force_paint,		"Force color paint path (overrides auto-detect)",	nullptr},
     {nullptr}
   };
   parser->add_group (entries,
