@@ -38,9 +38,9 @@
 static inline void
 hb_vector_svg_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
 {
-  hb_buf_append_num (s->path, x, s->precision);
+  hb_buf_append_num (s->path, x / s->x_scale, s->precision);
   hb_buf_append_c   (s->path, ',');
-  hb_buf_append_num (s->path, y, s->precision);
+  hb_buf_append_num (s->path, y / s->y_scale, s->precision);
 }
 
 static void
@@ -99,9 +99,9 @@ hb_vector_svg_path_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state
 static inline void
 hb_vector_pdf_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
 {
-  hb_buf_append_num (s->path, x, s->precision);
+  hb_buf_append_num (s->path, x / s->x_scale, s->precision);
   hb_buf_append_c   (s->path, ' ');
-  hb_buf_append_num (s->path, y, s->precision);
+  hb_buf_append_num (s->path, y / s->y_scale, s->precision);
 }
 
 static void

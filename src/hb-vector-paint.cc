@@ -583,7 +583,9 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   paint->path.clear ();
-  paint->clip_path_sink = {&paint->path, paint->precision};
+  paint->clip_path_sink = {&paint->path, paint->precision,
+			   paint->x_scale_factor,
+			   paint->y_scale_factor};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_svg_path_draw_funcs_get ();
 }

@@ -414,8 +414,12 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
   auto &body = paint->current_body ();
   hb_buf_append_str (&body, "q\n");
   /* Stream path operators straight into the body; end() seals
-   * the path with "W n" to turn it into the clip region. */
-  paint->clip_path_sink = {&body, paint->precision};
+   * the path with "W n" to turn it into the clip region.
+   * Coordinates arrive in font-scale; the sink divides by
+   * scale_factor so they land in output space. */
+  paint->clip_path_sink = {&body, paint->precision,
+			   paint->x_scale_factor,
+			   paint->y_scale_factor};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_pdf_path_draw_funcs_get ();
 }
