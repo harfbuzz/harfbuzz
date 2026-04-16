@@ -32,185 +32,183 @@
 #include "hb-vector-svg-utils.hh"
 #include "hb-vector-svg.hh"
 
+
+/* ---- SVG path callbacks ---- */
+
 static inline void
-hb_vector_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
+hb_vector_svg_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
 {
   hb_buf_append_num (s->path, x, s->precision);
-  switch (s->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-      hb_buf_append_c (s->path, ' ');
-      break;
-    case HB_VECTOR_FORMAT_SVG:
-      hb_buf_append_c (s->path, ',');
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default:
-      break;
-  }
+  hb_buf_append_c   (s->path, ',');
   hb_buf_append_num (s->path, y, s->precision);
 }
 
 static void
-hb_vector_path_move_to (hb_draw_funcs_t *,
-                        void *draw_data,
-                        hb_draw_state_t *,
-                        float to_x, float to_y,
-                        void *)
+hb_vector_svg_path_move_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+			     float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  switch (s->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-      hb_vector_path_append_xy (s, to_x, to_y);
-      hb_buf_append_str (s->path, " m\n");
-      break;
-    case HB_VECTOR_FORMAT_SVG:
-      hb_buf_append_c (s->path, 'M');
-      hb_vector_path_append_xy (s, to_x, to_y);
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default: break;
-  }
+  hb_buf_append_c (s->path, 'M');
+  hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
 static void
-hb_vector_path_line_to (hb_draw_funcs_t *,
-                        void *draw_data,
-                        hb_draw_state_t *,
-                        float to_x, float to_y,
-                        void *)
+hb_vector_svg_path_line_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+			     float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  switch (s->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-      hb_vector_path_append_xy (s, to_x, to_y);
-      hb_buf_append_str (s->path, " l\n");
-      break;
-    case HB_VECTOR_FORMAT_SVG:
-      hb_buf_append_c (s->path, 'L');
-      hb_vector_path_append_xy (s, to_x, to_y);
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default: break;
-  }
+  hb_buf_append_c (s->path, 'L');
+  hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
 static void
-hb_vector_path_quadratic_to (hb_draw_funcs_t *,
-                             void *draw_data,
-                             hb_draw_state_t *st,
-                             float cx, float cy,
-                             float to_x, float to_y,
-                             void *)
+hb_vector_svg_path_quadratic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+				  float cx, float cy, float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  switch (s->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-    {
-      /* PDF has no quadratic operator; promote to cubic using
-       * the current pen position from draw-state. */
-      float sx = st->current_x, sy = st->current_y;
-      float c1x = sx + 2.f / 3.f * (cx - sx);
-      float c1y = sy + 2.f / 3.f * (cy - sy);
-      float c2x = to_x + 2.f / 3.f * (cx - to_x);
-      float c2y = to_y + 2.f / 3.f * (cy - to_y);
-      hb_vector_path_append_xy (s, c1x, c1y);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, c2x, c2y);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, to_x, to_y);
-      hb_buf_append_str (s->path, " c\n");
-      break;
-    }
-    case HB_VECTOR_FORMAT_SVG:
-      hb_buf_append_c (s->path, 'Q');
-      hb_vector_path_append_xy (s, cx, cy);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, to_x, to_y);
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default: break;
-  }
+  hb_buf_append_c (s->path, 'Q');
+  hb_vector_svg_path_append_xy (s, cx, cy);
+  hb_buf_append_c (s->path, ' ');
+  hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
 static void
-hb_vector_path_cubic_to (hb_draw_funcs_t *,
-                         void *draw_data,
-                         hb_draw_state_t *,
-                         float c1x, float c1y,
-                         float c2x, float c2y,
-                         float to_x, float to_y,
-                         void *)
+hb_vector_svg_path_cubic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+			      float c1x, float c1y, float c2x, float c2y,
+			      float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  switch (s->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-      hb_vector_path_append_xy (s, c1x, c1y);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, c2x, c2y);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, to_x, to_y);
-      hb_buf_append_str (s->path, " c\n");
-      break;
-    case HB_VECTOR_FORMAT_SVG:
-      hb_buf_append_c (s->path, 'C');
-      hb_vector_path_append_xy (s, c1x, c1y);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, c2x, c2y);
-      hb_buf_append_c (s->path, ' ');
-      hb_vector_path_append_xy (s, to_x, to_y);
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default: break;
-  }
+  hb_buf_append_c (s->path, 'C');
+  hb_vector_svg_path_append_xy (s, c1x, c1y);
+  hb_buf_append_c (s->path, ' ');
+  hb_vector_svg_path_append_xy (s, c2x, c2y);
+  hb_buf_append_c (s->path, ' ');
+  hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
 static void
-hb_vector_path_close_path (hb_draw_funcs_t *,
-                           void *draw_data,
-                           hb_draw_state_t *,
-                           void *)
+hb_vector_svg_path_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  switch (s->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-      hb_buf_append_str (s->path, "h\n");
-      break;
-    case HB_VECTOR_FORMAT_SVG:
-      hb_buf_append_c (s->path, 'Z');
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default: break;
-  }
+  hb_buf_append_c (s->path, 'Z');
 }
+
+
+/* ---- PDF path callbacks ---- */
 
 static inline void
-free_static_vector_path_draw_funcs ();
+hb_vector_pdf_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
+{
+  hb_buf_append_num (s->path, x, s->precision);
+  hb_buf_append_c   (s->path, ' ');
+  hb_buf_append_num (s->path, y, s->precision);
+}
 
-static struct hb_vector_path_draw_funcs_lazy_loader_t
-  : hb_draw_funcs_lazy_loader_t<hb_vector_path_draw_funcs_lazy_loader_t>
+static void
+hb_vector_pdf_path_move_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+			     float to_x, float to_y, void *)
+{
+  auto *s = (hb_vector_path_sink_t *) draw_data;
+  hb_vector_pdf_path_append_xy (s, to_x, to_y);
+  hb_buf_append_str (s->path, " m\n");
+}
+
+static void
+hb_vector_pdf_path_line_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+			     float to_x, float to_y, void *)
+{
+  auto *s = (hb_vector_path_sink_t *) draw_data;
+  hb_vector_pdf_path_append_xy (s, to_x, to_y);
+  hb_buf_append_str (s->path, " l\n");
+}
+
+/* No quadratic_to — the null fallback auto-promotes to cubic. */
+
+static void
+hb_vector_pdf_path_cubic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *,
+			      float c1x, float c1y, float c2x, float c2y,
+			      float to_x, float to_y, void *)
+{
+  auto *s = (hb_vector_path_sink_t *) draw_data;
+  hb_vector_pdf_path_append_xy (s, c1x, c1y);
+  hb_buf_append_c (s->path, ' ');
+  hb_vector_pdf_path_append_xy (s, c2x, c2y);
+  hb_buf_append_c (s->path, ' ');
+  hb_vector_pdf_path_append_xy (s, to_x, to_y);
+  hb_buf_append_str (s->path, " c\n");
+}
+
+static void
+hb_vector_pdf_path_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, void *)
+{
+  auto *s = (hb_vector_path_sink_t *) draw_data;
+  hb_buf_append_str (s->path, "h\n");
+}
+
+
+/* ---- Lazy loaders ---- */
+
+static inline void free_static_vector_svg_path_draw_funcs ();
+static struct hb_vector_svg_path_draw_funcs_lazy_loader_t
+  : hb_draw_funcs_lazy_loader_t<hb_vector_svg_path_draw_funcs_lazy_loader_t>
 {
   static hb_draw_funcs_t *create ()
   {
     hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_vector_path_move_to, nullptr, nullptr);
-    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_vector_path_line_to, nullptr, nullptr);
-    hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_path_quadratic_to, nullptr, nullptr);
-    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_path_cubic_to, nullptr, nullptr);
-    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_path_close_path, nullptr, nullptr);
+    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_vector_svg_path_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_vector_svg_path_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_svg_path_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_svg_path_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_svg_path_close_path, nullptr, nullptr);
     hb_draw_funcs_make_immutable (funcs);
-    hb_atexit (free_static_vector_path_draw_funcs);
+    hb_atexit (free_static_vector_svg_path_draw_funcs);
     return funcs;
   }
-} static_vector_path_draw_funcs;
+} static_vector_svg_path_draw_funcs;
 
 static inline void
-free_static_vector_path_draw_funcs ()
-{
-  static_vector_path_draw_funcs.free_instance ();
-}
+free_static_vector_svg_path_draw_funcs ()
+{ static_vector_svg_path_draw_funcs.free_instance (); }
 
 hb_draw_funcs_t *
-hb_vector_path_draw_funcs_get (void)
+hb_vector_svg_path_draw_funcs_get ()
+{ return static_vector_svg_path_draw_funcs.get_unconst (); }
+
+
+static inline void free_static_vector_pdf_path_draw_funcs ();
+static struct hb_vector_pdf_path_draw_funcs_lazy_loader_t
+  : hb_draw_funcs_lazy_loader_t<hb_vector_pdf_path_draw_funcs_lazy_loader_t>
 {
-  return static_vector_path_draw_funcs.get_unconst ();
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_vector_pdf_path_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_vector_pdf_path_line_to, nullptr, nullptr);
+    /* No quadratic_to: the null fallback auto-promotes to cubic. */
+    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_pdf_path_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_pdf_path_close_path, nullptr, nullptr);
+    hb_draw_funcs_make_immutable (funcs);
+    hb_atexit (free_static_vector_pdf_path_draw_funcs);
+    return funcs;
+  }
+} static_vector_pdf_path_draw_funcs;
+
+static inline void
+free_static_vector_pdf_path_draw_funcs ()
+{ static_vector_pdf_path_draw_funcs.free_instance (); }
+
+hb_draw_funcs_t *
+hb_vector_pdf_path_draw_funcs_get ()
+{ return static_vector_pdf_path_draw_funcs.get_unconst (); }
+
+
+hb_draw_funcs_t *
+hb_vector_path_draw_funcs_get (hb_vector_format_t format)
+{
+  switch (format)
+  {
+    case HB_VECTOR_FORMAT_SVG: return hb_vector_svg_path_draw_funcs_get ();
+    case HB_VECTOR_FORMAT_PDF: return hb_vector_pdf_path_draw_funcs_get ();
+    case HB_VECTOR_FORMAT_INVALID: default: return nullptr;
+  }
 }
