@@ -56,6 +56,22 @@ Overview of changes leading to NEXT (REPLACEME)
 - Various fuzzer fixes for `harfbuzz-raster`, `harfbuzz-vector`,
   and `harfbuzz-gpu` libraries.
 
+- Paint API:
+  * New arbitrary-path clip:
+    hb_paint_push_clip_path_start / _end let callers clip to
+    a caller-supplied outline, not just a font glyph.
+    push_clip_path_start returns the draw-funcs (and matching
+    draw data) for the backend's path accumulator; the caller
+    drives hb_draw_*() into it, then calls
+    push_clip_path_end, followed by painted ops, then
+    hb_paint_pop_clip() to release the clip.  Implemented for
+    all paint backends: vector (SVG defs + clipPath + url ref),
+    vector PDF (q / path / W n), raster (path rendered to an
+    alpha mask, intersected with the current clip), and GPU
+    (the path is encoded into a Slug sub-blob so the fragment
+    shader clips against it the same way it clips against
+    glyph outlines).
+
 - New API, Paint:
   +hb_paint_push_group_for()
   +hb_paint_funcs_set_push_group_for_func()
@@ -64,6 +80,12 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_paint_normalize_color_line()
   +hb_paint_sweep_gradient_tiles()
   +hb_paint_sweep_gradient_tile_func_t
+  +hb_paint_push_clip_path_start()
+  +hb_paint_push_clip_path_end()
+  +hb_paint_funcs_set_push_clip_path_start_func()
+  +hb_paint_funcs_set_push_clip_path_end_func()
+  +hb_paint_push_clip_path_start_func_t
+  +hb_paint_push_clip_path_end_func_t
 
 - New API, GPU library:
   +hb_gpu_paint_t
