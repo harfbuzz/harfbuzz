@@ -41,8 +41,8 @@ struct hb_vector_path_sink_t
 {
   hb_vector_t<char> *path;
   unsigned precision;
-  float x_scale = 1.f;
-  float y_scale = 1.f;
+  float x_scale;
+  float y_scale;
 };
 
 HB_INTERNAL hb_draw_funcs_t *
