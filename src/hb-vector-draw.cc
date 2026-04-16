@@ -581,6 +581,27 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
     }
   }
 
+  /* Flush any pending free-form path the caller accumulated
+   * via hb_draw_*() on hb_vector_draw_get_funcs() before this
+   * glyph clobbers the scratch buffer. */
+  if (draw->path.length)
+  {
+    switch (draw->format)
+    {
+      case HB_VECTOR_FORMAT_PDF:
+	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&draw->body, "f\n");
+	break;
+      case HB_VECTOR_FORMAT_SVG:
+	hb_buf_append_str (&draw->body, "<path d=\"");
+	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&draw->body, "\"/>\n");
+	break;
+      case HB_VECTOR_FORMAT_INVALID: default: break;
+    }
+    draw->path.clear ();
+  }
+
   switch (draw->format)
   {
     case HB_VECTOR_FORMAT_PDF:
@@ -589,7 +610,6 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       hb_transform_t<> saved = draw->transform;
       draw->transform = {1, 0, 0, 1, pen_x, pen_y};
 
-      draw->path.clear ();
       hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (), draw);
       draw->transform = saved;
 
