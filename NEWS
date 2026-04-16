@@ -11,7 +11,6 @@ Overview of changes leading to NEXT (REPLACEME)
     in premultiplied RGBA; monochrome glyphs are handled
     transparently via a synthesized foreground-colored layer.
     Shader sources provided in GLSL, WGSL, MSL, and HLSL.
-
   * Paint encoder limitations: the encoder sets `unsupported` and
     returns NULL when `num_ops` would exceed 32767, `push_group`
     nests deeper than 4, or the paint tree calls back through the
@@ -61,6 +60,10 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_paint_push_group_for()
   +hb_paint_funcs_set_push_group_for_func()
   +hb_paint_push_group_for_func_t
+  +hb_paint_reduce_linear_anchors()
+  +hb_paint_normalize_color_line()
+  +hb_paint_sweep_gradient_tiles()
+  +hb_paint_sweep_gradient_tile_func_t
 
 - New API, GPU library:
   +hb_gpu_paint_t
