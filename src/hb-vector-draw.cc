@@ -598,6 +598,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 
       hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
       hb_buf_append_str (&draw->body, "f\n");
+      draw->path.clear ();
       return true;
     }
 
@@ -618,6 +619,9 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 	hb_buf_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
 	hb_buf_append_str (&draw->defs, "\"/>\n");
 	hb_set_add (draw->defined_glyphs, glyph);
+	/* Clear so any subsequent free-form draw ops on this
+	 * context start with an empty scratch. */
+	draw->path.clear ();
       }
 
       float xx = draw->transform.xx;
@@ -769,8 +773,11 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 
   if (draw->body.length)
     hb_buf_append_len (&stream, draw->body.arrayZ, draw->body.length);
-  else if (draw->path.length)
+  if (draw->path.length)
   {
+    /* Free-form draw ops accumulated after the last glyph
+     * (e.g. extents-overlay rectangles) need their own fill
+     * appended to the stream. */
     hb_buf_append_len (&stream, draw->path.arrayZ, draw->path.length);
     hb_buf_append_str (&stream, "f\n");
   }
@@ -870,11 +877,13 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
   }
 
   if (draw->body.length)
-  {
     hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
-  }
-  else if (draw->path.length)
+  if (draw->path.length)
   {
+    /* Free-form draw ops accumulated after the last glyph
+     * (e.g. extents-overlay rectangles via hb_draw_rectangle on
+     * hb_vector_draw_get_funcs) live in the scratch path
+     * and need their own <path> element. */
     hb_buf_append_str (&out, "<path d=\"");
     hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
     hb_buf_append_str (&out, "\"/>\n");
