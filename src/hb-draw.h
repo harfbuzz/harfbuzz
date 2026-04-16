@@ -373,10 +373,10 @@ hb_draw_line (hb_draw_funcs_t *dfuncs, void *draw_data,
 	      hb_draw_line_cap_t cap);
 
 HB_EXTERN void
-hb_draw_rect (hb_draw_funcs_t *dfuncs, void *draw_data,
-	      hb_draw_state_t *st,
-	      float x, float y,
-	      float w, float h,
+hb_draw_rectangle (hb_draw_funcs_t *dfuncs, void *draw_data,
+		   hb_draw_state_t *st,
+		   float x, float y,
+		   float w, float h,
 	      float stroke_width);
 
 HB_EXTERN void

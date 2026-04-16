@@ -567,7 +567,7 @@ test_shapes (void)
   hb_blob_destroy (blob);
 
   /* Filled rect (stroke_width = NaN). */
-  hb_draw_rect (dfuncs, draw, &st,
+  hb_draw_rectangle (dfuncs, draw, &st,
 		0.f, 0.f, 20.f, 10.f,
 		(float) std::nan (""));
   blob = hb_gpu_draw_encode (draw, &ext);
@@ -578,7 +578,7 @@ test_shapes (void)
 
   /* Stroked rect: outer edge extends stroke_width/2 beyond the
    * nominal rect on each side. */
-  hb_draw_rect (dfuncs, draw, &st,
+  hb_draw_rectangle (dfuncs, draw, &st,
 		0.f, 0.f, 20.f, 10.f, 2.f);
   blob = hb_gpu_draw_encode (draw, &ext);
   g_assert_nonnull (blob);

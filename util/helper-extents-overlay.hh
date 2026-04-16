@@ -58,7 +58,7 @@ util_emit_extents_rect_into_draw (hb_draw_funcs_t *df, void *dd,
   float sx = copysignf (half, ge->width  ? (float) ge->width  : 1.f);
   float sy = copysignf (half, ge->height ? (float) ge->height : 1.f);
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
-  hb_draw_rect (df, dd, &st,
+  hb_draw_rectangle (df, dd, &st,
 		pen_x + (float) ge->x_bearing  - sx,
 		pen_y + (float) ge->y_bearing  - sy,
 		(float) ge->width  + 2 * sx,

@@ -553,7 +553,7 @@ _hb_draw_rect_contour (hb_draw_funcs_t *dfuncs, void *draw_data,
 }
 
 /**
- * hb_draw_rect:
+ * hb_draw_rectangle:
  * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
@@ -579,11 +579,11 @@ _hb_draw_rect_contour (hb_draw_funcs_t *dfuncs, void *draw_data,
  * XSince: REPLACEME
  **/
 void
-hb_draw_rect (hb_draw_funcs_t *dfuncs, void *draw_data,
-	      hb_draw_state_t *st,
-	      float x, float y,
-	      float w, float h,
-	      float stroke_width)
+hb_draw_rectangle (hb_draw_funcs_t *dfuncs, void *draw_data,
+		   hb_draw_state_t *st,
+		   float x, float y,
+		   float w, float h,
+		   float stroke_width)
 {
   if (std::isnan (stroke_width))
   {

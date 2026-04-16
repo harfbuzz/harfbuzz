@@ -137,7 +137,7 @@ hb_gpu_draw_glyph_or_fail (hb_gpu_draw_t  *draw,
  * / hb_draw_line_to() / hb_draw_quadratic_to() /
  * hb_draw_cubic_to() / hb_draw_close_path() with the funcs from
  * hb_gpu_draw_get_funcs() and the hb_gpu_draw_t as data.  The
- * helpers hb_draw_line() / hb_draw_rect() / hb_draw_circle()
+ * helpers hb_draw_line() / hb_draw_rectangle() / hb_draw_circle()
  * cover common primitives (tapered lines, rectangles, circles).
  *
  * Coordinate system: the blob format quantizes coordinates to
