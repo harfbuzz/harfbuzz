@@ -994,6 +994,7 @@ hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
 				     draw);
 }
 
+
 static void
 _hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
 			  hb_glyph_extents_t *extents)

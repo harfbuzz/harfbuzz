@@ -127,6 +127,31 @@ hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
 		   hb_font_t      *font,
 		   hb_codepoint_t  glyph);
 
+/* For arbitrary shapes beyond a single glyph, callers feed
+ * outlines straight into the draw encoder via hb_draw_move_to()
+ * / hb_draw_line_to() / hb_draw_quadratic_to() /
+ * hb_draw_cubic_to() / hb_draw_close_path() with the funcs from
+ * hb_gpu_draw_get_funcs() and the hb_gpu_draw_t as data.  The
+ * helpers hb_draw_line() / hb_draw_rect() / hb_draw_circle()
+ * cover common primitives (tapered lines, rectangles, circles).
+ *
+ * Coordinate system: the blob format quantizes coordinates to
+ * 16 bits with a fixed scale of 4 units per coordinate step,
+ * so the usable range is roughly +/-8000 units and the
+ * effective precision is ~0.25 units.  Choose a coordinate
+ * scale where:
+ *
+ *   (a) the overall bounding box stays within +/-8000, and
+ *   (b) your smallest feature (stroke width, detail) is at
+ *       least 1-2 units.
+ *
+ * Font-unit-style coordinates (e.g. a 1000-unit em) satisfy
+ * both comfortably.  Tightly normalized coordinates (e.g. a
+ * 0..1 unit square) do not: a 1-pixel stroke in that space
+ * quantizes to zero and vanishes.  Scale the rendered quad /
+ * vertex transform externally to reach larger on-screen sizes.
+ */
+
 
 /* Encode */
 

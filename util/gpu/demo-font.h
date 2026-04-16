@@ -55,6 +55,13 @@ demo_font_set_custom_palette_color (demo_font_t *font,
 				    unsigned int color_index,
 				    hb_color_t   color);
 
+/* Embed a stroked frame at each glyph's ink extents into the
+ * same blob as the glyph outline.  Cached with the glyph;
+ * changing this invalidates the cache. */
+void
+demo_font_set_show_extents (demo_font_t *font,
+			    hb_bool_t    show);
+
 void
 demo_font_clear_cache (demo_font_t *font);
 
