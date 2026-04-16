@@ -568,7 +568,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
       float yy = draw->transform.yy;
       float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
       float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, ty};
+      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, -ty};
 
       hb_bool_t has_extents = draw->has_extents;
       hb_vector_set_glyph_extents_common (extents_transform,

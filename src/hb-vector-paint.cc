@@ -1368,7 +1368,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     if (hb_font_get_glyph_extents (font, glyph, &ge))
     {
       hb_bool_t has_extents = paint->has_extents;
-      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, ty};
+      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, -ty};
       hb_bool_t ret = hb_vector_set_glyph_extents_common (extents_transform,
 							paint->x_scale_factor,
 							paint->y_scale_factor,
