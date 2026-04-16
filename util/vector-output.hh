@@ -241,9 +241,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_face_t *face = hb_font_get_face (font);
     bool font_has_color = hb_ot_color_has_paint (face) ||
 			  hb_ot_color_has_layers (face) ||
-#ifndef HB_NO_SVG
-			  hb_ot_color_has_svg (face) ||
-#endif
 			  hb_ot_color_has_png (face);
     bool use_paint = force_paint ? true
 		   : force_draw  ? false

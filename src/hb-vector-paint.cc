@@ -1332,21 +1332,6 @@ hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
   return true;
 }
 
-/**
- * hb_vector_paint_glyph_or_fail:
- * @paint: a paint context.
- * @font: font object.
- * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
- * @extents_mode: extents update mode.
- *
- * Paints one color glyph into @paint.
- *
- * Return value: `true` if glyph paint data was emitted, `false` otherwise.
- *
- * XSince: REPLACEME
- */
 static hb_bool_t
 hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			    hb_font_t         *font,
@@ -1553,7 +1538,7 @@ hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
  * data fall back to a synthesized foreground-colored outline,
  * so any glyph with an outline or bitmap image produces output.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_paint_glyph (hb_vector_paint_t *paint,

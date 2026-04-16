@@ -142,11 +142,7 @@ main (int argc, char **argv)
 
   bool has_color = hb_ot_color_has_paint (face) ||
 		   hb_ot_color_has_layers (face) ||
-#ifndef HB_NO_SVG
-		   hb_ot_color_has_svg (face);
-#else
-		   false;
-#endif
+		   hb_ot_color_has_png (face);
 
   hb_raster_draw_t  *rdr = hb_raster_draw_create_or_fail ();
   hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create_or_fail () : nullptr;

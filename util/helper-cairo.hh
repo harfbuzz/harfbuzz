@@ -128,9 +128,6 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   hb_face_t *hb_face = hb_font_get_face (font);
   bool font_has_color = hb_ot_color_has_paint (hb_face) ||
 			hb_ot_color_has_layers (hb_face) ||
-#ifndef HB_NO_SVG
-			hb_ot_color_has_svg (hb_face) ||
-#endif
 			hb_ot_color_has_png (hb_face);
   bool use_paint = view_opts->force_paint ? true
 		 : view_opts->force_draw  ? false

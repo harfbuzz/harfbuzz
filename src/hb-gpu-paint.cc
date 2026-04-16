@@ -1200,11 +1200,10 @@ hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
  *
  * Feeds @glyph into the encoder.  Unlike
  * hb_gpu_paint_glyph_or_fail(), non-color glyphs are handled
- * transparently: harfbuzz synthesizes a single foreground-colored
- * layer from the outline, which our callbacks turn into a single
- * LAYER_SOLID op.
+ * transparently via a synthesized foreground-colored layer,
+ * so any glyph with an outline produces output.
  *
- * Since: 14.0.0
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,

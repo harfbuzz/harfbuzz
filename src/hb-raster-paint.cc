@@ -2200,7 +2200,7 @@ hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
  * fall back to a synthesized foreground-colored outline, so any
  * glyph with an outline or bitmap image produces output.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  **/
 void
 hb_raster_paint_glyph (hb_raster_paint_t *paint,
