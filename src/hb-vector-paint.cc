@@ -1010,6 +1010,7 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
 
   if (paint->format == HB_VECTOR_FORMAT_PDF)
     hb_vector_paint_pdf_free_resources (paint);
+  hb_font_destroy (paint->cached_font);
   hb_blob_destroy (paint->recycled_blob);
   hb_set_destroy (paint->defined_outlines);
   hb_set_destroy (paint->defined_clips);
@@ -1424,6 +1425,8 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			    hb_vector_extents_mode_t extents_mode,
 			    hb_bool_t          fallible)
 {
+  paint->check_font (font);
+
   float xx = paint->transform.xx;
   float yx = paint->transform.yx;
   float xy = paint->transform.xy;

@@ -28,6 +28,30 @@ struct hb_vector_draw_t
   hb_set_t *defined_glyphs = nullptr;
   hb_blob_t *recycled_blob = nullptr;
 
+  hb_font_t *cached_font = nullptr;
+  unsigned cached_serial = (unsigned) -1;
+
+  void changed ()
+  {
+    if (defined_glyphs)
+      hb_set_clear (defined_glyphs);
+    defs.shrink (0);
+    body.shrink (0);
+    path.shrink (0);
+  }
+
+  void check_font (hb_font_t *font)
+  {
+    unsigned serial = hb_font_get_serial (font);
+    if (font != cached_font || serial != cached_serial)
+    {
+      changed ();
+      hb_font_destroy (cached_font);
+      cached_font = hb_font_reference (font);
+      cached_serial = serial;
+    }
+  }
+
   void append_xy (float x, float y)
   {
     float tx, ty;

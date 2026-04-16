@@ -272,6 +272,7 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
   if (!hb_object_should_destroy (draw))
     return;
 
+  hb_font_destroy (draw->cached_font);
   hb_blob_destroy (draw->recycled_blob);
   hb_set_destroy (draw->defined_glyphs);
   hb_object_actually_destroy (draw);
@@ -566,6 +567,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
+  draw->check_font (font);
+
   switch (draw->format)
   {
     case HB_VECTOR_FORMAT_SVG:
