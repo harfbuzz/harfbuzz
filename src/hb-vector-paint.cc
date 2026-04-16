@@ -1316,7 +1316,7 @@ hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 }
 
 /**
- * hb_vector_paint_glyph:
+ * hb_vector_paint_glyph_or_fail:
  * @paint: a paint context.
  * @font: font object.
  * @glyph: glyph ID.
@@ -1328,15 +1328,16 @@ hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
  *
  * Return value: `true` if glyph paint data was emitted, `false` otherwise.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
-hb_bool_t
-hb_vector_paint_glyph (hb_vector_paint_t *paint,
-		       hb_font_t         *font,
-		       hb_codepoint_t     glyph,
-		       float              pen_x,
-		       float              pen_y,
-		       hb_vector_extents_mode_t extents_mode)
+static hb_bool_t
+hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
+			    hb_font_t         *font,
+			    hb_codepoint_t     glyph,
+			    float              pen_x,
+			    float              pen_y,
+			    hb_vector_extents_mode_t extents_mode,
+			    hb_bool_t          fallible)
 {
   float xx = paint->transform.xx;
   float yx = paint->transform.yx;
@@ -1387,10 +1388,17 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
       hb_buf_append_num (&body, ty, paint->precision);
       hb_buf_append_str (&body, " cm\n");
 
-      hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						    hb_vector_paint_pdf_funcs_get (), paint,
-						    (unsigned) paint->palette,
-						    paint->foreground);
+      hb_bool_t ret = true;
+      if (fallible)
+	ret = hb_font_paint_glyph_or_fail (font, glyph,
+					   hb_vector_paint_pdf_funcs_get (), paint,
+					   (unsigned) paint->palette,
+					   paint->foreground);
+      else
+	hb_font_paint_glyph (font, glyph,
+			     hb_vector_paint_pdf_funcs_get (), paint,
+			     (unsigned) paint->palette,
+			     paint->foreground);
       hb_buf_append_str (&body, "Q\n");
       return ret;
     }
@@ -1423,10 +1431,17 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
 	  return false;
 
-	hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						      hb_vector_paint_get_funcs (), paint,
-						      (unsigned) paint->palette,
-						      paint->foreground);
+	hb_bool_t ret = true;
+	if (fallible)
+	  ret = hb_font_paint_glyph_or_fail (font, glyph,
+					     hb_vector_paint_get_funcs (), paint,
+					     (unsigned) paint->palette,
+					     paint->foreground);
+	else
+	  hb_font_paint_glyph (font, glyph,
+			       hb_vector_paint_get_funcs (), paint,
+			       (unsigned) paint->palette,
+			       paint->foreground);
 	if (unlikely (!ret))
 	{
 	  paint->group_stack.pop ();
@@ -1465,26 +1480,67 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 	hb_buf_append_str (&body, "\"/>\n");
 	return !paint->defs.in_error () && !body.in_error ();
       }
-
-      hb_buf_append_str (&paint->current_body (), "<g transform=\"");
-      hb_vector_svg_append_instance_transform (&paint->current_body (), paint->precision,
-					paint->x_scale_factor,
-					paint->y_scale_factor,
-					xx, yx, xy, yy, tx, ty);
-      hb_buf_append_str (&paint->current_body (), "\">\n");
-      hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
-						    hb_vector_paint_get_funcs (), paint,
-						    (unsigned) paint->palette,
-						    paint->foreground);
-      hb_buf_append_str (&paint->current_body (), "</g>\n");
-      return ret &&
-	     !paint->defs.in_error () &&
-	     !paint->current_body ().in_error ();
     }
 
     case HB_VECTOR_FORMAT_INVALID: default:
       return false;
   }
+}
+
+/**
+ * hb_vector_paint_glyph_or_fail:
+ * @paint: a paint context.
+ * @font: font object.
+ * @glyph: glyph ID.
+ * @pen_x: glyph x origin before context transform.
+ * @pen_y: glyph y origin before context transform.
+ * @extents_mode: extents update mode.
+ *
+ * Paints one color glyph into @paint.  Fails (returns
+ * `false`) if @font has no paint data for @glyph.
+ *
+ * Return value: `true` if glyph paint data was emitted, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
+			       hb_font_t         *font,
+			       hb_codepoint_t     glyph,
+			       float              pen_x,
+			       float              pen_y,
+			       hb_vector_extents_mode_t extents_mode)
+{
+  return hb_vector_paint_glyph_impl (paint, font, glyph, pen_x, pen_y,
+				     extents_mode, true);
+}
+
+/**
+ * hb_vector_paint_glyph:
+ * @paint: a paint context.
+ * @font: font object.
+ * @glyph: glyph ID.
+ * @pen_x: glyph x origin before context transform.
+ * @pen_y: glyph y origin before context transform.
+ * @extents_mode: extents update mode.
+ *
+ * Paints one glyph into @paint.  Unlike
+ * hb_vector_paint_glyph_or_fail(), glyphs with no color paint
+ * data fall back to a synthesized foreground-colored outline,
+ * so any glyph with an outline or bitmap image produces output.
+ *
+ * Since: 13.0.0
+ */
+void
+hb_vector_paint_glyph (hb_vector_paint_t *paint,
+		       hb_font_t         *font,
+		       hb_codepoint_t     glyph,
+		       float              pen_x,
+		       float              pen_y,
+		       hb_vector_extents_mode_t extents_mode)
+{
+  hb_vector_paint_glyph_impl (paint, font, glyph, pen_x, pen_y,
+			      extents_mode, false);
 }
 
 /**

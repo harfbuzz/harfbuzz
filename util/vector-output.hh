@@ -267,7 +267,7 @@ struct vector_output_t : output_options_t<>, view_options_t
           }
 
           hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-          if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
+          if (hb_vector_paint_glyph_or_fail (paint, upem_font, g.gid, pen_x, pen_y,
                                      extents_mode))
           {
             had_paint = true;
@@ -275,7 +275,7 @@ struct vector_output_t : output_options_t<>, view_options_t
           }
         }
 
-        if (hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
+        if (hb_vector_draw_glyph_or_fail (draw, upem_font, g.gid, pen_x, pen_y,
                                   extents_mode))
           had_draw = true;
       }

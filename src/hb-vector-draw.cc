@@ -526,7 +526,7 @@ hb_vector_draw_get_funcs (void)
 }
 
 /**
- * hb_vector_draw_glyph:
+ * hb_vector_draw_glyph_or_fail:
  * @draw: a draw context.
  * @font: font object.
  * @glyph: glyph ID.
@@ -538,10 +538,10 @@ hb_vector_draw_get_funcs (void)
  *
  * Return value: `true` if glyph data was emitted, `false` otherwise.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 hb_bool_t
-hb_vector_draw_glyph (hb_vector_draw_t *draw,
+hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
                       float pen_x,
@@ -644,6 +644,31 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     case HB_VECTOR_FORMAT_INVALID: default:
       return false;
   }
+}
+
+/**
+ * hb_vector_draw_glyph:
+ * @draw: a draw context.
+ * @font: font object.
+ * @glyph: glyph ID.
+ * @pen_x: glyph x origin before context transform.
+ * @pen_y: glyph y origin before context transform.
+ * @extents_mode: extents update mode.
+ *
+ * Draws one glyph into @draw.  Equivalent to
+ * hb_vector_draw_glyph_or_fail() with the return value ignored.
+ *
+ * Since: 13.0.0
+ */
+void
+hb_vector_draw_glyph (hb_vector_draw_t *draw,
+                      hb_font_t *font,
+                      hb_codepoint_t glyph,
+                      float pen_x,
+                      float pen_y,
+                      hb_vector_extents_mode_t extents_mode)
+{
+  hb_vector_draw_glyph_or_fail (draw, font, glyph, pen_x, pen_y, extents_mode);
 }
 
 /**

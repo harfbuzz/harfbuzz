@@ -165,7 +165,7 @@ main (int argc, char **argv)
 	    hb_raster_paint_set_glyph_extents (pnt, &gext))
 	{
 	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-	  hb_bool_t painted = hb_raster_paint_glyph (pnt, font, gid, 0.f, 0.f);
+	  hb_bool_t painted = hb_raster_paint_glyph_or_fail (pnt, font, gid, 0.f, 0.f);
 	  if (painted)
 	    img = hb_raster_paint_render (pnt);
 	}

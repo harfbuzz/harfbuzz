@@ -381,7 +381,9 @@ test_paint_encode_monochrome (void)
 
   hb_codepoint_t gid;
   g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
-  g_assert_true (hb_gpu_paint_glyph (p, font, gid));
+  /* Use hb_gpu_paint_glyph (not _or_fail) so that non-color
+   * glyphs still produce a blob via the synthesize fallback. */
+  hb_gpu_paint_glyph (p, font, gid);
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_paint_encode (p, &ext);
