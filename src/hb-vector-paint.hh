@@ -7,7 +7,7 @@
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 #include "hb-map.hh"
-#include "hb-vector-svg-path.hh"
+#include "hb-vector-path.hh"
 #include "hb-vector-svg-utils.hh"
 #include "hb-vector-svg.hh"
 
@@ -63,7 +63,7 @@ struct hb_vector_paint_t
 
   unsigned clip_rect_counter = 0;
   unsigned clip_path_counter = 0;
-  hb_vector_svg_path_sink_t clip_path_sink = {nullptr, 0};
+  hb_vector_path_sink_t clip_path_sink = {nullptr, 0, HB_VECTOR_FORMAT_INVALID};
   unsigned gradient_counter = 0;
   unsigned color_glyph_counter = 0;
   unsigned color_glyph_depth = 0;
