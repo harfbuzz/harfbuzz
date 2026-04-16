@@ -604,6 +604,19 @@ hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
  * with hb_paint_push_clip_path_end(); pop the clip later
  * with hb_paint_pop_clip().
  *
+ * Usage:
+ *
+ * |[<!-- language="C" -->
+ * hb_draw_funcs_t *df = hb_paint_push_clip_path_start (pf, pd, &dd);
+ * hb_draw_move_to (df, dd, NULL, ...);
+ * hb_draw_line_to (df, dd, NULL, ...);
+ * ...
+ * hb_draw_close_path (df, dd, NULL);
+ * hb_paint_push_clip_path_end (pf, pd);
+ * /&ast; paint ops here are clipped to the emitted path &ast;/
+ * hb_paint_pop_clip (pf, pd);
+ * ]|
+ *
  * Return value: (transfer none): draw funcs that accumulate
  *   the clip path, or `NULL` if the backend does not implement
  *   arbitrary-path clipping.
