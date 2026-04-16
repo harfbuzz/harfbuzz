@@ -606,7 +606,7 @@ hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Usage:
  *
- * |[<!-- language="C" -->
+ * |[<!-- language="plain" -->
  * hb_draw_funcs_t *df = hb_paint_push_clip_path_start (pf, pd, &dd);
  * hb_draw_move_to (df, dd, NULL, ...);
  * hb_draw_line_to (df, dd, NULL, ...);
