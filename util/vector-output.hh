@@ -293,19 +293,12 @@ struct vector_output_t : output_options_t<>, view_options_t
       }
     }
 
-    hb_blob_t *draw_blob = had_draw ? hb_vector_draw_render (draw) : nullptr;
-    hb_blob_t *paint_blob = had_paint ? hb_vector_paint_render (paint) : nullptr;
-
-    if (draw_blob && draw_blob != hb_blob_get_empty () &&
-        paint_blob && paint_blob != hb_blob_get_empty ())
-      write_combined_svg (draw_blob, paint_blob);
-    else if (paint_blob && paint_blob != hb_blob_get_empty ())
-      write_blob (paint_blob, false);
-    else if (draw_blob && draw_blob != hb_blob_get_empty ())
-      write_blob (draw_blob, true);
-
-    hb_blob_destroy (draw_blob);
-    hb_blob_destroy (paint_blob);
+    hb_blob_t *blob = had_paint ? hb_vector_paint_render (paint)
+				: had_draw  ? hb_vector_draw_render (draw)
+				: nullptr;
+    if (blob && blob != hb_blob_get_empty ())
+      write_blob (blob, !had_paint);
+    hb_blob_destroy (blob);
     hb_vector_draw_destroy (draw);
     hb_vector_paint_destroy (paint);
 
@@ -880,53 +873,6 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     if (is_draw_blob && !(foreground_use_palette && foreground_palette && foreground_palette->len))
       emit_fill_group_close ();
-
-    fputs ("</svg>\n", out_fp);
-  }
-
-  void write_combined_svg (hb_blob_t *draw_blob,
-                           hb_blob_t *paint_blob)
-  {
-    unsigned draw_len = 0, paint_len = 0;
-    const char *draw_data = hb_blob_get_data (draw_blob, &draw_len);
-    const char *paint_data = hb_blob_get_data (paint_blob, &paint_len);
-    if (!draw_data || !paint_data)
-      return;
-
-    const char *draw_hdr_end = (const char *) memchr (draw_data, '>', draw_len);
-    if (!draw_hdr_end)
-      return;
-
-    slice_t draw_defs, draw_body;
-    slice_t paint_defs, paint_body;
-    if (!slice_svg (draw_data, draw_len, &draw_defs, &draw_body) ||
-        !slice_svg (paint_data, paint_len, &paint_defs, &paint_body))
-      return;
-
-    fwrite (draw_data, 1, (draw_hdr_end - draw_data + 1), out_fp);
-    fputc ('\n', out_fp);
-
-    if (draw_defs.len || paint_defs.len)
-    {
-      fputs ("<defs>\n", out_fp);
-      if (draw_defs.len)
-        write_slice_resolving_palette_vars (draw_defs);
-      if (paint_defs.len)
-        write_slice_resolving_palette_vars (paint_defs);
-      fputs ("</defs>\n", out_fp);
-    }
-
-    if (foreground_use_palette && foreground_palette && foreground_palette->len)
-      emit_draw_body_with_palette (draw_body);
-    else
-    {
-      emit_fill_group_open ();
-      if (draw_body.len)
-        fwrite (draw_body.p, 1, draw_body.len, out_fp);
-      emit_fill_group_close ();
-    }
-    if (paint_body.len)
-      write_slice_resolving_palette_vars (paint_body);
 
     fputs ("</svg>\n", out_fp);
   }
