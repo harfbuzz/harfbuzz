@@ -381,14 +381,15 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned sprec = body.scale_precision ();
   body.append_str ("q\n");
-  body.append_num (xx);
+  body.append_num (xx, sprec);
   body.append_c (' ');
-  body.append_num (yx);
+  body.append_num (yx, sprec);
   body.append_c (' ');
-  body.append_num (xy);
+  body.append_num (xy, sprec);
   body.append_c (' ');
-  body.append_num (yy);
+  body.append_num (yy, sprec);
   body.append_c (' ');
   body.append_num (paint->sx (dx));
   body.append_c (' ');
