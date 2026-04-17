@@ -71,8 +71,7 @@ hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb
 
 
 static hb_bool_t
-hb_vector_get_color_stops (hb_vector_paint_t *paint,
-                        hb_color_line_t *color_line,
+hb_vector_get_color_stops (hb_color_line_t *color_line,
                         hb_vector_t<hb_color_stop_t> *stops)
 {
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
@@ -88,13 +87,6 @@ hb_vector_get_color_stops (hb_vector_paint_t *paint,
   if (unlikely (!len))
     return false;
 
-  for (unsigned i = 0; i < len; i++)
-    if (stops->arrayZ[i].is_foreground)
-      stops->arrayZ[i].color = HB_COLOR (hb_color_get_blue (paint->foreground),
-                                         hb_color_get_green (paint->foreground),
-                                         hb_color_get_red (paint->foreground),
-                                         (unsigned) hb_color_get_alpha (stops->arrayZ[i].color) *
-                                         hb_color_get_alpha (paint->foreground) / 255);
   return true;
 }
 
@@ -630,7 +622,7 @@ hb_vector_paint_pop_clip (hb_paint_funcs_t *,
 static void
 hb_vector_paint_color (hb_paint_funcs_t *,
                        void *paint_data,
-                       hb_bool_t is_foreground,
+                       hb_bool_t,
                        hb_color_t color,
                        void *)
 {
@@ -638,16 +630,9 @@ hb_vector_paint_color (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  hb_color_t c = color;
-  if (is_foreground)
-    c = HB_COLOR (hb_color_get_blue (paint->foreground),
-                  hb_color_get_green (paint->foreground),
-                  hb_color_get_red (paint->foreground),
-                  (unsigned) hb_color_get_alpha (paint->foreground) * hb_color_get_alpha (color) / 255);
-
   auto &body = paint->current_body ();
   body.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"");
-  body.append_svg_color (c, true);
+  body.append_svg_color (color, true);
   body.append_str ("\"/>\n");
 }
 
@@ -715,7 +700,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (color_line, &stops) || !stops.length)
     return;
 
   /* Sort + rescale stops to [0, 1]; shift the gradient axis
@@ -778,7 +763,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (color_line, &stops) || !stops.length)
     return;
 
   float mn, mx;
@@ -843,7 +828,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
     return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_vector_get_color_stops (paint, color_line, &stops) || !stops.length)
+  if (!hb_vector_get_color_stops (color_line, &stops) || !stops.length)
     return;
 
   float mn, mx;
