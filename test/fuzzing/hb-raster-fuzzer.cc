@@ -20,6 +20,13 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   }
   hb_raster_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
 
+  /* Cap font scale so malicious fonts don't produce huge surfaces. */
+  int x_scale, y_scale;
+  hb_font_get_scale (input.font, &x_scale, &y_scale);
+  if (x_scale > 1000 || x_scale < -1000) x_scale = 1000;
+  if (y_scale > 1000 || y_scale < -1000) y_scale = 1000;
+  hb_font_set_scale (input.font, x_scale, y_scale);
+
   unsigned glyph_count = hb_face_get_glyph_count (input.face);
   unsigned limit = glyph_count > 16 ? 16 : glyph_count;
 

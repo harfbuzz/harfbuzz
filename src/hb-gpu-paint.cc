@@ -166,9 +166,9 @@ hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
   int idx = (int) (c->sub_blobs.length - 1);
 
   int x0 = ext.x_bearing;
-  int x1 = ext.x_bearing + ext.width;
+  int x1 = (int) ((int64_t) ext.x_bearing + ext.width);
   int y0 = ext.y_bearing;
-  int y1 = ext.y_bearing + ext.height;
+  int y1 = (int) ((int64_t) ext.y_bearing + ext.height);
 
   c->clip_stack[c->clip_depth] = {
     HB_CODEPOINT_INVALID, nullptr,
@@ -477,9 +477,9 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
   /* Accumulate extents: x_bearing/y_bearing are top-left, width
    * positive, height negative (growing down). */
   int x0 = ext.x_bearing;
-  int x1 = ext.x_bearing + ext.width;
+  int x1 = (int) ((int64_t) ext.x_bearing + ext.width);
   int y0 = ext.y_bearing;
-  int y1 = ext.y_bearing + ext.height;
+  int y1 = (int) ((int64_t) ext.y_bearing + ext.height);
   c->ext_min_x = hb_min (c->ext_min_x, hb_min (x0, x1));
   c->ext_max_x = hb_max (c->ext_max_x, hb_max (x0, x1));
   c->ext_min_y = hb_min (c->ext_min_y, hb_min (y0, y1));
@@ -497,7 +497,7 @@ emit_all_clip_sub_blobs (hb_gpu_paint_t *c, int out[HB_GPU_PAINT_MAX_CLIP_DEPTH]
 {
   for (unsigned i = 0; i < HB_GPU_PAINT_MAX_CLIP_DEPTH; i++)
     out[i] = -1;
-  for (unsigned i = 0; i < c->clip_depth; i++)
+  for (unsigned i = 0; i < hb_min (c->clip_depth, (unsigned) HB_GPU_PAINT_MAX_CLIP_DEPTH); i++)
   {
     out[i] = emit_clip_sub_blob (c, c->clip_stack[i]);
     if (out[i] < 0)
@@ -1477,8 +1477,8 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
   {
     extents->x_bearing = paint->ext_min_x;
     extents->y_bearing = paint->ext_max_y;
-    extents->width     = paint->ext_max_x - paint->ext_min_x;
-    extents->height    = paint->ext_min_y - paint->ext_max_y;
+    extents->width     = (int) ((int64_t) paint->ext_max_x - paint->ext_min_x);
+    extents->height    = (int) ((int64_t) paint->ext_min_y - paint->ext_max_y);
   }
 
   hb_blob_t *recycled = paint->recycled_blob;
