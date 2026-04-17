@@ -26,6 +26,8 @@ struct hb_vector_draw_t
   hb_vector_buf_t defs;
   hb_vector_buf_t body;
   hb_vector_buf_t path;
+  hb_vector_buf_t pdf_extgstate_dict;
+  unsigned pdf_extgstate_count = 0;
 
   void set_precision (unsigned p)
   {
@@ -77,6 +79,20 @@ struct hb_vector_draw_t
 
   void flush_path_pdf ()
   {
+    unsigned a = hb_color_get_alpha (foreground);
+    if (a < 255)
+    {
+      unsigned gs_idx = pdf_extgstate_count++;
+      body.append_str ("/GS");
+      body.append_unsigned (gs_idx);
+      body.append_str (" gs\n");
+
+      pdf_extgstate_dict.append_str ("/GS");
+      pdf_extgstate_dict.append_unsigned (gs_idx);
+      pdf_extgstate_dict.append_str (" << /Type /ExtGState /ca ");
+      pdf_extgstate_dict.append_num (a / 255.f, 4);
+      pdf_extgstate_dict.append_str (" >> ");
+    }
     body.append_num (hb_color_get_red (foreground) / 255.f, 4);
     body.append_c (' ');
     body.append_num (hb_color_get_green (foreground) / 255.f, 4);

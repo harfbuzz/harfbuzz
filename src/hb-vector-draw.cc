@@ -868,7 +868,14 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   out.append_num (ex + ew);
   out.append_c (' ');
   out.append_num (-ey);
-  out.append_str ("] /Contents 4 0 R >>\nendobj\n");
+  out.append_str ("] /Contents 4 0 R");
+  if (draw->pdf_extgstate_dict.length)
+  {
+    out.append_str (" /Resources << /ExtGState << ");
+    out.append_len (draw->pdf_extgstate_dict.arrayZ, draw->pdf_extgstate_dict.length);
+    out.append_str (">> >>");
+  }
+  out.append_str (" >>\nendobj\n");
 
   /* Object 4: Content stream */
   offsets[3] = out.length;
