@@ -654,7 +654,7 @@ hb_vector_paint_color (hb_paint_funcs_t *,
                   (unsigned) hb_color_get_alpha (paint->foreground) * hb_color_get_alpha (color) / 255);
 
   auto &body = paint->current_body ();
-  hb_buf_append_str (&body, "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"");
+  hb_buf_append_str (&body, "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"");
   hb_buf_append_color (&body, c, true);
   hb_buf_append_str (&body, "\"/>\n");
 }
@@ -766,7 +766,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "</linearGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
-                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#");
+                     "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
   hb_buf_append_len (&paint->current_body (), pfx, pfx_len);
   hb_buf_append_str (&paint->current_body (), "gr");
   hb_buf_append_unsigned (&paint->current_body (), grad_id);
@@ -831,7 +831,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "</radialGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
-                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#");
+                     "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
   hb_buf_append_len (&paint->current_body (), pfx, pfx_len);
   hb_buf_append_str (&paint->current_body (), "gr");
   hb_buf_append_unsigned (&paint->current_body (), grad_id);
@@ -863,7 +863,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
   hb_vector_svg_sweep_ctx_t ctx {
-    &paint->current_body (), paint->precision, cx, cy, 32767.f
+    &paint->current_body (), paint->precision, cx, cy, 1000000.f
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),
