@@ -260,6 +260,7 @@ set (vector_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-vector-draw.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-path.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-svg.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-path.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-utils.cc

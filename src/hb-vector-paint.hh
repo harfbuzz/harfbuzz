@@ -111,7 +111,33 @@ struct hb_vector_paint_t
   }
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
+
+  bool ensure_initialized ()
+  {
+    if (group_stack.length)
+      return !group_stack.in_error () &&
+             !group_stack.tail ().in_error ();
+    if (unlikely (!group_stack.push_or_fail ()))
+      return false;
+    group_stack.tail ().alloc (4096);
+    if (unlikely (group_stack.tail ().in_error ()))
+    {
+      group_stack.pop ();
+      return false;
+    }
+    return true;
+  }
 };
+
+static inline hb_vector_color_glyph_cache_key_t
+hb_vector_color_glyph_cache_key (hb_codepoint_t glyph,
+				 unsigned palette,
+				 hb_color_t foreground)
+{ return {glyph, palette, foreground}; }
+
+/* Implemented in hb-vector-paint-svg.cc */
+HB_INTERNAL hb_paint_funcs_t * hb_vector_paint_svg_funcs_get ();
+HB_INTERNAL hb_blob_t * hb_vector_paint_render_svg (hb_vector_paint_t *paint);
 
 /* Implemented in hb-vector-paint-pdf.cc */
 HB_INTERNAL hb_paint_funcs_t * hb_vector_paint_pdf_funcs_get ();
