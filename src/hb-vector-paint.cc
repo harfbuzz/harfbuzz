@@ -580,24 +580,14 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
     case HB_VECTOR_FORMAT_PDF:
     {
       /* PDF: emit transform + paint directly, no caching.
-       * The paint transform and pen position are in input
-       * space; fold in 1/scale_factor here so glyph path
-       * operators (emitted raw in input space) land in
-       * pixel space, matching the MediaBox. */
+       * Paint callbacks emit in output-space (divided by
+       * scale_factor), so the per-glyph cm just positions
+       * with a translation. */
       auto &body = paint->current_body ();
-      unsigned sprec = paint->defs.scale_precision ();
       float sx = paint->x_scale_factor;
       float sy = paint->y_scale_factor;
       body.append_str ("q\n");
-      /* Font and PDF coords are both Y-up; no negation needed. */
-      body.append_num (xx / sx, sprec);
-      body.append_c (' ');
-      body.append_num (yx / sy, sprec);
-      body.append_c (' ');
-      body.append_num (xy / sx, sprec);
-      body.append_c (' ');
-      body.append_num (yy / sy, sprec);
-      body.append_c (' ');
+      body.append_str ("1 0 0 1 ");
       body.append_num (tx / sx);
       body.append_c (' ');
       body.append_num (ty / sy);

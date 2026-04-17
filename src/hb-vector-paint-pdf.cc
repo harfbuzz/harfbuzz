@@ -355,7 +355,8 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 			 hb_codepoint_t glyph,
 			 hb_vector_buf_t *buf)
 {
-  hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (), 1.f, 1.f};
+  hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
+			       paint->x_scale_factor, paint->y_scale_factor};
   paint->path.clear ();
   hb_font_draw_glyph (font, glyph,
 		       hb_vector_pdf_path_draw_funcs_get (),
@@ -389,9 +390,9 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (yy);
   body.append_c (' ');
-  body.append_num (dx);
+  body.append_num (paint->sx (dx));
   body.append_c (' ');
-  body.append_num (dy);
+  body.append_num (paint->sy (dy));
   body.append_str (" cm\n");
 }
 
@@ -436,13 +437,13 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
   body.append_str ("q\n");
-  body.append_num (xmin);
+  body.append_num (paint->sx (xmin));
   body.append_c (' ');
-  body.append_num (ymin);
+  body.append_num (paint->sy (ymin));
   body.append_c (' ');
-  body.append_num (xmax - xmin);
+  body.append_num (paint->sx (xmax - xmin));
   body.append_c (' ');
-  body.append_num (ymax - ymin);
+  body.append_num (paint->sy (ymax - ymin));
   body.append_str (" re W n\n");
 }
 
@@ -770,13 +771,13 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   float iw = (float) extents->width;
   float ih = (float) -extents->height; /* negative because image Y goes up but height is negative in extents */
 
-  body.append_num (iw);
+  body.append_num (paint->sx (iw));
   body.append_str (" 0 0 ");
-  body.append_num (ih);
+  body.append_num (paint->sy (ih));
   body.append_c (' ');
-  body.append_num (ix);
+  body.append_num (paint->sx (ix));
   body.append_c (' ');
-  body.append_num (iy);
+  body.append_num (paint->sy (iy));
   body.append_str (" cm\n");
 
   body.append_str ("/Im");
@@ -1013,13 +1014,13 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   hb_vector_buf_t sh;
   sh.append_str ("<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
   sh.append_str ("/Coords [");
-  sh.append_num (gx0);
+  sh.append_num (paint->sx (gx0));
   sh.append_c (' ');
-  sh.append_num (gy0);
+  sh.append_num (paint->sy (gy0));
   sh.append_c (' ');
-  sh.append_num (gx1);
+  sh.append_num (paint->sx (gx1));
   sh.append_c (' ');
-  sh.append_num (gy1);
+  sh.append_num (paint->sy (gy1));
   sh.append_str ("]\n/Function ");
   sh.append_unsigned (func_id);
   sh.append_str (" 0 R\n");
@@ -1038,13 +1039,13 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     hb_vector_buf_t ash;
     ash.append_str ("<< /ShadingType 2 /ColorSpace /DeviceGray\n");
     ash.append_str ("/Coords [");
-    ash.append_num (gx0);
+    ash.append_num (paint->sx (gx0));
     ash.append_c (' ');
-    ash.append_num (gy0);
+    ash.append_num (paint->sy (gy0));
     ash.append_c (' ');
-    ash.append_num (gx1);
+    ash.append_num (paint->sx (gx1));
     ash.append_c (' ');
-    ash.append_num (gy1);
+    ash.append_num (paint->sy (gy1));
     ash.append_str ("]\n/Function ");
     ash.append_unsigned (alpha_func_id);
     ash.append_str (" 0 R\n");
@@ -1053,8 +1054,8 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     unsigned alpha_sh_id = res->add_object (std::move (ash));
 
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
-						gx0, gy0,
-						gx1 - gx0, gy1 - gy0,
+						paint->sx (gx0), paint->sy (gy0),
+						paint->sx (gx1 - gx0), paint->sy (gy1 - gy0),
 						paint->get_precision ());
     body.append_str ("/GS");
     body.append_unsigned (gs_idx);
@@ -1108,17 +1109,17 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_vector_buf_t sh;
   sh.append_str ("<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
   sh.append_str ("/Coords [");
-  sh.append_num (gx0);
+  sh.append_num (paint->sx (gx0));
   sh.append_c (' ');
-  sh.append_num (gy0);
+  sh.append_num (paint->sy (gy0));
   sh.append_c (' ');
-  sh.append_num (gr0);
+  sh.append_num (paint->sx (gr0));
   sh.append_c (' ');
-  sh.append_num (gx1);
+  sh.append_num (paint->sx (gx1));
   sh.append_c (' ');
-  sh.append_num (gy1);
+  sh.append_num (paint->sy (gy1));
   sh.append_c (' ');
-  sh.append_num (gr1);
+  sh.append_num (paint->sx (gr1));
   sh.append_str ("]\n/Function ");
   sh.append_unsigned (func_id);
   sh.append_str (" 0 R\n");
@@ -1137,17 +1138,17 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     hb_vector_buf_t ash;
     ash.append_str ("<< /ShadingType 3 /ColorSpace /DeviceGray\n");
     ash.append_str ("/Coords [");
-    ash.append_num (gx0);
+    ash.append_num (paint->sx (gx0));
     ash.append_c (' ');
-    ash.append_num (gy0);
+    ash.append_num (paint->sy (gy0));
     ash.append_c (' ');
-    ash.append_num (gr0);
+    ash.append_num (paint->sx (gr0));
     ash.append_c (' ');
-    ash.append_num (gx1);
+    ash.append_num (paint->sx (gx1));
     ash.append_c (' ');
-    ash.append_num (gy1);
+    ash.append_num (paint->sy (gy1));
     ash.append_c (' ');
-    ash.append_num (gr1);
+    ash.append_num (paint->sx (gr1));
     ash.append_str ("]\n/Function ");
     ash.append_unsigned (alpha_func_id);
     ash.append_str (" 0 R\n");
@@ -1160,8 +1161,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     float cy = (gr1 >= gr0) ? gy1 : gy0;
     float rr = hb_max (gr0, gr1);
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
-						cx - rr, cy - rr,
-						2 * rr, 2 * rr,
+						paint->sx (cx - rr), paint->sy (cy - rr),
+						paint->sx (2 * rr), paint->sy (2 * rr),
 						paint->get_precision ());
     body.append_str ("/GS");
     body.append_unsigned (gs_idx);
@@ -1380,8 +1381,9 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
   const float R = 32767.f;
-  float xlo = cx - R - 1, xhi = cx + R + 1;
-  float ylo = cy - R - 1, yhi = cy + R + 1;
+  float scx = paint->sx (cx), scy = paint->sy (cy);
+  float xlo = scx - R - 1, xhi = scx + R + 1;
+  float ylo = scy - R - 1, yhi = scy + R + 1;
 
   bool needs_alpha = hb_pdf_gradient_needs_alpha (stops, n_stops);
 
@@ -1392,7 +1394,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
     alpha_mesh.alloc (256);
 
   hb_pdf_sweep_ctx_t ctx { &mesh, needs_alpha ? &alpha_mesh : nullptr,
-			    cx, cy, xlo, xhi, ylo, yhi };
+			    scx, scy, xlo, xhi, ylo, yhi };
   hb_paint_sweep_gradient_tiles (stops, n_stops, extend,
 				 start_angle, end_angle,
 				 hb_pdf_sweep_emit_patch, &ctx);
