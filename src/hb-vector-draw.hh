@@ -59,8 +59,9 @@ struct hb_vector_draw_t
     if (font != cached_font || serial != cached_serial)
     {
       changed ();
-      hb_font_destroy (cached_font);
+      hb_font_t *old = cached_font;
       cached_font = hb_font_reference (font);
+      hb_font_destroy (old);
       cached_serial = serial;
     }
   }
