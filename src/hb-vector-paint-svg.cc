@@ -300,7 +300,7 @@ hb_vector_svg_add_sweep_patch (hb_buf_t *body,
     body->append_c (',');
     body->append_num (sp1.y, precision);
     body->append_str ("Z\" fill=\"");
-    hb_buf_append_color (body, mid, true);
+    body->append_svg_color (mid, true);
     body->append_str ("\"/>\n");
 
     p0 = p1;
@@ -648,7 +648,7 @@ hb_vector_paint_color (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
   body.append_str ("<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"");
-  hb_buf_append_color (&body, c, true);
+  body.append_svg_color (c, true);
   body.append_str ("\"/>\n");
 }
 
@@ -689,7 +689,7 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     body.append_str (")\">\n");
 
     body.append_str ("<image href=\"data:image/png;base64,");
-    hb_buf_append_base64 (&body, (const uint8_t *) png_data, len);
+    body.append_base64 ((const uint8_t *) png_data, len);
     body.append_str ("\" width=\"");
     body.append_num ((float) width);
     body.append_str ("\" height=\"");

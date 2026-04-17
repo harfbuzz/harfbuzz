@@ -158,6 +158,70 @@ struct hb_buf_t : hb_vector_t<char>
 		   "0123456789ABCDEF"[v & 15]};
     return append_len (tmp, 2);
   }
+
+  void append_svg_color (hb_color_t color, bool with_alpha)
+  {
+    unsigned r = hb_color_get_red (color);
+    unsigned g = hb_color_get_green (color);
+    unsigned b = hb_color_get_blue (color);
+    unsigned a = hb_color_get_alpha (color);
+    append_c ('#');
+    if (((r >> 4) == (r & 0xF)) &&
+	((g >> 4) == (g & 0xF)) &&
+	((b >> 4) == (b & 0xF)))
+    {
+      append_c ("0123456789ABCDEF"[r & 0xF]);
+      append_c ("0123456789ABCDEF"[g & 0xF]);
+      append_c ("0123456789ABCDEF"[b & 0xF]);
+    }
+    else
+    {
+      append_hex_byte (r);
+      append_hex_byte (g);
+      append_hex_byte (b);
+    }
+    if (with_alpha && a != 255)
+    {
+      append_str ("\" fill-opacity=\"");
+      append_num (a / 255.f, 4);
+    }
+  }
+
+  bool append_base64 (const uint8_t *data, unsigned len)
+  {
+    unsigned out_len = ((len + 2) / 3) * 4;
+    unsigned old_len = length;
+    if (unlikely (!resize_dirty ((int) (old_len + out_len))))
+      return false;
+
+    char *dst = arrayZ + old_len;
+    unsigned di = 0;
+    unsigned i = 0;
+    while (i + 2 < len)
+    {
+      unsigned v = ((unsigned) data[i] << 16) |
+		   ((unsigned) data[i + 1] << 8) |
+		   ((unsigned) data[i + 2]);
+      dst[di++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(v >> 18) & 63];
+      dst[di++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(v >> 12) & 63];
+      dst[di++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(v >> 6) & 63];
+      dst[di++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[v & 63];
+      i += 3;
+    }
+
+    if (i < len)
+    {
+      unsigned v = (unsigned) data[i] << 16;
+      if (i + 1 < len)
+	v |= (unsigned) data[i + 1] << 8;
+      dst[di++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(v >> 18) & 63];
+      dst[di++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(v >> 12) & 63];
+      dst[di++] = (i + 1 < len) ? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(v >> 6) & 63] : '=';
+      dst[di++] = '=';
+    }
+
+    return true;
+  }
 };
 
 #endif /* HB_VECTOR_UTILS_HH */

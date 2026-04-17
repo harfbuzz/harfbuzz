@@ -797,7 +797,7 @@ const char *
 hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
 {
   if (!paint->id_prefix.length) return "";
-  /* id_prefix is appended via hb_buf_append_str which does NOT
+  /* id_prefix is appended via append_str which does NOT
    * NUL-terminate; ensure a trailing NUL. */
   const_cast<hb_buf_t &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
   paint->id_prefix.arrayZ[paint->id_prefix.length] = '\0';
