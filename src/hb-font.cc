@@ -1669,12 +1669,9 @@ hb_font_t::paint_glyph (hb_codepoint_t glyph,
 			   palette, foreground))
     return;
 
-  /* Fallback: synthesize a foreground-colored layer from the
-   * outline.  Pass the foreground directly as a literal color
-   * (not is_foreground) to avoid alpha interactions with the
-   * backend's own foreground state. */
+  /* Fallback for outline glyph. */
   paint_funcs->push_clip_glyph (paint_data, glyph, this);
-  paint_funcs->color (paint_data, false, foreground);
+  paint_funcs->color (paint_data, true, foreground);
   paint_funcs->pop_clip (paint_data);
 }
 
