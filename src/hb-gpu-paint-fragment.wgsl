@@ -74,7 +74,11 @@ fn _hb_gpu_eval_stops (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
       let span = off - off_prev;
       var f: f32 = 0.0;
       if (span > 1e-6) { f = (t - off_prev) / span; }
-      return mix (col_prev, col, f);
+      let p0 = vec4f (col_prev.rgb * col_prev.a, col_prev.a);
+      let p1 = vec4f (col.rgb * col.a, col.a);
+      let pm = mix (p0, p1, f);
+      if (pm.a > 1e-6) { return vec4f (pm.rgb / pm.a, pm.a); }
+      return vec4f (0.0);
     }
     col_prev = col;
     off_prev = off;

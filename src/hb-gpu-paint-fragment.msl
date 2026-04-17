@@ -69,7 +69,10 @@ static float4 _hb_gpu_eval_stops (device const short4* hb_gpu_atlas,
     {
       float span = off - off_prev;
       float f = span > 1e-6 ? (t - off_prev) / span : 0.0;
-      return mix (col_prev, col, f);
+      float4 p0 = float4 (col_prev.rgb * col_prev.a, col_prev.a);
+      float4 p1 = float4 (col.rgb * col.a, col.a);
+      float4 pm = mix (p0, p1, f);
+      return pm.a > 1e-6 ? float4 (pm.rgb / pm.a, pm.a) : float4 (0.0);
     }
     col_prev = col;
     off_prev = off;

@@ -73,7 +73,11 @@ vec4 _hb_gpu_eval_stops (int stops_base, int stop_count, float t, vec4 foregroun
     {
       float span = off - off_prev;
       float f = span > 1e-6 ? (t - off_prev) / span : 0.0;
-      return mix (col_prev, col, f);
+      /* Interpolate in premultiplied space per OpenType COLR spec. */
+      vec4 p0 = vec4 (col_prev.rgb * col_prev.a, col_prev.a);
+      vec4 p1 = vec4 (col.rgb * col.a, col.a);
+      vec4 pm = mix (p0, p1, f);
+      return pm.a > 1e-6 ? vec4 (pm.rgb / pm.a, pm.a) : vec4 (0.0);
     }
     col_prev = col;
     off_prev = off;

@@ -65,7 +65,10 @@ float4 _hb_gpu_eval_stops (int stops_base, int stop_count, float t, float4 foreg
     {
       float span = off - off_prev;
       float f = span > 1e-6 ? (t - off_prev) / span : 0.0;
-      return lerp (col_prev, col, f);
+      float4 p0 = float4 (col_prev.rgb * col_prev.a, col_prev.a);
+      float4 p1 = float4 (col.rgb * col.a, col.a);
+      float4 pm = lerp (p0, p1, f);
+      return pm.a > 1e-6 ? float4 (pm.rgb / pm.a, pm.a) : float4 (0.0);
     }
     col_prev = col;
     off_prev = off;
