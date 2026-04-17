@@ -278,6 +278,14 @@ struct vector_output_t : output_options_t<>, view_options_t
         }
         else
         {
+          if (use_foreground_palette)
+          {
+            const rgba_color_t &c =
+              g_array_index (foreground_palette, rgba_color_t,
+                             palette_glyph_index++ % foreground_palette->len);
+            hb_vector_draw_set_foreground (draw, HB_COLOR (c.b, c.g, c.r, c.a));
+          }
+
           hb_vector_draw_glyph (draw, font, g.gid, pen_x, pen_y,
                                 extents_mode);
           had_draw = true;

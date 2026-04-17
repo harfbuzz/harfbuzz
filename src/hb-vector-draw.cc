@@ -639,6 +639,14 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       if (!draw->path.length)
 	return false;
 
+      /* Per-glyph fill color. */
+      hb_buf_append_num (&draw->body, hb_color_get_red (draw->foreground) / 255.f, 4);
+      hb_buf_append_c (&draw->body, ' ');
+      hb_buf_append_num (&draw->body, hb_color_get_green (draw->foreground) / 255.f, 4);
+      hb_buf_append_c (&draw->body, ' ');
+      hb_buf_append_num (&draw->body, hb_color_get_blue (draw->foreground) / 255.f, 4);
+      hb_buf_append_str (&draw->body, " rg\n");
+
       hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
       hb_buf_append_str (&draw->body, "f\n");
       draw->path.clear ();
@@ -692,7 +700,31 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 					draw->x_scale_factor,
 					draw->y_scale_factor,
 					xx, yx, xy, yy, tx, ty);
-      hb_buf_append_str (&draw->body, "\"/>\n");
+      hb_buf_append_str (&draw->body, "\"");
+      /* Per-glyph fill from current foreground. */
+      {
+	unsigned r = hb_color_get_red (draw->foreground);
+	unsigned g = hb_color_get_green (draw->foreground);
+	unsigned b = hb_color_get_blue (draw->foreground);
+	unsigned a = hb_color_get_alpha (draw->foreground);
+	if (r || g || b || a != 255)
+	{
+	  hb_buf_append_str (&draw->body, " fill=\"rgb(");
+	  hb_buf_append_unsigned (&draw->body, r);
+	  hb_buf_append_c (&draw->body, ',');
+	  hb_buf_append_unsigned (&draw->body, g);
+	  hb_buf_append_c (&draw->body, ',');
+	  hb_buf_append_unsigned (&draw->body, b);
+	  hb_buf_append_str (&draw->body, ")\"");
+	  if (a < 255)
+	  {
+	    hb_buf_append_str (&draw->body, " fill-opacity=\"");
+	    hb_buf_append_num (&draw->body, a / 255.f, 4);
+	    hb_buf_append_c (&draw->body, '"');
+	  }
+	}
+      }
+      hb_buf_append_str (&draw->body, "/>\n");
       return true;
     }
 
@@ -912,22 +944,6 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
     hb_buf_append_str (&stream, " re f\n");
   }
 
-  /* Foreground fill color. */
-  {
-    hb_buf_append_num (&stream, hb_color_get_red (draw->foreground) / 255.f, 4);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, hb_color_get_green (draw->foreground) / 255.f, 4);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, hb_color_get_blue (draw->foreground) / 255.f, 4);
-    hb_buf_append_str (&stream, " rg\n");
-    float a = hb_color_get_alpha (draw->foreground) / 255.f;
-    if (a < 1.f - 1.f / 512.f)
-    {
-      hb_buf_append_num (&stream, a, 4);
-      hb_buf_append_str (&stream, " ca gs\n");
-    }
-  }
-
   if (draw->body.length)
     hb_buf_append_len (&stream, draw->body.arrayZ, draw->body.length);
   if (draw->path.length)
@@ -1060,29 +1076,6 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
     hb_buf_append_str (&out, "/>\n");
   }
 
-  /* Foreground group. */
-  bool fg_group = (hb_color_get_red (draw->foreground) != 0 ||
-		   hb_color_get_green (draw->foreground) != 0 ||
-		   hb_color_get_blue (draw->foreground) != 0 ||
-		   hb_color_get_alpha (draw->foreground) != 255);
-  if (fg_group)
-  {
-    hb_buf_append_str (&out, "<g fill=\"rgb(");
-    hb_buf_append_unsigned (&out, hb_color_get_red (draw->foreground));
-    hb_buf_append_c (&out, ',');
-    hb_buf_append_unsigned (&out, hb_color_get_green (draw->foreground));
-    hb_buf_append_c (&out, ',');
-    hb_buf_append_unsigned (&out, hb_color_get_blue (draw->foreground));
-    hb_buf_append_str (&out, ")\"");
-    if (hb_color_get_alpha (draw->foreground) < 255)
-    {
-      hb_buf_append_str (&out, " fill-opacity=\"");
-      hb_buf_append_num (&out, hb_color_get_alpha (draw->foreground) / 255.f, 4);
-      hb_buf_append_c (&out, '"');
-    }
-    hb_buf_append_str (&out, ">\n");
-  }
-
   if (draw->body.length)
     hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
   if (draw->path.length)
@@ -1091,9 +1084,6 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
     hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
     hb_buf_append_str (&out, "\"/></g>\n");
   }
-
-  if (fg_group)
-    hb_buf_append_str (&out, "</g>\n");
 
   hb_buf_append_str (&out, "</svg>\n");
 
