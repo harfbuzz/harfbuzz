@@ -132,8 +132,8 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_raster_paint_glyph_or_fail()
   +hb_raster_paint_set_palette()
   +hb_raster_paint_get_palette()
-  +hb_raster_paint_get_foreground
-  +hb_raster_paint_set_background
+  +hb_raster_paint_get_foreground()
+  +hb_raster_paint_set_background()
   +hb_raster_paint_get_background()
 
 - New API, Vector library:
