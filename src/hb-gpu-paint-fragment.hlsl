@@ -36,9 +36,9 @@ float4 _hb_gpu_stop_color (int stops_base, int i, float4 foreground,
 {
   int4 a = hb_gpu_fetch (stops_base + i * 2);
   offset = (float) a.r / 32767.0;
-  if ((a.g & 1) != 0)
-    return foreground;
   int4 b = hb_gpu_fetch (stops_base + i * 2 + 1);
+  if ((a.g & 1) != 0)
+    return foreground * ((float) b.a / 32767.0);
   return (float4) b / 32767.0;
 }
 
@@ -270,7 +270,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
       int clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
       int4 ct = hb_gpu_fetch (cursor + 2);
       float4 col = ((aux & 1) != 0)
-		 ? foreground
+		 ? foreground * ((float) ct.a / 32767.0)
 		 : (float4) ct / 32767.0;
 
       float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,

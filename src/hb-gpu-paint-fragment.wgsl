@@ -40,10 +40,10 @@ fn _hb_gpu_stop_color (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
 {
   let a = hb_gpu_fetch (hb_gpu_atlas, stops_base + i * 2);
   *offset = f32 (a.r) / 32767.0;
-  if ((a.g & 1) != 0) {
-    return foreground;
-  }
   let b = hb_gpu_fetch (hb_gpu_atlas, stops_base + i * 2 + 1);
+  if ((a.g & 1) != 0) {
+    return foreground * (f32 (b.a) / 32767.0);
+  }
   return vec4f (b) / 32767.0;
 }
 
@@ -292,7 +292,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
       let ct = hb_gpu_fetch (hb_gpu_atlas, cursor + 2);
       var col: vec4f;
       if ((aux & 1) != 0) {
-        col = foreground;
+        col = foreground * (f32 (ct.a) / 32767.0);
       } else {
         col = vec4f (ct) / 32767.0;
       }
