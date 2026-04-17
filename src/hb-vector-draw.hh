@@ -7,7 +7,7 @@
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 #include "hb-vector-buf.hh"
-#include "hb-vector-svg.hh"
+#include "hb-vector-internal.hh"
 
 struct hb_vector_draw_t
 {

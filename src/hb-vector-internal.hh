@@ -1,5 +1,5 @@
-#ifndef HB_VECTOR_SVG_HH
-#define HB_VECTOR_SVG_HH
+#ifndef HB_VECTOR_INTERNAL_HH
+#define HB_VECTOR_INTERNAL_HH
 
 #include "hb-vector.h"
 
@@ -243,4 +243,4 @@ hb_vector_svg_append_instance_transform (hb_vector_buf_t *out,
   }
 }
 
-#endif /* HB_VECTOR_SVG_HH */
+#endif /* HB_VECTOR_INTERNAL_HH */

@@ -30,7 +30,7 @@
 #include "hb-machinery.hh"
 #include "hb-vector-path.hh"
 #include "hb-vector-buf.hh"
-#include "hb-vector-svg.hh"
+#include "hb-vector-internal.hh"
 
 
 /* ---- SVG path callbacks ---- */

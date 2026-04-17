@@ -9,7 +9,7 @@
 #include "hb-map.hh"
 #include "hb-vector-path.hh"
 #include "hb-vector-buf.hh"
-#include "hb-vector-svg.hh"
+#include "hb-vector-internal.hh"
 
 
 struct hb_vector_paint_t
