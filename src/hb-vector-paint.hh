@@ -27,11 +27,10 @@ struct hb_vector_paint_t
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
   int palette = 0;
   hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
-  unsigned precision = 2;
   hb_vector_t<char> id_prefix;
 
-  hb_vector_t<char> defs;
-  hb_vector_t<char> path;
+  hb_buf_t defs;
+  hb_buf_t path;
   hb_vector_t<hb_vector_t<char>> group_stack;
   uint64_t transform_group_open_mask = 0;
   unsigned transform_group_depth = 0;
@@ -86,6 +85,15 @@ struct hb_vector_paint_t
   }
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
+
+  void set_precision (unsigned p)
+  {
+    p = hb_min (p, 12u);
+    defs.precision = p;
+    path.precision = p;
+  }
+
+  unsigned get_precision () const { return path.precision; }
 
   bool ensure_initialized ()
   {

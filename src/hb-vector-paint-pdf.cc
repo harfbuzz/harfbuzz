@@ -359,7 +359,7 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 {
   hb_vector_draw_t tmp;
   tmp.format = HB_VECTOR_FORMAT_PDF;
-  tmp.precision = paint->precision;
+  tmp.set_precision (paint->get_precision ());
   tmp.transform = {1, 0, 0, 1, 0, 0};
   tmp.path.alloc (1024);
 
@@ -387,17 +387,17 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
   hb_buf_append_str (&body, "q\n");
-  hb_buf_append_num (&body, xx, paint->precision);
+  hb_buf_append_num (&body, xx, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, yx, paint->precision);
+  hb_buf_append_num (&body, yx, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, xy, paint->precision);
+  hb_buf_append_num (&body, xy, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, yy, paint->precision);
+  hb_buf_append_num (&body, yy, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, dx, paint->precision);
+  hb_buf_append_num (&body, dx, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, dy, paint->precision);
+  hb_buf_append_num (&body, dy, paint->get_precision ());
   hb_buf_append_str (&body, " cm\n");
 }
 
@@ -442,13 +442,13 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
   hb_buf_append_str (&body, "q\n");
-  hb_buf_append_num (&body, xmin, paint->precision);
+  hb_buf_append_num (&body, xmin, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, ymin, paint->precision);
+  hb_buf_append_num (&body, ymin, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, xmax - xmin, paint->precision);
+  hb_buf_append_num (&body, xmax - xmin, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, ymax - ymin, paint->precision);
+  hb_buf_append_num (&body, ymax - ymin, paint->get_precision ());
   hb_buf_append_str (&body, " re W n\n");
 }
 
@@ -471,7 +471,7 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
    * the path with "W n" to turn it into the clip region.
    * Coordinates arrive in font-scale; the sink divides by
    * scale_factor so they land in output space. */
-  paint->clip_path_sink = {&body, paint->precision,
+  paint->clip_path_sink = {&body, paint->get_precision (),
 			   paint->x_scale_factor,
 			   paint->y_scale_factor};
   *draw_data = &paint->clip_path_sink;
@@ -520,7 +520,7 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
     auto *res = hb_pdf_get_resources (paint);
     if (res)
     {
-      unsigned gs_idx = res->add_extgstate_alpha (a, paint->precision);
+      unsigned gs_idx = res->add_extgstate_alpha (a, paint->get_precision ());
       hb_buf_append_str (&body, "/GS");
       hb_buf_append_unsigned (&body, gs_idx);
       hb_buf_append_str (&body, " gs\n");
@@ -776,13 +776,13 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   float iw = (float) extents->width;
   float ih = (float) -extents->height; /* negative because image Y goes up but height is negative in extents */
 
-  hb_buf_append_num (&body, iw, paint->precision);
+  hb_buf_append_num (&body, iw, paint->get_precision ());
   hb_buf_append_str (&body, " 0 0 ");
-  hb_buf_append_num (&body, ih, paint->precision);
+  hb_buf_append_num (&body, ih, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, ix, paint->precision);
+  hb_buf_append_num (&body, ix, paint->get_precision ());
   hb_buf_append_c (&body, ' ');
-  hb_buf_append_num (&body, iy, paint->precision);
+  hb_buf_append_num (&body, iy, paint->get_precision ());
   hb_buf_append_str (&body, " cm\n");
 
   hb_buf_append_str (&body, "/Im");
@@ -1019,13 +1019,13 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   hb_vector_t<char> sh;
   hb_buf_append_str (&sh, "<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
   hb_buf_append_str (&sh, "/Coords [");
-  hb_buf_append_num (&sh, gx0, paint->precision);
+  hb_buf_append_num (&sh, gx0, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gy0, paint->precision);
+  hb_buf_append_num (&sh, gy0, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gx1, paint->precision);
+  hb_buf_append_num (&sh, gx1, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gy1, paint->precision);
+  hb_buf_append_num (&sh, gy1, paint->get_precision ());
   hb_buf_append_str (&sh, "]\n/Function ");
   hb_buf_append_unsigned (&sh, func_id);
   hb_buf_append_str (&sh, " 0 R\n");
@@ -1044,13 +1044,13 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     hb_vector_t<char> ash;
     hb_buf_append_str (&ash, "<< /ShadingType 2 /ColorSpace /DeviceGray\n");
     hb_buf_append_str (&ash, "/Coords [");
-    hb_buf_append_num (&ash, gx0, paint->precision);
+    hb_buf_append_num (&ash, gx0, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gy0, paint->precision);
+    hb_buf_append_num (&ash, gy0, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gx1, paint->precision);
+    hb_buf_append_num (&ash, gx1, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gy1, paint->precision);
+    hb_buf_append_num (&ash, gy1, paint->get_precision ());
     hb_buf_append_str (&ash, "]\n/Function ");
     hb_buf_append_unsigned (&ash, alpha_func_id);
     hb_buf_append_str (&ash, " 0 R\n");
@@ -1061,7 +1061,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
 						gx0, gy0,
 						gx1 - gx0, gy1 - gy0,
-						paint->precision);
+						paint->get_precision ());
     hb_buf_append_str (&body, "/GS");
     hb_buf_append_unsigned (&body, gs_idx);
     hb_buf_append_str (&body, " gs\n");
@@ -1114,17 +1114,17 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_vector_t<char> sh;
   hb_buf_append_str (&sh, "<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
   hb_buf_append_str (&sh, "/Coords [");
-  hb_buf_append_num (&sh, gx0, paint->precision);
+  hb_buf_append_num (&sh, gx0, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gy0, paint->precision);
+  hb_buf_append_num (&sh, gy0, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gr0, paint->precision);
+  hb_buf_append_num (&sh, gr0, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gx1, paint->precision);
+  hb_buf_append_num (&sh, gx1, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gy1, paint->precision);
+  hb_buf_append_num (&sh, gy1, paint->get_precision ());
   hb_buf_append_c (&sh, ' ');
-  hb_buf_append_num (&sh, gr1, paint->precision);
+  hb_buf_append_num (&sh, gr1, paint->get_precision ());
   hb_buf_append_str (&sh, "]\n/Function ");
   hb_buf_append_unsigned (&sh, func_id);
   hb_buf_append_str (&sh, " 0 R\n");
@@ -1143,17 +1143,17 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     hb_vector_t<char> ash;
     hb_buf_append_str (&ash, "<< /ShadingType 3 /ColorSpace /DeviceGray\n");
     hb_buf_append_str (&ash, "/Coords [");
-    hb_buf_append_num (&ash, gx0, paint->precision);
+    hb_buf_append_num (&ash, gx0, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gy0, paint->precision);
+    hb_buf_append_num (&ash, gy0, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gr0, paint->precision);
+    hb_buf_append_num (&ash, gr0, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gx1, paint->precision);
+    hb_buf_append_num (&ash, gx1, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gy1, paint->precision);
+    hb_buf_append_num (&ash, gy1, paint->get_precision ());
     hb_buf_append_c (&ash, ' ');
-    hb_buf_append_num (&ash, gr1, paint->precision);
+    hb_buf_append_num (&ash, gr1, paint->get_precision ());
     hb_buf_append_str (&ash, "]\n/Function ");
     hb_buf_append_unsigned (&ash, alpha_func_id);
     hb_buf_append_str (&ash, " 0 R\n");
@@ -1168,7 +1168,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
 						cx - rr, cy - rr,
 						2 * rr, 2 * rr,
-						paint->precision);
+						paint->get_precision ());
     hb_buf_append_str (&body, "/GS");
     hb_buf_append_unsigned (&body, gs_idx);
     hb_buf_append_str (&body, " gs\n");
@@ -1444,7 +1444,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
 						xlo, ylo,
 						xhi - xlo, yhi - ylo,
-						paint->precision);
+						paint->get_precision ());
     hb_buf_append_str (&body, "/GS");
     hb_buf_append_unsigned (&body, gs_idx);
     hb_buf_append_str (&body, " gs\n");
@@ -1631,13 +1631,13 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   /* Object 3: Page */
   offsets.arrayZ[2] = out.length;
   hb_buf_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
-  hb_buf_append_num (&out, ex, paint->precision);
+  hb_buf_append_num (&out, ex, paint->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, -(ey + eh), paint->precision);
+  hb_buf_append_num (&out, -(ey + eh), paint->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, ex + ew, paint->precision);
+  hb_buf_append_num (&out, ex + ew, paint->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, -ey, paint->precision);
+  hb_buf_append_num (&out, -ey, paint->get_precision ());
   hb_buf_append_str (&out, "]\n/Contents 4 0 R");
 
   /* Resources. */
@@ -1681,7 +1681,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
     {
       if (res)
       {
-	unsigned gs_idx = res->add_extgstate_alpha (a, paint->precision);
+	unsigned gs_idx = res->add_extgstate_alpha (a, paint->get_precision ());
 	hb_buf_append_str (&bg_prefix, "/GS");
 	hb_buf_append_unsigned (&bg_prefix, gs_idx);
 	hb_buf_append_str (&bg_prefix, " gs\n");
@@ -1693,13 +1693,13 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
     hb_buf_append_c (&bg_prefix, ' ');
     hb_buf_append_num (&bg_prefix, b, 4);
     hb_buf_append_str (&bg_prefix, " rg\n");
-    hb_buf_append_num (&bg_prefix, ex, paint->precision);
+    hb_buf_append_num (&bg_prefix, ex, paint->get_precision ());
     hb_buf_append_c (&bg_prefix, ' ');
-    hb_buf_append_num (&bg_prefix, -(ey + eh), paint->precision);
+    hb_buf_append_num (&bg_prefix, -(ey + eh), paint->get_precision ());
     hb_buf_append_c (&bg_prefix, ' ');
-    hb_buf_append_num (&bg_prefix, ew, paint->precision);
+    hb_buf_append_num (&bg_prefix, ew, paint->get_precision ());
     hb_buf_append_c (&bg_prefix, ' ');
-    hb_buf_append_num (&bg_prefix, eh, paint->precision);
+    hb_buf_append_num (&bg_prefix, eh, paint->get_precision ());
     hb_buf_append_str (&bg_prefix, " re f\n");
   }
   unsigned stream_len = bg_prefix.length + content.length;

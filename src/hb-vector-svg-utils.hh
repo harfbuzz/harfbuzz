@@ -126,4 +126,28 @@ hb_vector_scale_precision (unsigned precision)
   return precision < 7 ? 7 : precision;
 }
 
+struct hb_buf_t : hb_vector_t<char>
+{
+  unsigned precision = 2;
+
+  void append_num (float v, bool keep_nonzero = false)
+  { hb_buf_append_num (this, v, precision, keep_nonzero); }
+
+  bool append_c (char ch)
+  { return push_or_fail (ch); }
+
+  bool append_str (const char *s)
+  { return hb_buf_append_len (this, s, (unsigned) strlen (s)); }
+
+  bool append_len (const char *s, unsigned l)
+  { return hb_buf_append_len (this, s, l); }
+
+  bool append_unsigned (unsigned v)
+  {
+    char tmp[16];
+    snprintf (tmp, sizeof (tmp), "%u", v);
+    return hb_buf_append_len (this, tmp, (unsigned) strlen (tmp));
+  }
+};
+
 #endif /* HB_VECTOR_SVG_UTILS_HH */

@@ -21,12 +21,21 @@ struct hb_vector_draw_t
   bool has_extents = false;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
-  unsigned precision = 2;
   hb_vector_t<char> id_prefix;
 
-  hb_vector_t<char> defs;
-  hb_vector_t<char> body;
-  hb_vector_t<char> path;
+  hb_buf_t defs;
+  hb_buf_t body;
+  hb_buf_t path;
+
+  void set_precision (unsigned p)
+  {
+    p = hb_min (p, 12u);
+    defs.precision = p;
+    body.precision = p;
+    path.precision = p;
+  }
+
+  unsigned get_precision () const { return path.precision; }
   hb_set_t *defined_glyphs = nullptr;
   hb_blob_t *recycled_blob = nullptr;
 
@@ -116,18 +125,18 @@ struct hb_vector_draw_t
   {
     float tx, ty;
     transform_xy (x, y, &tx, &ty);
-    hb_buf_append_num (&path, tx, precision);
+    hb_buf_append_num (&path, tx, path.precision);
     hb_buf_append_c (&path, ',');
-    hb_buf_append_num (&path, ty, precision);
+    hb_buf_append_num (&path, ty, path.precision);
   }
 
   void append_xy_pdf (float x, float y)
   {
     float tx, ty;
     transform_xy (x, y, &tx, &ty);
-    hb_buf_append_num (&path, tx, precision);
+    hb_buf_append_num (&path, tx, path.precision);
     hb_buf_append_c (&path, ' ');
-    hb_buf_append_num (&path, ty, precision);
+    hb_buf_append_num (&path, ty, path.precision);
   }
 };
 

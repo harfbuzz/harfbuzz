@@ -585,7 +585,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
        * operators (emitted raw in input space) land in
        * pixel space, matching the MediaBox. */
       auto &body = paint->current_body ();
-      unsigned sprec = hb_vector_scale_precision (paint->precision);
+      unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
       float sx = paint->x_scale_factor;
       float sy = paint->y_scale_factor;
       hb_buf_append_str (&body, "q\n");
@@ -598,9 +598,9 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
       hb_buf_append_c (&body, ' ');
       hb_buf_append_num (&body, yy / sy, sprec, true);
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, tx / sx, paint->precision);
+      hb_buf_append_num (&body, tx / sx, paint->get_precision ());
       hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, ty / sy, paint->precision);
+      hb_buf_append_num (&body, ty / sy, paint->get_precision ());
       hb_buf_append_str (&body, " cm\n");
 
       hb_bool_t ret = true;
@@ -630,7 +630,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	  hb_buf_append_str (&body, "cg");
 	  hb_buf_append_unsigned (&body, def_id);
 	  hb_buf_append_str (&body, "\" transform=\"");
-	  hb_vector_svg_append_instance_transform (&body, paint->precision,
+	  hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
 					    paint->x_scale_factor,
 					    paint->y_scale_factor,
 					    xx, yx, xy, yy, tx, ty);
@@ -685,7 +685,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	hb_buf_append_str (&body, "cg");
 	hb_buf_append_unsigned (&body, def_id);
 	hb_buf_append_str (&body, "\" transform=\"");
-	hb_vector_svg_append_instance_transform (&body, paint->precision,
+	hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
 					  paint->x_scale_factor,
 					  paint->y_scale_factor,
 					  xx, yx, xy, yy, tx, ty);
@@ -817,7 +817,7 @@ void
 hb_vector_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision)
 {
-  paint->precision = hb_min (precision, 12u);
+  paint->set_precision (precision);
 }
 
 /**
@@ -834,7 +834,7 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
 unsigned
 hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
 {
-  return paint->precision;
+  return paint->get_precision ();
 }
 
 /**
@@ -919,7 +919,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->y_scale_factor = 1.f;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->palette = 0;
-  paint->precision = 2;
+  paint->set_precision (2);
   hb_vector_paint_clear (paint);
 }
 

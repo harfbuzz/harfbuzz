@@ -45,7 +45,7 @@ hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb
       paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
     return;
 
-  unsigned sprec = hb_vector_scale_precision (paint->precision);
+  unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
   hb_buf_append_str (buf, "<g transform=\"matrix(");
   hb_buf_append_num (buf, paint->transform.xx, sprec, true);
   hb_buf_append_c (buf, ',');
@@ -55,9 +55,9 @@ hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb
   hb_buf_append_c (buf, ',');
   hb_buf_append_num (buf, paint->transform.yy, sprec, true);
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.x0, paint->precision);
+  hb_buf_append_num (buf, paint->transform.x0, paint->get_precision ());
   hb_buf_append_c (buf, ',');
-  hb_buf_append_num (buf, paint->transform.y0, paint->precision);
+  hb_buf_append_num (buf, paint->transform.y0, paint->get_precision ());
   hb_buf_append_str (buf, ")\">\n");
 }
 
@@ -439,7 +439,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  unsigned sprec = hb_vector_scale_precision (paint->precision);
+  unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
   hb_buf_append_str (&body, "<g transform=\"matrix(");
   hb_buf_append_num (&body, xx, sprec, true);
   hb_buf_append_c (&body, ',');
@@ -449,9 +449,9 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   hb_buf_append_c (&body, ',');
   hb_buf_append_num (&body, yy, sprec, true);
   hb_buf_append_c (&body, ',');
-  hb_buf_append_num (&body, dx, paint->precision);
+  hb_buf_append_num (&body, dx, paint->get_precision ());
   hb_buf_append_c (&body, ',');
-  hb_buf_append_num (&body, dy, paint->precision);
+  hb_buf_append_num (&body, dy, paint->get_precision ());
   hb_buf_append_str (&body, ")\">\n");
 }
 
@@ -495,7 +495,7 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_vector_path_sink_t sink = {&paint->path, paint->precision, 1.f, 1.f};
+    hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (), 1.f, 1.f};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     hb_buf_append_str (&paint->defs, "<path id=\"");
     hb_buf_append_len (&paint->defs, pfx, pfx_len);
@@ -546,13 +546,13 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   hb_buf_append_c  (&paint->defs, 'c');
   hb_buf_append_unsigned (&paint->defs, clip_id);
   hb_buf_append_str (&paint->defs, "\"><rect x=\"");
-  hb_buf_append_num (&paint->defs, xmin, paint->precision);
+  hb_buf_append_num (&paint->defs, xmin, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" y=\"");
-  hb_buf_append_num (&paint->defs, ymin, paint->precision);
+  hb_buf_append_num (&paint->defs, ymin, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" width=\"");
-  hb_buf_append_num (&paint->defs, xmax - xmin, paint->precision);
+  hb_buf_append_num (&paint->defs, xmax - xmin, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" height=\"");
-  hb_buf_append_num (&paint->defs, ymax - ymin, paint->precision);
+  hb_buf_append_num (&paint->defs, ymax - ymin, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\"/></clipPath>\n");
 
   hb_buf_append_str (&paint->current_body (), "<g clip-path=\"url(#");
@@ -576,7 +576,7 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   paint->path.clear ();
-  paint->clip_path_sink = {&paint->path, paint->precision,
+  paint->clip_path_sink = {&paint->path, paint->get_precision (),
 			   paint->x_scale_factor,
 			   paint->y_scale_factor};
   *draw_data = &paint->clip_path_sink;
@@ -679,21 +679,21 @@ hb_vector_paint_image (hb_paint_funcs_t *,
       return false;
 
     hb_buf_append_str (&body, "<g transform=\"translate(");
-    hb_buf_append_num (&body, (float) extents->x_bearing, paint->precision);
+    hb_buf_append_num (&body, (float) extents->x_bearing, paint->get_precision ());
     hb_buf_append_c (&body, ',');
-    hb_buf_append_num (&body, (float) extents->y_bearing, paint->precision);
+    hb_buf_append_num (&body, (float) extents->y_bearing, paint->get_precision ());
     hb_buf_append_str (&body, ") scale(");
-    hb_buf_append_num (&body, (float) extents->width / width, paint->precision);
+    hb_buf_append_num (&body, (float) extents->width / width, paint->get_precision ());
     hb_buf_append_c (&body, ',');
-    hb_buf_append_num (&body, (float) extents->height / height, paint->precision);
+    hb_buf_append_num (&body, (float) extents->height / height, paint->get_precision ());
     hb_buf_append_str (&body, ")\">\n");
 
     hb_buf_append_str (&body, "<image href=\"data:image/png;base64,");
     hb_buf_append_base64 (&body, (const uint8_t *) png_data, len);
     hb_buf_append_str (&body, "\" width=\"");
-    hb_buf_append_num (&body, (float) width, paint->precision);
+    hb_buf_append_num (&body, (float) width, paint->get_precision ());
     hb_buf_append_str (&body, "\" height=\"");
-    hb_buf_append_num (&body, (float) height, paint->precision);
+    hb_buf_append_num (&body, (float) height, paint->get_precision ());
     hb_buf_append_str (&body, "\"/>\n</g>\n");
 
     return true;
@@ -745,13 +745,13 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "gr");
   hb_buf_append_unsigned (&paint->defs, grad_id);
   hb_buf_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" x1=\"");
-  hb_buf_append_num (&paint->defs, gx0, paint->precision);
+  hb_buf_append_num (&paint->defs, gx0, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" y1=\"");
-  hb_buf_append_num (&paint->defs, gy0, paint->precision);
+  hb_buf_append_num (&paint->defs, gy0, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" x2=\"");
-  hb_buf_append_num (&paint->defs, gx1, paint->precision);
+  hb_buf_append_num (&paint->defs, gx1, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" y2=\"");
-  hb_buf_append_num (&paint->defs, gy1, paint->precision);
+  hb_buf_append_num (&paint->defs, gy1, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
   hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   hb_buf_append_str (&paint->defs, "\">\n");
@@ -803,19 +803,19 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "gr");
   hb_buf_append_unsigned (&paint->defs, grad_id);
   hb_buf_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" cx=\"");
-  hb_buf_append_num (&paint->defs, gx1, paint->precision);
+  hb_buf_append_num (&paint->defs, gx1, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" cy=\"");
-  hb_buf_append_num (&paint->defs, gy1, paint->precision);
+  hb_buf_append_num (&paint->defs, gy1, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" r=\"");
-  hb_buf_append_num (&paint->defs, gr1, paint->precision);
+  hb_buf_append_num (&paint->defs, gr1, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" fx=\"");
-  hb_buf_append_num (&paint->defs, gx0, paint->precision);
+  hb_buf_append_num (&paint->defs, gx0, paint->get_precision ());
   hb_buf_append_str (&paint->defs, "\" fy=\"");
-  hb_buf_append_num (&paint->defs, gy0, paint->precision);
+  hb_buf_append_num (&paint->defs, gy0, paint->get_precision ());
   if (gr0 > 0)
   {
     hb_buf_append_str (&paint->defs, "\" fr=\"");
-    hb_buf_append_num (&paint->defs, gr0, paint->precision);
+    hb_buf_append_num (&paint->defs, gr0, paint->get_precision ());
   }
   hb_buf_append_str (&paint->defs, "\" spreadMethod=\"");
   hb_buf_append_str (&paint->defs, hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
@@ -856,7 +856,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
   hb_vector_svg_sweep_ctx_t ctx {
-    &paint->current_body (), paint->precision, cx, cy, 1000000.f
+    &paint->current_body (), paint->get_precision (), cx, cy, 1000000.f
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),
@@ -952,17 +952,17 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
 		       320;
   out.alloc (estimated);
   hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
-  hb_buf_append_num (&out, paint->extents.x, paint->precision);
+  hb_buf_append_num (&out, paint->extents.x, paint->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, paint->extents.y, paint->precision);
+  hb_buf_append_num (&out, paint->extents.y, paint->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, paint->extents.width, paint->precision);
+  hb_buf_append_num (&out, paint->extents.width, paint->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, paint->extents.height, paint->precision);
+  hb_buf_append_num (&out, paint->extents.height, paint->get_precision ());
   hb_buf_append_str (&out, "\" width=\"");
-  hb_buf_append_num (&out, paint->extents.width, paint->precision);
+  hb_buf_append_num (&out, paint->extents.width, paint->get_precision ());
   hb_buf_append_str (&out, "\" height=\"");
-  hb_buf_append_num (&out, paint->extents.height, paint->precision);
+  hb_buf_append_num (&out, paint->extents.height, paint->get_precision ());
   hb_buf_append_str (&out, "\">\n");
 
   if (paint->defs.length)
@@ -975,13 +975,13 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
   if (hb_color_get_alpha (paint->background))
   {
     hb_buf_append_str (&out, "<rect x=\"");
-    hb_buf_append_num (&out, paint->extents.x, paint->precision);
+    hb_buf_append_num (&out, paint->extents.x, paint->get_precision ());
     hb_buf_append_str (&out, "\" y=\"");
-    hb_buf_append_num (&out, paint->extents.y, paint->precision);
+    hb_buf_append_num (&out, paint->extents.y, paint->get_precision ());
     hb_buf_append_str (&out, "\" width=\"");
-    hb_buf_append_num (&out, paint->extents.width, paint->precision);
+    hb_buf_append_num (&out, paint->extents.width, paint->get_precision ());
     hb_buf_append_str (&out, "\" height=\"");
-    hb_buf_append_num (&out, paint->extents.height, paint->precision);
+    hb_buf_append_num (&out, paint->extents.height, paint->get_precision ());
     hb_buf_append_str (&out, "\" fill=\"rgb(");
     hb_buf_append_unsigned (&out, hb_color_get_red (paint->background));
     hb_buf_append_c (&out, ',');

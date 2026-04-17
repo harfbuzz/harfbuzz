@@ -557,7 +557,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       if (!hb_set_has (draw->defined_glyphs, glyph))
       {
 	draw->path.clear ();
-	hb_vector_path_sink_t sink = {&draw->path, draw->precision, 1.f, 1.f};
+	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (), 1.f, 1.f};
 	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;
@@ -587,7 +587,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       hb_buf_append_unsigned (&draw->body, glyph);
       hb_buf_append_str (&draw->body, "\" transform=\"");
       hb_vector_svg_append_instance_transform (&draw->body,
-					draw->precision,
+					draw->get_precision (),
 					draw->x_scale_factor,
 					draw->y_scale_factor,
 					xx, yx, xy, yy, tx, ty);
@@ -706,7 +706,7 @@ void
 hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision)
 {
-  draw->precision = hb_min (precision, 12u);
+  draw->set_precision (precision);
 }
 
 /**
@@ -723,7 +723,7 @@ hb_vector_draw_set_precision (hb_vector_draw_t *draw,
 unsigned
 hb_vector_draw_get_precision (const hb_vector_draw_t *draw)
 {
-  return draw->precision;
+  return draw->get_precision ();
 }
 
 /**
@@ -825,13 +825,13 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
     hb_buf_append_c (&stream, ' ');
     hb_buf_append_num (&stream, hb_color_get_blue (draw->background) / 255.f, 4);
     hb_buf_append_str (&stream, " rg\n");
-    hb_buf_append_num (&stream, ex, draw->precision);
+    hb_buf_append_num (&stream, ex, draw->get_precision ());
     hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, -(ey + eh), draw->precision);
+    hb_buf_append_num (&stream, -(ey + eh), draw->get_precision ());
     hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, ew, draw->precision);
+    hb_buf_append_num (&stream, ew, draw->get_precision ());
     hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, eh, draw->precision);
+    hb_buf_append_num (&stream, eh, draw->get_precision ());
     hb_buf_append_str (&stream, " re f\n");
   }
 
@@ -860,13 +860,13 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
    * Convert back: font Y range = [-(ey+eh) .. -ey]. */
   offsets[2] = out.length;
   hb_buf_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
-  hb_buf_append_num (&out, ex, draw->precision);
+  hb_buf_append_num (&out, ex, draw->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, -(ey + eh), draw->precision);
+  hb_buf_append_num (&out, -(ey + eh), draw->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, ex + ew, draw->precision);
+  hb_buf_append_num (&out, ex + ew, draw->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, -ey, draw->precision);
+  hb_buf_append_num (&out, -ey, draw->get_precision ());
   hb_buf_append_str (&out, "] /Contents 4 0 R >>\nendobj\n");
 
   /* Object 4: Content stream */
@@ -913,17 +913,17 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 		       256;
   out.alloc (estimated);
   hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  hb_buf_append_num (&out, draw->extents.x, draw->precision);
+  hb_buf_append_num (&out, draw->extents.x, draw->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.y, draw->precision);
+  hb_buf_append_num (&out, draw->extents.y, draw->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.width, draw->precision);
+  hb_buf_append_num (&out, draw->extents.width, draw->get_precision ());
   hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.height, draw->precision);
+  hb_buf_append_num (&out, draw->extents.height, draw->get_precision ());
   hb_buf_append_str (&out, "\" width=\"");
-  hb_buf_append_num (&out, draw->extents.width, draw->precision);
+  hb_buf_append_num (&out, draw->extents.width, draw->get_precision ());
   hb_buf_append_str (&out, "\" height=\"");
-  hb_buf_append_num (&out, draw->extents.height, draw->precision);
+  hb_buf_append_num (&out, draw->extents.height, draw->get_precision ());
   hb_buf_append_str (&out, "\">\n");
 
   if (draw->defs.length)
@@ -937,13 +937,13 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
   if (hb_color_get_alpha (draw->background))
   {
     hb_buf_append_str (&out, "<rect x=\"");
-    hb_buf_append_num (&out, draw->extents.x, draw->precision);
+    hb_buf_append_num (&out, draw->extents.x, draw->get_precision ());
     hb_buf_append_str (&out, "\" y=\"");
-    hb_buf_append_num (&out, draw->extents.y, draw->precision);
+    hb_buf_append_num (&out, draw->extents.y, draw->get_precision ());
     hb_buf_append_str (&out, "\" width=\"");
-    hb_buf_append_num (&out, draw->extents.width, draw->precision);
+    hb_buf_append_num (&out, draw->extents.width, draw->get_precision ());
     hb_buf_append_str (&out, "\" height=\"");
-    hb_buf_append_num (&out, draw->extents.height, draw->precision);
+    hb_buf_append_num (&out, draw->extents.height, draw->get_precision ());
     hb_buf_append_str (&out, "\" fill=\"rgb(");
     hb_buf_append_unsigned (&out, hb_color_get_red (draw->background));
     hb_buf_append_c (&out, ',');
@@ -1035,7 +1035,7 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->transform = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
-  draw->precision = 2;
+  draw->set_precision (2);
   hb_vector_draw_clear (draw);
 }
 
