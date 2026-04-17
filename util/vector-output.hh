@@ -868,8 +868,6 @@ struct vector_output_t : output_options_t<>, view_options_t
       fputs ("</defs>\n", out_fp);
     }
 
-    emit_background_rect ();
-
     if (is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len)
       emit_draw_body_with_palette (body);
     else if (is_draw_blob)
@@ -916,8 +914,6 @@ struct vector_output_t : output_options_t<>, view_options_t
       fputs ("</defs>\n", out_fp);
     }
 
-    emit_background_rect ();
-
     if (foreground_use_palette && foreground_palette && foreground_palette->len)
       emit_draw_body_with_palette (draw_body);
     else
@@ -931,25 +927,6 @@ struct vector_output_t : output_options_t<>, view_options_t
       write_slice_resolving_palette_vars (paint_body);
 
     fputs ("</svg>\n", out_fp);
-  }
-
-  void emit_background_rect ()
-  {
-    if (!has_background)
-      return;
-    unsigned r = hb_color_get_red (background);
-    unsigned g = hb_color_get_green (background);
-    unsigned b = hb_color_get_blue (background);
-    unsigned a = hb_color_get_alpha (background);
-    fprintf (out_fp, "<rect x=\"%.*g\" y=\"%.*g\" width=\"%.*g\" height=\"%.*g\" fill=\"#%02X%02X%02X\"",
-             precision + 4, (double) final_extents.x,
-             precision + 4, (double) final_extents.y,
-             precision + 4, (double) final_extents.width,
-             precision + 4, (double) final_extents.height,
-             r, g, b);
-    if (a != 255)
-      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
-    fputs ("/>\n", out_fp);
   }
 
   void apply_custom_palette (hb_vector_paint_t *paint)
