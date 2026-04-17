@@ -353,7 +353,11 @@ void
 hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
                                 hb_color_t foreground)
 {
-  paint->foreground = foreground;
+  if (paint->foreground != foreground)
+  {
+    paint->foreground = foreground;
+    paint->changed ();
+  }
 }
 
 /**
@@ -421,7 +425,11 @@ void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette)
 {
-  paint->palette = palette;
+  if (paint->palette != palette)
+  {
+    paint->palette = palette;
+    paint->changed ();
+  }
 }
 
 /**
@@ -462,6 +470,7 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
                                           hb_color_t color)
 {
   paint->custom_palette_colors.set (color_index, color);
+  paint->changed ();
 }
 
 /**
@@ -478,7 +487,11 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
 void
 hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
 {
-  paint->custom_palette_colors.clear ();
+  if (paint->custom_palette_colors.get_population ())
+  {
+    paint->custom_palette_colors.clear ();
+    paint->changed ();
+  }
 }
 
 /**
@@ -607,13 +620,10 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 
     case HB_VECTOR_FORMAT_SVG:
     {
-      hb_vector_color_glyph_cache_key_t cache_key = hb_vector_color_glyph_cache_key (glyph,
-										(unsigned) paint->palette,
-										paint->foreground);
       {
-	if (paint->defined_color_glyphs.has (cache_key))
+	if (paint->defined_color_glyphs.has (glyph))
 	{
-	  unsigned def_id = paint->defined_color_glyphs.get (cache_key);
+	  unsigned def_id = paint->defined_color_glyphs.get (glyph);
 	  auto &body = paint->current_body ();
 	  hb_buf_append_str (&body, "<use href=\"#");
 	  hb_buf_append_len (&body, paint->id_prefix.arrayZ, paint->id_prefix.length);
@@ -656,7 +666,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	  return false;
 
 	unsigned def_id = paint->color_glyph_counter++;
-	if (unlikely (!paint->defined_color_glyphs.set (cache_key, def_id)))
+	if (unlikely (!paint->defined_color_glyphs.set (glyph, def_id)))
 	  return false;
 
 	hb_buf_append_str (&paint->defs, "<g id=\"");
