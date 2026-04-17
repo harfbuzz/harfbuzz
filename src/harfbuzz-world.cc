@@ -153,7 +153,6 @@
 
 #ifdef HB_HAS_VECTOR
 #include "hb-static.cc"
-#include "hb-vector-buf.cc"
 #include "hb-vector-draw.cc"
 #include "hb-vector-paint-pdf.cc"
 #include "hb-vector-paint-svg.cc"
