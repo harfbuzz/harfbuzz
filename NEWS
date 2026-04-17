@@ -20,6 +20,16 @@ Overview of changes leading to NEXT (REPLACEME)
     ignored.
   * Encode entry point now returns extents and auto-clears the
     encoder; the standalone get_extents() is gone.
+  * hb_gpu_paint() now takes an `out float coverage` parameter
+    that returns the maximum antialiasing edge coverage across
+    all paint layers.  Callers should apply stem darkening and
+    gamma correction to this coverage value rather than to the
+    composited color, so interior paint colors stay undistorted.
+  * Gradient color stop interpolation now happens in
+    premultiplied space per the OpenType COLR specification.
+  * The foreground color sentinel (is_foreground) now correctly
+    preserves the paint-tree alpha from the encoded color data
+    instead of discarding it.
   * The hb-gpu utility gains --draw / --paint flags with per-font
     auto-detect, and --output-file / -o for headless single-frame
     rendering to a PPM image (P6).
@@ -124,6 +134,11 @@ Overview of changes leading to NEXT (REPLACEME)
   +hb_gpu_draw_clear()
   +hb_gpu_draw_get_scale()
   +hb_gpu_draw_glyph_or_fail()
+
+- Changed shader API, GPU library:
+  hb_gpu_paint() now takes an additional `out float coverage`
+  parameter.  Existing callers must update their shader code to
+  pass this argument.
 
 - New API, Raster library:
   +hb_raster_draw_clear()
