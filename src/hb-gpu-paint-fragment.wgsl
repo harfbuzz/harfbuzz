@@ -259,7 +259,8 @@ fn _hb_gpu_layer_coverage (renderCoord: vec2f, pixelsPerEm: vec2f,
 const HB_GPU_PAINT_GROUP_DEPTH: i32 = 4;
 
 fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
-                 hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec4f
+                 hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
+                 coverage: ptr<function, f32>) -> vec4f
 {
   /* Compute pixelsPerEm once here at uniform control flow.  WGSL
    * rejects fwidth inside a loop-conditional branch, so we call
@@ -278,6 +279,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
   var acc = vec4f (0.0);
   var group_stack: array<vec4f, HB_GPU_PAINT_GROUP_DEPTH>;
   var sp: i32 = 0;
+  *coverage = 0.0;
 
   for (var i: i32 = 0; i < num_ops; i = i + 1)
   {
@@ -305,6 +307,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                                         base, aux,
                                         payload, clip2_payload, clip3_payload,
                                         hb_gpu_atlas);
+      *coverage = max (*coverage, cov);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -341,6 +344,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
                                         base, aux,
                                         payload, clip2_payload, clip3_payload,
                                         hb_gpu_atlas);
+      *coverage = max (*coverage, cov);
       let src = vec4f (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 

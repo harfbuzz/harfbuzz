@@ -49,21 +49,24 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
   float4 c = float4(uniforms.foreground.rgb * uniforms.foreground.a,
                     uniforms.foreground.a) * cov;
 #else
-  /* Paint interpreter returns premultiplied RGBA. */
+  float cov;
   float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
-                          atlas);
-#endif
+                          atlas, cov);
 
-  if (uniforms.stem_darkening > 0.0 && c.a > 0.0) {
-    float2 fw = fwidth(in.texcoord);
-    float ppem = 1.0 / max(fw.x, fw.y);
-    float brightness = dot(c.rgb, float3(1.0 / 3.0)) / c.a;
-    float darkened = hb_gpu_stem_darken(c.a, brightness, ppem);
-    c *= darkened / c.a;
+  if (cov > 0.0 && cov < 1.0) {
+    float adj = cov;
+    if (uniforms.stem_darkening > 0.0) {
+      float brightness = c.a > 0.0
+        ? dot(c.rgb, float3(1.0 / 3.0)) / c.a : 0.0;
+      float2 fw = fwidth(in.texcoord);
+      adj = hb_gpu_stem_darken(adj, brightness,
+        1.0 / max(fw.x, fw.y));
+    }
+    if (uniforms.gamma != 1.0)
+      adj = pow(adj, uniforms.gamma);
+    c *= adj / cov;
   }
-
-  if (uniforms.gamma != 1.0)
-    c.a = pow(c.a, uniforms.gamma);
+#endif
 
   if (uniforms.debug > 0.0) {
     int2 counts = _hb_gpu_curve_counts(in.texcoord, in.glyphLoc, atlas);

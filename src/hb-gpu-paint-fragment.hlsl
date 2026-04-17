@@ -241,7 +241,8 @@ float _hb_gpu_layer_coverage (float2 renderCoord, float2 pixelsPerEm,
 
 #define HB_GPU_PAINT_GROUP_DEPTH 4
 
-float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
+float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground,
+		     out float coverage)
 {
   /* fwidth once, at uniform control flow. */
   float2 pixelsPerEm = 1.0 / fwidth (renderCoord);
@@ -254,6 +255,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
 
   float4 acc = float4 (0.0, 0.0, 0.0, 0.0);
   float4 group_stack[HB_GPU_PAINT_GROUP_DEPTH];
+  coverage = 0.0;
   int sp = 0;
 
   for (int i = 0; i < num_ops; i++)
@@ -279,6 +281,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
       float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
 					  base, aux,
 					  payload, clip2_payload, clip3_payload);
+      coverage = max (coverage, cov);
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
@@ -312,6 +315,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground)
       float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
 					  base, aux,
 					  payload, clip2_payload, clip3_payload);
+      coverage = max (coverage, cov);
       float4 src = float4 (col.rgb * col.a, col.a) * cov;
       acc = src + acc * (1.0 - src.a);
 
