@@ -117,7 +117,10 @@ ensure_initialized (hb_raster_paint_t *c)
 			    hb_color_get_green (c->background),
 			    hb_color_get_red (c->background),
 			    hb_color_get_alpha (c->background));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
     uint32_t *pixels = (uint32_t *) hb_raster_image_get_buffer (root);
+#pragma GCC diagnostic pop
     hb_raster_extents_t ext;
     hb_raster_image_get_extents (root, &ext);
     unsigned count = ext.width * ext.height;
