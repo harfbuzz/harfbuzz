@@ -357,17 +357,13 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 			 hb_codepoint_t glyph,
 			 hb_vector_t<char> *buf)
 {
-  hb_vector_draw_t tmp;
-  tmp.format = HB_VECTOR_FORMAT_PDF;
-  tmp.set_precision (paint->get_precision ());
-  tmp.transform = {1, 0, 0, 1, 0, 0};
-  tmp.path.alloc (1024);
-
+  hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (), 1.f, 1.f};
+  paint->path.clear ();
   hb_font_draw_glyph (font, glyph,
-		       hb_vector_draw_get_funcs (&tmp),
-		       &tmp);
-
-  hb_buf_append_len (buf, tmp.path.arrayZ, tmp.path.length);
+		       hb_vector_pdf_path_draw_funcs_get (),
+		       &sink);
+  hb_buf_append_len (buf, paint->path.arrayZ, paint->path.length);
+  paint->path.clear ();
 }
 
 
