@@ -6,7 +6,7 @@
 #include "hb-vector.h"
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
-#include "hb-vector-utils.hh"
+#include "hb-vector-buf.hh"
 #include "hb-vector-svg.hh"
 
 struct hb_vector_draw_t

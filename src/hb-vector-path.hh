@@ -31,7 +31,7 @@
 #include "hb-vector.hh"
 #include "hb-vector.h"
 #include "hb-draw.h"
-#include "hb-vector-utils.hh"
+#include "hb-vector-buf.hh"
 
 /* Lightweight path sink: serializes hb_draw_* calls into an
  * external char buffer as either SVG path-data or PDF path

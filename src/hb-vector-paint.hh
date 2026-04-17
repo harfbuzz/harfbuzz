@@ -8,7 +8,7 @@
 #include "hb-machinery.hh"
 #include "hb-map.hh"
 #include "hb-vector-path.hh"
-#include "hb-vector-utils.hh"
+#include "hb-vector-buf.hh"
 #include "hb-vector-svg.hh"
 
 

@@ -3,81 +3,6 @@
 
 #include "hb-vector.h"
 
-static inline bool
-hb_buf_append_str (hb_buf_t *buf, const char *s)
-{
-  return buf->append_len (s, (unsigned) strlen (s));
-}
-
-static inline bool
-hb_buf_append_unsigned (hb_buf_t *buf, unsigned v)
-{
-  char tmp[10];
-  unsigned n = 0;
-  do {
-    tmp[n++] = (char) ('0' + (v % 10));
-    v /= 10;
-  } while (v);
-
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + n))))
-    return false;
-
-  for (unsigned i = 0; i < n; i++)
-    buf->arrayZ[old_len + i] = tmp[n - 1 - i];
-  return true;
-}
-
-static inline bool
-hb_buf_append_hex_byte (hb_buf_t *buf, unsigned v)
-{
-  static const char hex[] = "0123456789ABCDEF";
-  char tmp[2] = {hex[(v >> 4) & 15], hex[v & 15]};
-  return buf->append_len (tmp, 2);
-}
-
-static inline bool
-hb_buf_append_base64 (hb_buf_t *buf,
-                      const uint8_t *data,
-                      unsigned len)
-{
-  static const char b64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  unsigned out_len = ((len + 2) / 3) * 4;
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + out_len))))
-    return false;
-
-  char *dst = buf->arrayZ + old_len;
-  unsigned di = 0;
-  unsigned i = 0;
-  while (i + 2 < len)
-  {
-    unsigned v = ((unsigned) data[i] << 16) |
-                 ((unsigned) data[i + 1] << 8) |
-                 ((unsigned) data[i + 2]);
-    dst[di++] = b64[(v >> 18) & 63];
-    dst[di++] = b64[(v >> 12) & 63];
-    dst[di++] = b64[(v >> 6) & 63];
-    dst[di++] = b64[v & 63];
-    i += 3;
-  }
-
-  if (i < len)
-  {
-    unsigned v = (unsigned) data[i] << 16;
-    if (i + 1 < len)
-      v |= (unsigned) data[i + 1] << 8;
-    dst[di++] = b64[(v >> 18) & 63];
-    dst[di++] = b64[(v >> 12) & 63];
-    dst[di++] = (i + 1 < len) ? b64[(v >> 6) & 63] : '=';
-    dst[di++] = '=';
-  }
-
-  return true;
-}
-
 struct hb_vector_blob_meta_t
 {
   char *data;
@@ -211,38 +136,6 @@ hb_buf_recover_recycled (hb_blob_t *blob,
   meta->data = nullptr;
   meta->allocated = 0;
   meta->transferred = true;
-}
-
-static inline void
-hb_buf_append_color (hb_buf_t *buf,
-                     hb_color_t color,
-                     bool with_alpha)
-{
-  static const char hex[] = "0123456789ABCDEF";
-  unsigned r = hb_color_get_red (color);
-  unsigned g = hb_color_get_green (color);
-  unsigned b = hb_color_get_blue (color);
-  unsigned a = hb_color_get_alpha (color);
-  buf->append_c ('#');
-  if (((r >> 4) == (r & 0xF)) &&
-      ((g >> 4) == (g & 0xF)) &&
-      ((b >> 4) == (b & 0xF)))
-  {
-    buf->append_c (hex[r & 0xF]);
-    buf->append_c (hex[g & 0xF]);
-    buf->append_c (hex[b & 0xF]);
-  }
-  else
-  {
-    buf->append_hex_byte (r);
-    buf->append_hex_byte (g);
-    buf->append_hex_byte (b);
-  }
-  if (with_alpha && a != 255)
-  {
-    buf->append_str ("\" fill-opacity=\"");
-    buf->append_num (a / 255.f, 4);
-  }
 }
 
 static inline void

@@ -24,8 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_VECTOR_UTILS_HH
-#define HB_VECTOR_UTILS_HH
+#ifndef HB_VECTOR_BUF_HH
+#define HB_VECTOR_BUF_HH
 
 #include "hb.hh"
 #include "hb-vector.hh"
@@ -35,90 +35,6 @@
 
 HB_INTERNAL const char *
 hb_vector_decimal_point_get (void);
-
-static inline bool
-hb_buf_append_len (hb_vector_t<char> *buf,
-                   const char *s,
-                   unsigned len)
-{
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + len))))
-    return false;
-  hb_memcpy (buf->arrayZ + old_len, s, len);
-  return true;
-}
-
-static inline bool
-hb_buf_append_c (hb_vector_t<char> *buf, char c)
-{
-  return buf->push_or_fail (c);
-}
-
-static inline void
-hb_buf_append_num (hb_vector_t<char> *buf,
-                   float v,
-                   unsigned precision,
-                   bool keep_nonzero = false)
-{
-  unsigned effective_precision = precision;
-  if (effective_precision > 12)
-    effective_precision = 12;
-  if (keep_nonzero && v != 0.f)
-    while (effective_precision < 12)
-    {
-      float rounded_zero_threshold = 0.5f;
-      for (unsigned i = 0; i < effective_precision; i++)
-        rounded_zero_threshold *= 0.1f;
-      if (fabsf (v) >= rounded_zero_threshold)
-        break;
-      effective_precision++;
-    }
-
-  float rounded_zero_threshold = 0.5f;
-  for (unsigned i = 0; i < effective_precision; i++)
-    rounded_zero_threshold *= 0.1f;
-  if (fabsf (v) < rounded_zero_threshold)
-    v = 0.f;
-
-  if (!(v == v) || !std::isfinite (v))
-  {
-    hb_buf_append_c (buf, '0');
-    return;
-  }
-
-  static const char float_formats[13][6] = {
-    "%.0f",  "%.1f",  "%.2f",  "%.3f",  "%.4f",  "%.5f",  "%.6f",
-    "%.7f",  "%.8f",  "%.9f",  "%.10f", "%.11f", "%.12f",
-  };
-  char out[128];
-  snprintf (out, sizeof (out), float_formats[effective_precision], (double) v);
-
-  const char *decimal_point = hb_vector_decimal_point_get ();
-
-  if (decimal_point[0] != '.' || decimal_point[1] != '\0')
-  {
-    char *p = strstr (out, decimal_point);
-    if (p)
-    {
-      unsigned dp_len = (unsigned) strlen (decimal_point);
-      unsigned tail_len = (unsigned) strlen (p + dp_len);
-      memmove (p + 1, p + dp_len, tail_len + 1);
-      *p = '.';
-    }
-  }
-
-  char *dot = strchr (out, '.');
-  if (dot)
-  {
-    char *end = out + strlen (out) - 1;
-    while (end > dot && *end == '0')
-      *end-- = '\0';
-    if (end == dot)
-      *end = '\0';
-  }
-
-  hb_buf_append_len (buf, out, (unsigned) strlen (out));
-}
 
 static inline unsigned
 hb_vector_scale_precision (unsigned precision)
@@ -130,26 +46,26 @@ struct hb_buf_t : hb_vector_t<char>
 {
   unsigned precision = 2;
 
-  void append_num (float v)
-  { hb_buf_append_num (this, v, precision); }
-
-  void append_num (float v, unsigned p)
-  { hb_buf_append_num (this, v, p); }
+  bool append_len (const char *s, unsigned l)
+  {
+    unsigned old_len = length;
+    if (unlikely (!resize_dirty ((int) (old_len + l))))
+      return false;
+    hb_memcpy (arrayZ + old_len, s, l);
+    return true;
+  }
 
   bool append_c (char ch)
   { return push_or_fail (ch); }
 
   bool append_str (const char *s)
-  { return hb_buf_append_len (this, s, (unsigned) strlen (s)); }
-
-  bool append_len (const char *s, unsigned l)
-  { return hb_buf_append_len (this, s, l); }
+  { return append_len (s, (unsigned) strlen (s)); }
 
   bool append_unsigned (unsigned v)
   {
     char tmp[16];
     snprintf (tmp, sizeof (tmp), "%u", v);
-    return hb_buf_append_len (this, tmp, (unsigned) strlen (tmp));
+    return append_len (tmp, (unsigned) strlen (tmp));
   }
 
   bool append_hex_byte (unsigned v)
@@ -157,6 +73,57 @@ struct hb_buf_t : hb_vector_t<char>
     char tmp[2] = {"0123456789ABCDEF"[(v >> 4) & 15],
 		   "0123456789ABCDEF"[v & 15]};
     return append_len (tmp, 2);
+  }
+
+  void append_num (float v)
+  { append_num (v, precision); }
+
+  void append_num (float v, unsigned p)
+  {
+    if (p > 12) p = 12;
+
+    float rounded_zero_threshold = 0.5f;
+    for (unsigned i = 0; i < p; i++)
+      rounded_zero_threshold *= 0.1f;
+    if (fabsf (v) < rounded_zero_threshold)
+      v = 0.f;
+
+    if (!(v == v) || !std::isfinite (v))
+    {
+      append_c ('0');
+      return;
+    }
+
+    char fmt[6];
+    snprintf (fmt, sizeof (fmt), "%%.%uf", p);
+    char out[128];
+    snprintf (out, sizeof (out), fmt, (double) v);
+
+    const char *decimal_point = hb_vector_decimal_point_get ();
+
+    if (decimal_point[0] != '.' || decimal_point[1] != '\0')
+    {
+      char *dp = strstr (out, decimal_point);
+      if (dp)
+      {
+	unsigned dp_len = (unsigned) strlen (decimal_point);
+	unsigned tail_len = (unsigned) strlen (dp + dp_len);
+	memmove (dp + 1, dp + dp_len, tail_len + 1);
+	*dp = '.';
+      }
+    }
+
+    char *dot = strchr (out, '.');
+    if (dot)
+    {
+      char *end = out + strlen (out) - 1;
+      while (end > dot && *end == '0')
+	*end-- = '\0';
+      if (end == dot)
+	*end = '\0';
+    }
+
+    append_len (out, (unsigned) strlen (out));
   }
 
   void append_svg_color (hb_color_t color, bool with_alpha)
@@ -224,4 +191,4 @@ struct hb_buf_t : hb_vector_t<char>
   }
 };
 
-#endif /* HB_VECTOR_UTILS_HH */
+#endif /* HB_VECTOR_BUF_HH */
