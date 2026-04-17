@@ -49,6 +49,7 @@ struct hb_vector_paint_t
   bool has_extents = false;
 
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
+  hb_color_t background = HB_COLOR (0, 0, 0, 0);
   int palette = 0;
   hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
   unsigned precision = 2;

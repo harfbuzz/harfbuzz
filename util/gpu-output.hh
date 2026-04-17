@@ -153,7 +153,8 @@ struct gpu_output_t
      * is a user error; prefer paint. */
     draw_only = view.force_paint ? false
 	      : view.force_draw  ? true
-	      : !hb_ot_color_has_paint (face);
+	      : !(hb_ot_color_has_paint (face) ||
+		  hb_ot_color_has_layers (face));
 
     if (use_metal)
       init_metal ();

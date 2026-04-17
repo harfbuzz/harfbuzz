@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-16 -966 1307 1232" width="1307" height="1232">
 <defs>
-
 <clipPath id="c0"><rect x="4096" y="-14336" width="73728" height="73728"/></clipPath>
 <path id="p13" d="M76800,17280C76800,19136 75328,20608 73472,20672C72000,20736 68288,19776 66176,20800C61056,23232 39744,34432 39744,34432C37888,35456 33280,36928 30976,36352L13952,29568C12288,29184 10944,28160 10112,26880C9472,26176 8832,21248 7872,16768C6912,12288 5760,9344 5760,9344C4864,5952 7552,3648 9984,3264C12352,2816 15488,4288 16384,7744L18368,17152C18688,18688 19968,19904 21568,20096L27520,19904L25408,9152C25408,9152 36096,-4544 51136,-7744C56640,-8960 61824,-5504 65792,-5248C67584,-5120 71424,-5504 73088,-6016C74944,-6528 76800,-5184 76800,-3328L76800,17280Z"/>
 <clipPath id="clip-g13"><use href="#p13"/></clipPath>
@@ -37,7 +36,7 @@
 <g clip-path="url(#clip-g13)">
 <g transform="matrix(64,0,0,64,0,0)">
 <g transform="matrix(1,0,0,0.9768066,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="url(#gr0)"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="url(#gr0)"/>
 </g>
 </g>
 </g>
@@ -45,42 +44,42 @@
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g14)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FA0"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#FA0"/>
 </g>
 </g>
 </g>
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g15)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="#EDA600"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#EDA600"/>
 </g>
 </g>
 </g>
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g16)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="#1E88E5"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#1E88E5"/>
 </g>
 </g>
 </g>
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g17)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="#EDA600"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#EDA600"/>
 </g>
 </g>
 </g>
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g16)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="url(#gr1)"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="url(#gr1)"/>
 </g>
 </g>
 </g>
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g18)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="#424242" fill-opacity="0.2"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#424242" fill-opacity="0.2"/>
 </g>
 </g>
 </g>
@@ -88,7 +87,7 @@
 <g clip-path="url(#clip-g19)">
 <g transform="matrix(64,0,0,64,0,0)">
 <g transform="matrix(1,0,0,0.9691162,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="url(#gr2)"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="url(#gr2)"/>
 </g>
 </g>
 </g>
@@ -96,7 +95,7 @@
 <g transform="matrix(0.015625,0,0,0.015625,0,0)">
 <g clip-path="url(#clip-g20)">
 <g transform="matrix(64,0,0,64,0,0)">
-<rect x="-32767" y="-32767" width="65534" height="65534" fill="#EDA600"/>
+<rect x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#EDA600"/>
 </g>
 </g>
 </g>
@@ -104,6 +103,6 @@
 </g>
 </g>
 </defs>
-
+<rect x="-16" y="-966" width="1307" height="1232" fill="rgb(255,255,255)"/>
 <use href="#cg0" transform="translate(0,0) scale(0.015625,-0.015625)"/>
 </svg>

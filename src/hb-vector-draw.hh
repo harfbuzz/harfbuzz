@@ -19,6 +19,8 @@ struct hb_vector_draw_t
   float y_scale_factor = 1.f;
   hb_vector_extents_t extents = {0, 0, 0, 0};
   bool has_extents = false;
+  hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
+  hb_color_t background = HB_COLOR (0, 0, 0, 0);
   unsigned precision = 2;
   hb_vector_t<char> id_prefix;
 
@@ -50,6 +52,56 @@ struct hb_vector_draw_t
       cached_font = hb_font_reference (font);
       cached_serial = serial;
     }
+  }
+
+  void flush_path ()
+  {
+    if (!path.length) return;
+    switch (format)
+    {
+      case HB_VECTOR_FORMAT_PDF:
+	/* Per-glyph fill color. */
+	hb_buf_append_num (&body, hb_color_get_red (foreground) / 255.f, 4);
+	hb_buf_append_c (&body, ' ');
+	hb_buf_append_num (&body, hb_color_get_green (foreground) / 255.f, 4);
+	hb_buf_append_c (&body, ' ');
+	hb_buf_append_num (&body, hb_color_get_blue (foreground) / 255.f, 4);
+	hb_buf_append_str (&body, " rg\n");
+	hb_buf_append_len (&body, path.arrayZ, path.length);
+	hb_buf_append_str (&body, "f\n");
+	break;
+      case HB_VECTOR_FORMAT_SVG:
+      {
+	unsigned r = hb_color_get_red (foreground);
+	unsigned g = hb_color_get_green (foreground);
+	unsigned b = hb_color_get_blue (foreground);
+	unsigned a = hb_color_get_alpha (foreground);
+	hb_buf_append_str (&body, "<g transform=\"scale(1,-1)\">"
+				  "<path d=\"");
+	hb_buf_append_len (&body, path.arrayZ, path.length);
+	hb_buf_append_str (&body, "\"");
+	if (r || g || b || a != 255)
+	{
+	  hb_buf_append_str (&body, " fill=\"rgb(");
+	  hb_buf_append_unsigned (&body, r);
+	  hb_buf_append_c (&body, ',');
+	  hb_buf_append_unsigned (&body, g);
+	  hb_buf_append_c (&body, ',');
+	  hb_buf_append_unsigned (&body, b);
+	  hb_buf_append_str (&body, ")\"");
+	  if (a < 255)
+	  {
+	    hb_buf_append_str (&body, " fill-opacity=\"");
+	    hb_buf_append_num (&body, a / 255.f, 4);
+	    hb_buf_append_c (&body, '"');
+	  }
+	}
+	hb_buf_append_str (&body, "/></g>\n");
+	break;
+      }
+      case HB_VECTOR_FORMAT_INVALID: default: break;
+    }
+    path.shrink (0);
   }
 
   void append_xy (float x, float y)

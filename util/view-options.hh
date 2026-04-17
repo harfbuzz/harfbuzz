@@ -109,9 +109,13 @@ struct view_options_t
     has_background = false;
     if (back && *back)
     {
-      if (!parse_color (back,
-			background_color.r, background_color.g,
-			background_color.b, background_color.a))
+      if (0 == g_ascii_strcasecmp (back, "none"))
+      {
+	background_color = {0, 0, 0, 0};
+      }
+      else if (!parse_color (back,
+			     background_color.r, background_color.g,
+			     background_color.b, background_color.a))
       {
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		     "Invalid background color `%s`", back);

@@ -654,7 +654,7 @@ hb_vector_paint_color (hb_paint_funcs_t *,
                   (unsigned) hb_color_get_alpha (paint->foreground) * hb_color_get_alpha (color) / 255);
 
   auto &body = paint->current_body ();
-  hb_buf_append_str (&body, "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"");
+  hb_buf_append_str (&body, "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"");
   hb_buf_append_color (&body, c, true);
   hb_buf_append_str (&body, "\"/>\n");
 }
@@ -766,7 +766,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "</linearGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
-                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#");
+                     "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
   hb_buf_append_len (&paint->current_body (), pfx, pfx_len);
   hb_buf_append_str (&paint->current_body (), "gr");
   hb_buf_append_unsigned (&paint->current_body (), grad_id);
@@ -831,7 +831,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   hb_buf_append_str (&paint->defs, "</radialGradient>\n");
 
   hb_buf_append_str (&paint->current_body (),
-                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#");
+                     "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
   hb_buf_append_len (&paint->current_body (), pfx, pfx_len);
   hb_buf_append_str (&paint->current_body (), "gr");
   hb_buf_append_unsigned (&paint->current_body (), grad_id);
@@ -863,7 +863,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
   hb_vector_svg_sweep_ctx_t ctx {
-    &paint->current_body (), paint->precision, cx, cy, 32767.f
+    &paint->current_body (), paint->precision, cx, cy, 1000000.f
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),
@@ -1284,6 +1284,41 @@ hb_color_t
 hb_vector_paint_get_foreground (const hb_vector_paint_t *paint)
 {
   return paint->foreground;
+}
+
+/**
+ * hb_vector_paint_set_background:
+ * @paint: a paint context.
+ * @background: background color.
+ *
+ * Sets the background color for @paint.  If set to a non-transparent
+ * value, the renderer emits a filled rectangle covering the extents
+ * behind all glyph content.  Default is transparent (no background).
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_paint_set_background (hb_vector_paint_t *paint,
+                                hb_color_t background)
+{
+  paint->background = background;
+}
+
+/**
+ * hb_vector_paint_get_background:
+ * @paint: a paint context.
+ *
+ * Returns the background color previously set on @paint, or
+ * transparent if none was set.
+ *
+ * Return value: the background color.
+ *
+ * XSince: REPLACEME
+ */
+hb_color_t
+hb_vector_paint_get_background (const hb_vector_paint_t *paint)
+{
+  return paint->background;
 }
 
 /**
@@ -1795,6 +1830,32 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     hb_buf_append_str (&out, "<defs>\n");
     hb_buf_append_len (&out, paint->defs.arrayZ, paint->defs.length);
     hb_buf_append_str (&out, "</defs>\n");
+  }
+
+  if (hb_color_get_alpha (paint->background))
+  {
+    hb_buf_append_str (&out, "<rect x=\"");
+    hb_buf_append_num (&out, paint->extents.x, paint->precision);
+    hb_buf_append_str (&out, "\" y=\"");
+    hb_buf_append_num (&out, paint->extents.y, paint->precision);
+    hb_buf_append_str (&out, "\" width=\"");
+    hb_buf_append_num (&out, paint->extents.width, paint->precision);
+    hb_buf_append_str (&out, "\" height=\"");
+    hb_buf_append_num (&out, paint->extents.height, paint->precision);
+    hb_buf_append_str (&out, "\" fill=\"rgb(");
+    hb_buf_append_unsigned (&out, hb_color_get_red (paint->background));
+    hb_buf_append_c (&out, ',');
+    hb_buf_append_unsigned (&out, hb_color_get_green (paint->background));
+    hb_buf_append_c (&out, ',');
+    hb_buf_append_unsigned (&out, hb_color_get_blue (paint->background));
+    hb_buf_append_str (&out, ")\"");
+    if (hb_color_get_alpha (paint->background) < 255)
+    {
+      hb_buf_append_str (&out, " fill-opacity=\"");
+      hb_buf_append_num (&out, hb_color_get_alpha (paint->background) / 255.f, 4);
+      hb_buf_append_c (&out, '"');
+    }
+    hb_buf_append_str (&out, "/>\n");
   }
 
   hb_vector_svg_paint_append_global_transform_prefix (paint, &out);

@@ -110,6 +110,24 @@ ensure_initialized (hb_raster_paint_t *c)
   /* Root surface */
   hb_raster_image_t *root = c->acquire_surface ();
   if (unlikely (!root)) return;
+
+  if (hb_color_get_alpha (c->background))
+  {
+    uint32_t bg = HB_COLOR (hb_color_get_blue (c->background),
+			    hb_color_get_green (c->background),
+			    hb_color_get_red (c->background),
+			    hb_color_get_alpha (c->background));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+    uint32_t *pixels = (uint32_t *) hb_raster_image_get_buffer (root);
+#pragma GCC diagnostic pop
+    hb_raster_extents_t ext;
+    hb_raster_image_get_extents (root, &ext);
+    unsigned count = ext.width * ext.height;
+    for (unsigned i = 0; i < count; i++)
+      pixels[i] = bg;
+  }
+
   if (unlikely (!c->surface_stack.push_or_fail (root)))
   {
     c->release_surface (root);
@@ -2077,6 +2095,41 @@ hb_color_t
 hb_raster_paint_get_foreground (const hb_raster_paint_t *paint)
 {
   return paint->foreground;
+}
+
+/**
+ * hb_raster_paint_set_background:
+ * @paint: a paint context
+ * @background: the background color
+ *
+ * Sets the background color for @paint.  If set to a non-transparent
+ * value, the rendered image is pre-filled with this color before
+ * glyph content is composited on top.  Default is transparent.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_set_background (hb_raster_paint_t *paint,
+				hb_color_t         background)
+{
+  paint->background = background;
+}
+
+/**
+ * hb_raster_paint_get_background:
+ * @paint: a paint context
+ *
+ * Returns the background color previously set on @paint, or
+ * transparent if none was set.
+ *
+ * Return value: the background color.
+ *
+ * XSince: REPLACEME
+ **/
+hb_color_t
+hb_raster_paint_get_background (const hb_raster_paint_t *paint)
+{
+  return paint->background;
 }
 
 /**

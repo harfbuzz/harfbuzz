@@ -181,6 +181,20 @@ HB_EXTERN unsigned
 hb_vector_draw_get_precision (const hb_vector_draw_t *draw);
 
 HB_EXTERN void
+hb_vector_draw_set_foreground (hb_vector_draw_t *draw,
+                               hb_color_t foreground);
+
+HB_EXTERN hb_color_t
+hb_vector_draw_get_foreground (const hb_vector_draw_t *draw);
+
+HB_EXTERN void
+hb_vector_draw_set_background (hb_vector_draw_t *draw,
+                               hb_color_t background);
+
+HB_EXTERN hb_color_t
+hb_vector_draw_get_background (const hb_vector_draw_t *draw);
+
+HB_EXTERN void
 hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
                                const char *prefix);
 
@@ -263,6 +277,13 @@ hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
 
 HB_EXTERN hb_color_t
 hb_vector_paint_get_foreground (const hb_vector_paint_t *paint);
+
+HB_EXTERN void
+hb_vector_paint_set_background (hb_vector_paint_t *paint,
+                                hb_color_t background);
+
+HB_EXTERN hb_color_t
+hb_vector_paint_get_background (const hb_vector_paint_t *paint);
 
 HB_EXTERN void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
