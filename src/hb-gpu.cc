@@ -340,7 +340,7 @@
  *
  * - coverage: a coverage / alpha value in [0, 1].  For
  *   hb_gpu_draw() this is the returned coverage; for
- *   hb_gpu_paint() it is the alpha of the returned vec4.
+ *   hb_gpu_paint() use the edge coverage out parameter.
  *
  * - brightness: brightness of the color that will end up on
  *   screen for this fragment, in [0, 1], computed as
@@ -359,22 +359,22 @@
  * coverage = hb_gpu_stem_darken (coverage, brightness, ppem);
  * ]|
  *
- * Example — paint path: hb_gpu_paint() returns premultiplied
- * RGBA, and each paint layer has its own color, so compute
- * brightness from the fragment's own straight (un-premultiplied)
- * color rather than any shader uniform.  This gives the right
- * per-layer darkening on a multi-color glyph, and reduces to the
- * draw-path behaviour on a monochrome glyph (whose single
- * synthesized layer's color is the foreground uniform).
+ * Example — paint path: hb_gpu_paint() returns a separate
+ * edge coverage value that tracks the maximum antialiasing
+ * coverage across paint layers.  Apply stem darkening and gamma to this
+ * edge coverage, then scale the premultiplied color to match.
+ * Interior fragments (coverage == 1) are left untouched.
  *
  * |[<!-- language="plain" -->
- * vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
- * if (c.a > 0.0) {
- *   float brightness = dot (c.rgb, vec3 (1.0 / 3.0)) / c.a;
+ * float cov;
+ * vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground, cov);
+ * if (cov > 0.0 && cov < 1.0) {
+ *   float brightness = c.a > 0.0
+ *     ? dot (c.rgb, vec3 (1.0 / 3.0)) / c.a : 0.0;
  *   float ppem = 1.0 / max (fwidth (v_texcoord).x,
  *                            fwidth (v_texcoord).y);
- *   float darkened = hb_gpu_stem_darken (c.a, brightness, ppem);
- *   c *= darkened / c.a;  // keep premultiplied RGB and A in sync
+ *   float adj = hb_gpu_stem_darken (cov, brightness, ppem);
+ *   c *= adj / cov;
  * }
  * ]|
  *
@@ -458,7 +458,8 @@
  * The paint library provides one function:
  *
  * |[<!-- language="plain" -->
- * vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground);
+ * vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground,
+ *                    out float coverage);
  * ]|
  *
  * Parameters:
@@ -476,6 +477,14 @@
  *   foreground-color changes (e.g. a dark-mode toggle) take effect
  *   without re-encoding any glyphs.
  *
+ * - coverage (out): the maximum antialiasing coverage across all
+ *   paint layers.  Fractional values (between 0 and 1) indicate
+ *   antialiased edge pixels; 0 means fully outside, 1 means fully
+ *   inside.  Stem darkening and gamma correction should be applied
+ *   to this value rather than to the returned color, so that
+ *   interior paint colors are unaffected.  See the stem darkening
+ *   notes in the Draw section.
+ *
  * Returns premultiplied RGBA: fully transparent outside the glyph,
  * composited layers inside.  Use (GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
  * blending to composite over a background.
@@ -484,18 +493,30 @@
  *
  * |[<!-- language="plain" -->
  * uniform vec4 u_foreground;
+ * uniform float u_gamma;
+ * uniform float u_stem_darkening;
  * in vec2 v_texcoord;
  * flat in uint v_glyphLoc;
  * out vec4 fragColor;
  *
  * void main () {
- *   fragColor = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground);
+ *   float cov;
+ *   vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground, cov);
+ *   if (cov > 0.0 && cov < 1.0) {
+ *     float adj = cov;
+ *     if (u_stem_darkening > 0.0) {
+ *       float brightness = c.a > 0.0
+ *         ? dot (c.rgb, vec3 (1.0 / 3.0)) / c.a : 0.0;
+ *       adj = hb_gpu_stem_darken (adj, brightness,
+ *         1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
+ *     }
+ *     if (u_gamma != 1.0)
+ *       adj = pow (adj, u_gamma);
+ *     c *= adj / cov;
+ *   }
+ *   fragColor = c;
  * }
  * ]|
- *
- * Stem darkening applies to the paint output the same way it does
- * for draw; the alpha channel of the returned vec4 carries the
- * coverage.  See the Draw section's Stem darkening notes.
  **/
 
 

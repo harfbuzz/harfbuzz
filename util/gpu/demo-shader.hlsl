@@ -43,18 +43,22 @@ float4 ps_main (PSInput input) : SV_Target {
   float cov = hb_gpu_draw (input.texcoord, input.glyphLoc);
   float4 c = float4 (foreground.rgb * foreground.a, foreground.a) * cov;
 #else
-  float4 c = hb_gpu_paint (input.texcoord, input.glyphLoc, foreground);
-#endif
+  float cov;
+  float4 c = hb_gpu_paint (input.texcoord, input.glyphLoc, foreground, cov);
 
-  if (stem_darkening > 0.0 && c.a > 0.0) {
-    float2 fw = fwidth (input.texcoord);
-    float ppem = 1.0 / max (fw.x, fw.y);
-    float brightness = dot (c.rgb, float3 (1.0/3.0, 1.0/3.0, 1.0/3.0)) / c.a;
-    float darkened = hb_gpu_stem_darken (c.a, brightness, ppem);
-    c *= darkened / c.a;
+  if (cov > 0.0 && cov < 1.0) {
+    float adj = cov;
+    if (stem_darkening > 0.0) {
+      float brightness = c.a > 0.0
+        ? dot (c.rgb, float3 (1.0/3.0, 1.0/3.0, 1.0/3.0)) / c.a : 0.0;
+      float2 fw = fwidth (input.texcoord);
+      adj = hb_gpu_stem_darken (adj, brightness,
+        1.0 / max (fw.x, fw.y));
+    }
+    if (gamma != 1.0)
+      adj = pow (adj, gamma);
+    c *= adj / cov;
   }
-
-  if (gamma != 1.0)
-    c.a = pow (c.a, gamma);
+#endif
   return c;
 }

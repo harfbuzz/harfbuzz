@@ -49,17 +49,21 @@ struct VertexOutput {
   let fw = fwidth (in.texcoord);
   let ppem = 1.0 / max (fw.x, fw.y);
 
+  var cov: f32;
   var c = hb_gpu_paint (in.texcoord, in.glyphLoc, u.foreground,
-                        &hb_gpu_atlas);
+                        &hb_gpu_atlas, &cov);
 
-  if (u.stem_darkening > 0.0 && c.a > 0.0) {
-    let brightness = dot (c.rgb, vec3f (1.0 / 3.0)) / c.a;
-    let darkened = hb_gpu_stem_darken (c.a, brightness, ppem);
-    c = c * (darkened / c.a);
-  }
-
-  if (u.gamma != 1.0) {
-    c.a = pow (c.a, u.gamma);
+  if (cov > 0.0 && cov < 1.0) {
+    var adj = cov;
+    if (u.stem_darkening > 0.0) {
+      let brightness = select (0.0,
+        dot (c.rgb, vec3f (1.0 / 3.0)) / c.a, c.a > 0.0);
+      adj = hb_gpu_stem_darken (adj, brightness, ppem);
+    }
+    if (u.gamma != 1.0) {
+      adj = pow (adj, u.gamma);
+    }
+    c = c * (adj / cov);
   }
 
   if (u.debug > 0.0) {
