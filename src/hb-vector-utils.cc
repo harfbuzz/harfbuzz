@@ -27,7 +27,7 @@
 #include "hb.hh"
 
 #include "hb-machinery.hh"
-#include "hb-vector-svg-utils.hh"
+#include "hb-vector-utils.hh"
 
 #include <string.h>
 

@@ -588,20 +588,20 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
       unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
       float sx = paint->x_scale_factor;
       float sy = paint->y_scale_factor;
-      hb_buf_append_str (&body, "q\n");
+      body.append_str ("q\n");
       /* Font and PDF coords are both Y-up; no negation needed. */
-      hb_buf_append_num (&body, xx / sx, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, yx / sy, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, xy / sx, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, yy / sy, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, tx / sx, paint->get_precision ());
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, ty / sy, paint->get_precision ());
-      hb_buf_append_str (&body, " cm\n");
+      body.append_num (xx / sx, sprec);
+      body.append_c (' ');
+      body.append_num (yx / sy, sprec);
+      body.append_c (' ');
+      body.append_num (xy / sx, sprec);
+      body.append_c (' ');
+      body.append_num (yy / sy, sprec);
+      body.append_c (' ');
+      body.append_num (tx / sx);
+      body.append_c (' ');
+      body.append_num (ty / sy);
+      body.append_str (" cm\n");
 
       hb_bool_t ret = true;
       if (fallible)
@@ -614,7 +614,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			     hb_vector_paint_pdf_funcs_get (), paint,
 			     (unsigned) paint->palette,
 			     paint->foreground);
-      hb_buf_append_str (&body, "Q\n");
+      body.append_str ("Q\n");
       return ret;
     }
 
@@ -625,22 +625,22 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	{
 	  unsigned def_id = paint->defined_color_glyphs.get (glyph);
 	  auto &body = paint->current_body ();
-	  hb_buf_append_str (&body, "<use href=\"#");
-	  hb_buf_append_len (&body, paint->id_prefix.arrayZ, paint->id_prefix.length);
-	  hb_buf_append_str (&body, "cg");
-	  hb_buf_append_unsigned (&body, def_id);
-	  hb_buf_append_str (&body, "\" transform=\"");
+	  body.append_str ("<use href=\"#");
+	  body.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	  body.append_str ("cg");
+	  body.append_unsigned (def_id);
+	  body.append_str ("\" transform=\"");
 	  hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
 					    paint->x_scale_factor,
 					    paint->y_scale_factor,
 					    xx, yx, xy, yy, tx, ty);
-	  hb_buf_append_str (&body, "\"/>\n");
+	  body.append_str ("\"/>\n");
 	  return !body.in_error ();
 	}
       }
 
       {
-	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
+	if (unlikely (!paint->group_stack.push_or_fail (hb_buf_t {})))
 	  return false;
 
 	hb_bool_t ret = true;
@@ -669,27 +669,27 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	if (unlikely (!paint->defined_color_glyphs.set (glyph, def_id)))
 	  return false;
 
-	hb_buf_append_str (&paint->defs, "<g id=\"");
-	hb_buf_append_len (&paint->defs, paint->id_prefix.arrayZ, paint->id_prefix.length);
-	hb_buf_append_str (&paint->defs, "cg");
-	hb_buf_append_unsigned (&paint->defs, def_id);
-	hb_buf_append_str (&paint->defs, "\">\n");
+	paint->defs.append_str ("<g id=\"");
+	paint->defs.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	paint->defs.append_str ("cg");
+	paint->defs.append_unsigned (def_id);
+	paint->defs.append_str ("\">\n");
 	hb_buf_append_len (&paint->defs,
 			   paint->captured_scratch.arrayZ,
 			   paint->captured_scratch.length);
-	hb_buf_append_str (&paint->defs, "</g>\n");
+	paint->defs.append_str ("</g>\n");
 
 	auto &body = paint->current_body ();
-	hb_buf_append_str (&body, "<use href=\"#");
-	hb_buf_append_len (&body, paint->id_prefix.arrayZ, paint->id_prefix.length);
-	hb_buf_append_str (&body, "cg");
-	hb_buf_append_unsigned (&body, def_id);
-	hb_buf_append_str (&body, "\" transform=\"");
+	body.append_str ("<use href=\"#");
+	body.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	body.append_str ("cg");
+	body.append_unsigned (def_id);
+	body.append_str ("\" transform=\"");
 	hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
 					  paint->x_scale_factor,
 					  paint->y_scale_factor,
 					  xx, yx, xy, yy, tx, ty);
-	hb_buf_append_str (&body, "\"/>\n");
+	body.append_str ("\"/>\n");
 	return !paint->defs.in_error () && !body.in_error ();
       }
     }
@@ -777,7 +777,7 @@ hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
 {
   paint->id_prefix.resize (0);
   if (prefix)
-    hb_buf_append_str (&paint->id_prefix, prefix);
+    paint->id_prefix.append_str (prefix);
 }
 
 /**
@@ -799,7 +799,7 @@ hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
   if (!paint->id_prefix.length) return "";
   /* id_prefix is appended via hb_buf_append_str which does NOT
    * NUL-terminate; ensure a trailing NUL. */
-  const_cast<hb_vector_t<char> &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
+  const_cast<hb_buf_t &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
   paint->id_prefix.arrayZ[paint->id_prefix.length] = '\0';
   return paint->id_prefix.arrayZ;
 }

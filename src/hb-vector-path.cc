@@ -29,7 +29,7 @@
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 #include "hb-vector-path.hh"
-#include "hb-vector-svg-utils.hh"
+#include "hb-vector-utils.hh"
 #include "hb-vector-svg.hh"
 
 

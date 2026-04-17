@@ -8,7 +8,7 @@
 #include "hb-machinery.hh"
 #include "hb-map.hh"
 #include "hb-vector-path.hh"
-#include "hb-vector-svg-utils.hh"
+#include "hb-vector-utils.hh"
 #include "hb-vector-svg.hh"
 
 
@@ -27,11 +27,11 @@ struct hb_vector_paint_t
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
   int palette = 0;
   hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
-  hb_vector_t<char> id_prefix;
+  hb_buf_t id_prefix;
 
   hb_buf_t defs;
   hb_buf_t path;
-  hb_vector_t<hb_vector_t<char>> group_stack;
+  hb_vector_t<hb_buf_t> group_stack;
   uint64_t transform_group_open_mask = 0;
   unsigned transform_group_depth = 0;
   unsigned transform_group_overflow_depth = 0;
@@ -47,7 +47,7 @@ struct hb_vector_paint_t
   hb_set_t *active_color_glyphs = nullptr;
   hb_hashmap_t<hb_codepoint_t, unsigned> defined_color_glyphs;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
-  hb_vector_t<char> captured_scratch;
+  hb_buf_t captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
 
   hb_font_t *cached_font = nullptr;
@@ -84,7 +84,7 @@ struct hb_vector_paint_t
     }
   }
 
-  hb_vector_t<char> &current_body () { return group_stack.tail (); }
+  hb_buf_t &current_body () { return group_stack.tail (); }
 
   void set_precision (unsigned p)
   {

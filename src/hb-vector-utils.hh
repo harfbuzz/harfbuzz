@@ -24,8 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_VECTOR_SVG_UTILS_HH
-#define HB_VECTOR_SVG_UTILS_HH
+#ifndef HB_VECTOR_UTILS_HH
+#define HB_VECTOR_UTILS_HH
 
 #include "hb.hh"
 #include "hb-vector.hh"
@@ -130,8 +130,11 @@ struct hb_buf_t : hb_vector_t<char>
 {
   unsigned precision = 2;
 
-  void append_num (float v, bool keep_nonzero = false)
-  { hb_buf_append_num (this, v, precision, keep_nonzero); }
+  void append_num (float v)
+  { hb_buf_append_num (this, v, precision); }
+
+  void append_num (float v, unsigned p)
+  { hb_buf_append_num (this, v, p); }
 
   bool append_c (char ch)
   { return push_or_fail (ch); }
@@ -150,4 +153,4 @@ struct hb_buf_t : hb_vector_t<char>
   }
 };
 
-#endif /* HB_VECTOR_SVG_UTILS_HH */
+#endif /* HB_VECTOR_UTILS_HH */

@@ -327,21 +327,21 @@ hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
     hb_buf_append_c (out, ',');
     hb_buf_append_num (out, -ty / y_scale_factor, precision);
     hb_buf_append_str (out, ") scale(");
-    hb_buf_append_num (out, sx, sprec, true);
+    hb_buf_append_num (out, sx, sprec);
     hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -sy, sprec, true);
+    hb_buf_append_num (out, -sy, sprec);
     hb_buf_append_c (out, ')');
   }
   else
   {
     hb_buf_append_str (out, "matrix(");
-    hb_buf_append_num (out, xx / x_scale_factor, sprec, true);
+    hb_buf_append_num (out, xx / x_scale_factor, sprec);
     hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, yx / y_scale_factor, sprec, true);
+    hb_buf_append_num (out, yx / y_scale_factor, sprec);
     hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -xy / x_scale_factor, sprec, true);
+    hb_buf_append_num (out, -xy / x_scale_factor, sprec);
     hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -yy / y_scale_factor, sprec, true);
+    hb_buf_append_num (out, -yy / y_scale_factor, sprec);
     hb_buf_append_c (out, ',');
     hb_buf_append_num (out, tx / x_scale_factor, precision);
     hb_buf_append_c (out, ',');
