@@ -524,115 +524,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     return true;
   }
 
-  void emit_fill_group_open ()
-  {
-    const bool has_fill_override = fore || foreground_use_palette;
-    const bool has_stroke = stroke_enabled && stroke_width > 0.;
-    if (!has_fill_override && !has_stroke)
-      return;
-
-    fputs ("<g", out_fp);
-
-    if (has_fill_override)
-    {
-      unsigned r = hb_color_get_red (foreground);
-      unsigned g = hb_color_get_green (foreground);
-      unsigned b = hb_color_get_blue (foreground);
-      unsigned a = hb_color_get_alpha (foreground);
-      fprintf (out_fp, " fill=\"#%02X%02X%02X\"", r, g, b);
-      if (a != 255)
-        fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
-    }
-    else
-      fputs (" fill=\"none\"", out_fp);
-
-    if (has_stroke)
-      emit_stroke_attrs ();
-
-    fprintf (out_fp, ">\n");
-  }
-
-  void emit_fill_group_close ()
-  {
-    if (!(fore || foreground_use_palette || (stroke_enabled && stroke_width > 0.)))
-      return;
-    fputs ("</g>\n", out_fp);
-  }
-
-  void emit_fill_stroke_attrs_for_color (hb_color_t color)
-  {
-    unsigned r = hb_color_get_red (color);
-    unsigned g = hb_color_get_green (color);
-    unsigned b = hb_color_get_blue (color);
-    unsigned a = hb_color_get_alpha (color);
-    fprintf (out_fp, " fill=\"#%02X%02X%02X\"", r, g, b);
-    if (a != 255)
-      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
-
-  }
-
-  void emit_draw_body_with_palette (slice_t body)
-  {
-    if (!foreground_palette || !foreground_palette->len || !body.p || !body.len)
-      return;
-
-    const char *p = body.p;
-    const char *end = body.p + body.len;
-    unsigned palette_i = 0;
-    const bool has_stroke = stroke_enabled && stroke_width > 0.;
-    if (has_stroke)
-    {
-      fputs ("<g", out_fp);
-      emit_stroke_attrs ();
-      fputs (">\n", out_fp);
-    }
-    while (p < end)
-    {
-      const char *line_end = (const char *) memchr (p, '\n', (size_t) (end - p));
-      if (!line_end)
-        line_end = end;
-
-      const char *s = p;
-      while (s < line_end && (*s == ' ' || *s == '\t' || *s == '\r'))
-        s++;
-      bool is_elem = s < line_end && *s == '<' && (s + 1 < line_end && s[1] != '/');
-
-      if (is_elem)
-      {
-        const rgba_color_t &c =
-          g_array_index (foreground_palette, rgba_color_t,
-                         palette_i++ % foreground_palette->len);
-        hb_color_t col = HB_COLOR (c.b, c.g, c.r, c.a);
-        fputs ("<g", out_fp);
-        emit_fill_stroke_attrs_for_color (col);
-        fputs (">", out_fp);
-        fwrite (p, 1, (size_t) (line_end - p), out_fp);
-        fputs ("</g>\n", out_fp);
-      }
-      else
-      {
-        fwrite (p, 1, (size_t) (line_end - p), out_fp);
-        fputc ('\n', out_fp);
-      }
-
-      p = line_end;
-      if (p < end && *p == '\n')
-        p++;
-    }
-    if (has_stroke)
-      fputs ("</g>\n", out_fp);
-  }
-
-  void emit_stroke_attrs ()
-  {
-    fprintf (out_fp, " stroke=\"#%02X%02X%02X\"",
-             stroke_color.r, stroke_color.g, stroke_color.b);
-    if (stroke_color.a != 255)
-      fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
-    fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
-             precision + 4, normalized_stroke_width);
-  }
-
   double get_normalized_stroke_width () const
   {
     if (stroke_width <= 0.)
@@ -846,13 +737,15 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (!in_data || !in_len)
       return;
 
-    /* PDF blobs are self-contained; write directly. */
-    if (in_len > 5 && memcmp (in_data, "%PDF-", 5) == 0)
+    /* Draw blobs and PDF are self-contained; write directly. */
+    if (is_draw_blob ||
+        (in_len > 5 && memcmp (in_data, "%PDF-", 5) == 0))
     {
       fwrite (in_data, 1, in_len, out_fp);
       return;
     }
 
+    /* Paint SVG: resolve var(--hb-...) CSS variables. */
     const char *hdr_end = (const char *) memchr (in_data, '>', in_len);
     if (!hdr_end)
       return;
@@ -871,16 +764,8 @@ struct vector_output_t : output_options_t<>, view_options_t
       fputs ("</defs>\n", out_fp);
     }
 
-    if (is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len)
-      emit_draw_body_with_palette (body);
-    else if (is_draw_blob)
-      emit_fill_group_open ();
-
-    if (body.len && !(is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len))
+    if (body.len)
       write_slice_resolving_palette_vars (body);
-
-    if (is_draw_blob && !(foreground_use_palette && foreground_palette && foreground_palette->len))
-      emit_fill_group_close ();
 
     fputs ("</svg>\n", out_fp);
   }
