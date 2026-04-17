@@ -45,7 +45,7 @@ hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb
       paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
     return;
 
-  unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
+  unsigned sprec = paint->defs.scale_precision ();
   buf->append_str ("<g transform=\"matrix(");
   buf->append_num (paint->transform.xx, sprec);
   buf->append_c (',');
@@ -439,7 +439,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
-  unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
+  unsigned sprec = paint->defs.scale_precision ();
   body.append_str ("<g transform=\"matrix(");
   body.append_num (xx, sprec);
   body.append_c (',');

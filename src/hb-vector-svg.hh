@@ -210,7 +210,7 @@ hb_vector_svg_append_instance_transform (hb_buf_t *out,
                                   float xy, float yy,
                                   float tx, float ty)
 {
-  unsigned sprec = hb_vector_scale_precision (precision);
+  unsigned sprec = out->scale_precision ();
   if (xx == 1.f && yx == 0.f && xy == 0.f && yy == 1.f)
   {
     float sx = 1.f / x_scale_factor;

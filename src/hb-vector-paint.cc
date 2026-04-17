@@ -585,7 +585,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
        * operators (emitted raw in input space) land in
        * pixel space, matching the MediaBox. */
       auto &body = paint->current_body ();
-      unsigned sprec = hb_vector_scale_precision (paint->get_precision ());
+      unsigned sprec = paint->defs.scale_precision ();
       float sx = paint->x_scale_factor;
       float sy = paint->y_scale_factor;
       body.append_str ("q\n");

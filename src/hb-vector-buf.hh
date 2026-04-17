@@ -36,15 +36,12 @@
 HB_INTERNAL const char *
 hb_vector_decimal_point_get (void);
 
-static inline unsigned
-hb_vector_scale_precision (unsigned precision)
-{
-  return precision < 7 ? 7 : precision;
-}
-
 struct hb_buf_t : hb_vector_t<char>
 {
   unsigned precision = 2;
+
+  unsigned scale_precision () const
+  { return precision < 7 ? 7 : precision; }
 
   bool append_len (const char *s, unsigned l)
   {
