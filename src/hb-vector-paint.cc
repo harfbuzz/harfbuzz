@@ -606,12 +606,12 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	ret = hb_font_paint_glyph_or_fail (font, glyph,
 					   hb_vector_paint_pdf_funcs_get (), paint,
 					   (unsigned) paint->palette,
-					   paint->foreground);
+					   HB_COLOR (hb_color_get_blue (paint->foreground), hb_color_get_green (paint->foreground), hb_color_get_red (paint->foreground), 255));
       else
 	hb_font_paint_glyph (font, glyph,
 			     hb_vector_paint_pdf_funcs_get (), paint,
 			     (unsigned) paint->palette,
-			     paint->foreground);
+			     HB_COLOR (hb_color_get_blue (paint->foreground), hb_color_get_green (paint->foreground), hb_color_get_red (paint->foreground), 255));
       body.append_str ("Q\n");
       return ret;
     }
@@ -646,12 +646,12 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	  ret = hb_font_paint_glyph_or_fail (font, glyph,
 					     hb_vector_paint_get_funcs (paint), paint,
 					     (unsigned) paint->palette,
-					     paint->foreground);
+					     HB_COLOR (hb_color_get_blue (paint->foreground), hb_color_get_green (paint->foreground), hb_color_get_red (paint->foreground), 255));
 	else
 	  hb_font_paint_glyph (font, glyph,
 			       hb_vector_paint_get_funcs (paint), paint,
 			       (unsigned) paint->palette,
-			       paint->foreground);
+			       HB_COLOR (hb_color_get_blue (paint->foreground), hb_color_get_green (paint->foreground), hb_color_get_red (paint->foreground), 255));
 	if (unlikely (!ret))
 	{
 	  paint->group_stack.pop ();

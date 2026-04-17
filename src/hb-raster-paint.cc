@@ -2252,11 +2252,11 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
   if (fallible)
     ret = hb_font_paint_glyph_or_fail (font, glyph,
 				       hb_raster_paint_get_funcs (paint), paint,
-				       paint->palette, paint->foreground);
+				       paint->palette, HB_COLOR (hb_color_get_blue (paint->foreground), hb_color_get_green (paint->foreground), hb_color_get_red (paint->foreground), 255));
   else
     hb_font_paint_glyph (font, glyph,
 			 hb_raster_paint_get_funcs (paint), paint,
-			 paint->palette, paint->foreground);
+			 paint->palette, HB_COLOR (hb_color_get_blue (paint->foreground), hb_color_get_green (paint->foreground), hb_color_get_red (paint->foreground), 255));
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
   return ret;
 }
