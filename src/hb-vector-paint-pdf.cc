@@ -530,7 +530,7 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
   body.append_str (" rg\n");
 
   /* Paint a huge rect (will be clipped). */
-  body.append_str ("-1000000 -1000000 2000000 2000000 re f\n");
+  body.append_str ("-32767 -32767 65534 65534 re f\n");
 }
 
 static void
@@ -1233,7 +1233,7 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
 			float a0, hb_color_t c0_in,
 			float a1, hb_color_t c1_in)
 {
-  const float R = 1000000.f;
+  const float R = 32767.f;
   const float eps = 0.5f;
   const float MAX_SECTOR = (float) M_PI / 2.f;
 
@@ -1379,7 +1379,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  const float R = 1000000.f;
+  const float R = 32767.f;
   float xlo = cx - R - 1, xhi = cx + R + 1;
   float ylo = cy - R - 1, yhi = cy + R + 1;
 

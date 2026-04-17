@@ -431,7 +431,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   hb_bool_t opened =
     !(fabsf (xx - 1.f) < 1e-6f && fabsf (yx) < 1e-6f &&
       fabsf (xy) < 1e-6f && fabsf (yy - 1.f) < 1e-6f &&
-      fabsf (dx) < 1e-6f && fabsf (dy) < 1e-6f);
+      fabsf (paint->sx (dx)) < 1e-6f && fabsf (paint->sy (dy)) < 1e-6f);
   paint->transform_group_open_mask = (paint->transform_group_open_mask << 1) | (opened ? 1ull : 0ull);
   paint->transform_group_depth++;
 
@@ -449,9 +449,9 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (',');
   body.append_num (yy, sprec);
   body.append_c (',');
-  body.append_num (dx);
+  body.append_num (paint->sx (dx));
   body.append_c (',');
-  body.append_num (dy);
+  body.append_num (paint->sy (dy));
   body.append_str (")\">\n");
 }
 
@@ -495,7 +495,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (), 1.f, 1.f};
+    hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
+				 paint->x_scale_factor, paint->y_scale_factor};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     paint->defs.append_str ("<path id=\"");
     paint->defs.append_len (pfx, pfx_len);
@@ -546,13 +547,13 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   paint->defs.append_c ('c');
   paint->defs.append_unsigned (clip_id);
   paint->defs.append_str ("\"><rect x=\"");
-  paint->defs.append_num (xmin);
+  paint->defs.append_num (paint->sx (xmin));
   paint->defs.append_str ("\" y=\"");
-  paint->defs.append_num (ymin);
+  paint->defs.append_num (paint->sy (ymin));
   paint->defs.append_str ("\" width=\"");
-  paint->defs.append_num (xmax - xmin);
+  paint->defs.append_num (paint->sx (xmax - xmin));
   paint->defs.append_str ("\" height=\"");
-  paint->defs.append_num (ymax - ymin);
+  paint->defs.append_num (paint->sy (ymax - ymin));
   paint->defs.append_str ("\"/></clipPath>\n");
 
   paint->current_body ().append_str ("<g clip-path=\"url(#");
@@ -647,7 +648,7 @@ hb_vector_paint_color (hb_paint_funcs_t *,
                   (unsigned) hb_color_get_alpha (paint->foreground) * hb_color_get_alpha (color) / 255);
 
   auto &body = paint->current_body ();
-  body.append_str ("<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"");
+  body.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"");
   body.append_svg_color (c, true);
   body.append_str ("\"/>\n");
 }
@@ -679,13 +680,13 @@ hb_vector_paint_image (hb_paint_funcs_t *,
       return false;
 
     body.append_str ("<g transform=\"translate(");
-    body.append_num ((float) extents->x_bearing);
+    body.append_num (paint->sx ((float) extents->x_bearing));
     body.append_c (',');
-    body.append_num ((float) extents->y_bearing);
+    body.append_num (paint->sy ((float) extents->y_bearing));
     body.append_str (") scale(");
-    body.append_num ((float) extents->width / width);
+    body.append_num (paint->sx ((float) extents->width) / width);
     body.append_c (',');
-    body.append_num ((float) extents->height / height);
+    body.append_num (paint->sy ((float) extents->height) / height);
     body.append_str (")\">\n");
 
     body.append_str ("<image href=\"data:image/png;base64,");
@@ -745,13 +746,13 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   paint->defs.append_str ("gr");
   paint->defs.append_unsigned (grad_id);
   paint->defs.append_str ("\" gradientUnits=\"userSpaceOnUse\" x1=\"");
-  paint->defs.append_num (gx0);
+  paint->defs.append_num (paint->sx (gx0));
   paint->defs.append_str ("\" y1=\"");
-  paint->defs.append_num (gy0);
+  paint->defs.append_num (paint->sy (gy0));
   paint->defs.append_str ("\" x2=\"");
-  paint->defs.append_num (gx1);
+  paint->defs.append_num (paint->sx (gx1));
   paint->defs.append_str ("\" y2=\"");
-  paint->defs.append_num (gy1);
+  paint->defs.append_num (paint->sy (gy1));
   paint->defs.append_str ("\" spreadMethod=\"");
   paint->defs.append_str (hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   paint->defs.append_str ("\">\n");
@@ -759,7 +760,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   paint->defs.append_str ("</linearGradient>\n");
 
   paint->current_body ().append_str (
-                     "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
+                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("gr");
   paint->current_body ().append_unsigned (grad_id);
@@ -803,19 +804,19 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   paint->defs.append_str ("gr");
   paint->defs.append_unsigned (grad_id);
   paint->defs.append_str ("\" gradientUnits=\"userSpaceOnUse\" cx=\"");
-  paint->defs.append_num (gx1);
+  paint->defs.append_num (paint->sx (gx1));
   paint->defs.append_str ("\" cy=\"");
-  paint->defs.append_num (gy1);
+  paint->defs.append_num (paint->sy (gy1));
   paint->defs.append_str ("\" r=\"");
-  paint->defs.append_num (gr1);
+  paint->defs.append_num (paint->sx (gr1));
   paint->defs.append_str ("\" fx=\"");
-  paint->defs.append_num (gx0);
+  paint->defs.append_num (paint->sx (gx0));
   paint->defs.append_str ("\" fy=\"");
-  paint->defs.append_num (gy0);
+  paint->defs.append_num (paint->sy (gy0));
   if (gr0 > 0)
   {
     paint->defs.append_str ("\" fr=\"");
-    paint->defs.append_num (gr0);
+    paint->defs.append_num (paint->sx (gr0));
   }
   paint->defs.append_str ("\" spreadMethod=\"");
   paint->defs.append_str (hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
@@ -824,7 +825,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   paint->defs.append_str ("</radialGradient>\n");
 
   paint->current_body ().append_str (
-                     "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
+                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("gr");
   paint->current_body ().append_unsigned (grad_id);
@@ -856,7 +857,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
   hb_vector_svg_sweep_ctx_t ctx {
-    &paint->current_body (), paint->get_precision (), cx, cy, 1000000.f
+    &paint->current_body (), paint->get_precision (), paint->sx (cx), paint->sy (cy), 32767.f
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),

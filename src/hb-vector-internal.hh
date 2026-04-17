@@ -210,31 +210,25 @@ hb_vector_svg_append_instance_transform (hb_vector_buf_t *out,
                                   float xy, float yy,
                                   float tx, float ty)
 {
-  unsigned sprec = out->scale_precision ();
   if (xx == 1.f && yx == 0.f && xy == 0.f && yy == 1.f)
   {
-    float sx = 1.f / x_scale_factor;
-    float sy = 1.f / y_scale_factor;
     out->append_str ("translate(");
     out->append_num (tx / x_scale_factor, precision);
     out->append_c (',');
     out->append_num (-ty / y_scale_factor, precision);
-    out->append_str (") scale(");
-    out->append_num (sx, sprec);
-    out->append_c (',');
-    out->append_num (-sy, sprec);
-    out->append_c (')');
+    out->append_str (") scale(1,-1)");
   }
   else
   {
+    unsigned sprec = out->scale_precision ();
     out->append_str ("matrix(");
-    out->append_num (xx / x_scale_factor, sprec);
+    out->append_num (xx, sprec);
     out->append_c (',');
-    out->append_num (yx / y_scale_factor, sprec);
+    out->append_num (yx, sprec);
     out->append_c (',');
-    out->append_num (-xy / x_scale_factor, sprec);
+    out->append_num (-xy, sprec);
     out->append_c (',');
-    out->append_num (-yy / y_scale_factor, sprec);
+    out->append_num (-yy, sprec);
     out->append_c (',');
     out->append_num (tx / x_scale_factor, precision);
     out->append_c (',');

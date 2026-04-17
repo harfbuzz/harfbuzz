@@ -86,6 +86,9 @@ struct hb_vector_paint_t
 
   hb_vector_buf_t &current_body () { return group_stack.tail (); }
 
+  float sx (float v) const { return v / x_scale_factor; }
+  float sy (float v) const { return v / y_scale_factor; }
+
   void set_precision (unsigned p)
   {
     p = hb_min (p, 12u);

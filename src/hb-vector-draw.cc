@@ -557,7 +557,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       if (!hb_set_has (draw->defined_glyphs, glyph))
       {
 	draw->path.clear ();
-	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (), 1.f, 1.f};
+	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (),
+				     draw->x_scale_factor, draw->y_scale_factor};
 	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;
