@@ -40,10 +40,10 @@ fn _hb_gpu_stop_color (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
 {
   let a = hb_gpu_fetch (hb_gpu_atlas, stops_base + i * 2);
   *offset = f32 (a.r) / 32767.0;
-  if ((a.g & 1) != 0) {
-    return foreground;
-  }
   let b = hb_gpu_fetch (hb_gpu_atlas, stops_base + i * 2 + 1);
+  if ((a.g & 1) != 0) {
+    return vec4f (foreground.rgb, foreground.a * (f32 (b.a) / 32767.0));
+  }
   return vec4f (b) / 32767.0;
 }
 
@@ -74,7 +74,11 @@ fn _hb_gpu_eval_stops (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
       let span = off - off_prev;
       var f: f32 = 0.0;
       if (span > 1e-6) { f = (t - off_prev) / span; }
-      return mix (col_prev, col, f);
+      let p0 = vec4f (col_prev.rgb * col_prev.a, col_prev.a);
+      let p1 = vec4f (col.rgb * col.a, col.a);
+      let pm = mix (p0, p1, f);
+      if (pm.a > 1e-6) { return vec4f (pm.rgb / pm.a, pm.a); }
+      return vec4f (0.0);
     }
     col_prev = col;
     off_prev = off;
@@ -292,7 +296,7 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
       let ct = hb_gpu_fetch (hb_gpu_atlas, cursor + 2);
       var col: vec4f;
       if ((aux & 1) != 0) {
-        col = foreground;
+        col = vec4f (foreground.rgb, foreground.a * (f32 (ct.a) / 32767.0));
       } else {
         col = vec4f (ct) / 32767.0;
       }

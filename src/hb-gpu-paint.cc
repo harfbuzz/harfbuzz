@@ -1276,12 +1276,15 @@ hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
   return hb_font_paint_glyph_or_fail (font, glyph,
 				      hb_gpu_paint_get_funcs (paint), paint,
 				      paint->palette,
-				      /* Foreground value is never read
-				       * from our encoded blob -- the
+				      /* Foreground RGB is not read from
+				       * the encoded blob -- the
 				       * is_foreground flag routes to the
-				       * shader's foreground uniform at
-				       * render time -- so any sentinel
-				       * works here. */
+				       * shader's foreground uniform.
+				       * Alpha must be opaque so the
+				       * baked color carries only the
+				       * paint-tree alpha (which the
+				       * shader applies on top of the
+				       * uniform). */
 				      HB_COLOR (0, 0, 0, 0xff));
 }
 

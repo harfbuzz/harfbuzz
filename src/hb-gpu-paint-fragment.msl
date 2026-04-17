@@ -38,9 +38,9 @@ static float4 _hb_gpu_stop_color (device const short4* hb_gpu_atlas,
 {
   int4 a = int4 (hb_gpu_atlas[stops_base + i * 2]);
   offset = float (a.r) / 32767.0;
-  if ((a.g & 1) != 0)
-    return foreground;
   int4 b = int4 (hb_gpu_atlas[stops_base + i * 2 + 1]);
+  if ((a.g & 1) != 0)
+    return float4 (foreground.rgb, foreground.a * (float (b.a) / 32767.0));
   return float4 (b) / 32767.0;
 }
 
@@ -69,7 +69,10 @@ static float4 _hb_gpu_eval_stops (device const short4* hb_gpu_atlas,
     {
       float span = off - off_prev;
       float f = span > 1e-6 ? (t - off_prev) / span : 0.0;
-      return mix (col_prev, col, f);
+      float4 p0 = float4 (col_prev.rgb * col_prev.a, col_prev.a);
+      float4 p1 = float4 (col.rgb * col.a, col.a);
+      float4 pm = mix (p0, p1, f);
+      return pm.a > 1e-6 ? float4 (pm.rgb / pm.a, pm.a) : float4 (0.0);
     }
     col_prev = col;
     off_prev = off;
@@ -291,7 +294,7 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground,
       int clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
       int4 ct = int4 (hb_gpu_atlas[cursor + 2]);
       float4 col = ((aux & 1) != 0)
-		 ? foreground
+		 ? float4 (foreground.rgb, foreground.a * (float (ct.a) / 32767.0))
 		 : float4 (ct) / 32767.0;
 
       float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,

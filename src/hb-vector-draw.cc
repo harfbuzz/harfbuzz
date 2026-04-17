@@ -33,7 +33,7 @@
 #include <string.h>
 
 HB_UNUSED static inline bool
-hb_vector_svg_buffer_contains (const hb_vector_t<char> &buf, const char *needle)
+hb_vector_svg_buffer_contains (const hb_vector_buf_t &buf, const char *needle)
 {
   unsigned nlen = (unsigned) strlen (needle);
   if (!nlen || buf.length < nlen)
@@ -49,36 +49,36 @@ hb_vector_svg_buffer_contains (const hb_vector_t<char> &buf, const char *needle)
 /* ---- SVG draw callbacks ---- */
 
 static void hb_vector_draw_svg_move_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; hb_buf_append_c (&d->path, 'M'); d->append_xy_svg (x, y); }
+{ auto *d = (hb_vector_draw_t *) dd; d->path.append_c ('M'); d->append_xy_svg (x, y); }
 
 static void hb_vector_draw_svg_line_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; hb_buf_append_c (&d->path, 'L'); d->append_xy_svg (x, y); }
+{ auto *d = (hb_vector_draw_t *) dd; d->path.append_c ('L'); d->append_xy_svg (x, y); }
 
 static void hb_vector_draw_svg_quadratic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float cx, float cy, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; hb_buf_append_c (&d->path, 'Q'); d->append_xy_svg (cx, cy); hb_buf_append_c (&d->path, ' '); d->append_xy_svg (x, y); }
+{ auto *d = (hb_vector_draw_t *) dd; d->path.append_c ('Q'); d->append_xy_svg (cx, cy); d->path.append_c (' '); d->append_xy_svg (x, y); }
 
 static void hb_vector_draw_svg_cubic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float c1x, float c1y, float c2x, float c2y, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; hb_buf_append_c (&d->path, 'C'); d->append_xy_svg (c1x, c1y); hb_buf_append_c (&d->path, ' '); d->append_xy_svg (c2x, c2y); hb_buf_append_c (&d->path, ' '); d->append_xy_svg (x, y); }
+{ auto *d = (hb_vector_draw_t *) dd; d->path.append_c ('C'); d->append_xy_svg (c1x, c1y); d->path.append_c (' '); d->append_xy_svg (c2x, c2y); d->path.append_c (' '); d->append_xy_svg (x, y); }
 
 static void hb_vector_draw_svg_close_path (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, void *)
-{ hb_buf_append_c (&((hb_vector_draw_t *) dd)->path, 'Z'); }
+{ ((hb_vector_draw_t *) dd)->path.append_c ('Z'); }
 
 
 /* ---- PDF draw callbacks ---- */
 
 static void hb_vector_draw_pdf_move_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; d->append_xy_pdf (x, y); hb_buf_append_str (&d->path, " m\n"); }
+{ auto *d = (hb_vector_draw_t *) dd; d->append_xy_pdf (x, y); d->path.append_str (" m\n"); }
 
 static void hb_vector_draw_pdf_line_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; d->append_xy_pdf (x, y); hb_buf_append_str (&d->path, " l\n"); }
+{ auto *d = (hb_vector_draw_t *) dd; d->append_xy_pdf (x, y); d->path.append_str (" l\n"); }
 
 /* No quadratic_to — null fallback auto-promotes to cubic. */
 
 static void hb_vector_draw_pdf_cubic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float c1x, float c1y, float c2x, float c2y, float x, float y, void *)
-{ auto *d = (hb_vector_draw_t *) dd; d->append_xy_pdf (c1x, c1y); hb_buf_append_c (&d->path, ' '); d->append_xy_pdf (c2x, c2y); hb_buf_append_c (&d->path, ' '); d->append_xy_pdf (x, y); hb_buf_append_str (&d->path, " c\n"); }
+{ auto *d = (hb_vector_draw_t *) dd; d->append_xy_pdf (c1x, c1y); d->path.append_c (' '); d->append_xy_pdf (c2x, c2y); d->path.append_c (' '); d->append_xy_pdf (x, y); d->path.append_str (" c\n"); }
 
 static void hb_vector_draw_pdf_close_path (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, void *)
-{ hb_buf_append_str (&((hb_vector_draw_t *) dd)->path, "h\n"); }
+{ ((hb_vector_draw_t *) dd)->path.append_str ("h\n"); }
 
 
 /* ---- Lazy loaders ---- */
@@ -557,17 +557,18 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       if (!hb_set_has (draw->defined_glyphs, glyph))
       {
 	draw->path.clear ();
-	hb_vector_path_sink_t sink = {&draw->path, draw->precision, 1.f, 1.f};
+	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (),
+				     draw->x_scale_factor, draw->y_scale_factor};
 	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;
-	hb_buf_append_str (&draw->defs, "<path id=\"");
-	hb_buf_append_len (&draw->defs, draw->id_prefix.arrayZ, draw->id_prefix.length);
-	hb_buf_append_c  (&draw->defs, 'p');
-	hb_buf_append_unsigned (&draw->defs, glyph);
-	hb_buf_append_str (&draw->defs, "\" d=\"");
-	hb_buf_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
-	hb_buf_append_str (&draw->defs, "\"/>\n");
+	draw->defs.append_str ("<path id=\"");
+	draw->defs.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
+	draw->defs.append_c ('p');
+	draw->defs.append_unsigned (glyph);
+	draw->defs.append_str ("\" d=\"");
+	draw->defs.append_len (draw->path.arrayZ, draw->path.length);
+	draw->defs.append_str ("\"/>\n");
 	hb_set_add (draw->defined_glyphs, glyph);
 	/* Clear so any subsequent free-form draw ops on this
 	 * context start with an empty scratch. */
@@ -581,17 +582,17 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
       float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
 
-      hb_buf_append_str (&draw->body, "<use href=\"#");
-      hb_buf_append_len (&draw->body, draw->id_prefix.arrayZ, draw->id_prefix.length);
-      hb_buf_append_c  (&draw->body, 'p');
-      hb_buf_append_unsigned (&draw->body, glyph);
-      hb_buf_append_str (&draw->body, "\" transform=\"");
+      draw->body.append_str ("<use href=\"#");
+      draw->body.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
+      draw->body.append_c ('p');
+      draw->body.append_unsigned (glyph);
+      draw->body.append_str ("\" transform=\"");
       hb_vector_svg_append_instance_transform (&draw->body,
-					draw->precision,
+					draw->get_precision (),
 					draw->x_scale_factor,
 					draw->y_scale_factor,
 					xx, yx, xy, yy, tx, ty);
-      hb_buf_append_str (&draw->body, "\"");
+      draw->body.append_str ("\"");
       /* Per-glyph fill from current foreground. */
       {
 	unsigned r = hb_color_get_red (draw->foreground);
@@ -600,22 +601,22 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 	unsigned a = hb_color_get_alpha (draw->foreground);
 	if (r || g || b || a != 255)
 	{
-	  hb_buf_append_str (&draw->body, " fill=\"rgb(");
-	  hb_buf_append_unsigned (&draw->body, r);
-	  hb_buf_append_c (&draw->body, ',');
-	  hb_buf_append_unsigned (&draw->body, g);
-	  hb_buf_append_c (&draw->body, ',');
-	  hb_buf_append_unsigned (&draw->body, b);
-	  hb_buf_append_str (&draw->body, ")\"");
+	  draw->body.append_str (" fill=\"rgb(");
+	  draw->body.append_unsigned (r);
+	  draw->body.append_c (',');
+	  draw->body.append_unsigned (g);
+	  draw->body.append_c (',');
+	  draw->body.append_unsigned (b);
+	  draw->body.append_str (")\"");
 	  if (a < 255)
 	  {
-	    hb_buf_append_str (&draw->body, " fill-opacity=\"");
-	    hb_buf_append_num (&draw->body, a / 255.f, 4);
-	    hb_buf_append_c (&draw->body, '"');
+	    draw->body.append_str (" fill-opacity=\"");
+	    draw->body.append_num (a / 255.f, 4);
+	    draw->body.append_c ('"');
 	  }
 	}
       }
-      hb_buf_append_str (&draw->body, "/>\n");
+      draw->body.append_str ("/>\n");
       return true;
     }
 
@@ -670,7 +671,7 @@ hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
 {
   draw->id_prefix.resize (0);
   if (prefix)
-    hb_buf_append_str (&draw->id_prefix, prefix);
+    draw->id_prefix.append_str (prefix);
 }
 
 /**
@@ -688,7 +689,7 @@ const char *
 hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw)
 {
   if (!draw->id_prefix.length) return "";
-  const_cast<hb_vector_t<char> &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
+  const_cast<hb_vector_buf_t &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
   draw->id_prefix.arrayZ[draw->id_prefix.length] = '\0';
   return draw->id_prefix.arrayZ;
 }
@@ -706,7 +707,7 @@ void
 hb_vector_draw_set_precision (hb_vector_draw_t *draw,
                              unsigned precision)
 {
-  draw->precision = hb_min (precision, 12u);
+  draw->set_precision (precision);
 }
 
 /**
@@ -723,7 +724,7 @@ hb_vector_draw_set_precision (hb_vector_draw_t *draw,
 unsigned
 hb_vector_draw_get_precision (const hb_vector_draw_t *draw)
 {
-  return draw->precision;
+  return draw->get_precision ();
 }
 
 /**
@@ -807,7 +808,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   float ew = draw->extents.width;
   float eh = draw->extents.height;
 
-  hb_vector_t<char> stream;
+  hb_vector_buf_t stream;
   stream.alloc (draw->body.length + draw->path.length + 256);
 
   /* Background rect. */
@@ -816,82 +817,89 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
     float a = hb_color_get_alpha (draw->background) / 255.f;
     if (a < 1.f - 1.f / 512.f)
     {
-      hb_buf_append_num (&stream, a, 4);
-      hb_buf_append_str (&stream, " ca gs\n");
+      stream.append_num (a, 4);
+      stream.append_str (" ca gs\n");
     }
-    hb_buf_append_num (&stream, hb_color_get_red (draw->background) / 255.f, 4);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, hb_color_get_green (draw->background) / 255.f, 4);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, hb_color_get_blue (draw->background) / 255.f, 4);
-    hb_buf_append_str (&stream, " rg\n");
-    hb_buf_append_num (&stream, ex, draw->precision);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, -(ey + eh), draw->precision);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, ew, draw->precision);
-    hb_buf_append_c (&stream, ' ');
-    hb_buf_append_num (&stream, eh, draw->precision);
-    hb_buf_append_str (&stream, " re f\n");
+    stream.append_num (hb_color_get_red (draw->background) / 255.f, 4);
+    stream.append_c (' ');
+    stream.append_num (hb_color_get_green (draw->background) / 255.f, 4);
+    stream.append_c (' ');
+    stream.append_num (hb_color_get_blue (draw->background) / 255.f, 4);
+    stream.append_str (" rg\n");
+    stream.append_num (ex);
+    stream.append_c (' ');
+    stream.append_num (-(ey + eh));
+    stream.append_c (' ');
+    stream.append_num (ew);
+    stream.append_c (' ');
+    stream.append_num (eh);
+    stream.append_str (" re f\n");
   }
 
   draw->flush_path ();
   if (draw->body.length)
-    hb_buf_append_len (&stream, draw->body.arrayZ, draw->body.length);
+    stream.append_len (draw->body.arrayZ, draw->body.length);
 
   /* Build PDF objects, tracking byte offsets for xref. */
-  hb_vector_t<char> out;
+  hb_vector_buf_t out;
   hb_buf_recover_recycled (draw->recycled_blob, &out);
   out.alloc (stream.length + 512);
 
   unsigned offsets[5]; /* objects 1-4, plus end */
 
-  hb_buf_append_str (&out, "%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
+  out.append_str ("%PDF-1.4\n%\xC0\xC1\xC2\xC3\n");
 
   /* Object 1: Catalog */
   offsets[0] = out.length;
-  hb_buf_append_str (&out, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  out.append_str ("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
 
   /* Object 2: Pages */
   offsets[1] = out.length;
-  hb_buf_append_str (&out, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+  out.append_str ("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
   /* Object 3: Page.  Extents are in SVG space (y = -font_y).
    * Convert back: font Y range = [-(ey+eh) .. -ey]. */
   offsets[2] = out.length;
-  hb_buf_append_str (&out, "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
-  hb_buf_append_num (&out, ex, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, -(ey + eh), draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, ex + ew, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, -ey, draw->precision);
-  hb_buf_append_str (&out, "] /Contents 4 0 R >>\nendobj\n");
+  out.append_str ("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
+  out.append_num (ex);
+  out.append_c (' ');
+  out.append_num (-(ey + eh));
+  out.append_c (' ');
+  out.append_num (ex + ew);
+  out.append_c (' ');
+  out.append_num (-ey);
+  out.append_str ("] /Contents 4 0 R");
+  if (draw->pdf_extgstate_dict.length)
+  {
+    out.append_str (" /Resources << /ExtGState << ");
+    out.append_len (draw->pdf_extgstate_dict.arrayZ, draw->pdf_extgstate_dict.length);
+    out.append_str (">> >>");
+  }
+  out.append_str (" >>\nendobj\n");
 
   /* Object 4: Content stream */
   offsets[3] = out.length;
-  hb_buf_append_str (&out, "4 0 obj\n<< /Length ");
-  hb_buf_append_unsigned (&out, stream.length);
-  hb_buf_append_str (&out, " >>\nstream\n");
-  hb_buf_append_len (&out, stream.arrayZ, stream.length);
-  hb_buf_append_str (&out, "endstream\nendobj\n");
+  out.append_str ("4 0 obj\n<< /Length ");
+  out.append_unsigned (stream.length);
+  out.append_str (" >>\nstream\n");
+  out.append_len (stream.arrayZ, stream.length);
+  out.append_str ("endstream\nendobj\n");
 
   /* Cross-reference table */
   unsigned xref_offset = out.length;
-  hb_buf_append_str (&out, "xref\n0 5\n");
-  hb_buf_append_str (&out, "0000000000 65535 f \n");
+  out.append_str ("xref\n0 5\n");
+  out.append_str ("0000000000 65535 f \n");
   for (unsigned i = 0; i < 4; i++)
   {
     char tmp[21];
     snprintf (tmp, sizeof (tmp), "%010u 00000 n \n", offsets[i]);
-    hb_buf_append_len (&out, tmp, 20);
+    out.append_len (tmp, 20);
   }
 
   /* Trailer */
-  hb_buf_append_str (&out, "trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n");
-  hb_buf_append_unsigned (&out, xref_offset);
-  hb_buf_append_str (&out, "\n%%EOF\n");
+  out.append_str ("trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n");
+  out.append_unsigned (xref_offset);
+  out.append_str ("\n%%EOF\n");
 
   hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
 
@@ -906,65 +914,65 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
   if (!draw->has_extents)
     return nullptr;
 
-  hb_vector_t<char> out;
+  hb_vector_buf_t out;
   hb_buf_recover_recycled (draw->recycled_blob, &out);
   unsigned estimated = draw->defs.length +
 		       (draw->body.length ? draw->body.length : draw->path.length) +
 		       256;
   out.alloc (estimated);
-  hb_buf_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  hb_buf_append_num (&out, draw->extents.x, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.y, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.width, draw->precision);
-  hb_buf_append_c (&out, ' ');
-  hb_buf_append_num (&out, draw->extents.height, draw->precision);
-  hb_buf_append_str (&out, "\" width=\"");
-  hb_buf_append_num (&out, draw->extents.width, draw->precision);
-  hb_buf_append_str (&out, "\" height=\"");
-  hb_buf_append_num (&out, draw->extents.height, draw->precision);
-  hb_buf_append_str (&out, "\">\n");
+  out.append_str ("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
+  out.append_num (draw->extents.x);
+  out.append_c (' ');
+  out.append_num (draw->extents.y);
+  out.append_c (' ');
+  out.append_num (draw->extents.width);
+  out.append_c (' ');
+  out.append_num (draw->extents.height);
+  out.append_str ("\" width=\"");
+  out.append_num (draw->extents.width);
+  out.append_str ("\" height=\"");
+  out.append_num (draw->extents.height);
+  out.append_str ("\">\n");
 
   if (draw->defs.length)
   {
-    hb_buf_append_str (&out, "<defs>\n");
-    hb_buf_append_len (&out, draw->defs.arrayZ, draw->defs.length);
-    hb_buf_append_str (&out, "</defs>\n");
+    out.append_str ("<defs>\n");
+    out.append_len (draw->defs.arrayZ, draw->defs.length);
+    out.append_str ("</defs>\n");
   }
 
   /* Background rect. */
   if (hb_color_get_alpha (draw->background))
   {
-    hb_buf_append_str (&out, "<rect x=\"");
-    hb_buf_append_num (&out, draw->extents.x, draw->precision);
-    hb_buf_append_str (&out, "\" y=\"");
-    hb_buf_append_num (&out, draw->extents.y, draw->precision);
-    hb_buf_append_str (&out, "\" width=\"");
-    hb_buf_append_num (&out, draw->extents.width, draw->precision);
-    hb_buf_append_str (&out, "\" height=\"");
-    hb_buf_append_num (&out, draw->extents.height, draw->precision);
-    hb_buf_append_str (&out, "\" fill=\"rgb(");
-    hb_buf_append_unsigned (&out, hb_color_get_red (draw->background));
-    hb_buf_append_c (&out, ',');
-    hb_buf_append_unsigned (&out, hb_color_get_green (draw->background));
-    hb_buf_append_c (&out, ',');
-    hb_buf_append_unsigned (&out, hb_color_get_blue (draw->background));
-    hb_buf_append_str (&out, ")\"");
+    out.append_str ("<rect x=\"");
+    out.append_num (draw->extents.x);
+    out.append_str ("\" y=\"");
+    out.append_num (draw->extents.y);
+    out.append_str ("\" width=\"");
+    out.append_num (draw->extents.width);
+    out.append_str ("\" height=\"");
+    out.append_num (draw->extents.height);
+    out.append_str ("\" fill=\"rgb(");
+    out.append_unsigned (hb_color_get_red (draw->background));
+    out.append_c (',');
+    out.append_unsigned (hb_color_get_green (draw->background));
+    out.append_c (',');
+    out.append_unsigned (hb_color_get_blue (draw->background));
+    out.append_str (")\"");
     if (hb_color_get_alpha (draw->background) < 255)
     {
-      hb_buf_append_str (&out, " fill-opacity=\"");
-      hb_buf_append_num (&out, hb_color_get_alpha (draw->background) / 255.f, 4);
-      hb_buf_append_c (&out, '"');
+      out.append_str (" fill-opacity=\"");
+      out.append_num (hb_color_get_alpha (draw->background) / 255.f, 4);
+      out.append_c ('"');
     }
-    hb_buf_append_str (&out, "/>\n");
+    out.append_str ("/>\n");
   }
 
   draw->flush_path ();
   if (draw->body.length)
-    hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
+    out.append_len (draw->body.arrayZ, draw->body.length);
 
-  hb_buf_append_str (&out, "</svg>\n");
+  out.append_str ("</svg>\n");
 
   hb_blob_t *blob = hb_buf_blob_from (&draw->recycled_blob, &out);
 
@@ -1035,7 +1043,7 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->transform = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
-  draw->precision = 2;
+  draw->set_precision (2);
   hb_vector_draw_clear (draw);
 }
 

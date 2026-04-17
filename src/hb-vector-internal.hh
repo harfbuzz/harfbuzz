@@ -1,82 +1,7 @@
-#ifndef HB_VECTOR_SVG_HH
-#define HB_VECTOR_SVG_HH
+#ifndef HB_VECTOR_INTERNAL_HH
+#define HB_VECTOR_INTERNAL_HH
 
 #include "hb-vector.h"
-
-static inline bool
-hb_buf_append_str (hb_vector_t<char> *buf, const char *s)
-{
-  return hb_buf_append_len (buf, s, (unsigned) strlen (s));
-}
-
-static inline bool
-hb_buf_append_unsigned (hb_vector_t<char> *buf, unsigned v)
-{
-  char tmp[10];
-  unsigned n = 0;
-  do {
-    tmp[n++] = (char) ('0' + (v % 10));
-    v /= 10;
-  } while (v);
-
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + n))))
-    return false;
-
-  for (unsigned i = 0; i < n; i++)
-    buf->arrayZ[old_len + i] = tmp[n - 1 - i];
-  return true;
-}
-
-static inline bool
-hb_buf_append_hex_byte (hb_vector_t<char> *buf, unsigned v)
-{
-  static const char hex[] = "0123456789ABCDEF";
-  char tmp[2] = {hex[(v >> 4) & 15], hex[v & 15]};
-  return hb_buf_append_len (buf, tmp, 2);
-}
-
-static inline bool
-hb_buf_append_base64 (hb_vector_t<char> *buf,
-                      const uint8_t *data,
-                      unsigned len)
-{
-  static const char b64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  unsigned out_len = ((len + 2) / 3) * 4;
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + out_len))))
-    return false;
-
-  char *dst = buf->arrayZ + old_len;
-  unsigned di = 0;
-  unsigned i = 0;
-  while (i + 2 < len)
-  {
-    unsigned v = ((unsigned) data[i] << 16) |
-                 ((unsigned) data[i + 1] << 8) |
-                 ((unsigned) data[i + 2]);
-    dst[di++] = b64[(v >> 18) & 63];
-    dst[di++] = b64[(v >> 12) & 63];
-    dst[di++] = b64[(v >> 6) & 63];
-    dst[di++] = b64[v & 63];
-    i += 3;
-  }
-
-  if (i < len)
-  {
-    unsigned v = (unsigned) data[i] << 16;
-    if (i + 1 < len)
-      v |= (unsigned) data[i + 1] << 8;
-    dst[di++] = b64[(v >> 18) & 63];
-    dst[di++] = b64[(v >> 12) & 63];
-    dst[di++] = (i + 1 < len) ? b64[(v >> 6) & 63] : '=';
-    dst[di++] = '=';
-  }
-
-  return true;
-}
 
 struct hb_vector_blob_meta_t
 {
@@ -125,7 +50,7 @@ hb_vector_blob_meta_destroy (void *data)
 
 static inline hb_blob_t *
 hb_buf_blob_from (hb_blob_t **recycled_blob,
-                         hb_vector_t<char> *buf)
+                         hb_vector_buf_t *buf)
 {
   unsigned len = 0;
   int allocated = 0;
@@ -198,7 +123,7 @@ hb_buf_blob_from (hb_blob_t **recycled_blob,
 
 static inline void
 hb_buf_recover_recycled (hb_blob_t *blob,
-                                hb_vector_t<char> *buf)
+                                hb_vector_buf_t *buf)
 {
   if (!blob)
     return;
@@ -211,38 +136,6 @@ hb_buf_recover_recycled (hb_blob_t *blob,
   meta->data = nullptr;
   meta->allocated = 0;
   meta->transferred = true;
-}
-
-static inline void
-hb_buf_append_color (hb_vector_t<char> *buf,
-                     hb_color_t color,
-                     bool with_alpha)
-{
-  static const char hex[] = "0123456789ABCDEF";
-  unsigned r = hb_color_get_red (color);
-  unsigned g = hb_color_get_green (color);
-  unsigned b = hb_color_get_blue (color);
-  unsigned a = hb_color_get_alpha (color);
-  hb_buf_append_c (buf, '#');
-  if (((r >> 4) == (r & 0xF)) &&
-      ((g >> 4) == (g & 0xF)) &&
-      ((b >> 4) == (b & 0xF)))
-  {
-    hb_buf_append_c (buf, hex[r & 0xF]);
-    hb_buf_append_c (buf, hex[g & 0xF]);
-    hb_buf_append_c (buf, hex[b & 0xF]);
-  }
-  else
-  {
-    hb_buf_append_hex_byte (buf, r);
-    hb_buf_append_hex_byte (buf, g);
-    hb_buf_append_hex_byte (buf, b);
-  }
-  if (with_alpha && a != 255)
-  {
-    hb_buf_append_str (buf, "\" fill-opacity=\"");
-    hb_buf_append_num (buf, a / 255.f, 4);
-  }
 }
 
 static inline void
@@ -309,7 +202,7 @@ hb_vector_set_glyph_extents_common (const hb_transform_t<> &transform,
 }
 
 static inline void
-hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
+hb_vector_svg_append_instance_transform (hb_vector_buf_t *out,
                                   unsigned precision,
                                   float x_scale_factor,
                                   float y_scale_factor,
@@ -317,37 +210,31 @@ hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
                                   float xy, float yy,
                                   float tx, float ty)
 {
-  unsigned sprec = hb_vector_scale_precision (precision);
   if (xx == 1.f && yx == 0.f && xy == 0.f && yy == 1.f)
   {
-    float sx = 1.f / x_scale_factor;
-    float sy = 1.f / y_scale_factor;
-    hb_buf_append_str (out, "translate(");
-    hb_buf_append_num (out, tx / x_scale_factor, precision);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -ty / y_scale_factor, precision);
-    hb_buf_append_str (out, ") scale(");
-    hb_buf_append_num (out, sx, sprec, true);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -sy, sprec, true);
-    hb_buf_append_c (out, ')');
+    out->append_str ("translate(");
+    out->append_num (tx / x_scale_factor, precision);
+    out->append_c (',');
+    out->append_num (-ty / y_scale_factor, precision);
+    out->append_str (") scale(1,-1)");
   }
   else
   {
-    hb_buf_append_str (out, "matrix(");
-    hb_buf_append_num (out, xx / x_scale_factor, sprec, true);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, yx / y_scale_factor, sprec, true);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -xy / x_scale_factor, sprec, true);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -yy / y_scale_factor, sprec, true);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, tx / x_scale_factor, precision);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -ty / y_scale_factor, precision);
-    hb_buf_append_c (out, ')');
+    unsigned sprec = out->scale_precision ();
+    out->append_str ("matrix(");
+    out->append_num (xx, sprec);
+    out->append_c (',');
+    out->append_num (yx, sprec);
+    out->append_c (',');
+    out->append_num (-xy, sprec);
+    out->append_c (',');
+    out->append_num (-yy, sprec);
+    out->append_c (',');
+    out->append_num (tx / x_scale_factor, precision);
+    out->append_c (',');
+    out->append_num (-ty / y_scale_factor, precision);
+    out->append_c (')');
   }
 }
 
-#endif /* HB_VECTOR_SVG_HH */
+#endif /* HB_VECTOR_INTERNAL_HH */

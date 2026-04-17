@@ -353,7 +353,11 @@ void
 hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
                                 hb_color_t foreground)
 {
-  paint->foreground = foreground;
+  if (paint->foreground != foreground)
+  {
+    paint->foreground = foreground;
+    paint->changed ();
+  }
 }
 
 /**
@@ -421,7 +425,11 @@ void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette)
 {
-  paint->palette = palette;
+  if (paint->palette != palette)
+  {
+    paint->palette = palette;
+    paint->changed ();
+  }
 }
 
 /**
@@ -462,6 +470,7 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
                                           hb_color_t color)
 {
   paint->custom_palette_colors.set (color_index, color);
+  paint->changed ();
 }
 
 /**
@@ -478,7 +487,11 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
 void
 hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
 {
-  paint->custom_palette_colors.clear ();
+  if (paint->custom_palette_colors.get_population ())
+  {
+    paint->custom_palette_colors.clear ();
+    paint->changed ();
+  }
 }
 
 /**
@@ -567,28 +580,26 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
     case HB_VECTOR_FORMAT_PDF:
     {
       /* PDF: emit transform + paint directly, no caching.
-       * The paint transform and pen position are in input
-       * space; fold in 1/scale_factor here so glyph path
-       * operators (emitted raw in input space) land in
-       * pixel space, matching the MediaBox. */
+       * Paint callbacks emit in output-space (divided by
+       * scale_factor), so the per-glyph cm just positions
+       * with a translation. */
       auto &body = paint->current_body ();
-      unsigned sprec = hb_vector_scale_precision (paint->precision);
       float sx = paint->x_scale_factor;
       float sy = paint->y_scale_factor;
-      hb_buf_append_str (&body, "q\n");
-      /* Font and PDF coords are both Y-up; no negation needed. */
-      hb_buf_append_num (&body, xx / sx, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, yx / sy, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, xy / sx, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, yy / sy, sprec, true);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, tx / sx, paint->precision);
-      hb_buf_append_c (&body, ' ');
-      hb_buf_append_num (&body, ty / sy, paint->precision);
-      hb_buf_append_str (&body, " cm\n");
+      unsigned sprec = body.scale_precision ();
+      body.append_str ("q\n");
+      body.append_num (xx, sprec);
+      body.append_c (' ');
+      body.append_num (yx, sprec);
+      body.append_c (' ');
+      body.append_num (xy, sprec);
+      body.append_c (' ');
+      body.append_num (yy, sprec);
+      body.append_c (' ');
+      body.append_num (tx / sx);
+      body.append_c (' ');
+      body.append_num (ty / sy);
+      body.append_str (" cm\n");
 
       hb_bool_t ret = true;
       if (fallible)
@@ -601,36 +612,33 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			     hb_vector_paint_pdf_funcs_get (), paint,
 			     (unsigned) paint->palette,
 			     paint->foreground);
-      hb_buf_append_str (&body, "Q\n");
+      body.append_str ("Q\n");
       return ret;
     }
 
     case HB_VECTOR_FORMAT_SVG:
     {
-      hb_vector_color_glyph_cache_key_t cache_key = hb_vector_color_glyph_cache_key (glyph,
-										(unsigned) paint->palette,
-										paint->foreground);
       {
-	if (paint->defined_color_glyphs.has (cache_key))
+	if (paint->defined_color_glyphs.has (glyph))
 	{
-	  unsigned def_id = paint->defined_color_glyphs.get (cache_key);
+	  unsigned def_id = paint->defined_color_glyphs.get (glyph);
 	  auto &body = paint->current_body ();
-	  hb_buf_append_str (&body, "<use href=\"#");
-	  hb_buf_append_len (&body, paint->id_prefix.arrayZ, paint->id_prefix.length);
-	  hb_buf_append_str (&body, "cg");
-	  hb_buf_append_unsigned (&body, def_id);
-	  hb_buf_append_str (&body, "\" transform=\"");
-	  hb_vector_svg_append_instance_transform (&body, paint->precision,
+	  body.append_str ("<use href=\"#");
+	  body.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	  body.append_str ("cg");
+	  body.append_unsigned (def_id);
+	  body.append_str ("\" transform=\"");
+	  hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
 					    paint->x_scale_factor,
 					    paint->y_scale_factor,
 					    xx, yx, xy, yy, tx, ty);
-	  hb_buf_append_str (&body, "\"/>\n");
+	  body.append_str ("\"/>\n");
 	  return !body.in_error ();
 	}
       }
 
       {
-	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
+	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_buf_t {})))
 	  return false;
 
 	hb_bool_t ret = true;
@@ -656,30 +664,30 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	  return false;
 
 	unsigned def_id = paint->color_glyph_counter++;
-	if (unlikely (!paint->defined_color_glyphs.set (cache_key, def_id)))
+	if (unlikely (!paint->defined_color_glyphs.set (glyph, def_id)))
 	  return false;
 
-	hb_buf_append_str (&paint->defs, "<g id=\"");
-	hb_buf_append_len (&paint->defs, paint->id_prefix.arrayZ, paint->id_prefix.length);
-	hb_buf_append_str (&paint->defs, "cg");
-	hb_buf_append_unsigned (&paint->defs, def_id);
-	hb_buf_append_str (&paint->defs, "\">\n");
-	hb_buf_append_len (&paint->defs,
+	paint->defs.append_str ("<g id=\"");
+	paint->defs.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	paint->defs.append_str ("cg");
+	paint->defs.append_unsigned (def_id);
+	paint->defs.append_str ("\">\n");
+	paint->defs.append_len (
 			   paint->captured_scratch.arrayZ,
 			   paint->captured_scratch.length);
-	hb_buf_append_str (&paint->defs, "</g>\n");
+	paint->defs.append_str ("</g>\n");
 
 	auto &body = paint->current_body ();
-	hb_buf_append_str (&body, "<use href=\"#");
-	hb_buf_append_len (&body, paint->id_prefix.arrayZ, paint->id_prefix.length);
-	hb_buf_append_str (&body, "cg");
-	hb_buf_append_unsigned (&body, def_id);
-	hb_buf_append_str (&body, "\" transform=\"");
-	hb_vector_svg_append_instance_transform (&body, paint->precision,
+	body.append_str ("<use href=\"#");
+	body.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	body.append_str ("cg");
+	body.append_unsigned (def_id);
+	body.append_str ("\" transform=\"");
+	hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
 					  paint->x_scale_factor,
 					  paint->y_scale_factor,
 					  xx, yx, xy, yy, tx, ty);
-	hb_buf_append_str (&body, "\"/>\n");
+	body.append_str ("\"/>\n");
 	return !paint->defs.in_error () && !body.in_error ();
       }
     }
@@ -767,7 +775,7 @@ hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
 {
   paint->id_prefix.resize (0);
   if (prefix)
-    hb_buf_append_str (&paint->id_prefix, prefix);
+    paint->id_prefix.append_str (prefix);
 }
 
 /**
@@ -787,9 +795,9 @@ const char *
 hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
 {
   if (!paint->id_prefix.length) return "";
-  /* id_prefix is appended via hb_buf_append_str which does NOT
+  /* id_prefix is appended via append_str which does NOT
    * NUL-terminate; ensure a trailing NUL. */
-  const_cast<hb_vector_t<char> &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
+  const_cast<hb_vector_buf_t &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
   paint->id_prefix.arrayZ[paint->id_prefix.length] = '\0';
   return paint->id_prefix.arrayZ;
 }
@@ -807,7 +815,7 @@ void
 hb_vector_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision)
 {
-  paint->precision = hb_min (precision, 12u);
+  paint->set_precision (precision);
 }
 
 /**
@@ -824,7 +832,7 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
 unsigned
 hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
 {
-  return paint->precision;
+  return paint->get_precision ();
 }
 
 /**
@@ -909,7 +917,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->y_scale_factor = 1.f;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->palette = 0;
-  paint->precision = 2;
+  paint->set_precision (2);
   hb_vector_paint_clear (paint);
 }
 

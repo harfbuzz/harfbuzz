@@ -29,8 +29,8 @@
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 #include "hb-vector-path.hh"
-#include "hb-vector-svg-utils.hh"
-#include "hb-vector-svg.hh"
+#include "hb-vector-buf.hh"
+#include "hb-vector-internal.hh"
 
 
 /* ---- SVG path callbacks ---- */
@@ -38,9 +38,9 @@
 static inline void
 hb_vector_svg_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
 {
-  hb_buf_append_num (s->path, x / s->x_scale, s->precision);
-  hb_buf_append_c   (s->path, ',');
-  hb_buf_append_num (s->path, y / s->y_scale, s->precision);
+  s->path->append_num (x / s->x_scale, s->precision);
+  s->path->append_c (',');
+  s->path->append_num (y / s->y_scale, s->precision);
 }
 
 static void
@@ -48,7 +48,7 @@ hb_vector_svg_path_move_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t 
 			     float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  hb_buf_append_c (s->path, 'M');
+  s->path->append_c ('M');
   hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
@@ -57,7 +57,7 @@ hb_vector_svg_path_line_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t 
 			     float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  hb_buf_append_c (s->path, 'L');
+  s->path->append_c ('L');
   hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
@@ -66,9 +66,9 @@ hb_vector_svg_path_quadratic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_sta
 				  float cx, float cy, float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  hb_buf_append_c (s->path, 'Q');
+  s->path->append_c ('Q');
   hb_vector_svg_path_append_xy (s, cx, cy);
-  hb_buf_append_c (s->path, ' ');
+  s->path->append_c (' ');
   hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
@@ -78,11 +78,11 @@ hb_vector_svg_path_cubic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t
 			      float to_x, float to_y, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  hb_buf_append_c (s->path, 'C');
+  s->path->append_c ('C');
   hb_vector_svg_path_append_xy (s, c1x, c1y);
-  hb_buf_append_c (s->path, ' ');
+  s->path->append_c (' ');
   hb_vector_svg_path_append_xy (s, c2x, c2y);
-  hb_buf_append_c (s->path, ' ');
+  s->path->append_c (' ');
   hb_vector_svg_path_append_xy (s, to_x, to_y);
 }
 
@@ -90,7 +90,7 @@ static void
 hb_vector_svg_path_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  hb_buf_append_c (s->path, 'Z');
+  s->path->append_c ('Z');
 }
 
 
@@ -99,9 +99,9 @@ hb_vector_svg_path_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state
 static inline void
 hb_vector_pdf_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
 {
-  hb_buf_append_num (s->path, x / s->x_scale, s->precision);
-  hb_buf_append_c   (s->path, ' ');
-  hb_buf_append_num (s->path, y / s->y_scale, s->precision);
+  s->path->append_num (x / s->x_scale, s->precision);
+  s->path->append_c (' ');
+  s->path->append_num (y / s->y_scale, s->precision);
 }
 
 static void
@@ -110,7 +110,7 @@ hb_vector_pdf_path_move_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t 
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
   hb_vector_pdf_path_append_xy (s, to_x, to_y);
-  hb_buf_append_str (s->path, " m\n");
+  s->path->append_str (" m\n");
 }
 
 static void
@@ -119,7 +119,7 @@ hb_vector_pdf_path_line_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t 
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
   hb_vector_pdf_path_append_xy (s, to_x, to_y);
-  hb_buf_append_str (s->path, " l\n");
+  s->path->append_str (" l\n");
 }
 
 /* No quadratic_to — the null fallback auto-promotes to cubic. */
@@ -131,18 +131,18 @@ hb_vector_pdf_path_cubic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
   hb_vector_pdf_path_append_xy (s, c1x, c1y);
-  hb_buf_append_c (s->path, ' ');
+  s->path->append_c (' ');
   hb_vector_pdf_path_append_xy (s, c2x, c2y);
-  hb_buf_append_c (s->path, ' ');
+  s->path->append_c (' ');
   hb_vector_pdf_path_append_xy (s, to_x, to_y);
-  hb_buf_append_str (s->path, " c\n");
+  s->path->append_str (" c\n");
 }
 
 static void
 hb_vector_pdf_path_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, void *)
 {
   auto *s = (hb_vector_path_sink_t *) draw_data;
-  hb_buf_append_str (s->path, "h\n");
+  s->path->append_str ("h\n");
 }
 
 

@@ -47,7 +47,7 @@ demo_glstate_setup (demo_glstate_t *st)
   demo_glstate_set_foreground (st, 0.f, 0.f, 0.f, 1.f);
 
   glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 demo_atlas_t *

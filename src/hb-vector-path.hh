@@ -31,6 +31,7 @@
 #include "hb-vector.hh"
 #include "hb-vector.h"
 #include "hb-draw.h"
+#include "hb-vector-buf.hh"
 
 /* Lightweight path sink: serializes hb_draw_* calls into an
  * external char buffer as either SVG path-data or PDF path
@@ -39,7 +40,7 @@
  * SVG backend to emit glyph outlines into defs). */
 struct hb_vector_path_sink_t
 {
-  hb_vector_t<char> *path;
+  hb_vector_buf_t *path;
   unsigned precision;
   float x_scale;
   float y_scale;

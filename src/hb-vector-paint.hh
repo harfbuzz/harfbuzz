@@ -8,34 +8,9 @@
 #include "hb-machinery.hh"
 #include "hb-map.hh"
 #include "hb-vector-path.hh"
-#include "hb-vector-svg-utils.hh"
-#include "hb-vector-svg.hh"
+#include "hb-vector-buf.hh"
+#include "hb-vector-internal.hh"
 
-struct hb_vector_color_glyph_cache_key_t
-{
-  hb_codepoint_t glyph = HB_CODEPOINT_INVALID;
-  unsigned palette = 0;
-  hb_color_t foreground = 0;
-
-  hb_vector_color_glyph_cache_key_t () = default;
-  hb_vector_color_glyph_cache_key_t (hb_codepoint_t g, unsigned p, hb_color_t f)
-    : glyph (g), palette (p), foreground (f) {}
-
-  bool operator == (const hb_vector_color_glyph_cache_key_t &o) const
-  {
-    return glyph == o.glyph &&
-           palette == o.palette &&
-           foreground == o.foreground;
-  }
-
-  uint32_t hash () const
-  {
-    uint32_t h = hb_hash (glyph);
-    h = h * 31u + hb_hash (palette);
-    h = h * 31u + hb_hash (foreground);
-    return h;
-  }
-};
 
 struct hb_vector_paint_t
 {
@@ -52,12 +27,11 @@ struct hb_vector_paint_t
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
   int palette = 0;
   hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
-  unsigned precision = 2;
-  hb_vector_t<char> id_prefix;
+  hb_vector_buf_t id_prefix;
 
-  hb_vector_t<char> defs;
-  hb_vector_t<char> path;
-  hb_vector_t<hb_vector_t<char>> group_stack;
+  hb_vector_buf_t defs;
+  hb_vector_buf_t path;
+  hb_vector_t<hb_vector_buf_t> group_stack;
   uint64_t transform_group_open_mask = 0;
   unsigned transform_group_depth = 0;
   unsigned transform_group_overflow_depth = 0;
@@ -71,9 +45,9 @@ struct hb_vector_paint_t
   hb_set_t *defined_outlines = nullptr;
   hb_set_t *defined_clips = nullptr;
   hb_set_t *active_color_glyphs = nullptr;
-  hb_hashmap_t<hb_vector_color_glyph_cache_key_t, unsigned> defined_color_glyphs;
+  hb_hashmap_t<hb_codepoint_t, unsigned> defined_color_glyphs;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
-  hb_vector_t<char> captured_scratch;
+  hb_vector_buf_t captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
 
   hb_font_t *cached_font = nullptr;
@@ -88,14 +62,6 @@ struct hb_vector_paint_t
     if (active_color_glyphs)
       hb_set_clear (active_color_glyphs);
     defined_color_glyphs.reset ();
-    defs.shrink (0);
-    path.shrink (0);
-    for (auto &g : group_stack)
-      g.shrink (0);
-    color_glyph_counter = 0;
-    clip_rect_counter = 0;
-    clip_path_counter = 0;
-    gradient_counter = 0;
   }
 
   void check_font (hb_font_t *font)
@@ -110,7 +76,19 @@ struct hb_vector_paint_t
     }
   }
 
-  hb_vector_t<char> &current_body () { return group_stack.tail (); }
+  hb_vector_buf_t &current_body () { return group_stack.tail (); }
+
+  float sx (float v) const { return v / x_scale_factor; }
+  float sy (float v) const { return v / y_scale_factor; }
+
+  void set_precision (unsigned p)
+  {
+    p = hb_min (p, 12u);
+    defs.precision = p;
+    path.precision = p;
+  }
+
+  unsigned get_precision () const { return path.precision; }
 
   bool ensure_initialized ()
   {
@@ -128,12 +106,6 @@ struct hb_vector_paint_t
     return true;
   }
 };
-
-static inline hb_vector_color_glyph_cache_key_t
-hb_vector_color_glyph_cache_key (hb_codepoint_t glyph,
-				 unsigned palette,
-				 hb_color_t foreground)
-{ return {glyph, palette, foreground}; }
 
 /* Implemented in hb-vector-paint-svg.cc */
 HB_INTERNAL hb_paint_funcs_t * hb_vector_paint_svg_funcs_get ();

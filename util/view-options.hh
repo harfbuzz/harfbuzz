@@ -372,7 +372,7 @@ view_options_t::add_options (option_parser_t *parser)
     {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: " DEFAULT_FORE ")",	"rrggbb/rrggbbaa[,...]"},
     {"rainbow",		0, 0, G_OPTION_ARG_NONE,	&this->foreground_use_rainbow,	"Rotate glyph foreground colors through a default palette",	nullptr},
     {"lgbtq",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE,	&this->foreground_use_rainbow,	"Hidden alias for --rainbow",	nullptr},
-    {"stroke",		0, 0, G_OPTION_ARG_STRING,	&this->stroke,			"Stroke glyph outlines; `--stroke=` enables defaults",	"rrggbb/rrggbbaa[+width]"},
+    {"stroke",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_STRING,	&this->stroke,			"Stroke glyph outlines; `--stroke=` enables defaults",	"rrggbb/rrggbbaa[+width]"},
     {"font-palette",    0, 0, G_OPTION_ARG_INT,         &this->palette,                 "Set font palette (default: 0)",                "index"},
     {"custom-palette",  0, 0, G_OPTION_ARG_STRING,      &this->custom_palette,          "Custom palette",                               "comma-separated colors"},
     {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},

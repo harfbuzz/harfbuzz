@@ -288,6 +288,23 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  * A virtual method for the #hb_paint_funcs_t to paint a
  * color everywhere within the current clip.
  *
+ * When @is_foreground is true, this color originates from the
+ * foreground-color sentinel in the font's color data.  The
+ * @color parameter still carries a fully resolved RGBA value
+ * (with any paint-tree alpha already applied), so backends
+ * that do not need to distinguish the foreground can simply
+ * use @color directly.
+ *
+ * Backends that defer foreground resolution (e.g. to honor a
+ * CSS `currentColor` or a runtime uniform) should substitute
+ * their own foreground RGB when @is_foreground is true, but
+ * must combine the alpha from @color with their foreground
+ * alpha, since it encodes additional modulation from the
+ * paint tree.  For this mode to work correctly, the caller
+ * should pass a fully-opaque foreground color to
+ * hb_font_paint_glyph(), so that the alpha in @color
+ * reflects only the paint-tree contribution.
+ *
  * Since: 7.0.0
  */
 typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
@@ -370,6 +387,9 @@ typedef hb_bool_t (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
  *
  * Color lines typically have offsets ranging between 0 and 1,
  * but that is not required.
+ *
+ * The @is_foreground and @color fields have the same semantics
+ * as in #hb_paint_color_func_t.
  *
  * Note: despite @color being unpremultiplied here, interpolation in
  * gradients shall happen in premultiplied space. See the OpenType spec

@@ -707,7 +707,7 @@ hb_raster_paint_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 static void
 hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		       void *paint_data,
-		       hb_bool_t is_foreground,
+		       hb_bool_t is_foreground HB_UNUSED,
 		       hb_color_t color,
 		       void *user_data HB_UNUSED)
 {
@@ -717,16 +717,6 @@ hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
-
-  if (is_foreground)
-  {
-    /* Use foreground color, modulating alpha */
-    color = HB_COLOR (hb_color_get_blue (c->foreground),
-		      hb_color_get_green (c->foreground),
-		      hb_color_get_red (c->foreground),
-		      hb_raster_div255 (hb_color_get_alpha (c->foreground) *
-			      hb_color_get_alpha (color)));
-  }
 
   uint32_t premul = color_to_premul_pixel (color);
   uint8_t premul_a = (uint8_t) (premul >> 24);
@@ -956,14 +946,6 @@ get_color_stops (hb_raster_paint_t *c,
   hb_color_line_get_color_stops (color_line, 0, &len, *stops);
   if (unlikely (!len))
     return false;
-  for (unsigned i = 0; i < len; i++)
-    if ((*stops)[i].is_foreground)
-      (*stops)[i].color = HB_COLOR (hb_color_get_blue (c->foreground),
-				    hb_color_get_green (c->foreground),
-				    hb_color_get_red (c->foreground),
-				    hb_raster_div255 (hb_color_get_alpha (c->foreground) *
-					    hb_color_get_alpha ((*stops)[i].color)));
-
   *count = len;
   return true;
 }

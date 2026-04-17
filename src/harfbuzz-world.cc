@@ -158,7 +158,6 @@
 #include "hb-vector-paint-svg.cc"
 #include "hb-vector-paint.cc"
 #include "hb-vector-path.cc"
-#include "hb-vector-svg-utils.cc"
 #include "hb-vector.cc"
 #include "hb-zlib.cc"
 #endif

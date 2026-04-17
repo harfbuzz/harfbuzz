@@ -6,8 +6,8 @@
 #include "hb-vector.h"
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
-#include "hb-vector-svg-utils.hh"
-#include "hb-vector-svg.hh"
+#include "hb-vector-buf.hh"
+#include "hb-vector-internal.hh"
 
 struct hb_vector_draw_t
 {
@@ -21,12 +21,23 @@ struct hb_vector_draw_t
   bool has_extents = false;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
-  unsigned precision = 2;
-  hb_vector_t<char> id_prefix;
+  hb_vector_buf_t id_prefix;
 
-  hb_vector_t<char> defs;
-  hb_vector_t<char> body;
-  hb_vector_t<char> path;
+  hb_vector_buf_t defs;
+  hb_vector_buf_t body;
+  hb_vector_buf_t path;
+  hb_vector_buf_t pdf_extgstate_dict;
+  unsigned pdf_extgstate_count = 0;
+
+  void set_precision (unsigned p)
+  {
+    p = hb_min (p, 12u);
+    defs.precision = p;
+    body.precision = p;
+    path.precision = p;
+  }
+
+  unsigned get_precision () const { return path.precision; }
   hb_set_t *defined_glyphs = nullptr;
   hb_blob_t *recycled_blob = nullptr;
 
@@ -68,14 +79,28 @@ struct hb_vector_draw_t
 
   void flush_path_pdf ()
   {
-    hb_buf_append_num (&body, hb_color_get_red (foreground) / 255.f, 4);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, hb_color_get_green (foreground) / 255.f, 4);
-    hb_buf_append_c (&body, ' ');
-    hb_buf_append_num (&body, hb_color_get_blue (foreground) / 255.f, 4);
-    hb_buf_append_str (&body, " rg\n");
-    hb_buf_append_len (&body, path.arrayZ, path.length);
-    hb_buf_append_str (&body, "f\n");
+    unsigned a = hb_color_get_alpha (foreground);
+    if (a < 255)
+    {
+      unsigned gs_idx = pdf_extgstate_count++;
+      body.append_str ("/GS");
+      body.append_unsigned (gs_idx);
+      body.append_str (" gs\n");
+
+      pdf_extgstate_dict.append_str ("/GS");
+      pdf_extgstate_dict.append_unsigned (gs_idx);
+      pdf_extgstate_dict.append_str (" << /Type /ExtGState /ca ");
+      pdf_extgstate_dict.append_num (a / 255.f, 4);
+      pdf_extgstate_dict.append_str (" >> ");
+    }
+    body.append_num (hb_color_get_red (foreground) / 255.f, 4);
+    body.append_c (' ');
+    body.append_num (hb_color_get_green (foreground) / 255.f, 4);
+    body.append_c (' ');
+    body.append_num (hb_color_get_blue (foreground) / 255.f, 4);
+    body.append_str (" rg\n");
+    body.append_len (path.arrayZ, path.length);
+    body.append_str ("f\n");
   }
 
   void flush_path_svg ()
@@ -84,27 +109,27 @@ struct hb_vector_draw_t
     unsigned g = hb_color_get_green (foreground);
     unsigned b = hb_color_get_blue (foreground);
     unsigned a = hb_color_get_alpha (foreground);
-    hb_buf_append_str (&body, "<g transform=\"scale(1,-1)\">"
+    body.append_str ("<g transform=\"scale(1,-1)\">"
 			      "<path d=\"");
-    hb_buf_append_len (&body, path.arrayZ, path.length);
-    hb_buf_append_str (&body, "\"");
+    body.append_len (path.arrayZ, path.length);
+    body.append_str ("\"");
     if (r || g || b || a != 255)
     {
-      hb_buf_append_str (&body, " fill=\"rgb(");
-      hb_buf_append_unsigned (&body, r);
-      hb_buf_append_c (&body, ',');
-      hb_buf_append_unsigned (&body, g);
-      hb_buf_append_c (&body, ',');
-      hb_buf_append_unsigned (&body, b);
-      hb_buf_append_str (&body, ")\"");
+      body.append_str (" fill=\"rgb(");
+      body.append_unsigned (r);
+      body.append_c (',');
+      body.append_unsigned (g);
+      body.append_c (',');
+      body.append_unsigned (b);
+      body.append_str (")\"");
       if (a < 255)
       {
-	hb_buf_append_str (&body, " fill-opacity=\"");
-	hb_buf_append_num (&body, a / 255.f, 4);
-	hb_buf_append_c (&body, '"');
+	body.append_str (" fill-opacity=\"");
+	body.append_num (a / 255.f, 4);
+	body.append_c ('"');
       }
     }
-    hb_buf_append_str (&body, "/></g>\n");
+    body.append_str ("/></g>\n");
   }
 
   void transform_xy (float x, float y, float *tx, float *ty)
@@ -116,18 +141,18 @@ struct hb_vector_draw_t
   {
     float tx, ty;
     transform_xy (x, y, &tx, &ty);
-    hb_buf_append_num (&path, tx, precision);
-    hb_buf_append_c (&path, ',');
-    hb_buf_append_num (&path, ty, precision);
+    path.append_num (tx, path.precision);
+    path.append_c (',');
+    path.append_num (ty, path.precision);
   }
 
   void append_xy_pdf (float x, float y)
   {
     float tx, ty;
     transform_xy (x, y, &tx, &ty);
-    hb_buf_append_num (&path, tx, precision);
-    hb_buf_append_c (&path, ' ');
-    hb_buf_append_num (&path, ty, precision);
+    path.append_num (tx, path.precision);
+    path.append_c (' ');
+    path.append_num (ty, path.precision);
   }
 };
 
