@@ -803,6 +803,73 @@ hb_vector_draw_get_precision (const hb_vector_draw_t *draw)
   return draw->precision;
 }
 
+/**
+ * hb_vector_draw_set_foreground:
+ * @draw: a draw context.
+ * @foreground: foreground fill color.
+ *
+ * Sets the fill color for drawn glyph outlines.
+ * Default is opaque black.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_set_foreground (hb_vector_draw_t *draw,
+                               hb_color_t foreground)
+{
+  draw->foreground = foreground;
+}
+
+/**
+ * hb_vector_draw_get_foreground:
+ * @draw: a draw context.
+ *
+ * Returns the foreground fill color.
+ *
+ * Return value: the foreground color.
+ *
+ * XSince: REPLACEME
+ */
+hb_color_t
+hb_vector_draw_get_foreground (const hb_vector_draw_t *draw)
+{
+  return draw->foreground;
+}
+
+/**
+ * hb_vector_draw_set_background:
+ * @draw: a draw context.
+ * @background: background color.
+ *
+ * Sets the background color.  If non-transparent, a filled
+ * rectangle covering the extents is emitted behind all content.
+ * Default is transparent (no background).
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_set_background (hb_vector_draw_t *draw,
+                               hb_color_t background)
+{
+  draw->background = background;
+}
+
+/**
+ * hb_vector_draw_get_background:
+ * @draw: a draw context.
+ *
+ * Returns the background color.
+ *
+ * Return value: the background color.
+ *
+ * XSince: REPLACEME
+ */
+hb_color_t
+hb_vector_draw_get_background (const hb_vector_draw_t *draw)
+{
+  return draw->background;
+}
+
 static hb_blob_t *
 hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 {
@@ -818,9 +885,48 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   float eh = draw->extents.height;
 
   hb_vector_t<char> stream;
-  stream.alloc (draw->body.length + draw->path.length + 128);
+  stream.alloc (draw->body.length + draw->path.length + 256);
 
-  /* Path coords are in font space (Y-up); no CTM needed. */
+  /* Background rect. */
+  if (hb_color_get_alpha (draw->background))
+  {
+    float a = hb_color_get_alpha (draw->background) / 255.f;
+    if (a < 1.f - 1.f / 512.f)
+    {
+      hb_buf_append_num (&stream, a, 4);
+      hb_buf_append_str (&stream, " ca gs\n");
+    }
+    hb_buf_append_num (&stream, hb_color_get_red (draw->background) / 255.f, 4);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, hb_color_get_green (draw->background) / 255.f, 4);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, hb_color_get_blue (draw->background) / 255.f, 4);
+    hb_buf_append_str (&stream, " rg\n");
+    hb_buf_append_num (&stream, ex, draw->precision);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, -(ey + eh), draw->precision);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, ew, draw->precision);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, eh, draw->precision);
+    hb_buf_append_str (&stream, " re f\n");
+  }
+
+  /* Foreground fill color. */
+  {
+    hb_buf_append_num (&stream, hb_color_get_red (draw->foreground) / 255.f, 4);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, hb_color_get_green (draw->foreground) / 255.f, 4);
+    hb_buf_append_c (&stream, ' ');
+    hb_buf_append_num (&stream, hb_color_get_blue (draw->foreground) / 255.f, 4);
+    hb_buf_append_str (&stream, " rg\n");
+    float a = hb_color_get_alpha (draw->foreground) / 255.f;
+    if (a < 1.f - 1.f / 512.f)
+    {
+      hb_buf_append_num (&stream, a, 4);
+      hb_buf_append_str (&stream, " ca gs\n");
+    }
+  }
 
   if (draw->body.length)
     hb_buf_append_len (&stream, draw->body.arrayZ, draw->body.length);
@@ -927,19 +1033,67 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
     hb_buf_append_str (&out, "</defs>\n");
   }
 
+  /* Background rect. */
+  if (hb_color_get_alpha (draw->background))
+  {
+    hb_buf_append_str (&out, "<rect x=\"");
+    hb_buf_append_num (&out, draw->extents.x, draw->precision);
+    hb_buf_append_str (&out, "\" y=\"");
+    hb_buf_append_num (&out, draw->extents.y, draw->precision);
+    hb_buf_append_str (&out, "\" width=\"");
+    hb_buf_append_num (&out, draw->extents.width, draw->precision);
+    hb_buf_append_str (&out, "\" height=\"");
+    hb_buf_append_num (&out, draw->extents.height, draw->precision);
+    hb_buf_append_str (&out, "\" fill=\"rgb(");
+    hb_buf_append_unsigned (&out, hb_color_get_red (draw->background));
+    hb_buf_append_c (&out, ',');
+    hb_buf_append_unsigned (&out, hb_color_get_green (draw->background));
+    hb_buf_append_c (&out, ',');
+    hb_buf_append_unsigned (&out, hb_color_get_blue (draw->background));
+    hb_buf_append_str (&out, ")\"");
+    if (hb_color_get_alpha (draw->background) < 255)
+    {
+      hb_buf_append_str (&out, " fill-opacity=\"");
+      hb_buf_append_num (&out, hb_color_get_alpha (draw->background) / 255.f, 4);
+      hb_buf_append_c (&out, '"');
+    }
+    hb_buf_append_str (&out, "/>\n");
+  }
+
+  /* Foreground group. */
+  bool fg_group = (hb_color_get_red (draw->foreground) != 0 ||
+		   hb_color_get_green (draw->foreground) != 0 ||
+		   hb_color_get_blue (draw->foreground) != 0 ||
+		   hb_color_get_alpha (draw->foreground) != 255);
+  if (fg_group)
+  {
+    hb_buf_append_str (&out, "<g fill=\"rgb(");
+    hb_buf_append_unsigned (&out, hb_color_get_red (draw->foreground));
+    hb_buf_append_c (&out, ',');
+    hb_buf_append_unsigned (&out, hb_color_get_green (draw->foreground));
+    hb_buf_append_c (&out, ',');
+    hb_buf_append_unsigned (&out, hb_color_get_blue (draw->foreground));
+    hb_buf_append_str (&out, ")\"");
+    if (hb_color_get_alpha (draw->foreground) < 255)
+    {
+      hb_buf_append_str (&out, " fill-opacity=\"");
+      hb_buf_append_num (&out, hb_color_get_alpha (draw->foreground) / 255.f, 4);
+      hb_buf_append_c (&out, '"');
+    }
+    hb_buf_append_str (&out, ">\n");
+  }
+
   if (draw->body.length)
     hb_buf_append_len (&out, draw->body.arrayZ, draw->body.length);
   if (draw->path.length)
   {
-    /* Free-form draw ops (e.g. extents-overlay rectangles via
-     * hb_draw_rectangle on hb_vector_draw_get_funcs) end up
-     * in the scratch path in font Y-up coords; per-glyph
-     * <use> elements apply scale(_, -sy) to convert, so wrap
-     * the leftover here in the same Y-flip. */
     hb_buf_append_str (&out, "<g transform=\"scale(1,-1)\"><path d=\"");
     hb_buf_append_len (&out, draw->path.arrayZ, draw->path.length);
     hb_buf_append_str (&out, "\"/></g>\n");
   }
+
+  if (fg_group)
+    hb_buf_append_str (&out, "</g>\n");
 
   hb_buf_append_str (&out, "</svg>\n");
 

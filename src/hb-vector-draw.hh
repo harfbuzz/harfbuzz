@@ -19,6 +19,8 @@ struct hb_vector_draw_t
   float y_scale_factor = 1.f;
   hb_vector_extents_t extents = {0, 0, 0, 0};
   bool has_extents = false;
+  hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
+  hb_color_t background = HB_COLOR (0, 0, 0, 0);
   unsigned precision = 2;
   hb_vector_t<char> id_prefix;
 
