@@ -62,14 +62,6 @@ struct hb_vector_paint_t
     if (active_color_glyphs)
       hb_set_clear (active_color_glyphs);
     defined_color_glyphs.reset ();
-    defs.shrink (0);
-    path.shrink (0);
-    for (auto &g : group_stack)
-      g.shrink (0);
-    color_glyph_counter = 0;
-    clip_rect_counter = 0;
-    clip_path_counter = 0;
-    gradient_counter = 0;
   }
 
   void check_font (hb_font_t *font)
