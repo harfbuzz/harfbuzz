@@ -63,7 +63,7 @@ struct hb_vector_paint_t
 
   unsigned clip_rect_counter = 0;
   unsigned clip_path_counter = 0;
-  hb_vector_path_sink_t clip_path_sink = {nullptr, 0};
+  hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f};
   unsigned gradient_counter = 0;
   unsigned color_glyph_counter = 0;
   unsigned color_glyph_depth = 0;
@@ -74,6 +74,40 @@ struct hb_vector_paint_t
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
   hb_vector_t<char> captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
+
+  hb_font_t *cached_font = nullptr;
+  unsigned cached_serial = (unsigned) -1;
+
+  void changed ()
+  {
+    if (defined_outlines)
+      hb_set_clear (defined_outlines);
+    if (defined_clips)
+      hb_set_clear (defined_clips);
+    if (active_color_glyphs)
+      hb_set_clear (active_color_glyphs);
+    defined_color_glyphs.reset ();
+    defs.shrink (0);
+    path.shrink (0);
+    for (auto &g : group_stack)
+      g.shrink (0);
+    color_glyph_counter = 0;
+    clip_rect_counter = 0;
+    clip_path_counter = 0;
+    gradient_counter = 0;
+  }
+
+  void check_font (hb_font_t *font)
+  {
+    unsigned serial = hb_font_get_serial (font);
+    if (font != cached_font || serial != cached_serial)
+    {
+      changed ();
+      hb_font_destroy (cached_font);
+      cached_font = hb_font_reference (font);
+      cached_serial = serial;
+    }
+  }
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
 };

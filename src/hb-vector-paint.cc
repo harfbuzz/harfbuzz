@@ -502,7 +502,7 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   {
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
-    hb_vector_path_sink_t sink = {&paint->path, paint->precision};
+    hb_vector_path_sink_t sink = {&paint->path, paint->precision, 1.f, 1.f};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     hb_buf_append_str (&paint->defs, "<path id=\"");
     hb_buf_append_len (&paint->defs, pfx, pfx_len);
@@ -583,7 +583,9 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   paint->path.clear ();
-  paint->clip_path_sink = {&paint->path, paint->precision};
+  paint->clip_path_sink = {&paint->path, paint->precision,
+			   paint->x_scale_factor,
+			   paint->y_scale_factor};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_svg_path_draw_funcs_get ();
 }
@@ -1010,6 +1012,7 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
 
   if (paint->format == HB_VECTOR_FORMAT_PDF)
     hb_vector_paint_pdf_free_resources (paint);
+  hb_font_destroy (paint->cached_font);
   hb_blob_destroy (paint->recycled_blob);
   hb_set_destroy (paint->defined_outlines);
   hb_set_destroy (paint->defined_clips);
@@ -1424,6 +1427,8 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			    hb_vector_extents_mode_t extents_mode,
 			    hb_bool_t          fallible)
 {
+  paint->check_font (font);
+
   float xx = paint->transform.xx;
   float yx = paint->transform.yx;
   float xy = paint->transform.xy;

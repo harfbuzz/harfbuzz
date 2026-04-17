@@ -272,6 +272,7 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
   if (!hb_object_should_destroy (draw))
     return;
 
+  hb_font_destroy (draw->cached_font);
   hb_blob_destroy (draw->recycled_blob);
   hb_set_destroy (draw->defined_glyphs);
   hb_object_actually_destroy (draw);
@@ -566,6 +567,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
+  draw->check_font (font);
+
   switch (draw->format)
   {
     case HB_VECTOR_FORMAT_SVG:
@@ -644,10 +647,18 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 
     case HB_VECTOR_FORMAT_SVG:
     {
+      if (draw->path.length)
+      {
+	hb_buf_append_str (&draw->body, "<g transform=\"scale(1,-1)\"><path d=\"");
+	hb_buf_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+	hb_buf_append_str (&draw->body, "\"/></g>\n");
+	draw->path.shrink (0);
+      }
+
       if (!hb_set_has (draw->defined_glyphs, glyph))
       {
 	draw->path.clear ();
-	hb_vector_path_sink_t sink = {&draw->path, draw->precision};
+	hb_vector_path_sink_t sink = {&draw->path, draw->precision, 1.f, 1.f};
 	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
 	if (!draw->path.length)
 	  return false;

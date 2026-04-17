@@ -50,7 +50,6 @@ struct vector_output_t : output_options_t<>, view_options_t
   ~vector_output_t ()
   {
     hb_font_destroy (font);
-    hb_font_destroy (upem_font);
   }
 
   void add_options (option_parser_t *parser)
@@ -118,18 +117,7 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     font = hb_font_reference (font_opts->font);
     subpixel_bits = font_opts->subpixel_bits;
-    hb_font_get_scale (font, &x_scale, &y_scale);
-    upem = hb_face_get_upem (hb_font_get_face (font));
     normalized_stroke_width = get_normalized_stroke_width ();
-
-    upem_font = hb_font_create (hb_font_get_face (font));
-    hb_font_set_scale (upem_font, upem, upem);
-#ifndef HB_NO_VAR
-    unsigned int coords_length = 0;
-    const float *coords = hb_font_get_var_coords_design (font, &coords_length);
-    if (coords_length)
-      hb_font_set_var_coords_design (upem_font, coords, coords_length);
-#endif
   }
 
   void new_line ()
@@ -175,18 +163,18 @@ struct vector_output_t : output_options_t<>, view_options_t
     {
       line.glyphs.push_back ({
         infos[i].codepoint,
-        scale_to_upem_x (pen_x + positions[i].x_offset),
-        scale_to_upem_y (pen_y + positions[i].y_offset),
-        scale_to_upem_x (positions[i].x_advance),
-        scale_to_upem_y (positions[i].y_advance),
+        (float) (pen_x + positions[i].x_offset),
+        (float) (pen_y + positions[i].y_offset),
+        (float) positions[i].x_advance,
+        (float) positions[i].y_advance,
       });
 
       pen_x += positions[i].x_advance;
       pen_y += positions[i].y_advance;
     }
 
-    line.advance_x = scale_to_upem_x (pen_x);
-    line.advance_y = scale_to_upem_y (pen_y);
+    line.advance_x = (float) pen_x;
+    line.advance_y = (float) pen_y;
   }
 
   template <typename app_t>
@@ -204,22 +192,15 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (fmt);
     hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (fmt);
 
-    /* We feed upem-space coordinates (glyph outlines + pen
-     * positions) to the draw/paint context; scale_factor
-     * converts to pixel-space on emit.  set_extents now
-     * divides the caller-supplied extents by the same
-     * scale_factor, so we can hand it the upem-space
-     * extents directly. */
-    float upem_per_pixel_x = (float) upem * scalbnf (1.f, (int) subpixel_bits) / (float) x_scale;
-    float upem_per_pixel_y = (float) upem * scalbnf (1.f, (int) subpixel_bits) / (float) y_scale;
+    float scale = scalbnf (1.f, (int) subpixel_bits);
 
-    hb_vector_draw_set_scale_factor (draw, upem_per_pixel_x, upem_per_pixel_y);
+    hb_vector_draw_set_scale_factor (draw, scale, scale);
     hb_vector_draw_set_extents (draw, &extents);
     hb_vector_draw_set_precision (draw, precision);
 
     if (paint)
     {
-      hb_vector_paint_set_scale_factor (paint, upem_per_pixel_x, upem_per_pixel_y);
+      hb_vector_paint_set_scale_factor (paint, scale, scale);
       hb_vector_paint_set_extents (paint, &extents);
       hb_vector_paint_set_foreground (paint, foreground);
       hb_vector_paint_set_palette (paint, this->palette);
@@ -256,7 +237,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     get_line_metrics (dir, &asc, &desc, &gap);
     float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
-      step = (float) upem;
+      step = scale;
     line_step = step;
 
     for (unsigned li = 0; li < lines.size (); li++)
@@ -280,13 +261,13 @@ struct vector_output_t : output_options_t<>, view_options_t
           }
 
           hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-          hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
+          hb_vector_paint_glyph (paint, font, g.gid, pen_x, pen_y,
                                  extents_mode);
           had_paint = true;
           if (show_extents)
           {
             hb_glyph_extents_t ge;
-            if (hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+            if (hb_font_get_glyph_extents (font, g.gid, &ge))
               util_emit_extents_overlay_into_paint (
                 hb_vector_paint_get_funcs (paint), paint,
                 &ge, pen_x, pen_y, (float) normalized_stroke_width);
@@ -294,13 +275,13 @@ struct vector_output_t : output_options_t<>, view_options_t
         }
         else
         {
-          hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
+          hb_vector_draw_glyph (draw, font, g.gid, pen_x, pen_y,
                                 extents_mode);
           had_draw = true;
           if (show_extents)
           {
             hb_glyph_extents_t ge;
-            if (hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+            if (hb_font_get_glyph_extents (font, g.gid, &ge))
               util_emit_extents_overlay_into_draw (
                 hb_vector_draw_get_funcs (draw), draw,
                 &ge, pen_x, pen_y, (float) normalized_stroke_width);
@@ -325,8 +306,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_vector_draw_destroy (draw);
     hb_vector_paint_destroy (paint);
 
-    hb_font_destroy (upem_font);
-    upem_font = nullptr;
     hb_font_destroy (font);
     font = nullptr;
     lines.clear ();
@@ -372,11 +351,13 @@ struct vector_output_t : output_options_t<>, view_options_t
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
+    float scale = scalbnf (1.f, (int) subpixel_bits);
+
     float asc = 0.f, desc = 0.f, gap = 0.f;
     get_line_metrics (dir, &asc, &desc, &gap);
     float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
-      step = (float) upem;
+      step = scale;
 
     bool valid = false;
     float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
@@ -426,7 +407,7 @@ struct vector_output_t : output_options_t<>, view_options_t
         for (const auto &g : line.glyphs)
         {
           hb_glyph_extents_t ge;
-          if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+          if (!hb_font_get_glyph_extents (font, g.gid, &ge))
             continue;
 
           float gx = g.x + off_x;
@@ -456,14 +437,11 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (y2 <= y1)
       y2 = y1 + 1;
 
-    /* Margin is specified in pixels (matching the other utils);
-     * the surrounding extents are in upem units, so convert. */
-    float upem_per_pixel_x = (float) upem * scalbnf (1.f, (int) subpixel_bits) / (float) x_scale;
-    float upem_per_pixel_y = (float) upem * scalbnf (1.f, (int) subpixel_bits) / (float) y_scale;
-    x1 -= (float) margin.l * upem_per_pixel_x;
-    y1 -= (float) margin.t * upem_per_pixel_y;
-    x2 += (float) margin.r * upem_per_pixel_x;
-    y2 += (float) margin.b * upem_per_pixel_y;
+    /* Margin is in pixels; extents are in font-scale (pixel * SCALE). */
+    x1 -= (float) margin.l * scale;
+    y1 -= (float) margin.t * scale;
+    x2 += (float) margin.r * scale;
+    y2 += (float) margin.b * scale;
 
     extents->x = x1;
     extents->y = y1;
@@ -472,15 +450,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     return true;
   }
 
-  float scale_to_upem_x (hb_position_t v) const
-  {
-    return (float) v * upem / x_scale;
-  }
-
-  float scale_to_upem_y (hb_position_t v) const
-  {
-    return (float) v * upem / y_scale;
-  }
 
   static bool slice_svg (const char *data, unsigned len,
                          slice_t *defs, slice_t *body)
@@ -662,15 +631,12 @@ struct vector_output_t : output_options_t<>, view_options_t
 
   double get_normalized_stroke_width () const
   {
-    if (!stroke_enabled || stroke_width <= 0. || !upem || !x_scale || !y_scale)
+    if (stroke_width <= 0.)
       return stroke_width;
 
-    /* hb-vector emits geometry in upem space; convert user stroke width
-     * from the requested font scale back into that normalized coordinate system.
-     */
-    double norm_x = stroke_width * scalbn ((double) upem, (int) subpixel_bits) / fabs ((double) x_scale);
-    double norm_y = stroke_width * scalbn ((double) upem, (int) subpixel_bits) / fabs ((double) y_scale);
-    return 0.5 * (norm_x + norm_y);
+    /* Stroke width is in pixels; geometry is in font-scale
+     * (pixel * SCALE), so multiply by SCALE. */
+    return stroke_width * scalbn (1., (int) subpixel_bits);
   }
 
   bool lookup_palette_color (unsigned idx, hb_color_t *color) const
@@ -1001,7 +967,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     palette_lookup_index = 0;
     palette_lookup_enabled = false;
 
-    hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
+    hb_face_t *face = hb_font_get_face (font);
     if (!face)
       return;
 
@@ -1047,14 +1013,15 @@ struct vector_output_t : output_options_t<>, view_options_t
   {
     if (have_font_extents)
     {
-      if (asc) *asc = (float) font_extents.ascent;
-      if (desc) *desc = (float) (-font_extents.descent);
-      if (gap) *gap = (float) font_extents.line_gap;
+      float s = scalbnf (1.f, (int) subpixel_bits);
+      if (asc) *asc = (float) font_extents.ascent * s;
+      if (desc) *desc = (float) (-font_extents.descent) * s;
+      if (gap) *gap = (float) font_extents.line_gap * s;
       return;
     }
 
     hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (upem_font, dir, &fext);
+    hb_font_get_extents_for_direction (font, dir, &fext);
     if (asc) *asc = (float) fext.ascender;
     if (desc) *desc = (float) fext.descender;
     if (gap) *gap = (float) fext.line_gap;
@@ -1065,13 +1032,9 @@ struct vector_output_t : output_options_t<>, view_options_t
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
 
   hb_font_t *font = nullptr;
-  hb_font_t *upem_font = nullptr;
   std::vector<line_t> lines;
   hb_direction_t direction = HB_DIRECTION_INVALID;
 
-  int x_scale = 0;
-  int y_scale = 0;
-  unsigned upem = 0;
   unsigned subpixel_bits = 0;
   double normalized_stroke_width = DEFAULT_STROKE_WIDTH;
   float line_step = 0.f;
