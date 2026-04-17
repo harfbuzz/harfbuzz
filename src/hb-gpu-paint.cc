@@ -497,7 +497,7 @@ emit_all_clip_sub_blobs (hb_gpu_paint_t *c, int out[HB_GPU_PAINT_MAX_CLIP_DEPTH]
 {
   for (unsigned i = 0; i < HB_GPU_PAINT_MAX_CLIP_DEPTH; i++)
     out[i] = -1;
-  for (unsigned i = 0; i < c->clip_depth; i++)
+  for (unsigned i = 0; i < hb_min (c->clip_depth, (unsigned) HB_GPU_PAINT_MAX_CLIP_DEPTH); i++)
   {
     out[i] = emit_clip_sub_blob (c, c->clip_stack[i]);
     if (out[i] < 0)
