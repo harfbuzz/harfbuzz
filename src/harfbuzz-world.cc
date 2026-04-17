@@ -155,6 +155,7 @@
 #include "hb-static.cc"
 #include "hb-vector-draw.cc"
 #include "hb-vector-paint-pdf.cc"
+#include "hb-vector-paint-svg.cc"
 #include "hb-vector-paint.cc"
 #include "hb-vector-path.cc"
 #include "hb-vector-svg-utils.cc"
