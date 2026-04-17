@@ -208,7 +208,6 @@ struct vector_output_t : output_options_t<>, view_options_t
       hb_vector_paint_set_background (paint, background);
       hb_vector_paint_set_palette (paint, this->palette);
       apply_custom_palette (paint);
-      init_palette_color_cache ();
       hb_vector_paint_set_precision (paint, precision);
     }
 
@@ -333,11 +332,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     std::vector<glyph_instance_t> glyphs;
   };
 
-  struct slice_t
-  {
-    const char *p = nullptr;
-    unsigned len = 0;
-  };
 
   bool compute_extents (hb_vector_extents_t *extents)
   {
@@ -455,75 +449,6 @@ struct vector_output_t : output_options_t<>, view_options_t
   }
 
 
-  static bool slice_svg (const char *data, unsigned len,
-                         slice_t *defs, slice_t *body)
-  {
-    defs->p = nullptr;
-    defs->len = 0;
-    body->p = nullptr;
-    body->len = 0;
-
-    const char *data_end = data + len;
-    const char *start = (const char *) memchr (data, '>', len);
-    if (!start)
-      return false;
-    start += 1;
-
-    if (len < 6)
-      return false;
-
-    const char *end = nullptr;
-    for (const char *p = data_end - 6; p >= data; p--)
-    {
-      if (memcmp (p, "</svg>", 6) == 0)
-      {
-        end = p;
-        break;
-      }
-      if (p == data)
-        break;
-    }
-    if (!end || end <= start)
-      return false;
-
-    const char *defs_start = start;
-    while (defs_start < end &&
-           (*defs_start == ' ' || *defs_start == '\t' ||
-            *defs_start == '\r' || *defs_start == '\n'))
-      defs_start++;
-    if (!(defs_start + 6 <= end && memcmp (defs_start, "<defs>", 6) == 0))
-      defs_start = nullptr;
-
-    const char *defs_end = nullptr;
-    if (defs_start)
-      for (const char *p = defs_start + 6; p + 7 <= end; p++)
-        if (memcmp (p, "</defs>", 7) == 0)
-        {
-          defs_end = p;
-          break;
-        }
-
-    if (defs_start && defs_end && defs_start < end && defs_end < end)
-    {
-      defs->p = defs_start + strlen ("<defs>");
-      defs->len = (unsigned) (defs_end - defs->p);
-
-      const char *body_start = defs_end + strlen ("</defs>");
-      if (body_start < end)
-      {
-        body->p = body_start;
-        body->len = (unsigned) (end - body_start);
-      }
-    }
-    else
-    {
-      body->p = start;
-      body->len = (unsigned) (end - start);
-    }
-
-    return true;
-  }
-
   double get_normalized_stroke_width () const
   {
     if (stroke_width <= 0.)
@@ -534,240 +459,14 @@ struct vector_output_t : output_options_t<>, view_options_t
     return stroke_width * scalbn (1., (int) subpixel_bits);
   }
 
-  bool lookup_palette_color (unsigned idx, hb_color_t *color) const
-  {
-    if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
-    {
-      *color = custom_palette_values[idx];
-      return true;
-    }
-
-    if (!palette_lookup_enabled)
-      return false;
-
-    if (palette_cache_state.size () <= idx)
-    {
-      palette_cache_state.resize (idx + 1, 0);
-      palette_cache_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
-    }
-
-    if (palette_cache_state[idx] == 1)
-    {
-      *color = palette_cache_values[idx];
-      return true;
-    }
-    if (palette_cache_state[idx] == 2)
-      return false;
-
-    hb_color_t fetched = HB_COLOR (0, 0, 0, 255);
-    unsigned n = 1;
-    if (hb_ot_color_palette_get_colors (palette_face, palette_lookup_index,
-                                        idx, &n, &fetched) && n)
-    {
-      palette_cache_values[idx] = fetched;
-      palette_cache_state[idx] = 1;
-      *color = fetched;
-      return true;
-    }
-
-    palette_cache_state[idx] = 2;
-    return false;
-  }
-
-  static inline const char *
-  skip_ascii_ws (const char *p, const char *end)
-  {
-    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
-      p++;
-    return p;
-  }
-
-  static inline const char *
-  trim_ascii_ws_right (const char *begin, const char *end)
-  {
-    while (end > begin &&
-           (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\n' || end[-1] == '\r'))
-      end--;
-    return end;
-  }
-
-  struct parsed_var_color_expr_t
-  {
-    const char *expr_end = nullptr;
-    const char *fallback_begin = nullptr;
-    const char *fallback_end = nullptr;
-    unsigned idx = 0;
-    bool parse_ok = false;
-    bool have_digits = false;
-    bool has_fallback = false;
-  };
-
-  static inline const char *
-  find_next_var_expr (const char *p, const char *end)
-  {
-    for (const char *q = p; q + 4 <= end; q++)
-      if (memcmp (q, "var(", 4) == 0)
-        return q;
-    return nullptr;
-  }
-
-  static inline const char *
-  find_matching_paren (const char *inside, const char *end)
-  {
-    unsigned depth = 1;
-    for (const char *q = inside; q < end; q++)
-    {
-      if (*q == '(') depth++;
-      else if (*q == ')')
-      {
-        depth--;
-        if (!depth)
-          return q;
-      }
-    }
-    return nullptr;
-  }
-
-  static inline parsed_var_color_expr_t
-  parse_var_color_expr (const char *match, const char *end)
-  {
-    parsed_var_color_expr_t parsed;
-    const char *expr_close = find_matching_paren (match + 4, end);
-    if (!expr_close)
-      return parsed;
-
-    parsed.expr_end = expr_close + 1;
-    const char *inside = match + 4;
-    const char *inside_end = expr_close;
-    const char *q = skip_ascii_ws (inside, inside_end);
-    parsed.parse_ok = true;
-
-    if (!(q + 7 <= inside_end && memcmp (q, "--color", 7) == 0))
-      parsed.parse_ok = false;
-    if (parsed.parse_ok)
-      q += 7;
-
-    while (parsed.parse_ok && q < inside_end && *q >= '0' && *q <= '9')
-    {
-      parsed.have_digits = true;
-      parsed.idx = parsed.idx * 10 + (unsigned) (*q - '0');
-      q++;
-    }
-    q = skip_ascii_ws (q, inside_end);
-
-    if (parsed.parse_ok && q < inside_end && *q == ',')
-    {
-      parsed.has_fallback = true;
-      q++;
-      parsed.fallback_begin = skip_ascii_ws (q, inside_end);
-      parsed.fallback_end = trim_ascii_ws_right (parsed.fallback_begin, inside_end);
-      q = inside_end;
-    }
-
-    if (parsed.parse_ok && q != inside_end)
-      parsed.parse_ok = false;
-
-    return parsed;
-  }
-
-  void emit_css_color (hb_color_t color)
-  {
-    unsigned r = hb_color_get_red (color);
-    unsigned g = hb_color_get_green (color);
-    unsigned b = hb_color_get_blue (color);
-    unsigned a = hb_color_get_alpha (color);
-    if (a == 255)
-      fprintf (out_fp, "#%02X%02X%02X", r, g, b);
-    else
-      fprintf (out_fp, "rgba(%u,%u,%u,%.6g)", r, g, b, (double) a / 255.);
-  }
-
-  void write_slice_resolving_palette_vars (slice_t s)
-  {
-    if (!s.p || !s.len)
-      return;
-
-    const char *p = s.p;
-    const char *end = s.p + s.len;
-    while (p < end)
-    {
-      const char *match = find_next_var_expr (p, end);
-
-      if (!match)
-      {
-        fwrite (p, 1, (size_t) (end - p), out_fp);
-        return;
-      }
-
-      if (match > p)
-        fwrite (p, 1, (size_t) (match - p), out_fp);
-
-      parsed_var_color_expr_t parsed = parse_var_color_expr (match, end);
-      if (!parsed.expr_end)
-      {
-        fwrite (match, 1, (size_t) (end - match), out_fp);
-        return;
-      }
-
-      hb_color_t color;
-      if (parsed.parse_ok && parsed.have_digits && lookup_palette_color (parsed.idx, &color))
-      {
-        emit_css_color (color);
-      }
-      else if (parsed.has_fallback && parsed.fallback_begin &&
-               parsed.fallback_end >= parsed.fallback_begin)
-      {
-        fwrite (parsed.fallback_begin, 1,
-                (size_t) (parsed.fallback_end - parsed.fallback_begin), out_fp);
-      }
-      else
-      {
-        fwrite (match, 1, (size_t) (parsed.expr_end - match), out_fp);
-      }
-
-      p = parsed.expr_end;
-    }
-  }
-
   void write_blob (hb_blob_t *blob,
-                   hb_bool_t is_draw_blob)
+                   hb_bool_t is_draw_blob HB_UNUSED)
   {
     unsigned in_len = 0;
     const char *in_data = hb_blob_get_data (blob, &in_len);
     if (!in_data || !in_len)
       return;
-
-    /* Draw blobs and PDF are self-contained; write directly. */
-    if (is_draw_blob ||
-        (in_len > 5 && memcmp (in_data, "%PDF-", 5) == 0))
-    {
-      fwrite (in_data, 1, in_len, out_fp);
-      return;
-    }
-
-    /* Paint SVG: resolve var(--hb-...) CSS variables. */
-    const char *hdr_end = (const char *) memchr (in_data, '>', in_len);
-    if (!hdr_end)
-      return;
-
-    slice_t defs, body;
-    if (!slice_svg (in_data, in_len, &defs, &body))
-      return;
-
-    fwrite (in_data, 1, (hdr_end - in_data + 1), out_fp);
-    fputc ('\n', out_fp);
-
-    if (defs.len)
-    {
-      fputs ("<defs>\n", out_fp);
-      write_slice_resolving_palette_vars (defs);
-      fputs ("</defs>\n", out_fp);
-    }
-
-    if (body.len)
-      write_slice_resolving_palette_vars (body);
-
-    fputs ("</svg>\n", out_fp);
+    fwrite (in_data, 1, in_len, out_fp);
   }
 
   void apply_custom_palette (hb_vector_paint_t *paint)
@@ -776,31 +475,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     for (unsigned idx = 0; idx < custom_palette_values.size (); idx++)
       if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
         hb_vector_paint_set_custom_palette_color (paint, idx, custom_palette_values[idx]);
-  }
-
-  void init_palette_color_cache ()
-  {
-    palette_cache_values.clear ();
-    palette_cache_state.clear ();
-    palette_face = nullptr;
-    palette_lookup_index = 0;
-    palette_lookup_enabled = false;
-
-    hb_face_t *face = hb_font_get_face (font);
-    if (!face)
-      return;
-
-    unsigned palette_count = hb_ot_color_palette_get_count (face);
-    if (!palette_count)
-      return;
-
-    unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
-    if (palette_index >= palette_count)
-      palette_index = 0;
-
-    palette_face = face;
-    palette_lookup_index = palette_index;
-    palette_lookup_enabled = true;
   }
 
   void load_custom_palette_overrides_from_view ()
@@ -860,11 +534,6 @@ struct vector_output_t : output_options_t<>, view_options_t
   hb_vector_extents_t final_extents = {0, 0, 1, 1};
   std::vector<hb_color_t> custom_palette_values;
   std::vector<bool> custom_palette_has_value;
-  mutable std::vector<hb_color_t> palette_cache_values;
-  mutable std::vector<unsigned char> palette_cache_state;
-  hb_face_t *palette_face = nullptr;
-  unsigned palette_lookup_index = 0;
-  bool palette_lookup_enabled = false;
 };
 
 #endif
