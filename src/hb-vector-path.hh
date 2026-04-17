@@ -40,7 +40,7 @@
  * SVG backend to emit glyph outlines into defs). */
 struct hb_vector_path_sink_t
 {
-  hb_buf_t *path;
+  hb_vector_buf_t *path;
   unsigned precision;
   float x_scale;
   float y_scale;

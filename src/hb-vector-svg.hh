@@ -50,7 +50,7 @@ hb_vector_blob_meta_destroy (void *data)
 
 static inline hb_blob_t *
 hb_buf_blob_from (hb_blob_t **recycled_blob,
-                         hb_buf_t *buf)
+                         hb_vector_buf_t *buf)
 {
   unsigned len = 0;
   int allocated = 0;
@@ -123,7 +123,7 @@ hb_buf_blob_from (hb_blob_t **recycled_blob,
 
 static inline void
 hb_buf_recover_recycled (hb_blob_t *blob,
-                                hb_buf_t *buf)
+                                hb_vector_buf_t *buf)
 {
   if (!blob)
     return;
@@ -202,7 +202,7 @@ hb_vector_set_glyph_extents_common (const hb_transform_t<> &transform,
 }
 
 static inline void
-hb_vector_svg_append_instance_transform (hb_buf_t *out,
+hb_vector_svg_append_instance_transform (hb_vector_buf_t *out,
                                   unsigned precision,
                                   float x_scale_factor,
                                   float y_scale_factor,

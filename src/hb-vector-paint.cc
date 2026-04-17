@@ -640,7 +640,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
       }
 
       {
-	if (unlikely (!paint->group_stack.push_or_fail (hb_buf_t {})))
+	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_buf_t {})))
 	  return false;
 
 	hb_bool_t ret = true;
@@ -799,7 +799,7 @@ hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
   if (!paint->id_prefix.length) return "";
   /* id_prefix is appended via append_str which does NOT
    * NUL-terminate; ensure a trailing NUL. */
-  const_cast<hb_buf_t &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
+  const_cast<hb_vector_buf_t &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
   paint->id_prefix.arrayZ[paint->id_prefix.length] = '\0';
   return paint->id_prefix.arrayZ;
 }

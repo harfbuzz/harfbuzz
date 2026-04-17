@@ -33,7 +33,7 @@
 #include <math.h>
 
 static void
-hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_buf_t *buf)
+hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
 {
   /* Skip when the paint's own transform is identity -- each
    * instance's <use> transform already divides by scale_factor,
@@ -62,7 +62,7 @@ hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb
 }
 
 static void
-hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_buf_t *buf)
+hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
 {
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
@@ -114,7 +114,7 @@ hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
 
 static void
 hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
-                         hb_buf_t *buf,
+                         hb_vector_buf_t *buf,
                          hb_vector_t<hb_color_stop_t> *stops)
 {
   for (unsigned i = 0; i < stops->length; i++)
@@ -236,7 +236,7 @@ hb_vector_svg_normalize (const hb_vector_svg_point_t &p)
 }
 
 static void
-hb_vector_svg_add_sweep_patch (hb_buf_t *body,
+hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
                         unsigned precision,
                         float cx, float cy, float radius,
                         float a0, const hb_vector_svg_rgba_t &c0_in,
@@ -310,7 +310,7 @@ hb_vector_svg_add_sweep_patch (hb_buf_t *body,
 
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
 struct hb_vector_svg_sweep_ctx_t {
-  hb_buf_t *body;
+  hb_vector_buf_t *body;
   unsigned precision;
   float cx, cy, radius;
 };
@@ -873,7 +873,7 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  if (unlikely (!paint->group_stack.push_or_fail (hb_buf_t {})))
+  if (unlikely (!paint->group_stack.push_or_fail (hb_vector_buf_t {})))
     return;
 }
 
@@ -889,7 +889,7 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   if (paint->group_stack.length < 2)
     return;
 
-  hb_buf_t group = paint->group_stack.pop ();
+  hb_vector_buf_t group = paint->group_stack.pop ();
   auto &body = paint->current_body ();
 
   const char *blend = hb_vector_svg_composite_mode_str (mode);
@@ -945,7 +945,7 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
   if (unlikely (!paint->ensure_initialized ()))
     return nullptr;
 
-  hb_buf_t out;
+  hb_vector_buf_t out;
   hb_buf_recover_recycled (paint->recycled_blob, &out);
   unsigned estimated = paint->defs.length +
 		       paint->group_stack.arrayZ[0].length +

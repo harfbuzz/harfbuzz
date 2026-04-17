@@ -21,11 +21,11 @@ struct hb_vector_draw_t
   bool has_extents = false;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
-  hb_buf_t id_prefix;
+  hb_vector_buf_t id_prefix;
 
-  hb_buf_t defs;
-  hb_buf_t body;
-  hb_buf_t path;
+  hb_vector_buf_t defs;
+  hb_vector_buf_t body;
+  hb_vector_buf_t path;
 
   void set_precision (unsigned p)
   {

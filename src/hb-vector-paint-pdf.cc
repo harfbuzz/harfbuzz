@@ -54,14 +54,14 @@
 
 struct hb_pdf_obj_t
 {
-  hb_buf_t data;
+  hb_vector_buf_t data;
 };
 
 /* Collects extra PDF objects (shadings, functions, ExtGState)
  * during painting.  Referenced from the content stream by name
  * (e.g. /SH0, /GS0) and emitted at render time. */
 static bool
-hb_pdf_build_indexed_smask (hb_buf_t *out,
+hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
 			    const char *idat_data, unsigned idat_len,
 			    unsigned width, unsigned height,
 			    const uint8_t *trns, unsigned trns_len);
@@ -69,14 +69,14 @@ hb_pdf_build_indexed_smask (hb_buf_t *out,
 struct hb_pdf_resources_t
 {
   hb_vector_t<hb_pdf_obj_t> objects;   /* extra objects, starting at id 5 */
-  hb_buf_t extgstate_dict;    /* /GS0 5 0 R /GS1 6 0 R ... */
-  hb_buf_t shading_dict;      /* /SH0 7 0 R ... */
-  hb_buf_t xobject_dict;      /* /Im0 8 0 R ... */
+  hb_vector_buf_t extgstate_dict;    /* /GS0 5 0 R /GS1 6 0 R ... */
+  hb_vector_buf_t shading_dict;      /* /SH0 7 0 R ... */
+  hb_vector_buf_t xobject_dict;      /* /Im0 8 0 R ... */
   unsigned extgstate_count = 0;
   unsigned shading_count = 0;
   unsigned xobject_count = 0;
 
-  unsigned add_object (hb_buf_t &&obj_data)
+  unsigned add_object (hb_vector_buf_t &&obj_data)
   {
     unsigned id = 5 + objects.length; /* objects 1-4 are fixed */
     hb_pdf_obj_t obj;
@@ -89,7 +89,7 @@ struct hb_pdf_resources_t
   unsigned add_extgstate_alpha (float alpha)
   {
     unsigned idx = extgstate_count++;
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     obj.append_str ("<< /Type /ExtGState /ca ");
     obj.append_num (alpha, 4);
     obj.append_str (" >>");
@@ -107,7 +107,7 @@ struct hb_pdf_resources_t
   unsigned add_extgstate_blend (const char *bm)
   {
     unsigned idx = extgstate_count++;
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     obj.append_str ("<< /Type /ExtGState /BM /");
     obj.append_str (bm);
     obj.append_str (" >>");
@@ -129,10 +129,10 @@ struct hb_pdf_resources_t
 				unsigned precision)
   {
     /* Form XObject: transparency group painting the alpha shading. */
-    hb_buf_t form_stream;
+    hb_vector_buf_t form_stream;
     form_stream.append_str ("/SHa sh\n");
 
-    hb_buf_t form;
+    hb_vector_buf_t form;
     form.append_str ("<< /Type /XObject /Subtype /Form\n");
     form.append_str ("/BBox [");
     form.append_num (bbox_x, precision);
@@ -155,7 +155,7 @@ struct hb_pdf_resources_t
 
     /* ExtGState with luminosity soft mask. */
     unsigned idx = extgstate_count++;
-    hb_buf_t gs;
+    hb_vector_buf_t gs;
     gs.append_str ("<< /Type /ExtGState\n");
     gs.append_str ("/SMask << /Type /Mask /S /Luminosity /G ");
     gs.append_unsigned (form_id);
@@ -171,7 +171,7 @@ struct hb_pdf_resources_t
   }
 
   /* Add a shading, return resource name index. */
-  unsigned add_shading (hb_buf_t &&shading_data)
+  unsigned add_shading (hb_vector_buf_t &&shading_data)
   {
     unsigned obj_id = add_object (std::move (shading_data));
     return add_shading_by_id (obj_id);
@@ -202,7 +202,7 @@ struct hb_pdf_resources_t
 				  unsigned trns_len = 0)
   {
     unsigned idx = xobject_count++;
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     obj.append_str ("<< /Type /XObject /Subtype /Image\n");
     obj.append_str ("/Width ");
     obj.append_unsigned (width);
@@ -236,11 +236,11 @@ struct hb_pdf_resources_t
     unsigned smask_id = 0;
     if (plte && trns && trns_len)
     {
-      hb_buf_t smask_stream;
+      hb_vector_buf_t smask_stream;
       if (hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
 				      width, height, trns, trns_len))
       {
-	hb_buf_t smask_obj;
+	hb_vector_buf_t smask_obj;
 	smask_obj.append_str ("<< /Type /XObject /Subtype /Image\n");
 	smask_obj.append_str ("/Width ");
 	smask_obj.append_unsigned (width);
@@ -353,7 +353,7 @@ static void
 hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 			 hb_font_t *font,
 			 hb_codepoint_t glyph,
-			 hb_buf_t *buf)
+			 hb_vector_buf_t *buf)
 {
   hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (), 1.f, 1.f};
   paint->path.clear ();
@@ -558,7 +558,7 @@ hb_pdf_paint_color (hb_paint_funcs_t *,
 /* Build an uncompressed alpha mask from indexed PNG IDAT data + tRNS.
  * Decompresses IDAT, un-filters PNG rows, maps palette indices to alpha. */
 static bool
-hb_pdf_build_indexed_smask (hb_buf_t *out,
+hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
 			    const char *idat_data, unsigned idat_len,
 			    unsigned width, unsigned height,
 			    const uint8_t *trns, unsigned trns_len)
@@ -699,7 +699,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   unsigned plte_len = 0;
   const uint8_t *trns_data = nullptr;
   unsigned trns_len = 0;
-  hb_buf_t idat;
+  hb_vector_buf_t idat;
 
   unsigned pos = 8;
   while (pos + 12 <= len)
@@ -800,7 +800,7 @@ hb_pdf_gradient_needs_alpha (const hb_color_stop_t *stops, unsigned count)
 /* Build a PDF Type 2 (exponential interpolation) function for
  * a single alpha stop pair (DeviceGray, scalar output). */
 static void
-hb_pdf_build_alpha_interpolation_function (hb_buf_t *obj,
+hb_pdf_build_alpha_interpolation_function (hb_vector_buf_t *obj,
 					   float a0, float a1)
 {
   obj->append_str ("<< /FunctionType 2 /Domain [0 1] /N 1\n");
@@ -822,14 +822,14 @@ hb_pdf_build_alpha_gradient_function_from_stops (hb_pdf_resources_t *res,
   if (count < 2)
   {
     float a = count ? hb_color_get_alpha (paint->color_stops_scratch.arrayZ[0].color) / 255.f : 1.f;
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     hb_pdf_build_alpha_interpolation_function (&obj, a, a);
     return res->add_object (std::move (obj));
   }
 
   if (count == 2)
   {
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     hb_pdf_build_alpha_interpolation_function (&obj,
       hb_color_get_alpha (paint->color_stops_scratch.arrayZ[0].color) / 255.f,
       hb_color_get_alpha (paint->color_stops_scratch.arrayZ[1].color) / 255.f);
@@ -839,14 +839,14 @@ hb_pdf_build_alpha_gradient_function_from_stops (hb_pdf_resources_t *res,
   hb_vector_t<unsigned> sub_func_ids;
   for (unsigned i = 0; i + 1 < count; i++)
   {
-    hb_buf_t sub;
+    hb_vector_buf_t sub;
     hb_pdf_build_alpha_interpolation_function (&sub,
       hb_color_get_alpha (paint->color_stops_scratch.arrayZ[i].color) / 255.f,
       hb_color_get_alpha (paint->color_stops_scratch.arrayZ[i + 1].color) / 255.f);
     sub_func_ids.push (res->add_object (std::move (sub)));
   }
 
-  hb_buf_t obj;
+  hb_vector_buf_t obj;
   obj.append_str ("<< /FunctionType 3 /Domain [0 1]\n");
   obj.append_str ("/Functions [");
   for (unsigned i = 0; i < sub_func_ids.length; i++)
@@ -874,7 +874,7 @@ hb_pdf_build_alpha_gradient_function_from_stops (hb_pdf_resources_t *res,
 /* Build a PDF Type 2 (exponential interpolation) function for
  * a single color stop pair. */
 static void
-hb_pdf_build_interpolation_function (hb_buf_t *obj,
+hb_pdf_build_interpolation_function (hb_vector_buf_t *obj,
 				     hb_color_t c0, hb_color_t c1)
 {
   obj->append_str ("<< /FunctionType 2 /Domain [0 1] /N 1\n");
@@ -906,7 +906,7 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
     /* Single stop: constant function. */
     hb_color_t c = count ? paint->color_stops_scratch.arrayZ[0].color
 			 : HB_COLOR (0, 0, 0, 255);
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     hb_pdf_build_interpolation_function (&obj, c, c);
     return res->add_object (std::move (obj));
   }
@@ -919,7 +919,7 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
   if (count == 2)
   {
     /* Two stops: single interpolation function. */
-    hb_buf_t obj;
+    hb_vector_buf_t obj;
     hb_pdf_build_interpolation_function (&obj,
 					  paint->color_stops_scratch.arrayZ[0].color,
 					  paint->color_stops_scratch.arrayZ[1].color);
@@ -930,7 +930,7 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
   hb_vector_t<unsigned> sub_func_ids;
   for (unsigned i = 0; i + 1 < count; i++)
   {
-    hb_buf_t sub;
+    hb_vector_buf_t sub;
     hb_pdf_build_interpolation_function (&sub,
 					  paint->color_stops_scratch.arrayZ[i].color,
 					  paint->color_stops_scratch.arrayZ[i + 1].color);
@@ -938,7 +938,7 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
   }
 
   /* Stitching function (Type 3). */
-  hb_buf_t obj;
+  hb_vector_buf_t obj;
   obj.append_str ("<< /FunctionType 3 /Domain [0 1]\n");
 
   /* Functions array. */
@@ -1010,7 +1010,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 			    ? "/Extend [true true]\n" : "";
 
   /* Build Type 2 (axial) shading — color only. */
-  hb_buf_t sh;
+  hb_vector_buf_t sh;
   sh.append_str ("<< /ShadingType 2 /ColorSpace /DeviceRGB\n");
   sh.append_str ("/Coords [");
   sh.append_num (gx0);
@@ -1035,7 +1035,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   {
     unsigned alpha_func_id = hb_pdf_build_alpha_gradient_function_from_stops (res, paint);
 
-    hb_buf_t ash;
+    hb_vector_buf_t ash;
     ash.append_str ("<< /ShadingType 2 /ColorSpace /DeviceGray\n");
     ash.append_str ("/Coords [");
     ash.append_num (gx0);
@@ -1105,7 +1105,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 			    ? "/Extend [true true]\n" : "";
 
   /* Build Type 3 (radial) shading — color only. */
-  hb_buf_t sh;
+  hb_vector_buf_t sh;
   sh.append_str ("<< /ShadingType 3 /ColorSpace /DeviceRGB\n");
   sh.append_str ("/Coords [");
   sh.append_num (gx0);
@@ -1134,7 +1134,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   {
     unsigned alpha_func_id = hb_pdf_build_alpha_gradient_function_from_stops (res, paint);
 
-    hb_buf_t ash;
+    hb_vector_buf_t ash;
     ash.append_str ("<< /ShadingType 3 /ColorSpace /DeviceGray\n");
     ash.append_str ("/Coords [");
     ash.append_num (gx0);
@@ -1176,7 +1176,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 
 /* Encode a 16-bit big-endian unsigned value into buf. */
 static void
-hb_pdf_encode_u16 (hb_buf_t *buf, uint16_t v)
+hb_pdf_encode_u16 (hb_vector_buf_t *buf, uint16_t v)
 {
   char bytes[2] = {(char) (v >> 8), (char) (v & 0xFF)};
   buf->append_len (bytes, 2);
@@ -1184,7 +1184,7 @@ hb_pdf_encode_u16 (hb_buf_t *buf, uint16_t v)
 
 /* Encode a coordinate as 16-bit value relative to Decode range. */
 static void
-hb_pdf_encode_coord (hb_buf_t *buf,
+hb_pdf_encode_coord (hb_vector_buf_t *buf,
 		     float val, float lo, float hi)
 {
   float t = (val - lo) / (hi - lo);
@@ -1194,7 +1194,7 @@ hb_pdf_encode_coord (hb_buf_t *buf,
 
 /* Encode RGB from hb_color_t as 3 bytes. */
 static void
-hb_pdf_encode_color_rgb (hb_buf_t *buf, hb_color_t c)
+hb_pdf_encode_color_rgb (hb_vector_buf_t *buf, hb_color_t c)
 {
   char rgb[3] = {(char) hb_color_get_red (c),
 		 (char) hb_color_get_green (c),
@@ -1204,7 +1204,7 @@ hb_pdf_encode_color_rgb (hb_buf_t *buf, hb_color_t c)
 
 /* Encode alpha from hb_color_t as 1 byte (gray). */
 static void
-hb_pdf_encode_color_alpha (hb_buf_t *buf, hb_color_t c)
+hb_pdf_encode_color_alpha (hb_vector_buf_t *buf, hb_color_t c)
 {
   char a = (char) hb_color_get_alpha (c);
   buf->append_len (&a, 1);
@@ -1212,7 +1212,7 @@ hb_pdf_encode_color_alpha (hb_buf_t *buf, hb_color_t c)
 
 /* Encode one Coons patch control point. */
 static void
-hb_pdf_encode_point (hb_buf_t *buf,
+hb_pdf_encode_point (hb_vector_buf_t *buf,
 		     float x, float y,
 		     float xlo, float xhi,
 		     float ylo, float yhi)
@@ -1226,8 +1226,8 @@ hb_pdf_encode_point (hb_buf_t *buf,
  * If alpha_mesh is non-null, emits a parallel DeviceGray
  * patch with the alpha channel. */
 static void
-hb_pdf_add_sweep_patch (hb_buf_t *mesh,
-			hb_buf_t *alpha_mesh,
+hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
+			hb_vector_buf_t *alpha_mesh,
 			float cx, float cy,
 			float xlo, float xhi, float ylo, float yhi,
 			float a0, hb_color_t c0_in,
@@ -1331,8 +1331,8 @@ hb_pdf_add_sweep_patch (hb_buf_t *mesh,
 
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
 struct hb_pdf_sweep_ctx_t {
-  hb_buf_t *mesh;
-  hb_buf_t *alpha_mesh;
+  hb_vector_buf_t *mesh;
+  hb_vector_buf_t *alpha_mesh;
   float cx, cy, xlo, xhi, ylo, yhi;
 };
 
@@ -1385,8 +1385,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   bool needs_alpha = hb_pdf_gradient_needs_alpha (stops, n_stops);
 
-  hb_buf_t mesh;
-  hb_buf_t alpha_mesh;
+  hb_vector_buf_t mesh;
+  hb_vector_buf_t alpha_mesh;
   mesh.alloc (256);
   if (needs_alpha)
     alpha_mesh.alloc (256);
@@ -1400,11 +1400,11 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   if (!mesh.length)
     return;
 
-  auto hb_pdf_build_mesh_shading = [&] (hb_buf_t &m,
+  auto hb_pdf_build_mesh_shading = [&] (hb_vector_buf_t &m,
 					 const char *cs,
 					 const char *decode_suffix) -> unsigned
   {
-    hb_buf_t sh;
+    hb_vector_buf_t sh;
     sh.append_str ("<< /ShadingType 6 /ColorSpace /");
     sh.append_str (cs);
     sh.append_str ("\n/BitsPerCoordinate 16 /BitsPerComponent 8 /BitsPerFlag 8\n");
@@ -1592,7 +1592,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
       !paint->group_stack.arrayZ[0].length)
     return nullptr;
 
-  hb_buf_t &content = paint->group_stack.arrayZ[0];
+  hb_vector_buf_t &content = paint->group_stack.arrayZ[0];
   hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
 
   float ex = paint->extents.x;
@@ -1604,7 +1604,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   unsigned total_objects = 4 + num_extra; /* 1-based: 1..total_objects */
 
   /* Build PDF. */
-  hb_buf_t out;
+  hb_vector_buf_t out;
   hb_buf_recover_recycled (paint->recycled_blob, &out);
   out.alloc (content.length + num_extra * 128 + 1024);
 
@@ -1664,7 +1664,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   out.append_str (" >>\nendobj\n");
 
   /* Build content stream: optional background rect + glyph content. */
-  hb_buf_t bg_prefix;
+  hb_vector_buf_t bg_prefix;
   if (hb_color_get_alpha (paint->background))
   {
     float r = hb_color_get_red (paint->background) / 255.f;

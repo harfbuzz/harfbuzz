@@ -36,7 +36,7 @@
 HB_INTERNAL const char *
 hb_vector_decimal_point_get (void);
 
-struct hb_buf_t : hb_vector_t<char>
+struct hb_vector_buf_t : hb_vector_t<char>
 {
   unsigned precision = 2;
 

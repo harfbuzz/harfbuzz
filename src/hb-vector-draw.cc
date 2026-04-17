@@ -33,7 +33,7 @@
 #include <string.h>
 
 HB_UNUSED static inline bool
-hb_vector_svg_buffer_contains (const hb_buf_t &buf, const char *needle)
+hb_vector_svg_buffer_contains (const hb_vector_buf_t &buf, const char *needle)
 {
   unsigned nlen = (unsigned) strlen (needle);
   if (!nlen || buf.length < nlen)
@@ -688,7 +688,7 @@ const char *
 hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw)
 {
   if (!draw->id_prefix.length) return "";
-  const_cast<hb_buf_t &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
+  const_cast<hb_vector_buf_t &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
   draw->id_prefix.arrayZ[draw->id_prefix.length] = '\0';
   return draw->id_prefix.arrayZ;
 }
@@ -807,7 +807,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   float ew = draw->extents.width;
   float eh = draw->extents.height;
 
-  hb_buf_t stream;
+  hb_vector_buf_t stream;
   stream.alloc (draw->body.length + draw->path.length + 256);
 
   /* Background rect. */
@@ -840,7 +840,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
     stream.append_len (draw->body.arrayZ, draw->body.length);
 
   /* Build PDF objects, tracking byte offsets for xref. */
-  hb_buf_t out;
+  hb_vector_buf_t out;
   hb_buf_recover_recycled (draw->recycled_blob, &out);
   out.alloc (stream.length + 512);
 
@@ -906,7 +906,7 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
   if (!draw->has_extents)
     return nullptr;
 
-  hb_buf_t out;
+  hb_vector_buf_t out;
   hb_buf_recover_recycled (draw->recycled_blob, &out);
   unsigned estimated = draw->defs.length +
 		       (draw->body.length ? draw->body.length : draw->path.length) +
