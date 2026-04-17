@@ -10,7 +10,7 @@
     <abstract>
       <title>HarfBuzz</title>
       <para>
-        <inlinemediaobject><imageobject><imagedata fileref="HarfBuzz.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
+        <inlinemediaobject><imageobject><imagedata fileref="hb-shape.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
         <inlinemediaobject><imageobject><imagedata fileref="hb-subset.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
         <inlinemediaobject><imageobject><imagedata fileref="hb-raster.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
         <inlinemediaobject><imageobject><imagedata fileref="hb-vector.png" format="PNG" width="180px"/></imageobject></inlinemediaobject>
