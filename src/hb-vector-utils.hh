@@ -151,6 +151,13 @@ struct hb_buf_t : hb_vector_t<char>
     snprintf (tmp, sizeof (tmp), "%u", v);
     return hb_buf_append_len (this, tmp, (unsigned) strlen (tmp));
   }
+
+  bool append_hex_byte (unsigned v)
+  {
+    char tmp[2] = {"0123456789ABCDEF"[(v >> 4) & 15],
+		   "0123456789ABCDEF"[v & 15]};
+    return append_len (tmp, 2);
+  }
 };
 
 #endif /* HB_VECTOR_UTILS_HH */

@@ -563,7 +563,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 	  return false;
 	draw->defs.append_str ("<path id=\"");
 	draw->defs.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
-	hb_buf_append_c  (&draw->defs, 'p');
+	draw->defs.append_c ('p');
 	draw->defs.append_unsigned (glyph);
 	draw->defs.append_str ("\" d=\"");
 	draw->defs.append_len (draw->path.arrayZ, draw->path.length);
@@ -583,7 +583,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
 
       draw->body.append_str ("<use href=\"#");
       draw->body.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
-      hb_buf_append_c  (&draw->body, 'p');
+      draw->body.append_c ('p');
       draw->body.append_unsigned (glyph);
       draw->body.append_str ("\" transform=\"");
       hb_vector_svg_append_instance_transform (&draw->body,

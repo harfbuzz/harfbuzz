@@ -499,7 +499,7 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
     paint->defs.append_str ("<path id=\"");
     paint->defs.append_len (pfx, pfx_len);
-    hb_buf_append_c  (&paint->defs, 'p');
+    paint->defs.append_c ('p');
     paint->defs.append_unsigned (glyph);
     paint->defs.append_str ("\" d=\"");
     paint->defs.append_len (paint->path.arrayZ, paint->path.length);
@@ -515,7 +515,7 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
     paint->defs.append_unsigned (glyph);
     paint->defs.append_str ("\"><use href=\"#");
     paint->defs.append_len (pfx, pfx_len);
-    hb_buf_append_c  (&paint->defs, 'p');
+    paint->defs.append_c ('p');
     paint->defs.append_unsigned (glyph);
     paint->defs.append_str ("\"/></clipPath>\n");
   }
@@ -543,7 +543,7 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   unsigned clip_id = paint->clip_rect_counter++;
   paint->defs.append_str ("<clipPath id=\"");
   paint->defs.append_len (pfx, pfx_len);
-  hb_buf_append_c  (&paint->defs, 'c');
+  paint->defs.append_c ('c');
   paint->defs.append_unsigned (clip_id);
   paint->defs.append_str ("\"><rect x=\"");
   paint->defs.append_num (xmin);
@@ -557,7 +557,7 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
 
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
-  hb_buf_append_c  (&paint->current_body (), 'c');
+  paint->current_body ().append_c ('c');
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
 }
@@ -758,7 +758,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_vector_svg_emit_color_stops (paint, &paint->defs, &stops);
   paint->defs.append_str ("</linearGradient>\n");
 
-  hb_buf_append_str (&paint->current_body (),
+  paint->current_body ().append_str (
                      "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("gr");
@@ -823,7 +823,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   hb_vector_svg_emit_color_stops (paint, &paint->defs, &stops);
   paint->defs.append_str ("</radialGradient>\n");
 
-  hb_buf_append_str (&paint->current_body (),
+  paint->current_body ().append_str (
                      "<rect x=\"-1000000\" y=\"-1000000\" width=\"2000000\" height=\"2000000\" fill=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("gr");

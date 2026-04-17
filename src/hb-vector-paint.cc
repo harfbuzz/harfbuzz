@@ -674,7 +674,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 	paint->defs.append_str ("cg");
 	paint->defs.append_unsigned (def_id);
 	paint->defs.append_str ("\">\n");
-	hb_buf_append_len (&paint->defs,
+	paint->defs.append_len (
 			   paint->captured_scratch.arrayZ,
 			   paint->captured_scratch.length);
 	paint->defs.append_str ("</g>\n");

@@ -4,13 +4,13 @@
 #include "hb-vector.h"
 
 static inline bool
-hb_buf_append_str (hb_vector_t<char> *buf, const char *s)
+hb_buf_append_str (hb_buf_t *buf, const char *s)
 {
-  return hb_buf_append_len (buf, s, (unsigned) strlen (s));
+  return buf->append_len (s, (unsigned) strlen (s));
 }
 
 static inline bool
-hb_buf_append_unsigned (hb_vector_t<char> *buf, unsigned v)
+hb_buf_append_unsigned (hb_buf_t *buf, unsigned v)
 {
   char tmp[10];
   unsigned n = 0;
@@ -29,15 +29,15 @@ hb_buf_append_unsigned (hb_vector_t<char> *buf, unsigned v)
 }
 
 static inline bool
-hb_buf_append_hex_byte (hb_vector_t<char> *buf, unsigned v)
+hb_buf_append_hex_byte (hb_buf_t *buf, unsigned v)
 {
   static const char hex[] = "0123456789ABCDEF";
   char tmp[2] = {hex[(v >> 4) & 15], hex[v & 15]};
-  return hb_buf_append_len (buf, tmp, 2);
+  return buf->append_len (tmp, 2);
 }
 
 static inline bool
-hb_buf_append_base64 (hb_vector_t<char> *buf,
+hb_buf_append_base64 (hb_buf_t *buf,
                       const uint8_t *data,
                       unsigned len)
 {
@@ -125,7 +125,7 @@ hb_vector_blob_meta_destroy (void *data)
 
 static inline hb_blob_t *
 hb_buf_blob_from (hb_blob_t **recycled_blob,
-                         hb_vector_t<char> *buf)
+                         hb_buf_t *buf)
 {
   unsigned len = 0;
   int allocated = 0;
@@ -198,7 +198,7 @@ hb_buf_blob_from (hb_blob_t **recycled_blob,
 
 static inline void
 hb_buf_recover_recycled (hb_blob_t *blob,
-                                hb_vector_t<char> *buf)
+                                hb_buf_t *buf)
 {
   if (!blob)
     return;
@@ -214,7 +214,7 @@ hb_buf_recover_recycled (hb_blob_t *blob,
 }
 
 static inline void
-hb_buf_append_color (hb_vector_t<char> *buf,
+hb_buf_append_color (hb_buf_t *buf,
                      hb_color_t color,
                      bool with_alpha)
 {
@@ -223,25 +223,25 @@ hb_buf_append_color (hb_vector_t<char> *buf,
   unsigned g = hb_color_get_green (color);
   unsigned b = hb_color_get_blue (color);
   unsigned a = hb_color_get_alpha (color);
-  hb_buf_append_c (buf, '#');
+  buf->append_c ('#');
   if (((r >> 4) == (r & 0xF)) &&
       ((g >> 4) == (g & 0xF)) &&
       ((b >> 4) == (b & 0xF)))
   {
-    hb_buf_append_c (buf, hex[r & 0xF]);
-    hb_buf_append_c (buf, hex[g & 0xF]);
-    hb_buf_append_c (buf, hex[b & 0xF]);
+    buf->append_c (hex[r & 0xF]);
+    buf->append_c (hex[g & 0xF]);
+    buf->append_c (hex[b & 0xF]);
   }
   else
   {
-    hb_buf_append_hex_byte (buf, r);
-    hb_buf_append_hex_byte (buf, g);
-    hb_buf_append_hex_byte (buf, b);
+    buf->append_hex_byte (r);
+    buf->append_hex_byte (g);
+    buf->append_hex_byte (b);
   }
   if (with_alpha && a != 255)
   {
-    hb_buf_append_str (buf, "\" fill-opacity=\"");
-    hb_buf_append_num (buf, a / 255.f, 4);
+    buf->append_str ("\" fill-opacity=\"");
+    buf->append_num (a / 255.f, 4);
   }
 }
 
@@ -309,7 +309,7 @@ hb_vector_set_glyph_extents_common (const hb_transform_t<> &transform,
 }
 
 static inline void
-hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
+hb_vector_svg_append_instance_transform (hb_buf_t *out,
                                   unsigned precision,
                                   float x_scale_factor,
                                   float y_scale_factor,
@@ -322,31 +322,31 @@ hb_vector_svg_append_instance_transform (hb_vector_t<char> *out,
   {
     float sx = 1.f / x_scale_factor;
     float sy = 1.f / y_scale_factor;
-    hb_buf_append_str (out, "translate(");
-    hb_buf_append_num (out, tx / x_scale_factor, precision);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -ty / y_scale_factor, precision);
-    hb_buf_append_str (out, ") scale(");
-    hb_buf_append_num (out, sx, sprec);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -sy, sprec);
-    hb_buf_append_c (out, ')');
+    out->append_str ("translate(");
+    out->append_num (tx / x_scale_factor, precision);
+    out->append_c (',');
+    out->append_num (-ty / y_scale_factor, precision);
+    out->append_str (") scale(");
+    out->append_num (sx, sprec);
+    out->append_c (',');
+    out->append_num (-sy, sprec);
+    out->append_c (')');
   }
   else
   {
-    hb_buf_append_str (out, "matrix(");
-    hb_buf_append_num (out, xx / x_scale_factor, sprec);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, yx / y_scale_factor, sprec);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -xy / x_scale_factor, sprec);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -yy / y_scale_factor, sprec);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, tx / x_scale_factor, precision);
-    hb_buf_append_c (out, ',');
-    hb_buf_append_num (out, -ty / y_scale_factor, precision);
-    hb_buf_append_c (out, ')');
+    out->append_str ("matrix(");
+    out->append_num (xx / x_scale_factor, sprec);
+    out->append_c (',');
+    out->append_num (yx / y_scale_factor, sprec);
+    out->append_c (',');
+    out->append_num (-xy / x_scale_factor, sprec);
+    out->append_c (',');
+    out->append_num (-yy / y_scale_factor, sprec);
+    out->append_c (',');
+    out->append_num (tx / x_scale_factor, precision);
+    out->append_c (',');
+    out->append_num (-ty / y_scale_factor, precision);
+    out->append_c (')');
   }
 }
 
