@@ -35,11 +35,9 @@
 static void
 hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
 {
-  /* Skip when the paint's own transform is identity -- each
-   * instance's <use> transform already divides by scale_factor,
-   * so wrapping the body in another /scale_factor matrix would
-   * double-scale.  Only emit when the user has set a non-
-   * identity paint-level transform. */
+  /* Skip when the paint's own transform is identity.
+   * Only emit when the user has set a non-identity
+   * paint-level transform via hb_vector_paint_set_transform. */
   if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
       paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
       paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
@@ -55,9 +53,9 @@ hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb
   buf->append_c (',');
   buf->append_num (paint->transform.yy, sprec);
   buf->append_c (',');
-  buf->append_num (paint->transform.x0);
+  buf->append_num (paint->sx (paint->transform.x0));
   buf->append_c (',');
-  buf->append_num (paint->transform.y0);
+  buf->append_num (paint->sy (paint->transform.y0));
   buf->append_str (")\">\n");
 }
 

@@ -587,7 +587,14 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
       float sx = paint->x_scale_factor;
       float sy = paint->y_scale_factor;
       body.append_str ("q\n");
-      body.append_str ("1 0 0 1 ");
+      body.append_num (xx);
+      body.append_c (' ');
+      body.append_num (yx);
+      body.append_c (' ');
+      body.append_num (xy);
+      body.append_c (' ');
+      body.append_num (yy);
+      body.append_c (' ');
       body.append_num (tx / sx);
       body.append_c (' ');
       body.append_num (ty / sy);
