@@ -41,7 +41,7 @@ vec4 _hb_gpu_stop_color (int stops_base, int i, vec4 foreground, out float offse
   offset = float (a.r) / 32767.0;
   ivec4 b = hb_gpu_fetch (stops_base + i * 2 + 1);
   if ((a.g & 1) != 0)
-    return foreground * (float (b.a) / 32767.0);
+    return vec4 (foreground.rgb, foreground.a * (float (b.a) / 32767.0));
   return vec4 (b) / 32767.0;
 }
 
@@ -323,7 +323,7 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground)
       int clip3_payload = (op2.b << 16) | (op2.a & 0xffff);
       ivec4 ct = hb_gpu_fetch (cursor + 2);
       vec4 col = ((aux & 1) != 0)
-	       ? foreground * (float (ct.a) / 32767.0)
+	       ? vec4 (foreground.rgb, foreground.a * (float (ct.a) / 32767.0))
 	       : vec4 (ct) / 32767.0;
 
       float cov = _hb_gpu_layer_coverage (renderCoord, pixelsPerEm,
