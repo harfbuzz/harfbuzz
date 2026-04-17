@@ -1669,11 +1669,47 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 
   hb_buf_append_str (&out, " >>\nendobj\n");
 
+  /* Build content stream: optional background rect + glyph content. */
+  hb_vector_t<char> bg_prefix;
+  if (hb_color_get_alpha (paint->background))
+  {
+    float r = hb_color_get_red (paint->background) / 255.f;
+    float g = hb_color_get_green (paint->background) / 255.f;
+    float b = hb_color_get_blue (paint->background) / 255.f;
+    float a = hb_color_get_alpha (paint->background) / 255.f;
+    if (a < 1.f - 1.f / 512.f)
+    {
+      if (res)
+      {
+	unsigned gs_idx = res->add_extgstate_alpha (a, paint->precision);
+	hb_buf_append_str (&bg_prefix, "/GS");
+	hb_buf_append_unsigned (&bg_prefix, gs_idx);
+	hb_buf_append_str (&bg_prefix, " gs\n");
+      }
+    }
+    hb_buf_append_num (&bg_prefix, r, 4);
+    hb_buf_append_c (&bg_prefix, ' ');
+    hb_buf_append_num (&bg_prefix, g, 4);
+    hb_buf_append_c (&bg_prefix, ' ');
+    hb_buf_append_num (&bg_prefix, b, 4);
+    hb_buf_append_str (&bg_prefix, " rg\n");
+    hb_buf_append_num (&bg_prefix, ex, paint->precision);
+    hb_buf_append_c (&bg_prefix, ' ');
+    hb_buf_append_num (&bg_prefix, -(ey + eh), paint->precision);
+    hb_buf_append_c (&bg_prefix, ' ');
+    hb_buf_append_num (&bg_prefix, ew, paint->precision);
+    hb_buf_append_c (&bg_prefix, ' ');
+    hb_buf_append_num (&bg_prefix, eh, paint->precision);
+    hb_buf_append_str (&bg_prefix, " re f\n");
+  }
+  unsigned stream_len = bg_prefix.length + content.length;
+
   /* Object 4: Content stream */
   offsets.arrayZ[3] = out.length;
   hb_buf_append_str (&out, "4 0 obj\n<< /Length ");
-  hb_buf_append_unsigned (&out, content.length);
+  hb_buf_append_unsigned (&out, stream_len);
   hb_buf_append_str (&out, " >>\nstream\n");
+  hb_buf_append_len (&out, bg_prefix.arrayZ, bg_prefix.length);
   hb_buf_append_len (&out, content.arrayZ, content.length);
   hb_buf_append_str (&out, "endstream\nendobj\n");
 

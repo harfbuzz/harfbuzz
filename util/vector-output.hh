@@ -203,6 +203,8 @@ struct vector_output_t : output_options_t<>, view_options_t
       hb_vector_paint_set_scale_factor (paint, scale, scale);
       hb_vector_paint_set_extents (paint, &extents);
       hb_vector_paint_set_foreground (paint, foreground);
+      if (has_background)
+	hb_vector_paint_set_background (paint, background);
       hb_vector_paint_set_palette (paint, this->palette);
       apply_custom_palette (paint);
       init_palette_color_cache ();

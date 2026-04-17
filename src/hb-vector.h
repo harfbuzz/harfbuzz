@@ -265,6 +265,13 @@ HB_EXTERN hb_color_t
 hb_vector_paint_get_foreground (const hb_vector_paint_t *paint);
 
 HB_EXTERN void
+hb_vector_paint_set_background (hb_vector_paint_t *paint,
+                                hb_color_t background);
+
+HB_EXTERN hb_color_t
+hb_vector_paint_get_background (const hb_vector_paint_t *paint);
+
+HB_EXTERN void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette);
 

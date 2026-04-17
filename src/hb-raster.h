@@ -299,6 +299,13 @@ HB_EXTERN hb_color_t
 hb_raster_paint_get_foreground (const hb_raster_paint_t *paint);
 
 HB_EXTERN void
+hb_raster_paint_set_background (hb_raster_paint_t *paint,
+				hb_color_t         background);
+
+HB_EXTERN hb_color_t
+hb_raster_paint_get_background (const hb_raster_paint_t *paint);
+
+HB_EXTERN void
 hb_raster_paint_set_palette (hb_raster_paint_t *paint,
 			     unsigned           palette);
 
