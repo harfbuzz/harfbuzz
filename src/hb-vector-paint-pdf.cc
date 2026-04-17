@@ -546,15 +546,7 @@ hb_pdf_paint_color (hb_paint_funcs_t *,
   if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
     return;
 
-  hb_color_t c = color;
-  if (is_foreground)
-    c = HB_COLOR (hb_color_get_blue (paint->foreground),
-		  hb_color_get_green (paint->foreground),
-		  hb_color_get_red (paint->foreground),
-		  (unsigned) hb_color_get_alpha (paint->foreground) *
-		  hb_color_get_alpha (color) / 255);
-
-  hb_pdf_paint_solid_color (paint, c);
+  hb_pdf_paint_solid_color (paint, color);
 }
 
 /* Build an uncompressed alpha mask from indexed PNG IDAT data + tRNS.

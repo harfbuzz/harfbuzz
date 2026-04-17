@@ -88,13 +88,7 @@ hb_vector_get_color_stops (hb_vector_paint_t *paint,
   if (unlikely (!len))
     return false;
 
-  for (unsigned i = 0; i < len; i++)
-    if (stops->arrayZ[i].is_foreground)
-      stops->arrayZ[i].color = HB_COLOR (hb_color_get_blue (paint->foreground),
-                                         hb_color_get_green (paint->foreground),
-                                         hb_color_get_red (paint->foreground),
-                                         (unsigned) hb_color_get_alpha (stops->arrayZ[i].color) *
-                                         hb_color_get_alpha (paint->foreground) / 255);
+  (void) paint;
   return true;
 }
 
@@ -639,11 +633,6 @@ hb_vector_paint_color (hb_paint_funcs_t *,
     return;
 
   hb_color_t c = color;
-  if (is_foreground)
-    c = HB_COLOR (hb_color_get_blue (paint->foreground),
-                  hb_color_get_green (paint->foreground),
-                  hb_color_get_red (paint->foreground),
-                  (unsigned) hb_color_get_alpha (paint->foreground) * hb_color_get_alpha (color) / 255);
 
   auto &body = paint->current_body ();
   body.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"");
