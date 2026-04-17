@@ -68,6 +68,11 @@
  * content (including extents), so retrieve any needed extents
  * via hb_vector_draw_get_extents() / hb_vector_paint_get_extents()
  * before rendering.
+ *
+ * Each glyph is emitted as an independent element.  If glyphs
+ * overlap and the foreground color is semi-transparent, the
+ * overlapping regions will be composited separately rather than
+ * painted as a single uniform layer.
  **/
 
 struct hb_vector_decimal_point_t
