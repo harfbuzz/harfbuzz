@@ -30,6 +30,7 @@
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-math.h"
+#include "hb-depend-data.hh"
 
 namespace OT {
 
@@ -662,6 +663,11 @@ struct MathGlyphVariantRecord
     return_trace (c->check_struct (this));
   }
 
+#ifdef HB_DEPEND_API
+  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  { depend_data->add_depend(source, HB_OT_TAG_MATH, variantGlyph); }
+#endif
+
   void closure_glyphs (hb_set_t *variant_glyphs) const
   { variant_glyphs->add (variantGlyph); }
 
@@ -722,6 +728,11 @@ struct MathGlyphPartRecord
 		(unsigned int)
 		(partFlags & PartFlags::Defined);
   }
+
+#ifdef HB_DEPEND_API
+  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  { depend_data->add_depend(source, HB_OT_TAG_MATH, glyph); }
+#endif
 
   void closure_glyphs (hb_set_t *variant_glyphs) const
   { variant_glyphs->add (glyph); }
@@ -790,6 +801,14 @@ struct MathGlyphAssembly
     return partRecords.len;
   }
 
+#ifdef HB_DEPEND_API
+  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  {
+    for (const auto& _ : partRecords.iter ())
+      _.depend (depend_data, source);
+  }
+#endif
+
   void closure_glyphs (hb_set_t *variant_glyphs) const
   {
     for (const auto& _ : partRecords.iter ())
@@ -855,6 +874,16 @@ struct MathGlyphConstruction
     return mathGlyphVariantRecord.len;
   }
 
+#ifdef HB_DEPEND_API
+  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  {
+    (this+glyphAssembly).depend (depend_data, source);
+
+    for (const auto& _ : mathGlyphVariantRecord.iter ())
+      _.depend (depend_data, source);
+  }
+#endif
+
   void closure_glyphs (hb_set_t *variant_glyphs) const
   {
     (this+glyphAssembly).closure_glyphs (variant_glyphs);
@@ -877,6 +906,36 @@ struct MathGlyphConstruction
 
 struct MathVariants
 {
+#ifdef HB_DEPEND_API
+  void depend (hb_depend_data_t *depend_data) const
+  {
+    const hb_array_t<const Offset16To<MathGlyphConstruction>> glyph_construction_offsets = glyphConstruction.as_array (vertGlyphCount + horizGlyphCount);
+
+    if (vertGlyphCoverage)
+    {
+      const auto vert_offsets = glyph_construction_offsets.sub_array (0, vertGlyphCount);
+      + hb_zip (this+vertGlyphCoverage, vert_offsets)
+      | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const Offset16To<MathGlyphConstruction>&> &_)
+                  {
+                    const MathGlyphConstruction &mgc = this+_.second;
+                    mgc.depend (depend_data, _.first);
+                  })
+      ;
+    }
+    if (horizGlyphCoverage)
+    {
+      const auto hori_offsets = glyph_construction_offsets.sub_array (vertGlyphCount, horizGlyphCount);
+      + hb_zip (this+horizGlyphCoverage, hori_offsets)
+      | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const Offset16To<MathGlyphConstruction>&> &_)
+                  {
+                    const MathGlyphConstruction &mgc = this+_.second;
+                    mgc.depend (depend_data, _.first);
+                  })
+      ;
+    }
+  }
+#endif
+
   void closure_glyphs (const hb_set_t *glyph_set,
                        hb_set_t *variant_glyphs) const
   {
@@ -1072,6 +1131,14 @@ struct MATH
   static constexpr hb_tag_t tableTag = HB_OT_TAG_MATH;
 
   bool has_data () const { return version.to_int (); }
+
+#ifdef HB_DEPEND_API
+  void depend (hb_depend_data_t *depend_data) const
+  {
+    if (mathVariants)
+      (this+mathVariants).depend (depend_data);
+  }
+#endif
 
   void closure_glyphs (hb_set_t *glyph_set) const
   {

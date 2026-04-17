@@ -58,6 +58,19 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
+#ifdef HB_DEPEND_API
+/*static*/ typename hb_depend_context_t::return_t SubstLookup::depend_glyphs_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
+{
+  const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
+  /* After a non-1-to-1 lookup (expansion/contraction), subsequent lookups in the same
+   * contextual rule see all glyphs, not position-specific ones. This matches closure behavior.
+   * Mark sequence positions as covered so later lookups use the full glyph set. */
+  if (l.may_have_non_1to1 ())
+      hb_set_add_range (covered_seq_indices, seq_index, end_index);
+  return l.dispatch (c);
+}
+#endif
+
 template <>
 inline hb_closure_lookups_context_t::return_t
 SubstLookup::dispatch_recurse_func<hb_closure_lookups_context_t> (hb_closure_lookups_context_t *c, unsigned this_index)
@@ -97,6 +110,5 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
 } /* namespace GSUB_impl */
 } /* namespace Layout */
 } /* namespace OT */
-
 
 #endif /* HB_OT_LAYOUT_GSUB_TABLE_HH */
