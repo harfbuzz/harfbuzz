@@ -916,18 +916,22 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
 		       paint->group_stack.arrayZ[0].length +
 		       320;
   out.alloc (estimated);
+  float vb_x = paint->extents.x;
+  float vb_y = -(paint->extents.y + paint->extents.height);
+  float vb_w = paint->extents.width;
+  float vb_h = paint->extents.height;
   out.append_str ("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
-  out.append_num (paint->extents.x);
+  out.append_num (vb_x);
   out.append_c (' ');
-  out.append_num (paint->extents.y);
+  out.append_num (vb_y);
   out.append_c (' ');
-  out.append_num (paint->extents.width);
+  out.append_num (vb_w);
   out.append_c (' ');
-  out.append_num (paint->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\" width=\"");
-  out.append_num (paint->extents.width);
+  out.append_num (vb_w);
   out.append_str ("\" height=\"");
-  out.append_num (paint->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\">\n");
 
   if (paint->defs.length)
@@ -940,13 +944,13 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
   if (hb_color_get_alpha (paint->background))
   {
     out.append_str ("<rect x=\"");
-    out.append_num (paint->extents.x);
+    out.append_num (vb_x);
     out.append_str ("\" y=\"");
-    out.append_num (paint->extents.y);
+    out.append_num (vb_y);
     out.append_str ("\" width=\"");
-    out.append_num (paint->extents.width);
+    out.append_num (vb_w);
     out.append_str ("\" height=\"");
-    out.append_num (paint->extents.height);
+    out.append_num (vb_h);
     out.append_str ("\" fill=\"rgb(");
     out.append_unsigned (hb_color_get_red (paint->background));
     out.append_c (',');
@@ -963,7 +967,9 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     out.append_str ("/>\n");
   }
 
+  out.append_str ("<g transform=\"scale(1,-1)\">\n");
   out.append_len (paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
+  out.append_str ("</g>\n");
 
   out.append_str ("</svg>\n");
 

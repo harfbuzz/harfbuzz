@@ -84,31 +84,11 @@ struct hb_vector_draw_t
 
   void flush_path_svg ()
   {
-    unsigned r = hb_color_get_red (foreground);
-    unsigned g = hb_color_get_green (foreground);
-    unsigned b = hb_color_get_blue (foreground);
-    unsigned a = hb_color_get_alpha (foreground);
-    body.append_str ("<g transform=\"scale(1,-1)\">"
-			      "<path d=\"");
+    body.append_str ("<path d=\"");
     body.append_len (path.arrayZ, path.length);
-    body.append_str ("\"");
-    if (r || g || b || a != 255)
-    {
-      body.append_str (" fill=\"rgb(");
-      body.append_unsigned (r);
-      body.append_c (',');
-      body.append_unsigned (g);
-      body.append_c (',');
-      body.append_unsigned (b);
-      body.append_str (")\"");
-      if (a < 255)
-      {
-	body.append_str (" fill-opacity=\"");
-	body.append_num (a / 255.f, 4);
-	body.append_c ('"');
-      }
-    }
-    body.append_str ("/></g>\n");
+    body.append_str ("\" fill=\"");
+    body.append_svg_color (foreground, true);
+    body.append_str ("\"/>\n");
   }
 
   void transform_xy (float x, float y, float *tx, float *ty)

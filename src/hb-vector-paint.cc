@@ -548,7 +548,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
     if (hb_font_get_glyph_extents (font, glyph, &ge))
     {
       hb_bool_t has_extents = paint->has_extents;
-      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, -ty};
+      hb_transform_t<> extents_transform = {xx, yx, xy, yy, tx, ty};
       hb_bool_t ret = hb_vector_set_glyph_extents_common (extents_transform,
 							paint->x_scale_factor,
 							paint->y_scale_factor,
@@ -564,17 +564,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
     return false;
 
   hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
-  switch (paint->format)
-  {
-    case HB_VECTOR_FORMAT_SVG:
-      hb_paint_push_transform (funcs, paint, xx, yx, -xy, -yy, tx, -ty);
-      break;
-    case HB_VECTOR_FORMAT_PDF:
-      hb_paint_push_transform (funcs, paint, xx, yx, xy, yy, tx, ty);
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default:
-      return false;
-  }
+  hb_paint_push_transform (funcs, paint, xx, yx, xy, yy, tx, ty);
 
   hb_bool_t ret = true;
   if (fallible)

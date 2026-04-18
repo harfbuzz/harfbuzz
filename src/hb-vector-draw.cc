@@ -495,7 +495,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       float yy = draw->transform.yy;
       float tx = draw->transform.x0;
       float ty = draw->transform.y0;
-      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, -ty};
+      hb_transform_t<> extents_transform = {xx, yx, xy, yy, tx, ty};
 
       hb_bool_t has_extents = draw->has_extents;
       hb_vector_set_glyph_extents_common (extents_transform,
@@ -763,18 +763,25 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 		       (draw->body.length ? draw->body.length : draw->path.length) +
 		       256;
   out.alloc (estimated);
+  /* Extents are in Y-up (font) space.  SVG is Y-down.
+   * The global scale(1,-1) wrapper flips content; the
+   * viewBox maps the flipped range. */
+  float vb_x = draw->extents.x;
+  float vb_y = -(draw->extents.y + draw->extents.height);
+  float vb_w = draw->extents.width;
+  float vb_h = draw->extents.height;
   out.append_str ("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  out.append_num (draw->extents.x);
+  out.append_num (vb_x);
   out.append_c (' ');
-  out.append_num (draw->extents.y);
+  out.append_num (vb_y);
   out.append_c (' ');
-  out.append_num (draw->extents.width);
+  out.append_num (vb_w);
   out.append_c (' ');
-  out.append_num (draw->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\" width=\"");
-  out.append_num (draw->extents.width);
+  out.append_num (vb_w);
   out.append_str ("\" height=\"");
-  out.append_num (draw->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\">\n");
 
   if (draw->defs.length)
@@ -788,13 +795,13 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
   if (hb_color_get_alpha (draw->background))
   {
     out.append_str ("<rect x=\"");
-    out.append_num (draw->extents.x);
+    out.append_num (vb_x);
     out.append_str ("\" y=\"");
-    out.append_num (draw->extents.y);
+    out.append_num (vb_y);
     out.append_str ("\" width=\"");
-    out.append_num (draw->extents.width);
+    out.append_num (vb_w);
     out.append_str ("\" height=\"");
-    out.append_num (draw->extents.height);
+    out.append_num (vb_h);
     out.append_str ("\" fill=\"rgb(");
     out.append_unsigned (hb_color_get_red (draw->background));
     out.append_c (',');
@@ -813,7 +820,11 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 
   draw->flush_path ();
   if (draw->body.length)
+  {
+    out.append_str ("<g transform=\"scale(1,-1)\">\n");
     out.append_len (draw->body.arrayZ, draw->body.length);
+    out.append_str ("</g>\n");
+  }
 
   out.append_str ("</svg>\n");
 
