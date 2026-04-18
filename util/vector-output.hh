@@ -365,7 +365,6 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     auto include_point = [&] (float x, float y)
     {
-      y = -y;
       if (!valid)
       {
         x1 = x2 = x;
