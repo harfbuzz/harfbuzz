@@ -780,8 +780,14 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer)
     m4MultMatrix (mat, rot);
   }
 
-  demo_extents_t extents;
-  demo_buffer_extents (buffer, NULL, &extents);
+  demo_extents_t ink, logical;
+  demo_buffer_extents (buffer, &ink, &logical);
+  demo_extents_t extents = {
+    std::min (ink.min_x, logical.min_x),
+    std::min (ink.min_y, logical.min_y),
+    std::max (ink.max_x, logical.max_x),
+    std::max (ink.max_y, logical.max_y),
+  };
   double content_scale = .9 * std::min (width  / (extents.max_x - extents.min_x),
 					height / (extents.max_y - extents.min_y));
   m4Scale (mat, content_scale, content_scale, 1);
