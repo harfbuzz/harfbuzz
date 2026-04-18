@@ -167,6 +167,19 @@ web_toggle_animation ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_set_dark (int dark)
+{
+  /* Toggle dark mode via the key handler if the current
+   * state doesn't match the request.  We can't check
+   * vu->dark_mode directly (opaque type), so track it
+   * locally. */
+  static bool is_dark = false;
+  if ((!is_dark) == (!dark)) return;
+  is_dark = !is_dark;
+  demo_view_key_func (vu, 66 /* GLFW_KEY_B */, 0, 1, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_reset ()
 {
   demo_view_reset (vu);

@@ -720,6 +720,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           applyVariations(d.value);
         else if (d.kind === 'palette' && typeof d.value === 'number')
           applyPalette(d.value);
+        else if (d.kind === 'dark' && typeof d.value === 'boolean')
+          _web_set_dark(d.value ? 1 : 0);
       });
 
       /* Tell any parent frame we're ready to receive
