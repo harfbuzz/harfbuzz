@@ -32,44 +32,6 @@
 
 #include <math.h>
 
-static void
-hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
-{
-  /* Skip when the paint's own transform is identity.
-   * Only emit when the user has set a non-identity
-   * paint-level transform via hb_vector_paint_set_transform. */
-  if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
-      paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
-      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
-    return;
-
-  unsigned sprec = paint->defs.scale_precision ();
-  buf->append_str ("<g transform=\"matrix(");
-  buf->append_num (paint->transform.xx, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->transform.yx, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->transform.xy, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->transform.yy, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->sx (paint->transform.x0));
-  buf->append_c (',');
-  buf->append_num (paint->sy (paint->transform.y0));
-  buf->append_str (")\">\n");
-}
-
-static void
-hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
-{
-  if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
-      paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
-      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
-    return;
-  buf->append_str ("</g>\n");
-}
-
-
 static hb_bool_t
 hb_vector_get_color_stops (hb_color_line_t *color_line,
                         hb_vector_t<hb_color_stop_t> *stops)
@@ -1001,9 +963,7 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     out.append_str ("/>\n");
   }
 
-  hb_vector_svg_paint_append_global_transform_prefix (paint, &out);
   out.append_len (paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-  hb_vector_svg_paint_append_global_transform_suffix (paint, &out);
 
   out.append_str ("</svg>\n");
 
