@@ -508,12 +508,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
     }
   }
 
-  draw->flush_path ();
-  hb_font_draw_glyph (font, glyph, hb_vector_draw_get_funcs (draw), draw);
-  if (!draw->path.length)
-    return false;
-  draw->flush_path ();
-  return true;
+  draw->new_path ();
+  return hb_font_draw_glyph_or_fail (font, glyph, hb_vector_draw_get_funcs (draw), draw);
 }
 
 /**
@@ -585,6 +581,7 @@ void
 hb_vector_draw_set_foreground (hb_vector_draw_t *draw,
                                hb_color_t foreground)
 {
+  draw->flush_path ();
   draw->foreground = foreground;
 }
 
@@ -641,6 +638,7 @@ hb_vector_draw_get_background (const hb_vector_draw_t *draw)
 static hb_blob_t *
 hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 {
+  draw->flush_path ();
   if (!draw->has_extents)
     return nullptr;
 
@@ -755,6 +753,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 static hb_blob_t *
 hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 {
+  draw->flush_path ();
   if (!draw->has_extents)
     return nullptr;
 

@@ -39,6 +39,11 @@ struct hb_vector_draw_t
   unsigned get_precision () const { return path.precision; }
   hb_blob_t *recycled_blob = nullptr;
 
+  void new_path ()
+  {
+    flush_path ();
+  }
+
   void flush_path ()
   {
     if (!path.length) return;
