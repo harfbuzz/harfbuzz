@@ -5,6 +5,16 @@
 
 #include "demo-buffer.h"
 
+static hb_feature_t g_features[64];
+static unsigned g_feature_count = 0;
+
+void
+demo_buffer_set_features (const hb_feature_t *features, unsigned count)
+{
+  g_feature_count = count < 64 ? count : 64;
+  memcpy (g_features, features, g_feature_count * sizeof (hb_feature_t));
+}
+
 struct demo_buffer_t {
   demo_point_t cursor;
   std::vector<glyph_vertex_t> *vertices;
@@ -84,7 +94,7 @@ demo_buffer_add_text (demo_buffer_t *buffer,
     hb_buffer_clear_contents (hb_buffer);
     hb_buffer_add_utf8 (hb_buffer, utf8, end ? end - utf8 : -1, 0, -1);
     hb_buffer_guess_segment_properties (hb_buffer);
-    hb_shape (hb_font, hb_buffer, NULL, 0);
+    hb_shape (hb_font, hb_buffer, g_features, g_feature_count);
 
     unsigned count;
     hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (hb_buffer, &count);

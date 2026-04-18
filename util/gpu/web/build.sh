@@ -30,7 +30,7 @@ em++ \
   -sUSE_WEBGL2=1 \
   -sFULL_ES3=1 \
   -sALLOW_MEMORY_GROWTH=1 \
-  -sEXPORTED_FUNCTIONS='["_main","_web_load_font","_web_set_text","_web_get_text","_web_set_variations","_web_set_palette","_web_set_dark","_web_toggle_animation","_web_reset","_web_request_redraw","_web_cancel_gesture","_web_pinch","_malloc","_free"]' \
+  -sEXPORTED_FUNCTIONS='["_main","_web_load_font","_web_set_text","_web_get_text","_web_set_variations","_web_set_features","_web_set_palette","_web_set_dark","_web_toggle_animation","_web_reset","_web_request_redraw","_web_cancel_gesture","_web_pinch","_malloc","_free"]' \
   -sEXPORTED_RUNTIME_METHODS='["UTF8ToString","lengthBytesUTF8","stringToUTF8"]' \
   --shell-file "$SRCDIR/util/gpu/web/shell.html" \
   -o "$OUTDIR/index.html"

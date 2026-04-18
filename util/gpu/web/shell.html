@@ -700,6 +700,15 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         requestRedraw();
       }
 
+      function applyFeatures(settings) {
+        var len = lengthBytesUTF8(settings) + 1;
+        var buf = _malloc(len);
+        stringToUTF8(settings, buf, len);
+        _web_set_features(buf);
+        _free(buf);
+        requestRedraw();
+      }
+
       function applyPalette(idx) {
         _web_set_palette(idx >>> 0);
         requestRedraw();
@@ -720,6 +729,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           applyVariations(d.value);
         else if (d.kind === 'palette' && typeof d.value === 'number')
           applyPalette(d.value);
+        else if (d.kind === 'features' && typeof d.value === 'string')
+          applyFeatures(d.value);
         else if (d.kind === 'dark' && typeof d.value === 'boolean')
           _web_set_dark(d.value ? 1 : 0);
       });

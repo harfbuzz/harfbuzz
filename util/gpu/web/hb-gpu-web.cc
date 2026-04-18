@@ -147,6 +147,24 @@ web_set_variations (const char *settings)
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_set_features (const char *settings)
+{
+  hb_feature_t feats[64];
+  unsigned n = 0;
+  const char *p = settings;
+  while (p && *p && n < 64)
+  {
+    const char *end = strchr (p, ',');
+    int len = end ? (int) (end - p) : (int) strlen (p);
+    if (hb_feature_from_string (p, len, &feats[n]))
+      n++;
+    p = end ? end + 1 : nullptr;
+  }
+  demo_buffer_set_features (feats, n);
+  rebuild_buffer (custom_text ? current_text : default_text_en);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_set_palette (unsigned palette_index)
 {
   if (!current_demo_font) return;

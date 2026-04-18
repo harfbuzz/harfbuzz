@@ -59,4 +59,7 @@ unsigned
 demo_buffer_get_generation (demo_buffer_t *buffer);
 
 
+void
+demo_buffer_set_features (const hb_feature_t *features, unsigned count);
+
 #endif /* DEMO_BUFFER_H */
