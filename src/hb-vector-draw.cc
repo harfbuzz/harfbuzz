@@ -341,19 +341,23 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
     return;
   }
 
-  if (!(extents->width > 0.f && extents->height > 0.f))
+  if (extents->width == 0.f || extents->height == 0.f)
     return;
 
   /* Caller-supplied extents are in input-space; divide by
    * scale_factor so they end up in output-space, matching
    * the per-glyph extents accumulated via
    * hb_vector_set_glyph_extents_common (which applies the
-   * same divide). */
+   * same divide).  Normalize so origin is the min corner and
+   * width/height are positive — callers may pass a
+   * glyph-extents-style box with negative height. */
+  float x0 = extents->x / draw->x_scale_factor;
+  float y0 = extents->y / draw->y_scale_factor;
+  float x1 = x0 + extents->width  / draw->x_scale_factor;
+  float y1 = y0 + extents->height / draw->y_scale_factor;
   hb_vector_extents_t e = {
-    extents->x      / draw->x_scale_factor,
-    extents->y      / draw->y_scale_factor,
-    extents->width  / draw->x_scale_factor,
-    extents->height / draw->y_scale_factor,
+    hb_min (x0, x1), hb_min (y0, y1),
+    fabsf (x1 - x0), fabsf (y1 - y0),
   };
 
   if (draw->has_extents)
