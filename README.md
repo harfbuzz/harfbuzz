@@ -23,6 +23,8 @@ HarfBuzz shapes the majority of text on modern screens.
 HarfBuzz is optimized for robustness, correctness, and performance
 — in that order. Achieve all.
 
+**[Try it live at harfbuzz-world.cc](https://harfbuzz-world.cc/)** — an interactive playground for shaping, subsetting, rasterization, vector output, and GPU rendering, all running in your browser.
+
 Here is a quick map of its components:
 
 ### Core libraries
