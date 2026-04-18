@@ -485,21 +485,13 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
     hb_glyph_extents_t ge;
     if (hb_font_get_glyph_extents (font, glyph, &ge))
     {
-      float xx = draw->transform.xx;
-      float yx = draw->transform.yx;
-      float xy = draw->transform.xy;
-      float yy = draw->transform.yy;
-      float tx = draw->transform.x0;
-      float ty = draw->transform.y0;
-      hb_transform_t<> extents_transform = {xx, yx, xy, yy, tx, ty};
-
       hb_bool_t has_extents = draw->has_extents;
-      hb_vector_set_glyph_extents_common (extents_transform,
-                                       draw->x_scale_factor,
-                                       draw->y_scale_factor,
-                                       &ge,
-                                       &draw->extents,
-                                       &has_extents);
+      hb_vector_set_glyph_extents_common (draw->transform,
+					  draw->x_scale_factor,
+					  draw->y_scale_factor,
+					  &ge,
+					  &draw->extents,
+					  &has_extents);
       draw->has_extents = has_extents;
     }
   }

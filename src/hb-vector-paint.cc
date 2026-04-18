@@ -535,37 +535,27 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			    hb_vector_extents_mode_t extents_mode,
 			    hb_bool_t          fallible)
 {
-
-  float xx = paint->transform.xx;
-  float yx = paint->transform.yx;
-  float xy = paint->transform.xy;
-  float yy = paint->transform.yy;
-  float tx = paint->transform.x0;
-  float ty = paint->transform.y0;
-
   if (extents_mode == HB_VECTOR_EXTENTS_MODE_EXPAND)
   {
     hb_glyph_extents_t ge;
     if (hb_font_get_glyph_extents (font, glyph, &ge))
     {
       hb_bool_t has_extents = paint->has_extents;
-      hb_transform_t<> extents_transform = {xx, yx, xy, yy, tx, ty};
-      hb_bool_t ret = hb_vector_set_glyph_extents_common (extents_transform,
-							paint->x_scale_factor,
-							paint->y_scale_factor,
-							&ge,
-							&paint->extents,
-							&has_extents);
+      hb_vector_set_glyph_extents_common (paint->transform,
+					  paint->x_scale_factor,
+					  paint->y_scale_factor,
+					  &ge,
+					  &paint->extents,
+					  &has_extents);
       paint->has_extents = has_extents;
-      (void) ret;
     }
   }
 
-  if (unlikely (!paint->ensure_initialized ()))
-    return false;
-
   hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
-  hb_paint_push_transform (funcs, paint, xx, yx, xy, yy, tx, ty);
+  hb_paint_push_transform (funcs, paint,
+			   paint->transform.xx, paint->transform.yx,
+			   paint->transform.xy, paint->transform.yy,
+			   paint->transform.x0, paint->transform.y0);
 
   hb_bool_t ret = true;
   if (fallible)
