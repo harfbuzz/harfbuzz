@@ -484,15 +484,6 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       hb_vector_extents_mode_t extents_mode)
 {
 
-  switch (draw->format)
-  {
-    case HB_VECTOR_FORMAT_SVG:
-    case HB_VECTOR_FORMAT_PDF:
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default:
-      return false;
-  }
-
   if (extents_mode == HB_VECTOR_EXTENTS_MODE_EXPAND)
   {
     hb_glyph_extents_t ge;
@@ -517,69 +508,12 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
     }
   }
 
-  /* Flush any pending free-form path the caller accumulated
-   * via hb_draw_*() on hb_vector_draw_get_funcs() before this
-   * glyph clobbers the scratch buffer.  Wrap the SVG case in
-   * the same scale(1,-1) Y-flip per-glyph <use> applies, so
-   * the free-form coords share the glyph's coord system. */
   draw->flush_path ();
-
-  switch (draw->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-    {
-      /* PDF: always inline.  Pen and font coords are both Y-up. */
-      hb_transform_t<> saved = draw->transform;
-      draw->transform = {1, 0, 0, 1, 0, 0};
-
-      hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (draw->format), draw);
-      draw->transform = saved;
-
-      if (!draw->path.length)
-	return false;
-
-      draw->flush_path ();
-      return true;
-    }
-
-    case HB_VECTOR_FORMAT_SVG:
-    {
-      draw->flush_path ();
-
-      draw->path.clear ();
-      {
-	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (),
-				     draw->x_scale_factor, draw->y_scale_factor};
-	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
-      }
-      if (!draw->path.length)
-	return false;
-
-      float xx = draw->transform.xx;
-      float yx = draw->transform.yx;
-      float xy = draw->transform.xy;
-      float yy = draw->transform.yy;
-      float tx = draw->transform.x0;
-      float ty = draw->transform.y0;
-
-      draw->body.append_str ("<path d=\"");
-      draw->body.append_len (draw->path.arrayZ, draw->path.length);
-      draw->body.append_str ("\" transform=\"");
-      hb_vector_svg_append_instance_transform (&draw->body,
-					draw->get_precision (),
-					draw->x_scale_factor,
-					draw->y_scale_factor,
-					xx, yx, xy, yy, tx, ty);
-      draw->body.append_str ("\" fill=\"");
-      draw->body.append_svg_color (draw->foreground, true);
-      draw->body.append_str ("\"/>\n");
-      draw->path.clear ();
-      return true;
-    }
-
-    case HB_VECTOR_FORMAT_INVALID: default:
-      return false;
-  }
+  hb_font_draw_glyph (font, glyph, hb_vector_draw_get_funcs (draw), draw);
+  if (!draw->path.length)
+    return false;
+  draw->flush_path ();
+  return true;
 }
 
 /**
