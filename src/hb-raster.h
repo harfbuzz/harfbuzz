@@ -198,16 +198,12 @@ hb_raster_draw_get_funcs (const hb_raster_draw_t *draw);
 HB_EXTERN void
 hb_raster_draw_glyph (hb_raster_draw_t *draw,
 		      hb_font_t       *font,
-		      hb_codepoint_t   glyph,
-		      float            pen_x,
-		      float            pen_y);
+		      hb_codepoint_t   glyph);
 
 HB_EXTERN hb_bool_t
 hb_raster_draw_glyph_or_fail (hb_raster_draw_t *draw,
 			      hb_font_t       *font,
-			      hb_codepoint_t   glyph,
-			      float            pen_x,
-			      float            pen_y);
+			      hb_codepoint_t   glyph);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw);
@@ -326,16 +322,12 @@ hb_raster_paint_get_funcs (const hb_raster_paint_t *paint);
 HB_EXTERN void
 hb_raster_paint_glyph (hb_raster_paint_t *paint,
 		       hb_font_t        *font,
-		       hb_codepoint_t    glyph,
-		       float             pen_x,
-		       float             pen_y);
+		       hb_codepoint_t    glyph);
 
 HB_EXTERN hb_bool_t
 hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
 			       hb_font_t        *font,
-			       hb_codepoint_t    glyph,
-			       float             pen_x,
-			       float             pen_y);
+			       hb_codepoint_t    glyph);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint);

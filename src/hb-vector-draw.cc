@@ -469,8 +469,6 @@ hb_vector_draw_get_funcs (const hb_vector_draw_t *draw HB_UNUSED)
  * @draw: a draw context.
  * @font: font object.
  * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
  *
  * Draws one glyph into @draw.
@@ -483,8 +481,6 @@ hb_bool_t
 hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
-                      float pen_x,
-                      float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
 
@@ -506,8 +502,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       float yx = draw->transform.yx;
       float xy = draw->transform.xy;
       float yy = draw->transform.yy;
-      float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-      float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
+      float tx = draw->transform.x0;
+      float ty = draw->transform.y0;
       hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, -ty};
 
       hb_bool_t has_extents = draw->has_extents;
@@ -534,7 +530,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
     {
       /* PDF: always inline.  Pen and font coords are both Y-up. */
       hb_transform_t<> saved = draw->transform;
-      draw->transform = {1, 0, 0, 1, pen_x, pen_y};
+      draw->transform = {1, 0, 0, 1, 0, 0};
 
       hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (draw->format), draw);
       draw->transform = saved;
@@ -598,8 +594,8 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       float yx = draw->transform.yx;
       float xy = draw->transform.xy;
       float yy = draw->transform.yy;
-      float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-      float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
+      float tx = draw->transform.x0;
+      float ty = draw->transform.y0;
 
       draw->body.append_str ("<use href=\"#");
       draw->body.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
@@ -649,8 +645,6 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
  * @draw: a draw context.
  * @font: font object.
  * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
  *
  * Draws one glyph into @draw.  Equivalent to
@@ -662,11 +656,9 @@ void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
-                      float pen_x,
-                      float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
-  hb_vector_draw_glyph_or_fail (draw, font, glyph, pen_x, pen_y, extents_mode);
+  hb_vector_draw_glyph_or_fail (draw, font, glyph, extents_mode);
 }
 
 /**

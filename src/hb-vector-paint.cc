@@ -531,8 +531,6 @@ static hb_bool_t
 hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			    hb_font_t         *font,
 			    hb_codepoint_t     glyph,
-			    float              pen_x,
-			    float              pen_y,
 			    hb_vector_extents_mode_t extents_mode,
 			    hb_bool_t          fallible)
 {
@@ -541,8 +539,8 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
   float yx = paint->transform.yx;
   float xy = paint->transform.xy;
   float yy = paint->transform.yy;
-  float tx = paint->transform.x0 + xx * pen_x + xy * pen_y;
-  float ty = paint->transform.y0 + yx * pen_x + yy * pen_y;
+  float tx = paint->transform.x0;
+  float ty = paint->transform.y0;
 
   if (extents_mode == HB_VECTOR_EXTENTS_MODE_EXPAND)
   {
@@ -699,8 +697,6 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
  * @paint: a paint context.
  * @font: font object.
  * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
  *
  * Paints one color glyph into @paint.  Fails (returns
@@ -714,11 +710,9 @@ hb_bool_t
 hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
 			       hb_font_t         *font,
 			       hb_codepoint_t     glyph,
-			       float              pen_x,
-			       float              pen_y,
 			       hb_vector_extents_mode_t extents_mode)
 {
-  return hb_vector_paint_glyph_impl (paint, font, glyph, pen_x, pen_y,
+  return hb_vector_paint_glyph_impl (paint, font, glyph,
 				     extents_mode, true);
 }
 
@@ -727,8 +721,6 @@ hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
  * @paint: a paint context.
  * @font: font object.
  * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
  *
  * Paints one glyph into @paint.  Unlike
@@ -742,11 +734,9 @@ void
 hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_font_t         *font,
 		       hb_codepoint_t     glyph,
-		       float              pen_x,
-		       float              pen_y,
 		       hb_vector_extents_mode_t extents_mode)
 {
-  hb_vector_paint_glyph_impl (paint, font, glyph, pen_x, pen_y,
+  hb_vector_paint_glyph_impl (paint, font, glyph,
 			      extents_mode, false);
 }
 

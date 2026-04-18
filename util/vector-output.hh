@@ -262,8 +262,8 @@ struct vector_output_t : output_options_t<>, view_options_t
             hb_vector_paint_set_foreground (paint, HB_COLOR (c.b, c.g, c.r, c.a));
           }
 
-          hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-          hb_vector_paint_glyph (paint, font, g.gid, pen_x, pen_y,
+          hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
+          hb_vector_paint_glyph (paint, font, g.gid,
                                  extents_mode);
           had_paint = true;
           if (show_extents)
@@ -285,7 +285,8 @@ struct vector_output_t : output_options_t<>, view_options_t
             hb_vector_draw_set_foreground (draw, HB_COLOR (c.b, c.g, c.r, c.a));
           }
 
-          hb_vector_draw_glyph (draw, font, g.gid, pen_x, pen_y,
+          hb_vector_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
+          hb_vector_draw_glyph (draw, font, g.gid,
                                 extents_mode);
           had_draw = true;
           if (show_extents)

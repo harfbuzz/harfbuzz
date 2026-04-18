@@ -248,8 +248,8 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	  {
 	    float pen_x = g.x + off_x;
 	    float pen_y = g.y + off_y;
-	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-	    hb_raster_draw_glyph (rdr, font, g.gid, pen_x, pen_y);
+	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
+	    hb_raster_draw_glyph (rdr, font, g.gid);
 	    if (show_extents)
 	    {
 	      hb_glyph_extents_t ge;
@@ -327,12 +327,12 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	  float pen_x = g.x + off_x;
 	  float pen_y = g.y + off_y;
 
-	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
 	  hb_raster_paint_set_extents (pnt, &ext);
 	  hb_raster_paint_set_palette (pnt, palette);
 	  hb_raster_paint_set_foreground (pnt, glyph_fg);
 
-	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y);
+	  hb_raster_paint_glyph (pnt, font, g.gid);
 
 	  if (show_extents)
 	  {
@@ -423,8 +423,8 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	  hb_raster_draw_set_scale_factor (rdr, scalbnf (1.f, (int) subpixel_bits),
 					       scalbnf (1.f, (int) subpixel_bits));
 	  hb_raster_draw_set_extents (rdr, &ext);
-	  hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-	  hb_raster_draw_glyph (rdr, font, g.gid, g.x + off_x, g.y + off_y);
+	  hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, g.x + off_x, g.y + off_y);
+	  hb_raster_draw_glyph (rdr, font, g.gid);
 	  if (show_extents)
 	  {
 	    hb_glyph_extents_t ge;
