@@ -1112,8 +1112,6 @@ hb_vector_draw_set_foreground
 hb_vector_draw_get_foreground
 hb_vector_draw_set_background
 hb_vector_draw_get_background
-hb_vector_draw_set_svg_prefix
-hb_vector_draw_get_svg_prefix
 hb_vector_draw_render
 hb_vector_draw_clear
 hb_vector_draw_reset
