@@ -255,8 +255,6 @@ category_overrides = {
   # The following act like consonants.
   0x0A72: 'C',
   0x0A73: 'C',
-  0x1CF5: 'C',
-  0x1CF6: 'C',
 
   # TODO: The following should only be allowed after a Visarga.
   # For now, just treat them like regular tone marks.
