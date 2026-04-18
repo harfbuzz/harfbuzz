@@ -190,13 +190,6 @@ hb_vector_draw_set_background (hb_vector_draw_t *draw,
 HB_EXTERN hb_color_t
 hb_vector_draw_get_background (const hb_vector_draw_t *draw);
 
-HB_EXTERN void
-hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
-                               const char *prefix);
-
-HB_EXTERN const char *
-hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw);
-
 HB_EXTERN hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw);
 

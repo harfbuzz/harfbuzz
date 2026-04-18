@@ -555,41 +555,6 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       if (!draw->path.length)
 	return false;
 
-      /* Content-based dedup: hash the path data, look for an
-       * existing def with identical bytes in defs. */
-      uint32_t h = hb_hash (hb_bytes_t (draw->path.arrayZ, draw->path.length));
-      unsigned def_id = (unsigned) -1;
-      for (auto &e : draw->defined_paths)
-      {
-	if (e.hash == h &&
-	    e.defs_length == draw->path.length &&
-	    0 == hb_memcmp (draw->defs.arrayZ + e.defs_offset,
-			    draw->path.arrayZ, draw->path.length))
-	{
-	  def_id = e.def_id;
-	  break;
-	}
-      }
-      if (def_id == (unsigned) -1)
-      {
-	def_id = draw->path_def_count++;
-	draw->defs.append_str ("<path id=\"");
-	draw->defs.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
-	draw->defs.append_c ('p');
-	draw->defs.append_unsigned (def_id);
-	draw->defs.append_str ("\" d=\"");
-	unsigned data_offset = draw->defs.length;
-	draw->defs.append_len (draw->path.arrayZ, draw->path.length);
-	draw->defs.append_str ("\"/>\n");
-	hb_vector_draw_t::path_entry_t entry;
-	entry.hash = h;
-	entry.defs_offset = data_offset;
-	entry.defs_length = draw->path.length;
-	entry.def_id = def_id;
-	draw->defined_paths.push (entry);
-      }
-      draw->path.clear ();
-
       float xx = draw->transform.xx;
       float yx = draw->transform.yx;
       float xy = draw->transform.xy;
@@ -597,41 +562,18 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       float tx = draw->transform.x0;
       float ty = draw->transform.y0;
 
-      draw->body.append_str ("<use href=\"#");
-      draw->body.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
-      draw->body.append_c ('p');
-      draw->body.append_unsigned (def_id);
+      draw->body.append_str ("<path d=\"");
+      draw->body.append_len (draw->path.arrayZ, draw->path.length);
       draw->body.append_str ("\" transform=\"");
       hb_vector_svg_append_instance_transform (&draw->body,
 					draw->get_precision (),
 					draw->x_scale_factor,
 					draw->y_scale_factor,
 					xx, yx, xy, yy, tx, ty);
-      draw->body.append_str ("\"");
-      /* Per-glyph fill from current foreground. */
-      {
-	unsigned r = hb_color_get_red (draw->foreground);
-	unsigned g = hb_color_get_green (draw->foreground);
-	unsigned b = hb_color_get_blue (draw->foreground);
-	unsigned a = hb_color_get_alpha (draw->foreground);
-	if (r || g || b || a != 255)
-	{
-	  draw->body.append_str (" fill=\"rgb(");
-	  draw->body.append_unsigned (r);
-	  draw->body.append_c (',');
-	  draw->body.append_unsigned (g);
-	  draw->body.append_c (',');
-	  draw->body.append_unsigned (b);
-	  draw->body.append_str (")\"");
-	  if (a < 255)
-	  {
-	    draw->body.append_str (" fill-opacity=\"");
-	    draw->body.append_num (a / 255.f, 4);
-	    draw->body.append_c ('"');
-	  }
-	}
-      }
-      draw->body.append_str ("/>\n");
+      draw->body.append_str ("\" fill=\"");
+      draw->body.append_svg_color (draw->foreground, true);
+      draw->body.append_str ("\"/>\n");
+      draw->path.clear ();
       return true;
     }
 
@@ -661,49 +603,6 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
   hb_vector_draw_glyph_or_fail (draw, font, glyph, extents_mode);
 }
 
-/**
- * hb_vector_draw_set_svg_prefix:
- * @draw: a draw context.
- * @prefix: a null-terminated ASCII string to prepend to every emitted
- *          SVG `id` and `url(#...)` reference, or `NULL` for none.
- *
- * Namespaces the draw's SVG output.  Callers that inject multiple
- * hb-vector SVGs into the same document must set a distinct prefix
- * per context so that the short IDs hb-vector uses for shared glyph
- * outlines don't collide in the DOM.
- *
- * No effect on PDF output.
- *
- * XSince: REPLACEME
- */
-void
-hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
-                               const char *prefix)
-{
-  draw->id_prefix.resize (0);
-  if (prefix)
-    draw->id_prefix.append_str (prefix);
-}
-
-/**
- * hb_vector_draw_get_svg_prefix:
- * @draw: a draw context.
- *
- * Returns the SVG id prefix previously set on @draw, or `""` if
- * none was set.
- *
- * Return value: the SVG id prefix.
- *
- * XSince: REPLACEME
- */
-const char *
-hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw)
-{
-  if (!draw->id_prefix.length) return "";
-  const_cast<hb_vector_buf_t &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
-  draw->id_prefix.arrayZ[draw->id_prefix.length] = '\0';
-  return draw->id_prefix.arrayZ;
-}
 
 /**
  * hb_vector_draw_set_precision:
@@ -1037,8 +936,6 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
   draw->defs.clear ();
   draw->body.clear ();
   draw->path.clear ();
-  draw->defined_paths.clear ();
-  draw->path_def_count = 0;
 }
 
 /**

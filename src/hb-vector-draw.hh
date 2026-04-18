@@ -21,7 +21,6 @@ struct hb_vector_draw_t
   bool has_extents = false;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
-  hb_vector_buf_t id_prefix;
 
   hb_vector_buf_t defs;
   hb_vector_buf_t body;
@@ -38,15 +37,6 @@ struct hb_vector_draw_t
   }
 
   unsigned get_precision () const { return path.precision; }
-  struct path_entry_t
-  {
-    uint32_t hash;
-    unsigned defs_offset;
-    unsigned defs_length;
-    unsigned def_id;
-  };
-  hb_vector_t<path_entry_t> defined_paths;
-  unsigned path_def_count = 0;
   hb_blob_t *recycled_blob = nullptr;
 
   void flush_path ()
