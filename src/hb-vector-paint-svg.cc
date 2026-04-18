@@ -32,44 +32,6 @@
 
 #include <math.h>
 
-static void
-hb_vector_svg_paint_append_global_transform_prefix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
-{
-  /* Skip when the paint's own transform is identity.
-   * Only emit when the user has set a non-identity
-   * paint-level transform via hb_vector_paint_set_transform. */
-  if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
-      paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
-      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
-    return;
-
-  unsigned sprec = paint->defs.scale_precision ();
-  buf->append_str ("<g transform=\"matrix(");
-  buf->append_num (paint->transform.xx, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->transform.yx, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->transform.xy, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->transform.yy, sprec);
-  buf->append_c (',');
-  buf->append_num (paint->sx (paint->transform.x0));
-  buf->append_c (',');
-  buf->append_num (paint->sy (paint->transform.y0));
-  buf->append_str (")\">\n");
-}
-
-static void
-hb_vector_svg_paint_append_global_transform_suffix (hb_vector_paint_t *paint, hb_vector_buf_t *buf)
-{
-  if (paint->transform.xx == 1.f && paint->transform.yx == 0.f &&
-      paint->transform.xy == 0.f && paint->transform.yy == 1.f &&
-      paint->transform.x0 == 0.f && paint->transform.y0 == 0.f)
-    return;
-  buf->append_str ("</g>\n");
-}
-
-
 static hb_bool_t
 hb_vector_get_color_stops (hb_color_line_t *color_line,
                         hb_vector_t<hb_color_stop_t> *stops)
@@ -481,40 +443,35 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   const char *pfx = paint->id_prefix.arrayZ;
   unsigned pfx_len = paint->id_prefix.length;
 
-  if (!hb_set_has (paint->defined_outlines, glyph))
+  paint->path.clear ();
   {
-    hb_set_add (paint->defined_outlines, glyph);
-    paint->path.clear ();
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
 				 paint->x_scale_factor, paint->y_scale_factor};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
-    paint->defs.append_str ("<path id=\"");
-    paint->defs.append_len (pfx, pfx_len);
-    paint->defs.append_c ('p');
-    paint->defs.append_unsigned (glyph);
-    paint->defs.append_str ("\" d=\"");
-    paint->defs.append_len (paint->path.arrayZ, paint->path.length);
-    paint->defs.append_str ("\"/>\n");
   }
 
-  if (!hb_set_has (paint->defined_clips, glyph))
-  {
-    hb_set_add (paint->defined_clips, glyph);
-    paint->defs.append_str ("<clipPath id=\"");
-    paint->defs.append_len (pfx, pfx_len);
-    paint->defs.append_str ("clip-g");
-    paint->defs.append_unsigned (glyph);
-    paint->defs.append_str ("\"><use href=\"#");
-    paint->defs.append_len (pfx, pfx_len);
-    paint->defs.append_c ('p');
-    paint->defs.append_unsigned (glyph);
-    paint->defs.append_str ("\"/></clipPath>\n");
-  }
+  unsigned def_id = paint->path_def_count++;
+  paint->defs.append_str ("<path id=\"");
+  paint->defs.append_len (pfx, pfx_len);
+  paint->defs.append_c ('p');
+  paint->defs.append_unsigned (def_id);
+  paint->defs.append_str ("\" d=\"");
+  paint->defs.append_len (paint->path.arrayZ, paint->path.length);
+  paint->defs.append_str ("\"/>\n");
+  paint->defs.append_str ("<clipPath id=\"");
+  paint->defs.append_len (pfx, pfx_len);
+  paint->defs.append_str ("clip-p");
+  paint->defs.append_unsigned (def_id);
+  paint->defs.append_str ("\"><use href=\"#");
+  paint->defs.append_len (pfx, pfx_len);
+  paint->defs.append_c ('p');
+  paint->defs.append_unsigned (def_id);
+  paint->defs.append_str ("\"/></clipPath>\n");
 
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
-  paint->current_body ().append_str ("clip-g");
-  paint->current_body ().append_unsigned (glyph);
+  paint->current_body ().append_str ("clip-p");
+  paint->current_body ().append_unsigned (def_id);
   paint->current_body ().append_str (")\">\n");
 }
 
@@ -935,18 +892,22 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
 		       paint->group_stack.arrayZ[0].length +
 		       320;
   out.alloc (estimated);
+  float vb_x = paint->extents.x;
+  float vb_y = -(paint->extents.y + paint->extents.height);
+  float vb_w = paint->extents.width;
+  float vb_h = paint->extents.height;
   out.append_str ("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
-  out.append_num (paint->extents.x);
+  out.append_num (vb_x);
   out.append_c (' ');
-  out.append_num (paint->extents.y);
+  out.append_num (vb_y);
   out.append_c (' ');
-  out.append_num (paint->extents.width);
+  out.append_num (vb_w);
   out.append_c (' ');
-  out.append_num (paint->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\" width=\"");
-  out.append_num (paint->extents.width);
+  out.append_num (vb_w);
   out.append_str ("\" height=\"");
-  out.append_num (paint->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\">\n");
 
   if (paint->defs.length)
@@ -959,13 +920,13 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
   if (hb_color_get_alpha (paint->background))
   {
     out.append_str ("<rect x=\"");
-    out.append_num (paint->extents.x);
+    out.append_num (vb_x);
     out.append_str ("\" y=\"");
-    out.append_num (paint->extents.y);
+    out.append_num (vb_y);
     out.append_str ("\" width=\"");
-    out.append_num (paint->extents.width);
+    out.append_num (vb_w);
     out.append_str ("\" height=\"");
-    out.append_num (paint->extents.height);
+    out.append_num (vb_h);
     out.append_str ("\" fill=\"rgb(");
     out.append_unsigned (hb_color_get_red (paint->background));
     out.append_c (',');
@@ -982,9 +943,9 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     out.append_str ("/>\n");
   }
 
-  hb_vector_svg_paint_append_global_transform_prefix (paint, &out);
+  out.append_str ("<g transform=\"scale(1,-1)\">\n");
   out.append_len (paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
-  hb_vector_svg_paint_append_global_transform_suffix (paint, &out);
+  out.append_str ("</g>\n");
 
   out.append_str ("</svg>\n");
 

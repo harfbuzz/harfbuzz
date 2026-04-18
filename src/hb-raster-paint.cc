@@ -134,13 +134,6 @@ ensure_initialized (hb_raster_paint_t *c)
     return;
   }
 
-  /* Initial transform */
-  if (unlikely (!c->transform_stack.push_or_fail (c->base_transform)))
-  {
-    c->release_surface (c->surface_stack.pop ());
-    return;
-  }
-
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
@@ -163,7 +156,6 @@ hb_raster_paint_push_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
 
   ensure_initialized (c);
-  if (unlikely (!c->transform_stack.length)) return;
 
   hb_transform_t<> t = c->current_transform ();
   t.multiply ({xx, yx, xy, yy, dx, dy});
@@ -176,7 +168,7 @@ hb_raster_paint_pop_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  if (c->transform_stack.length > 1)
+  if (c->transform_stack.length)
     c->transform_stack.pop ();
 }
 
@@ -2221,41 +2213,32 @@ static hb_bool_t
 hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
 			    hb_font_t        *font,
 			    hb_codepoint_t    glyph,
-			    float             pen_x,
-			    float             pen_y,
 			    hb_bool_t         fallible)
 {
-  float xx = paint->base_transform.xx;
-  float yx = paint->base_transform.yx;
-  float xy = paint->base_transform.xy;
-  float yy = paint->base_transform.yy;
-  float dx = paint->base_transform.x0;
-  float dy = paint->base_transform.y0;
-
-  float tx = dx + xx * pen_x + xy * pen_y;
-  float ty = dy + yx * pen_x + yy * pen_y;
-
   if (!paint->has_extents)
   {
     hb_glyph_extents_t ge;
     if (hb_font_get_glyph_extents (font, glyph, &ge))
-    {
-      hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
       hb_raster_paint_set_glyph_extents (paint, &ge);
-    }
   }
 
-  hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_push_transform (funcs, paint,
+			   paint->base_transform.xx, paint->base_transform.yx,
+			   paint->base_transform.xy, paint->base_transform.yy,
+			   paint->base_transform.x0, paint->base_transform.y0);
+
   hb_bool_t ret = true;
   if (fallible)
     ret = hb_font_paint_glyph_or_fail (font, glyph,
-				       hb_raster_paint_get_funcs (paint), paint,
+				       funcs, paint,
 				       paint->palette, paint->foreground);
   else
     hb_font_paint_glyph (font, glyph,
-			 hb_raster_paint_get_funcs (paint), paint,
+			 funcs, paint,
 			 paint->palette, paint->foreground);
-  hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
+
+  hb_paint_pop_transform (funcs, paint);
   return ret;
 }
 
@@ -2264,11 +2247,14 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
  * @paint: a paint context
  * @font: font to paint from
  * @glyph: glyph ID to paint
- * @pen_x: glyph origin x in font coordinates (pre-transform)
- * @pen_y: glyph origin y in font coordinates (pre-transform)
  *
- * Paints one color glyph at (@pen_x, @pen_y).  Fails (returns
- * `false`) if @font has no paint data for @glyph.
+ * Convenience to paint one color glyph.  Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * hb_font_paint_glyph_or_fail (font, glyph,
+ *   hb_raster_paint_get_funcs (paint), paint,
+ *   palette, foreground);
+ * ]|
  *
  * Return value: `true` if painting succeeded, `false` otherwise.
  *
@@ -2277,11 +2263,9 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
 hb_bool_t
 hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
 			       hb_font_t        *font,
-			       hb_codepoint_t    glyph,
-			       float             pen_x,
-			       float             pen_y)
+			       hb_codepoint_t    glyph)
 {
-  return hb_raster_paint_glyph_impl (paint, font, glyph, pen_x, pen_y, true);
+  return hb_raster_paint_glyph_impl (paint, font, glyph, true);
 }
 
 /**
@@ -2289,10 +2273,8 @@ hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
  * @paint: a paint context
  * @font: font to paint from
  * @glyph: glyph ID to paint
- * @pen_x: glyph origin x in font coordinates (pre-transform)
- * @pen_y: glyph origin y in font coordinates (pre-transform)
  *
- * Paints one glyph at (@pen_x, @pen_y).  Unlike
+ * Paints one glyph into @paint.  Unlike
  * hb_raster_paint_glyph_or_fail(), glyphs with no color paint data
  * fall back to a synthesized foreground-colored outline, so any
  * glyph with an outline or bitmap image produces output.
@@ -2302,11 +2284,9 @@ hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
 void
 hb_raster_paint_glyph (hb_raster_paint_t *paint,
 		       hb_font_t        *font,
-		       hb_codepoint_t    glyph,
-		       float             pen_x,
-		       float             pen_y)
+		       hb_codepoint_t    glyph)
 {
-  hb_raster_paint_glyph_impl (paint, font, glyph, pen_x, pen_y, false);
+  hb_raster_paint_glyph_impl (paint, font, glyph, false);
 }
 
 /**

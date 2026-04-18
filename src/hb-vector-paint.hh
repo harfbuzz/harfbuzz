@@ -40,42 +40,14 @@ struct hb_vector_paint_t
   unsigned clip_path_counter = 0;
   hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f};
   unsigned gradient_counter = 0;
-  unsigned color_glyph_counter = 0;
   unsigned color_glyph_depth = 0;
-  hb_set_t *defined_outlines = nullptr;
-  hb_set_t *defined_clips = nullptr;
+  unsigned path_def_count = 0;
   hb_set_t *active_color_glyphs = nullptr;
-  hb_hashmap_t<hb_codepoint_t, unsigned> defined_color_glyphs;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
   hb_vector_buf_t captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
 
-  hb_font_t *cached_font = nullptr;
-  unsigned cached_serial = (unsigned) -1;
 
-  void changed ()
-  {
-    if (defined_outlines)
-      hb_set_clear (defined_outlines);
-    if (defined_clips)
-      hb_set_clear (defined_clips);
-    if (active_color_glyphs)
-      hb_set_clear (active_color_glyphs);
-    defined_color_glyphs.reset ();
-  }
-
-  void check_font (hb_font_t *font)
-  {
-    unsigned serial = hb_font_get_serial (font);
-    if (font != cached_font || serial != cached_serial)
-    {
-      changed ();
-      hb_font_t *old = cached_font;
-      cached_font = hb_font_reference (font);
-      hb_font_destroy (old);
-      cached_serial = serial;
-    }
-  }
 
   hb_vector_buf_t &current_body () { return group_stack.tail (); }
 

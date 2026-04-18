@@ -331,22 +331,6 @@ hb_vector_paint_pdf_free_resources (hb_vector_paint_t *paint)
 
 /* ---- helpers ---- */
 
-static hb_bool_t
-hb_pdf_paint_ensure_initialized (hb_vector_paint_t *paint)
-{
-  if (paint->group_stack.length)
-    return !paint->group_stack.in_error () &&
-           !paint->group_stack.tail ().in_error ();
-  if (unlikely (!paint->group_stack.push_or_fail ()))
-    return false;
-  paint->group_stack.tail ().alloc (4096);
-  if (unlikely (paint->group_stack.tail ().in_error ()))
-  {
-    paint->group_stack.pop ();
-    return false;
-  }
-  return !paint->group_stack.in_error ();
-}
 
 /* Emit a glyph outline as PDF path operators into buf. */
 static void
@@ -377,7 +361,7 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
 			     void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
 
   auto &body = paint->current_body ();
@@ -403,7 +387,7 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
 			    void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("Q\n");
 }
@@ -416,7 +400,7 @@ hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
 			      void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
 
   auto &body = paint->current_body ();
@@ -433,7 +417,7 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
 				  void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
 
   auto &body = paint->current_body ();
@@ -455,7 +439,7 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
 				   void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
   {
     *draw_data = nullptr;
     return nullptr;
@@ -480,7 +464,7 @@ hb_pdf_paint_push_clip_path_end (hb_paint_funcs_t *,
 				 void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("W n\n");
 }
@@ -491,7 +475,7 @@ hb_pdf_paint_pop_clip (hb_paint_funcs_t *,
 		       void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("Q\n");
 }
@@ -543,7 +527,7 @@ hb_pdf_paint_color (hb_paint_funcs_t *,
 		    void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
 
   hb_pdf_paint_solid_color (paint, color);
@@ -668,7 +652,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
     return false;
 
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return false;
   auto *res = hb_pdf_get_resources (paint);
   if (unlikely (!res))
@@ -976,7 +960,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 			      void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
   if (unlikely (!res))
@@ -1069,7 +1053,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 			      void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
   if (unlikely (!res))
@@ -1352,7 +1336,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 			     void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
   if (unlikely (!res))
@@ -1487,7 +1471,7 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
 			 void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("q\n");
 }
@@ -1499,7 +1483,7 @@ hb_pdf_paint_push_group_for (hb_paint_funcs_t *,
 			     void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
 
   auto &body = paint->current_body ();
@@ -1526,7 +1510,7 @@ hb_pdf_paint_pop_group (hb_paint_funcs_t *,
 			void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!hb_pdf_paint_ensure_initialized (paint)))
+  if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("Q\n");
 }

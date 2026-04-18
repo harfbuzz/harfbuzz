@@ -56,7 +56,7 @@ main (int argc, char **argv)
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
     hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-    if (hb_vector_paint_glyph_or_fail (paint, font, gid, 0.f, 0.f,
+    if (hb_vector_paint_glyph_or_fail (paint, font, gid,
                                HB_VECTOR_EXTENTS_MODE_EXPAND))
     {
       hb_blob_t *blob = hb_vector_paint_render (paint);
@@ -65,7 +65,7 @@ main (int argc, char **argv)
     }
 
     hb_vector_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-    if (hb_vector_draw_glyph_or_fail (draw, font, gid, 0.f, 0.f,
+    if (hb_vector_draw_glyph_or_fail (draw, font, gid,
                               HB_VECTOR_EXTENTS_MODE_EXPAND))
     {
       hb_blob_t *blob = hb_vector_draw_render (draw);

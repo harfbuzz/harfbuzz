@@ -21,7 +21,6 @@ struct hb_vector_draw_t
   bool has_extents = false;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
-  hb_vector_buf_t id_prefix;
 
   hb_vector_buf_t defs;
   hb_vector_buf_t body;
@@ -38,32 +37,11 @@ struct hb_vector_draw_t
   }
 
   unsigned get_precision () const { return path.precision; }
-  hb_set_t *defined_glyphs = nullptr;
   hb_blob_t *recycled_blob = nullptr;
 
-  hb_font_t *cached_font = nullptr;
-  unsigned cached_serial = (unsigned) -1;
-
-  void changed ()
+  void new_path ()
   {
-    if (defined_glyphs)
-      hb_set_clear (defined_glyphs);
-    defs.shrink (0);
-    body.shrink (0);
-    path.shrink (0);
-  }
-
-  void check_font (hb_font_t *font)
-  {
-    unsigned serial = hb_font_get_serial (font);
-    if (font != cached_font || serial != cached_serial)
-    {
-      changed ();
-      hb_font_t *old = cached_font;
-      cached_font = hb_font_reference (font);
-      hb_font_destroy (old);
-      cached_serial = serial;
-    }
+    flush_path ();
   }
 
   void flush_path ()
@@ -106,31 +84,11 @@ struct hb_vector_draw_t
 
   void flush_path_svg ()
   {
-    unsigned r = hb_color_get_red (foreground);
-    unsigned g = hb_color_get_green (foreground);
-    unsigned b = hb_color_get_blue (foreground);
-    unsigned a = hb_color_get_alpha (foreground);
-    body.append_str ("<g transform=\"scale(1,-1)\">"
-			      "<path d=\"");
+    body.append_str ("<path d=\"");
     body.append_len (path.arrayZ, path.length);
-    body.append_str ("\"");
-    if (r || g || b || a != 255)
-    {
-      body.append_str (" fill=\"rgb(");
-      body.append_unsigned (r);
-      body.append_c (',');
-      body.append_unsigned (g);
-      body.append_c (',');
-      body.append_unsigned (b);
-      body.append_str (")\"");
-      if (a < 255)
-      {
-	body.append_str (" fill-opacity=\"");
-	body.append_num (a / 255.f, 4);
-	body.append_c ('"');
-      }
-    }
-    body.append_str ("/></g>\n");
+    body.append_str ("\" fill=\"");
+    body.append_svg_color (foreground, true);
+    body.append_str ("\"/>\n");
   }
 
   void transform_xy (float x, float y, float *tx, float *ty)
