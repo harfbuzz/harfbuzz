@@ -1112,6 +1112,7 @@ hb_vector_draw_set_foreground
 hb_vector_draw_get_foreground
 hb_vector_draw_set_background
 hb_vector_draw_get_background
+hb_vector_draw_new_path
 hb_vector_draw_render
 hb_vector_draw_clear
 hb_vector_draw_reset

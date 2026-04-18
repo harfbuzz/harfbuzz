@@ -461,6 +461,22 @@ hb_vector_draw_get_funcs (const hb_vector_draw_t *draw)
 }
 
 /**
+ * hb_vector_draw_new_path:
+ * @draw: a draw context.
+ *
+ * Flushes any pending path and starts a new one.  Call this
+ * between glyphs to separate their outlines so fill rules
+ * don't interact across glyphs.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_new_path (hb_vector_draw_t *draw)
+{
+  draw->new_path ();
+}
+
+/**
  * hb_vector_draw_glyph_or_fail:
  * @draw: a draw context.
  * @font: font object.

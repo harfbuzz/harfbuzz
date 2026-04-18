@@ -158,6 +158,9 @@ HB_EXTERN hb_draw_funcs_t *
 hb_vector_draw_get_funcs (const hb_vector_draw_t *draw);
 
 HB_EXTERN void
+hb_vector_draw_new_path (hb_vector_draw_t *draw);
+
+HB_EXTERN void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
