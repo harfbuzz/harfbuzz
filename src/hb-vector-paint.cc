@@ -746,7 +746,6 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->clip_path_counter = 0;
   paint->gradient_counter = 0;
   paint->color_glyph_depth = 0;
-  paint->defined_paths.clear ();
   paint->path_def_count = 0;
   hb_set_clear (paint->active_color_glyphs);
   paint->color_stops_scratch.clear ();

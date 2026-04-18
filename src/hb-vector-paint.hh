@@ -41,14 +41,6 @@ struct hb_vector_paint_t
   hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f};
   unsigned gradient_counter = 0;
   unsigned color_glyph_depth = 0;
-  struct content_entry_t
-  {
-    uint32_t hash;
-    unsigned defs_offset;
-    unsigned defs_length;
-    unsigned def_id;
-  };
-  hb_vector_t<content_entry_t> defined_paths;
   unsigned path_def_count = 0;
   hb_set_t *active_color_glyphs = nullptr;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;

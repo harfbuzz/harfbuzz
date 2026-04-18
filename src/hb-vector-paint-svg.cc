@@ -450,47 +450,23 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
   }
 
-  uint32_t h = hb_hash (hb_bytes_t (paint->path.arrayZ, paint->path.length));
-  unsigned def_id = (unsigned) -1;
-  for (auto &e : paint->defined_paths)
-  {
-    if (e.hash == h &&
-	e.defs_length == paint->path.length &&
-	0 == hb_memcmp (paint->defs.arrayZ + e.defs_offset,
-			paint->path.arrayZ, paint->path.length))
-    {
-      def_id = e.def_id;
-      break;
-    }
-  }
-  if (def_id == (unsigned) -1)
-  {
-    def_id = paint->path_def_count++;
-    paint->defs.append_str ("<path id=\"");
-    paint->defs.append_len (pfx, pfx_len);
-    paint->defs.append_c ('p');
-    paint->defs.append_unsigned (def_id);
-    paint->defs.append_str ("\" d=\"");
-    unsigned data_offset = paint->defs.length;
-    paint->defs.append_len (paint->path.arrayZ, paint->path.length);
-    paint->defs.append_str ("\"/>\n");
-    paint->defs.append_str ("<clipPath id=\"");
-    paint->defs.append_len (pfx, pfx_len);
-    paint->defs.append_str ("clip-p");
-    paint->defs.append_unsigned (def_id);
-    paint->defs.append_str ("\"><use href=\"#");
-    paint->defs.append_len (pfx, pfx_len);
-    paint->defs.append_c ('p');
-    paint->defs.append_unsigned (def_id);
-    paint->defs.append_str ("\"/></clipPath>\n");
-
-    hb_vector_paint_t::content_entry_t entry;
-    entry.hash = h;
-    entry.defs_offset = data_offset;
-    entry.defs_length = paint->path.length;
-    entry.def_id = def_id;
-    paint->defined_paths.push (entry);
-  }
+  unsigned def_id = paint->path_def_count++;
+  paint->defs.append_str ("<path id=\"");
+  paint->defs.append_len (pfx, pfx_len);
+  paint->defs.append_c ('p');
+  paint->defs.append_unsigned (def_id);
+  paint->defs.append_str ("\" d=\"");
+  paint->defs.append_len (paint->path.arrayZ, paint->path.length);
+  paint->defs.append_str ("\"/>\n");
+  paint->defs.append_str ("<clipPath id=\"");
+  paint->defs.append_len (pfx, pfx_len);
+  paint->defs.append_str ("clip-p");
+  paint->defs.append_unsigned (def_id);
+  paint->defs.append_str ("\"><use href=\"#");
+  paint->defs.append_len (pfx, pfx_len);
+  paint->defs.append_c ('p');
+  paint->defs.append_unsigned (def_id);
+  paint->defs.append_str ("\"/></clipPath>\n");
 
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
