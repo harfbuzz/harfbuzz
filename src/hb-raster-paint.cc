@@ -2248,8 +2248,13 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
  * @font: font to paint from
  * @glyph: glyph ID to paint
  *
- * Paints one color glyph into @paint.  Fails (returns
- * `false`) if @font has no paint data for @glyph.
+ * Convenience to paint one color glyph.  Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * hb_font_paint_glyph_or_fail (font, glyph,
+ *   hb_raster_paint_get_funcs (paint), paint,
+ *   palette, foreground);
+ * ]|
  *
  * Return value: `true` if painting succeeded, `false` otherwise.
  *

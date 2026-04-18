@@ -467,7 +467,14 @@ hb_vector_draw_get_funcs (const hb_vector_draw_t *draw)
  * @glyph: glyph ID.
  * @extents_mode: extents update mode.
  *
- * Draws one glyph into @draw.
+ * Convenience to draw one glyph into @draw.  Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * // extend extents if requested
+ * hb_vector_draw_new_path (draw);
+ * hb_font_draw_glyph_or_fail (font, glyph,
+ *   hb_vector_draw_get_funcs (draw), draw);
+ * ]|
  *
  * Return value: `true` if glyph data was emitted, `false` otherwise.
  *

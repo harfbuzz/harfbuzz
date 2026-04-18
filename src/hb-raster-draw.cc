@@ -958,7 +958,12 @@ hb_raster_draw_get_funcs (const hb_raster_draw_t *draw HB_UNUSED)
  * @font: font to draw from
  * @glyph: glyph ID to draw
  *
- * Draws one glyph into @draw using the rasterizer's current transform.
+ * Convenience to draw one glyph.  Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * hb_font_draw_glyph_or_fail (font, glyph,
+ *   hb_raster_draw_get_funcs (draw), draw);
+ * ]|
  *
  * Return value: `true` if the glyph was drawn, `false` if the font has
  * no outlines for @glyph.

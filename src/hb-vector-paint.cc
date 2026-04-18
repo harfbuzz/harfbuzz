@@ -580,8 +580,17 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
  * @glyph: glyph ID.
  * @extents_mode: extents update mode.
  *
- * Paints one color glyph into @paint.  Fails (returns
- * `false`) if @font has no paint data for @glyph.
+ * Convenience to paint one color glyph into @paint.
+ * Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * // extend extents if requested
+ * hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
+ * hb_paint_push_transform (funcs, paint, ...transform...);
+ * hb_font_paint_glyph_or_fail (font, glyph, funcs, paint,
+ *   palette, foreground);
+ * hb_paint_pop_transform (funcs, paint);
+ * ]|
  *
  * Return value: `true` if glyph paint data was emitted, `false` otherwise.
  *

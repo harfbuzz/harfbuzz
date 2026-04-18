@@ -1254,10 +1254,18 @@ hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
  * @font: font to paint from
  * @glyph: glyph ID to paint
  *
- * Feeds @glyph's paint tree into the encoder.  Fails (returns
- * `false`) if @font has no paint data for @glyph; encoder-level
- * limitations (unsupported paint ops, group-stack overflow) do
- * NOT fail here -- they surface later from
+ * Convenience to feed @glyph's paint tree into the encoder.
+ * Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * hb_gpu_paint_set_scale (paint, x_scale, y_scale);
+ * hb_font_paint_glyph_or_fail (font, glyph,
+ *   hb_gpu_paint_get_funcs (paint), paint,
+ *   palette, HB_COLOR (0, 0, 0, 0xff));
+ * ]|
+ *
+ * Encoder-level limitations (unsupported paint ops, group-stack
+ * overflow) do NOT fail here -- they surface later from
  * hb_gpu_paint_encode() which returns `NULL`.
  *
  * Return value: `true` if the font had paint data for @glyph,
