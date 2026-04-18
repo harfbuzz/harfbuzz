@@ -520,9 +520,10 @@ hb_vector_paint_get_funcs (const hb_vector_paint_t *paint)
     case HB_VECTOR_FORMAT_PDF:
       return hb_vector_paint_pdf_funcs_get ();
     case HB_VECTOR_FORMAT_SVG:
+      return hb_vector_paint_svg_funcs_get ();
     case HB_VECTOR_FORMAT_INVALID:
     default:
-      return hb_vector_paint_svg_funcs_get ();
+      return nullptr;
   }
 }
 

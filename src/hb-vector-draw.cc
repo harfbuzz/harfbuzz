@@ -121,16 +121,7 @@ static struct hb_vector_draw_pdf_funcs_lazy_loader_t
 } static_vector_draw_pdf_funcs;
 static inline void free_static_vector_draw_pdf_funcs () { static_vector_draw_pdf_funcs.free_instance (); }
 
-static hb_draw_funcs_t *
-hb_vector_draw_funcs_get (hb_vector_format_t format)
-{
-  switch (format)
-  {
-    case HB_VECTOR_FORMAT_SVG: return static_vector_draw_svg_funcs.get_unconst ();
-    case HB_VECTOR_FORMAT_PDF: return static_vector_draw_pdf_funcs.get_unconst ();
-    case HB_VECTOR_FORMAT_INVALID: default: return nullptr;
-  }
-}
+
 
 /**
  * hb_vector_draw_create_or_fail:
@@ -459,9 +450,14 @@ hb_vector_draw_get_format (const hb_vector_draw_t *draw)
  * XSince: REPLACEME
  */
 hb_draw_funcs_t *
-hb_vector_draw_get_funcs (const hb_vector_draw_t *draw HB_UNUSED)
+hb_vector_draw_get_funcs (const hb_vector_draw_t *draw)
 {
-  return hb_vector_draw_funcs_get (draw->format);
+  switch (draw ? draw->format : HB_VECTOR_FORMAT_INVALID)
+  {
+    case HB_VECTOR_FORMAT_SVG: return static_vector_draw_svg_funcs.get_unconst ();
+    case HB_VECTOR_FORMAT_PDF: return static_vector_draw_pdf_funcs.get_unconst ();
+    case HB_VECTOR_FORMAT_INVALID: default: return nullptr;
+  }
 }
 
 /**
