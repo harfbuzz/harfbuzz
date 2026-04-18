@@ -134,13 +134,6 @@ ensure_initialized (hb_raster_paint_t *c)
     return;
   }
 
-  /* Initial transform */
-  if (unlikely (!c->transform_stack.push_or_fail (c->base_transform)))
-  {
-    c->release_surface (c->surface_stack.pop ());
-    return;
-  }
-
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
@@ -163,7 +156,6 @@ hb_raster_paint_push_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
 
   ensure_initialized (c);
-  if (unlikely (!c->transform_stack.length)) return;
 
   hb_transform_t<> t = c->current_transform ();
   t.multiply ({xx, yx, xy, yy, dx, dy});
@@ -176,7 +168,7 @@ hb_raster_paint_pop_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  if (c->transform_stack.length > 1)
+  if (c->transform_stack.length)
     c->transform_stack.pop ();
 }
 
@@ -2230,15 +2222,23 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
       hb_raster_paint_set_glyph_extents (paint, &ge);
   }
 
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_push_transform (funcs, paint,
+			   paint->base_transform.xx, paint->base_transform.yx,
+			   paint->base_transform.xy, paint->base_transform.yy,
+			   paint->base_transform.x0, paint->base_transform.y0);
+
   hb_bool_t ret = true;
   if (fallible)
     ret = hb_font_paint_glyph_or_fail (font, glyph,
-				       hb_raster_paint_get_funcs (paint), paint,
+				       funcs, paint,
 				       paint->palette, paint->foreground);
   else
     hb_font_paint_glyph (font, glyph,
-			 hb_raster_paint_get_funcs (paint), paint,
+			 funcs, paint,
 			 paint->palette, paint->foreground);
+
+  hb_paint_pop_transform (funcs, paint);
   return ret;
 }
 
