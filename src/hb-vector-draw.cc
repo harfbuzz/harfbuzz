@@ -158,7 +158,6 @@ hb_vector_draw_create_or_fail (hb_vector_format_t format)
   if (unlikely (!draw))
     return nullptr;
   draw->format = format;
-  draw->defined_glyphs = hb_set_create ();
   draw->defs.alloc (2048);
   draw->body.alloc (8192);
   draw->path.alloc (2048);
@@ -195,9 +194,7 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
   if (!hb_object_should_destroy (draw))
     return;
 
-  hb_font_destroy (draw->cached_font);
   hb_blob_destroy (draw->recycled_blob);
-  hb_set_destroy (draw->defined_glyphs);
   hb_object_actually_destroy (draw);
   hb_free (draw);
 }
@@ -490,7 +487,6 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
-  draw->check_font (font);
 
   switch (draw->format)
   {
@@ -554,26 +550,49 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
     {
       draw->flush_path ();
 
-      if (!hb_set_has (draw->defined_glyphs, glyph))
+      draw->path.clear ();
       {
-	draw->path.clear ();
 	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (),
 				     draw->x_scale_factor, draw->y_scale_factor};
 	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
-	if (!draw->path.length)
-	  return false;
+      }
+      if (!draw->path.length)
+	return false;
+
+      /* Content-based dedup: hash the path data, look for an
+       * existing def with identical bytes in defs. */
+      uint32_t h = hb_hash (hb_bytes_t (draw->path.arrayZ, draw->path.length));
+      unsigned def_id = (unsigned) -1;
+      for (auto &e : draw->defined_paths)
+      {
+	if (e.hash == h &&
+	    e.defs_length == draw->path.length &&
+	    0 == hb_memcmp (draw->defs.arrayZ + e.defs_offset,
+			    draw->path.arrayZ, draw->path.length))
+	{
+	  def_id = e.def_id;
+	  break;
+	}
+      }
+      if (def_id == (unsigned) -1)
+      {
+	def_id = draw->path_def_count++;
 	draw->defs.append_str ("<path id=\"");
 	draw->defs.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
 	draw->defs.append_c ('p');
-	draw->defs.append_unsigned (glyph);
+	draw->defs.append_unsigned (def_id);
 	draw->defs.append_str ("\" d=\"");
+	unsigned data_offset = draw->defs.length;
 	draw->defs.append_len (draw->path.arrayZ, draw->path.length);
 	draw->defs.append_str ("\"/>\n");
-	hb_set_add (draw->defined_glyphs, glyph);
-	/* Clear so any subsequent free-form draw ops on this
-	 * context start with an empty scratch. */
-	draw->path.clear ();
+	hb_vector_draw_t::path_entry_t entry;
+	entry.hash = h;
+	entry.defs_offset = data_offset;
+	entry.defs_length = draw->path.length;
+	entry.def_id = def_id;
+	draw->defined_paths.push (entry);
       }
+      draw->path.clear ();
 
       float xx = draw->transform.xx;
       float yx = draw->transform.yx;
@@ -585,7 +604,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
       draw->body.append_str ("<use href=\"#");
       draw->body.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
       draw->body.append_c ('p');
-      draw->body.append_unsigned (glyph);
+      draw->body.append_unsigned (def_id);
       draw->body.append_str ("\" transform=\"");
       hb_vector_svg_append_instance_transform (&draw->body,
 					draw->get_precision (),
@@ -1026,7 +1045,8 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
   draw->defs.clear ();
   draw->body.clear ();
   draw->path.clear ();
-  hb_set_clear (draw->defined_glyphs);
+  draw->defined_paths.clear ();
+  draw->path_def_count = 0;
 }
 
 /**

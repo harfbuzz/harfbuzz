@@ -38,33 +38,16 @@ struct hb_vector_draw_t
   }
 
   unsigned get_precision () const { return path.precision; }
-  hb_set_t *defined_glyphs = nullptr;
+  struct path_entry_t
+  {
+    uint32_t hash;
+    unsigned defs_offset;
+    unsigned defs_length;
+    unsigned def_id;
+  };
+  hb_vector_t<path_entry_t> defined_paths;
+  unsigned path_def_count = 0;
   hb_blob_t *recycled_blob = nullptr;
-
-  hb_font_t *cached_font = nullptr;
-  unsigned cached_serial = (unsigned) -1;
-
-  void changed ()
-  {
-    if (defined_glyphs)
-      hb_set_clear (defined_glyphs);
-    defs.shrink (0);
-    body.shrink (0);
-    path.shrink (0);
-  }
-
-  void check_font (hb_font_t *font)
-  {
-    unsigned serial = hb_font_get_serial (font);
-    if (font != cached_font || serial != cached_serial)
-    {
-      changed ();
-      hb_font_t *old = cached_font;
-      cached_font = hb_font_reference (font);
-      hb_font_destroy (old);
-      cached_serial = serial;
-    }
-  }
 
   void flush_path ()
   {

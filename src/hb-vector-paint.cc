@@ -56,8 +56,6 @@ hb_vector_paint_create_or_fail (hb_vector_format_t format)
     return nullptr;
   paint->format = format;
 
-  paint->defined_outlines = hb_set_create ();
-  paint->defined_clips = hb_set_create ();
   paint->active_color_glyphs = hb_set_create ();
   paint->defs.alloc (4096);
   paint->path.alloc (2048);
@@ -99,10 +97,7 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
 
   if (paint->format == HB_VECTOR_FORMAT_PDF)
     hb_vector_paint_pdf_free_resources (paint);
-  hb_font_destroy (paint->cached_font);
   hb_blob_destroy (paint->recycled_blob);
-  hb_set_destroy (paint->defined_outlines);
-  hb_set_destroy (paint->defined_clips);
   hb_set_destroy (paint->active_color_glyphs);
   hb_object_actually_destroy (paint);
   hb_free (paint);
@@ -356,7 +351,6 @@ hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
   if (paint->foreground != foreground)
   {
     paint->foreground = foreground;
-    paint->changed ();
   }
 }
 
@@ -428,7 +422,6 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
   if (paint->palette != palette)
   {
     paint->palette = palette;
-    paint->changed ();
   }
 }
 
@@ -470,7 +463,6 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
                                           hb_color_t color)
 {
   paint->custom_palette_colors.set (color_index, color);
-  paint->changed ();
 }
 
 /**
@@ -490,7 +482,6 @@ hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
   if (paint->custom_palette_colors.get_population ())
   {
     paint->custom_palette_colors.clear ();
-    paint->changed ();
   }
 }
 
@@ -545,7 +536,6 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 			    hb_vector_extents_mode_t extents_mode,
 			    hb_bool_t          fallible)
 {
-  paint->check_font (font);
 
   float xx = paint->transform.xx;
   float yx = paint->transform.yx;
@@ -619,25 +609,6 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
     case HB_VECTOR_FORMAT_SVG:
     {
       {
-	if (paint->defined_color_glyphs.has (glyph))
-	{
-	  unsigned def_id = paint->defined_color_glyphs.get (glyph);
-	  auto &body = paint->current_body ();
-	  body.append_str ("<use href=\"#");
-	  body.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
-	  body.append_str ("cg");
-	  body.append_unsigned (def_id);
-	  body.append_str ("\" transform=\"");
-	  hb_vector_svg_append_instance_transform (&body, paint->get_precision (),
-					    paint->x_scale_factor,
-					    paint->y_scale_factor,
-					    xx, yx, xy, yy, tx, ty);
-	  body.append_str ("\"/>\n");
-	  return !body.in_error ();
-	}
-      }
-
-      {
 	if (unlikely (!paint->group_stack.push_or_fail (hb_vector_buf_t {})))
 	  return false;
 
@@ -663,19 +634,45 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
 		      !paint->captured_scratch.length))
 	  return false;
 
-	unsigned def_id = paint->color_glyph_counter++;
-	if (unlikely (!paint->defined_color_glyphs.set (glyph, def_id)))
-	  return false;
+	/* Content-based dedup: hash the captured paint output,
+	 * look for an existing def with identical bytes. */
+	uint32_t h = hb_hash (hb_bytes_t (paint->captured_scratch.arrayZ,
+					   paint->captured_scratch.length));
+	unsigned def_id = (unsigned) -1;
+	for (auto &e : paint->defined_color_glyph_entries)
+	{
+	  if (e.hash == h &&
+	      e.defs_length == paint->captured_scratch.length &&
+	      0 == hb_memcmp (paint->defs.arrayZ + e.defs_offset,
+			      paint->captured_scratch.arrayZ,
+			      paint->captured_scratch.length))
+	  {
+	    def_id = e.def_id;
+	    break;
+	  }
+	}
+	if (def_id == (unsigned) -1)
+	{
+	  def_id = paint->color_glyph_counter++;
 
-	paint->defs.append_str ("<g id=\"");
-	paint->defs.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
-	paint->defs.append_str ("cg");
-	paint->defs.append_unsigned (def_id);
-	paint->defs.append_str ("\">\n");
-	paint->defs.append_len (
-			   paint->captured_scratch.arrayZ,
-			   paint->captured_scratch.length);
-	paint->defs.append_str ("</g>\n");
+	  paint->defs.append_str ("<g id=\"");
+	  paint->defs.append_len (paint->id_prefix.arrayZ, paint->id_prefix.length);
+	  paint->defs.append_str ("cg");
+	  paint->defs.append_unsigned (def_id);
+	  paint->defs.append_str ("\">\n");
+	  unsigned data_offset = paint->defs.length;
+	  paint->defs.append_len (
+			     paint->captured_scratch.arrayZ,
+			     paint->captured_scratch.length);
+	  paint->defs.append_str ("</g>\n");
+
+	  hb_vector_paint_t::content_entry_t entry;
+	  entry.hash = h;
+	  entry.defs_offset = data_offset;
+	  entry.defs_length = paint->captured_scratch.length;
+	  entry.def_id = def_id;
+	  paint->defined_color_glyph_entries.push (entry);
+	}
 
 	auto &body = paint->current_body ();
 	body.append_str ("<use href=\"#");
@@ -866,10 +863,10 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->gradient_counter = 0;
   paint->color_glyph_counter = 0;
   paint->color_glyph_depth = 0;
-  hb_set_clear (paint->defined_outlines);
-  hb_set_clear (paint->defined_clips);
+  paint->defined_paths.clear ();
+  paint->path_def_count = 0;
   hb_set_clear (paint->active_color_glyphs);
-  paint->defined_color_glyphs.clear ();
+  paint->defined_color_glyph_entries.clear ();
   paint->color_stops_scratch.clear ();
   paint->captured_scratch.clear ();
 }
