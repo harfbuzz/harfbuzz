@@ -440,8 +440,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  const char *pfx = paint->id_prefix.arrayZ;
-  unsigned pfx_len = paint->id_prefix.length;
+  const char *pfx = paint->id_prefix;
+  unsigned pfx_len = paint->id_prefix_length;
 
   paint->path.clear ();
   {
@@ -486,8 +486,8 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  const char *pfx = paint->id_prefix.arrayZ;
-  unsigned pfx_len = paint->id_prefix.length;
+  const char *pfx = paint->id_prefix;
+  unsigned pfx_len = paint->id_prefix_length;
   unsigned clip_id = paint->clip_rect_counter++;
   paint->defs.append_str ("<clipPath id=\"");
   paint->defs.append_len (pfx, pfx_len);
@@ -540,8 +540,8 @@ hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  const char *pfx = paint->id_prefix.arrayZ;
-  unsigned pfx_len = paint->id_prefix.length;
+  const char *pfx = paint->id_prefix;
+  unsigned pfx_len = paint->id_prefix_length;
   unsigned clip_id = paint->clip_path_counter++;
 
   /* The accumulated path is in font Y-up coords (the
@@ -667,8 +667,8 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
 
-  const char *pfx = paint->id_prefix.arrayZ;
-  unsigned pfx_len = paint->id_prefix.length;
+  const char *pfx = paint->id_prefix;
+  unsigned pfx_len = paint->id_prefix_length;
   unsigned grad_id = paint->gradient_counter++;
 
   /* Reduce COLR's 3-anchor (P0, P1, P2) to SVG's 2-point
@@ -735,8 +735,8 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   float gy1 = y0 + mx * (y1 - y0);
   float gr1 = r0 + mx * (r1 - r0);
 
-  const char *pfx = paint->id_prefix.arrayZ;
-  unsigned pfx_len = paint->id_prefix.length;
+  const char *pfx = paint->id_prefix;
+  unsigned pfx_len = paint->id_prefix_length;
   unsigned grad_id = paint->gradient_counter++;
 
   paint->defs.append_str ("<radialGradient id=\"");

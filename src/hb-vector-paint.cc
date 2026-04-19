@@ -99,6 +99,7 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
     hb_vector_paint_pdf_free_resources (paint);
   hb_blob_destroy (paint->recycled_blob);
   hb_set_destroy (paint->active_color_glyphs);
+  hb_free (paint->id_prefix);
   hb_object_actually_destroy (paint);
   hb_free (paint);
 }
@@ -645,9 +646,22 @@ void
 hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
                                 const char *prefix)
 {
-  paint->id_prefix.resize (0);
-  if (prefix)
-    paint->id_prefix.append_str (prefix);
+  char *old = paint->id_prefix;
+  paint->id_prefix = nullptr;
+  paint->id_prefix_length = 0;
+  if (prefix && *prefix)
+  {
+    unsigned len = strlen (prefix);
+    char *copy = (char *) hb_malloc (len + 1);
+    if (likely (copy))
+    {
+      hb_memcpy (copy, prefix, len);
+      copy[len] = '\0';
+      paint->id_prefix = copy;
+      paint->id_prefix_length = len;
+    }
+  }
+  hb_free (old);
 }
 
 /**
@@ -666,12 +680,7 @@ hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
 const char *
 hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
 {
-  if (!paint->id_prefix.length) return "";
-  /* id_prefix is appended via append_str which does NOT
-   * NUL-terminate; ensure a trailing NUL. */
-  const_cast<hb_vector_buf_t &> (paint->id_prefix).alloc (paint->id_prefix.length + 1, false);
-  paint->id_prefix.arrayZ[paint->id_prefix.length] = '\0';
-  return paint->id_prefix.arrayZ;
+  return paint->id_prefix ? paint->id_prefix : "";
 }
 
 /**

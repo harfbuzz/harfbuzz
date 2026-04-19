@@ -53,7 +53,8 @@ struct hb_vector_paint_t
   hb_color_t background = HB_COLOR (0, 0, 0, 0);
   int palette = 0;
   hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
-  hb_vector_buf_t id_prefix;
+  char *id_prefix = nullptr;
+  unsigned id_prefix_length = 0;
 
   hb_vector_buf_t defs;
   hb_vector_buf_t path;
