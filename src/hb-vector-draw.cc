@@ -537,7 +537,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
  * Draws one glyph into @draw.  Equivalent to
  * hb_vector_draw_glyph_or_fail() with the return value ignored.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,

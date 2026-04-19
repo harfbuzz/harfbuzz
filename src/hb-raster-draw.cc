@@ -989,7 +989,7 @@ hb_raster_draw_glyph_or_fail (hb_raster_draw_t *draw,
  * transform.  Equivalent to hb_raster_draw_glyph_or_fail() with the
  * return value ignored.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  **/
 void
 hb_raster_draw_glyph (hb_raster_draw_t *draw,

@@ -42,10 +42,9 @@ Overview of changes leading to NEXT (REPLACEME)
     can be embedded directly in PDF documents -- useful for PDF
     producers such as LibreOffice that want crisp, resolution-
     independent color emoji.
-  * SVG id prefix API moved to paint only
-    (hb_vector_paint_set_svg_prefix); the draw path now
-    emits flat inline SVG with no id references and no
-    longer needs a prefix.
+  * New SVG id prefix API on paint allows prefixing document
+    references, which allows for embedding multiple SVGs in the
+    same pat without name clases (hb_vector_paint_set_svg_prefix).
   * Removed pen_x/pen_y parameters from all vector and
     raster _glyph functions.  Callers use set_transform()
     for glyph positioning instead.
