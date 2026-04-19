@@ -967,12 +967,9 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     return;
 
   /* Fetch, normalize stops to [0,1], and adjust coordinates. */
-  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (!count || unlikely (!stops.resize (count)))
+  if (!paint->fetch_color_stops (color_line))
     return;
-  hb_color_line_get_color_stops (color_line, 0, &count, stops.arrayZ);
-  stops.length = count;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
@@ -1060,12 +1057,9 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     return;
 
   /* Fetch, normalize stops to [0,1], and adjust coordinates. */
-  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (!count || unlikely (!stops.resize (count)))
+  if (!paint->fetch_color_stops (color_line))
     return;
-  hb_color_line_get_color_stops (color_line, 0, &count, stops.arrayZ);
-  stops.length = count;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
@@ -1343,17 +1337,13 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
     return;
 
   /* Get and sort color stops. */
-  unsigned n_stops = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (unlikely (!paint->color_stops_scratch.resize (n_stops)))
+  if (!paint->fetch_color_stops (color_line))
     return;
-  hb_color_line_get_color_stops (color_line, 0, &n_stops, paint->color_stops_scratch.arrayZ);
   paint->color_stops_scratch.as_array ().qsort (
     [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
     { return a.offset < b.offset; });
   hb_color_stop_t *stops = paint->color_stops_scratch.arrayZ;
-
-  if (!n_stops)
-    return;
+  unsigned n_stops = paint->color_stops_scratch.length;
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 

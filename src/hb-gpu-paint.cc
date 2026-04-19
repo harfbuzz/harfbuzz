@@ -622,26 +622,16 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   }
 
   /* Resolve stops (triggers custom_palette_color, etc). */
-  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (unlikely (!count))
+  if (unlikely (!c->fetch_color_stops (color_line)))
     return;
-  hb_color_stop_t stack_stops[16];
-  hb_color_stop_t *stops = stack_stops;
-  hb_color_stop_t *heap_stops = nullptr;
-  if (count > 16)
-  {
-    heap_stops = (hb_color_stop_t *) hb_malloc (count * sizeof (hb_color_stop_t));
-    if (unlikely (!heap_stops)) { c->unsupported = true; return; }
-    stops = heap_stops;
-  }
-  unsigned got = count;
-  hb_color_line_get_color_stops (color_line, 0, &got, stops);
+  hb_color_stop_t *stops = c->color_stops_scratch.arrayZ;
+  unsigned got = c->color_stops_scratch.length;
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
   /* Emit clip sub-blob(s) first. */
   int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH];
-  if (!emit_all_clip_sub_blobs (c, clip_idx)) { hb_free (heap_stops); return; }
+  if (!emit_all_clip_sub_blobs (c, clip_idx)) return;
 
   /* Build gradient params sub-blob.
    *   texel 0: (p0_rendered_x, p0_rendered_y, d_canonical_x, d_canonical_y)
@@ -654,7 +644,7 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
    * handled exactly rather than approximated. */
   hb_vector_t<int16_t> grad_data;
   if (unlikely (!grad_data.resize (8)))
-  { c->unsupported = true; hb_free (heap_stops); return; }
+  { c->unsupported = true; return; }
 
   float lx0, ly0, lx1, ly1;
   hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &lx0, &ly0, &lx1, &ly1);
@@ -679,8 +669,7 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   grad_data[7] = Linv[3];
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
-  { c->unsupported = true; hb_free (heap_stops); return; }
-  hb_free (heap_stops);
+  { c->unsupported = true; return; }
 
   unsigned grad_bytes = grad_data.length * sizeof (int16_t);
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
@@ -717,25 +706,15 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
     return;
   }
 
-  unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (unlikely (!count))
+  if (unlikely (!c->fetch_color_stops (color_line)))
     return;
-  hb_color_stop_t stack_stops[16];
-  hb_color_stop_t *stops = stack_stops;
-  hb_color_stop_t *heap_stops = nullptr;
-  if (count > 16)
-  {
-    heap_stops = (hb_color_stop_t *) hb_malloc (count * sizeof (hb_color_stop_t));
-    if (unlikely (!heap_stops)) { c->unsupported = true; return; }
-    stops = heap_stops;
-  }
-  unsigned got = count;
-  hb_color_line_get_color_stops (color_line, 0, &got, stops);
+  hb_color_stop_t *stops = c->color_stops_scratch.arrayZ;
+  unsigned got = c->color_stops_scratch.length;
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
   int clip_idx[HB_GPU_PAINT_MAX_CLIP_DEPTH];
-  if (!emit_all_clip_sub_blobs (c, clip_idx)) { hb_free (heap_stops); return; }
+  if (!emit_all_clip_sub_blobs (c, clip_idx)) return;
 
   /* Build gradient params sub-blob.
    *   texel 0: (c0_rendered_x, c0_rendered_y, d_canonical_x, d_canonical_y)
@@ -751,7 +730,7 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
    */
   hb_vector_t<int16_t> grad_data;
   if (unlikely (!grad_data.resize (12)))
-  { c->unsupported = true; hb_free (heap_stops); return; }
+  { c->unsupported = true; return; }
   float mn, mx;
   hb_paint_normalize_color_line (stops, got, &mn, &mx);
   float dx = x1 - x0, dy = y1 - y0, dr = r1 - r0;
@@ -776,8 +755,7 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   grad_data[11] = Linv[3];
 
   if (unlikely (!append_color_stops (grad_data, stops, got)))
-  { c->unsupported = true; hb_free (heap_stops); return; }
-  hb_free (heap_stops);
+  { c->unsupported = true; return; }
 
   unsigned grad_bytes = grad_data.length * sizeof (int16_t);
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
