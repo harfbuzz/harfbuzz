@@ -352,10 +352,7 @@ void
 hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
                                 hb_color_t foreground)
 {
-  if (paint->foreground != foreground)
-  {
-    paint->foreground = foreground;
-  }
+  paint->foreground = foreground;
 }
 
 /**
@@ -423,10 +420,7 @@ void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette)
 {
-  if (paint->palette != palette)
-  {
-    paint->palette = palette;
-  }
+  paint->palette = palette;
 }
 
 /**
@@ -483,10 +477,7 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
 void
 hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
 {
-  if (paint->custom_palette_colors.get_population ())
-  {
-    paint->custom_palette_colors.clear ();
-  }
+  paint->custom_palette_colors.clear ();
 }
 
 /**
