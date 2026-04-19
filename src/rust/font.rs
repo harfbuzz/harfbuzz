@@ -981,9 +981,12 @@ extern "C" fn _hb_fontations_glyph_name(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
 
     if let Some(glyph_name) = data.glyph_names.get(GlyphId::new(glyph)) {
+        if size == 0 {
+            return true as hb_bool_t;
+        }
         let glyph_name = glyph_name.as_str();
         // Copy the glyph name into the buffer, up to size-1 bytes
-        let len = glyph_name.len().min(size as usize - 1);
+        let len = glyph_name.len().min((size as usize) - 1);
         unsafe {
             std::slice::from_raw_parts_mut(name as *mut u8, len)
                 .copy_from_slice(&glyph_name.as_bytes()[..len]);
