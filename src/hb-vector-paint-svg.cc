@@ -76,6 +76,11 @@ hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
 {
   switch (mode)
   {
+    /* Porter-Duff modes have no SVG mix-blend-mode equivalent;
+     * approximate the two that have a plausible color-blend analog,
+     * and let the rest fall through to normal (SRC_OVER). */
+    case HB_PAINT_COMPOSITE_MODE_PLUS: return "screen";
+    case HB_PAINT_COMPOSITE_MODE_XOR: return "difference";
     case HB_PAINT_COMPOSITE_MODE_CLEAR:
     case HB_PAINT_COMPOSITE_MODE_SRC:
     case HB_PAINT_COMPOSITE_MODE_DEST:
@@ -86,8 +91,6 @@ hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
     case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
     case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
     case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
-    case HB_PAINT_COMPOSITE_MODE_XOR:
-    case HB_PAINT_COMPOSITE_MODE_PLUS:
       return nullptr;
     case HB_PAINT_COMPOSITE_MODE_SRC_OVER: return "normal";
     case HB_PAINT_COMPOSITE_MODE_SCREEN: return "screen";
