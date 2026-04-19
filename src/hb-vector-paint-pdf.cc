@@ -767,10 +767,10 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
 /* ---- Gradient helpers ---- */
 
 static bool
-hb_pdf_gradient_needs_alpha (const hb_color_stop_t *stops, unsigned count)
+hb_pdf_gradient_needs_alpha (hb_array_t<const hb_color_stop_t> stops)
 {
-  for (unsigned i = 0; i < count; i++)
-    if (hb_color_get_alpha (stops[i].color) != 255)
+  for (const auto &s : stops)
+    if (hb_color_get_alpha (s.color) != 255)
       return true;
   return false;
 }
@@ -1005,7 +1005,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
 
-  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops.arrayZ, stops.length);
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops);
   if (needs_alpha)
   {
     unsigned alpha_func_id = hb_pdf_build_alpha_gradient_function_from_stops (res, paint);
@@ -1101,7 +1101,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
 
-  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops.arrayZ, stops.length);
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops);
   if (needs_alpha)
   {
     unsigned alpha_func_id = hb_pdf_build_alpha_gradient_function_from_stops (res, paint);
@@ -1339,11 +1339,10 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   /* Get and sort color stops. */
   if (!paint->fetch_color_stops (color_line))
     return;
-  paint->color_stops_scratch.as_array ().qsort (
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  stops.as_array ().qsort (
     [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
     { return a.offset < b.offset; });
-  hb_color_stop_t *stops = paint->color_stops_scratch.arrayZ;
-  unsigned n_stops = paint->color_stops_scratch.length;
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
@@ -1352,7 +1351,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   float xlo = scx - R - 1, xhi = scx + R + 1;
   float ylo = scy - R - 1, yhi = scy + R + 1;
 
-  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops, n_stops);
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (stops);
 
   hb_vector_buf_t mesh;
   hb_vector_buf_t alpha_mesh;
@@ -1362,7 +1361,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   hb_pdf_sweep_ctx_t ctx { &mesh, needs_alpha ? &alpha_mesh : nullptr,
 			    scx, scy, xlo, xhi, ylo, yhi };
-  hb_paint_sweep_gradient_tiles (stops, n_stops, extend,
+  hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length, extend,
 				 start_angle, end_angle,
 				 hb_pdf_sweep_emit_patch, &ctx);
 
