@@ -1594,6 +1594,7 @@ hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
     case HB_GPU_SHADER_LANG_MSL:  return hb_gpu_paint_fragment_msl;
     case HB_GPU_SHADER_LANG_WGSL: return hb_gpu_paint_fragment_wgsl;
     case HB_GPU_SHADER_LANG_HLSL: return hb_gpu_paint_fragment_hlsl;
+    case HB_GPU_SHADER_LANG_INVALID:
     default: return nullptr;
     }
   case HB_GPU_SHADER_STAGE_VERTEX:
@@ -1602,6 +1603,7 @@ hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
     case HB_GPU_SHADER_LANG_MSL:
     case HB_GPU_SHADER_LANG_WGSL:
     case HB_GPU_SHADER_LANG_HLSL: return "";
+    case HB_GPU_SHADER_LANG_INVALID:
     default: return nullptr;
     }
   default:

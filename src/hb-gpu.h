@@ -34,6 +34,7 @@ HB_BEGIN_DECLS
 
 /**
  * hb_gpu_shader_lang_t:
+ * @HB_GPU_SHADER_LANG_INVALID: Sentinel for an invalid or unspecified language.
  * @HB_GPU_SHADER_LANG_GLSL: GLSL (OpenGL 3.3 / OpenGL ES 3.0 / WebGL 2.0)
  * @HB_GPU_SHADER_LANG_WGSL: WGSL (WebGPU)
  * @HB_GPU_SHADER_LANG_MSL: MSL (Metal)
@@ -44,6 +45,7 @@ HB_BEGIN_DECLS
  * Since: 14.0.0
  */
 typedef enum {
+  HB_GPU_SHADER_LANG_INVALID,
   HB_GPU_SHADER_LANG_GLSL,
   HB_GPU_SHADER_LANG_WGSL,
   HB_GPU_SHADER_LANG_MSL,
