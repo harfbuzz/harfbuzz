@@ -28,7 +28,6 @@
 
 #include "hb-gpu.h"
 #include "hb-gpu-paint.hh"
-#include "hb-gpu.hh"
 #include "hb-draw.hh"
 #include "hb-machinery.hh"
 #include "hb-paint.hh"
@@ -1371,7 +1370,7 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 
   unsigned buf_capacity = 0;
   char *replaced_recycled_buf = nullptr;
-  char *buf_raw = _hb_gpu_blob_acquire (paint->recycled_blob, total_bytes,
+  char *buf_raw = hb_blob_t::recycle_acquire (paint->recycled_blob, total_bytes,
 					&buf_capacity, &replaced_recycled_buf);
   if (unlikely (!buf_raw))
     return nullptr;
@@ -1382,7 +1381,7 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
   hb_vector_t<unsigned> sub_offsets;
   if (unlikely (!sub_offsets.resize (sub_offsets_count)))
   {
-    _hb_gpu_blob_abort (buf_raw, paint->recycled_blob);
+    hb_blob_t::recycle_abort (buf_raw, paint->recycled_blob);
     return nullptr;
   }
   unsigned cursor = header_texels + ops_texels;
@@ -1453,7 +1452,7 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 	i += 4;  /* 1 texel */
 	break;
       default:
-	_hb_gpu_blob_abort (buf_raw, paint->recycled_blob);
+	hb_blob_t::recycle_abort (buf_raw, paint->recycled_blob);
 	return nullptr;
     }
   }
@@ -1478,7 +1477,7 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
 
   hb_blob_t *recycled = paint->recycled_blob;
   paint->recycled_blob = nullptr;
-  return _hb_gpu_blob_finalize (buf_raw, buf_capacity, total_bytes,
+  return hb_blob_t::recycle_finalize (buf_raw, buf_capacity, total_bytes,
 				recycled, replaced_recycled_buf);
 }
 
@@ -1553,7 +1552,7 @@ void
 hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
 			   hb_blob_t      *blob)
 {
-  _hb_gpu_blob_recycle (&paint->recycled_blob, blob);
+  hb_blob_t::recycle_stash (&paint->recycled_blob, blob);
 }
 
 
