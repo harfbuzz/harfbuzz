@@ -1437,6 +1437,11 @@ hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
   case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: return "Saturation";
   case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:      return "Color";
   case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: return "Luminosity";
+  /* Porter-Duff modes have no PDF blend-mode equivalent; approximate
+   * the two that have a plausible color-blend analog, and let the
+   * rest fall through to Normal (SRC_OVER). */
+  case HB_PAINT_COMPOSITE_MODE_PLUS:           return "Screen";
+  case HB_PAINT_COMPOSITE_MODE_XOR:            return "Difference";
   case HB_PAINT_COMPOSITE_MODE_CLEAR:
   case HB_PAINT_COMPOSITE_MODE_SRC:
   case HB_PAINT_COMPOSITE_MODE_DEST:
@@ -1448,9 +1453,7 @@ hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
   case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
   case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
   case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
-  case HB_PAINT_COMPOSITE_MODE_XOR:
-  case HB_PAINT_COMPOSITE_MODE_PLUS:
-  default:                                     return nullptr; /* Normal / no PDF equivalent */
+  default:                                     return nullptr; /* Normal */
   }
 }
 
