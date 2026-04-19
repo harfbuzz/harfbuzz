@@ -280,31 +280,31 @@ clamp_to_hb_position (double v)
 				   (double) hb_int_max (hb_position_t));
 }
 
-static int16_t
+static inline int16_t
 quantize (double v)
 {
   return (int16_t) round (v * HB_GPU_UNITS_PER_EM);
 }
 
-static int16_t
+static inline int16_t
 quantize_down (double v)
 {
   return (int16_t) floor (v * HB_GPU_UNITS_PER_EM);
 }
 
-static int16_t
+static inline int16_t
 quantize_up (double v)
 {
   return (int16_t) ceil (v * HB_GPU_UNITS_PER_EM);
 }
 
-static double
+static inline double
 dequantize (int16_t v)
 {
   return (double) v / HB_GPU_UNITS_PER_EM;
 }
 
-static bool
+static inline bool
 quantize_down_fits_i16 (double v)
 {
   double q = floor (v * HB_GPU_UNITS_PER_EM);
@@ -312,7 +312,7 @@ quantize_down_fits_i16 (double v)
 	 q <= INT16_MAX;
 }
 
-static bool
+static inline bool
 quantize_up_fits_i16 (double v)
 {
   double q = ceil (v * HB_GPU_UNITS_PER_EM);
@@ -320,7 +320,7 @@ quantize_up_fits_i16 (double v)
 	 q <= INT16_MAX;
 }
 
-static int16_t
+static inline int16_t
 encode_offset (unsigned offset)
 {
   return (int16_t) (offset - 32768u);
@@ -344,6 +344,45 @@ encode_curve_info (const hb_gpu_curve_t *c)
 
   return info;
 }
+
+static void
+_hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
+			  hb_glyph_extents_t *extents)
+{
+  if (unlikely (!draw->success) ||
+      draw->num_curves == 0 ||
+      draw->ext_min_x == HUGE_VAL)
+  {
+    extents->x_bearing = 0;
+    extents->y_bearing = 0;
+    extents->width = 0;
+    extents->height = 0;
+    return;
+  }
+
+  double min_x = floor (draw->ext_min_x);
+  double min_y = floor (draw->ext_min_y);
+  double max_x = ceil  (draw->ext_max_x);
+  double max_y = ceil  (draw->ext_max_y);
+
+  if (unlikely (!std::isfinite (min_x) ||
+		!std::isfinite (min_y) ||
+		!std::isfinite (max_x) ||
+		!std::isfinite (max_y)))
+  {
+    extents->x_bearing = 0;
+    extents->y_bearing = 0;
+    extents->width = 0;
+    extents->height = 0;
+    return;
+  }
+
+  extents->x_bearing = clamp_to_hb_position (min_x);
+  extents->y_bearing = clamp_to_hb_position (max_y);
+  extents->width     = clamp_to_hb_position (max_x - min_x);
+  extents->height    = clamp_to_hb_position (min_y - max_y);
+}
+
 
 /**
  * hb_gpu_draw_encode:
@@ -371,10 +410,6 @@ encode_curve_info (const hb_gpu_curve_t *c)
  *
  * Since: 14.0.0
  **/
-static void
-_hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
-			  hb_glyph_extents_t *extents);
-
 hb_blob_t *
 hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
                     hb_glyph_extents_t *extents)
@@ -1016,45 +1051,6 @@ hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
 		   hb_codepoint_t  glyph)
 {
   hb_gpu_draw_glyph_or_fail (draw, font, glyph);
-}
-
-
-static void
-_hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
-			  hb_glyph_extents_t *extents)
-{
-  if (unlikely (!draw->success) ||
-      draw->num_curves == 0 ||
-      draw->ext_min_x == HUGE_VAL)
-  {
-    extents->x_bearing = 0;
-    extents->y_bearing = 0;
-    extents->width = 0;
-    extents->height = 0;
-    return;
-  }
-
-  double min_x = floor (draw->ext_min_x);
-  double min_y = floor (draw->ext_min_y);
-  double max_x = ceil  (draw->ext_max_x);
-  double max_y = ceil  (draw->ext_max_y);
-
-  if (unlikely (!std::isfinite (min_x) ||
-		!std::isfinite (min_y) ||
-		!std::isfinite (max_x) ||
-		!std::isfinite (max_y)))
-  {
-    extents->x_bearing = 0;
-    extents->y_bearing = 0;
-    extents->width = 0;
-    extents->height = 0;
-    return;
-  }
-
-  extents->x_bearing = clamp_to_hb_position (min_x);
-  extents->y_bearing = clamp_to_hb_position (max_y);
-  extents->width     = clamp_to_hb_position (max_x - min_x);
-  extents->height    = clamp_to_hb_position (min_y - max_y);
 }
 
 /**
