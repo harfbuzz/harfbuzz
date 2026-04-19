@@ -46,8 +46,8 @@ hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
 
 static void
 hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
-                         hb_vector_buf_t *buf,
-                         hb_vector_t<hb_color_stop_t> *stops)
+				hb_vector_buf_t *buf,
+				hb_vector_t<hb_color_stop_t> *stops)
 {
   for (unsigned i = 0; i < stops->length; i++)
   {
@@ -145,8 +145,8 @@ hb_vector_svg_hb_color_from_rgba (const hb_vector_svg_rgba_t &c)
 
 static inline hb_vector_svg_rgba_t
 hb_vector_svg_lerp_rgba (const hb_vector_svg_rgba_t &c0,
-                  const hb_vector_svg_rgba_t &c1,
-                  float t)
+			 const hb_vector_svg_rgba_t &c1,
+			 float t)
 {
   return {hb_vector_svg_lerp (c0.r, c1.r, t),
           hb_vector_svg_lerp (c0.g, c1.g, t),
@@ -169,10 +169,10 @@ hb_vector_svg_normalize (const hb_vector_svg_point_t &p)
 
 static void
 hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
-                        unsigned precision,
-                        float cx, float cy, float radius,
-                        float a0, const hb_vector_svg_rgba_t &c0_in,
-                        float a1, const hb_vector_svg_rgba_t &c1_in)
+			       unsigned precision,
+			       float cx, float cy, float radius,
+			       float a0, const hb_vector_svg_rgba_t &c0_in,
+			       float a1, const hb_vector_svg_rgba_t &c1_in)
 {
   static const float max_angle = HB_PI / 16.f;
   hb_vector_svg_point_t center = {cx, cy};
@@ -241,7 +241,8 @@ hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
 }
 
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
-struct hb_vector_svg_sweep_ctx_t {
+struct hb_vector_svg_sweep_ctx_t
+{
   hb_vector_buf_t *body;
   unsigned precision;
   float cx, cy, radius;
@@ -279,13 +280,13 @@ static void hb_vector_paint_pop_group (hb_paint_funcs_t *, void *, hb_paint_comp
 static hb_bool_t hb_vector_paint_color_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, void *);
 static hb_bool_t
 hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
-                                      void *paint_data,
-                                      unsigned color_index,
-                                      hb_color_t *color,
-                                      void *user_data HB_UNUSED)
+				      void *paint_data,
+				      unsigned color_index,
+				      hb_color_t *color,
+				      void *user_data HB_UNUSED)
 {
   hb_vector_paint_t *paint = (hb_vector_paint_t *) paint_data;
-  if (!paint || !color)
+  if (!color)
     return false;
 
   hb_color_t *value = nullptr;
