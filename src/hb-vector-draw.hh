@@ -1,3 +1,29 @@
+/*
+ * Copyright © 2026  Behdad Esfahbod
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Author(s): Behdad Esfahbod
+ */
+
 #ifndef HB_VECTOR_DRAW_HH
 #define HB_VECTOR_DRAW_HH
 
@@ -96,23 +122,17 @@ struct hb_vector_draw_t
     hb_vector_transform_point (transform, x_scale_factor, y_scale_factor, x, y, tx, ty);
   }
 
-  void append_xy_svg (float x, float y)
+  void append_xy (float x, float y, char sep)
   {
     float tx, ty;
     transform_xy (x, y, &tx, &ty);
     path.append_num (tx, path.precision);
-    path.append_c (',');
+    path.append_c (sep);
     path.append_num (ty, path.precision);
   }
 
-  void append_xy_pdf (float x, float y)
-  {
-    float tx, ty;
-    transform_xy (x, y, &tx, &ty);
-    path.append_num (tx, path.precision);
-    path.append_c (' ');
-    path.append_num (ty, path.precision);
-  }
+  void append_xy_svg (float x, float y) { append_xy (x, y, ','); }
+  void append_xy_pdf (float x, float y) { append_xy (x, y, ' '); }
 };
 
 #endif /* HB_VECTOR_DRAW_HH */

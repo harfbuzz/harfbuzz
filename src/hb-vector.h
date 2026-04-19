@@ -77,6 +77,8 @@ typedef enum {
   HB_VECTOR_EXTENTS_MODE_EXPAND = 1,
 } hb_vector_extents_mode_t;
 
+/* hb_vector_draw_t */
+
 /**
  * hb_vector_draw_t:
  *
@@ -85,17 +87,6 @@ typedef enum {
  * Since: 13.0.0
  */
 typedef struct hb_vector_draw_t hb_vector_draw_t;
-
-/**
- * hb_vector_paint_t:
- *
- * Opaque paint context for vector color-glyph conversion.
- *
- * Since: 13.0.0
- */
-typedef struct hb_vector_paint_t hb_vector_paint_t;
-
-/* hb_vector_draw_t */
 
 HB_EXTERN hb_vector_draw_t *
 hb_vector_draw_create_or_fail (hb_vector_format_t format);
@@ -208,6 +199,15 @@ hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
 
 
 /* hb_vector_paint_t */
+
+/**
+ * hb_vector_paint_t:
+ *
+ * Opaque paint context for vector color-glyph conversion.
+ *
+ * Since: 13.0.0
+ */
+typedef struct hb_vector_paint_t hb_vector_paint_t;
 
 HB_EXTERN hb_vector_paint_t *
 hb_vector_paint_create_or_fail (hb_vector_format_t format);
