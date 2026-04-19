@@ -79,6 +79,18 @@ struct hb_vector_paint_t
   float sx (float v) const { return v / x_scale_factor; }
   float sy (float v) const { return v / y_scale_factor; }
 
+  bool fetch_color_stops (hb_color_line_t *color_line)
+  {
+    unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+    if (unlikely (!count || !color_stops_scratch.resize (count)))
+    {
+      color_stops_scratch.resize (0);
+      return false;
+    }
+    hb_color_line_get_color_stops (color_line, 0, &count, color_stops_scratch.arrayZ);
+    return true;
+  }
+
   void set_precision (unsigned p)
   {
     p = hb_min (p, 12u);

@@ -32,26 +32,6 @@
 
 #include <math.h>
 
-static hb_bool_t
-hb_vector_get_color_stops (hb_color_line_t *color_line,
-                        hb_vector_t<hb_color_stop_t> *stops)
-{
-  unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (unlikely (!len))
-  {
-    stops->length = 0;
-    return false;
-  }
-  if (unlikely (!stops->resize (len)))
-    return false;
-  hb_color_line_get_color_stops (color_line, 0, &len, stops->arrayZ);
-  stops->length = len;
-  if (unlikely (!len))
-    return false;
-
-  return true;
-}
-
 static const char *
 hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
 {
@@ -656,9 +636,9 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_vector_get_color_stops (color_line, &stops) || !stops.length)
+  if (!paint->fetch_color_stops (color_line))
     return;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
 
   /* Sort + rescale stops to [0, 1]; shift the gradient axis
    * by the original (mn, mx) so the visible gradient stays
@@ -719,9 +699,9 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_vector_get_color_stops (color_line, &stops) || !stops.length)
+  if (!paint->fetch_color_stops (color_line))
     return;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
@@ -784,9 +764,9 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
-  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  if (!hb_vector_get_color_stops (color_line, &stops) || !stops.length)
+  if (!paint->fetch_color_stops (color_line))
     return;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);

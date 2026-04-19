@@ -916,31 +916,8 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
  * Gradient helpers
  */
 
-#define PREALLOCATED_COLOR_STOPS 16
 #define GRADIENT_LUT_SIZE 256
 #define GRADIENT_LUT_MIN_PIXELS (64u * 64u)
-
-static bool
-get_color_stops (hb_raster_paint_t *c,
-		 hb_color_line_t *color_line,
-		 unsigned *count,
-		 hb_color_stop_t **stops)
-{
-  unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (unlikely (!len))
-    return false;
-  if (len > *count)
-  {
-    if (unlikely (!c->scratch_color_stops.resize (len)))
-      return false;
-    *stops = c->scratch_color_stops.arrayZ;
-  }
-  hb_color_line_get_color_stops (color_line, 0, &len, *stops);
-  if (unlikely (!len))
-    return false;
-  *count = len;
-  return true;
-}
 
 static HB_ALWAYS_INLINE float
 reflect_gradient_t (float t)
@@ -1080,12 +1057,10 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
 
-  unsigned len = PREALLOCATED_COLOR_STOPS;
-  hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
-  hb_color_stop_t *stops = stops_;
-
-  if (unlikely (!get_color_stops (c, color_line, &len, &stops)))
+  if (unlikely (!c->fetch_color_stops (color_line)))
     return;
+  hb_color_stop_t *stops = c->scratch_color_stops.arrayZ;
+  unsigned len = c->scratch_color_stops.length;
   float mn, mx;
   hb_paint_normalize_color_line (stops, len, &mn, &mx);
 
@@ -1231,12 +1206,10 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
 
-  unsigned len = PREALLOCATED_COLOR_STOPS;
-  hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
-  hb_color_stop_t *stops = stops_;
-
-  if (unlikely (!get_color_stops (c, color_line, &len, &stops)))
+  if (unlikely (!c->fetch_color_stops (color_line)))
     return;
+  hb_color_stop_t *stops = c->scratch_color_stops.arrayZ;
+  unsigned len = c->scratch_color_stops.length;
   float mn, mx;
   hb_paint_normalize_color_line (stops, len, &mn, &mx);
 
@@ -1509,12 +1482,10 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
 
-  unsigned len = PREALLOCATED_COLOR_STOPS;
-  hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
-  hb_color_stop_t *stops = stops_;
-
-  if (unlikely (!get_color_stops (c, color_line, &len, &stops)))
+  if (unlikely (!c->fetch_color_stops (color_line)))
     return;
+  hb_color_stop_t *stops = c->scratch_color_stops.arrayZ;
+  unsigned len = c->scratch_color_stops.length;
   float mn, mx;
   hb_paint_normalize_color_line (stops, len, &mn, &mx);
 

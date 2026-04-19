@@ -316,9 +316,23 @@ struct hb_gpu_paint_t
   /* Scratch: used to rasterize each clip-glyph outline. */
   hb_gpu_draw_t *scratch_draw = nullptr;
 
+  /* Scratch: color stops fetched per gradient callback. */
+  hb_vector_t<hb_color_stop_t> color_stops_scratch;
+
   /* Recycled output blob. */
   hb_blob_t *recycled_blob = nullptr;
 
+  bool fetch_color_stops (hb_color_line_t *color_line)
+  {
+    unsigned count = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+    if (unlikely (!count || !color_stops_scratch.resize (count)))
+    {
+      color_stops_scratch.resize (0);
+      return false;
+    }
+    hb_color_line_get_color_stops (color_line, 0, &count, color_stops_scratch.arrayZ);
+    return true;
+  }
 };
 
 
