@@ -80,7 +80,7 @@ test_native_ft_basic (void)
 
   init_freetype ();
 
-  ft_face = get_ft_face ("fonts/Cantarell.A.otf");
+  ft_face = get_ft_face ("fonts/adwaita.ttf");
 
   g_assert_nonnull (ft_face);
   g_assert_nonnull (FT_Get_Font_Format (ft_face));
@@ -135,6 +135,77 @@ test_native_ft_set_funcs_preserves_load_flags (void)
   cleanup_freetype ();
 }
 
+static void
+test_native_ft_glyph_name_zero_size_probe (void)
+{
+  static const char *files[] = {
+    "fonts/adwaita.ttf",
+    "fonts/SourceSansPro-Regular.otf",
+    "fonts/Cantarell.A.otf",
+  };
+  FT_Face ft_face = NULL;
+  hb_font_t *font = NULL;
+  hb_bool_t ret;
+  hb_codepoint_t glyph = 0;
+  char name[64];
+  char guard[4] = { 0x7f, 0x7f, 0x7f, 0x7f };
+  unsigned int i;
+
+  init_freetype ();
+
+  for (i = 0; i < G_N_ELEMENTS (files); i++)
+  {
+    unsigned int gid;
+
+    ft_face = get_ft_face (files[i]);
+    g_assert_nonnull (ft_face);
+
+    font = hb_ft_font_create_referenced (ft_face);
+    g_assert_nonnull (font);
+    hb_ft_font_set_funcs (font);
+
+    for (gid = 0; gid < (unsigned int) ft_face->num_glyphs; gid++)
+      if (hb_font_get_glyph_name (font, gid, name, sizeof (name)))
+      {
+        glyph = gid;
+        goto found;
+      }
+
+    hb_font_destroy (font);
+    font = NULL;
+    FT_Done_Face (ft_face);
+    ft_face = NULL;
+  }
+
+  g_test_skip ("No FreeType glyph-name test font available");
+  cleanup_freetype ();
+  return;
+
+found:
+
+  ret = hb_font_get_glyph_name (font, glyph, name, sizeof (name));
+  g_assert_true (ret);
+  g_assert_true (*name);
+
+  ret = hb_font_get_glyph_name (font, glyph, NULL, 0);
+  g_assert_true (ret);
+
+  ret = hb_font_get_glyph_name (font, glyph, guard, 0);
+  g_assert_true (ret);
+  g_assert_cmpint (guard[0], ==, 0x7f);
+  g_assert_cmpint (guard[1], ==, 0x7f);
+  g_assert_cmpint (guard[2], ==, 0x7f);
+  g_assert_cmpint (guard[3], ==, 0x7f);
+
+  ret = hb_font_get_glyph_name (font, 0xFFFFFF, NULL, 0);
+  g_assert_false (ret);
+
+  hb_font_destroy (font);
+  FT_Done_Face (ft_face);
+
+  cleanup_freetype ();
+}
+
 int
 main (int argc, char **argv)
 {
@@ -142,6 +213,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_native_ft_basic);
   hb_test_add (test_native_ft_set_funcs_preserves_load_flags);
+  hb_test_add (test_native_ft_glyph_name_zero_size_probe);
 
   return hb_test_run ();
 }

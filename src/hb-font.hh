@@ -668,8 +668,7 @@ struct hb_font_t
   hb_bool_t get_glyph_name (hb_codepoint_t glyph,
 			    char *name, unsigned int size)
   {
-    if (!size) return false;
-    *name = '\0';
+    if (size) *name = '\0';
     return klass->get.f.glyph_name (this, user_data,
 				    glyph,
 				    name, size,

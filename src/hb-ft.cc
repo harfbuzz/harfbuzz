@@ -766,6 +766,12 @@ hb_ft_get_glyph_name (hb_font_t *font HB_UNUSED,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
+  if (!size)
+  {
+    char buf[128];
+    return !FT_Get_Glyph_Name (ft_face, glyph, buf, sizeof (buf)) && *buf;
+  }
+
   hb_bool_t ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
   if (ret && (size && !*name))
     ret = false;

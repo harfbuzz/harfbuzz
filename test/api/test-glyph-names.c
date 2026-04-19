@@ -101,7 +101,8 @@ test_glyph_names_cff (void)
 }
 
 /* Regression tests for issue #5946: hb_font_get_glyph_name (..., size=0)
- * must not underflow and write past a zero-capacity buffer. */
+ * must not underflow and write past a zero-capacity buffer, while preserving
+ * the long-standing "return value only" probe behavior. */
 
 static void
 test_glyph_names_zero_size (void)
@@ -114,7 +115,7 @@ test_glyph_names_zero_size (void)
   font = hb_font_create (face);
 
   /* size == 0 must not write to the buffer. */
-  hb_font_get_glyph_name (font, 1, guard, 0);
+  g_assert_true (hb_font_get_glyph_name (font, 1, guard, 0));
   g_assert_cmpint (guard[0], ==, 0x7f);
   g_assert_cmpint (guard[1], ==, 0x7f);
   g_assert_cmpint (guard[2], ==, 0x7f);
@@ -136,16 +137,16 @@ test_glyph_names_zero_size_post (void)
   face = hb_test_open_font_file ("fonts/adwaita.ttf");
   font = hb_font_create (face);
 
-  /* Named glyph, size == 0: return value is false (wrapper guard) and the
-   * buffer is untouched. */
+  /* Named glyph, size == 0: keep the old return-value-only probe behavior
+   * and leave the buffer untouched. */
   ret = hb_font_get_glyph_name (font, 1, guard, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
   for (i = 0; i < 8; i++)
     g_assert_cmpint (guard[i], ==, 0x7f);
 
   /* .notdef, size == 0: same invariant. Confirms it is not glyph-specific. */
   ret = hb_font_get_glyph_name (font, 0, guard, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
   for (i = 0; i < 8; i++)
     g_assert_cmpint (guard[i], ==, 0x7f);
 
@@ -158,7 +159,7 @@ test_glyph_names_zero_size_post (void)
     g_assert_cmpstr (name, ==, "icon0");
   }
   ret = hb_font_get_glyph_name (font, 2, guard, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
   for (i = 0; i < 8; i++)
     g_assert_cmpint (guard[i], ==, 0x7f);
 
@@ -178,16 +179,16 @@ test_glyph_names_zero_size_cff (void)
   face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
   font = hb_font_create (face);
 
-  /* CFF-backed named glyph, size == 0: wrapper guard must short-circuit
-   * (or the CFF backend early-outs) without writing into the buffer. */
+  /* CFF-backed named glyph, size == 0: preserve the return-value-only probe
+   * behavior without writing into the buffer. */
   ret = hb_font_get_glyph_name (font, 2, guard, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
   for (i = 0; i < 8; i++)
     g_assert_cmpint (guard[i], ==, 0x7f);
 
   /* .notdef on CFF. */
   ret = hb_font_get_glyph_name (font, 0, guard, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
   for (i = 0; i < 8; i++)
     g_assert_cmpint (guard[i], ==, 0x7f);
 
@@ -221,8 +222,7 @@ test_glyph_names_zero_size_unnamed_glyph (void)
 static void
 test_glyph_names_zero_size_null_buffer (void)
 {
-  /* Per PLAN §4: name == NULL with size == 0 must be safe; the wrapper
-   * guard short-circuits before any dereference of name. */
+  /* name == NULL with size == 0 is a valid return-value-only probe. */
   hb_face_t *face;
   hb_font_t *font;
   hb_bool_t ret;
@@ -232,7 +232,7 @@ test_glyph_names_zero_size_null_buffer (void)
 
   /* Glyph with a name. */
   ret = hb_font_get_glyph_name (font, 1, NULL, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
 
   /* Glyph beyond the font's range. */
   ret = hb_font_get_glyph_name (font, 100, NULL, 0);
@@ -272,8 +272,7 @@ static void
 test_glyph_names_small_buffer_truncation (void)
 {
   /* Non-regression sanity: a small-but-nonzero buffer must truncate to
-   * size-1 bytes of the name plus a trailing NUL. This path must continue
-   * to work after the size == 0 guard is added. */
+   * size-1 bytes of the name plus a trailing NUL. */
   hb_face_t *face;
   hb_font_t *font;
   hb_bool_t ret;
@@ -349,8 +348,8 @@ test_glyph_names_nonzero_sizes_unchanged (void)
 static void
 test_glyph_names_zero_size_sub_font (void)
 {
-  /* Sub-fonts delegate to the parent's glyph-name funcs. The size == 0
-   * guard must hold through the parent chain as well. */
+  /* Sub-fonts delegate to the parent's glyph-name funcs. Preserve the
+   * return-value-only probe behavior through the parent chain as well. */
   hb_face_t *face;
   hb_font_t *parent;
   hb_font_t *font;
@@ -363,7 +362,7 @@ test_glyph_names_zero_size_sub_font (void)
   font = hb_font_create_sub_font (parent);
 
   ret = hb_font_get_glyph_name (font, 1, guard, 0);
-  g_assert_false (ret);
+  g_assert_true (ret);
   for (i = 0; i < 4; i++)
     g_assert_cmpint (guard[i], ==, 0x7f);
 
