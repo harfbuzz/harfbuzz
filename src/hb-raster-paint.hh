@@ -193,8 +193,10 @@ struct hb_raster_paint_t
     return clip_stack.tail ();
   }
 
-  hb_transform_t<> &current_transform ()
+  hb_transform_t<> current_transform ()
   {
+    if (unlikely (!transform_stack.length))
+      return {1, 0, 0, 1, 0, 0};
     return transform_stack.tail ();
   }
 

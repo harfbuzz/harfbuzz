@@ -121,16 +121,7 @@ static struct hb_vector_draw_pdf_funcs_lazy_loader_t
 } static_vector_draw_pdf_funcs;
 static inline void free_static_vector_draw_pdf_funcs () { static_vector_draw_pdf_funcs.free_instance (); }
 
-static hb_draw_funcs_t *
-hb_vector_draw_funcs_get (hb_vector_format_t format)
-{
-  switch (format)
-  {
-    case HB_VECTOR_FORMAT_SVG: return static_vector_draw_svg_funcs.get_unconst ();
-    case HB_VECTOR_FORMAT_PDF: return static_vector_draw_pdf_funcs.get_unconst ();
-    case HB_VECTOR_FORMAT_INVALID: default: return nullptr;
-  }
-}
+
 
 /**
  * hb_vector_draw_create_or_fail:
@@ -158,7 +149,6 @@ hb_vector_draw_create_or_fail (hb_vector_format_t format)
   if (unlikely (!draw))
     return nullptr;
   draw->format = format;
-  draw->defined_glyphs = hb_set_create ();
   draw->defs.alloc (2048);
   draw->body.alloc (8192);
   draw->path.alloc (2048);
@@ -195,9 +185,7 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
   if (!hb_object_should_destroy (draw))
     return;
 
-  hb_font_destroy (draw->cached_font);
   hb_blob_destroy (draw->recycled_blob);
-  hb_set_destroy (draw->defined_glyphs);
   hb_object_actually_destroy (draw);
   hb_free (draw);
 }
@@ -353,19 +341,23 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
     return;
   }
 
-  if (!(extents->width > 0.f && extents->height > 0.f))
+  if (extents->width == 0.f || extents->height == 0.f)
     return;
 
   /* Caller-supplied extents are in input-space; divide by
    * scale_factor so they end up in output-space, matching
    * the per-glyph extents accumulated via
    * hb_vector_set_glyph_extents_common (which applies the
-   * same divide). */
+   * same divide).  Normalize so origin is the min corner and
+   * width/height are positive — callers may pass a
+   * glyph-extents-style box with negative height. */
+  float x0 = extents->x / draw->x_scale_factor;
+  float y0 = extents->y / draw->y_scale_factor;
+  float x1 = x0 + extents->width  / draw->x_scale_factor;
+  float y1 = y0 + extents->height / draw->y_scale_factor;
   hb_vector_extents_t e = {
-    extents->x      / draw->x_scale_factor,
-    extents->y      / draw->y_scale_factor,
-    extents->width  / draw->x_scale_factor,
-    extents->height / draw->y_scale_factor,
+    hb_min (x0, x1), hb_min (y0, y1),
+    fabsf (x1 - x0), fabsf (y1 - y0),
   };
 
   if (draw->has_extents)
@@ -462,9 +454,30 @@ hb_vector_draw_get_format (const hb_vector_draw_t *draw)
  * XSince: REPLACEME
  */
 hb_draw_funcs_t *
-hb_vector_draw_get_funcs (const hb_vector_draw_t *draw HB_UNUSED)
+hb_vector_draw_get_funcs (const hb_vector_draw_t *draw)
 {
-  return hb_vector_draw_funcs_get (draw->format);
+  switch (draw ? draw->format : HB_VECTOR_FORMAT_INVALID)
+  {
+    case HB_VECTOR_FORMAT_SVG: return static_vector_draw_svg_funcs.get_unconst ();
+    case HB_VECTOR_FORMAT_PDF: return static_vector_draw_pdf_funcs.get_unconst ();
+    case HB_VECTOR_FORMAT_INVALID: default: return nullptr;
+  }
+}
+
+/**
+ * hb_vector_draw_new_path:
+ * @draw: a draw context.
+ *
+ * Flushes any pending path and starts a new one.  Call this
+ * between glyphs to separate their outlines so fill rules
+ * don't interact across glyphs.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_new_path (hb_vector_draw_t *draw)
+{
+  draw->new_path ();
 }
 
 /**
@@ -472,11 +485,16 @@ hb_vector_draw_get_funcs (const hb_vector_draw_t *draw HB_UNUSED)
  * @draw: a draw context.
  * @font: font object.
  * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
  *
- * Draws one glyph into @draw.
+ * Convenience to draw one glyph into @draw.  Equivalent to:
+ *
+ * |[<!-- language="plain" -->
+ * // extend extents if requested
+ * hb_vector_draw_new_path (draw);
+ * hb_font_draw_glyph_or_fail (font, glyph,
+ *   hb_vector_draw_get_funcs (draw), draw);
+ * ]|
  *
  * Return value: `true` if glyph data was emitted, `false` otherwise.
  *
@@ -486,143 +504,27 @@ hb_bool_t
 hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
-                      float pen_x,
-                      float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
-  draw->check_font (font);
-
-  switch (draw->format)
-  {
-    case HB_VECTOR_FORMAT_SVG:
-    case HB_VECTOR_FORMAT_PDF:
-      break;
-    case HB_VECTOR_FORMAT_INVALID: default:
-      return false;
-  }
 
   if (extents_mode == HB_VECTOR_EXTENTS_MODE_EXPAND)
   {
     hb_glyph_extents_t ge;
     if (hb_font_get_glyph_extents (font, glyph, &ge))
     {
-      float xx = draw->transform.xx;
-      float yx = draw->transform.yx;
-      float xy = draw->transform.xy;
-      float yy = draw->transform.yy;
-      float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-      float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, -ty};
-
       hb_bool_t has_extents = draw->has_extents;
-      hb_vector_set_glyph_extents_common (extents_transform,
-                                       draw->x_scale_factor,
-                                       draw->y_scale_factor,
-                                       &ge,
-                                       &draw->extents,
-                                       &has_extents);
+      hb_vector_set_glyph_extents_common (draw->transform,
+					  draw->x_scale_factor,
+					  draw->y_scale_factor,
+					  &ge,
+					  &draw->extents,
+					  &has_extents);
       draw->has_extents = has_extents;
     }
   }
 
-  /* Flush any pending free-form path the caller accumulated
-   * via hb_draw_*() on hb_vector_draw_get_funcs() before this
-   * glyph clobbers the scratch buffer.  Wrap the SVG case in
-   * the same scale(1,-1) Y-flip per-glyph <use> applies, so
-   * the free-form coords share the glyph's coord system. */
-  draw->flush_path ();
-
-  switch (draw->format)
-  {
-    case HB_VECTOR_FORMAT_PDF:
-    {
-      /* PDF: always inline.  Pen and font coords are both Y-up. */
-      hb_transform_t<> saved = draw->transform;
-      draw->transform = {1, 0, 0, 1, pen_x, pen_y};
-
-      hb_font_draw_glyph (font, glyph, hb_vector_draw_funcs_get (draw->format), draw);
-      draw->transform = saved;
-
-      if (!draw->path.length)
-	return false;
-
-      draw->flush_path ();
-      return true;
-    }
-
-    case HB_VECTOR_FORMAT_SVG:
-    {
-      draw->flush_path ();
-
-      if (!hb_set_has (draw->defined_glyphs, glyph))
-      {
-	draw->path.clear ();
-	hb_vector_path_sink_t sink = {&draw->path, draw->get_precision (),
-				     draw->x_scale_factor, draw->y_scale_factor};
-	hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
-	if (!draw->path.length)
-	  return false;
-	draw->defs.append_str ("<path id=\"");
-	draw->defs.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
-	draw->defs.append_c ('p');
-	draw->defs.append_unsigned (glyph);
-	draw->defs.append_str ("\" d=\"");
-	draw->defs.append_len (draw->path.arrayZ, draw->path.length);
-	draw->defs.append_str ("\"/>\n");
-	hb_set_add (draw->defined_glyphs, glyph);
-	/* Clear so any subsequent free-form draw ops on this
-	 * context start with an empty scratch. */
-	draw->path.clear ();
-      }
-
-      float xx = draw->transform.xx;
-      float yx = draw->transform.yx;
-      float xy = draw->transform.xy;
-      float yy = draw->transform.yy;
-      float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-      float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-
-      draw->body.append_str ("<use href=\"#");
-      draw->body.append_len (draw->id_prefix.arrayZ, draw->id_prefix.length);
-      draw->body.append_c ('p');
-      draw->body.append_unsigned (glyph);
-      draw->body.append_str ("\" transform=\"");
-      hb_vector_svg_append_instance_transform (&draw->body,
-					draw->get_precision (),
-					draw->x_scale_factor,
-					draw->y_scale_factor,
-					xx, yx, xy, yy, tx, ty);
-      draw->body.append_str ("\"");
-      /* Per-glyph fill from current foreground. */
-      {
-	unsigned r = hb_color_get_red (draw->foreground);
-	unsigned g = hb_color_get_green (draw->foreground);
-	unsigned b = hb_color_get_blue (draw->foreground);
-	unsigned a = hb_color_get_alpha (draw->foreground);
-	if (r || g || b || a != 255)
-	{
-	  draw->body.append_str (" fill=\"rgb(");
-	  draw->body.append_unsigned (r);
-	  draw->body.append_c (',');
-	  draw->body.append_unsigned (g);
-	  draw->body.append_c (',');
-	  draw->body.append_unsigned (b);
-	  draw->body.append_str (")\"");
-	  if (a < 255)
-	  {
-	    draw->body.append_str (" fill-opacity=\"");
-	    draw->body.append_num (a / 255.f, 4);
-	    draw->body.append_c ('"');
-	  }
-	}
-      }
-      draw->body.append_str ("/>\n");
-      return true;
-    }
-
-    case HB_VECTOR_FORMAT_INVALID: default:
-      return false;
-  }
+  draw->new_path ();
+  return hb_font_draw_glyph_or_fail (font, glyph, hb_vector_draw_get_funcs (draw), draw);
 }
 
 /**
@@ -630,69 +532,22 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
  * @draw: a draw context.
  * @font: font object.
  * @glyph: glyph ID.
- * @pen_x: glyph x origin before context transform.
- * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
  *
  * Draws one glyph into @draw.  Equivalent to
  * hb_vector_draw_glyph_or_fail() with the return value ignored.
  *
- * Since: 13.0.0
+ * XSince: REPLACEME
  */
 void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
-                      float pen_x,
-                      float pen_y,
                       hb_vector_extents_mode_t extents_mode)
 {
-  hb_vector_draw_glyph_or_fail (draw, font, glyph, pen_x, pen_y, extents_mode);
+  hb_vector_draw_glyph_or_fail (draw, font, glyph, extents_mode);
 }
 
-/**
- * hb_vector_draw_set_svg_prefix:
- * @draw: a draw context.
- * @prefix: a null-terminated ASCII string to prepend to every emitted
- *          SVG `id` and `url(#...)` reference, or `NULL` for none.
- *
- * Namespaces the draw's SVG output.  Callers that inject multiple
- * hb-vector SVGs into the same document must set a distinct prefix
- * per context so that the short IDs hb-vector uses for shared glyph
- * outlines don't collide in the DOM.
- *
- * No effect on PDF output.
- *
- * XSince: REPLACEME
- */
-void
-hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
-                               const char *prefix)
-{
-  draw->id_prefix.resize (0);
-  if (prefix)
-    draw->id_prefix.append_str (prefix);
-}
-
-/**
- * hb_vector_draw_get_svg_prefix:
- * @draw: a draw context.
- *
- * Returns the SVG id prefix previously set on @draw, or `""` if
- * none was set.
- *
- * Return value: the SVG id prefix.
- *
- * XSince: REPLACEME
- */
-const char *
-hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw)
-{
-  if (!draw->id_prefix.length) return "";
-  const_cast<hb_vector_buf_t &> (draw->id_prefix).alloc (draw->id_prefix.length + 1, false);
-  draw->id_prefix.arrayZ[draw->id_prefix.length] = '\0';
-  return draw->id_prefix.arrayZ;
-}
 
 /**
  * hb_vector_draw_set_precision:
@@ -741,6 +596,7 @@ void
 hb_vector_draw_set_foreground (hb_vector_draw_t *draw,
                                hb_color_t foreground)
 {
+  draw->flush_path ();
   draw->foreground = foreground;
 }
 
@@ -797,6 +653,7 @@ hb_vector_draw_get_background (const hb_vector_draw_t *draw)
 static hb_blob_t *
 hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 {
+  draw->flush_path ();
   if (!draw->has_extents)
     return nullptr;
 
@@ -911,6 +768,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
 static hb_blob_t *
 hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 {
+  draw->flush_path ();
   if (!draw->has_extents)
     return nullptr;
 
@@ -920,18 +778,25 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 		       (draw->body.length ? draw->body.length : draw->path.length) +
 		       256;
   out.alloc (estimated);
+  /* Extents are in Y-up (font) space.  SVG is Y-down.
+   * The global scale(1,-1) wrapper flips content; the
+   * viewBox maps the flipped range. */
+  float vb_x = draw->extents.x;
+  float vb_y = -(draw->extents.y + draw->extents.height);
+  float vb_w = draw->extents.width;
+  float vb_h = draw->extents.height;
   out.append_str ("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  out.append_num (draw->extents.x);
+  out.append_num (vb_x);
   out.append_c (' ');
-  out.append_num (draw->extents.y);
+  out.append_num (vb_y);
   out.append_c (' ');
-  out.append_num (draw->extents.width);
+  out.append_num (vb_w);
   out.append_c (' ');
-  out.append_num (draw->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\" width=\"");
-  out.append_num (draw->extents.width);
+  out.append_num (vb_w);
   out.append_str ("\" height=\"");
-  out.append_num (draw->extents.height);
+  out.append_num (vb_h);
   out.append_str ("\">\n");
 
   if (draw->defs.length)
@@ -945,13 +810,13 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
   if (hb_color_get_alpha (draw->background))
   {
     out.append_str ("<rect x=\"");
-    out.append_num (draw->extents.x);
+    out.append_num (vb_x);
     out.append_str ("\" y=\"");
-    out.append_num (draw->extents.y);
+    out.append_num (vb_y);
     out.append_str ("\" width=\"");
-    out.append_num (draw->extents.width);
+    out.append_num (vb_w);
     out.append_str ("\" height=\"");
-    out.append_num (draw->extents.height);
+    out.append_num (vb_h);
     out.append_str ("\" fill=\"rgb(");
     out.append_unsigned (hb_color_get_red (draw->background));
     out.append_c (',');
@@ -970,7 +835,11 @@ hb_vector_draw_render_svg (hb_vector_draw_t *draw)
 
   draw->flush_path ();
   if (draw->body.length)
+  {
+    out.append_str ("<g transform=\"scale(1,-1)\">\n");
     out.append_len (draw->body.arrayZ, draw->body.length);
+    out.append_str ("</g>\n");
+  }
 
   out.append_str ("</svg>\n");
 
@@ -1026,7 +895,6 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
   draw->defs.clear ();
   draw->body.clear ();
   draw->path.clear ();
-  hb_set_clear (draw->defined_glyphs);
 }
 
 /**

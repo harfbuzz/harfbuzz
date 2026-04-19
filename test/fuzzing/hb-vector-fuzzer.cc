@@ -28,8 +28,10 @@ exercise_format (const _fuzzing_shape_input_t *input,
   {
     float x = (float) ((gid % 4) * 40);
     float y = (float) ((gid / 4) * 40);
-    hb_vector_draw_glyph  (draw,  input->font, gid, x, y, HB_VECTOR_EXTENTS_MODE_EXPAND);
-    hb_vector_paint_glyph (paint, input->font, gid, x, y, HB_VECTOR_EXTENTS_MODE_EXPAND);
+    hb_vector_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, x, y);
+    hb_vector_draw_glyph  (draw,  input->font, gid, HB_VECTOR_EXTENTS_MODE_EXPAND);
+    hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, x, y);
+    hb_vector_paint_glyph (paint, input->font, gid, HB_VECTOR_EXTENTS_MODE_EXPAND);
   }
 
   hb_blob_t *draw_blob = hb_vector_draw_render (draw);

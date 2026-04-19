@@ -158,19 +158,18 @@ HB_EXTERN hb_draw_funcs_t *
 hb_vector_draw_get_funcs (const hb_vector_draw_t *draw);
 
 HB_EXTERN void
+hb_vector_draw_new_path (hb_vector_draw_t *draw);
+
+HB_EXTERN void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
-                      float pen_x,
-                      float pen_y,
                       hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN hb_bool_t
 hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
                               hb_font_t *font,
                               hb_codepoint_t glyph,
-                              float pen_x,
-                              float pen_y,
                               hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN void
@@ -193,13 +192,6 @@ hb_vector_draw_set_background (hb_vector_draw_t *draw,
 
 HB_EXTERN hb_color_t
 hb_vector_draw_get_background (const hb_vector_draw_t *draw);
-
-HB_EXTERN void
-hb_vector_draw_set_svg_prefix (hb_vector_draw_t *draw,
-                               const char *prefix);
-
-HB_EXTERN const char *
-hb_vector_draw_get_svg_prefix (const hb_vector_draw_t *draw);
 
 HB_EXTERN hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw);
@@ -310,16 +302,12 @@ HB_EXTERN void
 hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_font_t         *font,
 		       hb_codepoint_t     glyph,
-		       float              pen_x,
-		       float              pen_y,
 		       hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN hb_bool_t
 hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
 			       hb_font_t         *font,
 			       hb_codepoint_t     glyph,
-			       float              pen_x,
-			       float              pen_y,
 			       hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN void
