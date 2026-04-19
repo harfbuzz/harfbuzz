@@ -244,7 +244,7 @@ set (raster_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-raster.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-raster-utils.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster-draw.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-paint.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-paint.hh

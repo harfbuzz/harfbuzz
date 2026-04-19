@@ -713,7 +713,7 @@ hb_raster_sources = files(
   'hb-raster.cc',
   'hb-raster-image.cc',
   'hb-raster-image.hh',
-  'hb-raster-utils.hh',
+  'hb-raster.hh',
   'hb-raster-draw.cc',
   'hb-raster-paint.cc',
   'hb-raster-paint.hh',
