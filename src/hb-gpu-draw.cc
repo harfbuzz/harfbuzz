@@ -28,7 +28,6 @@
 
 #include "hb-gpu.h"
 #include "hb-gpu-draw.hh"
-#include "hb-gpu.hh"
 #include "hb-gpu-cu2qu.hh"
 #include "hb-machinery.hh"
 
@@ -664,7 +663,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
     return nullptr;
   unsigned buf_capacity = 0;
   char *replaced_recycled_buf = nullptr;
-  char *buf_raw = _hb_gpu_blob_acquire (draw->recycled_blob, needed_bytes,
+  char *buf_raw = hb_blob_t::recycle_acquire (draw->recycled_blob, needed_bytes,
 					&buf_capacity, &replaced_recycled_buf);
   if (unlikely (!buf_raw))
     return nullptr;
@@ -678,7 +677,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
 					   total_curve_indices,
 					   &curve_data_offset)))
   {
-    _hb_gpu_blob_abort ((char *) buf, draw->recycled_blob);
+    hb_blob_t::recycle_abort ((char *) buf, draw->recycled_blob);
     return nullptr;
   }
 
@@ -695,7 +694,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
   /* Pack curve data with shared endpoints */
   if (unlikely (!s.curve_texel_offset.resize (num_curves)))
   {
-    _hb_gpu_blob_abort ((char *) buf, draw->recycled_blob);
+    hb_blob_t::recycle_abort ((char *) buf, draw->recycled_blob);
     return nullptr;
   }
 
@@ -837,7 +836,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
 
   hb_blob_t *recycled = draw->recycled_blob;
   draw->recycled_blob = nullptr;
-  return _hb_gpu_blob_finalize ((char *) buf, buf_capacity, needed_bytes,
+  return hb_blob_t::recycle_finalize ((char *) buf, buf_capacity, needed_bytes,
 				recycled, replaced_recycled_buf);
 }
 
@@ -1114,7 +1113,7 @@ void
 hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
 			    hb_blob_t      *blob)
 {
-  _hb_gpu_blob_recycle (&draw->recycled_blob, blob);
+  hb_blob_t::recycle_stash (&draw->recycled_blob, blob);
 }
 
 
