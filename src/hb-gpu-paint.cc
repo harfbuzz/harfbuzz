@@ -1298,6 +1298,15 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
   hb_font_paint_glyph (font, glyph,
 		       hb_gpu_paint_get_funcs (paint), paint,
 		       paint->palette,
+		       /* Foreground RGB is not read from
+		        * the encoded blob -- the
+		        * is_foreground flag routes to the
+		        * shader's foreground uniform.
+		        * Alpha must be opaque so the
+		        * baked color carries only the
+		        * paint-tree alpha (which the
+		        * shader applies on top of the
+		        * uniform). */
 		       HB_COLOR (0, 0, 0, 0xff));
 }
 
@@ -1548,6 +1557,11 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
 }
 
 
+#include "hb-gpu-paint-fragment-glsl.hh"
+#include "hb-gpu-paint-fragment-msl.hh"
+#include "hb-gpu-paint-fragment-wgsl.hh"
+#include "hb-gpu-paint-fragment-hlsl.hh"
+
 /**
  * hb_gpu_paint_shader_source:
  * @stage: pipeline stage (vertex or fragment)
@@ -1578,11 +1592,6 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
  *
  * XSince: REPLACEME
  **/
-#include "hb-gpu-paint-fragment-glsl.hh"
-#include "hb-gpu-paint-fragment-msl.hh"
-#include "hb-gpu-paint-fragment-wgsl.hh"
-#include "hb-gpu-paint-fragment-hlsl.hh"
-
 const char *
 hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,
 			    hb_gpu_shader_lang_t  lang)
