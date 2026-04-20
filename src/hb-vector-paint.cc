@@ -365,7 +365,7 @@ hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
  *
  * Return value: the foreground color.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_color_t
 hb_vector_paint_get_foreground (const hb_vector_paint_t *paint)
@@ -382,7 +382,7 @@ hb_vector_paint_get_foreground (const hb_vector_paint_t *paint)
  * value, the renderer emits a filled rectangle covering the extents
  * behind all glyph content.  Default is transparent (no background).
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_paint_set_background (hb_vector_paint_t *paint,
@@ -400,7 +400,7 @@ hb_vector_paint_set_background (hb_vector_paint_t *paint,
  *
  * Return value: the background color.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_color_t
 hb_vector_paint_get_background (const hb_vector_paint_t *paint)
@@ -433,7 +433,7 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
  *
  * Return value: the palette index.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 int
 hb_vector_paint_get_palette (const hb_vector_paint_t *paint)
@@ -489,7 +489,7 @@ hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
  *
  * Return value: the output format.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_vector_format_t
 hb_vector_paint_get_format (const hb_vector_paint_t *paint)
@@ -506,7 +506,7 @@ hb_vector_paint_get_format (const hb_vector_paint_t *paint)
  *
  * Return value: (transfer none): immutable #hb_paint_funcs_t.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_paint_funcs_t *
 hb_vector_paint_get_funcs (const hb_vector_paint_t *paint)
@@ -590,7 +590,7 @@ hb_vector_paint_glyph_impl (hb_vector_paint_t *paint,
  *
  * Return value: `true` if glyph paint data was emitted, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_bool_t
 hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
@@ -614,7 +614,7 @@ hb_vector_paint_glyph_or_fail (hb_vector_paint_t *paint,
  * data fall back to a synthesized foreground-colored outline,
  * so any glyph with an outline or bitmap image produces output.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_paint_glyph (hb_vector_paint_t *paint,
@@ -640,7 +640,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
  *
  * No effect on PDF output.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
@@ -675,7 +675,7 @@ hb_vector_paint_set_svg_prefix (hb_vector_paint_t *paint,
  *
  * Return value: the SVG id prefix.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 const char *
 hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
@@ -690,7 +690,7 @@ hb_vector_paint_get_svg_prefix (const hb_vector_paint_t *paint)
  *
  * Sets numeric output precision for paint output.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_paint_set_precision (hb_vector_paint_t *paint,
@@ -708,7 +708,7 @@ hb_vector_paint_set_precision (hb_vector_paint_t *paint,
  *
  * Return value: the precision.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 unsigned
 hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
@@ -726,7 +726,7 @@ hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
  * is preserved.  Call hb_vector_paint_reset() to also reset
  * user configuration to defaults.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_paint_clear (hb_vector_paint_t *paint)

@@ -995,7 +995,7 @@ free_static_gpu_paint_funcs ()
  * A newly allocated #hb_gpu_paint_t, or `NULL` on allocation
  * failure.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_gpu_paint_t *
 hb_gpu_paint_create_or_fail (void)
@@ -1012,7 +1012,7 @@ hb_gpu_paint_create_or_fail (void)
  * Return value: (transfer full):
  * The referenced #hb_gpu_paint_t.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_gpu_paint_t *
 hb_gpu_paint_reference (hb_gpu_paint_t *paint)
@@ -1027,7 +1027,7 @@ hb_gpu_paint_reference (hb_gpu_paint_t *paint)
  * Decreases the reference count on @paint by one.  When the
  * reference count reaches zero, the encoder is freed.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_destroy (hb_gpu_paint_t *paint)
@@ -1057,7 +1057,7 @@ hb_gpu_paint_destroy (hb_gpu_paint_t *paint)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_bool_t
 hb_gpu_paint_set_user_data (hb_gpu_paint_t     *paint,
@@ -1079,7 +1079,7 @@ hb_gpu_paint_set_user_data (hb_gpu_paint_t     *paint,
  * Return value: (transfer none):
  * A pointer to the user data.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void *
 hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
@@ -1099,7 +1099,7 @@ hb_gpu_paint_get_user_data (const hb_gpu_paint_t *paint,
  * Return value: (transfer none):
  * The GPU paint functions
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_paint_funcs_t *
 hb_gpu_paint_get_funcs (const hb_gpu_paint_t *paint HB_UNUSED)
@@ -1115,7 +1115,7 @@ hb_gpu_paint_get_funcs (const hb_gpu_paint_t *paint HB_UNUSED)
  * Selects which font palette is used when paint callbacks look up
  * indexed colors.  Default is palette 0.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_set_palette (hb_gpu_paint_t *paint,
@@ -1133,7 +1133,7 @@ hb_gpu_paint_set_palette (hb_gpu_paint_t *paint,
  *
  * Return value: the palette index.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 unsigned
 hb_gpu_paint_get_palette (const hb_gpu_paint_t *paint)
@@ -1147,7 +1147,7 @@ hb_gpu_paint_get_palette (const hb_gpu_paint_t *paint)
  *
  * Clears all custom palette color overrides previously set on @paint.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_clear_custom_palette_colors (hb_gpu_paint_t *paint)
@@ -1168,7 +1168,7 @@ hb_gpu_paint_clear_custom_palette_colors (hb_gpu_paint_t *paint)
  *
  * Return value: `true` if the override was set; `false` on allocation failure.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_bool_t
 hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
@@ -1195,7 +1195,7 @@ hb_gpu_paint_set_custom_palette_color (hb_gpu_paint_t *paint,
  * inside the encoded blob.  Called automatically by
  * hb_gpu_paint_glyph().
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_set_scale (hb_gpu_paint_t *paint,
@@ -1214,7 +1214,7 @@ hb_gpu_paint_set_scale (hb_gpu_paint_t *paint,
  *
  * Fetches the font scale previously set on @paint.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
@@ -1248,7 +1248,7 @@ hb_gpu_paint_get_scale (const hb_gpu_paint_t *paint,
  * Return value: `true` if the font had paint data for @glyph,
  * `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_bool_t
 hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
@@ -1284,7 +1284,7 @@ hb_gpu_paint_glyph_or_fail (hb_gpu_paint_t *paint,
  * transparently via a synthesized foreground-colored layer,
  * so any glyph with an outline produces output.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
@@ -1329,7 +1329,7 @@ hb_gpu_paint_glyph (hb_gpu_paint_t *paint,
  * callers can distinguish "nothing to render" (length 0) from a
  * real failure (`NULL`).
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_blob_t *
 hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
@@ -1488,7 +1488,7 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
  * Discards accumulated paint state so @paint can be reused for
  * another encode.  User configuration (font scale) is preserved.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_clear (hb_gpu_paint_t *paint)
@@ -1521,7 +1521,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
  * Resets @paint, discarding accumulated state and user
  * configuration.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_reset (hb_gpu_paint_t *paint)
@@ -1546,7 +1546,7 @@ hb_gpu_paint_reset (hb_gpu_paint_t *paint)
  * will be reused by the next call to hb_gpu_paint_encode(),
  * avoiding a malloc / blob allocation per glyph.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
@@ -1589,7 +1589,7 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
  * A shader source string, or `NULL` if @stage or @lang is
  * unsupported.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 const char *
 hb_gpu_paint_shader_source (hb_gpu_shader_stage_t stage,

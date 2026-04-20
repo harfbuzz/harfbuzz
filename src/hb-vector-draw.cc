@@ -434,7 +434,7 @@ hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
  *
  * Return value: the output format.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_vector_format_t
 hb_vector_draw_get_format (const hb_vector_draw_t *draw)
@@ -451,7 +451,7 @@ hb_vector_draw_get_format (const hb_vector_draw_t *draw)
  *
  * Return value: (transfer none): immutable #hb_draw_funcs_t.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_draw_funcs_t *
 hb_vector_draw_get_funcs (const hb_vector_draw_t *draw)
@@ -472,7 +472,7 @@ hb_vector_draw_get_funcs (const hb_vector_draw_t *draw)
  * between glyphs to separate their outlines so fill rules
  * don't interact across glyphs.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_draw_new_path (hb_vector_draw_t *draw)
@@ -498,7 +498,7 @@ hb_vector_draw_new_path (hb_vector_draw_t *draw)
  *
  * Return value: `true` if glyph data was emitted, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_bool_t
 hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
@@ -537,7 +537,7 @@ hb_vector_draw_glyph_or_fail (hb_vector_draw_t *draw,
  * Draws one glyph into @draw.  Equivalent to
  * hb_vector_draw_glyph_or_fail() with the return value ignored.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
@@ -556,7 +556,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
  *
  * Sets numeric output precision for draw output.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_draw_set_precision (hb_vector_draw_t *draw,
@@ -574,7 +574,7 @@ hb_vector_draw_set_precision (hb_vector_draw_t *draw,
  *
  * Return value: the precision.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 unsigned
 hb_vector_draw_get_precision (const hb_vector_draw_t *draw)
@@ -590,7 +590,7 @@ hb_vector_draw_get_precision (const hb_vector_draw_t *draw)
  * Sets the fill color for drawn glyph outlines.
  * Default is opaque black.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_draw_set_foreground (hb_vector_draw_t *draw,
@@ -608,7 +608,7 @@ hb_vector_draw_set_foreground (hb_vector_draw_t *draw,
  *
  * Return value: the foreground color.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_color_t
 hb_vector_draw_get_foreground (const hb_vector_draw_t *draw)
@@ -625,7 +625,7 @@ hb_vector_draw_get_foreground (const hb_vector_draw_t *draw)
  * rectangle covering the extents is emitted behind all content.
  * Default is transparent (no background).
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_draw_set_background (hb_vector_draw_t *draw,
@@ -642,7 +642,7 @@ hb_vector_draw_set_background (hb_vector_draw_t *draw,
  *
  * Return value: the background color.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_color_t
 hb_vector_draw_get_background (const hb_vector_draw_t *draw)
@@ -885,7 +885,7 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
  * precision) is preserved.  Call hb_vector_draw_reset() to
  * also reset user configuration to defaults.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_vector_draw_clear (hb_vector_draw_t *draw)

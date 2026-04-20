@@ -413,7 +413,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
  * is preserved.  Call hb_raster_draw_reset() to also reset user
  * configuration to defaults.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_raster_draw_clear (hb_raster_draw_t *draw)
@@ -944,7 +944,7 @@ free_static_raster_draw_funcs ()
  * Return value: (transfer none):
  * The rasterizer draw functions
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_draw_funcs_t *
 hb_raster_draw_get_funcs (const hb_raster_draw_t *draw HB_UNUSED)
@@ -968,7 +968,7 @@ hb_raster_draw_get_funcs (const hb_raster_draw_t *draw HB_UNUSED)
  * Return value: `true` if the glyph was drawn, `false` if the font has
  * no outlines for @glyph.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_bool_t
 hb_raster_draw_glyph_or_fail (hb_raster_draw_t *draw,
@@ -989,7 +989,7 @@ hb_raster_draw_glyph_or_fail (hb_raster_draw_t *draw,
  * transform.  Equivalent to hb_raster_draw_glyph_or_fail() with the
  * return value ignored.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_raster_draw_glyph (hb_raster_draw_t *draw,

@@ -550,7 +550,7 @@
  * A shader source string, or `NULL` if @stage or @lang is
  * unsupported.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 const char *
 hb_gpu_shader_source (hb_gpu_shader_stage_t stage,

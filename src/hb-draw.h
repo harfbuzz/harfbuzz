@@ -358,7 +358,7 @@ hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
  *
  * End-cap shape for hb_draw_line().
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 typedef enum {
   HB_DRAW_LINE_CAP_BUTT   = 0,

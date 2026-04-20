@@ -486,7 +486,7 @@ hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
  * `hb_draw_line()` calls form a closed rectangle without gaps
  * at the corners.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_draw_line (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -576,7 +576,7 @@ _hb_draw_rect_contour (hb_draw_funcs_t *dfuncs, void *draw_data,
  * emitting four hb_draw_line() segments (one per edge) is
  * considerably cheaper per frame.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_draw_rectangle (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -695,7 +695,7 @@ _hb_draw_circle_contour (hb_draw_funcs_t *dfuncs, void *draw_data,
  * the nominal radius; if @stroke_width is `NaN`, the circle is
  * rendered as a filled disc.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_draw_circle (hb_draw_funcs_t *dfuncs, void *draw_data,

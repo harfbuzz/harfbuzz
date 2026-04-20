@@ -235,7 +235,7 @@ typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
  *   the clip path, or `NULL` if arbitrary-path clipping is not
  *   supported.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 typedef hb_draw_funcs_t * (*hb_paint_push_clip_path_start_func_t) (hb_paint_funcs_t *funcs,
                                                                    void             *paint_data,
@@ -254,7 +254,7 @@ typedef hb_draw_funcs_t * (*hb_paint_push_clip_path_start_func_t) (hb_paint_func
  * paint ops are masked by it until a matching
  * #hb_paint_pop_clip_func_t call.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 typedef void (*hb_paint_push_clip_path_end_func_t) (hb_paint_funcs_t *funcs,
                                                     void             *paint_data,
@@ -744,7 +744,7 @@ typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
  * compositing mode is provided at push time. By default
  * this calls #hb_paint_push_group_func_t.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 typedef void (*hb_paint_push_group_for_func_t) (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
@@ -897,7 +897,7 @@ hb_paint_funcs_set_push_clip_rectangle_func (hb_paint_funcs_t                   
  *
  * Sets the push-clip-path-start callback on the paint functions struct.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_clip_path_start_func (hb_paint_funcs_t                     *funcs,
@@ -914,7 +914,7 @@ hb_paint_funcs_set_push_clip_path_start_func (hb_paint_funcs_t                  
  *
  * Sets the push-clip-path-end callback on the paint functions struct.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_clip_path_end_func (hb_paint_funcs_t                   *funcs,
@@ -1050,7 +1050,7 @@ hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
  *
  * Sets the push-group-for callback on the paint functions struct.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_group_for_func (hb_paint_funcs_t               *funcs,
@@ -1224,7 +1224,7 @@ hb_paint_normalize_color_line (hb_color_stop_t *stops,
  * Callback invoked once per (a0, a1) sector of a sweep
  * gradient tiling.  See hb_paint_sweep_gradient_tiles().
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 typedef void (*hb_paint_sweep_gradient_tile_func_t) (float       a0,
                                                      hb_color_t  c0,
