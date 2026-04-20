@@ -2034,7 +2034,7 @@ hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
  *
  * Return value: the foreground color.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_color_t
 hb_raster_paint_get_foreground (const hb_raster_paint_t *paint)
@@ -2051,7 +2051,7 @@ hb_raster_paint_get_foreground (const hb_raster_paint_t *paint)
  * value, the rendered image is pre-filled with this color before
  * glyph content is composited on top.  Default is transparent.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_raster_paint_set_background (hb_raster_paint_t *paint,
@@ -2069,7 +2069,7 @@ hb_raster_paint_set_background (hb_raster_paint_t *paint,
  *
  * Return value: the background color.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_color_t
 hb_raster_paint_get_background (const hb_raster_paint_t *paint)
@@ -2085,7 +2085,7 @@ hb_raster_paint_get_background (const hb_raster_paint_t *paint)
  * Selects which font palette is used when paint callbacks look up
  * indexed colors.  Default is palette 0.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_raster_paint_set_palette (hb_raster_paint_t *paint,
@@ -2103,7 +2103,7 @@ hb_raster_paint_set_palette (hb_raster_paint_t *paint,
  *
  * Return value: the palette index.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 unsigned
 hb_raster_paint_get_palette (const hb_raster_paint_t *paint)
@@ -2172,7 +2172,7 @@ hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
  * Return value: (transfer none):
  * The rasterizer paint functions
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_paint_funcs_t *
 hb_raster_paint_get_funcs (const hb_raster_paint_t *paint HB_UNUSED)
@@ -2229,7 +2229,7 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
  *
  * Return value: `true` if painting succeeded, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_bool_t
 hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
@@ -2250,7 +2250,7 @@ hb_raster_paint_glyph_or_fail (hb_raster_paint_t *paint,
  * fall back to a synthesized foreground-colored outline, so any
  * glyph with an outline or bitmap image produces output.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_raster_paint_glyph (hb_raster_paint_t *paint,
@@ -2322,7 +2322,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
  * hb_raster_paint_reset() to also reset user configuration to
  * defaults.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_raster_paint_clear (hb_raster_paint_t *paint)

@@ -59,7 +59,7 @@ typedef enum {
  *
  * Shader pipeline stage.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 typedef enum {
   HB_GPU_SHADER_STAGE_VERTEX,
@@ -184,7 +184,7 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
  * paint state via paint callbacks, then encodes it into a compact
  * blob for GPU rendering.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 typedef struct hb_gpu_paint_t hb_gpu_paint_t;
 

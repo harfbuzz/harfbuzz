@@ -951,7 +951,7 @@ hb_gpu_draw_get_user_data (const hb_gpu_draw_t     *draw,
  * Return value: (transfer none):
  * The GPU draw functions
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (const hb_gpu_draw_t *draw HB_UNUSED)
@@ -989,7 +989,7 @@ hb_gpu_draw_set_scale (hb_gpu_draw_t *draw,
  * Gets the font scale previously set via hb_gpu_draw_set_scale() or
  * hb_gpu_draw_glyph().
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
@@ -1017,7 +1017,7 @@ hb_gpu_draw_get_scale (const hb_gpu_draw_t *draw,
  * Return value: `true` if the glyph was drawn, `false` if the font
  * has no outlines for @glyph.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 hb_bool_t
 hb_gpu_draw_glyph_or_fail (hb_gpu_draw_t  *draw,
@@ -1060,7 +1060,7 @@ hb_gpu_draw_glyph (hb_gpu_draw_t  *draw,
  * encode.  User configuration (font scale) is preserved.  Call
  * hb_gpu_draw_reset() to also reset user configuration to defaults.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_gpu_draw_clear (hb_gpu_draw_t *draw)
@@ -1145,7 +1145,7 @@ hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
  * A shader source string, or `NULL` if @stage or @lang is
  * unsupported.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 const char *
 hb_gpu_draw_shader_source (hb_gpu_shader_stage_t stage,

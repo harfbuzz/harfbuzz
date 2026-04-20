@@ -625,7 +625,7 @@ hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
  *   the clip path, or `NULL` if the backend does not implement
  *   arbitrary-path clipping.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 hb_draw_funcs_t *
 hb_paint_push_clip_path_start (hb_paint_funcs_t  *funcs,
@@ -647,7 +647,7 @@ hb_paint_push_clip_path_start (hb_paint_funcs_t  *funcs,
  * accumulated path now acts as a clip on the paint context
  * until a matching hb_paint_pop_clip() call.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_paint_push_clip_path_end (hb_paint_funcs_t *funcs, void *paint_data)
@@ -815,7 +815,7 @@ hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data)
  * mode known in advance.  By default, this calls
  * hb_paint_push_group().
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  */
 void
 hb_paint_push_group_for (hb_paint_funcs_t *funcs, void *paint_data,
@@ -884,7 +884,7 @@ hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,
  * gradient's actual direction (perpendicular to the rotation
  * line).  Degenerate (P0 == P2) passes through unchanged.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_paint_reduce_linear_anchors (float x0, float y0,
@@ -923,7 +923,7 @@ hb_paint_reduce_linear_anchors (float x0, float y0,
  * to keep the rendered gradient visually unchanged after the
  * rescale.  Empty input is safe: both out-parameters set to 0.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_paint_normalize_color_line (hb_color_stop_t *stops,
@@ -973,7 +973,7 @@ hb_paint_normalize_color_line (hb_color_stop_t *stops,
  * offset; use hb_paint_normalize_color_line() first if they
  * aren't.
  *
- * XSince: REPLACEME
+ * Since: 14.2.0
  **/
 void
 hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,

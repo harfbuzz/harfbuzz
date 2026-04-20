@@ -1,235 +1,227 @@
-Overview of changes leading to NEXT (REPLACEME)
+Overview of changes leading to 14.2.0
+Monday, April 20, 2026
 =====================================
 
-- GPU library:
+In this release, the experimental raster, vector, and GPU libraries went
+through several rounds of code review and cleanup to make sure they follow the
+high standards expected of HarfBuzz code. The API has also been extensively
+reviewed based on experience gained from using these libraries. We consider the
+code and API to be ready for stabilization, and we expect to graduate them from
+experimental in the near future. If you are using or planning to use these
+libraries and have any concerns about the API, it is time to raise them. Once a
+library is deemed stable, we will never change the API or ABI in an
+incompatible way.
 
+- GPU library:
   * New color-glyph paint renderer, based on design by Lê Duy Quang.
-    hb_gpu_paint_t walks a font's paint tree (COLRv0 or COLRv1) and
-    encodes its layers -- solid fills, linear / radial / sweep
-    gradients, transforms, composite groups -- into a compact blob.
-    A new fragment-shader function hb_gpu_paint() renders the blob
-    in premultiplied RGBA; monochrome glyphs are handled
-    transparently via a synthesized foreground-colored layer.
+    `hb_gpu_paint_t` walks a font's paint tree (COLRv0 or COLRv1) and encodes
+    its layers (solid fills, linear / radial / sweep gradients, transforms,
+    composite groups) into a compact blob.
+    A new fragment-shader function `hb_gpu_paint()` renders the blob in
+    premultiplied RGBA; monochrome glyphs are handled transparently via a
+    synthesized foreground-colored layer.
     Shader sources provided in GLSL, WGSL, MSL, and HLSL.
-  * Paint encoder limitations: the encoder sets `unsupported` and
-    returns NULL when `num_ops` would exceed 32767, `push_group`
-    nests deeper than 4, or the paint tree calls back through the
-    image callback (PaintImage).  Nested glyph clips are
-    intersected up to 3 levels; a few composite modes use
-    approximate fallbacks; `push_clip_rectangle` is silently
-    ignored.
-  * Encode entry point now returns extents and auto-clears the
-    encoder; the standalone get_extents() is gone.
-  * hb_gpu_paint() now takes an `out float coverage` parameter
-    that returns the maximum antialiasing edge coverage across
-    all paint layers.  Callers should apply stem darkening and
-    gamma correction to this coverage value rather than to the
-    composited color, so interior paint colors stay undistorted.
-  * Gradient color stop interpolation now happens in
-    premultiplied space per the OpenType COLR specification.
-  * The foreground color sentinel (is_foreground) now correctly
-    preserves the paint-tree alpha from the encoded color data
-    instead of discarding it.
-  * The hb-gpu utility gains --draw / --paint flags with per-font
-    auto-detect, and --output-file / -o for headless single-frame
-    rendering to a PPM image (P6).
+  * Paint encoder limitations: the encoder sets `unsupported` and returns
+    `NULL` when `num_ops` would exceed 32767, `push_group` nests deeper than 4,
+    or the paint tree calls back through the image callback (PaintImage).
+    Nested glyph clips are intersected up to 3 levels; a few composite modes
+    use approximate fallbacks; `push_clip_rectangle` is silently ignored.
+  * Encode entry point now returns extents and auto-clears the encoder; the
+    standalone `get_extents()` is gone.
+  * Gradient color stop interpolation now happens in premultiplied space per
+    the OpenType COLR specification.
+  * The foreground color sentinel (`is_foreground`) now correctly preserves the
+    paint-tree alpha from the encoded color data instead of discarding it.
+  * The hb-gpu utility gains `--draw` / `--paint` flags with per-font
+    auto-detect, and `--output-file` / `-o` for headless single-frame rendering
+    to a PPM image.
 
 - Vector library:
-  * New PDF output backend.  Vector paint glyphs now render to
-    PDF page content, producing scalable COLRv0 / COLRv1
-    color-glyph artwork (solid fills, linear / radial / sweep
-    gradients, blend modes, PNG images with transparency) that
-    can be embedded directly in PDF documents -- useful for PDF
-    producers such as LibreOffice that want crisp, resolution-
-    independent color emoji.
-  * New SVG id prefix API on paint allows prefixing document
-    references, which allows for embedding multiple SVGs in the
-    same page without name clashes (hb_vector_paint_set_svg_prefix).
-  * Removed pen_x/pen_y parameters from all vector and
-    raster _glyph functions.  Callers use set_transform()
-    for glyph positioning instead.
-  * Removed glyph path dedup from vector draw and paint.
-    Each glyph is emitted inline; no <defs>/<use> caching.
-  * _glyph() functions are now thin convenience wrappers
-    documented as equivalent expansions of the underlying
-    font draw/paint API.
+  * New PDF output backend. Vector paint glyphs now render to PDF page content,
+    producing scalable COLRv0 / COLRv1 color-glyph artwork (solid fills, linear
+    / radial / sweep gradients, blend modes, PNG images with transparency) that
+    can be embedded directly in PDF documents. Useful for PDF producers such as
+    LibreOffice that want crisp, resolution-independent color emoji.
+  * New SVG id prefix API on paint allows prefixing document references, which
+    allows for embedding multiple SVGs in the same page without name clashes
+    (`hb_vector_paint_set_svg_prefix`).
+  * Removed glyph path dedup from vector draw and paint. Each glyph is emitted
+    inline; no `<defs>` / `<use>` caching.
+  * `_glyph()` functions are now thin convenience wrappers documented as
+    equivalent expansions of the underlying font draw/paint API.
   * Drop glyph-source rendering of SVG-in-OT fonts.
 
 - Raster library:
   * Drop glyph-source rendering of SVG-in-OT fonts.
 
-- Across Draw / Paint subsystems: _reset() methods gain matching
-  _clear() companions that drop accumulated data while preserving
-  user configuration.  Getter companions added for setters across
-  raster, vector, and gpu types.
+- Across Draw / Paint subsystems:
+  * `_reset()` methods gain matching`_clear()` companions that drop accumulated
+    data while preserving user configuration. Getter companions added for
+    setters across raster, vector, and gpu types.
 
-- Various fuzzer fixes for `harfbuzz-raster`, `harfbuzz-vector`,
-  and `harfbuzz-gpu` libraries.
+- Various fuzzer fixes for raster, vector, and GPU libraries.
 
 - Paint API:
-  * New arbitrary-path clip:
-    hb_paint_push_clip_path_start / _end let callers clip to
-    a caller-supplied outline, not just a font glyph.
-    push_clip_path_start returns the draw-funcs (and matching
-    draw data) for the backend's path accumulator; the caller
-    drives hb_draw_*() into it, then calls
-    push_clip_path_end, followed by painted ops, then
-    hb_paint_pop_clip() to release the clip.  Implemented for
-    all paint backends: vector (SVG defs + clipPath + url ref),
-    vector PDF (q / path / W n), raster (path rendered to an
-    alpha mask, intersected with the current clip), and GPU
-    (the path is encoded into a Slug sub-blob so the fragment
-    shader clips against it the same way it clips against
-    glyph outlines).
+  * New arbitrary-path clip: `hb_paint_push_clip_path_start` / `_end` let
+    callers clip to a caller-supplied outline, not just a font glyph.
+    `push_clip_path_start()` returns the draw-funcs (and matching draw data)
+    for the backend’s path accumulator; the caller drives `hb_draw_*()` into
+    it, then calls `push_clip_path_end()`, followed by painted ops, then
+    `hb_paint_pop_clip()` to release the clip. Implemented for all paint
+    backends: vector (SVG defs + clipPath + url ref), vector PDF (q / path / W
+    n), raster (path rendered to an alpha mask, intersected with the current
+    clip), and GPU (the path is encoded into a Slug sub-blob so the fragment
+    shader clips against it the same way it clips against glyph outlines).
 
-- New API, Draw:
-  +hb_draw_line()
-  +hb_draw_rectangle()
-  +hb_draw_circle()
-  +hb_draw_line_cap_t
-  +HB_DRAW_LINE_CAP_BUTT
-  +HB_DRAW_LINE_CAP_ROUND
-  +HB_DRAW_LINE_CAP_SQUARE
+- Shaping:
+  * Indic: categorize U+1CF5 and U+1CF6 as CS.
 
-- New API, Paint:
-  +hb_paint_push_group_for()
-  +hb_paint_funcs_set_push_group_for_func()
-  +hb_paint_push_group_for_func_t
-  +hb_paint_reduce_linear_anchors()
-  +hb_paint_normalize_color_line()
-  +hb_paint_sweep_gradient_tiles()
-  +hb_paint_sweep_gradient_tile_func_t
-  +hb_paint_push_clip_path_start()
-  +hb_paint_push_clip_path_end()
-  +hb_paint_funcs_set_push_clip_path_start_func()
-  +hb_paint_funcs_set_push_clip_path_end_func()
-  +hb_paint_push_clip_path_start_func_t
-  +hb_paint_push_clip_path_end_func_t
+- Changed API
+  * GPU library:
+    - `hb_gpu_draw_glyph()` now returns `void` (was `hb_bool_t`). Use
+      `hb_gpu_draw_glyph_or_fail()` if you need the success status.
+    - `hb_gpu_paint_glyph()` now returns `void` (was `hb_bool_t`) and
+      internally synthesizes a foreground-colored layer for non-color glyphs
+      via `hb_font_paint_glyph()`, so every glyph with an outline produces
+      output. Use `hb_gpu_paint_glyph_or_fail()` (which delegates to
+      `hb_font_paint_glyph_or_fail()`) if you need to distinguish color vs
+      synthesized paint. Encoder-level limits (unsupported ops, group-stack
+      overflow) no longer fail paint_glyph; they surface from
+      `hb_gpu_paint_encode()` returning `NULL`.
+    - `hb_gpu_draw_encode()` now takes an `extents` out-parameter and
+      auto-clears the encoder on return.
+    - `hb_gpu_draw_darken()` renamed to `hb_gpu_stem_darken()`.
 
-- New API, GPU library:
-  +hb_gpu_paint_t
-  +hb_gpu_paint_create_or_fail()
-  +hb_gpu_paint_reference()
-  +hb_gpu_paint_destroy()
-  +hb_gpu_paint_set_user_data()
-  +hb_gpu_paint_get_user_data()
-  +hb_gpu_paint_get_funcs()
-  +hb_gpu_paint_set_palette()
-  +hb_gpu_paint_get_palette()
-  +hb_gpu_paint_set_custom_palette_color()
-  +hb_gpu_paint_clear_custom_palette_colors()
-  +hb_gpu_paint_set_scale()
-  +hb_gpu_paint_get_scale()
-  +hb_gpu_paint_glyph()
-  +hb_gpu_paint_encode()
-  +hb_gpu_paint_clear()
-  +hb_gpu_paint_reset()
-  +hb_gpu_paint_recycle_blob()
-  +hb_gpu_paint_shader_source()
-  +hb_gpu_paint_glyph_or_fail()
-  +HB_GPU_SHADER_STAGE_VERTEX
-  +HB_GPU_SHADER_STAGE_FRAGMENT
-  +hb_gpu_shader_source()
-  +hb_gpu_draw_shader_source()
-  +hb_gpu_draw_clear()
-  +hb_gpu_draw_get_scale()
-  +hb_gpu_draw_glyph_or_fail()
+  * Vector library:
+    - `hb_vector_svg_set_precision()` and its paint counterpart renamed to
+      `hb_vector_draw_set_precision()` / `hb_vector_paint_set_precision()`
+      (SVG-specific naming is inaccurate with the PDF backend added).
+    - `hb_vector_draw_glyph()` / `hb_vector_paint_glyph()` now return `void`
+      (were `hb_bool_t`). Paint additionally gains a draw fallback for
+      non-color glyphs. Use the matching `_or_fail()` variants for the
+      `hb_bool_t` return.
 
-- Changed shader API, GPU library:
-  hb_gpu_paint() now takes an additional `out float coverage`
-  parameter.  Existing callers must update their shader code to
-  pass this argument.
+  * Raster library:
+    - `hb_raster_draw_glyph()` / `hb_raster_paint_glyph()` now return `void`
+      (were `hb_bool_t`). Paint additionally gains a draw fallback for
+      non-color glyphs. Use the matching `_or_fail()` variants for the
+      `hb_bool_t` return.
 
-- New API, Raster library:
-  +hb_raster_draw_clear()
-  +hb_raster_draw_glyph_or_fail()
-  +hb_raster_paint_clear()
-  +hb_raster_paint_glyph_or_fail()
-  +hb_raster_paint_set_palette()
-  +hb_raster_paint_get_palette()
-  +hb_raster_paint_get_foreground()
-  +hb_raster_paint_set_background()
-  +hb_raster_paint_get_background()
+  * General:
+    - Many read-only getters gained const on their object argument.
+    - Six public draw / paint funcs getters across raster, vector, and gpu now
+      take a const-pointer to the relevant context instance instead of being
+      singletons:
+        hb_raster_draw_get_funcs (const hb_raster_draw_t *)`
+        hb_raster_paint_get_funcs (const hb_raster_paint_t *)
+        hb_vector_draw_get_funcs (const hb_vector_draw_t *)
+        hb_vector_paint_get_funcs (const hb_vector_paint_t *)
+        hb_gpu_draw_get_funcs (const hb_gpu_draw_t *)
+        hb_gpu_paint_get_funcs (const hb_gpu_paint_t *)
+      This is what lets vector_paint dispatch to SVG- vs PDF- flavored
+      callbacks transparently when called from outside code; the others
+      currently use the instance for symmetry only.
 
-- New API, Vector library:
-  +HB_VECTOR_FORMAT_PDF
-  +hb_vector_draw_clear()
-  +hb_vector_draw_get_precision()
-  +hb_vector_draw_get_format()
-  +hb_vector_draw_glyph_or_fail()
-  +hb_vector_draw_set_foreground()
-  +hb_vector_draw_get_foreground()
-  +hb_vector_draw_set_background()
-  +hb_vector_draw_get_background()
-  +hb_vector_paint_clear()
-  +hb_vector_paint_get_precision()
-  +hb_vector_paint_get_format()
-  +hb_vector_paint_get_foreground()
-  +hb_vector_paint_set_background()
-  +hb_vector_paint_get_background()
-  +hb_vector_paint_get_palette()
-  +hb_vector_paint_glyph_or_fail()
-  +hb_vector_paint_set_svg_prefix()
-  +hb_vector_paint_get_svg_prefix()
+- New API
+  * Draw:
+    +HB_DRAW_LINE_CAP_BUTT
+    +HB_DRAW_LINE_CAP_ROUND
+    +HB_DRAW_LINE_CAP_SQUARE
+    +hb_draw_line_cap_t
+    +hb_draw_line()
+    +hb_draw_rectangle()
+    +hb_draw_circle()
 
-- Removed API, GPU library:
-  -hb_gpu_shader_fragment_source()   (replaced by hb_gpu_shader_source(stage))
-  -hb_gpu_shader_vertex_source()     (replaced by hb_gpu_shader_source(stage))
-  -hb_gpu_draw_get_extents()         (extents are now an out-parameter of hb_gpu_draw_encode())
+  * Paint:
+    +hb_paint_push_clip_path_start_func_t
+    +hb_paint_push_clip_path_end_func_t
+    +hb_paint_sweep_gradient_tile_func_t
+    +hb_paint_push_group_for_func_t
+    +hb_paint_push_group_for()
+    +hb_paint_funcs_set_push_group_for_func()
+    +hb_paint_reduce_linear_anchors()
+    +hb_paint_normalize_color_line()
+    +hb_paint_sweep_gradient_tiles()
+    +hb_paint_push_clip_path_start()
+    +hb_paint_push_clip_path_end()
+    +hb_paint_funcs_set_push_clip_path_start_func()
+    +hb_paint_funcs_set_push_clip_path_end_func()
 
-- Removed API, Vector library:
-  -hb_vector_draw_set_flat()
-  -hb_vector_draw_get_flat()
-  -hb_vector_paint_set_flat()
-  -hb_vector_paint_get_flat()
+  * GPU library:
+    +HB_GPU_SHADER_STAGE_VERTEX
+    +HB_GPU_SHADER_STAGE_FRAGMENT
+    +HB_GPU_SHADER_LANG_INVALID
+    +hb_gpu_shader_stage_t
+    +hb_gpu_paint_t
+    +hb_gpu_paint_create_or_fail()
+    +hb_gpu_paint_reference()
+    +hb_gpu_paint_destroy()
+    +hb_gpu_paint_set_user_data()
+    +hb_gpu_paint_get_user_data()
+    +hb_gpu_paint_get_funcs()
+    +hb_gpu_paint_set_palette()
+    +hb_gpu_paint_get_palette()
+    +hb_gpu_paint_set_custom_palette_color()
+    +hb_gpu_paint_clear_custom_palette_colors()
+    +hb_gpu_paint_set_scale()
+    +hb_gpu_paint_get_scale()
+    +hb_gpu_paint_glyph()
+    +hb_gpu_paint_encode()
+    +hb_gpu_paint_clear()
+    +hb_gpu_paint_reset()
+    +hb_gpu_paint_recycle_blob()
+    +hb_gpu_paint_shader_source()
+    +hb_gpu_paint_glyph_or_fail()
+    +hb_gpu_shader_source()
+    +hb_gpu_draw_shader_source()
+    +hb_gpu_draw_clear()
+    +hb_gpu_draw_get_scale()
+    +hb_gpu_draw_glyph_or_fail()
 
-- Changed API, GPU library:
-  * hb_gpu_draw_glyph() now returns void (was hb_bool_t).  Use
-    hb_gpu_draw_glyph_or_fail() if you need the success status.
-  * hb_gpu_paint_glyph() now returns void (was hb_bool_t) and
-    internally synthesizes a foreground-colored layer for
-    non-color glyphs via hb_font_paint_glyph(), so every glyph
-    with an outline produces output.  Use
-    hb_gpu_paint_glyph_or_fail() -- which delegates to
-    hb_font_paint_glyph_or_fail() -- if you need to distinguish
-    color vs synthesized paint.  Encoder-level limits
-    (unsupported ops, group-stack overflow) no longer fail
-    paint_glyph; they surface from hb_gpu_paint_encode()
-    returning NULL.
-  * hb_gpu_draw_encode() now takes an extents out-parameter and
-    auto-clears the encoder on return.
-  * hb_gpu_draw_darken() renamed to hb_gpu_stem_darken().
+  * Raster library:
+    +hb_raster_draw_clear()
+    +hb_raster_draw_glyph_or_fail()
+    +hb_raster_paint_clear()
+    +hb_raster_paint_glyph_or_fail()
+    +hb_raster_paint_set_palette()
+    +hb_raster_paint_get_palette()
+    +hb_raster_paint_get_foreground()
+    +hb_raster_paint_set_background()
+    +hb_raster_paint_get_background()
 
-- Changed API, Vector library:
-  * hb_vector_svg_set_precision() and its paint counterpart renamed
-    to hb_vector_draw_set_precision() / hb_vector_paint_set_precision()
-    (SVG-specific naming is inaccurate with the PDF backend added).
-  * hb_vector_draw_glyph() / hb_vector_paint_glyph() now return
-    void (were hb_bool_t).  Paint additionally gains a draw
-    fallback for non-color glyphs.  Use the matching _or_fail()
-    variants for the bool return.
+  * Vector library:
+    +HB_VECTOR_FORMAT_PDF
+    +hb_vector_draw_clear()
+    +hb_vector_draw_get_precision()
+    +hb_vector_draw_get_format()
+    +hb_vector_draw_glyph_or_fail()
+    +hb_vector_draw_new_path()
+    +hb_vector_draw_set_foreground()
+    +hb_vector_draw_get_foreground()
+    +hb_vector_draw_set_background()
+    +hb_vector_draw_get_background()
+    +hb_vector_paint_clear()
+    +hb_vector_paint_get_precision()
+    +hb_vector_paint_get_format()
+    +hb_vector_paint_get_foreground()
+    +hb_vector_paint_set_background()
+    +hb_vector_paint_get_background()
+    +hb_vector_paint_get_palette()
+    +hb_vector_paint_glyph_or_fail()
+    +hb_vector_paint_set_svg_prefix()
+    +hb_vector_paint_get_svg_prefix()
 
-- Changed API, Raster library:
-  * hb_raster_draw_glyph() / hb_raster_paint_glyph() now return
-    void (were hb_bool_t).  Paint additionally gains a draw
-    fallback for non-color glyphs.  Use the matching _or_fail()
-    variants for the bool return.
+- Removed API
+  * GPU library:
+    -hb_gpu_shader_fragment_source()   (replaced by hb_gpu_shader_source(stage))
+    -hb_gpu_shader_vertex_source()     (replaced by hb_gpu_shader_source(stage))
+    -hb_gpu_draw_get_extents()         (extents are now an out-parameter of hb_gpu_draw_encode())
 
-- Changed API, general:
-  * Many read-only getters gained const on their object argument.
-  * Six public draw / paint funcs getters across raster,
-    vector, and gpu now take a const-pointer to the relevant
-    context instance instead of being singletons:
-      hb_raster_draw_get_funcs (const hb_raster_draw_t *)
-      hb_raster_paint_get_funcs (const hb_raster_paint_t *)
-      hb_vector_draw_get_funcs (const hb_vector_draw_t *)
-      hb_vector_paint_get_funcs (const hb_vector_paint_t *)
-      hb_gpu_draw_get_funcs (const hb_gpu_draw_t *)
-      hb_gpu_paint_get_funcs (const hb_gpu_paint_t *)
-    This is what lets vector_paint dispatch to SVG- vs PDF-
-    flavored callbacks transparently when called from outside
-    code; the others currently use the instance for symmetry
-    only.
+  * Vector library:
+    -hb_vector_draw_set_flat()
+    -hb_vector_draw_get_flat()
+    -hb_vector_paint_set_flat()
+    -hb_vector_paint_get_flat()
 
 
 Overview of changes leading to 14.1.0
