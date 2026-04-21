@@ -24,6 +24,10 @@ Before that, remove the files created by this failed run with"
   rm -rf CMakeCache.txt CMakeFiles")
 endif ()
 
+# Add a .gitignore file to build directory (inspired by Meson)
+if (NOT ("${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}") AND NOT (EXISTS "${PROJECT_BINARY_DIR}/.gitignore"))
+  file(WRITE "${PROJECT_BINARY_DIR}/.gitignore" "*")
+endif ()
 
 ## HarfBuzz build configurations
 option(HB_HAVE_CAIRO "Enable cairo interop helpers" OFF)
