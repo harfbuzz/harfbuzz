@@ -136,7 +136,7 @@
 #endif
 
 #ifdef HB_NO_DRAW
-#define HB_NO_CFF
+#define HB_NO_OT_FONT_CFF
 #define HB_NO_OUTLINE
 #define HB_NO_PAINT
 #endif
@@ -186,6 +186,13 @@
 #define HB_NO_GDEF_CACHE
 #define HB_NO_OT_LAYOUT_LOOKUP_CACHE
 #define HB_NO_OT_FONT_CMAP_CACHE
+#endif
+
+#if defined(HAVE_CONFIG_OVERRIDE_LAST_H) || defined(HB_CONFIG_OVERRIDE_LAST_H)
+#ifndef HB_CONFIG_OVERRIDE_LAST_H
+#define HB_CONFIG_OVERRIDE_LAST_H "config-override-last.h"
+#endif
+#include HB_CONFIG_OVERRIDE_LAST_H
 #endif
 
 #ifdef HB_OPTIMIZE_SIZE
