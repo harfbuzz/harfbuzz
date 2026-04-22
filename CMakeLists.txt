@@ -277,6 +277,7 @@ set (gpu_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-gpu.cc
      ${PROJECT_SOURCE_DIR}/src/hb-gpu-draw.cc
      ${PROJECT_SOURCE_DIR}/src/hb-gpu-paint.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-static.cc
 )
 set (gpu_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-gpu.h
