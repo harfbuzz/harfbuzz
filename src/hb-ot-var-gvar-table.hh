@@ -447,7 +447,7 @@ struct gvar_GVAR
     auto it = hb_iter (c->plan->new_to_old_gid_list);
     if (it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
       it++;
-    size_t subset_data_size = 0;
+    unsigned subset_data_size = 0;
     unsigned padding_size = 0;
     for (auto &_ : it)
     {
@@ -459,7 +459,8 @@ struct gvar_GVAR
         padding_size++;
       }
 
-      subset_data_size += glyph_data_size;
+      if (unlikely (hb_unsigned_add_overflows (subset_data_size, glyph_data_size, &subset_data_size)))
+	return_trace (false);
     }
 
     /* According to the spec: If the short format (Offset16) is used for offsets,
