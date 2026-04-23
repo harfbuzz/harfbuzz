@@ -1581,10 +1581,6 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
  *             + hb_gpu_paint_shader_source ()
  *             + caller's main ()
  *
- * Only GLSL fragment is implemented today; other languages and
- * the vertex stage return the empty string so callers can
- * concatenate unconditionally.
- *
  * Return value: (transfer none):
  * A shader source string, or `NULL` if @stage or @lang is
  * unsupported.
