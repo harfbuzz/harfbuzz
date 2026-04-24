@@ -1932,7 +1932,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     /* Process preliminary_context in one pass */
     hb_codepoint_t elem = HB_SET_VALUE_INVALID;
     while (preliminary_context.next (&elem)) {
-      if (elem < 0x80000000) {
+      if (!(elem & HB_DEPEND_CONTEXT_SET_FLAG)) {
         /* Direct glyph */
         position_context.add (elem);
       } else {
@@ -1982,7 +1982,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
         if (filtered == (*input_position_glyphs)[j]) {
           /* No overlap with position_context - add full requirement */
           hb_codepoint_t idx = c->depend_data->find_or_create_context_set ((*input_position_glyphs)[j]);
-          filtered_disjunctive_indices.add (0x80000000 | idx);
+          filtered_disjunctive_indices.add (HB_DEPEND_CONTEXT_SET_FLAG | idx);
         }
         /* Otherwise: position_context intersects, requirement satisfied */
       }
@@ -2000,7 +2000,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
      * calls another contextual lookup, we want each lookup in this rule to see
      * the same outer context, not context from a sibling lookup. */
     hb_codepoint_t saved_context_set_index = c->depend_data->current_context_set_index;
-    uint8_t saved_edge_flags = c->depend_data->current_edge_flags;
+    hb_depend_edge_flags_t saved_edge_flags = c->depend_data->current_edge_flags;
 
     /* Detect nested contextual: if we already have a context set, we're inside
      * an outer contextual rule that called this one. The outer context will be
@@ -2018,7 +2018,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
      * lookups at the same position may interact (one produces a glyph, another
      * immediately consumes it as an "intermediate"). So a glyph matching the
      * coverage might not persist at that position when closure traverses. */
-    c->depend_data->current_edge_flags = 0;
+    c->depend_data->current_edge_flags = HB_DEPEND_EDGE_FLAG_NONE;
     if (inputCount > 1) {
       c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
     }
@@ -3720,7 +3720,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
       preliminary_context.add (back_set.get_min ());  // Direct glyph
     } else if (back_set.get_population () > 1) {
       hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (back_set);
-      preliminary_context.add (0x80000000 | set_idx);  // Encoded set reference
+      preliminary_context.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);  // Encoded set reference
     }
   }
   for (const auto &look_set : ctx_info.lookahead_sets)
@@ -3729,7 +3729,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
       preliminary_context.add (look_set.get_min ());  // Direct glyph
     } else if (look_set.get_population () > 1) {
       hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (look_set);
-      preliminary_context.add (0x80000000 | set_idx);  // Encoded set reference
+      preliminary_context.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);  // Encoded set reference
     }
   }
 

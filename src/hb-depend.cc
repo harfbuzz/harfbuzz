@@ -64,10 +64,6 @@
 
 hb_depend_t::hb_depend_t (hb_face_t *f)
 {
-  if (unlikely (f == nullptr)) {
-    successful = false;
-    return;
-  }
   face = hb_face_reference(f);
   if (unlikely (!data.glyph_dependencies.resize_exact (face->get_num_glyphs ()))) {
     successful = false;

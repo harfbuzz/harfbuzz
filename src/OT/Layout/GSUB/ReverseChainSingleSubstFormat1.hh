@@ -69,7 +69,7 @@ struct ReverseChainSingleSubstFormat1
 
 #ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const {
-    // Filter by intersects and parent_active_glyphs like closure does (lines 83-95)
+    // Filter by intersects and parent_active_glyphs like closure does
     if (!intersects (c->glyphs)) return true;
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
@@ -91,7 +91,7 @@ struct ReverseChainSingleSubstFormat1
       else if (back_glyphs.get_population () > 1)
       {
         hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (back_glyphs);
-        context_glyphs.add (0x80000000 | set_idx);
+        context_glyphs.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);
       }
     }
 
@@ -106,7 +106,7 @@ struct ReverseChainSingleSubstFormat1
       else if (look_glyphs.get_population () > 1)
       {
         hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (look_glyphs);
-        context_glyphs.add (0x80000000 | set_idx);
+        context_glyphs.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);
       }
     }
 
