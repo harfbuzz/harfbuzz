@@ -38,11 +38,11 @@
  * hb_depend_t:
  *
  * Internal structure implementing the dependency graph API.
- * Contains the dependency data (data), the source font face (face),
- * and the set of features referenced by dependencies (features).
+ * Contains the dependency data (data) and the source font face (face).
  *
  * Initialized via hb_depend_from_face_or_fail() which computes the dependency
- * graph once. The graph remains immutable for the lifetime of the object.
+ * graph once via hb_depend_data_builder_t::compile(). The graph remains
+ * immutable for the lifetime of the object.
  */
 struct hb_depend_t
 {
@@ -55,12 +55,6 @@ struct hb_depend_t
   bool successful;
 
   bool in_error () const { return !successful; }
-
-  bool check_success (bool success)
-  {
-    successful = (successful && success);
-    return successful;
-  }
 
   void print() { data.print(); }
 
@@ -77,14 +71,7 @@ struct hb_depend_t
     return data.get_set_from_index (index);
   }
 
-  HB_INTERNAL void get_gsub_dependencies (hb_depend_data_builder_t &builder);
-  HB_INTERNAL void get_math_dependencies (hb_depend_data_builder_t &builder);
-  HB_INTERNAL void get_colr_dependencies (hb_depend_data_builder_t &builder);
-  HB_INTERNAL void get_glyf_dependencies (hb_depend_data_builder_t &builder);
-  HB_INTERNAL void get_cff_dependencies  (hb_depend_data_builder_t &builder);
-
   hb_face_t *face;
-  hb_set_t features;
   hb_depend_data_t data;
 };
 

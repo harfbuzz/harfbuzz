@@ -496,6 +496,17 @@ struct hb_depend_data_builder_t
   hb_codepoint_t get_nominal_glyph (hb_codepoint_t cp)
   { return hb_map_get (&nominal_glyphs, cp); }
 
+  HB_INTERNAL bool compile (hb_face_t *face);
+
+  bool check_success (bool s) { successful = (successful && s); return successful; }
+
+  HB_INTERNAL void get_gsub_dependencies (hb_face_t *face);
+  HB_INTERNAL void get_math_dependencies (hb_face_t *face);
+  HB_INTERNAL void get_colr_dependencies (hb_face_t *face);
+  HB_INTERNAL void get_glyf_dependencies (hb_face_t *face);
+  HB_INTERNAL void get_cff_dependencies  (hb_face_t *face);
+
+  bool successful = true;
   hb_set_t unicodes;
   hb_map_t nominal_glyphs;
   hb_vector_t<hb_set_t> lookup_features;
