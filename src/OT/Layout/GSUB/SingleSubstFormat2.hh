@@ -35,7 +35,7 @@ struct SingleSubstFormat2_4
   { return false; }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  bool depend (hb_depend_context_t *c) const
+  void depend (hb_depend_context_t *c) const
   {
     auto &cov = this+coverage;
     auto &glyph_set = c->parent_active_glyphs ();
@@ -51,14 +51,13 @@ struct SingleSubstFormat2_4
 	c->depend_data->add_gsub_lookup (g, c->lookup_index, substitute.arrayZ[i]);
       }
 
-      return true;
+      return;
     }
 
     + hb_zip (cov, substitute)
     | hb_filter (glyph_set, hb_first)
     | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
     ;
-    return true;
   }
 #endif
 

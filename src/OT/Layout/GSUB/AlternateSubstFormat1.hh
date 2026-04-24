@@ -35,7 +35,7 @@ struct AlternateSubstFormat1_2
   { return false; }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  bool depend (hb_depend_context_t *c) const
+  void depend (hb_depend_context_t *c) const
   {
     // Filter by parent_active_glyphs like closure does
     + hb_zip (this+coverage, alternateSet)
@@ -46,7 +46,6 @@ struct AlternateSubstFormat1_2
                   as.depend (c, _.first);
                 })
     ;
-    return true;
   }
 #endif
 

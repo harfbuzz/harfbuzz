@@ -68,9 +68,9 @@ struct ReverseChainSingleSubstFormat1
   { return false; }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  bool depend (hb_depend_context_t *c) const {
+  void depend (hb_depend_context_t *c) const {
     // Filter by intersects and parent_active_glyphs like closure does
-    if (!intersects (c->glyphs)) return true;
+    if (!intersects (c->glyphs)) return;
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
@@ -124,8 +124,6 @@ struct ReverseChainSingleSubstFormat1
     ;
 
     c->depend_data->current_context_set_index = saved_context;
-
-    return true;
   }
 #endif
 

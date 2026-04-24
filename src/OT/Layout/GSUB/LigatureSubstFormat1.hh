@@ -44,7 +44,7 @@ struct LigatureSubstFormat1_2
   { return true; }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  bool depend (hb_depend_context_t *c) const
+  void depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (c->parent_active_glyphs (), hb_first)
@@ -54,7 +54,6 @@ struct LigatureSubstFormat1_2
                   ls.depend (c, _.first);
                 })
     ;
-    return true;
   }
 #endif
 

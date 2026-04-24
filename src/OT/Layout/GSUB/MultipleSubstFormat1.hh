@@ -45,7 +45,7 @@ struct MultipleSubstFormat1_2
   }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  bool depend (hb_depend_context_t *c) const
+  void depend (hb_depend_context_t *c) const
   {
     // Filter by parent_active_glyphs like closure does
     + hb_zip (this+coverage, sequence)
@@ -56,7 +56,6 @@ struct MultipleSubstFormat1_2
                   s.depend (c, _.first);
                 })
     ;
-    return true;
   }
 #endif
 
