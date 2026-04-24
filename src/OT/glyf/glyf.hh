@@ -217,7 +217,6 @@ struct glyf_accelerator_t
 
   bool has_data () const { return num_glyphs; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_data_builder_t *builder) const
   {
     if (!has_data ()) return;
@@ -228,7 +227,6 @@ struct glyf_accelerator_t
         builder->add_depend (gid, HB_OT_TAG_glyf, item.get_gid ());
     }
   }
-#endif
 
   protected:
   template<typename T>

@@ -43,7 +43,6 @@ struct LigatureSubstFormat1_2
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, ligatureSet)
@@ -55,7 +54,6 @@ struct LigatureSubstFormat1_2
                 })
     ;
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {

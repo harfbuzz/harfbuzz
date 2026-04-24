@@ -35,7 +35,6 @@
 
 #include "hb-multimap.hh"
 
-#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * Edge flags for hb_depend_edge_t.
@@ -523,6 +522,5 @@ struct hb_depend_data_builder_t
   hb_depend_data_t &data;
 };
 
-#endif /* !HB_NO_SUBSET_DEPEND */
 
 #endif /* HB_DEPEND_DATA_HH */

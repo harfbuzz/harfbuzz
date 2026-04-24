@@ -32,7 +32,6 @@
 #include "hb-depend.h"
 #include "hb-depend-data.hh"
 
-#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * hb_depend_t:
@@ -75,6 +74,5 @@ struct hb_depend_t
   hb_depend_data_t data;
 };
 
-#endif /* !HB_NO_SUBSET_DEPEND */
 
 #endif /* HB_DEPEND_HH */

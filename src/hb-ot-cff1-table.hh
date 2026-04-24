@@ -1535,7 +1535,6 @@ struct cff1_accelerator_t : cff1::accelerator_t {
 struct cff1_subset_accelerator_t : cff1::accelerator_subset_t {
   cff1_subset_accelerator_t (hb_face_t *face) : cff1::accelerator_subset_t (face) {}
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_data_builder_t *builder) const
   {
     if (!is_valid ()) return;
@@ -1549,7 +1548,6 @@ struct cff1_subset_accelerator_t : cff1::accelerator_subset_t {
       }
     }
   }
-#endif
 };
 
 } /* namespace OT */

@@ -58,7 +58,6 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
-#ifndef HB_NO_SUBSET_DEPEND
 /*static*/ hb_depend_context_t::return_t SubstLookup::depend_glyphs_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
@@ -69,7 +68,6 @@ template <typename context_t>
       hb_set_add_range (covered_seq_indices, seq_index, end_index);
   return l.dispatch (c);
 }
-#endif
 
 template <>
 inline hb_closure_lookups_context_t::return_t
@@ -110,7 +108,6 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
 } /* namespace GSUB_impl */
 } /* namespace Layout */
 
-#ifndef HB_NO_SUBSET_DEPEND
 inline void
 GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) const
 {
@@ -188,7 +185,6 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
     this->table->get_lookup (i).depend (&c);
   }
 }
-#endif
 
 } /* namespace OT */
 

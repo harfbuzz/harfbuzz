@@ -226,7 +226,6 @@ struct hb_colrv1_closure_context_t :
   {}
 };
 
-#ifndef HB_NO_SUBSET_DEPEND
 
 struct hb_colrv1_depend_context_t :
        hb_dispatch_context_t<hb_colrv1_depend_context_t>
@@ -262,7 +261,6 @@ struct hb_colrv1_depend_context_t :
                           source_gid (0)
   {}
 };
-#endif /* !HB_NO_SUBSET_DEPEND */
 
 struct LayerRecord
 {
@@ -325,10 +323,8 @@ struct Variable
     return_trace (c->embed (this));
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const
   { value.dependv1 (c); }
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -405,10 +401,8 @@ struct NoVariable
     return_trace (c->embed (this));
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const
   { value.dependv1 (c); }
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { value.closurev1 (c); }
@@ -453,9 +447,7 @@ struct NoVariable
 
 struct ColorStop
 {
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t * c) const {}
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -519,9 +511,7 @@ struct Extend : HBUINT8
 template <template<typename> class Var>
 struct ColorLine
 {
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t * c) const {}
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -668,9 +658,7 @@ struct Affine2x3
     return_trace (c->check_struct (this));
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { c->num_var_idxes = 6; }
@@ -718,9 +706,7 @@ struct Affine2x3
 
 struct PaintColrLayers
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -752,9 +738,7 @@ struct PaintColrLayers
 
 struct PaintSolid
 {
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
-#endif
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     c->add_palette_index (paletteIndex);
@@ -807,9 +791,7 @@ struct PaintSolid
 template <template<typename> class Var>
 struct PaintLinearGradient
 {
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -881,9 +863,7 @@ struct PaintLinearGradient
 template <template<typename> class Var>
 struct PaintRadialGradient
 {
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -955,9 +935,7 @@ struct PaintRadialGradient
 template <template<typename> class Var>
 struct PaintSweepGradient
 {
-#ifndef HB_NO_SUBSET_DEPEND
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
-#endif
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -1023,9 +1001,7 @@ struct PaintSweepGradient
 // Paint a non-COLR glyph, filled as indicated by paint.
 struct PaintGlyph
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1069,9 +1045,7 @@ struct PaintGlyph
 
 struct PaintColrGlyph
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1102,9 +1076,7 @@ struct PaintColrGlyph
 template <template<typename> class Var>
 struct PaintTransform
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1144,9 +1116,7 @@ struct PaintTransform
 
 struct PaintTranslate
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1196,9 +1166,7 @@ struct PaintTranslate
 
 struct PaintScale
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1248,9 +1216,7 @@ struct PaintScale
 
 struct PaintScaleAroundCenter
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1306,9 +1272,7 @@ struct PaintScaleAroundCenter
 
 struct PaintScaleUniform
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1353,9 +1317,7 @@ struct PaintScaleUniform
 
 struct PaintScaleUniformAroundCenter
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1408,9 +1370,7 @@ struct PaintScaleUniformAroundCenter
 
 struct PaintRotate
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1455,9 +1415,7 @@ struct PaintRotate
 
 struct PaintRotateAroundCenter
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1510,9 +1468,7 @@ struct PaintRotateAroundCenter
 
 struct PaintSkew
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1562,9 +1518,7 @@ struct PaintSkew
 
 struct PaintSkewAroundCenter
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1620,9 +1574,7 @@ struct PaintSkewAroundCenter
 
 struct PaintComposite
 {
-#ifndef HB_NO_SUBSET_DEPEND
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
-#endif
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -2302,13 +2254,11 @@ struct COLR
 
     bool is_valid () { return colr.get_blob ()->length; }
 
-#ifndef HB_NO_SUBSET_DEPEND
     void depend (hb_depend_data_builder_t *depend_data) const
     {
       if (!has_data ()) return;
       colr->depend (depend_data);
     }
-#endif
 
     void closure_glyphs (hb_codepoint_t glyph,
 			 hb_set_t *related_ids /* OUT */) const
@@ -2371,7 +2321,6 @@ struct COLR
     mutable hb_atomic_t<hb_colr_scratch_t *> cached_scratch;
   };
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_data_builder_t *depend_data) const
   {
     // v0
@@ -2399,7 +2348,6 @@ struct COLR
       paint.dispatch (&c);
     }
   }
-#endif
 
   void closure_glyphs (hb_codepoint_t glyph,
 		       hb_set_t *related_ids /* OUT */) const

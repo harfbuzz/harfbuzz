@@ -44,7 +44,6 @@ struct MultipleSubstFormat1_2
     ;
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     // Filter by parent_active_glyphs like closure does
@@ -57,7 +56,6 @@ struct MultipleSubstFormat1_2
                 })
     ;
   }
-#endif
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
 

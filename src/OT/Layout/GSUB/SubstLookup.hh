@@ -61,13 +61,11 @@ struct SubstLookup : Lookup
     return ret;
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     c->set_recurse_func (dispatch_depend_recurse_func);
     dispatch (c);
   }
-#endif
 
   hb_closure_lookups_context_t::return_t closure_lookups (hb_closure_lookups_context_t *c, unsigned this_index) const
   {
@@ -213,14 +211,12 @@ struct SubstLookup : Lookup
     return ret;
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   static inline hb_depend_context_t::return_t depend_glyphs_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
 
   static inline hb_depend_context_t::return_t dispatch_depend_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
   {
     return depend_glyphs_recurse_func (c, lookup_index, covered_seq_indices, seq_index, end_index);
   }
-#endif
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const

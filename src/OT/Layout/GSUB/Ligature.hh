@@ -38,7 +38,6 @@ struct Ligature
     c->output->add (ligGlyph);
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, hb_codepoint_t first) const
   {
     // Build the complete ligature set upfront before adding any edges
@@ -66,7 +65,6 @@ struct Ligature
     if (!any_added)
       c->depend_data->free_ligature_set(ligset_idx);
   }
-#endif
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {

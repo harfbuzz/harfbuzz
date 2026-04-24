@@ -376,7 +376,6 @@ struct hb_collect_glyphs_context_t :
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
 
-#ifndef HB_NO_SUBSET_DEPEND
 struct hb_depend_context_t :
        hb_dispatch_context_t<hb_depend_context_t>
 {
@@ -457,7 +456,6 @@ struct hb_depend_context_t :
                         recurse_func (nullptr) {}
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
-#endif
 
 template <typename set_t>
 struct hb_collect_coverage_context_t :
@@ -1894,7 +1892,6 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
   }
 }
 
-#ifndef HB_NO_SUBSET_DEPEND
 template <typename HBUINT>
 static void context_depend_recurse_lookups (hb_depend_context_t *c,
 					     unsigned inputCount, const HBUINT input[],
@@ -2082,7 +2079,6 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     c->depend_data->current_edge_flags = saved_edge_flags;
   }
 }
-#endif
 
 template <typename context_t>
 static inline void recurse_lookups (context_t *c,
@@ -2250,7 +2246,6 @@ struct ContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
-#ifndef HB_NO_SUBSET_DEPEND
 struct ContextDependLookupContext
 {
   ContextClosureFuncs funcs;
@@ -2259,7 +2254,6 @@ struct ContextDependLookupContext
   void *intersects_cache;
   void *intersected_glyphs_cache;
 };
-#endif
 
 struct ContextCollectGlyphsLookupContext
 {
@@ -2308,7 +2302,6 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
 				     lookup_context.intersected_glyphs_cache);
 }
 
-#ifndef HB_NO_SUBSET_DEPEND
 template <typename HBUINT>
 static inline void context_depend_lookup (hb_depend_context_t *c,
 					  unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -2385,7 +2378,6 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
   c->pop_context ();
   /* preliminary_context is stack-allocated and will be destroyed automatically */
 }
-#endif
 
 template <typename HBUINT>
 static inline void context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
@@ -2486,7 +2478,6 @@ struct Rule
 			       lookup_context);
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ContextDependLookupContext &lookup_context) const
   {
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
@@ -2496,7 +2487,6 @@ struct Rule
 			   lookupCount, lookupRecord.arrayZ,
 			   value, lookup_context);
   }
-#endif
 
   void closure (hb_closure_context_t *c, unsigned value, ContextClosureLookupContext &lookup_context) const
   {
@@ -2631,7 +2621,6 @@ struct RuleSet
     ;
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ContextDependLookupContext &lookup_context) const
   {
     + hb_iter (rule)
@@ -2639,7 +2628,6 @@ struct RuleSet
     | hb_apply ([&] (const Rule &_) { _.depend (c, value, lookup_context); })
     ;
   }
-#endif
 
   void closure (hb_closure_context_t *c, unsigned value,
 		ContextClosureLookupContext &lookup_context) const
@@ -2881,7 +2869,6 @@ struct ContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
@@ -2906,7 +2893,6 @@ struct ContextFormat1_4
 
     c->pop_cur_done_glyphs ();
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -3076,7 +3062,6 @@ struct ContextFormat2_5
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     if (!(this+coverage).intersects (c->glyphs))
@@ -3111,7 +3096,6 @@ struct ContextFormat2_5
 
     c->pop_cur_done_glyphs ();
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -3353,7 +3337,6 @@ struct ContextFormat3
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     if (!(this+coverageZ[0]).intersects (c->glyphs))
@@ -3378,7 +3361,6 @@ struct ContextFormat3
 
     c->pop_cur_done_glyphs ();
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -3559,7 +3541,6 @@ struct ChainContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
-#ifndef HB_NO_SUBSET_DEPEND
 struct ChainContextDependLookupContext
 {
   ContextClosureFuncs funcs;
@@ -3568,7 +3549,6 @@ struct ChainContextDependLookupContext
   void *intersects_cache[3];
   void *intersected_glyphs_cache;
 };
-#endif
 
 struct ChainContextCollectGlyphsLookupContext
 {
@@ -3639,7 +3619,6 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 		     lookup_context.intersected_glyphs_cache);
 }
 
-#ifndef HB_NO_SUBSET_DEPEND
 template <typename HBUINT>
 static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 						unsigned int backtrackCount,
@@ -3782,7 +3761,6 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
   c->pop_context ();
   /* preliminary_context is stack-allocated and will be destroyed automatically */
 }
-#endif
 
 template <typename HBUINT>
 static inline void chain_context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
@@ -3893,7 +3871,6 @@ struct ChainRule
 				     lookup_context);
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ChainContextDependLookupContext &lookup_context) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -3907,7 +3884,6 @@ struct ChainRule
 				 value,
 				 lookup_context);
   }
-#endif
 
   void closure (hb_closure_context_t *c, unsigned value,
 		ChainContextClosureLookupContext &lookup_context) const
@@ -4103,7 +4079,6 @@ struct ChainRuleSet
     | hb_any
     ;
   }
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ChainContextDependLookupContext &lookup_context) const
   {
     + hb_iter (rule)
@@ -4111,7 +4086,6 @@ struct ChainRuleSet
     | hb_apply ([&] (const ChainRule &_) { _.depend (c, value, lookup_context); })
     ;
   }
-#endif
   void closure (hb_closure_context_t *c, unsigned value, ChainContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
@@ -4374,7 +4348,6 @@ struct ChainContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
@@ -4399,7 +4372,6 @@ struct ChainContextFormat1_4
 
     c->pop_cur_done_glyphs ();
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -4571,7 +4543,6 @@ struct ChainContextFormat2_5
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     if (!(this+coverage).intersects (c->glyphs))
@@ -4610,7 +4581,6 @@ struct ChainContextFormat2_5
 
     c->pop_cur_done_glyphs ();
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -4909,7 +4879,6 @@ struct ChainContextFormat3
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -4940,7 +4909,6 @@ struct ChainContextFormat3
 
     c->pop_cur_done_glyphs ();
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {

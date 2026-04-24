@@ -37,8 +37,6 @@
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-depend.hh"
 
-#ifndef HB_NO_SUBSET_DEPEND
-
 /**
  * SECTION:hb-depend
  * @title: hb-depend
@@ -98,6 +96,8 @@ hb_depend_t::~hb_depend_t ()
   hb_face_destroy(face);
 }
 
+
+#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * hb_depend_from_face_or_fail:

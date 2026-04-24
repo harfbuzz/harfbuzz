@@ -67,7 +67,6 @@ struct ReverseChainSingleSubstFormat1
   bool may_have_non_1to1 () const
   { return false; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const {
     // Filter by intersects and parent_active_glyphs like closure does
     if (!intersects (c->glyphs)) return;
@@ -125,7 +124,6 @@ struct ReverseChainSingleSubstFormat1
 
     c->depend_data->current_context_set_index = saved_context;
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {

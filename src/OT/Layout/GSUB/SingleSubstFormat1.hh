@@ -45,7 +45,6 @@ struct SingleSubstFormat1_3
   bool may_have_non_1to1 () const
   { return false; }
 
-#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c) const
   {
     hb_codepoint_t d = deltaGlyphID;
@@ -60,7 +59,6 @@ struct SingleSubstFormat1_3
     | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup(_.first, c->lookup_index, _.second); })
     ;
   }
-#endif
 
   void closure (hb_closure_context_t *c) const
   {
