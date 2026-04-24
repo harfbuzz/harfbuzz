@@ -80,10 +80,10 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
    * separately via hb_font_get_variation_glyph() query API during closure
    * computation. */
   get_gsub_dependencies (face);
-  get_math_dependencies (face);
-  get_colr_dependencies (face);
-  get_glyf_dependencies (face);
-  get_cff_dependencies  (face);
+  face->table.MATH->depend (this);
+  face->table.COLR->depend (this);
+  face->table.glyf->depend (this);
+  OT::cff1_subset_accelerator_t (face).depend (this);
   return successful;
 }
 
@@ -172,87 +172,6 @@ hb_depend_data_builder_t::get_gsub_dependencies (hb_face_t *face)
     c.lookup_index = i;
     c.lookups_seen.clear ();
     table->get_lookup (i).depend (&c);
-  }
-}
-
-/*
- * Algorithm: Math Variants (MATH) Dependencies
- *
- * Extracts dependencies from the MATH table for mathematical typesetting.
- * Records which glyphs are used as size variants or assembly components
- * for other glyphs, enabling proper rendering of mathematical expressions.
- */
-void
-hb_depend_data_builder_t::get_math_dependencies (hb_face_t *face)
-{
-  hb_blob_t *math_blob = hb_sanitize_context_t ().reference_table<OT::MATH> (face);
-  auto math = math_blob->as<OT::MATH> ();
-  math->depend (this);
-}
-
-/*
- * Algorithm: Color Layers (COLR) Dependencies
- *
- * For fonts with color glyph support, records which glyphs are used as
- * color layers for other glyphs. Both COLRv0 (simple layers) and COLRv1
- * (gradient/transform-based) are supported. Each base glyph depends on
- * its layer glyphs.
- */
-void
-hb_depend_data_builder_t::get_colr_dependencies (hb_face_t *face)
-{
-  OT::COLR::accelerator_t colr (face);
-  if (!colr.is_valid ()) return;
-  colr.depend (this);
-}
-
-/*
- * Algorithm: Composite Glyph (glyf) Dependencies
- *
- * For TrueType fonts, iterates through all glyphs and records component
- * dependencies for composite glyphs. A composite glyph depends on each
- * of its component glyphs. This is essential for subset operations to
- * preserve glyph integrity.
- */
-void
-hb_depend_data_builder_t::get_glyf_dependencies (hb_face_t *face)
-{
-  OT::glyf_accelerator_t glyf (face);
-  if (!glyf.has_data())
-    return;
-  for (hb_codepoint_t gid = 0; gid < glyf.get_num_glyphs (); gid++) {
-    auto glyph = glyf.glyph_for_gid(gid);
-    for (auto &item : glyph.get_composite_iterator ())
-      add_depend (gid, HB_OT_TAG_glyf, item.get_gid ());
-  }
-}
-
-/*
- * Algorithm: CFF/CFF2 SEAC Dependencies
- *
- * CFF1 supports SEAC (Standard Encoding Accented Character), which allows
- * a glyph to be defined as a combination of two component glyphs (base and
- * accent). This is similar to glyf composite glyphs but specific to CFF1.
- *
- * CFF2 does not support SEAC, so we only check CFF1 tables.
- *
- * For each glyph, we check if it uses SEAC and record dependencies to its
- * base and accent components.
- */
-void
-hb_depend_data_builder_t::get_cff_dependencies (hb_face_t *face)
-{
-  OT::cff1::accelerator_subset_t cff (face);
-  if (!cff.is_valid())
-    return;
-
-  unsigned int num_glyphs = face->get_num_glyphs();
-  for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++) {
-    hb_codepoint_t base_gid, accent_gid;
-    if (cff.get_seac_components(gid, &base_gid, &accent_gid)) {
-      add_depend (gid, HB_TAG('C','F','F',' '), base_gid);
-      add_depend (gid, HB_TAG('C','F','F',' '), accent_gid);
-    }
   }
 }
 

@@ -509,10 +509,6 @@ struct hb_depend_data_builder_t
   bool check_success (bool s) { successful = (successful && s); return successful; }
 
   HB_INTERNAL void get_gsub_dependencies (hb_face_t *face);
-  HB_INTERNAL void get_math_dependencies (hb_face_t *face);
-  HB_INTERNAL void get_colr_dependencies (hb_face_t *face);
-  HB_INTERNAL void get_glyf_dependencies (hb_face_t *face);
-  HB_INTERNAL void get_cff_dependencies  (hb_face_t *face);
 
   bool successful = true;
   hb_set_t unicodes;

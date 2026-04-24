@@ -2337,7 +2337,10 @@ struct COLR
 
 #ifndef HB_NO_SUBSET_DEPEND
     void depend (hb_depend_data_builder_t *depend_data) const
-    { colr->depend (depend_data); }
+    {
+      if (!has_data ()) return;
+      colr->depend (depend_data);
+    }
 #endif
 
     void closure_glyphs (hb_codepoint_t glyph,
