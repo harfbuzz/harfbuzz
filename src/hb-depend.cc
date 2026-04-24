@@ -75,23 +75,19 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   }
   successful = true;
 
-  /* Extract dependencies from all relevant OpenType tables
+  /* Extract dependencies from all relevant OpenType tables.
+   * The builder holds all temporary construction state and is freed when
+   * it goes out of scope at the end of this block.
    * Note: cmap (UVS) dependencies are not extracted - UVS closure is handled
    * separately via hb_font_get_variation_glyph() query API during closure computation. */
-  get_gsub_dependencies();
-  get_math_dependencies();
-  get_colr_dependencies();
-  get_glyf_dependencies();
-  get_cff_dependencies();
-
-  /* Free temporary structures - no longer needed after graph extraction */
-  data.seen_edges.fini();
-  data.set_to_index.fini();
-  data.unicodes.fini();
-  data.nominal_glyphs.fini();
-  for (auto &fs : data.lookup_features)
-    fs.fini();
-  data.lookup_features.fini();
+  {
+    hb_depend_data_builder_t builder (data);
+    get_gsub_dependencies (builder);
+    get_math_dependencies (builder);
+    get_colr_dependencies (builder);
+    get_glyf_dependencies (builder);
+    get_cff_dependencies  (builder);
+  }
 }
 
 /*
@@ -109,7 +105,8 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
  * that could occur through OpenType Layout features, regardless of
  * script, language, or shaping context.
  */
-void hb_depend_t::get_gsub_dependencies() {
+void hb_depend_t::get_gsub_dependencies (hb_depend_data_builder_t &builder)
+{
   hb_blob_t *gsub_blob = hb_sanitize_context_t ().reference_table<OT::Layout::GSUB> (face);
   auto table = gsub_blob->as<OT::Layout::GSUB> ();
   unsigned num_features = table->get_feature_count ();
@@ -118,7 +115,7 @@ void hb_depend_t::get_gsub_dependencies() {
   if (!check_success (feature_tags.resize (num_features)))
     return;
   table->get_feature_tags(0, &num_features, feature_tags.arrayZ);
-  if (!check_success (data.lookup_features.resize (num_lookups)))
+  if (!check_success (builder.lookup_features.resize (num_lookups)))
     return;
 
   hb_vector_t<hb_tag_t> feature_query_v;
@@ -139,9 +136,8 @@ void hb_depend_t::get_gsub_dependencies() {
     for (auto feature_index : feature_indexes)
       table->get_feature (feature_index).add_lookup_indexes_to (&lookup_indexes);
 
-    for (auto lookup_index : lookup_indexes) {
-      data.lookup_features[lookup_index].add (ft);
-    }
+    for (auto lookup_index : lookup_indexes)
+      builder.lookup_features[lookup_index].add (ft);
 
     auto &fv = table->get_feature_variations ();
     auto fi_count = fv.record_count();
@@ -153,8 +149,8 @@ void hb_depend_t::get_gsub_dependencies() {
           feature_ptr->add_lookup_indexes_to (&lookup_indexes);
       }
       for (auto lookup_index : lookup_indexes) {
-        if (!data.lookup_features[lookup_index].has (ft))
-          data.lookup_features[lookup_index].add (ft);
+        if (!builder.lookup_features[lookup_index].has (ft))
+          builder.lookup_features[lookup_index].add (ft);
       }
     }
   }
@@ -162,13 +158,10 @@ void hb_depend_t::get_gsub_dependencies() {
   hb_set_t all_glyphs;
   all_glyphs.add_range (0, face->get_num_glyphs () - 1);
 
-  // During graph extraction, all lookups see ALL glyphs, allowing us to record all possible edges.
-  OT::hb_depend_context_t c (&data, face, &all_glyphs);
+  OT::hb_depend_context_t c (&builder, face, &all_glyphs);
 
-  /* Debug output at level 1: per-lookup processing details.
-   * Use HB_DEBUG_DEPEND=2 or higher to see these messages. */
   int i = -1;
-  for (auto &feature_set : data.lookup_features) {
+  for (auto &feature_set : builder.lookup_features) {
     i++;
     if (feature_set.is_empty ()) {
       DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
@@ -190,11 +183,11 @@ void hb_depend_t::get_gsub_dependencies() {
  * Records which glyphs are used as size variants or assembly components
  * for other glyphs, enabling proper rendering of mathematical expressions.
  */
-void hb_depend_t::get_math_dependencies()
+void hb_depend_t::get_math_dependencies (hb_depend_data_builder_t &builder)
 {
   hb_blob_t *math_blob = hb_sanitize_context_t ().reference_table<OT::MATH> (face);
   auto math = math_blob->as<OT::MATH> ();
-  math->depend (&data);
+  math->depend (&builder);
 }
 
 /*
@@ -205,11 +198,11 @@ void hb_depend_t::get_math_dependencies()
  * (gradient/transform-based) are supported. Each base glyph depends on
  * its layer glyphs.
  */
-void hb_depend_t::get_colr_dependencies()
+void hb_depend_t::get_colr_dependencies (hb_depend_data_builder_t &builder)
 {
   OT::COLR::accelerator_t colr (face);
   if (!colr.is_valid ()) return;
-  colr.depend (&data);
+  colr.depend (&builder);
 }
 
 /*
@@ -220,7 +213,7 @@ void hb_depend_t::get_colr_dependencies()
  * of its component glyphs. This is essential for subset operations to
  * preserve glyph integrity.
  */
-void hb_depend_t::get_glyf_dependencies()
+void hb_depend_t::get_glyf_dependencies (hb_depend_data_builder_t &builder)
 {
   OT::glyf_accelerator_t glyf (face);
   if (!glyf.has_data())
@@ -228,7 +221,7 @@ void hb_depend_t::get_glyf_dependencies()
   for (hb_codepoint_t gid = 0; gid < glyf.get_num_glyphs (); gid++) {
     auto glyph = glyf.glyph_for_gid(gid);
     for (auto &item : glyph.get_composite_iterator ())
-      data.add_depend (gid, HB_OT_TAG_glyf, item.get_gid ());
+      builder.add_depend (gid, HB_OT_TAG_glyf, item.get_gid ());
   }
 }
 
@@ -244,7 +237,7 @@ void hb_depend_t::get_glyf_dependencies()
  * For each glyph, we check if it uses SEAC and record dependencies to its
  * base and accent components.
  */
-void hb_depend_t::get_cff_dependencies()
+void hb_depend_t::get_cff_dependencies (hb_depend_data_builder_t &builder)
 {
   OT::cff1::accelerator_subset_t cff (face);
   if (!cff.is_valid())
@@ -254,9 +247,8 @@ void hb_depend_t::get_cff_dependencies()
   for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++) {
     hb_codepoint_t base_gid, accent_gid;
     if (cff.get_seac_components(gid, &base_gid, &accent_gid)) {
-      // SEAC glyph found - add dependencies to base and accent
-      data.add_depend(gid, HB_TAG('C','F','F',' '), base_gid);
-      data.add_depend(gid, HB_TAG('C','F','F',' '), accent_gid);
+      builder.add_depend (gid, HB_TAG('C','F','F',' '), base_gid);
+      builder.add_depend (gid, HB_TAG('C','F','F',' '), accent_gid);
     }
   }
 }

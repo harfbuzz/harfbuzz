@@ -69,19 +69,19 @@ struct hb_depend_t
                        hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
                        hb_codepoint_t *context_set, uint8_t *flags)
   {
-    return data.get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
-                                ligature_set, context_set, flags);
+    return data.get_glyph_entry (gid, index, table_tag, dependent, layout_tag,
+                                 ligature_set, context_set, flags);
   }
   const hb_set_t *get_set_from_index (hb_codepoint_t index)
   {
     return data.get_set_from_index (index);
   }
 
-  HB_INTERNAL void get_gsub_dependencies ();
-  HB_INTERNAL void get_math_dependencies ();
-  HB_INTERNAL void get_colr_dependencies ();
-  HB_INTERNAL void get_glyf_dependencies ();
-  HB_INTERNAL void get_cff_dependencies ();
+  HB_INTERNAL void get_gsub_dependencies (hb_depend_data_builder_t &builder);
+  HB_INTERNAL void get_math_dependencies (hb_depend_data_builder_t &builder);
+  HB_INTERNAL void get_colr_dependencies (hb_depend_data_builder_t &builder);
+  HB_INTERNAL void get_glyf_dependencies (hb_depend_data_builder_t &builder);
+  HB_INTERNAL void get_cff_dependencies  (hb_depend_data_builder_t &builder);
 
   hb_face_t *face;
   hb_set_t features;

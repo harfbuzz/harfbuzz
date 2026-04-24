@@ -27,6 +27,10 @@
 #ifndef HB_DEPEND_DATA_HH
 #define HB_DEPEND_DATA_HH
 
+/* This file exists to break include cycles: hb-ot-layout-gsubgpos.hh needs
+ * hb_depend_data_builder_t for hb_depend_context_t, but hb-depend.hh pulls
+ * in table headers that include hb-ot-layout-gsubgpos.hh. */
+
 #include "hb.hh"
 
 #include "hb-multimap.hh"
@@ -34,7 +38,7 @@
 #ifndef HB_NO_SUBSET_DEPEND
 
 /**
- * Edge flags for hb_depend_data_record_t.
+ * Edge flags for hb_depend_edge_t.
  *
  * These flags mark edges that may cause "expected" over-approximation when
  * computing closure via the depend graph compared to hb_ot_layout_lookups_substitute_closure().
@@ -61,22 +65,22 @@
 #define HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT   0x02
 
 /**
- * hb_depend_data_record_t:
+ * hb_depend_edge_t:
  *
  * Internal structure representing a single dependency edge in the graph.
  * Records that glyph A depends on glyph B through a specific OpenType
  * mechanism (table_tag), with additional metadata:
  *
- * - table_tag: Source table (GSUB, cmap, glyf, CFF, COLR, MATH)
+ * - table_tag: Source table (GSUB, glyf, CFF, COLR, MATH)
  * - dependent: Target glyph ID
- * - layout_tag: Feature tag (for GSUB) or UVS codepoint (for cmap), else 0
+ * - layout_tag: Feature tag (for GSUB), else 0
  * - ligature_set: Index into sets array for ligature components, else INVALID
  * - context_set: Index into sets array for context requirements, else INVALID
  * - flags: Edge flags (FROM_CONTEXT_POSITION, FROM_NESTED_CONTEXT)
  */
-struct hb_depend_data_record_t {
-  hb_depend_data_record_t() = delete;
-  hb_depend_data_record_t(hb_tag_t table_tag,
+struct hb_depend_edge_t {
+  hb_depend_edge_t() = delete;
+  hb_depend_edge_t(hb_tag_t table_tag,
                    hb_codepoint_t dependent,
                    hb_tag_t layout_tag,
                    hb_codepoint_t ligature_set,
@@ -87,7 +91,7 @@ struct hb_depend_data_record_t {
      flags(flags)
      {}
 
-  bool operator == (const hb_depend_data_record_t &o) const
+  bool operator == (const hb_depend_edge_t &o) const
   {
     /* NOTE: flags intentionally excluded from equality comparison.
      * Flags are metadata about how an edge was discovered (e.g.,
@@ -127,18 +131,18 @@ struct hb_depend_data_record_t {
 };
 
 /**
- * edge_key_t:
+ * hb_depend_edge_key_t:
  *
  * Key structure for edge deduplication. Combines source glyph with edge record.
  * Uses the record's equality and hash operators for comparison.
  */
-struct edge_key_t {
+struct hb_depend_edge_key_t {
   hb_codepoint_t source;
-  hb_depend_data_record_t record;
+  hb_depend_edge_t record;
 
-  edge_key_t () : source (0), record (0, 0, 0, HB_CODEPOINT_INVALID, HB_CODEPOINT_INVALID, 0) {}
+  hb_depend_edge_key_t () : source (0), record (0, 0, 0, HB_CODEPOINT_INVALID, HB_CODEPOINT_INVALID, 0) {}
 
-  edge_key_t (hb_codepoint_t source,
+  hb_depend_edge_key_t (hb_codepoint_t source,
               hb_tag_t table_tag,
               hb_tag_t layout_tag,
               hb_codepoint_t dependent,
@@ -147,7 +151,7 @@ struct edge_key_t {
     : source (source),
       record (table_tag, dependent, layout_tag, ligature_set, context_set, 0) {}
 
-  bool operator == (const edge_key_t &o) const
+  bool operator == (const hb_depend_edge_key_t &o) const
   {
     return source == o.source && record == o.record;
   }
@@ -165,97 +169,146 @@ struct edge_key_t {
 };
 
 /**
- * hb_glyph_depend_record_t:
+ * hb_depend_glyph_record_t:
  *
- * Internal structure holding all dependency records for a single glyph.
- * Contains a vector of hb_depend_data_record_t entries, indexed sequentially
- * starting from 0.
+ * Internal structure holding all dependency edges for a single glyph.
  */
-struct hb_glyph_depend_record_t {
-  hb_vector_t<hb_depend_data_record_t> dependencies;
+struct hb_depend_glyph_record_t {
+  hb_vector_t<hb_depend_edge_t> dependencies;
 };
 
 /**
- * hb_lookup_feature_record_t:
+ * hb_depend_lookup_revmap_t:
  *
  * Internal structure tracking which features are associated with a lookup.
  * Used during GSUB dependency analysis to record the feature tags that
  * activate each lookup.
  */
-struct hb_lookup_feature_record_t {
-  hb_lookup_feature_record_t () = default;
-  explicit hb_lookup_feature_record_t (bool full) : full (full) {}
-  hb_lookup_feature_record_t (const hb_lookup_feature_record_t &o) : full(o.full),
+struct hb_depend_lookup_revmap_t
+{
+  hb_depend_lookup_revmap_t () = default;
+  explicit hb_depend_lookup_revmap_t (bool full) : full (full) {}
+  hb_depend_lookup_revmap_t (const hb_depend_lookup_revmap_t &o) : full(o.full),
                                                                      fv_indexes(o.fv_indexes) {}
-  hb_lookup_feature_record_t (hb_lookup_feature_record_t &&o) : full(o.full),
+  hb_depend_lookup_revmap_t (hb_depend_lookup_revmap_t &&o) : full(o.full),
                                                                 fv_indexes(std::move(o.fv_indexes)) {}
-  hb_lookup_feature_record_t& operator = (const hb_lookup_feature_record_t &o)
+  hb_depend_lookup_revmap_t& operator = (const hb_depend_lookup_revmap_t &o)
   {
     full = o.full;
     fv_indexes = o.fv_indexes;
     return *this;
   }
 
-  bool full {true};
+  bool full = true;
   hb_set_t fv_indexes;
 };
 
 /**
  * hb_depend_data_t:
  *
- * Internal container for all dependency graph data.
- *
- * Persistent data (retained after graph construction):
+ * Persistent dependency graph data, retained for the lifetime of hb_depend_t.
+ * Contains only what is needed at query time:
  * - glyph_dependencies: Per-glyph edge lists
- * - sets: Ligature sets and context sets indexed by set ID
+ * - sets: Ligature and context sets indexed by set ID
  *
- * Temporary data (freed after construction via cleanup()):
- * - unicodes: Set of all Unicode codepoints in the font
- * - nominal_glyphs: Codepoint to nominal glyph mapping
+ * Constructed via hb_depend_data_builder_t; immutable thereafter.
+ */
+struct hb_depend_data_t
+{
+  /* Set storage: vector of heap-allocated sets (both ligature and context sets).
+   * Using unique_ptr follows HarfBuzz pattern and provides stable pointers. */
+  hb_vector_t<hb::unique_ptr<hb_set_t>> sets;
+
+  hb_vector_t<hb_depend_glyph_record_t> glyph_dependencies;
+
+  const hb_set_t *get_set_from_index (hb_codepoint_t index)
+  {
+    if (index < sets.length)
+      return sets[index].get ();
+    return nullptr;
+  }
+
+  bool get_glyph_entry (hb_codepoint_t gid, hb_codepoint_t index,
+                        hb_tag_t *table_tag, hb_codepoint_t *dependent,
+                        hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
+                        hb_codepoint_t *context_set, uint8_t *flags)
+  {
+    if (gid < glyph_dependencies.length &&
+        index < glyph_dependencies[gid].dependencies.length) {
+      auto &d = glyph_dependencies[gid].dependencies[index];
+      *table_tag = d.table_tag;
+      *dependent = d.dependent;
+      *layout_tag = d.layout_tag;
+      *ligature_set = d.ligature_set;
+      *context_set = d.context_set;
+      if (flags) *flags = d.flags;
+      return true;
+    }
+    return false;
+  }
+
+  void print ()
+  {
+    for (unsigned i = 0; i < glyph_dependencies.length; i++) {
+      auto &gd = glyph_dependencies[i];
+      if (!gd.dependencies.length)
+        continue;
+      printf ("GID %u:\n", i);
+      for (auto &d : gd.dependencies) {
+        if (d.table_tag == HB_OT_TAG_GSUB) {
+          printf ("  layout %c%c%c%c -> %u", HB_UNTAG(d.layout_tag), d.dependent);
+          if (d.ligature_set != HB_CODEPOINT_INVALID)
+            printf ("  (ligature)");
+        } else {
+          printf ("  %c%c%c%c -> %u", HB_UNTAG(d.table_tag), d.dependent);
+        }
+        printf ("\n");
+      }
+    }
+  }
+};
+
+/**
+ * hb_depend_data_builder_t:
+ *
+ * Temporary builder for constructing hb_depend_data_t. Holds all state
+ * needed during graph extraction; goes out of scope (and is freed) when
+ * construction is complete, leaving only hb_depend_data_t.
+ *
+ * Temporary state (freed on destruction):
  * - lookup_features: Lookup index to feature tag mapping
  * - seen_edges: Struct-based edge deduplication table
  * - set_to_index: Content-based context set deduplication map
  * - free_set_list: Indices of freed sets available for reuse
- *
- * Extraction state (used during graph construction):
  * - current_context_set_index: Context requirements for current rule
  * - current_edge_flags: Flags to apply to edges being recorded
- *
- * This structure is owned by hb_depend_t and freed when the depend
- * object is destroyed.
  */
-struct hb_depend_data_t
+struct hb_depend_data_builder_t
 {
-  hb_depend_data_t ()
-#ifndef HB_NO_SUBSET_DEPEND
+  hb_depend_data_builder_t (hb_depend_data_t &data_)
     : current_context_set_index (HB_CODEPOINT_INVALID),
-      current_edge_flags (0)
-#endif
-  {}
+      current_edge_flags (0),
+      data (data_) {}
 
-  ~hb_depend_data_t () {}
+  /* Forward to data for use during construction (e.g. from hb_depend_context_t) */
+  const hb_set_t *get_set_from_index (hb_codepoint_t index)
+  { return data.get_set_from_index (index); }
 
   /* Free an unused ligature set for reuse.
-   * Only called for ligature sets that were allocated but had no edges added.
-   * Ligature sets are never in set_to_index, so no hashmap manipulation needed. */
+   * Only called for ligature sets that were allocated but had no edges added. */
   void free_ligature_set (hb_codepoint_t set_index)
   {
-    if (set_index >= sets.length)
+    if (set_index >= data.sets.length)
     {
       DEBUG_MSG (SUBSET, nullptr, "Attempting to free invalid set %u (max is %u)",
-                 set_index, sets.length - 1);
+                 set_index, data.sets.length - 1);
       return;
     }
-
-    /* Clear the set to save memory */
-    sets[set_index]->clear ();
-
-    /* Add to free list for reuse */
+    data.sets[set_index]->clear ();
     free_set_list.push (set_index);
   }
 
-  /* Allocate a new ligature set (no deduplication).
-   * Used for ligature component sets - each must be unique per API contract. */
+  /* Allocate a new ligature set (no deduplication). */
   hb_codepoint_t new_ligature_set (hb_codepoint_t cp)
   {
     hb_set_t temp_set;
@@ -269,53 +322,39 @@ struct hb_depend_data_t
 
     if (free_set_list.length > 0)
     {
-      /* Reuse freed set */
       set_index = free_set_list.pop ();
-      sets[set_index]->set (set);
+      data.sets[set_index]->set (set);
     }
     else
     {
-      /* Allocate new set */
-      set_index = sets.length;
+      set_index = data.sets.length;
       hb_set_t *new_set = hb_set_create ();
       if (unlikely (!new_set))
         return HB_CODEPOINT_INVALID;
       new_set->set (set);
-      if (unlikely (!sets.push_or_fail (hb::unique_ptr<hb_set_t> {new_set})))
+      if (unlikely (!data.sets.push_or_fail (hb::unique_ptr<hb_set_t> {new_set})))
         return HB_CODEPOINT_INVALID;
     }
 
     return set_index;
   }
 
-
   /* Find existing context set with same contents, or create new one (with deduplication).
-   * Only for context sets. For ligature sets, call new_ligature_set() directly.
-   *
-   * Uses content-based deduplication via hb_hashmap_t with pointer keys:
-   * hb_hash dereferences pointers and hashes content, so identical context sets
-   * are found regardless of pointer address.
-   *
-   * Note: Context sets may reuse indices from ligature sets if the contents match.
-   * This is acceptable since the API only guarantees uniqueness for ligature sets. */
+   * Uses content-based deduplication via hb_hashmap_t with pointer keys. */
   hb_codepoint_t find_or_create_context_set (const hb_set_t &set)
   {
-    /* Check if we already have this set (content-based lookup via pointer hash) */
     hb_codepoint_t *existing_idx = nullptr;
     if (set_to_index.has (&set, &existing_idx))
-      return *existing_idx;  /* Reuse existing set */
+      return *existing_idx;
 
-    /* Create new set (allocated as if it were a ligature set, but will be deduplicated) */
     hb_codepoint_t new_idx = new_ligature_set (const_cast<hb_set_t&>(set));
     if (unlikely (new_idx == HB_CODEPOINT_INVALID))
       return HB_CODEPOINT_INVALID;
 
-    /* Add to deduplication map for future context set lookups */
-    set_to_index.set (sets[new_idx].get (), new_idx);
+    set_to_index.set (data.sets[new_idx].get (), new_idx);
     return new_idx;
   }
 
-#ifndef HB_NO_SUBSET_DEPEND
   /* Build a context set from context information.
    * Encodes backtrack and lookahead requirements as a flattened set.
    * Returns HB_CODEPOINT_INVALID if no context.
@@ -340,10 +379,7 @@ struct hb_depend_data_t
       for (const auto &back_set : *backtrack_sets)
       {
         if (back_set.get_population () == 1)
-        {
-          hb_codepoint_t gid = back_set.get_min ();
-          direct_requirements.add (gid);
-        }
+          direct_requirements.add (back_set.get_min ());
       }
     }
 
@@ -352,10 +388,7 @@ struct hb_depend_data_t
       for (const auto &look_set : *lookahead_sets)
       {
         if (look_set.get_population () == 1)
-        {
-          hb_codepoint_t gid = look_set.get_min ();
-          direct_requirements.add (gid);
-        }
+          direct_requirements.add (look_set.get_min ());
       }
     }
 
@@ -368,7 +401,6 @@ struct hb_depend_data_t
       {
         if (back_set.get_population () > 1)
         {
-          /* Multiple glyphs - filter and create set reference */
           hb_set_t filtered_set;
           filtered_set.set (back_set);
           filtered_set.subtract (direct_requirements);
@@ -388,7 +420,6 @@ struct hb_depend_data_t
       {
         if (look_set.get_population () > 1)
         {
-          /* Multiple glyphs - filter and create set reference */
           hb_set_t filtered_set;
           filtered_set.set (look_set);
           filtered_set.subtract (direct_requirements);
@@ -402,63 +433,12 @@ struct hb_depend_data_t
       }
     }
 
-    /* Add direct requirements */
     context_elements.union_ (direct_requirements);
 
     if (context_elements.is_empty ())
       return HB_CODEPOINT_INVALID;
 
-    /* Store context elements with deduplication */
     return find_or_create_context_set (context_elements);
-  }
-#endif
-
-  void print()
-  {
-    for (unsigned i = 0; i < glyph_dependencies.length; i++) {
-      auto &gd = glyph_dependencies[i];
-      if (!gd.dependencies.length)
-        continue;
-      printf("GID %u:\n", i);
-      for (auto &d : gd.dependencies) {
-        if (d.table_tag == HB_OT_TAG_GSUB) {
-          printf("  layout %c%c%c%c -> %u", HB_UNTAG(d.layout_tag), d.dependent);
-          if (d.ligature_set != HB_CODEPOINT_INVALID)
-            printf("  (ligature)");
-        } else {
-          printf("  %c%c%c%c -> %u", HB_UNTAG(d.table_tag), d.dependent);
-          if (d.table_tag == HB_TAG('c','m','a','p'))
-            printf(" (UVS is %u)", d.layout_tag);
-        }
-        printf("\n");
-      }
-    }
-  }
-
-  bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
-                       hb_tag_t *table_tag, hb_codepoint_t *dependent,
-                       hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
-                       hb_codepoint_t *context_set, uint8_t *flags)
-  {
-    if (gid < glyph_dependencies.length &&
-        index < glyph_dependencies[gid].dependencies.length) {
-      auto &d = glyph_dependencies[gid].dependencies[index];
-      *table_tag = d.table_tag;
-      *dependent = d.dependent;
-      *layout_tag = d.layout_tag;
-      *ligature_set = d.ligature_set;
-      *context_set = d.context_set;
-      if (flags) *flags = d.flags;
-      return true;
-    }
-    return false;
-  }
-
-  const hb_set_t *get_set_from_index (hb_codepoint_t index)
-  {
-    if (index < sets.length)
-      return sets[index].get ();
-    return nullptr;
   }
 
   bool add_depend_layout (hb_codepoint_t target, hb_tag_t table_tag,
@@ -468,21 +448,19 @@ struct hb_depend_data_t
                           hb_codepoint_t context_set = HB_CODEPOINT_INVALID,
                           uint8_t flags = 0)
   {
-    if (target >= glyph_dependencies.length) {
+    if (target >= data.glyph_dependencies.length) {
       DEBUG_MSG (SUBSET, nullptr, "Dependency glyph %u for %c%c%c%c too large",
                  target, HB_UNTAG(table_tag));
       return false;
     }
 
-    /* Check if we've already seen this edge (uses struct-based hashing) */
-    edge_key_t key (target, table_tag, layout_tag, dependent, lig_set, context_set);
+    hb_depend_edge_key_t key (target, table_tag, layout_tag, dependent, lig_set, context_set);
     if (seen_edges.has (key))
-      return false;  /* Duplicate edge */
+      return false;
 
-    /* Record as seen and add to dependency list */
     seen_edges.set (key, true);
 
-    auto &gdr = glyph_dependencies[target];
+    auto &gdr = data.glyph_dependencies[target];
     gdr.dependencies.push (table_tag, dependent, layout_tag, lig_set,
                            context_set, flags);
     return true;
@@ -493,20 +471,13 @@ struct hb_depend_data_t
                         hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                         hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
-#ifndef HB_NO_SUBSET_DEPEND
-    /* Use pre-computed context set index for the current rule */
     if (context_set == HB_CODEPOINT_INVALID)
       context_set = current_context_set_index;
-
-    /* Use current edge flags */
     uint8_t flags = current_edge_flags;
-#else
-    uint8_t flags = 0;
-#endif
 
     bool any_added = false;
     for (auto t : lookup_features[lookup_index]) {
-      if (add_depend_layout(target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set, flags))
+      if (add_depend_layout (target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set, flags))
         any_added = true;
     }
     return any_added;
@@ -522,42 +493,19 @@ struct hb_depend_data_t
                        context_set, flags);
   }
 
-  hb_codepoint_t get_nominal_glyph(hb_codepoint_t cp)
-  {
-    return hb_map_get(&nominal_glyphs, cp);
-  }
+  hb_codepoint_t get_nominal_glyph (hb_codepoint_t cp)
+  { return hb_map_get (&nominal_glyphs, cp); }
 
   hb_set_t unicodes;
   hb_map_t nominal_glyphs;
-
-  /* Set storage: vector of heap-allocated sets (both ligature and context sets)
-   * Using unique_ptr follows HarfBuzz pattern and provides stable pointers. */
-  hb_vector_t<hb::unique_ptr<hb_set_t>> sets;
-  hb_vector_t<hb_codepoint_t> free_set_list;  /* Indices of freed sets for reuse */
-  /* Context set deduplication: set pointer (content-hashed) -> set_index.
-   * Uses HarfBuzz's established pattern where hb_hash dereferences pointers
-   * to hash contents, enabling content-based deduplication.
-   * Only context sets are added to this map; ligature sets remain unique. */
-  hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
-
-  hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;
   hb_vector_t<hb_set_t> lookup_features;
-
-  /* Edge deduplication: struct-based hashing via edge_key_t */
-  hb_hashmap_t<edge_key_t, bool> seen_edges;
-
-#ifndef HB_NO_SUBSET_DEPEND
-  /* Temporary: Context set index for the current rule.
-   * Built once per rule by context_depend_lookup/chain_context_depend_lookup,
-   * then used by all edges recorded from nested lookups. */
+  hb_hashmap_t<hb_depend_edge_key_t, bool> seen_edges;
+  hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
+  hb_vector_t<hb_codepoint_t> free_set_list;
   hb_codepoint_t current_context_set_index;
-
-  /* Temporary: Edge flags for edges being recorded.
-   * Set by context_depend_recurse_lookups before recursing into nested lookups.
-   * FROM_CONTEXT_POSITION: multi-position contextual rule (inputCount > 1)
-   * FROM_NESTED_CONTEXT: lookup called from within another contextual lookup */
   uint8_t current_edge_flags;
-#endif
+
+  hb_depend_data_t &data;
 };
 
 #endif /* !HB_NO_SUBSET_DEPEND */

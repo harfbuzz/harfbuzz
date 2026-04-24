@@ -440,7 +440,7 @@ struct hb_depend_context_t :
     return context_stack.length > 0 ? &context_stack[context_stack.length - 1] : nullptr;
   }
 
-  hb_depend_data_t *depend_data;
+  hb_depend_data_builder_t *depend_data;
   hb_face_t *face;
   hb_set_t *glyphs;
   hb_vector_t<hb_set_t> active_glyphs_stack;
@@ -449,7 +449,7 @@ struct hb_depend_context_t :
   hb_codepoint_t lookup_index;
   hb_set_t lookups_seen;
 
-  hb_depend_context_t (hb_depend_data_t *depend_data_,
+  hb_depend_context_t (hb_depend_data_builder_t *depend_data_,
                        hb_face_t *face_,
                        hb_set_t *glyphs_)
                       : depend_data (depend_data_),

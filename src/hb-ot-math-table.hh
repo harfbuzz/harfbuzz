@@ -664,7 +664,7 @@ struct MathGlyphVariantRecord
   }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  void depend (hb_depend_data_builder_t *depend_data, unsigned source) const
   { depend_data->add_depend(source, HB_OT_TAG_MATH, variantGlyph); }
 #endif
 
@@ -730,7 +730,7 @@ struct MathGlyphPartRecord
   }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  void depend (hb_depend_data_builder_t *depend_data, unsigned source) const
   { depend_data->add_depend(source, HB_OT_TAG_MATH, glyph); }
 #endif
 
@@ -802,7 +802,7 @@ struct MathGlyphAssembly
   }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  void depend (hb_depend_data_builder_t *depend_data, unsigned source) const
   {
     for (const auto& _ : partRecords.iter ())
       _.depend (depend_data, source);
@@ -875,7 +875,7 @@ struct MathGlyphConstruction
   }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data, unsigned source) const
+  void depend (hb_depend_data_builder_t *depend_data, unsigned source) const
   {
     (this+glyphAssembly).depend (depend_data, source);
 
@@ -907,7 +907,7 @@ struct MathGlyphConstruction
 struct MathVariants
 {
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data) const
+  void depend (hb_depend_data_builder_t *depend_data) const
   {
     const hb_array_t<const Offset16To<MathGlyphConstruction>> glyph_construction_offsets = glyphConstruction.as_array (vertGlyphCount + horizGlyphCount);
 
@@ -1133,7 +1133,7 @@ struct MATH
   bool has_data () const { return version.to_int (); }
 
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data) const
+  void depend (hb_depend_data_builder_t *depend_data) const
   {
     if (mathVariants)
       (this+mathVariants).depend (depend_data);

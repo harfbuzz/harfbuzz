@@ -249,12 +249,12 @@ struct hb_colrv1_depend_context_t :
 
   public:
   const void *base;
-  hb_depend_data_t *depend_data;
+  hb_depend_data_builder_t *depend_data;
   unsigned nesting_level_left;
   hb_codepoint_t source_gid;
 
   hb_colrv1_depend_context_t (const void *base_,
-                              hb_depend_data_t *depend_data_,
+                              hb_depend_data_builder_t *depend_data_,
                               unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
                           base (base_),
                           depend_data (depend_data_),
@@ -2336,7 +2336,7 @@ struct COLR
     bool is_valid () { return colr.get_blob ()->length; }
 
 #ifndef HB_NO_SUBSET_DEPEND
-    void depend (hb_depend_data_t *depend_data) const
+    void depend (hb_depend_data_builder_t *depend_data) const
     { colr->depend (depend_data); }
 #endif
 
@@ -2402,7 +2402,7 @@ struct COLR
   };
 
 #ifndef HB_NO_SUBSET_DEPEND
-  void depend (hb_depend_data_t *depend_data) const
+  void depend (hb_depend_data_builder_t *depend_data) const
   {
     // v0
     hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
