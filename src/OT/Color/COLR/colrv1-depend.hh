@@ -73,7 +73,6 @@ template <template<typename> class Var>
 HB_INTERNAL void PaintTransform<Var>::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  (this+transform).dependv1 (c);
 }
 
 HB_INTERNAL void PaintTranslate::dependv1 (hb_colrv1_depend_context_t* c) const
