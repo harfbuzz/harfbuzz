@@ -44,7 +44,7 @@ struct MultipleSubstFormat1_2
     ;
   }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     // Filter by parent_active_glyphs like closure does

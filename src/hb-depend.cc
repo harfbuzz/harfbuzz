@@ -37,7 +37,7 @@
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-depend.hh"
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * SECTION:hb-depend
@@ -387,7 +387,10 @@ hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
 hb_bool_t
 hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
                              hb_set_t *out) {
-  return depend->get_set_from_index(index, out);
+  const hb_set_t *s = depend->get_set_from_index (index);
+  if (!s) return false;
+  out->set (*s);
+  return true;
 }
 
 /**
@@ -428,4 +431,4 @@ hb_depend_destroy (hb_depend_t *depend)
   hb_free (depend);
 }
 
-#endif /* HB_DEPEND_API */
+#endif /* !HB_NO_SUBSET_DEPEND */

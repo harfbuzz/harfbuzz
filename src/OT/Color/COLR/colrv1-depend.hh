@@ -35,7 +35,7 @@
  */
 namespace OT {
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 
 HB_INTERNAL void PaintColrLayers::dependv1 (hb_colrv1_depend_context_t* c) const
 {

@@ -31,7 +31,7 @@
 
 #include "hb-multimap.hh"
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * Edge flags for hb_depend_data_record_t.
@@ -227,7 +227,7 @@ struct hb_lookup_feature_record_t {
 struct hb_depend_data_t
 {
   hb_depend_data_t ()
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
     : current_context_set_index (HB_CODEPOINT_INVALID),
       current_edge_flags (0)
 #endif
@@ -270,8 +270,7 @@ struct hb_depend_data_t
     if (free_set_list.length > 0)
     {
       /* Reuse freed set */
-      set_index = free_set_list[free_set_list.length - 1];
-      free_set_list.resize (free_set_list.length - 1);
+      set_index = free_set_list.pop ();
       sets[set_index]->set (set);
     }
     else
@@ -282,7 +281,8 @@ struct hb_depend_data_t
       if (unlikely (!new_set))
         return HB_CODEPOINT_INVALID;
       new_set->set (set);
-      sets.push (hb::unique_ptr<hb_set_t> {new_set});
+      if (unlikely (!sets.push_or_fail (hb::unique_ptr<hb_set_t> {new_set})))
+        return HB_CODEPOINT_INVALID;
     }
 
     return set_index;
@@ -315,7 +315,7 @@ struct hb_depend_data_t
     return new_idx;
   }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   /* Build a context set from context information.
    * Encodes backtrack and lookahead requirements as a flattened set.
    * Returns HB_CODEPOINT_INVALID if no context.
@@ -454,13 +454,11 @@ struct hb_depend_data_t
     return false;
   }
 
-  bool get_set_from_index(hb_codepoint_t index, hb_set_t *out)
+  const hb_set_t *get_set_from_index (hb_codepoint_t index)
   {
-    if (index < sets.length) {
-      out->set(*sets[index]);
-      return true;
-    }
-    return false;
+    if (index < sets.length)
+      return sets[index].get ();
+    return nullptr;
   }
 
   bool add_depend_layout (hb_codepoint_t target, hb_tag_t table_tag,
@@ -495,7 +493,7 @@ struct hb_depend_data_t
                         hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                         hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
     /* Use pre-computed context set index for the current rule */
     if (context_set == HB_CODEPOINT_INVALID)
       context_set = current_context_set_index;
@@ -548,7 +546,7 @@ struct hb_depend_data_t
   /* Edge deduplication: struct-based hashing via edge_key_t */
   hb_hashmap_t<edge_key_t, bool> seen_edges;
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   /* Temporary: Context set index for the current rule.
    * Built once per rule by context_depend_lookup/chain_context_depend_lookup,
    * then used by all edges recorded from nested lookups. */
@@ -562,6 +560,6 @@ struct hb_depend_data_t
 #endif
 };
 
-#endif /* HB_DEPEND_API */
+#endif /* !HB_NO_SUBSET_DEPEND */
 
 #endif /* HB_DEPEND_DATA_HH */

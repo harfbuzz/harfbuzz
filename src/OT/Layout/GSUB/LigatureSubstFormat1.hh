@@ -43,7 +43,7 @@ struct LigatureSubstFormat1_2
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, ligatureSet)

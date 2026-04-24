@@ -32,7 +32,7 @@
 #include "hb-depend.h"
 #include "hb-depend-data.hh"
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * hb_depend_t:
@@ -72,9 +72,9 @@ struct hb_depend_t
     return data.get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
                                 ligature_set, context_set, flags);
   }
-  bool get_set_from_index(hb_codepoint_t index, hb_set_t *out)
+  const hb_set_t *get_set_from_index (hb_codepoint_t index)
   {
-    return data.get_set_from_index(index, out);
+    return data.get_set_from_index (index);
   }
 
   HB_INTERNAL void get_gsub_dependencies ();
@@ -88,6 +88,6 @@ struct hb_depend_t
   hb_depend_data_t data;
 };
 
-#endif /* HB_DEPEND_API */
+#endif /* !HB_NO_SUBSET_DEPEND */
 
 #endif /* HB_DEPEND_HH */

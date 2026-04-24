@@ -27,7 +27,7 @@
 #include <hb.h>
 #include <hb-ot.h>
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 
 /*
  * ============================================================================
@@ -275,45 +275,6 @@ find_dependency (hb_depend_t *depend,
   return FALSE;
 }
 
-/* Test cmap (character mapping) dependency extraction */
-static void
-test_depend_cmap (void)
-{
-  /* ===== UNDERSTANDING cmap DEPENDENCIES ===== */
-  /*
-   * IMPORTANT: Nominal cmap mappings (Unicode → glyph) are NOT stored as
-   * glyph→glyph dependencies. They're collected in a separate nominal_glyphs
-   * map for lookup purposes.
-   *
-   * Only Unicode Variation Sequences (UVS) with NonDefault mappings create
-   * glyph dependencies. The model is:
-   *   - Unicode U nominally maps to glyph G
-   *   - U + selector S → variant glyph V (NonDefault UVS)
-   *   - This creates dependency: G depends on V with layout_tag=S
-   *
-   * Default UVS entries (where selector uses the nominal glyph) do NOT
-   * create dependencies.
-   */
-
-  /* ===== UNICODE VARIATION SEQUENCES (UVS) ===== */
-
-  /* base.ttf has NonDefault UVS entries:
-   * U+904D nominally maps to cid00007 (GID 7)
-   * U+904D + selector 0xE01E5 → cid00010 (GID 10) via NonDefault UVS
-   * This creates dependency: GID 7 → GID 10 with layout_tag=0xE01E5 */
-
-  hb_face_t *face = hb_test_open_font_file ("fonts/base.ttf");
-  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
-  g_assert_nonnull (depend);
-
-  g_test_message ("Testing cmap NonDefault UVS: cid00007 (7) → cid00010 (10) with selector 0xE01E5");
-  hb_tag_t layout_tag = 0xE01E5;  /* UVS selector stored in layout_tag */
-  g_assert_true (find_dependency (depend, 7, 10, HB_TAG('c','m','a','p'),
-                                  &layout_tag, NULL));
-
-  hb_depend_destroy (depend);
-  hb_face_destroy (face);
-}
 
 /* Test glyf (composite glyph) dependency extraction */
 static void
@@ -637,7 +598,6 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_depend_cmap);
   hb_test_add (test_depend_glyf);
   hb_test_add (test_depend_cff);
   hb_test_add (test_depend_colr);

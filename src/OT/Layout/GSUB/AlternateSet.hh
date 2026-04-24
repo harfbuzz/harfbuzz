@@ -29,7 +29,7 @@ struct AlternateSet
   void closure (hb_closure_context_t *c) const
   { c->output->add_array (alternates.arrayZ, alternates.len); }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, hb_codepoint_t source) const
   {
     + hb_iter (alternates)

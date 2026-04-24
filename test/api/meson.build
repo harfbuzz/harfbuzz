@@ -92,7 +92,7 @@ if conf.get('HAVE_PTHREAD', 0) == 1
   tests += 'test-multithread.c'
 endif
 
-if conf.get('HB_DEPEND_API', 0) == 1
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1
   tests += 'test-ot-depend.c'
 endif
 

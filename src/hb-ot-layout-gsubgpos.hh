@@ -376,7 +376,7 @@ struct hb_collect_glyphs_context_t :
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 struct hb_depend_context_t :
        hb_dispatch_context_t<hb_depend_context_t, bool>
 {
@@ -1895,7 +1895,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
   }
 }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 template <typename HBUINT>
 static void context_depend_recurse_lookups (hb_depend_context_t *c,
 					     unsigned inputCount, const HBUINT input[],
@@ -1954,15 +1954,15 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     elem = HB_SET_VALUE_INVALID;
     while (disjunctive_indices.next (&elem)) {
       hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
-      hb_set_t original_set;
-      c->depend_data->get_set_from_index (set_idx, &original_set);
+      const hb_set_t *original_set = c->depend_data->get_set_from_index (set_idx);
+      if (unlikely (!original_set)) continue;
 
       /* Make local copy and subtract direct requirements */
       hb_set_t filtered;
-      filtered.set (original_set);
+      filtered.set (*original_set);
       filtered.subtract (position_context);
 
-      if (filtered == original_set) {
+      if (filtered == *original_set) {
         /* No overlap with position_context - add full requirement */
         filtered_disjunctive_indices.add (elem);
       }
@@ -2251,7 +2251,7 @@ struct ContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 struct ContextDependLookupContext
 {
   ContextClosureFuncs funcs;
@@ -2309,7 +2309,7 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
 				     lookup_context.intersected_glyphs_cache);
 }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 template <typename HBUINT>
 static inline void context_depend_lookup (hb_depend_context_t *c,
 					  unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -2487,7 +2487,7 @@ struct Rule
 			       lookup_context);
   }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ContextDependLookupContext &lookup_context) const
   {
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
@@ -2632,7 +2632,7 @@ struct RuleSet
     ;
   }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ContextDependLookupContext &lookup_context) const
   {
     + hb_iter (rule)
@@ -2882,7 +2882,7 @@ struct ContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
@@ -3079,7 +3079,7 @@ struct ContextFormat2_5
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     if (!(this+coverage).intersects (c->glyphs))
@@ -3358,7 +3358,7 @@ struct ContextFormat3
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     if (!(this+coverageZ[0]).intersects (c->glyphs))
@@ -3566,7 +3566,7 @@ struct ChainContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 struct ChainContextDependLookupContext
 {
   ContextClosureFuncs funcs;
@@ -3646,7 +3646,7 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 		     lookup_context.intersected_glyphs_cache);
 }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 template <typename HBUINT>
 static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 						unsigned int backtrackCount,
@@ -3900,7 +3900,7 @@ struct ChainRule
 				     lookup_context);
   }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ChainContextDependLookupContext &lookup_context) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -4110,7 +4110,7 @@ struct ChainRuleSet
     | hb_any
     ;
   }
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   void depend (hb_depend_context_t *c, unsigned value, ChainContextDependLookupContext &lookup_context) const
   {
     + hb_iter (rule)
@@ -4381,7 +4381,7 @@ struct ChainContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
@@ -4580,7 +4580,7 @@ struct ChainContextFormat2_5
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     if (!(this+coverage).intersects (c->glyphs))
@@ -4920,7 +4920,7 @@ struct ChainContextFormat3
   bool may_have_non_1to1 () const
   { return true; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);

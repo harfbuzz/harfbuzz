@@ -74,7 +74,7 @@ foreach file_name : tests
 endforeach
 
 # Build depend-related fuzzers only if depend_api is enabled
-if conf.get('HB_DEPEND_API', 0) == 1
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1
   foreach file_name : depend_tests
     test_name = file_name.split('.')[0]
 
@@ -227,7 +227,7 @@ if not get_option('subset').disabled()
   endforeach
 endif
 
-if conf.get('HB_DEPEND_API', 0) == 1
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1
   i = 0
   foreach chunk : api_fonts_glob_chunks
     test('depend-closure-parity-chunk-@0@'.format(i),

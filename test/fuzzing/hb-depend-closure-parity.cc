@@ -12,7 +12,7 @@
 #include <random>
 #include <vector>
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 #include <hb.h>
 
 /**
@@ -1533,11 +1533,11 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
   return match;
 }
 
-#endif /* HB_DEPEND_API */
+#endif /* !HB_NO_SUBSET_DEPEND */
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   alloc_state = _fuzzing_alloc_state (data, size);
 
   /* Initialize configuration on first run */
@@ -1735,7 +1735,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_depend_destroy (depend);
   hb_face_destroy (face);
   hb_blob_destroy (blob);
-#endif /* HB_DEPEND_API */
+#endif /* !HB_NO_SUBSET_DEPEND */
 
   return 0;
 }

@@ -45,7 +45,7 @@ struct SingleSubstFormat1_3
   bool may_have_non_1to1 () const
   { return false; }
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
   bool depend (hb_depend_context_t *c) const
   {
     hb_codepoint_t d = deltaGlyphID;

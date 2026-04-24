@@ -34,7 +34,7 @@
 
 HB_BEGIN_DECLS
 
-#ifdef HB_DEPEND_API
+#ifndef HB_NO_SUBSET_DEPEND
 
 /**
  * hb_depend_t:
