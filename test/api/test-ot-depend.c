@@ -234,40 +234,33 @@
  * If found, optionally returns the ligature_set via out parameter.
  */
 static hb_bool_t
-find_dependency (hb_depend_t *depend,
+find_dependency (hb_subset_depend_t *depend,
                  hb_codepoint_t source_glyph,
                  hb_codepoint_t target_glyph,
                  hb_tag_t expected_table_tag,
                  hb_tag_t *out_layout_tag,          /* IN-OUT (optional) */
                  hb_codepoint_t *out_ligature_set)  /* OUT (optional) */
 {
-  hb_tag_t table_tag;
-  hb_codepoint_t dependent;
-  hb_tag_t layout_tag;
-  hb_codepoint_t ligature_set;
-  hb_codepoint_t context_set;
   hb_tag_t filter_layout_tag = (out_layout_tag && *out_layout_tag != HB_TAG_NONE)
                                 ? *out_layout_tag : HB_TAG_NONE;
 
   for (hb_codepoint_t index = 0; ; index++)
   {
-    hb_bool_t found = hb_depend_get_glyph_entry (depend, source_glyph, index,
-                                                  &table_tag, &dependent,
-                                                  &layout_tag, &ligature_set, &context_set,
-                                                  NULL);
+    hb_subset_depend_entry_t entry;
+    hb_bool_t found = hb_subset_depend_lookup_glyph (depend, source_glyph, index, &entry);
     if (!found)
       break;
 
-    if (table_tag == expected_table_tag && dependent == target_glyph)
+    if (entry.table_tag == expected_table_tag && entry.dependent == target_glyph)
     {
       /* If filtering by layout_tag, check if it matches */
-      if (filter_layout_tag != HB_TAG_NONE && layout_tag != filter_layout_tag)
+      if (filter_layout_tag != HB_TAG_NONE && entry.layout_tag != filter_layout_tag)
         continue;
 
       if (out_layout_tag)
-        *out_layout_tag = layout_tag;
+        *out_layout_tag = entry.layout_tag;
       if (out_ligature_set)
-        *out_ligature_set = ligature_set;
+        *out_ligature_set = entry.ligature_set_index;
       return TRUE;
     }
   }
@@ -282,7 +275,7 @@ test_depend_glyf (void)
 {
   /* NotoSans-Bold.ttf has composite glyphs */
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
-  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   /* Composite glyph "Aacute" (131) is composed of two components:
@@ -298,7 +291,7 @@ test_depend_glyf (void)
   g_assert_true (find_dependency (depend, 131, 118, HB_TAG('g','l','y','f'),
                                   NULL, NULL));
 
-  hb_depend_destroy (depend);
+  hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 }
 
@@ -308,7 +301,7 @@ test_depend_cff (void)
 {
   /* cff1_seac.C0.otf has a SEAC composite glyph */
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.C0.otf");
-  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   /* Glyph 2 is a SEAC composite defined as base (glyph 1) + accent (glyph 3).
@@ -322,7 +315,7 @@ test_depend_cff (void)
   g_assert_true (find_dependency (depend, 2, 3, HB_TAG('C','F','F',' '),
                                   NULL, NULL));
 
-  hb_depend_destroy (depend);
+  hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 }
 
@@ -332,18 +325,18 @@ test_depend_colr (void)
 {
   /* COLRv0: base glyph with layer glyphs */
   hb_face_t *face = hb_test_open_font_file ("fonts/COLRv0.extents.ttf");
-  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   g_test_message ("Testing COLRv0: glyph00013 (13) → glyph00010 (10)");
   g_assert_true (find_dependency (depend, 13, 10, HB_TAG('C','O','L','R'), NULL, NULL));
 
-  hb_depend_destroy (depend);
+  hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 
   /* COLRv1: Paint graph dependencies */
   face = hb_test_open_font_file ("fonts/test_glyphs-glyf_colr_1.ttf");
-  depend = hb_depend_from_face_or_fail (face);
+  depend = hb_subset_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   g_test_message ("Testing COLRv1 v0 layer: glyph 168 → glyph 176");
@@ -355,7 +348,7 @@ test_depend_colr (void)
   g_test_message ("Testing COLRv1 PaintGlyph self-reference filtered: glyph 8 should NOT depend on itself");
   g_assert_false (find_dependency (depend, 8, 8, HB_TAG('C','O','L','R'), NULL, NULL));
 
-  hb_depend_destroy (depend);
+  hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 }
 
@@ -365,7 +358,7 @@ test_depend_math (void)
 {
   /* MathTestFontFull.otf has full MATH table with variants and assemblies */
   hb_face_t *face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
-  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   /* Base glyph "arrowup" (31) has:
@@ -385,7 +378,7 @@ test_depend_math (void)
   g_assert_true (find_dependency (depend, 31, 64, HB_TAG('M','A','T','H'),
                                   NULL, NULL));
 
-  hb_depend_destroy (depend);
+  hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 }
 
@@ -400,7 +393,7 @@ test_depend_gsub_formats (void)
 
   /* SourceSansPro-Regular.otf */
   hb_face_t *face_source = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
-  hb_depend_t *depend_source = hb_depend_from_face_or_fail (face_source);
+  hb_subset_depend_t *depend_source = hb_subset_depend_from_face_or_fail (face_source);
   g_assert_nonnull (depend_source);
 
   /* AlternateSubst: A → A.sc (tests AlternateSet with multiple alternates) */
@@ -417,17 +410,17 @@ test_depend_gsub_formats (void)
   /* Verify ligature set contains both components (1823, 1829) */
   g_assert_cmpuint (HB_CODEPOINT_INVALID, !=, ligature_set);
   hb_set_t *lig_set_source = hb_set_create ();
-  g_assert_true (hb_depend_get_set_from_index (depend_source, ligature_set, lig_set_source));
+  g_assert_true (hb_subset_depend_lookup_set (depend_source, ligature_set, lig_set_source));
   g_assert_true (hb_set_has (lig_set_source, 1823));  /* First ligature component */
   g_assert_true (hb_set_has (lig_set_source, 1829));  /* Second ligature component (uni0302) */
   hb_set_destroy (lig_set_source);
 
-  hb_depend_destroy (depend_source);
+  hb_subset_depend_destroy (depend_source);
   hb_face_destroy (face_source);
 
   /* Qahiri-Regular.ttf */
   hb_face_t *face_qahiri = hb_test_open_font_file ("fonts/Qahiri-Regular.ttf");
-  hb_depend_t *depend_qahiri = hb_depend_from_face_or_fail (face_qahiri);
+  hb_subset_depend_t *depend_qahiri = hb_subset_depend_from_face_or_fail (face_qahiri);
   g_assert_nonnull (depend_qahiri);
 
   /* ReverseChainSingleSubst */
@@ -475,12 +468,12 @@ test_depend_gsub_formats (void)
   g_assert_true (find_dependency (depend_qahiri, 212, 220, HB_OT_TAG_GSUB,
                                   NULL, NULL));
 
-  hb_depend_destroy (depend_qahiri);
+  hb_subset_depend_destroy (depend_qahiri);
   hb_face_destroy (face_qahiri);
 
   /* NotoSans-Bold.ttf has ContextSubst Format 1, Format 2, and ChainContextSubst Format 2 */
   hb_face_t *face_notosans = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
-  hb_depend_t *depend_notosans = hb_depend_from_face_or_fail (face_notosans);
+  hb_subset_depend_t *depend_notosans = hb_subset_depend_from_face_or_fail (face_notosans);
   g_assert_nonnull (depend_notosans);
 
   /* ContextSubst Format 1 → LigatureSubst
@@ -523,11 +516,11 @@ test_depend_gsub_formats (void)
   /* Verify ligature set contains the other component glyph (3969) */
   g_assert_cmpuint (HB_CODEPOINT_INVALID, !=, ligature_set);
   hb_set_t *lig_set = hb_set_create ();
-  g_assert_true (hb_depend_get_set_from_index (depend_notosans, ligature_set, lig_set));
+  g_assert_true (hb_subset_depend_lookup_set (depend_notosans, ligature_set, lig_set));
   g_assert_true (hb_set_has (lig_set, 3969));  /* uni0944 is the other ligature component */
   hb_set_destroy (lig_set);
 
-  hb_depend_destroy (depend_notosans);
+  hb_subset_depend_destroy (depend_notosans);
   hb_face_destroy (face_notosans);
 
   /* ContextFormat2-Depend-Test.ttf - Test font for contextual substitution formats
@@ -540,7 +533,7 @@ test_depend_gsub_formats (void)
    *   - Lookup 25, 119: ChainContextSubst Format 2 → SingleSubst test
    * Test runtime: 4+ seconds → 0.02 seconds (200× faster) */
   hb_face_t *face_context = hb_test_open_font_file ("fonts/ContextFormat2-Depend-Test.ttf");
-  hb_depend_t *depend_context = hb_depend_from_face_or_fail (face_context);
+  hb_subset_depend_t *depend_context = hb_subset_depend_from_face_or_fail (face_context);
   g_assert_nonnull (depend_context);
 
   /* ContextSubst Format 2 → MultipleSubst
@@ -574,12 +567,12 @@ test_depend_gsub_formats (void)
   g_assert_false (find_dependency (depend_context, 416, 268, HB_OT_TAG_GSUB,
                                    NULL, NULL));
 
-  hb_depend_destroy (depend_context);
+  hb_subset_depend_destroy (depend_context);
   hb_face_destroy (face_context);
 
   /* ChainContextSubst Format 3 → MultipleSubst + feature tagging */
   face_source = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
-  depend_source = hb_depend_from_face_or_fail (face_source);
+  depend_source = hb_subset_depend_from_face_or_fail (face_source);
   g_assert_nonnull (depend_source);
 
   /* Lookup 8: Format 3 chain context invokes Lookup 7 (MultipleSubst)
@@ -589,7 +582,7 @@ test_depend_gsub_formats (void)
   g_assert_true (find_dependency (depend_source, 92, 6, HB_OT_TAG_GSUB,
                                   &layout_tag, NULL));
 
-  hb_depend_destroy (depend_source);
+  hb_subset_depend_destroy (depend_source);
   hb_face_destroy (face_source);
 }
 

@@ -1996,7 +1996,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
      * calls another contextual lookup, we want each lookup in this rule to see
      * the same outer context, not context from a sibling lookup. */
     hb_codepoint_t saved_context_set_index = c->depend_data->current_context_set_index;
-    hb_depend_edge_flags_t saved_edge_flags = c->depend_data->current_edge_flags;
+    hb_subset_depend_edge_flags_t saved_edge_flags = c->depend_data->current_edge_flags;
 
     /* Detect nested contextual: if we already have a context set, we're inside
      * an outer contextual rule that called this one. The outer context will be
@@ -2014,12 +2014,12 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
      * lookups at the same position may interact (one produces a glyph, another
      * immediately consumes it as an "intermediate"). So a glyph matching the
      * coverage might not persist at that position when closure traverses. */
-    c->depend_data->current_edge_flags = HB_DEPEND_EDGE_FLAG_NONE;
+    c->depend_data->current_edge_flags = HB_SUBSET_DEPEND_EDGE_FLAG_NONE;
     if (inputCount > 1) {
-      c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
+      c->depend_data->current_edge_flags |= HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
     }
     if (nested_contextual) {
-      c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT;
+      c->depend_data->current_edge_flags |= HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT;
     }
 
     bool has_pos_glyphs = false;

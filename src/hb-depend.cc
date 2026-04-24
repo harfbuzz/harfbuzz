@@ -60,7 +60,7 @@
  * characters.
  */
 
-hb_depend_t::hb_depend_t (hb_face_t *f)
+hb_subset_depend_t::hb_subset_depend_t (hb_face_t *f)
 {
   face = hb_face_reference(f);
   if (unlikely (!data.glyph_dependencies.resize_exact (face->get_num_glyphs ()))) {
@@ -91,7 +91,7 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
   return successful;
 }
 
-hb_depend_t::~hb_depend_t ()
+hb_subset_depend_t::~hb_subset_depend_t ()
 {
   hb_face_destroy(face);
 }
@@ -100,7 +100,7 @@ hb_depend_t::~hb_depend_t ()
 #ifndef HB_NO_SUBSET_DEPEND
 
 /**
- * hb_depend_from_face_or_fail:
+ * hb_subset_depend_from_face_or_fail:
  * @face: font face to collect dependencies from
  *
  * Calculates the dependencies between glyphs in the supplied face.
@@ -110,30 +110,30 @@ hb_depend_t::~hb_depend_t ()
  *
  * Example:
  * ```c
- * hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+ * hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
  * if (!depend) {
  *   // Handle error (OOM or invalid face)
  *   return;
  * }
  * // ... use depend ...
- * hb_depend_destroy (depend);
+ * hb_subset_depend_destroy (depend);
  * ```
  *
  * Return value: (transfer full): New depend object, or `nullptr` if creation
- * failed (out of memory or invalid face). Destroy with hb_depend_destroy().
+ * failed (out of memory or invalid face). Destroy with hb_subset_depend_destroy().
  *
  * XSince: REPLACEME
  **/
-hb_depend_t *
-hb_depend_from_face_or_fail (hb_face_t *face)
+hb_subset_depend_t *
+hb_subset_depend_from_face_or_fail (hb_face_t *face)
 {
-  hb_depend_t *depend;
-  if (unlikely (!(depend = hb_object_create<hb_depend_t> (face))))
+  hb_subset_depend_t *depend;
+  if (unlikely (!(depend = hb_object_create<hb_subset_depend_t> (face))))
     return nullptr;
 
   if (unlikely (depend->in_error ()))
   {
-    hb_depend_destroy (depend);
+    hb_subset_depend_destroy (depend);
     return nullptr;
   }
 
@@ -141,23 +141,11 @@ hb_depend_from_face_or_fail (hb_face_t *face)
 }
 
 /**
- * hb_depend_get_glyph_entry:
+ * hb_subset_depend_lookup_glyph:
  * @depend: depend object
  * @gid: GID to retrieve dependencies from
- * @index: The index of the entry values to retrieve
- * @table_tag: (out): Returns the tag of the table associated with the entry
- * @dependent: (out): Returns the GID of the dependent glyph
- * @layout_tag: (out): Returns the layout tag associated with the dependency
- * (when table_tag is GSUB), otherwise HB_CODEPOINT_INVALID
- * @ligature_set: (out): Returns the index of the ligature set for this entry, or
- * HB_CODEPOINT_INVALID if there is no such set
- * @context_set: (out): Returns the index of the context set for this entry, or
- * HB_CODEPOINT_INVALID if there is no such set. Context sets specify which
- * backtrack and lookahead glyphs must be present for this dependency to apply
- * (currently only populated for contextual GSUB substitutions).
- * @flags: (out) (nullable): Returns edge flags (FROM_CONTEXT_POSITION,
- * FROM_NESTED_CONTEXT) indicating whether this edge came from a contextual
- * substitution. May be NULL if flags are not needed.
+ * @index: The index of the entry to retrieve
+ * @entry: (out): Filled with the dependency edge data
  *
  * Get the values associated with a dependency entry for a glyph.
  * Dependencies are indexed sequentially starting from 0.
@@ -165,16 +153,10 @@ hb_depend_from_face_or_fail (hb_face_t *face)
  * Example:
  * ```c
  * hb_codepoint_t index = 0;
- * hb_tag_t table_tag;
- * hb_codepoint_t dependent;
- * hb_tag_t layout_tag;
- * hb_codepoint_t ligature_set;
- * hb_codepoint_t context_set;
+ * hb_subset_depend_entry_t entry;
  *
- * while (hb_depend_get_glyph_entry (depend, gid, index++,
- *                                    &table_tag, &dependent,
- *                                    &layout_tag, &ligature_set, &context_set)) {
- *   // Process dependency...
+ * while (hb_subset_depend_lookup_glyph (depend, gid, index++, &entry)) {
+ *   // Process dependency via entry.table_tag, entry.dependent, etc.
  * }
  * ```
  *
@@ -183,30 +165,32 @@ hb_depend_from_face_or_fail (hb_face_t *face)
  * XSince: REPLACEME
  **/
 hb_bool_t
-hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
-                          hb_codepoint_t index, hb_tag_t *table_tag,
-                          hb_codepoint_t *dependent, hb_tag_t *layout_tag,
-                          hb_codepoint_t *ligature_set, hb_codepoint_t *context_set,
-                          uint8_t *flags)
+hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
+                                hb_codepoint_t gid,
+                                hb_codepoint_t index,
+                                hb_subset_depend_entry_t *entry)
 {
-  return depend->get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
-                                 ligature_set, context_set, flags);
+  return depend->get_glyph_entry (gid, index,
+                                  &entry->table_tag, &entry->dependent,
+                                  &entry->layout_tag, &entry->ligature_set_index,
+                                  &entry->context_set_index,
+                                  (uint8_t *) &entry->flags);
 }
 
 /**
- * hb_depend_get_set_from_index:
+ * hb_subset_depend_lookup_set:
  * @depend: depend object
  * @index: the index of the set
  * @out: (out): A pointer to a set to copy into
  *
- * Get all glyphs in a ligature set identified by @index.
- * The ligature set index comes from the ligature_set field
- * returned by hb_depend_get_glyph_entry().
+ * Get all glyphs in a set identified by @index.
+ * The set index comes from the ligature_set_index or context_set_index field
+ * returned by hb_subset_depend_lookup_glyph().
  *
  * Example:
  * ```c
  * hb_set_t *ligature_glyphs = hb_set_create ();
- * if (hb_depend_get_set_from_index (depend, ligature_set, ligature_glyphs)) {
+ * if (hb_subset_depend_lookup_set (depend, entry.ligature_set_index, ligature_glyphs)) {
  *   // Process glyphs in the set...
  * }
  * hb_set_destroy (ligature_glyphs);
@@ -217,8 +201,9 @@ hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
  * XSince: REPLACEME
  **/
 hb_bool_t
-hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
-                             hb_set_t *out) {
+hb_subset_depend_lookup_set (hb_subset_depend_t *depend, hb_codepoint_t index,
+                              hb_set_t *out)
+{
   const hb_set_t *s = depend->get_set_from_index (index);
   if (!s) return false;
   out->set (*s);
@@ -226,29 +211,8 @@ hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
 }
 
 /**
- * hb_depend_print:
- * @depend: a #hb_depend_t
- *
- * Prints the dependency graph to standard output for debugging purposes.
- * For each glyph that has dependencies, prints the glyph ID followed by
- * its dependent glyphs, including the source table (GSUB, glyf, CFF,
- * COLR, MATH) and any relevant feature tags.
- *
- * Note: This function is primarily for debugging and testing. The output
- * format is not stable and may change in future versions. For programmatic
- * access to dependency information, use hb_depend_get_glyph_entry().
- *
- * XSince: REPLACEME
- **/
-void
-hb_depend_print (hb_depend_t *depend)
-{
-  depend->print();
-}
-
-/**
- * hb_depend_destroy:
- * @depend: a #hb_depend_t
+ * hb_subset_depend_destroy:
+ * @depend: a #hb_subset_depend_t
  *
  * Decreases the reference count on @depend, and if it reaches zero, destroys
  * @depend, freeing all memory.
@@ -256,7 +220,7 @@ hb_depend_print (hb_depend_t *depend)
  * XSince: REPLACEME
  **/
 void
-hb_depend_destroy (hb_depend_t *depend)
+hb_subset_depend_destroy (hb_subset_depend_t *depend)
 {
   if (!hb_object_destroy (depend)) return;
 

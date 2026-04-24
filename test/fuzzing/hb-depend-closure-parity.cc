@@ -28,14 +28,14 @@ struct deferred_ligature_t
   deferred_ligature_t () = default;
   deferred_ligature_t (hb_codepoint_t dependent_,
 		       hb_codepoint_t ligature_set_index_,
-		       uint8_t flags_)
+		       hb_subset_depend_edge_flags_t flags_)
     : dependent (dependent_),
       ligature_set_index (ligature_set_index_),
       flags (flags_) {}
 
   hb_codepoint_t dependent;
   hb_codepoint_t ligature_set_index;
-  uint8_t flags;
+  hb_subset_depend_edge_flags_t flags;
 };
 
 /* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for parity checker */
@@ -634,7 +634,7 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
  * Depend Parity Checker - Validates depend API correctness by comparing closures
  *
  * For each font, this parity checker:
- * 1. Extracts the dependency graph using hb_depend_from_face_or_fail()
+ * 1. Extracts the dependency graph using hb_subset_depend_from_face_or_fail()
  * 2. For various starting glyphs, computes closure via:
  *    a) Following the depend API dependency graph
  *    b) Using HarfBuzz's subset plan closure calculation
@@ -655,7 +655,7 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
  * Returns true if ALL context requirements are met, false otherwise.
  */
 static bool
-check_context_satisfied (hb_depend_t *depend,
+check_context_satisfied (hb_subset_depend_t *depend,
                          hb_codepoint_t context_set_idx,
                          hb_set_t *current_closure)
 {
@@ -663,7 +663,7 @@ check_context_satisfied (hb_depend_t *depend,
     return true;  /* No context requirements */
 
   hb_set_t *context_elements = hb_set_create ();
-  if (!hb_depend_get_set_from_index (depend, context_set_idx, context_elements))
+  if (!hb_subset_depend_lookup_set (depend, context_set_idx, context_elements))
   {
     hb_set_destroy (context_elements);
     return true;  /* Invalid context set, don't filter */
@@ -688,7 +688,7 @@ check_context_satisfied (hb_depend_t *depend,
       hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
       hb_set_t *required_glyphs = hb_set_create ();
 
-      if (!hb_depend_get_set_from_index (depend, set_idx, required_glyphs))
+      if (!hb_subset_depend_lookup_set (depend, set_idx, required_glyphs))
       {
         hb_set_destroy (required_glyphs);
         continue;  /* Invalid set reference, skip this requirement */
@@ -726,7 +726,7 @@ check_context_satisfied (hb_depend_t *depend,
  * injection_rng: if non-NULL, use for error injection
  * Returns: true if any new glyphs were added */
 static bool
-process_edges_for_tables (hb_depend_t *depend,
+process_edges_for_tables (hb_subset_depend_t *depend,
                           hb_set_t *glyphs,
                           hb_set_t *to_process,
                           std::vector<deferred_ligature_t> *deferred_ligatures,
@@ -748,17 +748,16 @@ process_edges_for_tables (hb_depend_t *depend,
       DEBUG_MSG_DEPEND("Processing glyph %u", gid);
 
     hb_codepoint_t index = 0;
-    hb_tag_t table_tag;
-    hb_codepoint_t dependent;
-    hb_tag_t layout_tag;
-    hb_codepoint_t ligature_set;
-    hb_codepoint_t context_set;
-    uint8_t flags;
+    hb_subset_depend_entry_t entry;
 
-    while (hb_depend_get_glyph_entry (depend, gid, index++,
-                                      &table_tag, &dependent,
-                                      &layout_tag, &ligature_set, &context_set, &flags))
+    while (hb_subset_depend_lookup_glyph (depend, gid, index++, &entry))
     {
+      hb_tag_t table_tag = entry.table_tag;
+      hb_codepoint_t dependent = entry.dependent;
+      hb_tag_t layout_tag = entry.layout_tag;
+      hb_codepoint_t ligature_set = entry.ligature_set_index;
+      hb_codepoint_t context_set = entry.context_set_index;
+      hb_subset_depend_edge_flags_t flags = entry.flags;
       /* Debug: trace all edges involving our debug glyph */
       if (debug_gid != HB_CODEPOINT_INVALID &&
           (gid == debug_gid || dependent == debug_gid))
@@ -891,7 +890,7 @@ process_edges_for_tables (hb_depend_t *depend,
  * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
  * injection_rng: if non-NULL, use for error injection */
 static void
-compute_depend_closure (hb_face_t *face, hb_depend_t *depend, hb_set_t *glyphs,
+compute_depend_closure (hb_face_t *face, hb_subset_depend_t *depend, hb_set_t *glyphs,
                         const hb_set_t *input_unicodes, bool skip_gsub,
                         hb_set_t *active_features, bool *hit_flagged_edge,
                         std::mt19937 *injection_rng, const hb_map_t *vs_to_gid)
@@ -1014,7 +1013,7 @@ compute_depend_closure (hb_face_t *face, hb_depend_t *depend, hb_set_t *glyphs,
 
           /* Check if ligature set is satisfied */
           hb_set_clear (ligature_set_glyphs);
-          hb_depend_get_set_from_index (depend, def.ligature_set_index, ligature_set_glyphs);
+          hb_subset_depend_lookup_set (depend, def.ligature_set_index, ligature_set_glyphs);
 
           bool set_satisfied = hb_set_is_subset (ligature_set_glyphs, glyphs);
 
@@ -1267,7 +1266,7 @@ print_test_params (uint64_t seed, bool is_gsub,
  * start_glyphs: starting set of glyphs for closure
  * codepoints: if non-NULL, start from codepoints (for GSUB testing) */
 static bool
-compare_closures (hb_face_t *face, hb_depend_t *depend,
+compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
                   uint64_t seed, const char *font_path,
                   bool is_gsub, hb_set_t *start_glyphs, hb_set_t *codepoints,
                   hb_set_t *test_features)
@@ -1548,7 +1547,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_face_t *face = hb_face_create (blob, 0);
 
   /* Extract dependency graph */
-  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
   if (!depend)
   {
     hb_face_destroy (face);
@@ -1580,15 +1579,9 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     for (unsigned gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t idx = 0;
-      hb_tag_t table_tag;
-      hb_codepoint_t dependent;
-      hb_tag_t layout_tag;
-      hb_codepoint_t ligature_set;
-      hb_codepoint_t context_set;
+      hb_subset_depend_entry_t entry;
 
-      while (hb_depend_get_glyph_entry (depend, gid, idx++,
-                                        &table_tag, &dependent,
-                                        &layout_tag, &ligature_set, &context_set, NULL))
+      while (hb_subset_depend_lookup_glyph (depend, gid, idx++, &entry))
       {
         total_edges++;
       }
@@ -1732,7 +1725,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 
   hb_font_destroy (font);
 
-  hb_depend_destroy (depend);
+  hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
   hb_blob_destroy (blob);
 #endif /* !HB_NO_SUBSET_DEPEND */

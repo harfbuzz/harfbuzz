@@ -34,28 +34,26 @@
 
 
 /**
- * hb_depend_t:
+ * hb_subset_depend_t:
  *
  * Internal structure implementing the dependency graph API.
  * Contains the dependency data (data) and the source font face (face).
  *
- * Initialized via hb_depend_from_face_or_fail() which computes the dependency
+ * Initialized via hb_subset_depend_from_face_or_fail() which computes the dependency
  * graph once via hb_depend_data_builder_t::compile(). The graph remains
  * immutable for the lifetime of the object.
  */
-struct hb_depend_t
+struct hb_subset_depend_t
 {
-  HB_INTERNAL hb_depend_t (hb_face_t *face);
+  HB_INTERNAL hb_subset_depend_t (hb_face_t *face);
 
-  HB_INTERNAL ~hb_depend_t();
+  HB_INTERNAL ~hb_subset_depend_t();
 
   hb_object_header_t header;
 
   bool successful;
 
   bool in_error () const { return !successful; }
-
-  void print() { data.print(); }
 
   bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
                        hb_tag_t *table_tag, hb_codepoint_t *dependent,
