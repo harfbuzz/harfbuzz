@@ -78,101 +78,19 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
   /* Extract dependencies from all relevant OpenType tables.
    * Note: cmap (UVS) dependencies are not extracted - UVS closure is handled
    * separately via hb_font_get_variation_glyph() query API during closure
-   * computation. */
-  get_gsub_dependencies (face);
+   * computation.
+   *
+   * For GSUB, hb_ot_layout_has_substitution() forces lazy-loader initialization
+   * in libharfbuzz, after which get_relaxed() safely returns the already-
+   * constructed accelerator without instantiating the GSUB_accelerator_t
+   * constructor (which references a hidden is_blocklisted symbol) in this TU. */
+  if (hb_ot_layout_has_substitution (face))
+    face->table.GSUB.get_relaxed ()->depend (this, face);
   face->table.MATH->depend (this);
   face->table.COLR->depend (this);
   face->table.glyf->depend (this);
   OT::cff1_subset_accelerator_t (face).depend (this);
   return successful;
-}
-
-/*
- * Algorithm: Glyph Substitution (GSUB) Dependencies
- *
- * For each lookup in the GSUB table:
- * 1. Determine which features reference the lookup
- * 2. Call the lookup's depend() method which:
- *    - Iterates through covered glyphs (input glyphs)
- *    - Records each substitution (input -> output) as a dependency
- *    - Tags with the feature tag and table tag (GSUB)
- *    - For ligatures, assigns a ligature_set ID to group alternatives
- *
- * The result is a complete graph of all possible glyph substitutions
- * that could occur through OpenType Layout features, regardless of
- * script, language, or shaping context.
- */
-void
-hb_depend_data_builder_t::get_gsub_dependencies (hb_face_t *face)
-{
-  hb_blob_t *gsub_blob = hb_sanitize_context_t ().reference_table<OT::Layout::GSUB> (face);
-  auto table = gsub_blob->as<OT::Layout::GSUB> ();
-  unsigned num_features = table->get_feature_count ();
-  unsigned num_lookups = table->get_lookup_count ();
-  hb_vector_t<hb_tag_t> feature_tags;
-  if (!check_success (feature_tags.resize (num_features)))
-    return;
-  table->get_feature_tags(0, &num_features, feature_tags.arrayZ);
-  if (!check_success (lookup_features.resize (num_lookups)))
-    return;
-
-  hb_vector_t<hb_tag_t> feature_query_v;
-  feature_query_v.resize (2);
-  feature_query_v[1] = 0;
-
-  hb_set_t seen_features;
-  hb_set_t feature_indexes, lookup_indexes;
-
-  for (auto ft : feature_tags) {
-    if (seen_features.has (ft))
-      continue;
-    seen_features.add (ft);
-    feature_query_v[0] = ft;
-    feature_indexes.reset ();
-    hb_ot_layout_collect_features (face, HB_OT_TAG_GSUB, nullptr, nullptr,
-                                   feature_query_v.arrayZ, &feature_indexes);
-    lookup_indexes.reset ();
-    for (auto feature_index : feature_indexes)
-      table->get_feature (feature_index).add_lookup_indexes_to (&lookup_indexes);
-
-    for (auto lookup_index : lookup_indexes)
-      lookup_features[lookup_index].add (ft);
-
-    auto &fv = table->get_feature_variations ();
-    auto fi_count = fv.record_count();
-    for (unsigned i = 0; i < fi_count; i++) {
-      lookup_indexes.reset ();
-      for (auto feature_index : feature_indexes) {
-        auto feature_ptr = fv.find_substitute(i, feature_index);
-        if (feature_ptr != nullptr)
-          feature_ptr->add_lookup_indexes_to (&lookup_indexes);
-      }
-      for (auto lookup_index : lookup_indexes) {
-        if (!lookup_features[lookup_index].has (ft))
-          lookup_features[lookup_index].add (ft);
-      }
-    }
-  }
-
-  hb_set_t all_glyphs;
-  all_glyphs.add_range (0, face->get_num_glyphs () - 1);
-
-  OT::hb_depend_context_t c (this, face, &all_glyphs);
-
-  int i = -1;
-  for (auto &feature_set : lookup_features) {
-    i++;
-    if (feature_set.is_empty ()) {
-      DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
-                       "Skipping lookup %d (no features)", i);
-      continue;
-    }
-    DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
-                     "Processing lookup %d with features:", i);
-    c.lookup_index = i;
-    c.lookups_seen.clear ();
-    table->get_lookup (i).depend (&c);
-  }
 }
 
 hb_depend_t::~hb_depend_t ()

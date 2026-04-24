@@ -109,6 +109,87 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
 
 } /* namespace GSUB_impl */
 } /* namespace Layout */
+
+#ifndef HB_NO_SUBSET_DEPEND
+inline void
+GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) const
+{
+  if (!this->table->has_data ()) return;
+
+  unsigned num_features = this->table->get_feature_count ();
+  unsigned num_lookups  = this->table->get_lookup_count ();
+
+  hb_vector_t<hb_tag_t> feature_tags;
+  if (!builder->check_success (feature_tags.resize (num_features)))
+    return;
+  this->table->get_feature_tags (0, &num_features, feature_tags.arrayZ);
+
+  if (!builder->check_success (builder->lookup_features.resize (num_lookups)))
+    return;
+
+  hb_vector_t<hb_tag_t> feature_query_v;
+  feature_query_v.resize (2);
+  feature_query_v[1] = 0;
+
+  hb_set_t seen_features;
+  hb_set_t feature_indexes, lookup_indexes;
+
+  for (auto ft : feature_tags)
+  {
+    if (seen_features.has (ft)) continue;
+    seen_features.add (ft);
+    feature_query_v[0] = ft;
+    feature_indexes.reset ();
+    hb_ot_layout_collect_features (face, HB_OT_TAG_GSUB, nullptr, nullptr,
+                                   feature_query_v.arrayZ, &feature_indexes);
+    lookup_indexes.reset ();
+    for (auto feature_index : feature_indexes)
+      this->table->get_feature (feature_index).add_lookup_indexes_to (&lookup_indexes);
+
+    for (auto lookup_index : lookup_indexes)
+      builder->lookup_features[lookup_index].add (ft);
+
+    auto &fv = this->table->get_feature_variations ();
+    auto fi_count = fv.record_count ();
+    for (unsigned i = 0; i < fi_count; i++)
+    {
+      lookup_indexes.reset ();
+      for (auto feature_index : feature_indexes)
+      {
+        auto feature_ptr = fv.find_substitute (i, feature_index);
+        if (feature_ptr != nullptr)
+          feature_ptr->add_lookup_indexes_to (&lookup_indexes);
+      }
+      for (auto lookup_index : lookup_indexes)
+        if (!builder->lookup_features[lookup_index].has (ft))
+          builder->lookup_features[lookup_index].add (ft);
+    }
+  }
+
+  hb_set_t all_glyphs;
+  all_glyphs.add_range (0, face->get_num_glyphs () - 1);
+
+  hb_depend_context_t c (builder, face, &all_glyphs);
+
+  int i = -1;
+  for (auto &feature_set : builder->lookup_features)
+  {
+    i++;
+    if (feature_set.is_empty ())
+    {
+      DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
+                       "Skipping lookup %d (no features)", i);
+      continue;
+    }
+    DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
+                     "Processing lookup %d with features:", i);
+    c.lookup_index = i;
+    c.lookups_seen.clear ();
+    this->table->get_lookup (i).depend (&c);
+  }
+}
+#endif
+
 } /* namespace OT */
 
 #endif /* HB_OT_LAYOUT_GSUB_TABLE_HH */
