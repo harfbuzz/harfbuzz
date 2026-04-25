@@ -200,9 +200,10 @@ struct ContextualSubtable
 
   struct EntryData
   {
-    HBUINT16	markIndex;	/* Index of the substitution table for the
+    typedef typename std::conditional<Types::extended, HBUINT16, HBINT16>::type EntryType;
+    EntryType	markIndex;	/* Index of the substitution table for the
 				 * marked glyph (use 0xFFFF for none). */
-    HBUINT16	currentIndex;	/* Index of the substitution table for the
+    EntryType	currentIndex;	/* Index of the substitution table for the
 				 * current glyph (use 0xFFFF for none). */
     public:
     DEFINE_SIZE_STATIC (4);
@@ -236,7 +237,46 @@ struct ContextualSubtable
 	table (table_),
 	mark_set (false),
 	mark (0),
-	subs (table+table->substitutionTables) {}
+	subs (table+table->substitutionTables),
+	subs_len(0)
+    {
+      if (!Types::extended)
+      {
+	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
+	while (subs_old[subs_len++] != 0xffff)
+	  ;
+      }
+    }
+
+    const HBGlyphID16 *get_replacement (uint32_t codepoint,
+					const typename EntryData::EntryType &index,
+					StateTableDriver<Types, EntryData, Flags> *driver)
+    {
+      const HBGlyphID16 *replacement = nullptr;
+      if (Types::extended)
+      {
+	if (index != 0xFFFF)
+	{
+	  const Lookup<HBGlyphID16> &lookup = subs[index];
+	  replacement = lookup.get_value (codepoint, driver->num_glyphs);
+	}
+      }
+      else
+      {
+	unsigned int offset = index + codepoint;
+	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
+	unsigned int index = Types::wordOffsetToIndex (offset, table, subs_old.arrayZ);
+	if (index < subs_len)
+	{
+	  replacement = &subs_old[index];
+	  if (!(replacement->sanitize (&c->sanitizer) &&
+	        hb_barrier () &&
+	        *replacement))
+	    replacement = nullptr;
+	}
+      }
+      return replacement;
+    }
 
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
@@ -249,25 +289,7 @@ struct ContextualSubtable
 
       const HBGlyphID16 *replacement;
 
-      replacement = nullptr;
-      if (Types::extended)
-      {
-	if (entry.data.markIndex != 0xFFFF)
-	{
-	  const Lookup<HBGlyphID16> &lookup = subs[entry.data.markIndex];
-	  replacement = lookup.get_value (buffer->info[mark].codepoint, driver->num_glyphs);
-	}
-      }
-      else
-      {
-	unsigned int offset = entry.data.markIndex + buffer->info[mark].codepoint;
-	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
-	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!(replacement->sanitize (&c->sanitizer) &&
-	      hb_barrier () &&
-	      *replacement))
-	  replacement = nullptr;
-      }
+      replacement = get_replacement(buffer->info[mark].codepoint, entry.data.markIndex, driver);
       if (replacement)
       {
 	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
@@ -275,26 +297,8 @@ struct ContextualSubtable
 	ret = true;
       }
 
-      replacement = nullptr;
       unsigned int idx = hb_min (buffer->idx, buffer->len - 1);
-      if (Types::extended)
-      {
-	if (entry.data.currentIndex != 0xFFFF)
-	{
-	  const Lookup<HBGlyphID16> &lookup = subs[entry.data.currentIndex];
-	  replacement = lookup.get_value (buffer->info[idx].codepoint, driver->num_glyphs);
-	}
-      }
-      else
-      {
-	unsigned int offset = entry.data.currentIndex + buffer->info[idx].codepoint;
-	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
-	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!(replacement->sanitize (&c->sanitizer) &&
-	      hb_barrier () &&
-	      *replacement))
-	  replacement = nullptr;
-      }
+      replacement = get_replacement(buffer->info[idx].codepoint, entry.data.currentIndex, driver);
       if (replacement)
       {
 	c->replace_glyph_inplace (idx, *replacement);
@@ -316,6 +320,7 @@ struct ContextualSubtable
     bool mark_set;
     unsigned int mark;
     const UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, void, false> &subs;
+    unsigned int subs_len;
   };
 
   bool apply (hb_aat_apply_context_t *c) const
