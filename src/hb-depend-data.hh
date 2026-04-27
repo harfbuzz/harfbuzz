@@ -218,7 +218,14 @@ struct hb_depend_data_t
     return nullptr;
   }
 
-  bool get_glyph_entry (hb_codepoint_t gid, hb_codepoint_t index,
+  unsigned int get_glyph_entry_count (hb_codepoint_t gid) const
+  {
+    if (gid < glyph_dependencies.length)
+      return glyph_dependencies[gid].dependencies.length;
+    return 0;
+  }
+
+  bool get_glyph_entry (hb_codepoint_t gid, unsigned int index,
                         hb_tag_t *table_tag, hb_codepoint_t *dependent,
                         hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
                         hb_codepoint_t *context_set, uint8_t *flags)

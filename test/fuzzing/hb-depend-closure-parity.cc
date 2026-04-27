@@ -747,11 +747,12 @@ process_edges_for_tables (hb_subset_depend_t *depend,
     if (gid == debug_gid)
       DEBUG_MSG_DEPEND("Processing glyph %u", gid);
 
-    hb_codepoint_t index = 0;
     hb_subset_depend_entry_t entry;
-
-    while (hb_subset_depend_lookup_glyph (depend, gid, index++, &entry))
+    unsigned int total = hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
+    for (unsigned int idx = 0; idx < total; idx++)
     {
+      unsigned int count = 1;
+      hb_subset_depend_lookup_glyph (depend, gid, idx, &count, &entry);
       hb_tag_t table_tag = entry.table_tag;
       hb_codepoint_t dependent = entry.dependent;
       hb_tag_t layout_tag = entry.layout_tag;
@@ -1578,13 +1579,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     unsigned num_glyphs = hb_face_get_glyph_count (face);
     for (unsigned gid = 0; gid < num_glyphs; gid++)
     {
-      hb_codepoint_t idx = 0;
-      hb_subset_depend_entry_t entry;
-
-      while (hb_subset_depend_lookup_glyph (depend, gid, idx++, &entry))
-      {
-        total_edges++;
-      }
+      total_edges += hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
     }
 
     /* Estimate average edges traversed per test (roughly 0.25% of total edges) */

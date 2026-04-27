@@ -37,12 +37,27 @@ HB_BEGIN_DECLS
 /**
  * hb_subset_depend_edge_flags_t:
  * @HB_SUBSET_DEPEND_EDGE_FLAG_NONE: No flags set.
- * @HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION: Edge created from a
- *   multi-position contextual rule. May cause expected over-approximation.
- * @HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT: Edge from a lookup
- *   called within another contextual lookup. May over-approximate.
+ * @HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION: Edge from a multi-position
+ *   contextual rule (Context or ChainContext with inputCount > 1). Depend
+ *   extraction records edges based on what glyphs could statically be at each
+ *   position according to input coverage or class. However, at runtime lookups
+ *   within the rule are applied sequentially: a lookup at an earlier position
+ *   may transform the glyph at a later position, and two lookups at the same
+ *   position may interact such that one produces a glyph that another
+ *   immediately consumes as an "intermediate". A glyph that matches the static
+ *   coverage may therefore not persist at that position when the rule actually
+ *   fires, so this edge may not trigger during closure.
+ * @HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT: Edge from a lookup invoked
+ *   within another contextual lookup. The outer context's requirements are not
+ *   propagated to this edge, so the edge may fire even when those requirements
+ *   are not met.
  *
- * Flags for dependency edges returned by hb_subset_depend_lookup_glyph().
+ * Flags on dependency edges returned by hb_subset_depend_lookup_glyph() that
+ * mark edges which may produce expected over-approximation when computing
+ * closure via the depend graph, relative to
+ * hb_ot_layout_lookups_substitute_closure(). These flags help distinguish
+ * known limitations of static dependency analysis (expected over-approximation)
+ * from bugs (unexpected over-approximation).
  *
  * XSince: REPLACEME
  */
@@ -97,11 +112,12 @@ typedef struct {
 HB_EXTERN hb_subset_depend_t *
 hb_subset_depend_from_face_or_fail (hb_face_t *face);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN unsigned int
 hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
                                 hb_codepoint_t gid,
-                                hb_codepoint_t index,
-                                hb_subset_depend_entry_t *entry /* OUT */);
+                                unsigned int start_offset,
+                                unsigned int *entry_count, /* IN/OUT */
+                                hb_subset_depend_entry_t *entries /* OUT */);
 
 HB_EXTERN hb_bool_t
 hb_subset_depend_lookup_set (hb_subset_depend_t *depend,

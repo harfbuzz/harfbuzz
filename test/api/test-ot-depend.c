@@ -244,12 +244,12 @@ find_dependency (hb_subset_depend_t *depend,
   hb_tag_t filter_layout_tag = (out_layout_tag && *out_layout_tag != HB_TAG_NONE)
                                 ? *out_layout_tag : HB_TAG_NONE;
 
-  for (hb_codepoint_t index = 0; ; index++)
+  unsigned int total = hb_subset_depend_lookup_glyph (depend, source_glyph, 0, NULL, NULL);
+  for (unsigned int index = 0; index < total; index++)
   {
     hb_subset_depend_entry_t entry;
-    hb_bool_t found = hb_subset_depend_lookup_glyph (depend, source_glyph, index, &entry);
-    if (!found)
-      break;
+    unsigned int count = 1;
+    hb_subset_depend_lookup_glyph (depend, source_glyph, index, &count, &entry);
 
     if (entry.table_tag == expected_table_tag && entry.dependent == target_glyph)
     {

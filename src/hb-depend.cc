@@ -144,37 +144,52 @@ hb_subset_depend_from_face_or_fail (hb_face_t *face)
  * hb_subset_depend_lookup_glyph:
  * @depend: depend object
  * @gid: GID to retrieve dependencies from
- * @index: The index of the entry to retrieve
- * @entry: (out): Filled with the dependency edge data
+ * @start_offset: offset of first entry to retrieve
+ * @entry_count: (inout) (optional): Input = number of entries to fill; output = number
+ *   actually filled. Pass NULL to query total count without filling.
+ * @entries: (out) (optional) (array length=entry_count): Array to fill with dependency
+ *   edge data. May be NULL if @entry_count is also NULL.
  *
- * Get the values associated with a dependency entry for a glyph.
- * Dependencies are indexed sequentially starting from 0.
+ * Retrieve dependency edges for a glyph. Follows the standard HarfBuzz array-getter
+ * pattern: always returns the total number of edges for @gid regardless of
+ * @start_offset or @entry_count.
  *
- * Example:
+ * Example (iterate all entries):
  * ```c
- * hb_codepoint_t index = 0;
- * hb_subset_depend_entry_t entry;
- *
- * while (hb_subset_depend_lookup_glyph (depend, gid, index++, &entry)) {
- *   // Process dependency via entry.table_tag, entry.dependent, etc.
+ * unsigned int total = hb_subset_depend_lookup_glyph (depend, gid, 0, NULL, NULL);
+ * for (unsigned int i = 0; i < total; i++) {
+ *   hb_subset_depend_entry_t entry;
+ *   unsigned int count = 1;
+ *   hb_subset_depend_lookup_glyph (depend, gid, i, &count, &entry);
+ *   // Process entry.table_tag, entry.dependent, etc.
  * }
  * ```
  *
- * Return value: true if there is such an entry, false otherwise
+ * Return value: Total number of dependency edges for @gid.
  *
  * XSince: REPLACEME
  **/
-hb_bool_t
+unsigned int
 hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
                                 hb_codepoint_t gid,
-                                hb_codepoint_t index,
-                                hb_subset_depend_entry_t *entry)
+                                unsigned int start_offset,
+                                unsigned int *entry_count,
+                                hb_subset_depend_entry_t *entries)
 {
-  return depend->get_glyph_entry (gid, index,
-                                  &entry->table_tag, &entry->dependent,
-                                  &entry->layout_tag, &entry->ligature_set_index,
-                                  &entry->context_set_index,
-                                  (uint8_t *) &entry->flags);
+  unsigned int total = depend->data.get_glyph_entry_count (gid);
+  if (entry_count)
+  {
+    unsigned int count = hb_min (*entry_count,
+                                  start_offset < total ? total - start_offset : 0u);
+    for (unsigned int i = 0; i < count; i++)
+      depend->data.get_glyph_entry (gid, start_offset + i,
+                                    &entries[i].table_tag, &entries[i].dependent,
+                                    &entries[i].layout_tag, &entries[i].ligature_set_index,
+                                    &entries[i].context_set_index,
+                                    (uint8_t *) &entries[i].flags);
+    *entry_count = count;
+  }
+  return total;
 }
 
 /**

@@ -24,13 +24,14 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 
     for (unsigned int gid = 0; gid < num_glyphs && gid < 100; gid++)
     {
-      hb_codepoint_t index = 0;
-      hb_subset_depend_entry_t entry;
-
       // Iterate through up to 10 entries per glyph
-      while (index < 10 &&
-             hb_subset_depend_lookup_glyph (depend, gid, index++, &entry))
+      unsigned int total = hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
+      unsigned int limit = total < 10u ? total : 10u;
+      for (unsigned int index = 0; index < limit; index++)
       {
+        hb_subset_depend_entry_t entry;
+        unsigned int count = 1;
+        hb_subset_depend_lookup_glyph (depend, gid, index, &count, &entry);
         // Access basic edge data
         (void) entry.table_tag;
         (void) entry.dependent;
