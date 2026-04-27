@@ -57,27 +57,27 @@ The depend API marks these edges with flags so closure implementations can disti
 between "expected" over-approximation (a known limitation) and "unexpected" over-approximation
 (a bug).
 
-Two flags are defined in `hb-depend-data.hh`:
+Two flags are defined (as `hb_subset_depend_edge_flags_t` in `hb-depend.h`):
 
-- **`HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Set when an edge comes from a
-  multi-position contextual rule (inputCount > 1). Depend extraction records edges based
-  on what glyphs COULD be at each position per the static input coverage/class. But during
-  closure computation, lookups within the rule are applied sequentially: lookups at earlier
-  positions may transform later positions, and multiple lookups at the same position may
-  interact (one produces a glyph, another immediately consumes it as an "intermediate").
+- **`HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Set when an edge comes
+  from a multi-position contextual rule (inputCount > 1). Depend extraction records edges
+  based on what glyphs COULD be at each position per the static input coverage/class. But
+  during closure computation, lookups within the rule are applied sequentially: lookups at
+  earlier positions may transform later positions, and multiple lookups at the same position
+  may interact (one produces a glyph, another immediately consumes it as an "intermediate").
   So depend may record edges from glyphs that wouldn't persist at that position.
 
-- **`HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02)**: Set when a lookup is called from
-  within another contextual lookup. The outer context's requirements are not preserved,
+- **`HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02)**: Set when a lookup is called
+  from within another contextual lookup. The outer context's requirements are not preserved,
   so the edge may over-approximate.
 
 These flags are set in `context_depend_recurse_lookups()`:
 ```c++
 if (inputCount > 1) {
-  c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
+  c->depend_data->current_edge_flags |= HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
 }
 if (nested_contextual) {
-  c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT;
+  c->depend_data->current_edge_flags |= HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT;
 }
 ```
 
@@ -134,7 +134,7 @@ struct hb_depend_data_t {
 
 The depend graph is immutable after construction:
 
-1. **Construction**: `hb_depend_from_face_or_fail()` walks all relevant OpenType tables once to build the complete graph
+1. **Construction**: `hb_subset_depend_from_face_or_fail()` walks all relevant OpenType tables once to build the complete graph
 2. **Temporary structures freed**: After graph extraction, temporary structures used only during construction are freed:
    - `edge_hashes` - deduplication hash table
    - `unicodes` - Unicode codepoint set
@@ -144,9 +144,9 @@ The depend graph is immutable after construction:
    - `glyph_dependencies` - the core dependency graph
    - `sets` - ligature sets for querying
 
-This reduces memory footprint while keeping the graph queryable for the lifetime of the `hb_depend_t` object.
+This reduces memory footprint while keeping the graph queryable for the lifetime of the `hb_subset_depend_t` object.
 
-Dependencies are stored per-glyph and indexed sequentially starting from 0. Use `hb_depend_get_glyph_entry()` with incrementing index values to iterate through all dependencies for a given glyph.
+Dependencies are stored per-glyph and indexed sequentially starting from 0. Use `hb_subset_depend_lookup_glyph()` to retrieve entries; pass `start_offset=0` and `entry_count=NULL` to query the total count.
 
 ## Context Filtering and Recording
 
@@ -207,7 +207,7 @@ Depend tracks which OpenType features are associated with each dependency edge. 
 
 ### Implementation
 
-During GSUB initialization in `hb_depend_t::get_gsub_dependencies()`:
+During GSUB initialization in `hb_depend_data_builder_t::get_gsub_dependencies()`:
 
 ```c++
 // Map features to lookups
@@ -234,7 +234,7 @@ if (!data.lookup_features[lookup_index].is_empty()) {
 data.add_depend_layout(gid, HB_OT_TAG_GSUB, layout_tag, dependent, ...);
 ```
 
-This is stored in the `layout_tag` field of each dependency record and can be queried via `hb_depend_get_glyph_entry()`.
+This is stored in the `layout_tag` field of each `hb_subset_depend_entry_t` and can be queried via `hb_subset_depend_lookup_glyph()`.
 
 ## Ligature Sets
 
@@ -291,7 +291,7 @@ The depend methods follow the closure naming pattern with `depend` instead of `c
 | `closure_lookups(...)` | N/A | Depend doesn't need lookup closure |
 | `intersects(...)` | `intersects(...)` | Shared - check if subtable is relevant |
 
-All depend methods are guarded by `#ifdef HB_DEPEND_API` to allow conditional compilation.
+Depend methods compile unconditionally; only the public `hb_subset_depend_*` C API is gated on `HB_NO_SUBSET_DEPEND`.
 
 ## Performance Characteristics
 
@@ -319,7 +319,7 @@ The depend API trades space for time - it pays the cost of extracting the full g
 - **src/OT/Layout/GSUB/*.hh** - GSUB format-specific depend methods
 - **src/OT/Color/COLR/colrv1-depend.hh** - COLRv1 depend implementation
 
-**Note**: The public API includes `hb_depend_print()` for debugging, which prints the full graph to stdout. For programmatic access, use `hb_depend_get_glyph_entry()` instead.
+**Note**: The public API does not include a print function. For programmatic access use `hb_subset_depend_lookup_glyph()`; the `util/hb-subset-depend` utility (TODO) will provide command-line graph inspection.
 
 ### Parallel Structure
 
@@ -332,11 +332,9 @@ void closure (hb_closure_context_t *c) const {
   // Closure implementation
 }
 
-#ifdef HB_DEPEND_API
 bool depend (hb_depend_context_t *c) const {
   // Depend implementation - similar structure, different output
 }
-#endif
 ```
 
 This keeps related code together and makes it easier to maintain consistency.

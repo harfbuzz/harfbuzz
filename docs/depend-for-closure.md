@@ -51,22 +51,24 @@ function demonstrates proper handling of:
 Key aspects of the implementation:
 
 ```c++
+// entry is hb_subset_depend_entry_t
+
 // Feature filtering - only follow GSUB edges for active features
-if (table_tag == HB_OT_TAG_GSUB) {
-  if (active_features && !hb_set_has(active_features, layout_tag))
+if (entry.table_tag == HB_OT_TAG_GSUB) {
+  if (active_features && !hb_set_has(active_features, entry.layout_tag))
     continue;  // Skip edge if feature not active
 }
 
 // Context filtering - only follow edges when requirements satisfied
-if (context_set != HB_CODEPOINT_INVALID) {
-  if (!check_context_satisfied(depend, context_set, glyphs))
+if (entry.context_set_index != HB_CODEPOINT_INVALID) {
+  if (!check_context_satisfied(depend, entry.context_set_index, glyphs))
     continue;  // Skip edge if context not satisfied
 }
 
 // Ligature handling - only add ligature when all components present
-if (ligature_set != HB_CODEPOINT_INVALID) {
+if (entry.ligature_set_index != HB_CODEPOINT_INVALID) {
   hb_set_t *ligature_glyphs = hb_set_create();
-  hb_depend_get_set_from_index(depend, ligature_set, ligature_glyphs);
+  hb_subset_depend_lookup_set(depend, entry.ligature_set_index, ligature_glyphs);
 
   // Check if all component glyphs are in reachable set
   if (!hb_set_is_subset(ligature_glyphs, glyphs)) {
@@ -77,9 +79,9 @@ if (ligature_set != HB_CODEPOINT_INVALID) {
 }
 
 // Add dependent glyph to closure
-if (!hb_set_has(glyphs, dependent)) {
-  hb_set_add(glyphs, dependent);
-  hb_set_add(to_process, dependent);
+if (!hb_set_has(glyphs, entry.dependent)) {
+  hb_set_add(glyphs, entry.dependent);
+  hb_set_add(to_process, entry.dependent);
 }
 ```
 
@@ -87,9 +89,9 @@ if (!hb_set_has(glyphs, dependent)) {
 
 Each dependency edge has an optional `flags` field that indicates potential over-approximation:
 
-- **`HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Edge from a multi-position
+- **`HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Edge from a multi-position
   contextual rule
-- **`HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02)**: Edge from a nested contextual
+- **`HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02)**: Edge from a nested contextual
   lookup
 
 When computing closure, track whether any flagged edges contributed to the result:
@@ -97,13 +99,11 @@ When computing closure, track whether any flagged edges contributed to the resul
 ```c++
 bool hit_flagged_edge = false;
 
-// When following an edge...
-uint8_t flags;
-hb_depend_get_glyph_entry(depend, gid, idx, ..., &flags);
-
-if (!hb_set_has(closure, dependent)) {
-  hb_set_add(closure, dependent);
-  if (flags & 0x03)  // Either flag set
+// When following an edge (entry is hb_subset_depend_entry_t)...
+if (!hb_set_has(closure, entry.dependent)) {
+  hb_set_add(closure, entry.dependent);
+  if (entry.flags & (HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION |
+                     HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT))
     hit_flagged_edge = true;
 }
 

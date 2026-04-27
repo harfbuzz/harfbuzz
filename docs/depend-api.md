@@ -24,27 +24,37 @@ analyzing glyph coverage, and optimizing font delivery.
 
 # Building with the Depend API
 
-The dependency API is optional and controlled by the `depend_api` build option.
-**This is a highly experimental feature and disabled by default.**
+The dependency API is guarded by `HB_NO_SUBSET_DEPEND`, which is defined by
+default. To enable it, either enable the `experimental_api` build option or
+define `HB_SUBSET_DEPEND_API` to opt in to just this API.
 
-## Enabling the depend_api option
+## Enabling via build option
 
 ```bash
-meson setup build -Ddepend_api=true
+meson setup build -Dexperimental_api=true
 meson compile -C build
 ```
 
 In code, check for availability:
 
 ```c
-#ifdef HB_DEPEND_API
+#ifdef HB_SUBSET_DEPEND_API
   // Use dependency API
 #endif
 ```
 
+## Enabling just the depend API
+
+Define `HB_SUBSET_DEPEND_API` on your compiler command line or in a config
+header to enable the depend API without enabling all experimental APIs:
+
+```bash
+cc ... -DHB_SUBSET_DEPEND_API ...
+```
+
 ## Discovering available options
 
-To see all available HarfBuzz build options, including `depend_api`:
+To see all available HarfBuzz build options, including `experimental_api`:
 
 ```bash
 # After setting up a build directory
@@ -71,7 +81,7 @@ hb_blob_t *blob = hb_blob_create_from_file("font.ttf");
 hb_face_t *face = hb_face_create(blob, 0);
 
 // Extract dependency graph
-hb_depend_t *depend = hb_depend_from_face_or_fail(face);
+hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail(face);
 if (!depend) {
     // Handle error
     return;
@@ -79,24 +89,19 @@ if (!depend) {
 
 // Query dependencies for a specific glyph
 hb_codepoint_t gid = 42;  // Glyph to query
-hb_codepoint_t index = 0;
 
-hb_tag_t table_tag;
-hb_codepoint_t dependent;
-hb_tag_t layout_tag;
-hb_codepoint_t ligature_set;
-hb_codepoint_t context_set;
-
+unsigned int total = hb_subset_depend_lookup_glyph(depend, gid, 0, NULL, NULL);
 printf("Dependencies for glyph %u:\n", gid);
-while (hb_depend_get_glyph_entry(depend, gid, index++,
-                                  &table_tag, &dependent,
-                                  &layout_tag, &ligature_set, &context_set, NULL)) {
-  printf("  -> glyph %u via %c%c%c%c\n",
-         dependent, HB_UNTAG(table_tag));
+for (unsigned int i = 0; i < total; i++) {
+    hb_subset_depend_entry_t entry;
+    unsigned int count = 1;
+    hb_subset_depend_lookup_glyph(depend, gid, i, &count, &entry);
+    printf("  -> glyph %u via %c%c%c%c\n",
+           entry.dependent, HB_UNTAG(entry.table_tag));
 }
 
 // Clean up
-hb_depend_destroy(depend);
+hb_subset_depend_destroy(depend);
 hb_face_destroy(face);
 hb_blob_destroy(blob);
 ```
@@ -107,30 +112,24 @@ To programmatically access dependency information for a specific glyph:
 
 ```c
 hb_codepoint_t gid = 42;  // Glyph ID to query
-hb_codepoint_t index = 0; // Dependency entry index
 
-hb_tag_t table_tag;
-hb_codepoint_t dependent;
-hb_tag_t layout_tag;
-hb_codepoint_t ligature_set;
-hb_codepoint_t context_set;
+// Get total count, then iterate
+unsigned int total = hb_subset_depend_lookup_glyph(depend, gid, 0, NULL, NULL);
+for (unsigned int i = 0; i < total; i++) {
+    hb_subset_depend_entry_t entry;
+    unsigned int count = 1;
+    hb_subset_depend_lookup_glyph(depend, gid, i, &count, &entry);
 
-// Iterate through all dependencies for this glyph
-while (hb_depend_get_glyph_entry(depend, gid, index,
-                                  &table_tag, &dependent,
-                                  &layout_tag, &ligature_set, &context_set, NULL)) {
-  // Process dependency information
-  if (table_tag == HB_OT_TAG_GSUB) {
-    // GSUB dependency: layout_tag contains feature tag
-    printf("GID %u -> %u via GSUB feature '%c%c%c%c'\n",
-           gid, dependent, HB_UNTAG(layout_tag));
-  } else {
-    // Other dependencies (glyf, CFF, COLR, MATH)
-    printf("GID %u -> %u via %c%c%c%c\n",
-           gid, dependent, HB_UNTAG(table_tag));
-  }
-
-  index++;
+    // Process dependency information
+    if (entry.table_tag == HB_OT_TAG_GSUB) {
+        // GSUB dependency: layout_tag contains feature tag
+        printf("GID %u -> %u via GSUB feature '%c%c%c%c'\n",
+               gid, entry.dependent, HB_UNTAG(entry.layout_tag));
+    } else {
+        // Other dependencies (glyf, CFF, COLR, MATH)
+        printf("GID %u -> %u via %c%c%c%c\n",
+               gid, entry.dependent, HB_UNTAG(entry.table_tag));
+    }
 }
 ```
 
@@ -139,34 +138,30 @@ while (hb_depend_get_glyph_entry(depend, gid, index,
 To compute all glyphs reachable from a starting set (transitive closure):
 
 ```c
-void find_reachable_glyphs(hb_depend_t *depend, hb_set_t *reachable)
+void find_reachable_glyphs(hb_subset_depend_t *depend, hb_set_t *reachable)
 {
-  hb_set_t *to_process = hb_set_create();
-  hb_set_union(to_process, reachable);
+    hb_set_t *to_process = hb_set_create();
+    hb_set_union(to_process, reachable);
 
-  // Process glyphs until none remain
-  while (!hb_set_is_empty(to_process)) {
-    hb_codepoint_t gid = hb_set_get_min(to_process);
-    hb_set_del(to_process, gid);
+    // Process glyphs until none remain
+    while (!hb_set_is_empty(to_process)) {
+        hb_codepoint_t gid = hb_set_get_min(to_process);
+        hb_set_del(to_process, gid);
 
-    hb_codepoint_t index = 0;
-    hb_tag_t table_tag;
-    hb_codepoint_t dependent;
-    hb_tag_t layout_tag;
-    hb_codepoint_t ligature_set;
-    hb_codepoint_t context_set;
+        unsigned int total = hb_subset_depend_lookup_glyph(depend, gid, 0, NULL, NULL);
+        for (unsigned int i = 0; i < total; i++) {
+            hb_subset_depend_entry_t entry;
+            unsigned int count = 1;
+            hb_subset_depend_lookup_glyph(depend, gid, i, &count, &entry);
 
-    while (hb_depend_get_glyph_entry(depend, gid, index++,
-                                      &table_tag, &dependent,
-                                      &layout_tag, &ligature_set, &context_set, NULL)) {
-      if (!hb_set_has(reachable, dependent)) {
-        hb_set_add(reachable, dependent);
-        hb_set_add(to_process, dependent);
-      }
+            if (!hb_set_has(reachable, entry.dependent)) {
+                hb_set_add(reachable, entry.dependent);
+                hb_set_add(to_process, entry.dependent);
+            }
+        }
     }
-  }
 
-  hb_set_destroy(to_process);
+    hb_set_destroy(to_process);
 }
 
 // Usage:
@@ -191,35 +186,30 @@ and `docs/depend-for-closure.md`.
 ## Working with Ligature Sets
 
 When a dependency entry belongs to a ligature set, you can find all other members
-of that set using `hb_depend_get_set_from_index()`:
+of that set using `hb_subset_depend_lookup_set()`:
 
 ```c
-// After finding ligature_set != HB_CODEPOINT_INVALID from hb_depend_get_glyph_entry()...
+// After finding entry.ligature_set_index != HB_CODEPOINT_INVALID...
 
 // Get all glyphs in this ligature set
 hb_set_t *ligature_glyphs = hb_set_create();
-if (hb_depend_get_set_from_index(depend, ligature_set, ligature_glyphs)) {
-  hb_codepoint_t lig_gid = HB_SET_VALUE_INVALID;
+if (hb_subset_depend_lookup_set(depend, entry.ligature_set_index, ligature_glyphs)) {
+    hb_codepoint_t lig_gid = HB_SET_VALUE_INVALID;
 
-  printf("Members of ligature set %u:\n", ligature_set);
-  while (hb_set_next(ligature_glyphs, &lig_gid)) {
-    // Find the dependency entry index for this glyph in this ligature set
-    hb_codepoint_t lig_index = 0;
-    hb_tag_t lig_table_tag;
-    hb_codepoint_t lig_dependent;
-    hb_tag_t lig_layout_tag;
-    hb_codepoint_t lig_ligature_set;
-    hb_codepoint_t lig_context_set;
-
-    while (hb_depend_get_glyph_entry(depend, lig_gid, lig_index++,
-                                      &lig_table_tag, &lig_dependent,
-                                      &lig_layout_tag, &lig_ligature_set, &lig_context_set, NULL)) {
-      if (lig_ligature_set == ligature_set) {
-        printf("  gid=%u, index=%u\n", lig_gid, lig_index - 1);
-        break;
-      }
+    printf("Members of ligature set %u:\n", entry.ligature_set_index);
+    while (hb_set_next(ligature_glyphs, &lig_gid)) {
+        // Find the dependency entry index for this glyph in this ligature set
+        unsigned int lig_total = hb_subset_depend_lookup_glyph(depend, lig_gid, 0, NULL, NULL);
+        for (unsigned int j = 0; j < lig_total; j++) {
+            hb_subset_depend_entry_t lig_entry;
+            unsigned int count = 1;
+            hb_subset_depend_lookup_glyph(depend, lig_gid, j, &count, &lig_entry);
+            if (lig_entry.ligature_set_index == entry.ligature_set_index) {
+                printf("  gid=%u, index=%u\n", lig_gid, j);
+                break;
+            }
+        }
     }
-  }
 }
 hb_set_destroy(ligature_glyphs);
 ```
@@ -227,18 +217,18 @@ hb_set_destroy(ligature_glyphs);
 ## Working with Context Sets
 
 Context and ChainContext GSUB rules apply lookups only when specific backtrack and/or
-lookahead glyphs are present. The depend API records these requirements in context_set
-indices as optional information that can refine dependency traversal.
+lookahead glyphs are present. The depend API records these requirements in
+`context_set_index` fields as optional information that can refine dependency traversal.
 
 **Note:** Context sets are optional refinement information. Uses of the dependency graph
-that ignore context_set (treating it as always satisfied) work fine - they produce a
+that ignore `context_set_index` (treating it as always satisfied) work fine - they produce a
 conservative over-approximation. Context sets allow more precise closure computation when
 desired.
 
 ### Understanding Context Sets
 
-When `context_set != HB_CODEPOINT_INVALID`, the edge includes positional requirements
-from a Context or ChainContext rule. Context set elements use two encodings:
+When `entry.context_set_index != HB_CODEPOINT_INVALID`, the edge includes positional
+requirements from a Context or ChainContext rule. Context set elements use two encodings:
 
 1. **Direct GID reference** (value < 0x80000000): A specific glyph ID
 2. **Indirect set reference** (value >= 0x80000000): An index into the sets array
@@ -252,69 +242,69 @@ edge to apply, ALL elements in the context set must be satisfied:
 ### Checking Context Requirements
 
 ```c
-bool check_context_satisfied(hb_depend_t *depend,
+bool check_context_satisfied(hb_subset_depend_t *depend,
                              hb_codepoint_t context_set_idx,
                              hb_set_t *current_closure)
 {
-  if (context_set_idx == HB_CODEPOINT_INVALID)
-    return true;  // No context requirements
+    if (context_set_idx == HB_CODEPOINT_INVALID)
+        return true;  // No context requirements
 
-  hb_set_t *context_elements = hb_set_create();
-  if (!hb_depend_get_set_from_index(depend, context_set_idx, context_elements))
-  {
-    hb_set_destroy(context_elements);
-    return false;  // Error retrieving context
-  }
-
-  bool satisfied = true;
-  hb_codepoint_t elem = HB_SET_VALUE_INVALID;
-
-  while (hb_set_next(context_elements, &elem))
-  {
-    if (elem < 0x80000000)
+    hb_set_t *context_elements = hb_set_create();
+    if (!hb_subset_depend_lookup_set(depend, context_set_idx, context_elements))
     {
-      // Direct reference: check if specific glyph is in closure
-      if (!hb_set_has(current_closure, elem))
-      {
-        satisfied = false;
-        break;
-      }
+        hb_set_destroy(context_elements);
+        return false;  // Error retrieving context
     }
-    else
-    {
-      // Indirect reference: check if ANY glyph from set is in closure
-      hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
-      hb_set_t *required_set = hb_set_create();
 
-      if (hb_depend_get_set_from_index(depend, set_idx, required_set))
-      {
-        // Check if ANY element from required_set is in current_closure
-        bool any_found = false;
-        hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-        while (hb_set_next(required_set, &gid))
+    bool satisfied = true;
+    hb_codepoint_t elem = HB_SET_VALUE_INVALID;
+
+    while (hb_set_next(context_elements, &elem))
+    {
+        if (elem < 0x80000000)
         {
-          if (hb_set_has(current_closure, gid))
-          {
-            any_found = true;
-            break;
-          }
+            // Direct reference: check if specific glyph is in closure
+            if (!hb_set_has(current_closure, elem))
+            {
+                satisfied = false;
+                break;
+            }
         }
-        if (!any_found)
-          satisfied = false;
-      }
-      else
-      {
-        satisfied = false;  // Error retrieving set
-      }
+        else
+        {
+            // Indirect reference: check if ANY glyph from set is in closure
+            hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
+            hb_set_t *required_set = hb_set_create();
 
-      hb_set_destroy(required_set);
-      if (!satisfied)
-        break;
+            if (hb_subset_depend_lookup_set(depend, set_idx, required_set))
+            {
+                // Check if ANY element from required_set is in current_closure
+                bool any_found = false;
+                hb_codepoint_t glyph = HB_SET_VALUE_INVALID;
+                while (hb_set_next(required_set, &glyph))
+                {
+                    if (hb_set_has(current_closure, glyph))
+                    {
+                        any_found = true;
+                        break;
+                    }
+                }
+                if (!any_found)
+                    satisfied = false;
+            }
+            else
+            {
+                satisfied = false;  // Error retrieving set
+            }
+
+            hb_set_destroy(required_set);
+            if (!satisfied)
+                break;
+        }
     }
-  }
 
-  hb_set_destroy(context_elements);
-  return satisfied;
+    hb_set_destroy(context_elements);
+    return satisfied;
 }
 ```
 
@@ -325,7 +315,7 @@ For a complete implementation of context-aware closure computation, see the
 
 ## Dependency Entry Fields
 
-Each dependency entry returned by `hb_depend_get_glyph_entry()` contains:
+Each `hb_subset_depend_entry_t` filled by `hb_subset_depend_lookup_glyph()` contains:
 
 - **table_tag**: Source table (e.g., `HB_OT_TAG_GSUB`,
   `HB_TAG('g','l','y','f')`, `HB_TAG('C','F','F',' ')`, `HB_TAG('C','O','L','R')`,
@@ -334,26 +324,26 @@ Each dependency entry returned by `hb_depend_get_glyph_entry()` contains:
 - **layout_tag**:
   - For GSUB: the feature tag (e.g., `HB_TAG('l','i','g','a')`)
   - Otherwise: `HB_CODEPOINT_INVALID`
-- **ligature_set**: For ligatures, identifies which ligature set; otherwise
+- **ligature_set_index**: For ligatures, identifies which ligature set; otherwise
   `HB_CODEPOINT_INVALID`
-- **context_set**: Optional refinement information for Context and ChainContext GSUB rules.
-  When not `HB_CODEPOINT_INVALID`, identifies positional requirements (backtrack/lookahead)
-  for this dependency. Can be ignored (treated as always satisfied) for conservative
-  over-approximation, or checked for more precise closure computation. See "Working with
-  Context Sets" section for details. *(Experimental feature from Phase 3 implementation)*
-- **flags** (optional, nullable): Edge metadata flags. Pass NULL if not needed. Currently defined:
-  - `HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01): Edge created from a multi-position
-    contextual rule (Context or ChainContext with inputCount > 1). Depend extraction
-    records edges based on what glyphs COULD be at each position according to the static
-    input coverage/class. But during closure computation, lookups within the rule are
-    applied sequentially: lookups at earlier positions may transform glyphs at later
-    positions, and multiple lookups at the same position may interact (one produces a
-    glyph, another immediately consumes it as an "intermediate"). So a glyph matching
-    the coverage might not actually persist at that position when closure traverses
-    the rule. These edges may cause over-approximation.
-  - `HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02): Edge created from a lookup that was
-    called from within another contextual lookup (nested context). The outer context's
-    requirements are not preserved on this edge, so it may over-approximate.
+- **context_set_index**: Optional refinement information for Context and ChainContext GSUB
+  rules. When not `HB_CODEPOINT_INVALID`, identifies positional requirements
+  (backtrack/lookahead) for this dependency. Can be ignored (treated as always satisfied)
+  for conservative over-approximation, or checked for more precise closure computation.
+  See "Working with Context Sets" section for details.
+- **flags**: Edge metadata flags (`hb_subset_depend_edge_flags_t`). Currently defined:
+  - `HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01): Edge created from a
+    multi-position contextual rule (Context or ChainContext with inputCount > 1). Depend
+    extraction records edges based on what glyphs COULD be at each position according to
+    the static input coverage/class. But during closure computation, lookups within the
+    rule are applied sequentially: lookups at earlier positions may transform glyphs at
+    later positions, and multiple lookups at the same position may interact (one produces
+    a glyph, another immediately consumes it as an "intermediate"). So a glyph matching
+    the coverage might not actually persist at that position when closure traverses the
+    rule. These edges may cause over-approximation.
+  - `HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02): Edge created from a lookup
+    that was called from within another contextual lookup (nested context). The outer
+    context's requirements are not preserved on this edge, so it may over-approximate.
 
   These flags help distinguish between "true" over-approximation (a bug) and "expected"
   over-approximation (a known limitation of the static dependency analysis). Closure
