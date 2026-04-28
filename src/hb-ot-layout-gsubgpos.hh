@@ -2246,14 +2246,7 @@ struct ContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
-struct ContextDependLookupContext
-{
-  ContextClosureFuncs funcs;
-  ContextFormat context_format;
-  const void *intersects_data;
-  void *intersects_cache;
-  void *intersected_glyphs_cache;
-};
+typedef ContextClosureLookupContext ContextDependLookupContext;
 
 struct ContextCollectGlyphsLookupContext
 {
@@ -2311,11 +2304,9 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
 					  unsigned value, /* Index of first glyph in Coverage or Class value in ClassDef table */
 					  ContextDependLookupContext &lookup_context)
 {
-  // ContextDependLookupContext has the same layout as ContextClosureLookupContext
-  auto &closure_lookup_context = reinterpret_cast<ContextClosureLookupContext &>(lookup_context);
   if (!context_intersects (c->glyphs,
 			   inputCount, input,
-			   closure_lookup_context))
+			   lookup_context))
     return;
 
   /* Build preliminary_context (empty for ContextSubst - no backtrack/lookahead) */
@@ -2875,7 +2866,7 @@ struct ContextFormat1_4
     if (unlikely (!cur_active_glyphs)) return;
     get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
 
-    struct ContextDependLookupContext lookup_context = {
+    ContextDependLookupContext lookup_context = {
       {intersects_glyph, intersected_glyph},
       ContextFormat::SimpleContext,
       nullptr,
@@ -3075,7 +3066,7 @@ struct ContextFormat2_5
 
     hb_map_t cache;
     intersected_class_cache_t intersected_cache;
-    struct ContextDependLookupContext lookup_context = {
+    ContextDependLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
       &class_def,
@@ -3347,7 +3338,7 @@ struct ContextFormat3
     get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
 
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
-    struct ContextDependLookupContext lookup_context = {
+    ContextDependLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
       ContextFormat::CoverageBasedContext,
       this,
@@ -3541,14 +3532,7 @@ struct ChainContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
-struct ChainContextDependLookupContext
-{
-  ContextClosureFuncs funcs;
-  ContextFormat context_format;
-  const void *intersects_data[3];
-  void *intersects_cache[3];
-  void *intersected_glyphs_cache;
-};
+typedef ChainContextClosureLookupContext ChainContextDependLookupContext;
 
 struct ChainContextCollectGlyphsLookupContext
 {
@@ -3632,13 +3616,11 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 						unsigned value,
 						ChainContextDependLookupContext &lookup_context)
 {
-  // ChainContextDependLookupContext has the same layout as ChainContextClosureLookupContext
-  auto &closure_lookup_context = reinterpret_cast<ChainContextClosureLookupContext &>(lookup_context);
   if (!chain_context_intersects (c->glyphs,
 				 backtrackCount, backtrack,
 				 inputCount, input,
 				 lookaheadCount, lookahead,
-				 closure_lookup_context))
+				 lookup_context))
     return;
 
   /* Build context information - extract backtrack and lookahead glyphs */
@@ -4354,7 +4336,7 @@ struct ChainContextFormat1_4
     if (unlikely (!cur_active_glyphs)) return;
     get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
 
-    struct ChainContextDependLookupContext lookup_context = {
+    ChainContextDependLookupContext lookup_context = {
       {intersects_glyph, intersected_glyph},
       ContextFormat::SimpleContext,
       {nullptr, nullptr, nullptr},
@@ -4558,7 +4540,7 @@ struct ChainContextFormat2_5
 
     hb_map_t caches[3] = {};
     intersected_class_cache_t intersected_cache;
-    struct ChainContextDependLookupContext lookup_context = {
+    ChainContextDependLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
       {&backtrack_class_def,
@@ -4893,7 +4875,7 @@ struct ChainContextFormat3
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    struct ChainContextDependLookupContext lookup_context = {
+    ChainContextDependLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
       ContextFormat::CoverageBasedContext,
       {this, this, this},

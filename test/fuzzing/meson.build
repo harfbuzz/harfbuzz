@@ -121,12 +121,10 @@ glob_cmd = find_program('glob.py', required: true)
 fonts_glob = run_command(glob_cmd, meson.current_source_dir() / 'fonts', check:true).stdout().strip().split('\n')
 subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts', check:true).stdout().strip().split('\n')
 graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
-# Use well-formed API test fonts for depend fuzzer (not malformed clusterfuzz fonts)
-api_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'api' / 'fonts', check:true).stdout().strip().split('\n')
 
 # Chunk the glob lists to avoid command line length limits, and for parallelization
 chunk_size = 64
-foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob', 'api_fonts_glob']
+foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob']
   glob = get_variable(glob_name)
   chunks = []
   chunk = []
@@ -229,7 +227,7 @@ endif
 
 if conf.get('HB_EXPERIMENTAL_API', 0) == 1
   i = 0
-  foreach chunk : api_fonts_glob_chunks
+  foreach chunk : subset_fonts_glob_chunks
     test('depend-closure-parity-chunk-@0@'.format(i),
       hb_depend_closure_parity_exe,
       args: ['-s', '42'] + chunk,
