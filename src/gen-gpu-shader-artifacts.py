@@ -38,6 +38,7 @@ src_copy = os.path.join(CURRENT_SOURCE_DIR, hh)
 try:
     shutil.copyfile(OUTPUT, src_copy)
 except OSError:
-    import filecmp
-    if not filecmp.cmp(OUTPUT, src_copy, shallow=False):
-        sys.exit(f'{src_copy} is out of date; regenerate with a writable source tree')
+    # Read as text to ignore line-ending changes
+    with open(OUTPUT, 'r') as f1, open(src_copy, 'r') as f2:
+        if f1.read() != f2.read():
+            sys.exit(f'{src_copy} is out of date; regenerate with a writable source tree')
