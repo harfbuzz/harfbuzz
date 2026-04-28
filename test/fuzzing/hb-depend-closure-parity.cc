@@ -38,6 +38,27 @@ struct deferred_ligature_t
   hb_subset_depend_edge_flags_t flags;
 };
 
+/* Returns true with probability |prob| using |rng| (always false if rng is null or prob <= 0) */
+static bool
+rng_prob_hit (std::mt19937 *rng, float prob)
+{
+  if (!rng || prob <= 0.0f)
+    return false;
+  return std::uniform_real_distribution<float> (0.0f, 1.0f) (*rng) < prob;
+}
+
+/* Context shared across the table-stage calls inside compute_depend_closure */
+struct depend_closure_ctx_t
+{
+  hb_subset_depend_t *depend;
+  hb_set_t           *glyphs;          /* Accumulating closure set (modified in place) */
+  hb_set_t           *active_features; /* NULL = no feature filter */
+  bool                skip_gsub;
+  bool               *hit_flagged_edge;
+  std::mt19937       *injection_rng;
+  std::vector<deferred_ligature_t> deferred_ligatures;
+};
+
 /* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for parity checker */
 #ifndef HB_DEBUG_DEPEND
 #define HB_DEBUG_DEPEND 1
@@ -720,22 +741,13 @@ check_context_satisfied (hb_subset_depend_t *depend,
   return satisfied;
 }
 
-/* Helper: Process edges for specific table(s)
- * table_filter: if non-NULL, only process edges from these tables
- * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
- * injection_rng: if non-NULL, use for error injection
- * Returns: true if any new glyphs were added */
+/* Process edges for glyphs in |to_process| that belong to tables in |table_filter|.
+ * Appends newly reachable glyphs to ctx.glyphs and back to |to_process| for further expansion.
+ * Returns true if any new glyphs were added. */
 static bool
-process_edges_for_tables (hb_subset_depend_t *depend,
-                          hb_set_t *glyphs,
+process_edges_for_tables (depend_closure_ctx_t &ctx,
                           hb_set_t *to_process,
-                          std::vector<deferred_ligature_t> *deferred_ligatures,
-                          hb_set_t *table_filter,
-                          bool skip_gsub,
-                          hb_set_t *active_features,
-                          bool *hit_flagged_edge,
-                          std::mt19937 *injection_rng,
-                          const hb_map_t *vs_to_gid)
+                          hb_set_t *table_filter)
 {
   bool added_any = false;
 
@@ -745,135 +757,94 @@ process_edges_for_tables (hb_subset_depend_t *depend,
     hb_set_del (to_process, gid);
 
     if (gid == debug_gid)
-      DEBUG_MSG_DEPEND("Processing glyph %u", gid);
+      DEBUG_MSG_DEPEND ("Processing glyph %u", gid);
 
-    hb_subset_depend_entry_t entry;
-    unsigned int total = hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
+    unsigned int total = hb_subset_depend_lookup_glyph (ctx.depend, gid, 0, nullptr, nullptr);
     for (unsigned int idx = 0; idx < total; idx++)
     {
       unsigned int count = 1;
-      hb_subset_depend_lookup_glyph (depend, gid, idx, &count, &entry);
-      hb_tag_t table_tag = entry.table_tag;
-      hb_codepoint_t dependent = entry.dependent;
-      hb_tag_t layout_tag = entry.layout_tag;
+      hb_subset_depend_entry_t entry;
+      hb_subset_depend_lookup_glyph (ctx.depend, gid, idx, &count, &entry);
+
+      hb_tag_t      table_tag   = entry.table_tag;
+      hb_codepoint_t dependent  = entry.dependent;
+      hb_tag_t      layout_tag  = entry.layout_tag;
       hb_codepoint_t ligature_set = entry.ligature_set_index;
-      hb_codepoint_t context_set = entry.context_set_index;
+      hb_codepoint_t context_set  = entry.context_set_index;
       hb_subset_depend_edge_flags_t flags = entry.flags;
-      /* Debug: trace all edges involving our debug glyph */
+
+      /* Debug: trace all edges touching the watched glyph */
       if (debug_gid != HB_CODEPOINT_INVALID &&
           (gid == debug_gid || dependent == debug_gid))
-        DEBUG_MSG_DEPEND("Considering edge: %u -> %u (feature=%c%c%c%c, ctx=%u)",
-                   gid, dependent, HB_UNTAG(layout_tag), context_set);
+        DEBUG_MSG_DEPEND ("Considering edge: %u -> %u (feature=%c%c%c%c, ctx=%u)",
+                    gid, dependent, HB_UNTAG (layout_tag), context_set);
 
       /* Filter by table if requested */
       if (table_filter && !hb_set_has (table_filter, table_tag))
         continue;
 
       if (dependent == debug_gid || gid == debug_gid)
-        DEBUG_MSG_DEPEND("Edge: %u -> %u (table=%c%c%c%c, ligset=%u)",
-                   gid, dependent, HB_UNTAG(table_tag), ligature_set);
+        DEBUG_MSG_DEPEND ("Edge: %u -> %u (table=%c%c%c%c, ligset=%u)",
+                    gid, dependent, HB_UNTAG (table_tag), ligature_set);
 
-      /* Skip all cmap edges - UVS closure is now handled directly via cmap accelerator.
-       * This ensures proper filtering by both base unicode and variation selector. */
-      if (table_tag == HB_TAG('c','m','a','p'))
-      {
-        if (dependent == debug_gid)
-          DEBUG_MSG_DEPEND("Skipping cmap edge %u -> %u: UVS handled via cmap accelerator",
-                     gid, dependent);
-        continue;
-      }
-
-      /* Skip GSUB dependencies if requested (to match subset behavior) */
-      if (skip_gsub && table_tag == HB_OT_TAG_GSUB)
+      /* UVS closure is handled via the cmap accelerator, not depend edges */
+      if (table_tag == HB_TAG ('c','m','a','p'))
         continue;
 
-      /* If active_features is specified, filter GSUB deps by feature */
-      if (active_features && table_tag == HB_OT_TAG_GSUB)
+      /* Skip GSUB edges when requested */
+      if (ctx.skip_gsub && table_tag == HB_OT_TAG_GSUB)
+        continue;
+
+      /* Filter GSUB edges by active features; over-approx injection can bypass the filter */
+      if (ctx.active_features && table_tag == HB_OT_TAG_GSUB &&
+          !hb_set_has (ctx.active_features, layout_tag))
       {
-        if (!hb_set_has (active_features, layout_tag))
+        if (!rng_prob_hit (ctx.injection_rng, _hb_depend_fuzzer_inject_over_approx))
         {
-          /* Over-approximation injection: sometimes follow inactive feature edges */
-          bool skip_feature_check = false;
-          if (injection_rng && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
-            std::uniform_real_distribution<float> dist (0.0f, 1.0f);
-            float r = dist (*injection_rng);
-            if (r < _hb_depend_fuzzer_inject_over_approx) {
-              skip_feature_check = true;
-            }
-          }
-
-          if (!skip_feature_check)
-          {
-            if (dependent == debug_gid)
-              DEBUG_MSG_DEPEND("Skipping edge %u -> %u: feature %c%c%c%c not active",
-                         gid, dependent, HB_UNTAG(layout_tag));
-            continue; /* Skip dependencies from inactive features */
-          }
+          if (dependent == debug_gid)
+            DEBUG_MSG_DEPEND ("Skipping edge %u -> %u: feature %c%c%c%c not active",
+                        gid, dependent, HB_UNTAG (layout_tag));
+          continue;
         }
       }
 
-      /* Check context requirements - skip edge if context not satisfied */
-      if (context_set != HB_CODEPOINT_INVALID)
+      /* Skip edges whose context requirements are unsatisfied; over-approx injection can bypass */
+      if (context_set != HB_CODEPOINT_INVALID &&
+          !check_context_satisfied (ctx.depend, context_set, ctx.glyphs))
       {
-        if (!check_context_satisfied (depend, context_set, glyphs))
+        if (!rng_prob_hit (ctx.injection_rng, _hb_depend_fuzzer_inject_over_approx))
         {
-          /* Over-approximation injection: sometimes follow edges with unsatisfied context */
-          bool skip_context_check = false;
-          if (injection_rng && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
-            std::uniform_real_distribution<float> dist (0.0f, 1.0f);
-            float r = dist (*injection_rng);
-            if (r < _hb_depend_fuzzer_inject_over_approx) {
-              skip_context_check = true;
-            }
-          }
-
-          if (!skip_context_check)
-          {
-            if (dependent == debug_gid)
-              DEBUG_MSG_DEPEND("Skipping edge %u -> %u: context not satisfied (ctx_set=%u)",
-                         gid, dependent, context_set);
-            continue;  /* Context requirements not met, skip this edge */
-          }
+          if (dependent == debug_gid)
+            DEBUG_MSG_DEPEND ("Skipping edge %u -> %u: context not satisfied (ctx_set=%u)",
+                        gid, dependent, context_set);
+          continue;
         }
       }
 
-      /* Check if this is a ligature dependency (has a ligature set) */
-      bool is_ligature = (ligature_set != HB_CODEPOINT_INVALID);
-
-      if (is_ligature)
+      if (ligature_set != HB_CODEPOINT_INVALID)
       {
-        /* Defer ligature dependencies for later processing.
-         * Store all info needed to process later: dependent glyph, ligature set index, and flags.
-         * Feature filtering has already been done above, so no need to re-check later. */
-        deferred_ligatures->push_back (deferred_ligature_t (dependent, ligature_set, flags));
+        /* Defer: revisit once we know whether all components are in the closure.
+         * Feature filtering has already been applied above. */
+        ctx.deferred_ligatures.push_back (deferred_ligature_t (dependent, ligature_set, flags));
       }
       else
       {
-        /* Under-approximation injection: randomly skip following this edge */
-        if (injection_rng && _hb_depend_fuzzer_inject_under_approx > 0.0f) {
-          std::uniform_real_distribution<float> dist (0.0f, 1.0f);
-          float r = dist (*injection_rng);
-          if (r < _hb_depend_fuzzer_inject_under_approx) {
-            /* Skip this edge to inject under-approximation */
-            continue;
-          }
-        }
+        /* Under-approx injection: randomly drop this edge */
+        if (rng_prob_hit (ctx.injection_rng, _hb_depend_fuzzer_inject_under_approx))
+          continue;
 
-        /* Non-ligature dependency: add immediately */
-        if (!hb_set_has (glyphs, dependent))
+        if (!hb_set_has (ctx.glyphs, dependent))
         {
-          /* Track if we hit a flagged edge (from contextual position or nested context)
-           * Flag values: 0x01 = FROM_CONTEXT_POSITION, 0x02 = FROM_NESTED_CONTEXT */
-          if (hit_flagged_edge && (flags & 0x03))
-            *hit_flagged_edge = true;
+          if (ctx.hit_flagged_edge && (flags & 0x03))
+            *ctx.hit_flagged_edge = true;
 
           if (dependent == debug_gid)
-            DEBUG_MSG_DEPEND("Adding glyph %u to closure (from %u, feature=%c%c%c%c, ctx=%u)",
-                       dependent, gid, HB_UNTAG(layout_tag), context_set);
+            DEBUG_MSG_DEPEND ("Adding glyph %u to closure (from %u, feature=%c%c%c%c, ctx=%u)",
+                        dependent, gid, HB_UNTAG (layout_tag), context_set);
           if (trace_closure)
-            DEBUG_MSG_DEPEND("Depend: %u -> %u (table=%c%c%c%c, feature=%c%c%c%c)",
-                       gid, dependent, HB_UNTAG(table_tag), HB_UNTAG(layout_tag));
-          hb_set_add (glyphs, dependent);
+            DEBUG_MSG_DEPEND ("Depend: %u -> %u (table=%c%c%c%c, feature=%c%c%c%c)",
+                        gid, dependent, HB_UNTAG (table_tag), HB_UNTAG (layout_tag));
+          hb_set_add (ctx.glyphs, dependent);
           hb_set_add (to_process, dependent);
           added_any = true;
         }
@@ -884,245 +855,174 @@ process_edges_for_tables (hb_subset_depend_t *depend,
   return added_any;
 }
 
-/* Compute closure using depend API by following the dependency graph
- * skip_gsub: if true, skip GSUB dependencies to match subset behavior
- * (subset doesn't follow GSUB when starting with glyph IDs)
- * active_features: if non-NULL, only follow GSUB dependencies from these features
- * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
- * injection_rng: if non-NULL, use for error injection */
+/* Compute closure using the depend API by following the dependency graph.
+ *
+ * On entry ctx.glyphs is the initial glyph set; on exit it holds the full closure.
+ * input_unicodes (may be NULL) is used for UVS (cmap format 14) handling only.
+ * Closure is built in table order: cmap UVS → GSUB → MATH → COLR → glyf/CFF.
+ * There is no loop back to GSUB after glyf/CFF: component glyphs are rendering
+ * details, not shaping inputs, and subset doesn't loop back either. */
 static void
-compute_depend_closure (hb_face_t *face, hb_subset_depend_t *depend, hb_set_t *glyphs,
-                        const hb_set_t *input_unicodes, bool skip_gsub,
-                        hb_set_t *active_features, bool *hit_flagged_edge,
-                        std::mt19937 *injection_rng, const hb_map_t *vs_to_gid)
+compute_depend_closure (hb_face_t *face, depend_closure_ctx_t &ctx,
+                        const hb_set_t *input_unicodes)
 {
   if (debug_gid != HB_CODEPOINT_INVALID)
-  {
-    DEBUG_MSG_DEPEND("Starting closure, glyph %u %s in initial set",
-               debug_gid,
-               hb_set_has (glyphs, debug_gid) ? "IS" : "is NOT");
-  }
+    DEBUG_MSG_DEPEND ("Starting closure, glyph %u %s in initial set",
+                debug_gid,
+                hb_set_has (ctx.glyphs, debug_gid) ? "IS" : "is NOT");
 
   if (trace_closure)
   {
     hb_codepoint_t gid = HB_SET_VALUE_INVALID;
     fprintf (stderr, "DEPEND: Initial set:");
-    while (hb_set_next (glyphs, &gid))
+    while (hb_set_next (ctx.glyphs, &gid))
       fprintf (stderr, " %u", gid);
     fprintf (stderr, "\n");
   }
 
   hb_set_t *to_process = hb_set_create ();
-  std::vector<deferred_ligature_t> deferred_ligatures;
 
-  /* Process edges in stages matching subset's table order:
-   * 1. cmap (follows UVS edges - must be BEFORE GSUB so UVS glyphs get GSUB processed)
-   * 2. GSUB (iterate internally until stable - handles context dependencies)
-   * 3. MATH (on glyphs from cmap+GSUB)
-   * 4. COLR (on glyphs from cmap+GSUB+MATH)
-   * 5. glyf/CFF (on glyphs from cmap+GSUB+MATH+COLR)
-   *
-   * No loop back to GSUB after glyf/CFF - glyf components are rendering
-   * implementation details, not shaping inputs. Subset doesn't loop back either. */
-
-  /* Helper set for ligature processing (used in GSUB stage) */
-  hb_set_t *ligature_set_glyphs = hb_set_create ();
-
-  /* Stage 1: UVS closure (using query API, not depend edges)
-   * Process BEFORE GSUB to match subset's order.
-   * For each (base_unicode, variation_selector) pair in input_unicodes,
-   * query the variant glyph and add it to the closure. */
+  /* Stage 1: UVS closure (cmap format 14), processed before GSUB to match subset's order.
+   * For each (base unicode, variation selector) pair present in input_unicodes,
+   * look up the variant glyph and add it to the closure. */
   if (input_unicodes)
   {
-    /* Get all variation selectors in the font */
     hb_set_t *all_vs = hb_set_create ();
     hb_face_collect_variation_selectors (face, all_vs);
-
-    /* Filter to only VSs present in input unicodes */
     hb_set_intersect (all_vs, input_unicodes);
 
     if (!hb_set_is_empty (all_vs))
     {
       hb_font_t *font = hb_font_create (face);
-
-      /* For each variation selector in input */
       hb_codepoint_t vs = HB_SET_VALUE_INVALID;
       while (hb_set_next (all_vs, &vs))
       {
-        /* For each base unicode in input */
         hb_codepoint_t base = HB_SET_VALUE_INVALID;
         while (hb_set_next (input_unicodes, &base))
         {
-          /* Skip if base is itself a variation selector */
           if (hb_set_has (all_vs, base))
-            continue;
-
-          /* Query variation glyph */
+            continue;  /* base is itself a VS, skip */
           hb_codepoint_t variant_glyph;
           if (hb_font_get_variation_glyph (font, base, vs, &variant_glyph))
           {
-            hb_set_add (glyphs, variant_glyph);
-
+            hb_set_add (ctx.glyphs, variant_glyph);
             if (trace_closure && variant_glyph == debug_gid)
-              DEBUG_MSG_DEPEND("UVS: Added glyph %u via U+%04X+U+%04X",
-                         variant_glyph, base, vs);
+              DEBUG_MSG_DEPEND ("UVS: Added glyph %u via U+%04X+U+%04X",
+                          variant_glyph, base, vs);
           }
         }
       }
-
       hb_font_destroy (font);
     }
 
     hb_set_destroy (all_vs);
-
     if (trace_closure)
-      DEBUG_MSG_DEPEND("After UVS (cmap format 14): closure has %u glyphs",
-                 hb_set_get_population (glyphs));
+      DEBUG_MSG_DEPEND ("After UVS (cmap format 14): closure has %u glyphs",
+                  hb_set_get_population (ctx.glyphs));
   }
 
-  {
-    /* Stage 2: GSUB closure - iterate until stable (like subset does internally)
-     * Ligatures are processed HERE as part of GSUB, not after glyf/CFF.
-     * This matches subset behavior where GSUB closure completes before glyf. */
-    if (!skip_gsub)
+  /* Stage 2: GSUB closure — iterate until stable, matching subset's internal behavior.
+   * Ligatures are resolved here (not after glyf/CFF): add a ligature only once all of
+   * its required components are in the closure. */
+  if (!ctx.skip_gsub)
   {
     hb_set_t *gsub_filter = hb_set_create ();
     hb_set_add (gsub_filter, HB_OT_TAG_GSUB);
+    hb_set_t *ligature_set_glyphs = hb_set_create ();
 
     unsigned prev_gsub_count;
     unsigned iteration = 0;
     do {
-      prev_gsub_count = hb_set_get_population (glyphs);
+      prev_gsub_count = hb_set_get_population (ctx.glyphs);
 
-      /* Process non-ligature GSUB edges */
-      hb_set_union (to_process, glyphs);
-      process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                                gsub_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng, vs_to_gid);
+      hb_set_union (to_process, ctx.glyphs);
+      process_edges_for_tables (ctx, to_process, gsub_filter);
 
-      /* Process deferred ligatures (GSUB ligatures only)
-       * Only add a ligature when ALL glyphs in its ligature set are in closure.
-       * Since we stored {dependent, ligature_set_index, flags} at deferral time,
-       * we just need to check if each ligature set is satisfied - no re-scanning needed. */
+      /* Drain deferred ligatures: add each ligature whose component set is now fully satisfied */
       bool lig_made_progress = true;
-      while (lig_made_progress && !deferred_ligatures.empty ())
+      while (lig_made_progress && !ctx.deferred_ligatures.empty ())
       {
         lig_made_progress = false;
 
-        for (size_t i = 0; i < deferred_ligatures.size (); )
+        for (size_t i = 0; i < ctx.deferred_ligatures.size (); )
         {
-          const deferred_ligature_t &def = deferred_ligatures[i];
+          const deferred_ligature_t &def = ctx.deferred_ligatures[i];
 
-          /* Check if ligature set is satisfied */
           hb_set_clear (ligature_set_glyphs);
-          hb_subset_depend_lookup_set (depend, def.ligature_set_index, ligature_set_glyphs);
+          hb_subset_depend_lookup_set (ctx.depend, def.ligature_set_index, ligature_set_glyphs);
+          bool set_satisfied = hb_set_is_subset (ligature_set_glyphs, ctx.glyphs);
 
-          bool set_satisfied = hb_set_is_subset (ligature_set_glyphs, glyphs);
-
-          /* Over-approximation injection: sometimes add ligature even when components NOT satisfied */
-          if (!set_satisfied && injection_rng && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
-            std::uniform_real_distribution<float> dist (0.0f, 1.0f);
-            float r = dist (*injection_rng);
-            if (r < _hb_depend_fuzzer_inject_over_approx) {
-              set_satisfied = true;  /* Pretend it's satisfied */
-            }
-          }
+          /* Over-approx injection: pretend the set is satisfied even when it isn't */
+          if (!set_satisfied)
+            set_satisfied = rng_prob_hit (ctx.injection_rng, _hb_depend_fuzzer_inject_over_approx);
 
           if (set_satisfied)
           {
-            /* Under-approximation injection: randomly skip adding ligature */
-            bool skip_ligature = false;
-            if (injection_rng && _hb_depend_fuzzer_inject_under_approx > 0.0f) {
-              std::uniform_real_distribution<float> dist (0.0f, 1.0f);
-              float r = dist (*injection_rng);
-              if (r < _hb_depend_fuzzer_inject_under_approx) {
-                skip_ligature = true;
-              }
-            }
-
-            if (!skip_ligature && !hb_set_has (glyphs, def.dependent))
+            /* Under-approx injection: skip adding this ligature */
+            if (!rng_prob_hit (ctx.injection_rng, _hb_depend_fuzzer_inject_under_approx) &&
+                !hb_set_has (ctx.glyphs, def.dependent))
             {
-              /* Check if this ligature edge has flags (from contextual position or nested context) */
-              if (hit_flagged_edge && (def.flags & 0x03))
-                *hit_flagged_edge = true;
-
+              if (ctx.hit_flagged_edge && (def.flags & 0x03))
+                *ctx.hit_flagged_edge = true;
               if (trace_closure)
-                DEBUG_MSG_DEPEND("Adding GSUB ligature %u (components satisfied, flags=0x%02x)",
-                           def.dependent, def.flags);
-              hb_set_add (glyphs, def.dependent);
+                DEBUG_MSG_DEPEND ("Adding GSUB ligature %u (components satisfied, flags=0x%02x)",
+                            def.dependent, def.flags);
+              hb_set_add (ctx.glyphs, def.dependent);
               lig_made_progress = true;
             }
-
-            /* Remove from deferred list by swapping with last element */
-            deferred_ligatures[i] = deferred_ligatures.back ();
-            deferred_ligatures.pop_back ();
-            /* Don't increment i - need to check the swapped element */
+            /* Erase by swapping with the last element */
+            ctx.deferred_ligatures[i] = ctx.deferred_ligatures.back ();
+            ctx.deferred_ligatures.pop_back ();
           }
           else
-          {
             i++;
-          }
         }
       }
 
       iteration++;
-    } while (hb_set_get_population (glyphs) > prev_gsub_count && iteration < 64);
+    } while (hb_set_get_population (ctx.glyphs) > prev_gsub_count && iteration < 64);
 
+    hb_set_destroy (ligature_set_glyphs);
     hb_set_destroy (gsub_filter);
-
     if (trace_closure)
-      DEBUG_MSG_DEPEND("After GSUB (%u iterations): closure has %u glyphs",
-                 iteration, hb_set_get_population (glyphs));
+      DEBUG_MSG_DEPEND ("After GSUB (%u iterations): closure has %u glyphs",
+                  iteration, hb_set_get_population (ctx.glyphs));
   }
 
   /* Stage 3: MATH closure */
   {
     hb_set_t *math_filter = hb_set_create ();
     hb_set_add (math_filter, HB_OT_TAG_MATH);
-
-    hb_set_union (to_process, glyphs);
-    process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              math_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng, vs_to_gid);
+    hb_set_union (to_process, ctx.glyphs);
+    process_edges_for_tables (ctx, to_process, math_filter);
     hb_set_destroy (math_filter);
-
     if (trace_closure)
-      DEBUG_MSG_DEPEND("After MATH: closure has %u glyphs",
-                 hb_set_get_population (glyphs));
+      DEBUG_MSG_DEPEND ("After MATH: closure has %u glyphs", hb_set_get_population (ctx.glyphs));
   }
 
   /* Stage 4: COLR closure */
   {
     hb_set_t *colr_filter = hb_set_create ();
-    hb_set_add (colr_filter, HB_TAG('C','O','L','R'));
-
-    hb_set_union (to_process, glyphs);
-    process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              colr_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng, vs_to_gid);
+    hb_set_add (colr_filter, HB_TAG ('C','O','L','R'));
+    hb_set_union (to_process, ctx.glyphs);
+    process_edges_for_tables (ctx, to_process, colr_filter);
     hb_set_destroy (colr_filter);
-
     if (trace_closure)
-      DEBUG_MSG_DEPEND("After COLR: closure has %u glyphs",
-                 hb_set_get_population (glyphs));
+      DEBUG_MSG_DEPEND ("After COLR: closure has %u glyphs", hb_set_get_population (ctx.glyphs));
   }
 
   /* Stage 5: glyf/CFF closure */
   {
     hb_set_t *glyf_filter = hb_set_create ();
-    hb_set_add (glyf_filter, HB_TAG('g','l','y','f'));
-    hb_set_add (glyf_filter, HB_TAG('C','F','F',' '));
-
-    hb_set_union (to_process, glyphs);
-    process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              glyf_filter, skip_gsub, active_features, NULL, injection_rng, vs_to_gid);
+    hb_set_add (glyf_filter, HB_TAG ('g','l','y','f'));
+    hb_set_add (glyf_filter, HB_TAG ('C','F','F',' '));
+    hb_set_union (to_process, ctx.glyphs);
+    process_edges_for_tables (ctx, to_process, glyf_filter);
     hb_set_destroy (glyf_filter);
-
     if (trace_closure)
-      DEBUG_MSG_DEPEND("After glyf/CFF: closure has %u glyphs",
-                 hb_set_get_population (glyphs));
+      DEBUG_MSG_DEPEND ("After glyf/CFF: closure has %u glyphs", hb_set_get_population (ctx.glyphs));
   }
-  }  /* End table stages */
 
-  /* Cleanup */
-  hb_set_destroy (ligature_set_glyphs);
   hb_set_destroy (to_process);
 }
 
@@ -1330,26 +1230,21 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
   hb_set_t *depend_closure = hb_set_create ();
   hb_set_union (depend_closure, actual_start_glyphs);
 
-  /* Subset always adds glyph 0 (.notdef) to the input before closure.
-   * Mirror this behavior in depend closure to ensure fair comparison.
-   * See hb-subset-plan.cc:451 */
+  /* Subset always adds glyph 0 (.notdef) before closure; mirror that here (hb-subset-plan.cc:451) */
   hb_set_add (depend_closure, 0);
 
-  /* Run depend with same active features as subset */
   if (debug_gid != HB_CODEPOINT_INVALID && active_features)
   {
     hb_codepoint_t feat = HB_SET_VALUE_INVALID;
     fprintf (stderr, "DEPEND: Active features (%u):", hb_set_get_population (active_features));
     while (hb_set_next (active_features, &feat))
-      fprintf (stderr, " %c%c%c%c", HB_UNTAG(feat));
+      fprintf (stderr, " %c%c%c%c", HB_UNTAG (feat));
     fprintf (stderr, "\n");
   }
 
-  /* Seed RNG for error injection based on test seed to ensure reproducibility.
-   * For a given test seed and injection probability, the same edges will be
-   * skipped/added every time. Use std::mt19937 for deterministic cross-platform behavior. */
-  std::mt19937 *injection_rng = nullptr;
+  /* Seed RNG for reproducible error injection: same seed → same edges skipped/added */
   std::mt19937 injection_rng_storage;
+  std::mt19937 *injection_rng = nullptr;
   if (_hb_depend_fuzzer_inject_over_approx > 0.0f ||
       _hb_depend_fuzzer_inject_under_approx > 0.0f)
   {
@@ -1357,48 +1252,38 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
     injection_rng = &injection_rng_storage;
   }
 
-  /* Build unicodes set for UVS closure.
-   * For GSUB tests: Use input codepoints.
-   * For non-GSUB tests: Find ALL unicodes for starting glyphs (reverse cmap lookup). */
+  /* Build the unicode set for UVS (cmap format 14) closure.
+   * GSUB tests: use input codepoints directly.
+   * Non-GSUB tests: reverse-map starting glyphs to their unicodes
+   * (matches subset's behavior at hb-subset-plan.cc:310-319). */
   hb_set_t *uvs_unicodes = hb_set_create ();
   if (is_gsub && codepoints && !hb_set_is_empty (codepoints))
   {
-    /* GSUB test: use input codepoints directly */
     hb_set_union (uvs_unicodes, codepoints);
   }
   else
   {
-    /* Non-GSUB test: find all unicodes that map to starting glyphs.
-     * This matches subset's behavior at hb-subset-plan.cc:310-319
-     * Use forward cmap and filter by starting glyphs. */
-
-    /* Get forward cmap (unicode → glyph) */
     hb_map_t *unicode_to_glyph = hb_map_create ();
     hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph, NULL);
-
-    /* Iterate forward map, add unicodes whose glyphs are in starting set */
     int idx = -1;
     hb_codepoint_t unicode, glyph;
     while (hb_map_next (unicode_to_glyph, &idx, &unicode, &glyph))
-    {
       if (hb_set_has (actual_start_glyphs, glyph))
-      {
         hb_set_add (uvs_unicodes, unicode);
-      }
-    }
-
     hb_map_destroy (unicode_to_glyph);
   }
 
-  /* Build map of variation selectors to their glyph IDs (kept for potential future use) */
-  hb_map_t *vs_to_gid = hb_map_create ();
-
   bool hit_flagged_edge = false;
-  compute_depend_closure (face, depend, depend_closure, uvs_unicodes, skip_gsub,
-                          skip_gsub ? NULL : active_features, &hit_flagged_edge, injection_rng, vs_to_gid);
+  depend_closure_ctx_t ctx;
+  ctx.depend          = depend;
+  ctx.glyphs          = depend_closure;
+  ctx.active_features = skip_gsub ? nullptr : active_features;
+  ctx.skip_gsub       = skip_gsub;
+  ctx.hit_flagged_edge = &hit_flagged_edge;
+  ctx.injection_rng   = injection_rng;
 
+  compute_depend_closure (face, ctx, uvs_unicodes);
   hb_set_destroy (uvs_unicodes);
-  hb_map_destroy (vs_to_gid);
 
   hb_set_destroy (actual_start_glyphs);
 
