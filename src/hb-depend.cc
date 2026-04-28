@@ -62,12 +62,11 @@
 
 hb_subset_depend_t::hb_subset_depend_t (hb_face_t *f)
 {
-  face = hb_face_reference(f);
-  if (unlikely (!data.glyph_dependencies.resize_exact (face->get_num_glyphs ()))) {
+  if (unlikely (!data.glyph_dependencies.resize_exact (f->get_num_glyphs ()))) {
     successful = false;
     return;
   }
-  successful = hb_depend_data_builder_t (data).compile (face);
+  successful = hb_depend_data_builder_t (data).compile (f);
 }
 
 bool
@@ -89,11 +88,6 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
   face->table.glyf->depend (this);
   OT::cff1_subset_accelerator_t (face).depend (this);
   return successful;
-}
-
-hb_subset_depend_t::~hb_subset_depend_t ()
-{
-  hb_face_destroy(face);
 }
 
 

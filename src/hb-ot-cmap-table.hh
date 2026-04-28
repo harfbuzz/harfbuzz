@@ -32,7 +32,6 @@
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 #include "hb-cache.hh"
-#include "hb-depend-data.hh"
 
 /*
  * cmap -- Character to Glyph Index Mapping

@@ -37,7 +37,6 @@
  * hb_subset_depend_t:
  *
  * Internal structure implementing the dependency graph API.
- * Contains the dependency data (data) and the source font face (face).
  *
  * Initialized via hb_subset_depend_from_face_or_fail() which computes the dependency
  * graph once via hb_depend_data_builder_t::compile(). The graph remains
@@ -46,8 +45,6 @@
 struct hb_subset_depend_t
 {
   HB_INTERNAL hb_subset_depend_t (hb_face_t *face);
-
-  HB_INTERNAL ~hb_subset_depend_t();
 
   hb_object_header_t header;
 
@@ -60,7 +57,6 @@ struct hb_subset_depend_t
     return data.get_set_from_index (index);
   }
 
-  hb_face_t *face;
   hb_depend_data_t data;
 };
 

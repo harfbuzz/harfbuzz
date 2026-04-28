@@ -380,6 +380,7 @@ struct hb_depend_context_t :
        hb_dispatch_context_t<hb_depend_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index);
+  /* return_t is hb_empty_t — dispatch is purely for side-effects, like hb_closure_context_t. */
   template <typename T>
   return_t dispatch (const T &obj) { obj.depend (this); return hb_empty_t (); }
   static return_t default_return_value () { return hb_empty_t (); }
@@ -401,10 +402,9 @@ struct hb_depend_context_t :
 
   hb_set_t* push_cur_active_glyphs ()
   {
-    hb_set_t *s = active_glyphs_stack.push ();
-    if (unlikely (active_glyphs_stack.in_error ()))
+    if (unlikely (!active_glyphs_stack.push_or_fail ()))
       return nullptr;
-    return s;
+    return &active_glyphs_stack.tail ();
   }
 
   bool pop_cur_done_glyphs ()
