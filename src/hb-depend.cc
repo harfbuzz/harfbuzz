@@ -182,11 +182,15 @@ hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
     unsigned int count = hb_min (*entry_count,
                                   start_offset < total ? total - start_offset : 0u);
     for (unsigned int i = 0; i < count; i++)
+    {
+      uint8_t flags_byte = 0;
       depend->data.get_glyph_entry (gid, start_offset + i,
                                     &entries[i].table_tag, &entries[i].dependent,
                                     &entries[i].layout_tag, &entries[i].ligature_set_index,
                                     &entries[i].context_set_index,
-                                    (uint8_t *) &entries[i].flags);
+                                    &flags_byte);
+      entries[i].flags = (hb_subset_depend_edge_flags_t) flags_byte;
+    }
     *entry_count = count;
   }
   return total;
