@@ -847,7 +847,7 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
 
 
 /* ============================================================
- * Test generation infrastructure
+ * Random sampling utilities
  * ============================================================ */
 
 /* Use std::mt19937 for deterministic, cross-platform random behaviour */
@@ -900,6 +900,10 @@ rng_select_from_set (std::mt19937 &rng, hb_set_t *out, unsigned n, const hb_set_
 
   free (array);
 }
+
+/* ============================================================
+ * Font and input queries
+ * ============================================================ */
 
 /* Return a newly-allocated set containing all GSUB feature tags for |face| */
 static hb_set_t *
@@ -1065,6 +1069,10 @@ parse_features (const char *str, hb_set_t *features, hb_face_t *face)
 
   return !hb_set_is_empty (features);
 }
+
+/* ============================================================
+ * Test parameter generation
+ * ============================================================ */
 
 /* Test parameters generated from a 64-bit seed or explicit command-line args */
 struct test_params
