@@ -87,6 +87,13 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
   face->table.COLR->depend (this);
   face->table.glyf->depend (this);
   OT::cff1_subset_accelerator_t (face).depend (this);
+  /* XXX TODO: add face->table.VARC->depend (this) here.
+   * VARC closure and subsetting are not yet implemented (see hb-subset-plan.cc),
+   * so the right traversal architecture for VarComponent records hasn't been
+   * established. Implement VARC depend() in the same commit that adds VARC
+   * closure, so both share the same traversal model. Component conditions should
+   * be treated as over-approximations (include all components regardless of
+   * condition), consistent with how FeatureVariations edges are handled. */
   return successful;
 }
 
