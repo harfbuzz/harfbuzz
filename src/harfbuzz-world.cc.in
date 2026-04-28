@@ -2,6 +2,33 @@
 #include HB_FEATURES_H
 #endif
 
+#ifdef HB_HAS_CORETEXT
+#define HAVE_CORETEXT 1
+#endif
+#ifdef HB_HAS_DIRECTWRITE
+#define HAVE_DIRECTWRITE 1
+#endif
+#ifdef HB_HAS_FREETYPE
+#define HAVE_FREETYPE 1
+#endif
+#ifdef HB_HAS_GDI
+#define HAVE_GDI 1
+#endif
+#ifdef HB_HAS_GLIB
+#define HAVE_GLIB 1
+#endif
+#ifdef HB_HAS_GRAPHITE
+#define HAVE_GRAPHITE 1
+#endif
+#ifdef HB_HAS_UNISCRIBE
+#define HAVE_UNISCRIBE 1
+#define HAVE_GDI 1
+#endif
+#ifdef HB_HAS_WASM
+#define HAVE_WASM 1
+#endif
+
+
 /* Core library. */
 %%BASE_SOURCES%%
 
@@ -10,34 +37,28 @@
 #endif
 
 #ifdef HB_HAS_CORETEXT
-#define HAVE_CORETEXT 1
 %%CORETEXT_SOURCES%%
 #endif
 
 #ifdef HB_HAS_DIRECTWRITE
-#define HAVE_DIRECTWRITE 1
 %%DIRECTWRITE_SOURCES%%
 #endif
 
 #ifdef HB_HAS_FREETYPE
-#define HAVE_FREETYPE 1
 %%FREETYPE_SOURCES%%
 #endif
 
 #ifdef HB_HAS_GDI
 #ifndef HAVE_GDI
-#define HAVE_GDI 1
 %%GDI_SOURCES%%
 #endif
 #endif
 
 #ifdef HB_HAS_GLIB
-#define HAVE_GLIB 1
 %%GLIB_SOURCES%%
 #endif
 
 #ifdef HB_HAS_GRAPHITE
-#define HAVE_GRAPHITE 1
 %%GRAPHITE_SOURCES%%
 #endif
 
@@ -58,8 +79,6 @@
 #endif
 
 #ifdef HB_HAS_UNISCRIBE
-#define HAVE_UNISCRIBE 1
-#define HAVE_GDI 1
 %%UNISCRIBE_SOURCES%%
 #endif
 
@@ -68,6 +87,5 @@
 #endif
 
 #ifdef HB_HAS_WASM
-#define HAVE_WASM 1
 %%WASM_SOURCES%%
 #endif
