@@ -15,13 +15,86 @@
 #ifndef HB_NO_SUBSET_DEPEND
 #include <hb.h>
 
+/*
+ * Depend Parity Checker — validates depend API correctness by comparing closures.
+ *
+ * For each font and starting glyph set, this checker:
+ * 1. Builds a closure by walking the hb_subset_depend_t dependency graph.
+ * 2. Builds the same closure using HarfBuzz's subset plan (the ground truth).
+ * 3. Asserts that both closures are identical (or that any extra glyphs in the
+ *    depend closure can be explained by a known over-approximation).
+ *
+ * The depend closure mirrors subset's table order: cmap UVS → GSUB → MATH → COLR → glyf/CFF.
+ */
+
+
+/* ============================================================
+ * Configuration globals (set by main() in standalone mode)
+ * ============================================================ */
+
+const char *_hb_depend_fuzzer_current_font_path = NULL;
+unsigned _hb_depend_fuzzer_seed = 0;
+uint64_t _hb_depend_fuzzer_single_test = 0;  /* Specific test to run, or 0 for all */
+unsigned _hb_depend_fuzzer_num_tests = 1024; /* Number of tests to run */
+bool _hb_depend_fuzzer_verbose = false;
+bool _hb_depend_fuzzer_report_over_approximation = false;
+bool _hb_depend_fuzzer_report_under_approximation = false;
+float _hb_depend_fuzzer_inject_over_approx = 0.0f;
+float _hb_depend_fuzzer_inject_under_approx = 0.0f;
+
+/* Explicit test mode */
+bool _hb_depend_fuzzer_explicit_test = false;
+const char *_hb_depend_fuzzer_explicit_unicodes = NULL;
+const char *_hb_depend_fuzzer_explicit_gids = NULL;
+bool _hb_depend_fuzzer_explicit_no_layout_closure = false;
+const char *_hb_depend_fuzzer_explicit_layout_features = NULL;
+
+/* Debug control (only used when HB_DEBUG_DEPEND > 0) */
+static hb_codepoint_t debug_gid = HB_CODEPOINT_INVALID;
+static bool trace_closure = false;
+
+static bool config_initialized = false;
+
+/* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for parity checker */
+#ifndef HB_DEBUG_DEPEND
+#define HB_DEBUG_DEPEND 1
+#endif
+
+#if HB_DEBUG_DEPEND
+#define DEBUG_MSG_DEPEND(msg, ...) fprintf (stderr, "%-10s" msg "\n", "DEPEND", ##__VA_ARGS__)
+#else
+#define DEBUG_MSG_DEPEND(msg, ...) do {} while (0)
+#endif
+
+/* Read env-var overrides for debug_gid and trace_closure. Called once on first run. */
+static void
+init_parity_config ()
+{
+  if (config_initialized)
+    return;
+
+  config_initialized = true;
+
+  const char *debug_gid_str = getenv ("HB_DEPEND_PARITY_DEBUG_GID");
+  if (debug_gid_str)
+    debug_gid = (hb_codepoint_t) strtoul (debug_gid_str, NULL, 0);
+
+  const char *trace_closure_str = getenv ("HB_DEPEND_PARITY_TRACE_CLOSURE");
+  if (trace_closure_str && strcmp (trace_closure_str, "1") == 0)
+    trace_closure = true;
+}
+
+
+/* ============================================================
+ * Closure algorithm — depend API side
+ * ============================================================ */
+
 /**
  * deferred_ligature_t:
  *
- * Stores information needed to process a deferred ligature dependency.
- * When we encounter a ligature edge, we defer processing until we know
- * whether all glyphs in the ligature set are present in the closure.
- * By storing this info at deferral time, we avoid re-scanning edges later.
+ * Records a ligature edge whose dependent glyph cannot be added immediately
+ * because not all component glyphs are yet in the closure.  Stored at deferral
+ * time so we do not need to re-scan edges when revisiting it.
  */
 struct deferred_ligature_t
 {
@@ -59,629 +132,21 @@ struct depend_closure_ctx_t
   std::vector<deferred_ligature_t> deferred_ligatures;
 };
 
-/* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for parity checker */
-#ifndef HB_DEBUG_DEPEND
-#define HB_DEBUG_DEPEND 1
-#endif
-
-#if HB_DEBUG_DEPEND
-#define DEBUG_MSG_DEPEND(msg, ...) fprintf (stderr, "%-10s" msg "\n", "DEPEND", ##__VA_ARGS__)
-#else
-#define DEBUG_MSG_DEPEND(msg, ...) do {} while (0)
-#endif
-
-/* Globals for configuration (set by main() in standalone mode) */
-const char *_hb_depend_fuzzer_current_font_path = NULL;
-unsigned _hb_depend_fuzzer_seed = 0;
-uint64_t _hb_depend_fuzzer_single_test = 0;  /* Specific test to run, or 0 for all */
-unsigned _hb_depend_fuzzer_num_tests = 1024; /* Number of tests to run */
-bool _hb_depend_fuzzer_verbose = false;
-bool _hb_depend_fuzzer_report_over_approximation = false;
-bool _hb_depend_fuzzer_report_under_approximation = false;
-float _hb_depend_fuzzer_inject_over_approx = 0.0f;
-float _hb_depend_fuzzer_inject_under_approx = 0.0f;
-
-/* Explicit test mode */
-bool _hb_depend_fuzzer_explicit_test = false;
-const char *_hb_depend_fuzzer_explicit_unicodes = NULL;
-const char *_hb_depend_fuzzer_explicit_gids = NULL;
-bool _hb_depend_fuzzer_explicit_no_layout_closure = false;
-const char *_hb_depend_fuzzer_explicit_layout_features = NULL;
-
-/* Debug control (only used when HB_DEBUG_DEPEND > 0) */
-static hb_codepoint_t debug_gid = HB_CODEPOINT_INVALID;  /* Specific glyph to debug */
-static bool trace_closure = false;  /* Trace closure computation in detail */
-
-static bool config_initialized = false;
-
-/* Initialize configuration - uses globals set by main */
-static void
-init_parity_config ()
-{
-  if (config_initialized)
-    return;
-
-  config_initialized = true;
-
-  /* Check for debug glyph ID (only used when HB_DEBUG_DEPEND > 0) */
-  const char *debug_gid_str = getenv ("HB_DEPEND_PARITY_DEBUG_GID");
-  if (debug_gid_str)
-    debug_gid = (hb_codepoint_t) strtoul (debug_gid_str, NULL, 0);
-
-  /* Check for closure tracing (only used when HB_DEBUG_DEPEND > 0) */
-  const char *trace_closure_str = getenv ("HB_DEPEND_PARITY_TRACE_CLOSURE");
-  if (trace_closure_str && strcmp (trace_closure_str, "1") == 0)
-    trace_closure = true;
-}
-
-/* Simple RNG helpers - use std::mt19937 for deterministic cross-platform behavior */
-static unsigned
-rng_range (std::mt19937 &rng, unsigned min, unsigned max)
-{
-  if (max <= min)
-    return min;
-  std::uniform_int_distribution<unsigned> dist (min, max);
-  return dist (rng);
-}
-
-/* Select n random distinct values from range [0, max) */
-static void
-rng_select_distinct (std::mt19937 &rng, hb_set_t *out, unsigned n, unsigned max)
-{
-  if (n >= max)
-  {
-    /* Select all */
-    for (unsigned i = 0; i < max; i++)
-      hb_set_add (out, i);
-    return;
-  }
-
-  /* Simple approach: keep trying random values until we have enough distinct ones */
-  while (hb_set_get_population (out) < n)
-  {
-    unsigned val = rng_range (rng, 0, max - 1);
-    hb_set_add (out, val);
-  }
-}
-
-/* Select n random distinct values from an existing set */
-static void
-rng_select_from_set (std::mt19937 &rng, hb_set_t *out, unsigned n, const hb_set_t *source)
-{
-  unsigned source_size = hb_set_get_population (source);
-  if (n == 0 || source_size == 0)
-    return;
-
-  if (n >= source_size)
-  {
-    /* Select all */
-    hb_set_union (out, source);
-    return;
-  }
-
-  /* Convert source to array for indexed access */
-  hb_codepoint_t *array = (hb_codepoint_t *) malloc (source_size * sizeof (hb_codepoint_t));
-  unsigned idx = 0;
-  hb_codepoint_t val = HB_SET_VALUE_INVALID;
-  while (hb_set_next (source, &val))
-    array[idx++] = val;
-
-  /* Select n random indices */
-  while (hb_set_get_population (out) < n)
-  {
-    unsigned random_idx = rng_range (rng, 0, source_size - 1);
-    hb_set_add (out, array[random_idx]);
-  }
-
-  free (array);
-}
-
-/* Forward declaration */
-static hb_set_t * get_gsub_features (hb_face_t *face);
-
-/* Parse comma-separated list of unicodes (U+XXXX, decimal, or ranges) into a set */
-static bool
-parse_unicodes (const char *str, hb_set_t *unicodes)
-{
-  if (!str || !*str)
-    return false;
-
-  const char *p = str;
-  while (*p)
-  {
-    /* Skip whitespace and commas */
-    while (*p == ' ' || *p == ',')
-      p++;
-    if (!*p)
-      break;
-
-    /* Parse unicode value (U+XXXX or decimal) */
-    const char *start = p;
-    hb_codepoint_t start_cp;
-    if (*p == 'U' && *(p + 1) == '+')
-    {
-      /* U+XXXX format */
-      start_cp = (hb_codepoint_t) strtoul (p + 2, (char **) &p, 16);
-    }
-    else
-    {
-      /* Decimal format */
-      start_cp = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
-    }
-
-    /* Check if parsing advanced (avoid infinite loop on invalid input) */
-    if (p == start || (p == start + 2 && start[0] == 'U' && start[1] == '+'))
-    {
-      fprintf (stderr, "Error: Invalid unicode value at: %.20s\n", start);
-      return false;
-    }
-
-    /* Check for range */
-    if (*p == '-')
-    {
-      p++;
-      const char *end_start = p;
-      hb_codepoint_t end_cp;
-      if (*p == 'U' && *(p + 1) == '+')
-        end_cp = (hb_codepoint_t) strtoul (p + 2, (char **) &p, 16);
-      else
-        end_cp = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
-
-      /* Check if parsing advanced */
-      if (p == end_start || (p == end_start + 2 && end_start[0] == 'U' && end_start[1] == '+'))
-      {
-        fprintf (stderr, "Error: Invalid unicode value in range at: %.20s\n", end_start);
-        return false;
-      }
-
-      hb_set_add_range (unicodes, start_cp, end_cp);
-    }
-    else
-    {
-      hb_set_add (unicodes, start_cp);
-    }
-  }
-
-  return !hb_set_is_empty (unicodes);
-}
-
-/* Parse comma-separated list of glyph IDs (decimal or ranges) into a set */
-static bool
-parse_gids (const char *str, hb_set_t *gids)
-{
-  if (!str || !*str)
-    return false;
-
-  const char *p = str;
-  while (*p)
-  {
-    /* Skip whitespace and commas */
-    while (*p == ' ' || *p == ',')
-      p++;
-    if (!*p)
-      break;
-
-    /* Parse glyph ID */
-    const char *start = p;
-    hb_codepoint_t start_gid = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
-
-    /* Check if parsing advanced (avoid infinite loop on invalid input) */
-    if (p == start)
-    {
-      fprintf (stderr, "Error: Invalid glyph ID at: %.20s\n", start);
-      return false;
-    }
-
-    /* Check for range */
-    if (*p == '-')
-    {
-      p++;
-      const char *end_start = p;
-      hb_codepoint_t end_gid = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
-
-      /* Check if parsing advanced */
-      if (p == end_start)
-      {
-        fprintf (stderr, "Error: Invalid glyph ID in range at: %.20s\n", end_start);
-        return false;
-      }
-
-      hb_set_add_range (gids, start_gid, end_gid);
-    }
-    else
-    {
-      hb_set_add (gids, start_gid);
-    }
-  }
-
-  return !hb_set_is_empty (gids);
-}
-
-/* Parse comma-separated list of feature tags into a set
- * Special value "*" means all features */
-static bool
-parse_features (const char *str, hb_set_t *features, hb_face_t *face)
-{
-  if (!str || !*str)
-    return false;
-
-  /* Check for special "*" value (all features) */
-  if (strcmp (str, "*") == 0)
-  {
-    /* Get all GSUB features */
-    hb_set_t *all_features = get_gsub_features (face);
-    hb_set_union (features, all_features);
-    hb_set_destroy (all_features);
-    return true;
-  }
-
-  const char *p = str;
-  while (*p)
-  {
-    /* Skip whitespace and commas */
-    while (*p == ' ' || *p == ',')
-      p++;
-    if (!*p)
-      break;
-
-    /* Parse 4-character tag */
-    char tag_str[5] = {0};
-    int i = 0;
-    while (*p && *p != ',' && *p != ' ' && i < 4)
-      tag_str[i++] = *p++;
-
-    if (i > 0)
-    {
-      /* Pad with spaces if needed */
-      while (i < 4)
-        tag_str[i++] = ' ';
-      tag_str[4] = '\0';
-
-      hb_tag_t tag = HB_TAG (tag_str[0], tag_str[1], tag_str[2], tag_str[3]);
-      hb_set_add (features, tag);
-    }
-  }
-
-  return !hb_set_is_empty (features);
-}
-
-/* Test parameters generated from a 64-bit seed */
-struct test_params
-{
-  bool is_gsub;           /* GSUB test (codepoint-based) vs non-GSUB (glyph-based) */
-  unsigned target_size;   /* Target set size (may be clamped by font size) */
-  hb_set_t *glyphs;       /* Starting glyphs (NULL if GSUB) */
-  hb_set_t *codepoints;   /* Starting codepoints (NULL if non-GSUB) */
-  hb_set_t *features;     /* Active features (NULL for default/all, only used for GSUB) */
-};
-
-/* Get all GSUB features from a face */
-static hb_set_t *
-get_gsub_features (hb_face_t *face)
-{
-  hb_set_t *features = hb_set_create ();
-
-  /* Check if GSUB table exists */
-  if (!hb_ot_layout_has_substitution (face))
-    return features;
-
-  /* Get all feature tags from GSUB table */
-  unsigned int feature_count = hb_ot_layout_table_get_feature_tags (face,
-                                                                     HB_OT_TAG_GSUB,
-                                                                     0, nullptr, nullptr);
-  hb_tag_t *feature_tags = (hb_tag_t *) malloc (feature_count * sizeof (hb_tag_t));
-  if (feature_tags)
-  {
-    hb_ot_layout_table_get_feature_tags (face,
-                                         HB_OT_TAG_GSUB,
-                                         0, &feature_count, feature_tags);
-    for (unsigned int i = 0; i < feature_count; i++)
-      hb_set_add (features, feature_tags[i]);
-    free (feature_tags);
-  }
-
-  return features;
-}
-
-/* Generate test parameters from explicit command-line arguments */
-static test_params
-generate_test_from_explicit (hb_face_t *face, hb_font_t *font)
-{
-  test_params params;
-  params.glyphs = hb_set_create ();
-  params.codepoints = NULL;
-  params.features = NULL;
-  params.target_size = 0;
-
-  /* Parse unicodes or gids */
-  if (_hb_depend_fuzzer_explicit_unicodes)
-  {
-    /* GSUB test mode with unicodes */
-    params.is_gsub = true;
-    params.codepoints = hb_set_create ();
-
-    if (!parse_unicodes (_hb_depend_fuzzer_explicit_unicodes, params.codepoints))
-    {
-      fprintf (stderr, "Error: Failed to parse --unicodes argument\n");
-      hb_set_destroy (params.glyphs);
-      hb_set_destroy (params.codepoints);
-      params.glyphs = NULL;
-      params.codepoints = NULL;
-      return params;
-    }
-
-    /* Map codepoints to glyphs */
-    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-    while (hb_set_next (params.codepoints, &cp))
-    {
-      hb_codepoint_t gid;
-      if (hb_font_get_nominal_glyph (font, cp, &gid))
-        hb_set_add (params.glyphs, gid);
-    }
-
-    params.target_size = hb_set_get_population (params.codepoints);
-  }
-  else if (_hb_depend_fuzzer_explicit_gids)
-  {
-    /* Non-GSUB test mode with glyph IDs */
-    params.is_gsub = !_hb_depend_fuzzer_explicit_no_layout_closure;
-
-    if (!parse_gids (_hb_depend_fuzzer_explicit_gids, params.glyphs))
-    {
-      fprintf (stderr, "Error: Failed to parse --gids argument\n");
-      hb_set_destroy (params.glyphs);
-      params.glyphs = NULL;
-      return params;
-    }
-
-    params.target_size = hb_set_get_population (params.glyphs);
-  }
-  else
-  {
-    fprintf (stderr, "Error: Explicit mode requires --unicodes or --gids\n");
-    hb_set_destroy (params.glyphs);
-    params.glyphs = NULL;
-    return params;
-  }
-
-  /* Parse layout features if specified */
-  if (_hb_depend_fuzzer_explicit_layout_features)
-  {
-    params.features = hb_set_create ();
-    if (!parse_features (_hb_depend_fuzzer_explicit_layout_features, params.features, face))
-    {
-      fprintf (stderr, "Error: Failed to parse --layout-features argument\n");
-      hb_set_destroy (params.features);
-      params.features = NULL;
-    }
-  }
-
-  return params;
-}
-
-/* Generate a test from a 64-bit seed
+/* Check whether all context requirements encoded in |context_set_idx| are met.
  *
- * The seed determines:
- * - Test type (GSUB vs non-GSUB, size category) via seed % 100
- * - Target size within range via middle bits
- * - Specific element selection via separate RNG seeded from high bits
- * - For GSUB tests: which features to activate (from available GSUB features)
+ * Elements in a context set can be:
+ * - Direct GID (value < 0x80000000): that specific glyph must be in the closure.
+ * - Indirect set reference (value >= 0x80000000): at least one glyph from the
+ *   referenced set must be in the closure.
  *
- * Test type distribution (percentages of total tests):
- * - Non-GSUB single (1):      21%
- * - Non-GSUB small (2-5):     17%
- * - Non-GSUB medium (10-20):  10%
- * - Non-GSUB large (50-100):   6%
- * - Non-GSUB very large (N/10-N/4): 4%
- * - GSUB single (1):          21%
- * - GSUB small (2-5):         10%
- * - GSUB medium (10-20):       6%
- * - GSUB large (50-100):       4%
- * Total: 100% (unused: 1%)
- *
- * Feature selection distribution (GSUB tests only):
- * - Single feature:           30%
- * - Small (2-5 features):     35%
- * - Medium (6-15 features):   20%
- * - Large (16-50 features):   10%
- * - All features:              5%
- */
-static test_params
-generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
-{
-  test_params params;
-  params.glyphs = NULL;
-  params.codepoints = NULL;
-  params.features = NULL;
-
-  unsigned num_glyphs = hb_face_get_glyph_count (face);
-
-  /* Get all codepoints for GSUB tests */
-  hb_set_t *all_codepoints = hb_set_create ();
-  hb_face_collect_unicodes (face, all_codepoints);
-  unsigned num_codepoints = hb_set_get_population (all_codepoints);
-
-  /* Step 1: Determine test type from seed % 100
-   * Assumes seed is already pseudo-randomly distributed */
-  unsigned type_selector = seed % 100;
-
-  unsigned min_size, max_size;
-
-  if (type_selector < 21) {
-    /* Non-GSUB single (21%) */
-    params.is_gsub = false;
-    min_size = max_size = 1;
-  } else if (type_selector < 38) {
-    /* Non-GSUB small (17%) */
-    params.is_gsub = false;
-    min_size = 2;
-    max_size = 5;
-  } else if (type_selector < 48) {
-    /* Non-GSUB medium (10%) */
-    params.is_gsub = false;
-    min_size = 10;
-    max_size = 20;
-  } else if (type_selector < 54) {
-    /* Non-GSUB large (6%) */
-    params.is_gsub = false;
-    min_size = 50;
-    max_size = 100;
-  } else if (type_selector < 58) {
-    /* Non-GSUB very large (4%) */
-    params.is_gsub = false;
-    min_size = num_glyphs / 10;
-    max_size = num_glyphs / 4;
-  } else if (type_selector < 79) {
-    /* GSUB single (21%) */
-    params.is_gsub = true;
-    min_size = max_size = 1;
-  } else if (type_selector < 89) {
-    /* GSUB small (10%) */
-    params.is_gsub = true;
-    min_size = 2;
-    max_size = 5;
-  } else if (type_selector < 95) {
-    /* GSUB medium (6%) */
-    params.is_gsub = true;
-    min_size = 10;
-    max_size = 20;
-  } else {
-    /* GSUB large (4%) */
-    params.is_gsub = true;
-    min_size = 50;
-    max_size = 100;
-  }
-
-  /* Step 2: Determine target size within range using middle bits */
-  unsigned size_range = max_size - min_size + 1;
-  params.target_size = min_size + ((seed >> 8) % size_range);
-
-  /* Clamp to available glyphs/codepoints */
-  if (params.is_gsub)
-    params.target_size = params.target_size < num_codepoints ? params.target_size : num_codepoints;
-  else
-    params.target_size = params.target_size < num_glyphs ? params.target_size : num_glyphs;
-
-  /* Skip tests on fonts too small for the test type */
-  if (params.target_size < min_size)
-  {
-    hb_set_destroy (all_codepoints);
-    params.target_size = 0;
-    return params;
-  }
-
-  /* Step 3: Select specific elements using full seed with mixing
-   * Create a separate RNG for element selection, seeded from high bits */
-  unsigned selection_seed = (unsigned)((seed >> 32) ^ seed);
-  std::mt19937 selection_rng (selection_seed);
-
-  if (params.is_gsub)
-  {
-    /* GSUB test: select codepoints and map to glyphs */
-    params.codepoints = hb_set_create ();
-    params.glyphs = hb_set_create ();
-
-    /* Select random codepoints by index */
-    hb_set_t *cp_indices = hb_set_create ();
-    rng_select_distinct (selection_rng, cp_indices, params.target_size, num_codepoints);
-
-    /* Convert indices to actual codepoints */
-    hb_codepoint_t idx = HB_SET_VALUE_INVALID;
-    while (hb_set_next (cp_indices, &idx))
-    {
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      for (unsigned j = 0; j <= idx && hb_set_next (all_codepoints, &cp); j++)
-        ;
-      hb_set_add (params.codepoints, cp);
-
-      /* Map codepoint to glyph */
-      hb_codepoint_t gid;
-      if (hb_font_get_nominal_glyph (font, cp, &gid))
-        hb_set_add (params.glyphs, gid);
-    }
-    hb_set_destroy (cp_indices);
-
-    /* For GSUB tests, select features to activate
-     * Distribution:
-     * - Single feature (30%)
-     * - Small (2-5 features) (35%)
-     * - Medium (6-15 features) (20%)
-     * - Large (16-50 features) (10%)
-     * - All features (5%)
-     */
-    hb_set_t *available_features = get_gsub_features (face);
-    unsigned num_features = hb_set_get_population (available_features);
-
-    if (num_features > 0)
-    {
-      std::uniform_int_distribution<unsigned> feat_dist (0, 99);
-      unsigned feature_selector = feat_dist (selection_rng);
-      unsigned num_to_select;
-
-      if (feature_selector < 30)
-        num_to_select = 1;  /* Single (30%) */
-      else if (feature_selector < 65)
-        num_to_select = rng_range (selection_rng, 2, 5);  /* Small (35%) */
-      else if (feature_selector < 85)
-        num_to_select = rng_range (selection_rng, 6, 15);  /* Medium (20%) */
-      else if (feature_selector < 95)
-        num_to_select = rng_range (selection_rng, 16, 50);  /* Large (10%) */
-      else
-        num_to_select = num_features;  /* All (5%) */
-
-      /* Cap at available */
-      if (num_to_select > num_features)
-        num_to_select = num_features;
-
-      /* Select specific features */
-      params.features = hb_set_create ();
-      rng_select_from_set (selection_rng, params.features, num_to_select, available_features);
-    }
-
-    hb_set_destroy (available_features);
-  }
-  else
-  {
-    /* Non-GSUB test: select glyphs directly */
-    params.glyphs = hb_set_create ();
-    rng_select_distinct (selection_rng, params.glyphs, params.target_size, num_glyphs);
-  }
-
-  hb_set_destroy (all_codepoints);
-  return params;
-}
-
-/*
- * Depend Parity Checker - Validates depend API correctness by comparing closures
- *
- * For each font, this parity checker:
- * 1. Extracts the dependency graph using hb_subset_depend_from_face_or_fail()
- * 2. For various starting glyphs, computes closure via:
- *    a) Following the depend API dependency graph
- *    b) Using HarfBuzz's subset plan closure calculation
- * 3. Verifies that both methods produce identical results
- *
- * This validates that the depend API correctly extracts dependencies from
- * all OpenType tables (glyf, COLR, MATH, etc.) by comparing against the
- * battle-tested subset closure implementation.
- */
-
-/* Check if context requirements are satisfied
- *
- * Context sets encode which backtrack and lookahead glyphs must be present
- * for a dependency edge to apply. Elements in the context set can be:
- * - Direct GID reference (value < 0x80000000): that specific glyph must be in closure
- * - Indirect set reference (value >= 0x80000000): at least one glyph from that set must be in closure
- *
- * Returns true if ALL context requirements are met, false otherwise.
- */
+ * Returns true if ALL requirements are satisfied (or if context_set_idx is invalid). */
 static bool
 check_context_satisfied (hb_subset_depend_t *depend,
                          hb_codepoint_t context_set_idx,
                          hb_set_t *current_closure)
 {
   if (context_set_idx == HB_CODEPOINT_INVALID)
-    return true;  /* No context requirements */
+    return true;
 
   hb_set_t *context_elements = hb_set_create ();
   if (!hb_subset_depend_lookup_set (depend, context_set_idx, context_elements))
@@ -696,7 +161,7 @@ check_context_satisfied (hb_subset_depend_t *depend,
   {
     if (elem < 0x80000000)
     {
-      /* Direct GID reference - this specific glyph must be present */
+      /* Direct GID reference */
       if (!hb_set_has (current_closure, elem))
       {
         satisfied = false;
@@ -705,7 +170,7 @@ check_context_satisfied (hb_subset_depend_t *depend,
     }
     else
     {
-      /* Indirect set reference - at least one glyph from this set must be present */
+      /* Indirect set reference — at least one glyph from the set must be present */
       hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
       hb_set_t *required_glyphs = hb_set_create ();
 
@@ -715,7 +180,6 @@ check_context_satisfied (hb_subset_depend_t *depend,
         continue;  /* Invalid set reference, skip this requirement */
       }
 
-      /* Check if ANY glyph from required_glyphs is in current_closure */
       bool any_present = false;
       hb_codepoint_t gid = HB_SET_VALUE_INVALID;
       while (hb_set_next (required_glyphs, &gid))
@@ -1026,10 +490,14 @@ compute_depend_closure (hb_face_t *face, depend_closure_ctx_t &ctx,
   hb_set_destroy (to_process);
 }
 
-/* Compute closure using HarfBuzz subset mechanism
- * skip_gsub: if true, skip GSUB closure
- * codepoints: if non-NULL, start from codepoints instead of glyphs
- * active_features: if non-NULL, will be populated with the active features used */
+
+/* ============================================================
+ * Closure algorithm — subset side (ground truth)
+ * ============================================================ */
+
+/* Compute closure using the HarfBuzz subset mechanism.
+ * If active_features is non-NULL and empty on entry, it is populated with the
+ * subset's default features so the depend side can use the same set. */
 static void
 compute_subset_closure (hb_face_t *face, hb_set_t *glyphs, bool skip_gsub,
                         hb_set_t *codepoints, hb_set_t *active_features)
@@ -1037,13 +505,12 @@ compute_subset_closure (hb_face_t *face, hb_set_t *glyphs, bool skip_gsub,
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   if (!input) return;
 
-  /* Set flags */
   unsigned flags = HB_SUBSET_FLAGS_NO_BIDI_CLOSURE;
   if (skip_gsub)
     flags |= HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE;
   hb_subset_input_set_flags (input, (hb_subset_flags_t) flags);
 
-  /* Populate input - either from codepoints or glyph IDs */
+  /* Populate input — either from codepoints or glyph IDs */
   if (codepoints && !hb_set_is_empty (codepoints))
   {
     hb_set_t *input_codepoints = hb_subset_input_set (input, HB_SUBSET_SETS_UNICODE);
@@ -1056,27 +523,21 @@ compute_subset_closure (hb_face_t *face, hb_set_t *glyphs, bool skip_gsub,
   }
 
   /* Handle features:
-   * - If active_features is NULL: use defaults
-   * - If active_features is non-NULL and empty: capture defaults into it
-   * - If active_features is non-NULL and non-empty: clear defaults and use specified features
-   */
+   * - active_features NULL:      use subset defaults, don't capture them
+   * - active_features non-empty: clear defaults and use the specified set
+   * - active_features empty:     capture defaults into it (output parameter) */
   if (active_features && !skip_gsub)
   {
     hb_set_t *input_features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
     if (hb_set_is_empty (active_features))
-    {
-      /* Capture defaults */
       hb_set_union (active_features, input_features);
-    }
     else
     {
-      /* Clear defaults and use specified features */
       hb_set_clear (input_features);
       hb_set_union (input_features, active_features);
     }
   }
 
-  /* Create a subset plan which will compute the closure */
   hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
   if (!plan)
   {
@@ -1084,10 +545,8 @@ compute_subset_closure (hb_face_t *face, hb_set_t *glyphs, bool skip_gsub,
     return;
   }
 
-  /* Get the final glyph mapping which includes closure */
+  /* Extract the retained glyph set from the plan's glyph mapping */
   hb_map_t *glyph_map = hb_subset_plan_old_to_new_glyph_mapping (plan);
-
-  /* Extract all glyphs that got mapped (i.e., retained after closure) */
   hb_set_clear (glyphs);
   int idx = -1;
   hb_codepoint_t key, value;
@@ -1095,20 +554,23 @@ compute_subset_closure (hb_face_t *face, hb_set_t *glyphs, bool skip_gsub,
     hb_set_add (glyphs, key);
 
   if (debug_gid != HB_CODEPOINT_INVALID)
-  {
-    DEBUG_MSG_DEPEND("Subset closure %s glyph %u",
+    DEBUG_MSG_DEPEND ("Subset closure %s glyph %u",
                hb_set_has (glyphs, debug_gid) ? "INCLUDES" : "does not include",
                debug_gid);
-  }
 
   hb_subset_plan_destroy (plan);
   hb_subset_input_destroy (input);
 }
 
-/* Print test parameters when running a specific test */
+
+/* ============================================================
+ * Comparison and reporting
+ * ============================================================ */
+
+/* Print the parameters of a single test to stderr */
 static void
 print_test_params (uint64_t seed, bool is_gsub,
-                    hb_set_t *start_glyphs, hb_set_t *codepoints, hb_set_t *features)
+                   hb_set_t *start_glyphs, hb_set_t *codepoints, hb_set_t *features)
 {
   fprintf (stderr, "Test: seed=0x%016llx\n", (unsigned long long) seed);
   fprintf (stderr, "Test type: %s\n", is_gsub ? "GSUB" : "non-GSUB");
@@ -1159,58 +621,52 @@ print_test_params (uint64_t seed, bool is_gsub,
   }
 }
 
-/* Compare depend vs subset closure
- * Returns true if they match, false otherwise
- * If they don't match and verbose logging is enabled, logs detailed mismatch info
- * seed: test identifier (64-bit seed used to generate test)
- * is_gsub: if false, skip GSUB dependencies
- * start_glyphs: starting set of glyphs for closure
- * codepoints: if non-NULL, start from codepoints (for GSUB testing) */
+/* Compare the depend-API closure against the subset-plan closure for one test case.
+ *
+ * Under-approximation (depend missed glyphs subset found) is always a bug: assert.
+ * Over-approximation (depend found extra glyphs) is expected when a flagged edge
+ * (FROM_CONTEXT_POSITION or FROM_NESTED_CONTEXT) was traversed, since depend cannot
+ * know whether the intermediate glyph consumer will actually be present; otherwise
+ * it is also a bug.
+ *
+ * Returns true if the two closures are identical. */
 static bool
 compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
                   uint64_t seed, const char *font_path,
                   bool is_gsub, hb_set_t *start_glyphs, hb_set_t *codepoints,
                   hb_set_t *test_features)
 {
+  bool skip_gsub = !is_gsub;
+
+  /* --- Subset closure (ground truth) --- */
   hb_set_t *subset_closure = hb_set_create ();
   hb_set_union (subset_closure, start_glyphs);
 
-  /* Set up active features:
-   * - If test_features provided, use those
-   * - Otherwise, get defaults from subset */
+  /* active_features: pre-populate if caller supplied features, else let subset fill defaults */
   hb_set_t *active_features = hb_set_create ();
   if (test_features)
     hb_set_union (active_features, test_features);
 
-  /* skip_gsub = !is_gsub (skip GSUB for non-GSUB tests) */
-  bool skip_gsub = !is_gsub;
-
-  /* First run subset to get closure and active features.
-   * This will replace subset_closure with the actual closure. */
   compute_subset_closure (face, subset_closure, skip_gsub, codepoints, active_features);
 
   if (trace_closure)
   {
-    DEBUG_MSG_DEPEND("Subset: Final closure has %u glyphs, checking for 82 and 124...",
+    DEBUG_MSG_DEPEND ("Subset: Final closure has %u glyphs, checking for 82 and 124...",
                hb_set_get_population (subset_closure));
-    DEBUG_MSG_DEPEND("Subset: glyph 82 ('o') %s in closure",
+    DEBUG_MSG_DEPEND ("Subset: glyph 82 ('o') %s in closure",
                hb_set_has (subset_closure, 82) ? "IS" : "is NOT");
-    DEBUG_MSG_DEPEND("Subset: glyph 124 (ordmasculine) %s in closure",
+    DEBUG_MSG_DEPEND ("Subset: glyph 124 (ordmasculine) %s in closure",
                hb_set_has (subset_closure, 124) ? "IS" : "is NOT");
   }
 
-  /* Extract starting glyphs from subset's closure for fair comparison.
-   * For GSUB tests starting from codepoints, we need to map codepoints to glyphs
-   * using ONLY cmap (not glyf/COLR/MATH), matching subset's order. */
-  hb_set_t *actual_start_glyphs = hb_set_create ();
+  /* --- Depend closure --- */
 
-  /* For GSUB tests, map codepoints to glyphs via cmap only */
+  /* For GSUB tests starting from codepoints, map codepoints → glyphs via cmap only
+   * (not glyf/COLR/MATH), matching subset's own ordering. */
+  hb_set_t *actual_start_glyphs = hb_set_create ();
   if (is_gsub && codepoints && !hb_set_is_empty (codepoints))
   {
-    /* Add .notdef */
-    hb_set_add (actual_start_glyphs, 0);
-
-    /* Map each codepoint to its glyph via cmap */
+    hb_set_add (actual_start_glyphs, 0);  /* .notdef */
     hb_font_t *font = hb_font_create (face);
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (hb_set_next (codepoints, &cp))
@@ -1222,16 +678,11 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
     hb_font_destroy (font);
   }
   else
-  {
     hb_set_union (actual_start_glyphs, start_glyphs);
-  }
 
-  /* Now compute depend closure with the same starting glyphs subset used */
   hb_set_t *depend_closure = hb_set_create ();
   hb_set_union (depend_closure, actual_start_glyphs);
-
-  /* Subset always adds glyph 0 (.notdef) before closure; mirror that here (hb-subset-plan.cc:451) */
-  hb_set_add (depend_closure, 0);
+  hb_set_add (depend_closure, 0);  /* subset always adds .notdef; see hb-subset-plan.cc:451 */
 
   if (debug_gid != HB_CODEPOINT_INVALID && active_features)
   {
@@ -1275,44 +726,36 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
 
   bool hit_flagged_edge = false;
   depend_closure_ctx_t ctx;
-  ctx.depend          = depend;
-  ctx.glyphs          = depend_closure;
-  ctx.active_features = skip_gsub ? nullptr : active_features;
-  ctx.skip_gsub       = skip_gsub;
+  ctx.depend           = depend;
+  ctx.glyphs           = depend_closure;
+  ctx.active_features  = skip_gsub ? nullptr : active_features;
+  ctx.skip_gsub        = skip_gsub;
   ctx.hit_flagged_edge = &hit_flagged_edge;
-  ctx.injection_rng   = injection_rng;
+  ctx.injection_rng    = injection_rng;
 
   compute_depend_closure (face, ctx, uvs_unicodes);
   hb_set_destroy (uvs_unicodes);
-
   hb_set_destroy (actual_start_glyphs);
 
-  /* Compare the two sets */
+  /* --- Compare --- */
   bool match = hb_set_is_equal (depend_closure, subset_closure);
 
-  /* Always compute differences to check for critical errors */
   hb_set_t *in_depend_not_subset = hb_set_create ();
   hb_set_t *in_subset_not_depend = hb_set_create ();
-
   hb_set_set (in_depend_not_subset, depend_closure);
   hb_set_subtract (in_depend_not_subset, subset_closure);
-
   hb_set_set (in_subset_not_depend, subset_closure);
   hb_set_subtract (in_subset_not_depend, depend_closure);
 
-  /* CRITICAL ERROR: Subset found glyphs that depend API missed.
-   * This means the depend API is incomplete - it failed to extract
-   * dependencies that actually exist in the font. */
+  /* Under-approximation: depend missed glyphs that subset found */
   if (!hb_set_is_empty (in_subset_not_depend))
   {
-    /* Report if verbose or reporting flag is set */
     if (_hb_depend_fuzzer_report_under_approximation ||
         _hb_depend_fuzzer_report_over_approximation ||
         _hb_depend_fuzzer_verbose)
     {
       fprintf (stderr, "Test 0x%016llx: UNDER-APPROX - Depend missed %u glyphs:",
                (unsigned long long) seed, hb_set_get_population (in_subset_not_depend));
-
       hb_codepoint_t gid = HB_SET_VALUE_INVALID;
       unsigned count = 0;
       while (hb_set_next (in_subset_not_depend, &gid) && count < 20)
@@ -1324,31 +767,22 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
         fprintf (stderr, " ...");
       fprintf (stderr, "\n");
     }
-
-    /* Abort unless reporting flag is set */
     if (!_hb_depend_fuzzer_report_under_approximation)
       assert (0 && "Depend API missed glyphs that subset found");
   }
 
-  /* Handle over-approximation cases where depend has extra glyphs.
-   * Two scenarios:
-   * 1. Expected: hit a flagged edge (from contextual position) → informational only
-   * 2. Unexpected: no flagged edge hit → CRITICAL ERROR (like under-approximation) */
+  /* Over-approximation: depend found extra glyphs not in subset closure.
+   * Expected when a flagged (contextual-position) edge was traversed; a bug otherwise. */
   if (!hb_set_is_empty (in_depend_not_subset))
   {
     if (hit_flagged_edge)
     {
-      /* Expected over-approximation: hit an edge from contextual position.
-       * Report if verbose or over-approximation reporting enabled. */
       if (_hb_depend_fuzzer_verbose || _hb_depend_fuzzer_report_over_approximation)
       {
-        /* Use compact single-line format for -r flag, multi-line for -v */
         if (_hb_depend_fuzzer_report_over_approximation && !_hb_depend_fuzzer_verbose)
         {
-          /* Compact format: Test 0xHEX: Depend found N extra glyphs: gid1 gid2 ... */
           fprintf (stderr, "Test 0x%016llx: Depend found %u extra glyphs (expected, hit flagged edge):",
                    (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
-
           hb_codepoint_t gid = HB_SET_VALUE_INVALID;
           while (hb_set_next (in_depend_not_subset, &gid))
             fprintf (stderr, " %u", gid);
@@ -1356,13 +790,11 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
         }
         else
         {
-          /* Verbose multi-line format */
           fprintf (stderr, "\n=== DEPEND API OVER-APPROXIMATION (EXPECTED) ===\n");
           fprintf (stderr, "Font: %s\n", font_path ? font_path : "(unknown)");
           fprintf (stderr, "Test seed: 0x%016llx\n", (unsigned long long) seed);
           fprintf (stderr, "Depend found %u extra glyphs not in subset closure:\n",
                    hb_set_get_population (in_depend_not_subset));
-
           hb_codepoint_t gid = HB_SET_VALUE_INVALID;
           unsigned count = 0;
           while (hb_set_next (in_depend_not_subset, &gid) && count < 50)
@@ -1381,15 +813,13 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
     }
     else
     {
-      /* UNEXPECTED over-approximation: No flagged edge hit, but still have extra glyphs.
-       * This is a CRITICAL ERROR - depend is including glyphs it shouldn't. */
+      /* Unexpected: no flagged edge, but depend still has extra glyphs */
       if (_hb_depend_fuzzer_report_under_approximation ||
           _hb_depend_fuzzer_report_over_approximation ||
           _hb_depend_fuzzer_verbose)
       {
         fprintf (stderr, "Test 0x%016llx: UNEXPECTED OVER-APPROX - Depend found %u extra glyphs WITHOUT hitting flagged edge:",
                  (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
-
         hb_codepoint_t gid = HB_SET_VALUE_INVALID;
         unsigned count = 0;
         while (hb_set_next (in_depend_not_subset, &gid) && count < 20)
@@ -1401,8 +831,6 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
           fprintf (stderr, " ...");
         fprintf (stderr, "\n");
       }
-
-      /* Abort unless reporting flag is set */
       if (!_hb_depend_fuzzer_report_under_approximation)
         assert (0 && "Depend API has unexpected over-approximation without flagged edges");
     }
@@ -1410,12 +838,452 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
 
   hb_set_destroy (in_subset_not_depend);
   hb_set_destroy (in_depend_not_subset);
-
   hb_set_destroy (active_features);
   hb_set_destroy (subset_closure);
   hb_set_destroy (depend_closure);
 
   return match;
+}
+
+
+/* ============================================================
+ * Test generation infrastructure
+ * ============================================================ */
+
+/* Use std::mt19937 for deterministic, cross-platform random behaviour */
+static unsigned
+rng_range (std::mt19937 &rng, unsigned min, unsigned max)
+{
+  if (max <= min)
+    return min;
+  std::uniform_int_distribution<unsigned> dist (min, max);
+  return dist (rng);
+}
+
+/* Select n random distinct values from range [0, max) */
+static void
+rng_select_distinct (std::mt19937 &rng, hb_set_t *out, unsigned n, unsigned max)
+{
+  if (n >= max)
+  {
+    for (unsigned i = 0; i < max; i++)
+      hb_set_add (out, i);
+    return;
+  }
+  while (hb_set_get_population (out) < n)
+    hb_set_add (out, rng_range (rng, 0, max - 1));
+}
+
+/* Select n random distinct values from an existing set */
+static void
+rng_select_from_set (std::mt19937 &rng, hb_set_t *out, unsigned n, const hb_set_t *source)
+{
+  unsigned source_size = hb_set_get_population (source);
+  if (n == 0 || source_size == 0)
+    return;
+
+  if (n >= source_size)
+  {
+    hb_set_union (out, source);
+    return;
+  }
+
+  /* Convert source to array for indexed access */
+  hb_codepoint_t *array = (hb_codepoint_t *) malloc (source_size * sizeof (hb_codepoint_t));
+  unsigned idx = 0;
+  hb_codepoint_t val = HB_SET_VALUE_INVALID;
+  while (hb_set_next (source, &val))
+    array[idx++] = val;
+
+  while (hb_set_get_population (out) < n)
+    hb_set_add (out, array[rng_range (rng, 0, source_size - 1)]);
+
+  free (array);
+}
+
+/* Return a newly-allocated set containing all GSUB feature tags for |face| */
+static hb_set_t *
+get_gsub_features (hb_face_t *face)
+{
+  hb_set_t *features = hb_set_create ();
+
+  if (!hb_ot_layout_has_substitution (face))
+    return features;
+
+  unsigned int feature_count = hb_ot_layout_table_get_feature_tags (face,
+                                                                     HB_OT_TAG_GSUB,
+                                                                     0, nullptr, nullptr);
+  hb_tag_t *feature_tags = (hb_tag_t *) malloc (feature_count * sizeof (hb_tag_t));
+  if (feature_tags)
+  {
+    hb_ot_layout_table_get_feature_tags (face,
+                                         HB_OT_TAG_GSUB,
+                                         0, &feature_count, feature_tags);
+    for (unsigned int i = 0; i < feature_count; i++)
+      hb_set_add (features, feature_tags[i]);
+    free (feature_tags);
+  }
+
+  return features;
+}
+
+/* Parse comma-separated list of unicodes (U+XXXX, decimal, or ranges) into a set */
+static bool
+parse_unicodes (const char *str, hb_set_t *unicodes)
+{
+  if (!str || !*str)
+    return false;
+
+  const char *p = str;
+  while (*p)
+  {
+    while (*p == ' ' || *p == ',')
+      p++;
+    if (!*p)
+      break;
+
+    const char *start = p;
+    hb_codepoint_t start_cp;
+    if (*p == 'U' && *(p + 1) == '+')
+      start_cp = (hb_codepoint_t) strtoul (p + 2, (char **) &p, 16);
+    else
+      start_cp = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+    if (p == start || (p == start + 2 && start[0] == 'U' && start[1] == '+'))
+    {
+      fprintf (stderr, "Error: Invalid unicode value at: %.20s\n", start);
+      return false;
+    }
+
+    if (*p == '-')
+    {
+      p++;
+      const char *end_start = p;
+      hb_codepoint_t end_cp;
+      if (*p == 'U' && *(p + 1) == '+')
+        end_cp = (hb_codepoint_t) strtoul (p + 2, (char **) &p, 16);
+      else
+        end_cp = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+      if (p == end_start || (p == end_start + 2 && end_start[0] == 'U' && end_start[1] == '+'))
+      {
+        fprintf (stderr, "Error: Invalid unicode value in range at: %.20s\n", end_start);
+        return false;
+      }
+
+      hb_set_add_range (unicodes, start_cp, end_cp);
+    }
+    else
+      hb_set_add (unicodes, start_cp);
+  }
+
+  return !hb_set_is_empty (unicodes);
+}
+
+/* Parse comma-separated list of glyph IDs (decimal or ranges) into a set */
+static bool
+parse_gids (const char *str, hb_set_t *gids)
+{
+  if (!str || !*str)
+    return false;
+
+  const char *p = str;
+  while (*p)
+  {
+    while (*p == ' ' || *p == ',')
+      p++;
+    if (!*p)
+      break;
+
+    const char *start = p;
+    hb_codepoint_t start_gid = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+    if (p == start)
+    {
+      fprintf (stderr, "Error: Invalid glyph ID at: %.20s\n", start);
+      return false;
+    }
+
+    if (*p == '-')
+    {
+      p++;
+      const char *end_start = p;
+      hb_codepoint_t end_gid = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+      if (p == end_start)
+      {
+        fprintf (stderr, "Error: Invalid glyph ID in range at: %.20s\n", end_start);
+        return false;
+      }
+
+      hb_set_add_range (gids, start_gid, end_gid);
+    }
+    else
+      hb_set_add (gids, start_gid);
+  }
+
+  return !hb_set_is_empty (gids);
+}
+
+/* Parse comma-separated list of feature tags into a set.
+ * The special value "*" means all features from the face. */
+static bool
+parse_features (const char *str, hb_set_t *features, hb_face_t *face)
+{
+  if (!str || !*str)
+    return false;
+
+  if (strcmp (str, "*") == 0)
+  {
+    hb_set_t *all_features = get_gsub_features (face);
+    hb_set_union (features, all_features);
+    hb_set_destroy (all_features);
+    return true;
+  }
+
+  const char *p = str;
+  while (*p)
+  {
+    while (*p == ' ' || *p == ',')
+      p++;
+    if (!*p)
+      break;
+
+    char tag_str[5] = {0};
+    int i = 0;
+    while (*p && *p != ',' && *p != ' ' && i < 4)
+      tag_str[i++] = *p++;
+
+    if (i > 0)
+    {
+      while (i < 4)
+        tag_str[i++] = ' ';
+      tag_str[4] = '\0';
+      hb_set_add (features, HB_TAG (tag_str[0], tag_str[1], tag_str[2], tag_str[3]));
+    }
+  }
+
+  return !hb_set_is_empty (features);
+}
+
+/* Test parameters generated from a 64-bit seed or explicit command-line args */
+struct test_params
+{
+  bool is_gsub;           /* GSUB test (codepoint-based) vs non-GSUB (glyph-based) */
+  unsigned target_size;   /* Target set size (may be clamped by font size) */
+  hb_set_t *glyphs;       /* Starting glyphs (NULL on failure) */
+  hb_set_t *codepoints;   /* Starting codepoints (NULL if non-GSUB) */
+  hb_set_t *features;     /* Active features (NULL for default/all, only used for GSUB) */
+};
+
+/* Generate test parameters from explicit command-line arguments */
+static test_params
+generate_test_from_explicit (hb_face_t *face, hb_font_t *font)
+{
+  test_params params;
+  params.glyphs = hb_set_create ();
+  params.codepoints = NULL;
+  params.features = NULL;
+  params.target_size = 0;
+
+  if (_hb_depend_fuzzer_explicit_unicodes)
+  {
+    params.is_gsub = true;
+    params.codepoints = hb_set_create ();
+
+    if (!parse_unicodes (_hb_depend_fuzzer_explicit_unicodes, params.codepoints))
+    {
+      fprintf (stderr, "Error: Failed to parse --unicodes argument\n");
+      hb_set_destroy (params.glyphs);
+      hb_set_destroy (params.codepoints);
+      params.glyphs = NULL;
+      params.codepoints = NULL;
+      return params;
+    }
+
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (hb_set_next (params.codepoints, &cp))
+    {
+      hb_codepoint_t gid;
+      if (hb_font_get_nominal_glyph (font, cp, &gid))
+        hb_set_add (params.glyphs, gid);
+    }
+    params.target_size = hb_set_get_population (params.codepoints);
+  }
+  else if (_hb_depend_fuzzer_explicit_gids)
+  {
+    params.is_gsub = !_hb_depend_fuzzer_explicit_no_layout_closure;
+
+    if (!parse_gids (_hb_depend_fuzzer_explicit_gids, params.glyphs))
+    {
+      fprintf (stderr, "Error: Failed to parse --gids argument\n");
+      hb_set_destroy (params.glyphs);
+      params.glyphs = NULL;
+      return params;
+    }
+    params.target_size = hb_set_get_population (params.glyphs);
+  }
+  else
+  {
+    fprintf (stderr, "Error: Explicit mode requires --unicodes or --gids\n");
+    hb_set_destroy (params.glyphs);
+    params.glyphs = NULL;
+    return params;
+  }
+
+  if (_hb_depend_fuzzer_explicit_layout_features)
+  {
+    params.features = hb_set_create ();
+    if (!parse_features (_hb_depend_fuzzer_explicit_layout_features, params.features, face))
+    {
+      fprintf (stderr, "Error: Failed to parse --layout-features argument\n");
+      hb_set_destroy (params.features);
+      params.features = NULL;
+    }
+  }
+
+  return params;
+}
+
+/* Generate a test from a 64-bit seed.
+ *
+ * The seed encodes test type, size category, element selection, and feature selection:
+ *
+ * Test type distribution (seed % 100):
+ * - Non-GSUB single (1):            21%
+ * - Non-GSUB small (2–5):           17%
+ * - Non-GSUB medium (10–20):        10%
+ * - Non-GSUB large (50–100):         6%
+ * - Non-GSUB very large (N/10–N/4):  4%
+ * - GSUB single (1):                21%
+ * - GSUB small (2–5):               10%
+ * - GSUB medium (10–20):             6%
+ * - GSUB large (50–100):             4%
+ *
+ * Feature selection (GSUB tests, applied after type):
+ * - Single feature:    30%
+ * - Small (2–5):       35%
+ * - Medium (6–15):     20%
+ * - Large (16–50):     10%
+ * - All features:       5%
+ */
+static test_params
+generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
+{
+  test_params params;
+  params.glyphs = NULL;
+  params.codepoints = NULL;
+  params.features = NULL;
+
+  unsigned num_glyphs = hb_face_get_glyph_count (face);
+
+  hb_set_t *all_codepoints = hb_set_create ();
+  hb_face_collect_unicodes (face, all_codepoints);
+  unsigned num_codepoints = hb_set_get_population (all_codepoints);
+
+  /* Step 1: Determine test type and size range from seed % 100 */
+  unsigned type_selector = seed % 100;
+  unsigned min_size, max_size;
+
+  if (type_selector < 21) {
+    params.is_gsub = false; min_size = max_size = 1;           /* Non-GSUB single (21%) */
+  } else if (type_selector < 38) {
+    params.is_gsub = false; min_size = 2;   max_size = 5;      /* Non-GSUB small (17%) */
+  } else if (type_selector < 48) {
+    params.is_gsub = false; min_size = 10;  max_size = 20;     /* Non-GSUB medium (10%) */
+  } else if (type_selector < 54) {
+    params.is_gsub = false; min_size = 50;  max_size = 100;    /* Non-GSUB large (6%) */
+  } else if (type_selector < 58) {
+    params.is_gsub = false;                                     /* Non-GSUB very large (4%) */
+    min_size = num_glyphs / 10; max_size = num_glyphs / 4;
+  } else if (type_selector < 79) {
+    params.is_gsub = true;  min_size = max_size = 1;           /* GSUB single (21%) */
+  } else if (type_selector < 89) {
+    params.is_gsub = true;  min_size = 2;   max_size = 5;      /* GSUB small (10%) */
+  } else if (type_selector < 95) {
+    params.is_gsub = true;  min_size = 10;  max_size = 20;     /* GSUB medium (6%) */
+  } else {
+    params.is_gsub = true;  min_size = 50;  max_size = 100;    /* GSUB large (4%) */
+  }
+
+  /* Step 2: Pick target size within range, then clamp to what the font has */
+  params.target_size = min_size + ((seed >> 8) % (max_size - min_size + 1));
+  if (params.is_gsub)
+    params.target_size = params.target_size < num_codepoints ? params.target_size : num_codepoints;
+  else
+    params.target_size = params.target_size < num_glyphs ? params.target_size : num_glyphs;
+
+  if (params.target_size < min_size)
+  {
+    hb_set_destroy (all_codepoints);
+    params.target_size = 0;
+    return params;
+  }
+
+  /* Step 3: Select specific elements using a separate RNG seeded from the high bits */
+  unsigned selection_seed = (unsigned)((seed >> 32) ^ seed);
+  std::mt19937 selection_rng (selection_seed);
+
+  if (params.is_gsub)
+  {
+    params.codepoints = hb_set_create ();
+    params.glyphs = hb_set_create ();
+
+    /* Select random codepoints by index */
+    hb_set_t *cp_indices = hb_set_create ();
+    rng_select_distinct (selection_rng, cp_indices, params.target_size, num_codepoints);
+
+    hb_codepoint_t idx = HB_SET_VALUE_INVALID;
+    while (hb_set_next (cp_indices, &idx))
+    {
+      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+      for (unsigned j = 0; j <= idx && hb_set_next (all_codepoints, &cp); j++)
+        ;
+      hb_set_add (params.codepoints, cp);
+
+      hb_codepoint_t gid;
+      if (hb_font_get_nominal_glyph (font, cp, &gid))
+        hb_set_add (params.glyphs, gid);
+    }
+    hb_set_destroy (cp_indices);
+
+    /* Select features to activate */
+    hb_set_t *available_features = get_gsub_features (face);
+    unsigned num_features = hb_set_get_population (available_features);
+
+    if (num_features > 0)
+    {
+      unsigned feature_selector = std::uniform_int_distribution<unsigned> (0, 99) (selection_rng);
+      unsigned num_to_select;
+
+      if (feature_selector < 30)
+        num_to_select = 1;                                          /* Single (30%) */
+      else if (feature_selector < 65)
+        num_to_select = rng_range (selection_rng, 2, 5);           /* Small (35%) */
+      else if (feature_selector < 85)
+        num_to_select = rng_range (selection_rng, 6, 15);          /* Medium (20%) */
+      else if (feature_selector < 95)
+        num_to_select = rng_range (selection_rng, 16, 50);         /* Large (10%) */
+      else
+        num_to_select = num_features;                               /* All (5%) */
+
+      if (num_to_select > num_features)
+        num_to_select = num_features;
+
+      params.features = hb_set_create ();
+      rng_select_from_set (selection_rng, params.features, num_to_select, available_features);
+    }
+
+    hb_set_destroy (available_features);
+  }
+  else
+  {
+    params.glyphs = hb_set_create ();
+    rng_select_distinct (selection_rng, params.glyphs, params.target_size, num_glyphs);
+  }
+
+  hb_set_destroy (all_codepoints);
+  return params;
 }
 
 #endif /* !HB_NO_SUBSET_DEPEND */
@@ -1425,14 +1293,12 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 #ifndef HB_NO_SUBSET_DEPEND
   alloc_state = _fuzzing_alloc_state (data, size);
 
-  /* Initialize configuration on first run */
   init_parity_config ();
 
   hb_blob_t *blob = hb_blob_create ((const char *) data, size,
                                     HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
 
-  /* Extract dependency graph */
   hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
   if (!depend)
   {
@@ -1441,45 +1307,32 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     return 0;
   }
 
-  /* Calculate adaptive probabilities based on graph size if error injection is enabled.
-   * Goal: achieve ~2% detection rate regardless of font complexity.
+  /* Scale injection probabilities to achieve a target per-test detection rate
+   * regardless of font complexity.
    *
-   * Strategy:
-   * - Count total edges E in the dependency graph
-   * - Estimate average edges traversed per test: V ≈ E * 0.0025 (0.25%)
-   * - Calculate per-edge probability: P = target_rate / V
+   * The user supplies a TARGET_RATE (e.g. 0.02 = 2%).  We estimate the average
+   * number of edges traversed per test as E_total * 0.0025 (0.25% of all edges),
+   * then set per_edge_prob = TARGET_RATE / estimated_edges_per_test.
    *
-   * This makes user input (e.g., -u 0.02) specify the TARGET detection rate (2%),
-   * which is then scaled based on font complexity. Complex fonts like NotoNastaliq
-   * get lower per-edge probability, simple fonts get higher per-edge probability.
-   *
-   * The 0.0025 multiplier was tuned empirically across 8 system fonts to achieve
-   * avg ~2% detection rate (measured: 2.12% under, 3.20% over on 4000 tests).
-   */
+   * The 0.0025 multiplier was tuned empirically across 8 system fonts
+   * (measured: 2.12% under, 3.20% over on 4000 tests at target rate 0.02). */
   if (_hb_depend_fuzzer_inject_over_approx > 0.0f ||
       _hb_depend_fuzzer_inject_under_approx > 0.0f)
   {
-    /* Count total edges in dependency graph */
     unsigned total_edges = 0;
     unsigned num_glyphs = hb_face_get_glyph_count (face);
     for (unsigned gid = 0; gid < num_glyphs; gid++)
-    {
       total_edges += hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
-    }
 
-    /* Estimate average edges traversed per test (roughly 0.25% of total edges) */
     float estimated_edges_per_test = total_edges * 0.0025f;
     if (estimated_edges_per_test < 5.0f)
-      estimated_edges_per_test = 5.0f;  /* Minimum to avoid division issues */
+      estimated_edges_per_test = 5.0f;
 
-    /* Calculate adaptive probabilities to achieve target detection rate
-     * User input is now interpreted as TARGET_RATE not per-edge probability */
     if (_hb_depend_fuzzer_inject_over_approx > 0.0f)
     {
       float target_rate = _hb_depend_fuzzer_inject_over_approx;
       _hb_depend_fuzzer_inject_over_approx = target_rate / estimated_edges_per_test;
     }
-
     if (_hb_depend_fuzzer_inject_under_approx > 0.0f)
     {
       float target_rate = _hb_depend_fuzzer_inject_under_approx;
@@ -1496,115 +1349,67 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     }
   }
 
-  /* Create font for codepoint-to-glyph mapping */
   hb_font_t *font = hb_font_create (face);
 
-  /* Check test mode: explicit, single test, or full suite */
   if (_hb_depend_fuzzer_explicit_test)
   {
-    /* Run explicit test with command-line parameters */
     test_params params = generate_test_from_explicit (face, font);
-
-    /* Check if parsing succeeded */
     if (params.glyphs == NULL)
-    {
       fprintf (stderr, "Error: Failed to generate test from explicit parameters\n");
-    }
     else
     {
-      /* Always print parameters for explicit test */
       print_test_params (0, params.is_gsub, params.glyphs, params.codepoints, params.features);
-
-      /* Run closure comparison (use seed 0 for explicit tests) */
       compare_closures (face, depend, 0, _hb_depend_fuzzer_current_font_path,
                         params.is_gsub, params.glyphs, params.codepoints, params.features);
     }
-
-    /* Clean up test parameters */
-    if (params.glyphs)
-      hb_set_destroy (params.glyphs);
-    if (params.codepoints)
-      hb_set_destroy (params.codepoints);
-    if (params.features)
-      hb_set_destroy (params.features);
+    if (params.glyphs)     hb_set_destroy (params.glyphs);
+    if (params.codepoints) hb_set_destroy (params.codepoints);
+    if (params.features)   hb_set_destroy (params.features);
   }
   else if (_hb_depend_fuzzer_single_test != 0)
   {
-    /* Run single specific test */
     uint64_t test_seed = _hb_depend_fuzzer_single_test;
-
-    /* Generate test parameters from seed */
     test_params params = generate_test_from_seed (test_seed, face, font);
-
-    /* Skip if font is too small for this test type */
     if (params.target_size == 0 || params.glyphs == NULL)
-    {
       fprintf (stderr, "Warning: Font too small for this test type\n");
-    }
     else
     {
-      /* Always print parameters for single test */
       print_test_params (test_seed, params.is_gsub, params.glyphs, params.codepoints, params.features);
-
-      /* Run closure comparison */
       compare_closures (face, depend, test_seed, _hb_depend_fuzzer_current_font_path,
                         params.is_gsub, params.glyphs, params.codepoints, params.features);
     }
-
-    /* Clean up test parameters */
-    if (params.glyphs)
-      hb_set_destroy (params.glyphs);
-    if (params.codepoints)
-      hb_set_destroy (params.codepoints);
-    if (params.features)
-      hb_set_destroy (params.features);
+    if (params.glyphs)     hb_set_destroy (params.glyphs);
+    if (params.codepoints) hb_set_destroy (params.codepoints);
+    if (params.features)   hb_set_destroy (params.features);
   }
   else
   {
-    /* Generate T pseudo-random 64-bit test seeds from the parity checker seed
-     * Each seed deterministically generates a test with specific parameters
-     * Distribution follows research-backed proportions (see generate_test_from_seed)
-     * Use std::mt19937 for deterministic cross-platform behavior */
-
-    unsigned T = _hb_depend_fuzzer_num_tests;
-
-    /* Initialize RNG with parity checker seed to generate test seeds */
+    /* Generate T pseudo-random 64-bit seeds, then run compare_closures for each */
     std::mt19937 test_rng (_hb_depend_fuzzer_seed);
     std::uniform_int_distribution<uint32_t> uint32_dist;
 
-    for (unsigned i = 0; i < T; i++)
+    for (unsigned i = 0; i < _hb_depend_fuzzer_num_tests; i++)
     {
-      /* Generate pseudo-random 64-bit test seed
-       * Keep high bit clear for gint64 compatibility with -t parameter */
+      /* Keep high bit clear for gint64 compatibility with -t parameter */
       uint64_t test_seed = (((uint64_t)uint32_dist (test_rng) << 32) | (uint64_t)uint32_dist (test_rng)) & 0x7FFFFFFFFFFFFFFFULL;
 
-      /* Generate test parameters from seed */
       test_params params = generate_test_from_seed (test_seed, face, font);
-
-      /* Skip if font is too small for this test type */
       if (params.target_size == 0 || params.glyphs == NULL)
         continue;
 
-      /* Print parameters if verbose */
       if (_hb_depend_fuzzer_verbose)
         print_test_params (test_seed, params.is_gsub, params.glyphs, params.codepoints, params.features);
 
-      /* Run closure comparison */
       compare_closures (face, depend, test_seed, _hb_depend_fuzzer_current_font_path,
                         params.is_gsub, params.glyphs, params.codepoints, params.features);
 
-      /* Clean up test parameters */
-      if (params.glyphs)
-        hb_set_destroy (params.glyphs);
-      if (params.codepoints)
-        hb_set_destroy (params.codepoints);
-      if (params.features)
-        hb_set_destroy (params.features);
+      if (params.glyphs)     hb_set_destroy (params.glyphs);
+      if (params.codepoints) hb_set_destroy (params.codepoints);
+      if (params.features)   hb_set_destroy (params.features);
     }
   }
 
   hb_font_destroy (font);
-
   hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
   hb_blob_destroy (blob);
