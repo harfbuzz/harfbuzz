@@ -50,6 +50,7 @@ in_house_tests = [
   'macos.tests',
   'mark-attachment.tests',
   'mark-filtering-sets.tests',
+  'mongolian-cascade.tests',
   'mongolian-variation-selector.tests',
   'myanmar-misc.tests',
   'myanmar-syllable.tests',

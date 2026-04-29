@@ -1,0 +1,56 @@
+# Regression tests for https://github.com/harfbuzz/harfbuzz/issues/4503
+#
+# When shaping Mongolian script, NARROW NO-BREAK SPACE (U+202F) and
+# MONGOLIAN VOWEL SEPARATOR (U+180E) carry script-meaningful semantics
+# that depend on adjacent letters. A font that has a glyph for these
+# characters but does not cover the adjacent Mongolian letters cannot
+# shape the cluster correctly. HarfBuzz must report .notdef in that
+# case so the caller can cascade to a font that handles the whole
+# sequence as a unit.
+
+# ---------------------------------------------------------------------
+# A. Latin-only font that has neither U+202F, U+180E nor any Mongolian
+#    letter (the issue's original "subsetted Noto Sans Mongolian Latin
+#    slice" scenario).
+# ---------------------------------------------------------------------
+
+../fonts/3105b51976b879032c66aa93a634b3b3672cd344.ttf;--script=Mong;U+1820,U+202F,U+1822;[.notdef=0+364|.notdef=1+364|.notdef=2+364]
+../fonts/3105b51976b879032c66aa93a634b3b3672cd344.ttf;--script=Mong;U+1820,U+1828,U+180E,U+1820;[.notdef=0+364|.notdef=1+364|.notdef=2+0|.notdef=3+364]
+../fonts/3105b51976b879032c66aa93a634b3b3672cd344.ttf;--script=Mong;U+180E;[.notdef=0+0]
+
+# Non-Mongolian scripts retain existing fallback behaviour:
+../fonts/3105b51976b879032c66aa93a634b3b3672cd344.ttf;--script=Latn;U+202F;[space=0+146]
+../fonts/3105b51976b879032c66aa93a634b3b3672cd344.ttf;--script=Latn;U+180E;[space=0+0]
+../fonts/3105b51976b879032c66aa93a634b3b3672cd344.ttf;--script=Latn;U+0061,U+202F,U+0061;[.notdef=0+364|space=1+146|.notdef=2+364]
+
+# ---------------------------------------------------------------------
+# B. "Trap" font: subset of a Mongolian font containing only U+0020,
+#    U+202F, U+180E, U+180B-U+180D in cmap and no Mongolian letters.
+#    Mirrors the macOS Helvetica / SF Pro situation where the active
+#    font has U+202F (for French typography) but no Mongolian shaping.
+# ---------------------------------------------------------------------
+
+# In Mongolian context the font's real U+202F / U+180E glyph must NOT
+# be used because the adjacent Mongolian letters are absent: report
+# .notdef so the caller can cascade.
+../fonts/e0196734431776b0d1f147c6222fb9028d40e7e0.ttf;--script=Mong;U+1820,U+202F,U+1822;[.notdef=0+1200|.notdef=1+1200|.notdef=2+1200]
+../fonts/e0196734431776b0d1f147c6222fb9028d40e7e0.ttf;--script=Mong;U+1820,U+1828,U+180E,U+1820;[.notdef=0+1200|.notdef=1+1200|.notdef=2+0|.notdef=3+1200]
+
+# Without Mongolian neighbors the font's real glyph is used (the check
+# is precise: it only fires when the surrounding letters need the
+# missing shaping support).
+../fonts/e0196734431776b0d1f147c6222fb9028d40e7e0.ttf;--script=Mong;U+202F;[uni202F.nobreak=0+500]
+
+# Latin context is untouched: the font's real U+202F glyph is used in
+# the standard French "word NNBSP !" pattern even though this font is
+# subset-derived from a Mongolian font.
+../fonts/e0196734431776b0d1f147c6222fb9028d40e7e0.ttf;--script=Latn;U+0061,U+202F,U+0061;[.notdef=0+1200|uni202F.nobreak=1+500|.notdef=2+1200]
+
+# ---------------------------------------------------------------------
+# C. Full Mongolian font (Noto-derived test font with proper Mongolian
+#    GSUB). The fix must NOT change behaviour here: the font can shape
+#    the cluster, so HarfBuzz uses its real NNBSP / MVS glyphs.
+# ---------------------------------------------------------------------
+
+../fonts/4d4206e30b2dbf1c1ef492a8eae1c9e7829ebad8.ttf;--script=Mong;U+1820,U+202F,U+1822;[uni1820.E820_a.isol=0+1550|uni202F.nobreak=1+500|uni1822.E831_i.isol1=2+600]
+../fonts/4d4206e30b2dbf1c1ef492a8eae1c9e7829ebad8.ttf;--script=Mong;U+1820,U+1828,U+180E,U+1820;[uni1820.E822_a.init=0+1050|uni1828.E867_n.fina1=1+826|uni180E.E80E_mvs=2+0|uni1820.E827_a.fina2=3+600]

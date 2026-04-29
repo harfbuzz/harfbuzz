@@ -835,11 +835,25 @@ hb_ot_hide_default_ignorables (hb_buffer_t *buffer,
   if (!(buffer->flags & HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES) &&
       (invisible || font->get_nominal_glyph (' ', &invisible)))
   {
+    /* In Mongolian, leave a default-ignorable that did not receive a real
+     * glyph from the font as .notdef instead of masking it with the
+     * U+0020 glyph: MVS (U+180E) is a format character that forms its
+     * own cluster and is semantically required for vowel selection, so
+     * the caller relies on .notdef to drive font cascade. The Mongolian
+     * Free Variation Selectors (U+180B-U+180D) ride along with the base
+     * character's cluster and are unaffected by this path in practice.
+     * https://github.com/harfbuzz/harfbuzz/issues/4503 */
+    bool preserve_notdef = buffer->props.script == HB_SCRIPT_MONGOLIAN;
+
     /* Replace default-ignorables with a zero-advance invisible glyph. */
     for (unsigned int i = 0; i < count; i++)
     {
       if (_hb_glyph_info_is_default_ignorable (&info[i]))
+      {
+	if (preserve_notdef && info[i].codepoint == 0)
+	  continue;
 	info[i].codepoint = invisible;
+      }
     }
   }
   else

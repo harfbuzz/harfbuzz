@@ -153,6 +153,48 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
   hb_codepoint_t u = buffer->cur().codepoint;
   hb_codepoint_t glyph = 0;
 
+  /* In Mongolian, NARROW NO-BREAK SPACE (U+202F) and MONGOLIAN VOWEL
+   * SEPARATOR (U+180E) carry script-meaningful semantics that depend on
+   * the adjacent letters: a font that has a glyph for U+202F or U+180E
+   * (e.g. Helvetica or San Francisco for French typography, or a
+   * unicode-range Latin slice cut from Noto Sans Mongolian) but does
+   * not cover the adjacent Mongolian letters cannot shape the cluster
+   * correctly. Force .notdef in that case so the caller can cascade to
+   * a font that handles the whole sequence as a unit. Firefox achieves
+   * the same by special-casing these characters in its font-selection
+   * layer; doing it here lets every shaper-driven font cascade benefit.
+   * https://github.com/harfbuzz/harfbuzz/issues/4503 */
+  if (unlikely ((u == 0x202Fu || u == 0x180Eu) &&
+		buffer->props.script == HB_SCRIPT_MONGOLIAN))
+  {
+    auto neighbor_unsupported = [&] (hb_codepoint_t neighbor_u) -> bool
+    {
+      if (buffer->unicode->script (neighbor_u) != HB_SCRIPT_MONGOLIAN)
+	return false;
+      hb_codepoint_t dummy;
+      return !c->font->get_nominal_glyph (neighbor_u, &dummy);
+    };
+
+    bool force_notdef = false;
+    /* Forward neighbor is still untouched in info[]. */
+    if (buffer->idx + 1 < buffer->len)
+      force_notdef = neighbor_unsupported (buffer->info[buffer->idx + 1].codepoint);
+    /* Backward neighbor is the most recent output in out_info[]. */
+    if (!force_notdef && buffer->out_len > 0)
+      force_notdef = neighbor_unsupported (buffer->prev().codepoint);
+
+    if (force_notdef)
+    {
+      /* The decision depends on adjacent glyphs, so the caller cannot
+       * concatenate this run with another shaping context-free. */
+      unsigned int start = buffer->idx > 0 ? buffer->idx - 1 : 0;
+      unsigned int end = hb_min (buffer->idx + 2u, buffer->len);
+      buffer->unsafe_to_concat (start, end);
+      next_char (buffer, buffer->not_found);
+      return;
+    }
+  }
+
   if (shortest && c->font->get_nominal_glyph (u, &glyph, buffer->not_found))
   {
     next_char (buffer, glyph);
