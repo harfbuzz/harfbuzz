@@ -87,6 +87,9 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * @HB_SUBSET_FLAGS_DOWNGRADE_CFF2: If set and instantiating a variable font
  * with all axes pinned, convert the output CFF2 table to CFF1. This enables
  * compatibility with older renderers that don't support CFF2. Since: 13.0.0
+ * @HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET: If set and subsetting a CID-keyed CFF
+ * font, the output CFF charset will use sequential identity CIDs (CID = new
+ * GID) rather than preserving the original CIDs. XSince: REPLACEME
  *
  * List of boolean properties that can be configured on the subset input.
  *
@@ -111,6 +114,7 @@ typedef enum { /*< flags >*/
   HB_SUBSET_FLAGS_RETAIN_NUM_GLYPHS  =  0x00002000u,
 #endif
   HB_SUBSET_FLAGS_DOWNGRADE_CFF2          =  0x00004000u,
+  HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET    =  0x00008000u,
 } hb_subset_flags_t;
 
 /**
