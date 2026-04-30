@@ -16,7 +16,7 @@ cairo_min_version = '>= 1.10.0'
 chafa_min_version = '>= 1.6.0'
 icu_min_version = '>= 49.0'
 graphite2_min_version = '>= 1.2.0'
-freetype_min_version = '>= 12.0.6'
+freetype_min_version = '>= 20.0.14'
 
 hb_version_arr = meson.project_version().split('.')
 hb_version_major = hb_version_arr[0].to_int()

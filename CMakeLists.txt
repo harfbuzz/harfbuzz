@@ -304,7 +304,7 @@ if (HB_HAVE_FREETYPE AND NOT TARGET freetype)
 endif ()
 
 if (HB_HAVE_FREETYPE)
-  list(APPEND PC_REQUIRES_PRIV "freetype2 >= 12.0.6")
+  list(APPEND PC_REQUIRES_PRIV "freetype2 >= 20.0.14")
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
