@@ -1286,6 +1286,31 @@ struct graph_t
   }
 
   /*
+   * Creates a new child node and remap the old child at specified position to it.
+   *
+   * Returns the index of the newly created child.
+   *
+   */
+  unsigned remap_child_at_position (unsigned parent_idx, unsigned old_child_idx, const void* offset)
+  {
+    const auto& parent = object (parent_idx);
+    if (!offset || offset < parent.head || offset >= parent.tail) return -1;
+
+    for (auto& l : parent.real_links)
+    {
+      if (l.objidx != old_child_idx || offset != parent.head + l.position)
+        continue;
+      
+      unsigned new_child_idx = duplicate (old_child_idx);
+      if (new_child_idx == (unsigned) -1) return -1;
+      reassign_link (l, parent_idx, new_child_idx, false);
+      return new_child_idx;
+    }
+
+    return -1;
+  }
+
+  /*
    * Raises the sorting priority of all children.
    */
   bool raise_childrens_priority (unsigned parent_idx)
