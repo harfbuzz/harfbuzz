@@ -172,7 +172,7 @@ steel background.
 
 ## Users
 
-HarfBuzz is used in Android, Chrome, ChromeOS, Firefox, GNOME, GTK+, KDE,
+HarfBuzz is used in Android, Chrome, ChromeOS, Firefox, Flutter, GNOME, GTK+, KDE,
 Qt, LibreOffice, OpenJDK, XeTeX, Adobe Photoshop, Illustrator, InDesign,
 Microsoft Edge, Amazon Kindle, PlayStation, Godot Engine, Unreal Engine,
 Figma, Canva, QuarkXPress, Scribus, smart TVs,
