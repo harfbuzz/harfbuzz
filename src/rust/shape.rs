@@ -15,7 +15,7 @@ pub struct HBHarfRustFaceData<'a> {
     shaper_data: ShaperData,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
     face: *mut hb_face_t,
 ) -> *mut c_void {
@@ -43,7 +43,7 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
     Box::into_raw(hr_face_data) as *mut c_void
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_destroy_rs(data: *mut c_void) {
     let data = data as *mut HBHarfRustFaceData;
     let hr_face_data = Box::from_raw(data);
@@ -68,7 +68,7 @@ fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> Shap
     ShaperInstance::from_coords(font_ref, coords)
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
     font: *mut hb_font_t,
     face_data: *const c_void,
@@ -94,7 +94,7 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
     hr_font_data_ptr as *mut c_void
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_destroy_rs(data: *mut c_void) {
     let data = data as *mut HBHarfRustFontData;
     let _hr_font_data = Box::from_raw(data);
@@ -110,19 +110,19 @@ fn hb_language_to_hr_language(language: hb_language_t) -> Option<harfrust::Langu
     Some(harfrust::Language::from_str(language_str).unwrap())
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_buffer_create_rs() -> *mut c_void {
     let hr_buffer = Box::new(harfrust::UnicodeBuffer::new());
     Box::into_raw(hr_buffer) as *mut c_void
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_buffer_destroy_rs(data: *mut c_void) {
     let data = data as *mut harfrust::UnicodeBuffer;
     let _hr_buffer = Box::from_raw(data);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     font_data: *const c_void,
     script: hb_script_t,
@@ -148,13 +148,13 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     Box::into_raw(hr_shape_plan) as *mut c_void
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shape_plan_destroy_rs(data: *mut c_void) {
     let data = data as *mut harfrust::ShapePlan;
     let _hr_shape_plan = Box::from_raw(data);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     font_data: *const c_void,
     face_data: *const c_void,
