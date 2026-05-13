@@ -14,11 +14,12 @@ path = "lib.rs"
 crate-type = ["staticlib"]
 
 [features]
-default = ["paint", "draw"]
+default = ["paint", "draw", "hb-allocator"]
 font = ["dep:skrifa"]
 shape = ["dep:harfrust"]
 paint = []
 draw = []
+hb-allocator = []
 
 [profile.release]
 strip = true

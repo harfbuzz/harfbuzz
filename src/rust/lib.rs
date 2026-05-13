@@ -1,4 +1,5 @@
 mod hb;
+#[allow(unused_imports)]
 use hb::*;
 
 #[cfg(feature = "font")]
@@ -6,11 +7,15 @@ mod font;
 #[cfg(feature = "shape")]
 mod shape;
 
+#[cfg(feature = "hb-allocator")]
 use std::alloc::{GlobalAlloc, Layout};
+#[cfg(feature = "hb-allocator")]
 use std::os::raw::c_void;
 
+#[cfg(feature = "hb-allocator")]
 struct MyAllocator;
 
+#[cfg(feature = "hb-allocator")]
 unsafe impl GlobalAlloc for MyAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         assert!(layout.align() <= 2 * std::mem::size_of::<*mut u8>());
@@ -33,5 +38,6 @@ unsafe impl GlobalAlloc for MyAllocator {
     }
 }
 
+#[cfg(feature = "hb-allocator")]
 #[global_allocator]
 static GLOBAL: MyAllocator = MyAllocator;
