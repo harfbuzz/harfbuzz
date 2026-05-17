@@ -10,3 +10,5 @@
 ../fonts/TradArabicTest.ttf;;U+0021,U+0022,U+00AB,U+00BB,U+0025,U+00D7,U+00F7,U+0028,U+0020,U+0029,U+002A,U+002B,U+060C,U+002E,U+002F,U+003A,U+061B,U+2018,U+003D,U+2019,U+061F,U+005B,U+005D,U+002D,U+0022;[greater=0+481|question=1+559|at=2+849|A=3+849|percentarabic=4+1353|C=5+927|D=6+1196|E=7+855|righttoleftspace=8+468|F=9+855|G=10+884|H=11+1083|commaarabic=12+755|K=13+649|L=14+704|W=15+450|semicolonarabic=16+755|.notdef=17+745|Z=18+1128|.notdef=19+745|questionarabic=20+845|x=21+739|z=22+739|J=23+753|question=24+559]
 ../fonts/TradArabicTest.ttf;;U+061F,U+003F,U+0640;[questionarabic=0+845|questionarabic=1+845|tatweelnarrow=2+378]
 ../fonts/TradArabicTest.ttf;;U+0644,U+0645,U+0020,U+0628,U+0645,U+0627;[fnalef=5+468|f296=3+897|righttoleftspace=2+468|f205=0+903]
+../fonts/TradArabicTest.ttf;;U+0639,U+0644,U+0649;[fnalefmaqsurah=2+1198|midlam=1+403|inain=0+976]
+../fonts/TradArabicTest.ttf;;U+0644,U+0649;[f295=0+1470]
