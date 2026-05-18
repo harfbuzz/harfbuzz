@@ -1215,6 +1215,62 @@ hb_unsigned_add_overflows (unsigned int a, unsigned int b, unsigned *result = nu
   return b > (unsigned int) -1 - a;
 }
 
+/* Saturating arithmetic on size_t.  On platforms where size_t is wider than
+ * unsigned int (i.e. 64-bit), the inputs to get_size()-style computations
+ * (counts and static_sizes which are at most 32-bit) cannot overflow size_t,
+ * so these reduce to plain arithmetic.  On 32-bit platforms (size_t is
+ * unsigned int), they saturate to SIZE_MAX so sanitize/serialize callers
+ * naturally reject the resulting size as out-of-range. */
+
+static inline size_t
+hb_unsigned_mul_saturate (size_t a, size_t b)
+{
+  if (sizeof (size_t) > sizeof (unsigned int))
+    return a * b;
+#if hb_has_builtin(__builtin_mul_overflow)
+  size_t result;
+  if (__builtin_mul_overflow (a, b, &result))
+    return (size_t) -1;
+  return result;
+#else
+  if (b > 0 && a > ((size_t) -1) / b) return (size_t) -1;
+  return a * b;
+#endif
+}
+
+static inline size_t
+hb_unsigned_add_saturate (size_t a, size_t b)
+{
+  if (sizeof (size_t) > sizeof (unsigned int))
+    return a + b;
+#if hb_has_builtin(__builtin_add_overflow)
+  size_t result;
+  if (__builtin_add_overflow (a, b, &result))
+    return (size_t) -1;
+  return result;
+#else
+  if (b > ((size_t) -1) - a) return (size_t) -1;
+  return a + b;
+#endif
+}
+
+/* Variadic forms: fold left across all arguments. */
+template <typename ...Ts>
+static inline size_t
+hb_unsigned_mul_saturate (size_t a, size_t b, size_t c, Ts... rest)
+{ return hb_unsigned_mul_saturate (hb_unsigned_mul_saturate (a, b), c, rest...); }
+
+template <typename ...Ts>
+static inline size_t
+hb_unsigned_add_saturate (size_t a, size_t b, size_t c, Ts... rest)
+{ return hb_unsigned_add_saturate (hb_unsigned_add_saturate (a, b), c, rest...); }
+
+/* Saturating mul-add: a * b + c.  Covers the dominant get_size() pattern
+ * `count * static_size + min_size`. */
+static inline size_t
+hb_unsigned_mul_add_saturate (size_t a, size_t b, size_t c)
+{ return hb_unsigned_add_saturate (hb_unsigned_mul_saturate (a, b), c); }
+
 
 /*
  * Sort and search.

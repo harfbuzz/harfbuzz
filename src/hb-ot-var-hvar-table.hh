@@ -181,7 +181,11 @@ struct index_map_subset_plan_t
   unsigned int get_map_count ()       const { return map_count; }
 
   size_t get_size () const
-  { return (map_count? (DeltaSetIndexMap::min_size + get_width () * map_count): 0); }
+  {
+    if (!map_count) return 0;
+    return hb_unsigned_mul_add_saturate (get_width (), map_count,
+					 DeltaSetIndexMap::min_size);
+  }
 
   bool is_identity () const { return get_output_map ().length == 0; }
   hb_array_t<const uint32_t> get_output_map () const { return output_map.as_array (); }

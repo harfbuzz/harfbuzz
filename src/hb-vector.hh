@@ -272,7 +272,7 @@ struct hb_vector_t
   const Type& tail () const { return (*this)[length - 1]; }
 
   explicit operator bool () const { return length; }
-  size_t get_size () const { return length * item_size; }
+  size_t get_size () const { return hb_unsigned_mul_saturate (length, item_size); }
 
   /* Sink interface. */
   template <typename T>

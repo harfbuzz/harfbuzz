@@ -638,7 +638,7 @@ struct FeatureParamsCharacterVariants
   }
 
   size_t get_size () const
-  { return min_size + characters.len * HBUINT24::static_size; }
+  { return hb_unsigned_mul_add_saturate (characters.len, HBUINT24::static_size, min_size); }
 
   void collect_name_ids (hb_set_t *nameids_to_retain /* OUT */) const
   {
@@ -2791,7 +2791,10 @@ struct VarRegionList
     return !regions.in_error ();
   }
 
-  size_t get_size () const { return min_size + (size_t) VarRegionAxis::static_size * axisCount * regionCount; }
+  size_t get_size () const
+  { return hb_unsigned_add_saturate (min_size,
+				     hb_unsigned_mul_saturate (VarRegionAxis::static_size,
+							       axisCount, regionCount)); }
 
   public:
   HBUINT16	axisCount;
@@ -2872,10 +2875,9 @@ struct VarData
   { return (wordCount () + regionIndices.len) * (longWords () ? 2 : 1); }
 
   size_t get_size () const
-  { return min_size
-	 - regionIndices.min_size + regionIndices.get_size ()
-	 + itemCount * get_row_size ();
-  }
+  { return hb_unsigned_add_saturate (min_size - regionIndices.min_size,
+				     regionIndices.get_size (),
+				     hb_unsigned_mul_saturate (itemCount, get_row_size ())); }
 
   float _get_delta (unsigned int inner,
 		    const int *coords, unsigned int coord_count,
@@ -3244,10 +3246,9 @@ struct VarData
 struct MultiVarData
 {
   size_t get_size () const
-  { return min_size
-	 - regionIndices.min_size + regionIndices.get_size ()
-	 + StructAfter<CFF2Index> (regionIndices).get_size ();
-  }
+  { return hb_unsigned_add_saturate (min_size - regionIndices.min_size,
+				     regionIndices.get_size (),
+				     StructAfter<CFF2Index> (regionIndices).get_size ()); }
 
   void get_delta (unsigned int inner,
 		  const int *coords, unsigned int coord_count,
@@ -3639,7 +3640,7 @@ struct DeltaSetIndexMapFormat01
   friend struct DeltaSetIndexMap;
 
   size_t get_size () const
-  { return min_size + mapCount * get_width (); }
+  { return hb_unsigned_mul_add_saturate (mapCount, get_width (), min_size); }
 
   private:
   DeltaSetIndexMapFormat01* copy (hb_serialize_context_t *c) const
