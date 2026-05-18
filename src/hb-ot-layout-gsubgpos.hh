@@ -387,9 +387,27 @@ struct hb_depend_context_t :
 
   void recurse (unsigned lookup_idx, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index)
   {
-    // Don't use lookups_seen check here - same lookup can be called multiple times
-    // with different active glyphs for different sequence positions
+    /* Cycle detection using call-stack semantics: block re-entry of a
+     * lookup that is currently on the execution stack, but allow it again
+     * once it has returned.
+     *
+     * A flat "visited" set would be wrong: the same lookup legitimately
+     * appears more than once when a rule iterates over multiple sequence
+     * positions — each such call is independent and must be processed.
+     *
+     * Cutting an in-progress cycle is safe because the active glyph set
+     * can only stay the same or shrink as we recurse.  If we re-encounter
+     * lookup L while it is still on the stack, L is already executing
+     * with a context at least as broad, so any edges a re-entry would add
+     * are a subset of what L is already in the process of registering.
+     *
+     * lookups_seen is pre-seeded with the top-level lookup index in
+     * GSUB_accelerator_t::depend before the direct depend() call, so
+     * that indirect cycles of the form A→B→A are also caught here. */
+    if (lookups_seen.has (lookup_idx)) return;
+    lookups_seen.add (lookup_idx);
     recurse_func (this, lookup_idx, covered_seq_indicies, seq_index, end_index);
+    lookups_seen.del (lookup_idx);
   }
 
   const hb_set_t& parent_active_glyphs ()

@@ -182,6 +182,7 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
                      "Processing lookup %d with features:", i);
     c.lookup_index = i;
     c.lookups_seen.clear ();
+    c.lookups_seen.add (i);  /* Seed for A→B→A cycle detection in recurse(). */
     this->table->get_lookup (i).depend (&c);
   }
 }
