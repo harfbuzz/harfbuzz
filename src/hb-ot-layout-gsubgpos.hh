@@ -2333,7 +2333,9 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
   /* Build glyph sets for ALL input positions */
   hb_vector_t<hb_set_t> input_position_glyphs;
 
-  /* Position 0 (Coverage glyph) */
+  /* Position 0 (Coverage glyph) — must be in both the class AND the
+   * coverage, so intersect with parent_active_glyphs (= coverage ∩ glyphs
+   * set by the ContextFormat2/3 caller). */
   hb_set_t pos0_glyphs;
   switch (lookup_context.context_format)
   {
@@ -2342,6 +2344,7 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
       break;
     case ContextFormat::ClassBasedContext:
       collect_class (&pos0_glyphs, value, lookup_context.intersects_data);
+      pos0_glyphs.intersect (c->parent_active_glyphs ());
       break;
     case ContextFormat::CoverageBasedContext:
       collect_coverage (&pos0_glyphs, value, lookup_context.intersects_data);
@@ -3708,7 +3711,8 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
   /* Build glyph sets for ALL input positions */
   hb_vector_t<hb_set_t> input_position_glyphs;
 
-  /* Position 0 (first input coverage/class/glyph) */
+  /* Position 0 (first input coverage/class/glyph) — must be in both the
+   * class AND the coverage, so intersect with parent_active_glyphs. */
   hb_set_t pos0_glyphs;
   switch (lookup_context.context_format)
   {
@@ -3717,6 +3721,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
       break;
     case ContextFormat::ClassBasedContext:
       collect_class (&pos0_glyphs, value, lookup_context.intersects_data[1]);
+      pos0_glyphs.intersect (c->parent_active_glyphs ());
       break;
     case ContextFormat::CoverageBasedContext:
       collect_coverage (&pos0_glyphs, value, lookup_context.intersects_data[1]);
