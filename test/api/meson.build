@@ -65,6 +65,7 @@ tests = [
   'test-subset-gpos.c',
   'test-subset-colr.c',
   'test-subset-cbdt.c',
+  'test-subset-math.c',
   'test-unicode.c',
   'test-var-coords.c',
   'test-version.c',

@@ -877,31 +877,40 @@ struct MathGlyphConstruction
 
 struct MathVariants
 {
-  void closure_glyphs (const hb_set_t *glyph_set,
-                       hb_set_t *variant_glyphs) const
+  void closure_glyphs (hb_set_t *glyph_set) const
   {
     const hb_array_t<const Offset16To<MathGlyphConstruction>> glyph_construction_offsets = glyphConstruction.as_array (vertGlyphCount + horizGlyphCount);
 
-    if (vertGlyphCoverage)
+    hb_set_t new_glyphs;
+    for (;;)
     {
-      const auto vert_offsets = glyph_construction_offsets.sub_array (0, vertGlyphCount);
-      + hb_zip (this+vertGlyphCoverage, vert_offsets)
-      | hb_filter (glyph_set, hb_first)
-      | hb_map (hb_second)
-      | hb_map (hb_add (this))
-      | hb_apply ([=] (const MathGlyphConstruction &_) { _.closure_glyphs (variant_glyphs); })
-      ;
-    }
+      new_glyphs.clear ();
 
-    if (horizGlyphCoverage)
-    {
-      const auto hori_offsets = glyph_construction_offsets.sub_array (vertGlyphCount, horizGlyphCount);
-      + hb_zip (this+horizGlyphCoverage, hori_offsets)
-      | hb_filter (glyph_set, hb_first)
-      | hb_map (hb_second)
-      | hb_map (hb_add (this))
-      | hb_apply ([=] (const MathGlyphConstruction &_) { _.closure_glyphs (variant_glyphs); })
-      ;
+      if (vertGlyphCoverage)
+      {
+	const auto vert_offsets = glyph_construction_offsets.sub_array (0, vertGlyphCount);
+	+ hb_zip (this+vertGlyphCoverage, vert_offsets)
+	| hb_filter (glyph_set, hb_first)
+	| hb_map (hb_second)
+	| hb_map (hb_add (this))
+	| hb_apply ([&] (const MathGlyphConstruction &_) { _.closure_glyphs (&new_glyphs); })
+	;
+      }
+
+      if (horizGlyphCoverage)
+      {
+	const auto hori_offsets = glyph_construction_offsets.sub_array (vertGlyphCount, horizGlyphCount);
+	+ hb_zip (this+horizGlyphCoverage, hori_offsets)
+	| hb_filter (glyph_set, hb_first)
+	| hb_map (hb_second)
+	| hb_map (hb_add (this))
+	| hb_apply ([&] (const MathGlyphConstruction &_) { _.closure_glyphs (&new_glyphs); })
+	;
+      }
+
+      new_glyphs.subtract (*glyph_set);
+      if (new_glyphs.is_empty ()) return;
+      glyph_set->union_ (new_glyphs);
     }
   }
 
@@ -1076,11 +1085,7 @@ struct MATH
   void closure_glyphs (hb_set_t *glyph_set) const
   {
     if (mathVariants)
-    {
-      hb_set_t variant_glyphs;
-      (this+mathVariants).closure_glyphs (glyph_set, &variant_glyphs);
-      hb_set_union (glyph_set, &variant_glyphs);
-    }
+      (this+mathVariants).closure_glyphs (glyph_set);
   }
 
   bool subset (hb_subset_context_t *c) const
