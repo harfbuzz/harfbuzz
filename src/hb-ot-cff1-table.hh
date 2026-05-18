@@ -236,14 +236,14 @@ struct Encoding
 
   size_t get_size () const
   {
-    unsigned int size = min_size;
+    size_t size = min_size;
     switch (table_format ())
     {
-    case 0: hb_barrier (); size += u.format0.get_size (); break;
-    case 1: hb_barrier (); size += u.format1.get_size (); break;
+    case 0: hb_barrier (); size = hb_unsigned_add_saturate (size, u.format0.get_size ()); break;
+    case 1: hb_barrier (); size = hb_unsigned_add_saturate (size, u.format1.get_size ()); break;
     }
     if (has_supplement ())
-      size += suppEncData ().get_size ();
+      size = hb_unsigned_add_saturate (size, suppEncData ().get_size ());
     return size;
   }
 
@@ -567,9 +567,9 @@ struct Charset
   {
     switch (format)
     {
-    case 0: hb_barrier (); return min_size + u.format0.get_size (num_glyphs);
-    case 1: hb_barrier (); return min_size + u.format1.get_size (num_glyphs);
-    case 2: hb_barrier (); return min_size + u.format2.get_size (num_glyphs);
+    case 0: hb_barrier (); return hb_unsigned_add_saturate (min_size, u.format0.get_size (num_glyphs));
+    case 1: hb_barrier (); return hb_unsigned_add_saturate (min_size, u.format1.get_size (num_glyphs));
+    case 2: hb_barrier (); return hb_unsigned_add_saturate (min_size, u.format2.get_size (num_glyphs));
     default:return 0;
     }
   }
