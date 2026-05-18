@@ -227,7 +227,7 @@ struct demo_renderer_metal_t : demo_renderer_t
       passDesc.colorAttachments[0].texture = offscreenTexture;
       passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
       passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
-      passDesc.colorAttachments[0].clearColor = MTLClearColorMake (bg[0], bg[1], bg[2], bg[3]);
+      passDesc.colorAttachments[0].clearColor = MTLClearColorMake ((double) bg[0], (double) bg[1], (double) bg[2], (double) bg[3]);
 
       id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
       id<MTLRenderCommandEncoder> encoder =
@@ -278,7 +278,7 @@ struct demo_renderer_metal_t : demo_renderer_t
       passDesc.colorAttachments[0].texture = drawable.texture;
       passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
       passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
-      passDesc.colorAttachments[0].clearColor = MTLClearColorMake (bg[0], bg[1], bg[2], bg[3]);
+      passDesc.colorAttachments[0].clearColor = MTLClearColorMake ((double) bg[0], (double) bg[1], (double) bg[2], (double) bg[3]);
 
       id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
       id<MTLRenderCommandEncoder> encoder =
