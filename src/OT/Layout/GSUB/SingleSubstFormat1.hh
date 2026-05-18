@@ -49,6 +49,7 @@ struct SingleSubstFormat1_3
   {
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
+    unsigned num_glyphs = c->face->get_num_glyphs ();
 
     // Filter coverage by active glyphs (like closure does)
     hb_set_t intersection;
@@ -56,6 +57,7 @@ struct SingleSubstFormat1_3
 
     + hb_iter (intersection)
     | hb_map ([&] (hb_codepoint_t _) { return hb_codepoint_pair_t (_, (_ + d) & mask); })
+    | hb_filter ([num_glyphs] (const hb_codepoint_pair_t &_) { return _.second < num_glyphs; })
     | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup(_.first, c->lookup_index, _.second); })
     ;
   }
