@@ -63,7 +63,7 @@ impl FontationsData<'_> {
         if blob_data.is_null() {
             return None;
         }
-        let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
+        let face_data = std::slice::from_raw_parts(blob_data, blob_length as usize);
 
         let font_ref = FontRef::from_index(face_data, face_index);
         let font_ref = match font_ref {
@@ -988,7 +988,7 @@ extern "C" fn _hb_fontations_glyph_name(
         // Copy the glyph name into the buffer, up to size-1 bytes
         let len = glyph_name.len().min((size as usize) - 1);
         unsafe {
-            std::slice::from_raw_parts_mut(name as *mut u8, len)
+            std::slice::from_raw_parts_mut(name, len)
                 .copy_from_slice(&glyph_name.as_bytes()[..len]);
             *name.add(len) = 0;
         }
@@ -1015,7 +1015,7 @@ extern "C" fn _hb_fontations_glyph_from_name(
     let data = unsafe { &*(font_data as *const FontationsData) };
 
     // SAFETY: HarfBuzz guarantees the string is valid memory for `len` bytes.
-    let name_bytes = unsafe { std::slice::from_raw_parts(name as *const u8, len as usize) };
+    let name_bytes = unsafe { std::slice::from_raw_parts(name, len as usize) };
     let name_str = match std::str::from_utf8(name_bytes) {
         Ok(s) => s,
         Err(_) => return false as hb_bool_t,
