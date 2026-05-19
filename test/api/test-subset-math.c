@@ -56,6 +56,7 @@ test_subset_math_closure_transitive (void)
   /* Create a subset plan and check retained glyphs. */
   hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
   g_assert_nonnull (plan);
+  hb_subset_input_destroy (input);
 
   hb_map_t *glyph_map = hb_subset_plan_old_to_new_glyph_mapping (plan);
   hb_set_t *retained = hb_set_create ();
@@ -79,8 +80,10 @@ test_subset_math_closure_transitive (void)
   hb_subset_plan_destroy (plan);
 
   /* Also verify that the full subset succeeds. */
-  input = hb_subset_test_create_input (hb_set_create ());
-  hb_set_add (hb_subset_input_unicode_set (input), 0x21D4);
+  codepoints = hb_set_create ();
+  hb_set_add (codepoints, 0x21D4);
+  input = hb_subset_test_create_input (codepoints);
+  hb_set_destroy (codepoints);
   hb_face_t *subset = hb_subset_test_create_subset (face, input);
   g_assert_nonnull (subset);
 
