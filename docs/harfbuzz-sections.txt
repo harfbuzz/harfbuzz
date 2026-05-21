@@ -142,6 +142,7 @@ hb_script_from_iso15924_tag
 hb_script_to_iso15924_tag
 hb_script_from_string
 hb_script_get_horizontal_direction
+HB_SCRIPT_KATAKANA_OR_HIRAGANA
 hb_language_from_string
 hb_language_to_string
 hb_language_get_default
