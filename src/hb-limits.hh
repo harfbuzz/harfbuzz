@@ -134,7 +134,7 @@
 #endif
 
 #ifndef HB_REPACKER_MAX_SPACES
-#define HB_REPACKER_MAX_SPACES 1024
+#define HB_REPACKER_MAX_SPACES 8000
 #endif
 
 
