@@ -667,12 +667,13 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
   if (is_gsub && codepoints && !hb_set_is_empty (codepoints))
   {
     hb_set_add (actual_start_glyphs, 0);  /* .notdef */
+    unsigned num_glyphs = hb_face_get_glyph_count (face);
     hb_font_t *font = hb_font_create (face);
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (hb_set_next (codepoints, &cp))
     {
       hb_codepoint_t gid;
-      if (hb_font_get_nominal_glyph (font, cp, &gid))
+      if (hb_font_get_nominal_glyph (font, cp, &gid) && gid < num_glyphs)
         hb_set_add (actual_start_glyphs, gid);
     }
     hb_font_destroy (font);
