@@ -64,6 +64,6 @@ if not gpu_demo_opt.disabled()
     metal_dep = disabler()
   endif
   d3d11_dep = meson.get_compiler('cpp').find_library('d3d11', required: false)
-  d3dcompiler_dep = meson.get_compiler('cpp').find_library('d3dcompiler_47', required: false)
+  d3dcompiler_dep = meson.get_compiler('cpp').find_library('d3dcompiler', required: false)
   have_gpu_demo_deps = glew_dep.found() and glfw_dep.found() and gl_dep.found()
 endif
