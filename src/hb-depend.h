@@ -61,14 +61,12 @@ HB_BEGIN_DECLS
  *
  * XSince: REPLACEME
  */
-#ifndef HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
-#define HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
-typedef enum {
+typedef enum { /*< flags >*/
   HB_SUBSET_DEPEND_EDGE_FLAG_NONE                   = 0x00u,
   HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION  = 0x01u,
   HB_SUBSET_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT    = 0x02u,
 } hb_subset_depend_edge_flags_t;
-#endif
+#define HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
 /* HB_MARK_AS_FLAG_T is applied in hb-depend-data.hh (internal header only) */
 
 #ifndef HB_NO_SUBSET_DEPEND
