@@ -85,6 +85,42 @@ if (!hb_set_has(glyphs, entry.dependent)) {
 }
 ```
 
+## Table-Specific Closure Behavior
+
+### MATH Closure
+
+MATH edges should be followed in a **single pass**: follow MATH edges for glyphs
+that are in the set before the MATH stage, but do NOT follow MATH edges for
+glyphs that the MATH stage itself added.  This matches the subsetter's behavior,
+which retains MATH-closure glyphs (their outlines are needed for drawing assembly
+parts) but strips their own MATH constructions from the subset.
+
+Math layout engines do not recursively stretch assembly parts, so the
+second-hop constructions are not functionally needed.
+
+### GSUB Self-Feeding Chains
+
+The depend graph captures all GSUB substitution edges.  When computing transitive
+closure, a lookup's output glyph may itself be in the same lookup's coverage,
+creating a chain: A → B → C → ... through the same lookup.  No shaper actually
+re-applies a lookup to its own output within a single feature application, so
+these chains are over-approximation relative to real shaping behavior.
+
+The subsetter's iterative closure (`HB_CLOSURE_MAX_STAGES`) truncates these
+chains.  The depend closure, following edges to a fixed point, may go further.
+
+To detect this condition (only relevant when unexpected over-approximation is
+found without flagged edges):
+
+1. For each active GSUB feature, collect source glyphs and dependent glyphs
+2. If those sets intersect for any feature, the font has **self-feeding potential**
+3. Trace extra glyphs through self-feeding feature edges from the subset closure
+4. If all extra glyphs are reachable through self-feeding chains, the
+   over-approximation is a known artifact of self-feeding, not a bug
+
+This detection only runs on the failure path and is O(edges), so real fonts pay
+no cost.  In practice, well-formed fonts do not have self-feeding lookups.
+
 ## Edge Flags and Over-Approximation Detection
 
 Each dependency edge has an optional `flags` field that indicates potential over-approximation:

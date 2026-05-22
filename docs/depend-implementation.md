@@ -84,11 +84,24 @@ if (nested_contextual) {
 Closure implementations should track whether any flagged edges contributed to the result.
 If so, any extra glyphs compared to subset's closure are "expected" over-approximation.
 
-### Graph Completeness
+### Graph Completeness and Known Divergences
 
-The depend graph captures all edges that exist in the font structure. Recent testing
-with proper ligature_set, context_set, and feature filtering has not generated
-over-approximation cases when computing closures.
+The depend graph captures all edges that exist in the font structure.  With proper
+ligature_set, context_set, and feature filtering, closures computed via the depend
+graph closely match the subsetter's closure.  Two known sources of divergence remain:
+
+**MATH closure (single-pass):** The subsetter retains MATH-closure glyphs but strips
+their own MATH constructions from the subset.  The depend graph records all MATH edges,
+including from closure-only glyphs.  Closure implementations should follow MATH edges
+in a single pass (not transitively) to match the subsetter.
+
+**GSUB self-feeding chains:** A lookup whose output coverage overlaps its input coverage
+creates a transitive chain when following depend edges.  The subsetter's iteration-capped
+closure truncates these; the depend closure follows them to completion.  This is harmless
+over-approximation — no shaper re-applies a lookup to its own output within a single
+feature application.  The parity checker detects this condition post-hoc by checking
+whether the font has self-feeding features and tracing extra glyphs through those
+features' edges.
 
 ### Using the Graph for Closure Computation
 

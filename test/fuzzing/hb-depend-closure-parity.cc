@@ -813,26 +813,118 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
     }
     else
     {
-      /* Unexpected: no flagged edge, but depend still has extra glyphs */
-      if (_hb_depend_fuzzer_report_under_approximation ||
-          _hb_depend_fuzzer_report_over_approximation ||
-          _hb_depend_fuzzer_verbose)
+      /* Unexpected: no flagged edge, but depend still has extra glyphs.
+       *
+       * Before asserting, check whether this is a known self-feeding chain:
+       * a GSUB lookup whose output coverage overlaps its input coverage,
+       * causing the transitive depend closure to follow the chain further
+       * than the subsetter's iteration-capped closure.  This is harmless
+       * over-approximation — no shaper re-applies a lookup to its own
+       * output within a single feature application. */
+      bool explained_by_self_feeding = false;
+      if (!skip_gsub && active_features)
       {
-        fprintf (stderr, "Test 0x%016llx: UNEXPECTED OVER-APPROX - Depend found %u extra glyphs WITHOUT hitting flagged edge:",
-                 (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
-        hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-        unsigned count = 0;
-        while (hb_set_next (in_depend_not_subset, &gid) && count < 20)
+        /* Check each active feature for self-feeding: a feature where any
+         * dependent glyph also appears as a source glyph. */
+        hb_set_t *self_feeding_features = hb_set_create ();
+        unsigned num_glyphs = hb_face_get_glyph_count (face);
+        hb_codepoint_t feat_tag = HB_SET_VALUE_INVALID;
+        while (hb_set_next (active_features, &feat_tag))
         {
-          fprintf (stderr, " %u", gid);
-          count++;
+          hb_set_t *sources = hb_set_create ();
+          hb_set_t *dependents = hb_set_create ();
+          for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+          {
+            unsigned total = hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
+            for (unsigned j = 0; j < total; j++)
+            {
+              unsigned cnt = 1;
+              hb_subset_depend_entry_t entry;
+              hb_subset_depend_lookup_glyph (depend, gid, j, &cnt, &entry);
+              if (entry.table_tag != HB_OT_TAG_GSUB) continue;
+              if (entry.layout_tag != feat_tag) continue;
+              hb_set_add (sources, gid);
+              hb_set_add (dependents, entry.dependent);
+            }
+          }
+          hb_set_intersect (sources, dependents);
+          if (!hb_set_is_empty (sources))
+            hb_set_add (self_feeding_features, feat_tag);
+          hb_set_destroy (sources);
+          hb_set_destroy (dependents);
         }
-        if (count == 20)
-          fprintf (stderr, " ...");
-        fprintf (stderr, "\n");
+
+        if (!hb_set_is_empty (self_feeding_features))
+        {
+          /* Check that every extra glyph is reachable from the subset closure
+           * through a chain of edges within a self-feeding feature. */
+          hb_set_t *reachable = hb_set_create ();
+          hb_set_union (reachable, subset_closure);
+          bool changed;
+          do
+          {
+            changed = false;
+            hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+            while (hb_set_next (reachable, &gid))
+            {
+              unsigned total = hb_subset_depend_lookup_glyph (depend, gid, 0, nullptr, nullptr);
+              for (unsigned j = 0; j < total; j++)
+              {
+                unsigned cnt = 1;
+                hb_subset_depend_entry_t e;
+                hb_subset_depend_lookup_glyph (depend, gid, j, &cnt, &e);
+                if (e.table_tag != HB_OT_TAG_GSUB) continue;
+                if (!hb_set_has (self_feeding_features, e.layout_tag)) continue;
+                if (!hb_set_has (reachable, e.dependent))
+                {
+                  hb_set_add (reachable, e.dependent);
+                  changed = true;
+                }
+              }
+            }
+          } while (changed);
+
+          /* If every extra glyph is explained by self-feeding chains,
+           * this is known over-approximation. */
+          hb_set_t *unexplained = hb_set_create ();
+          hb_set_union (unexplained, in_depend_not_subset);
+          hb_set_subtract (unexplained, reachable);
+          if (hb_set_is_empty (unexplained))
+            explained_by_self_feeding = true;
+          hb_set_destroy (unexplained);
+          hb_set_destroy (reachable);
+        }
+        hb_set_destroy (self_feeding_features);
       }
-      if (!_hb_depend_fuzzer_report_under_approximation)
-        assert (0 && "Depend API has unexpected over-approximation without flagged edges");
+
+      if (explained_by_self_feeding)
+      {
+        if (_hb_depend_fuzzer_verbose || _hb_depend_fuzzer_report_over_approximation)
+          fprintf (stderr, "Test 0x%016llx: Depend found %u extra glyphs (explained by self-feeding GSUB chain)\n",
+                   (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
+      }
+      else
+      {
+        if (_hb_depend_fuzzer_report_under_approximation ||
+            _hb_depend_fuzzer_report_over_approximation ||
+            _hb_depend_fuzzer_verbose)
+        {
+          fprintf (stderr, "Test 0x%016llx: UNEXPECTED OVER-APPROX - Depend found %u extra glyphs WITHOUT hitting flagged edge:",
+                   (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
+          hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+          unsigned count = 0;
+          while (hb_set_next (in_depend_not_subset, &gid) && count < 20)
+          {
+            fprintf (stderr, " %u", gid);
+            count++;
+          }
+          if (count == 20)
+            fprintf (stderr, " ...");
+          fprintf (stderr, "\n");
+        }
+        if (!_hb_depend_fuzzer_report_under_approximation)
+          assert (0 && "Depend API has unexpected over-approximation without flagged edges");
+      }
     }
   }
 
