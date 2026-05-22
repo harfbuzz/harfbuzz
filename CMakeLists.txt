@@ -357,7 +357,8 @@ if (HB_HAVE_ICU)
 
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
 
-  list(APPEND THIRD_PARTY_LIBS ICU::uc)
+  get_target_property(ICU_UC_LIBRARY ICU::uc IMPORTED_LOCATION)
+  list(APPEND THIRD_PARTY_LIBS ${ICU_UC_LIBRARY})
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
