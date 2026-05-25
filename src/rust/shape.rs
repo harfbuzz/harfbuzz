@@ -131,7 +131,9 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
 ) -> *mut c_void {
     let font_data = font_data as *const HBHarfRustFontData;
 
-    let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script));
+    // hb_script_t enum becomes i32 on Windows.
+    #[allow(clippy::unnecessary_cast)]
+    let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script as u32));
     let language = hb_language_to_hr_language(language);
     let direction = match direction {
         hb_direction_t_HB_DIRECTION_LTR => harfrust::Direction::LeftToRight,
@@ -197,7 +199,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     };
     hr_buffer.set_cluster_level(cluster_level);
     let flags = hb_buffer_get_flags(buffer);
-    hr_buffer.set_flags(harfrust::BufferFlags::from_bits_truncate(flags));
+    hr_buffer.set_flags(harfrust::BufferFlags::from_bits_truncate(flags as u32));
     let not_found_variation_selector_glyph =
         hb_buffer_get_not_found_variation_selector_glyph(buffer);
     if not_found_variation_selector_glyph != u32::MAX {
@@ -209,7 +211,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let language = hb_buffer_get_language(buffer);
     let direction = hb_buffer_get_direction(buffer);
     // Convert to HarfRust types
-    let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script))
+    let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script as u32))
         .unwrap_or(harfrust::script::UNKNOWN);
     let language = hb_language_to_hr_language(language);
     let direction = match direction {
@@ -330,14 +332,19 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         info.codepoint = hr_info.glyph_id;
         info.cluster = hr_info.cluster;
         info.mask = 0;
-        if hr_info.unsafe_to_break() {
-            info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-        }
-        if hr_info.unsafe_to_concat() {
-            info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
-        }
-        if hr_info.safe_to_insert_tatweel() {
-            info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
+        // Needed as rust-bindgen/clang produce an i32 for the hb_glyph_flags_t_* enum
+        // on some platforms, e.g. Windows.
+        #[allow(clippy::unnecessary_cast)]
+        {
+            if hr_info.unsafe_to_break() {
+                info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_BREAK as u32;
+            }
+            if hr_info.unsafe_to_concat() {
+                info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_CONCAT as u32;
+            }
+            if hr_info.safe_to_insert_tatweel() {
+                info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL as u32;
+            }
         }
         pos.x_advance = em_mult(hr_pos.x_advance, x_mult);
         pos.y_advance = em_mult(hr_pos.y_advance, y_mult);
