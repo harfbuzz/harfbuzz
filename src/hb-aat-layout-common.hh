@@ -228,6 +228,11 @@ struct hb_aat_apply_context_t :
   void replace_glyph_inplace (unsigned i, hb_codepoint_t glyph)
   {
     buffer->info[i].codepoint = glyph;
+    if (glyph == DELETED_GLYPH)
+    {
+      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED;
+      _hb_glyph_info_set_aat_deleted (&buffer->info[i]);
+    }
     if (likely (using_buffer_glyph_set))
       buffer_glyph_set->add (glyph);
 #ifndef HB_NO_OT_LAYOUT
@@ -1134,31 +1139,37 @@ struct ObsoleteTypes
   typedef ClassTable<HBUINT16> ClassTypeWide;
 
   template <typename T>
-  static unsigned int offsetToIndex (unsigned int offset,
-				     const void *base,
-				     const T *array)
+  static int offsetToIndex (int64_t offset,
+			    const void *base,
+			    const T *array)
   {
+    int64_t array_offset = (const char *) array - (const char *) base;
+    int bad_index = INT_MAX / T::static_size;
+
     /* https://github.com/harfbuzz/harfbuzz/issues/3483 */
     /* If offset is less than base, return an offset that would
      * result in an address half a 32bit address-space away,
      * to make sure sanitize fails even on 32bit builds. */
-    if (unlikely (offset < unsigned ((const char *) array - (const char *) base)))
-      return INT_MAX / T::static_size;
+    if (unlikely (offset < array_offset))
+      return bad_index;
 
     /* https://github.com/harfbuzz/harfbuzz/issues/2816 */
-    return (offset - unsigned ((const char *) array - (const char *) base)) / T::static_size;
+    int64_t index = (offset - array_offset) / T::static_size;
+    if (unlikely (index > bad_index))
+      return bad_index;
+    return index;
   }
   template <typename T>
-  static unsigned int byteOffsetToIndex (unsigned int offset,
-					 const void *base,
-					 const T *array)
+  static int byteOffsetToIndex (int64_t offset,
+				const void *base,
+				const T *array)
   {
     return offsetToIndex (offset, base, array);
   }
   template <typename T>
-  static unsigned int wordOffsetToIndex (unsigned int offset,
-					 const void *base,
-					 const T *array)
+  static int wordOffsetToIndex (int64_t offset,
+				const void *base,
+				const T *array)
   {
     return offsetToIndex (2 * offset, base, array);
   }
