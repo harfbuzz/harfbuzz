@@ -7,7 +7,7 @@ use std::mem::transmute;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
-use harfrust::{FontRef, NormalizedCoord, Shaper, ShaperData, ShaperInstance, Tag};
+use harfrust::{FontRef, NormalizedCoord, ShapeOptions, Shaper, ShaperData, ShaperInstance, Tag};
 
 pub struct HBHarfRustFaceData<'a> {
     face_blob: *mut hb_blob_t,
@@ -52,7 +52,8 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_destroy_rs(data: *mut c_v
 }
 
 pub struct HBHarfRustFontData {
-    shaper_instance: Box<ShaperInstance>,
+    // Keep the instance alive because `shaper` borrows variation data from it.
+    _shaper_instance: Box<ShaperInstance>,
     shaper: Shaper<'static>,
 }
 
@@ -77,7 +78,6 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
 
     let font_ref = &(*face_data).font_ref;
     let shaper_instance = Box::new(font_to_shaper_instance(font, font_ref));
-
     let shaper_instance_ref = &*(&*shaper_instance as *const _);
     let shaper = (*face_data)
         .shaper_data
@@ -86,7 +86,7 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
         .build();
 
     let hr_font_data = Box::new(HBHarfRustFontData {
-        shaper_instance,
+        _shaper_instance: shaper_instance,
         shaper: transmute::<harfrust::Shaper<'_>, harfrust::Shaper<'_>>(shaper),
     });
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
@@ -159,7 +159,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_destroy_rs(data: *mut c_void) {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     font_data: *const c_void,
-    face_data: *const c_void,
     shape_plan: *const c_void,
     hr_buffer_box: *const c_void,
     font: *mut hb_font_t,
@@ -172,10 +171,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     num_features: u32,
 ) -> hb_bool_t {
     let font_data = font_data as *const HBHarfRustFontData;
-    let face_data = face_data as *const HBHarfRustFaceData;
-
-    let font_ref = &(*face_data).font_ref;
-
     let hr_buffer_box = hr_buffer_box as *mut harfrust::UnicodeBuffer;
     let mut hr_buffer_box = Box::from_raw(hr_buffer_box);
     let mut hr_buffer = *hr_buffer_box;
@@ -249,17 +244,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let ptem = hb_font_get_ptem(font);
     let ptem = if ptem > 0.0 { Some(ptem) } else { None };
 
-    let shaper = if ptem.is_some() {
-        (*face_data)
-            .shaper_data
-            .shaper(font_ref)
-            .instance(Some(&(*font_data).shaper_instance))
-            .point_size(ptem)
-            .build()
-    } else {
-        (*font_data).shaper.clone()
-    };
-
     let features = if features.is_null() {
         Vec::new()
     } else {
@@ -281,12 +265,19 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
             .collect::<Vec<_>>()
     };
 
-    let glyphs = if shape_plan.is_null() {
-        shaper.shape(hr_buffer, &features)
+    let shape_plan = if shape_plan.is_null() {
+        None
     } else {
         let shape_plan = shape_plan as *const harfrust::ShapePlan;
-        shaper.shape_with_plan(shape_plan.as_ref().unwrap(), hr_buffer, &features)
+        shape_plan.as_ref()
     };
+    let glyphs = (*font_data).shaper.shape(
+        hr_buffer,
+        ShapeOptions::new()
+            .plan(shape_plan)
+            .point_size(ptem)
+            .features(&features),
+    );
 
     let count = glyphs.len();
     hb_buffer_set_length(buffer, 0u32);
@@ -305,7 +296,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let mut x_scale: i32 = 0;
     let mut y_scale: i32 = 0;
     hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    let upem = shaper.units_per_em();
+    let upem = (*font_data).shaper.units_per_em();
     let upem = if upem > 0 { upem } else { 1000 };
     let x_mult = if x_scale < 0 {
         -((-x_scale as i64) << 16)

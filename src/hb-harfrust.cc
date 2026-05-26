@@ -108,7 +108,6 @@ _hb_harfrust_shape_plan_destroy_rs (void *data);
 
 extern "C" hb_bool_t
 _hb_harfrust_shape_rs (const void         *font_data,
-		       const void         *face_data,
 		       const void         *rs_shape_plan,
 		       const void         *rs_buffer,
 		       hb_font_t          *font,
@@ -130,7 +129,6 @@ _hb_harfrust_shape (hb_shape_plan_t    *shape_plan,
 		    unsigned int        num_features)
 {
   const hb_harfrust_font_data_t *font_data = font->data.harfrust;
-  const hb_harfrust_face_data_t *face_data = font->face->data.harfrust;
 
 retry_buffer:
   void *hr_buffer = hb_buffer_get_user_data (buffer, &hb_object_key);
@@ -192,7 +190,6 @@ retry_buffer:
 					  buffer->context[1][i]) - post_context;
 
   return _hb_harfrust_shape_rs (font_data,
-				face_data,
 				hr_shape_plan,
 				hr_buffer,
 				font,
