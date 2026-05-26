@@ -228,6 +228,11 @@ struct hb_aat_apply_context_t :
   void replace_glyph_inplace (unsigned i, hb_codepoint_t glyph)
   {
     buffer->info[i].codepoint = glyph;
+    if (glyph == DELETED_GLYPH)
+    {
+      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED;
+      _hb_glyph_info_set_aat_deleted (&buffer->info[i]);
+    }
     if (likely (using_buffer_glyph_set))
       buffer_glyph_set->add (glyph);
 #ifndef HB_NO_OT_LAYOUT
