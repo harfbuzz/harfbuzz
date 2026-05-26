@@ -200,10 +200,10 @@ struct hb_font_t
 
   void scale_glyph_extents (hb_glyph_extents_t *extents)
   {
-    float x1 = em_scale_x (extents->x_bearing);
-    float y1 = em_scale_y (extents->y_bearing);
-    float x2 = em_scale_x (extents->x_bearing + extents->width);
-    float y2 = em_scale_y (extents->y_bearing + extents->height);
+    float x1 = em_fscale_x (extents->x_bearing);
+    float y1 = em_fscale_y (extents->y_bearing);
+    float x2 = em_fscale_x (extents->x_bearing + extents->width);
+    float y2 = em_fscale_y (extents->y_bearing + extents->height);
 
     extents->x_bearing = roundf (x1);
     extents->y_bearing = roundf (y1);
