@@ -1139,29 +1139,35 @@ struct ObsoleteTypes
   typedef ClassTable<HBUINT16> ClassTypeWide;
 
   template <typename T>
-  static int offsetToIndex (int offset,
+  static int offsetToIndex (int64_t offset,
 			    const void *base,
 			    const T *array)
   {
+    int64_t array_offset = (const char *) array - (const char *) base;
+    int bad_index = INT_MAX / T::static_size;
+
     /* https://github.com/harfbuzz/harfbuzz/issues/3483 */
     /* If offset is less than base, return an offset that would
      * result in an address half a 32bit address-space away,
      * to make sure sanitize fails even on 32bit builds. */
-    if (unlikely (offset < int ((const char *) array - (const char *) base)))
-      return INT_MAX / T::static_size;
+    if (unlikely (offset < array_offset))
+      return bad_index;
 
     /* https://github.com/harfbuzz/harfbuzz/issues/2816 */
-    return (offset - int ((const char *) array - (const char *) base)) / T::static_size;
+    int64_t index = (offset - array_offset) / T::static_size;
+    if (unlikely (index > bad_index))
+      return bad_index;
+    return index;
   }
   template <typename T>
-  static int byteOffsetToIndex (int offset,
+  static int byteOffsetToIndex (int64_t offset,
 				const void *base,
 				const T *array)
   {
     return offsetToIndex (offset, base, array);
   }
   template <typename T>
-  static int wordOffsetToIndex (int offset,
+  static int wordOffsetToIndex (int64_t offset,
 				const void *base,
 				const T *array)
   {
