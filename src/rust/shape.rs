@@ -63,31 +63,6 @@ pub struct HBHarfRustFontData {
 
 struct HBHarfBuzzFontFuncs {
     font: *mut hb_font_t,
-    x_mult_inv: i64,
-    y_mult_inv: i64,
-}
-
-impl HBHarfBuzzFontFuncs {
-    // HarfRust currently expects font-func metrics in UPEM units, but
-    // hb_font_get_* returns values in the hb_font_t scale. Convert back here
-    // and let the existing bridge scaling convert shaped output again.
-    fn inv_mult(scale: i32, upem: i32) -> i64 {
-        if upem <= 0 {
-            return 1 << 16;
-        }
-
-        let scale = if scale == 0 { 1 } else { scale } as i64;
-        let upem = upem as i64;
-        if scale < 0 {
-            -(((-upem) << 16) / scale)
-        } else {
-            (upem << 16) / scale
-        }
-    }
-
-    fn to_upem(value: i32, mult_inv: i64) -> i32 {
-        ((value as i64 * mult_inv + 32768) >> 16) as i32
-    }
 }
 
 impl FontFuncs for HBHarfBuzzFontFuncs {
@@ -110,8 +85,7 @@ impl FontFuncs for HBHarfBuzzFontFuncs {
     }
 
     fn advance_width(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
-        let advance = unsafe { hb_font_get_glyph_h_advance(self.font, glyph.to_u32()) };
-        Self::to_upem(advance, self.x_mult_inv)
+        unsafe { hb_font_get_glyph_h_advance(self.font, glyph.to_u32()) }
     }
 
     fn populate_advance_widths(&mut self, _: &BuiltinFontFuncs, batch: AdvanceWidthBatch<'_>) {
@@ -125,20 +99,11 @@ impl FontFuncs for HBHarfBuzzFontFuncs {
                 raw.advances,
                 raw.advance_stride as u32,
             );
-            for i in 0..raw.len {
-                let advance = raw
-                    .advances
-                    .byte_offset(i as isize * raw.advance_stride)
-                    .as_mut()
-                    .unwrap();
-                *advance = Self::to_upem(*advance, self.x_mult_inv);
-            }
         }
     }
 
     fn advance_height(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
-        let advance = unsafe { hb_font_get_glyph_v_advance(self.font, glyph.to_u32()) };
-        Self::to_upem(advance, self.y_mult_inv)
+        unsafe { hb_font_get_glyph_v_advance(self.font, glyph.to_u32()) }
     }
 
     fn vertical_origin(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> (i32, i32) {
@@ -147,10 +112,7 @@ impl FontFuncs for HBHarfBuzzFontFuncs {
         unsafe {
             hb_font_get_glyph_v_origin(self.font, glyph.to_u32(), &mut x, &mut y);
         }
-        (
-            Self::to_upem(x, self.x_mult_inv),
-            Self::to_upem(y, self.y_mult_inv),
-        )
+        (x, y)
     }
 
     fn extents(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> Option<GlyphExtents> {
@@ -162,10 +124,10 @@ impl FontFuncs for HBHarfBuzzFontFuncs {
         };
         if unsafe { hb_font_get_glyph_extents(self.font, glyph.to_u32(), &mut extents) } != 0 {
             Some(GlyphExtents {
-                x_bearing: Self::to_upem(extents.x_bearing, self.x_mult_inv),
-                y_bearing: Self::to_upem(extents.y_bearing, self.y_mult_inv),
-                width: Self::to_upem(extents.width, self.x_mult_inv),
-                height: Self::to_upem(extents.height, self.y_mult_inv),
+                x_bearing: extents.x_bearing,
+                y_bearing: extents.y_bearing,
+                width: extents.width,
+                height: extents.height,
             })
         } else {
             None
@@ -390,17 +352,12 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let mut x_scale = 0;
     let mut y_scale = 0;
     hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    let upem = (*font_data).shaper.units_per_em();
-    let upem = if upem > 0 { upem } else { 1000 };
-    let mut font_funcs = HBHarfBuzzFontFuncs {
-        font,
-        x_mult_inv: HBHarfBuzzFontFuncs::inv_mult(x_scale, upem),
-        y_mult_inv: HBHarfBuzzFontFuncs::inv_mult(y_scale, upem),
-    };
+    let mut font_funcs = HBHarfBuzzFontFuncs { font };
     let glyphs = (*font_data).shaper.shape(
         hr_buffer,
         ShapeOptions::new()
             .plan(shape_plan)
+            .scale_separate(Some((x_scale, y_scale)))
             .point_size(ptem)
             .features(&features)
             .font_funcs(Some(&mut font_funcs)),
@@ -419,20 +376,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     if count != count_out as usize {
         return false as hb_bool_t;
     }
-
-    let x_mult = if x_scale < 0 {
-        -((-x_scale as i64) << 16)
-    } else {
-        (x_scale as i64) << 16
-    } / upem as i64;
-    let y_mult = if y_scale < 0 {
-        -((-y_scale as i64) << 16)
-    } else {
-        (y_scale as i64) << 16
-    } / upem as i64;
-
-    let em_mult =
-        |v: i32, mult: i64| -> hb_position_t { ((v as i64 * mult + 32768) >> 16) as hb_position_t };
 
     for (i, (hr_info, hr_pos)) in glyphs
         .glyph_infos()
@@ -459,10 +402,10 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
                 info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL as u32;
             }
         }
-        pos.x_advance = em_mult(hr_pos.x_advance, x_mult);
-        pos.y_advance = em_mult(hr_pos.y_advance, y_mult);
-        pos.x_offset = em_mult(hr_pos.x_offset, x_mult);
-        pos.y_offset = em_mult(hr_pos.y_offset, y_mult);
+        pos.x_advance = hr_pos.x_advance;
+        pos.y_advance = hr_pos.y_advance;
+        pos.x_offset = hr_pos.x_offset;
+        pos.y_offset = hr_pos.y_offset;
     }
 
     let hr_buffer = glyphs.clear();

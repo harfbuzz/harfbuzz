@@ -7,7 +7,7 @@ rust-version = "1.87.0"
 skrifa = { version = "0.*", optional = true }
 read-fonts = "0.39.*"
 # harfrust = { version = "0.8.*", optional = true }
-harfrust = { git = "https://github.com/harfbuzz/harfrust", optional = true }
+harfrust = { git = "https://github.com/harfbuzz/harfrust", branch = "scale-it", optional = true }
 
 [lib]
 name = "harfbuzz_rust"
