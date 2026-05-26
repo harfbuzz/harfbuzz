@@ -7,7 +7,11 @@ use std::mem::transmute;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
-use harfrust::{FontRef, NormalizedCoord, ShapeOptions, Shaper, ShaperData, ShaperInstance, Tag};
+use harfrust::{
+    funcs::{AdvanceWidthBatch, BuiltinFontFuncs, FontFuncs},
+    FontRef, GlyphExtents, NormalizedCoord, ShapeOptions, Shaper, ShaperData, ShaperInstance, Tag,
+};
+use read_fonts::types::GlyphId;
 
 pub struct HBHarfRustFaceData<'a> {
     face_blob: *mut hb_blob_t,
@@ -55,6 +59,80 @@ pub struct HBHarfRustFontData {
     // Keep the instance alive because `shaper` borrows variation data from it.
     _shaper_instance: Box<ShaperInstance>,
     shaper: Shaper<'static>,
+}
+
+struct HBHarfBuzzFontFuncs {
+    font: *mut hb_font_t,
+}
+
+impl FontFuncs for HBHarfBuzzFontFuncs {
+    fn nominal_glyph(&mut self, _: &BuiltinFontFuncs, c: u32) -> Option<GlyphId> {
+        let mut glyph = 0;
+        if unsafe { hb_font_get_nominal_glyph(self.font, c, &mut glyph) } != 0 {
+            Some(GlyphId::new(glyph))
+        } else {
+            None
+        }
+    }
+
+    fn variant_glyph(&mut self, _: &BuiltinFontFuncs, c: u32, vs: u32) -> Option<GlyphId> {
+        let mut glyph = 0;
+        if unsafe { hb_font_get_variation_glyph(self.font, c, vs, &mut glyph) } != 0 {
+            Some(GlyphId::new(glyph))
+        } else {
+            None
+        }
+    }
+
+    fn advance_width(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
+        unsafe { hb_font_get_glyph_h_advance(self.font, glyph.to_u32()) }
+    }
+
+    fn populate_advance_widths(&mut self, _: &BuiltinFontFuncs, batch: AdvanceWidthBatch<'_>) {
+        let raw = batch.into_raw();
+        unsafe {
+            hb_font_get_glyph_h_advances(
+                self.font,
+                raw.len as u32,
+                raw.gids,
+                raw.gid_stride as u32,
+                raw.advances,
+                raw.advance_stride as u32,
+            );
+        }
+    }
+
+    fn advance_height(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
+        unsafe { hb_font_get_glyph_v_advance(self.font, glyph.to_u32()) }
+    }
+
+    fn vertical_origin(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
+        let mut x = 0;
+        let mut y = 0;
+        unsafe {
+            hb_font_get_glyph_v_origin(self.font, glyph.to_u32(), &mut x, &mut y);
+        }
+        y
+    }
+
+    fn extents(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> Option<GlyphExtents> {
+        let mut extents = hb_glyph_extents_t {
+            x_bearing: 0,
+            y_bearing: 0,
+            width: 0,
+            height: 0,
+        };
+        if unsafe { hb_font_get_glyph_extents(self.font, glyph.to_u32(), &mut extents) } != 0 {
+            Some(GlyphExtents {
+                x_bearing: extents.x_bearing,
+                y_bearing: extents.y_bearing,
+                width: extents.width,
+                height: extents.height,
+            })
+        } else {
+            None
+        }
+    }
 }
 
 fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> ShaperInstance {
@@ -271,12 +349,14 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         let shape_plan = shape_plan as *const harfrust::ShapePlan;
         shape_plan.as_ref()
     };
+    let mut font_funcs = HBHarfBuzzFontFuncs { font };
     let glyphs = (*font_data).shaper.shape(
         hr_buffer,
         ShapeOptions::new()
             .plan(shape_plan)
             .point_size(ptem)
-            .features(&features),
+            .features(&features)
+            .font_funcs(Some(&mut font_funcs)),
     );
 
     let count = glyphs.len();
