@@ -200,10 +200,12 @@ struct ContextualSubtable
 
   struct EntryData
   {
-    HBUINT16	markIndex;	/* Index of the substitution table for the
-				 * marked glyph (use 0xFFFF for none). */
-    HBUINT16	currentIndex;	/* Index of the substitution table for the
-				 * current glyph (use 0xFFFF for none). */
+    typedef typename std::conditional<Types::extended, HBUINT16, HBINT16>::type OffsetType;
+
+    OffsetType	markIndex;	/* Index/offset of the substitution table for the
+				 * marked glyph. */
+    OffsetType	currentIndex;	/* Index/offset of the substitution table for the
+				 * current glyph. */
     public:
     DEFINE_SIZE_STATIC (4);
   };
@@ -222,7 +224,10 @@ struct ContextualSubtable
   }
   bool is_actionable (const Entry<EntryData> &entry) const
   {
-    return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
+    if (Types::extended)
+      return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
+    else
+      return entry.data.markIndex || entry.data.currentIndex;
   }
 
   struct driver_context_t
@@ -260,13 +265,16 @@ struct ContextualSubtable
       }
       else
       {
-	unsigned int offset = entry.data.markIndex + buffer->info[mark].codepoint;
-	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
-	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!(replacement->sanitize (&c->sanitizer) &&
-	      hb_barrier () &&
-	      *replacement))
-	  replacement = nullptr;
+	if (entry.data.markIndex)
+	{
+	  int offset = (int) entry.data.markIndex + buffer->info[mark].codepoint;
+	  const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
+	  replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
+	  if (!(replacement->sanitize (&c->sanitizer) &&
+		hb_barrier () &&
+		*replacement))
+	    replacement = nullptr;
+	}
       }
       if (replacement)
       {
@@ -287,13 +295,16 @@ struct ContextualSubtable
       }
       else
       {
-	unsigned int offset = entry.data.currentIndex + buffer->info[idx].codepoint;
-	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
-	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!(replacement->sanitize (&c->sanitizer) &&
-	      hb_barrier () &&
-	      *replacement))
-	  replacement = nullptr;
+	if (entry.data.currentIndex)
+	{
+	  int offset = (int) entry.data.currentIndex + buffer->info[idx].codepoint;
+	  const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
+	  replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
+	  if (!(replacement->sanitize (&c->sanitizer) &&
+		hb_barrier () &&
+		*replacement))
+	    replacement = nullptr;
+	}
       }
       if (replacement)
       {

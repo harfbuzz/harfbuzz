@@ -1134,31 +1134,31 @@ struct ObsoleteTypes
   typedef ClassTable<HBUINT16> ClassTypeWide;
 
   template <typename T>
-  static unsigned int offsetToIndex (unsigned int offset,
-				     const void *base,
-				     const T *array)
+  static int offsetToIndex (int offset,
+			    const void *base,
+			    const T *array)
   {
     /* https://github.com/harfbuzz/harfbuzz/issues/3483 */
     /* If offset is less than base, return an offset that would
      * result in an address half a 32bit address-space away,
      * to make sure sanitize fails even on 32bit builds. */
-    if (unlikely (offset < unsigned ((const char *) array - (const char *) base)))
+    if (unlikely (offset < int ((const char *) array - (const char *) base)))
       return INT_MAX / T::static_size;
 
     /* https://github.com/harfbuzz/harfbuzz/issues/2816 */
-    return (offset - unsigned ((const char *) array - (const char *) base)) / T::static_size;
+    return (offset - int ((const char *) array - (const char *) base)) / T::static_size;
   }
   template <typename T>
-  static unsigned int byteOffsetToIndex (unsigned int offset,
-					 const void *base,
-					 const T *array)
+  static int byteOffsetToIndex (int offset,
+				const void *base,
+				const T *array)
   {
     return offsetToIndex (offset, base, array);
   }
   template <typename T>
-  static unsigned int wordOffsetToIndex (unsigned int offset,
-					 const void *base,
-					 const T *array)
+  static int wordOffsetToIndex (int offset,
+				const void *base,
+				const T *array)
   {
     return offsetToIndex (2 * offset, base, array);
   }
