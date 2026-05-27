@@ -1,5 +1,5 @@
-start clip rectangle 100 250 900 950
-  start transform 1 0 0 1 0 0
+start transform 1 0 0 1 0 0
+  start clip rectangle 100 250 900 950
     start transform 1 0 0 1 0 0
       start clip glyph 10
         start transform 1 0 0 1 0 0
@@ -13,5 +13,5 @@ start clip rectangle 100 250 900 950
         end transform
       end clip
     end transform
-  end transform
-end clip
+  end clip
+end transform

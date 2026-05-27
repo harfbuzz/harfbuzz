@@ -78,6 +78,25 @@ static void
 _hb_ft_paint (hb_ft_paint_context_t *c,
 	      FT_OpaquePaint opaque_paint);
 
+static void
+_hb_ft_unscale_clip_box (hb_font_t *font,
+			 const FT_ClipBox *clip_box,
+			 float *xmin, float *ymin,
+			 float *xmax, float *ymax)
+{
+  /* The FreeType ClipBox is in scaled coordinates. Convert it back to
+   * font units before pushing it under the font transform.
+   */
+  float upem = font->face->get_upem ();
+  float xscale = upem / (font->x_scale ? font->x_scale : upem);
+  float yscale = upem / (font->y_scale ? font->y_scale : upem);
+
+  *xmin = clip_box->bottom_left.x * xscale;
+  *ymin = clip_box->bottom_left.y * yscale;
+  *xmax = clip_box->top_right.x * xscale;
+  *ymax = clip_box->top_right.y * yscale;
+}
+
 struct hb_ft_paint_context_t
 {
   hb_ft_paint_context_t (const hb_ft_font_t *ft_font_,
@@ -372,19 +391,10 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 
         if (has_clip_box)
 	{
-	  /* The FreeType ClipBox is in scaled coordinates, whereas we need
-	   * unscaled clipbox here. Oh well...
-	   */
-
-	  float upem = c->font->face->get_upem ();
-	  float xscale = upem / (c->font->x_scale ? c->font->x_scale : upem);
-	  float yscale = upem / (c->font->y_scale ? c->font->y_scale : upem);
-
-          c->funcs->push_clip_rectangle (c->data,
-					 clip_box.bottom_left.x * xscale,
-					 clip_box.bottom_left.y * yscale,
-					 clip_box.top_right.x * xscale,
-					 clip_box.top_right.y * yscale);
+	  float xmin, ymin, xmax, ymax;
+	  _hb_ft_unscale_clip_box (c->font, &clip_box,
+				   &xmin, &ymin, &xmax, &ymax);
+	  c->funcs->push_clip_rectangle (c->data, xmin, ymin, xmax, ymax);
 	}
 
 	c->recurse (other_paint);
@@ -515,19 +525,9 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     hb_decycler_node_t node (c.glyphs_decycler);
     node.visit (gid);
 
-    bool clip = false;
-    bool is_bounded = false;
     FT_ClipBox clip_box;
-    if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
-    {
-      c.funcs->push_clip_rectangle (c.data,
-				    clip_box.bottom_left.x,
-				    clip_box.bottom_left.y,
-				    clip_box.top_right.x,
-				    clip_box.top_right.y);
-      clip = true;
-      is_bounded = true;
-    }
+    bool clip = FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box);
+    bool is_bounded = clip;
     if (!is_bounded)
     {
       auto *bounded_funcs = hb_paint_bounded_get_funcs ();
@@ -543,13 +543,21 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
     c.funcs->push_font_transform (c.data, font);
 
+    if (clip)
+    {
+      float xmin, ymin, xmax, ymax;
+      _hb_ft_unscale_clip_box (font, &clip_box,
+			       &xmin, &ymin, &xmax, &ymax);
+      c.funcs->push_clip_rectangle (c.data, xmin, ymin, xmax, ymax);
+    }
+
     if (is_bounded)
       c.recurse (paint);
 
-    c.funcs->pop_transform (c.data);
-
     if (clip)
       c.funcs->pop_clip (c.data);
+
+    c.funcs->pop_transform (c.data);
 
     return true;
   }

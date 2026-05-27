@@ -1,5 +1,5 @@
-start clip rectangle 64 -224 1.22e+03 928
-  start transform 1 0 0 1 0 0
+start transform 1 0 0 1 0 0
+  start clip rectangle 64 -224 1.22e+03 928
     start transform 1 0 0 1 0 0
       start clip glyph 13
         start transform 1 0 0 1 0 0
@@ -93,5 +93,5 @@ start clip rectangle 64 -224 1.22e+03 928
         end transform
       end clip
     end transform
-  end transform
-end clip
+  end clip
+end transform
