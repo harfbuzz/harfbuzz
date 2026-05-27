@@ -2700,19 +2700,10 @@ struct COLR
         // COLRv1 glyph
 
 	bool is_bounded = true;
+	hb_glyph_extents_t extents = {};
 	if (clip)
 	{
-	  hb_glyph_extents_t extents;
-	  if (get_clip (glyph, &extents, instancer))
-	  {
-	    font->scale_glyph_extents (&extents);
-	    c.funcs->push_clip_rectangle (c.data,
-					  extents.x_bearing,
-					  extents.y_bearing + extents.height,
-					  extents.x_bearing + extents.width,
-					  extents.y_bearing);
-	  }
-	  else
+	  if (!get_clip (glyph, &extents, instancer))
 	  {
 	    clip = false;
 	    is_bounded = false;
@@ -2735,13 +2726,20 @@ struct COLR
 
 	c.funcs->push_font_transform (c.data, font);
 
+	if (clip)
+	  c.funcs->push_clip_rectangle (c.data,
+					extents.x_bearing,
+					extents.y_bearing + extents.height,
+					extents.x_bearing + extents.width,
+					extents.y_bearing);
+
 	if (is_bounded)
 	  c.recurse (*paint);
 
-	c.funcs->pop_transform (c.data);
-
 	if (clip)
 	  c.funcs->pop_clip (c.data);
+
+	c.funcs->pop_transform (c.data);
 
         return true;
       }

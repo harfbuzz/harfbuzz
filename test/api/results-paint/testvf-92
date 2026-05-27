@@ -1,5 +1,5 @@
-start clip rectangle 0 0 1e+03 1e+03
-  start transform 1 0 0 1 0 0
+start transform 1 0 0 1 0 0
+  start clip rectangle 0 0 1e+03 1e+03
     start transform 1 0 0 1 0 0
       start clip glyph 2
         start transform 1 0 0 1 0 0
@@ -14,5 +14,5 @@ start clip rectangle 0 0 1e+03 1e+03
         end transform
       end clip
     end transform
-  end transform
-end clip
+  end clip
+end transform

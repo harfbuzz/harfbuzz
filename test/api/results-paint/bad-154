@@ -1,5 +1,5 @@
-start clip rectangle 0 500 500 1e+03
-  start transform 1 0 0 1 0 0
+start transform 1 0 0 1 0 0
+  start clip rectangle 0 500 500 1e+03
     push group
       push group
         start transform 1 0 0 1 0 0
@@ -11,5 +11,5 @@ start clip rectangle 0 500 500 1e+03
         end transform
       pop group mode 3
     pop group mode 3
-  end transform
-end clip
+  end clip
+end transform
