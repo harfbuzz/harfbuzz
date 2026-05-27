@@ -97,6 +97,12 @@ _hb_ft_unscale_clip_box (hb_font_t *font,
   *ymax = clip_box->top_right.y * yscale;
 }
 
+static unsigned
+_hb_ft_color_alpha (unsigned alpha, unsigned alpha_mult)
+{
+  return (alpha * alpha_mult + (1 << 13)) >> 14;
+}
+
 struct hb_ft_paint_context_t
 {
   hb_ft_paint_context_t (const hb_ft_font_t *ft_font_,
@@ -190,7 +196,8 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 	color_stops->color = HB_COLOR (hb_color_get_blue (c->foreground),
 				       hb_color_get_green (c->foreground),
 				       hb_color_get_red (c->foreground),
-				       (hb_color_get_alpha (c->foreground) * stop.color.alpha) >> 14);
+				       _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
+							   stop.color.alpha));
       else
       {
 	hb_color_t color;
@@ -199,7 +206,8 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 	  color_stops->color = HB_COLOR (hb_color_get_blue (color),
 					 hb_color_get_green (color),
 					 hb_color_get_red (color),
-					 (hb_color_get_alpha (color) * stop.color.alpha) >> 14);
+					 _hb_ft_color_alpha (hb_color_get_alpha (color),
+							     stop.color.alpha));
 	}
 	else if (c->palette)
 	{
@@ -207,7 +215,8 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 	  color_stops->color = HB_COLOR (ft_color.blue,
 					 ft_color.green,
 					 ft_color.red,
-					 (ft_color.alpha * stop.color.alpha) >> 14);
+					 _hb_ft_color_alpha (ft_color.alpha,
+							     stop.color.alpha));
 	}
 	else
 	  color_stops->color = HB_COLOR (0, 0, 0, 0);
@@ -277,7 +286,8 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 	color = HB_COLOR (hb_color_get_blue (c->foreground),
 			  hb_color_get_green (c->foreground),
 			  hb_color_get_red (c->foreground),
-			  (hb_color_get_alpha (c->foreground) * paint.u.solid.color.alpha) >> 14);
+			  _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
+					      paint.u.solid.color.alpha));
       else
       {
 	if (c->funcs->custom_palette_color (c->data, paint.u.solid.color.palette_index, &color))
@@ -285,7 +295,8 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 	  color = HB_COLOR (hb_color_get_blue (color),
 			    hb_color_get_green (color),
 			    hb_color_get_red (color),
-			    (hb_color_get_alpha (color) * paint.u.solid.color.alpha) >> 14);
+			    _hb_ft_color_alpha (hb_color_get_alpha (color),
+						paint.u.solid.color.alpha));
 	}
 	else
 	{
@@ -293,7 +304,8 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 	  color = HB_COLOR (ft_color.blue,
 			    ft_color.green,
 			    ft_color.red,
-			    (ft_color.alpha * paint.u.solid.color.alpha) >> 14);
+			    _hb_ft_color_alpha (ft_color.alpha,
+						paint.u.solid.color.alpha));
 	}
       }
       c->funcs->color (c->data, is_foreground, color);

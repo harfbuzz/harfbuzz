@@ -54,6 +54,13 @@ typedef struct {
   GString *string;
 } paint_data_t;
 
+static float
+clean_float (float v)
+{
+  /* Keep text fixtures stable across backends that may produce -0.f. */
+  return v == 0.f ? 0.f : v;
+}
+
 static void print (paint_data_t *data, const char *format, ...) G_GNUC_PRINTF (2, 3);
 
 static void
@@ -81,6 +88,13 @@ push_transform (hb_paint_funcs_t *funcs HB_UNUSED,
                 void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
+
+  xx = clean_float (xx);
+  yx = clean_float (yx);
+  xy = clean_float (xy);
+  yy = clean_float (yy);
+  dx = clean_float (dx);
+  dy = clean_float (dy);
 
   print (data, "start transform %.3g %.3g %.3g %.3g %.3g %.3g", xx, yx, xy, yy, dx, dy);
   data->level++;
@@ -186,17 +200,12 @@ paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
 }
 
 static void
-print_color_line (paint_data_t *data,
-                  hb_color_line_t *color_line)
+print_color_stops (paint_data_t *data,
+                   hb_paint_extend_t extend,
+                   hb_color_stop_t *stops,
+                   unsigned int len)
 {
-  hb_color_stop_t *stops;
-  unsigned int len;
-
-  len = hb_color_line_get_color_stops (color_line, 0, NULL, NULL);
-  stops = alloca (len * sizeof (hb_color_stop_t));
-  hb_color_line_get_color_stops (color_line, 0, &len, stops);
-
-  print (data, "colors %d", hb_color_line_get_extend (color_line));
+  print (data, "colors %d", extend);
   data->level += 1;
   for (unsigned int i = 0; i < len; i++)
     print (data, "%.3g %d %d %d %d",
@@ -209,6 +218,21 @@ print_color_line (paint_data_t *data,
 }
 
 static void
+print_color_line (paint_data_t *data,
+                  hb_color_line_t *color_line)
+{
+  hb_color_stop_t *stops;
+  unsigned int len;
+
+  len = hb_color_line_get_color_stops (color_line, 0, NULL, NULL);
+  stops = malloc (len * sizeof (hb_color_stop_t));
+  hb_color_line_get_color_stops (color_line, 0, &len, stops);
+
+  print_color_stops (data, hb_color_line_get_extend (color_line), stops, len);
+  free (stops);
+}
+
+static void
 paint_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
                        void *paint_data,
                        hb_color_line_t *color_line,
@@ -218,15 +242,32 @@ paint_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
                        void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
+  float xx0, yy0, xx1, yy1;
+  float xxx0, yyy0, xxx1, yyy1;
+  float min, max;
+  hb_color_stop_t *stops;
+  unsigned int len;
+
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2,
+                                  &xx0, &yy0, &xx1, &yy1);
+  len = hb_color_line_get_color_stops (color_line, 0, NULL, NULL);
+  stops = malloc (len * sizeof (hb_color_stop_t));
+  hb_color_line_get_color_stops (color_line, 0, &len, stops);
+  hb_paint_normalize_color_line (stops, len, &min, &max);
+
+  xxx0 = xx0 + min * (xx1 - xx0);
+  yyy0 = yy0 + min * (yy1 - yy0);
+  xxx1 = xx0 + max * (xx1 - xx0);
+  yyy1 = yy0 + max * (yy1 - yy0);
 
   print (data, "linear gradient");
   data->level += 1;
-  print (data, "p0 %.3g %.3g", x0, y0);
-  print (data, "p1 %.3g %.3g", x1, y1);
-  print (data, "p2 %.3g %.3g", x2, y2);
+  print (data, "p0 %.3g %.3g", xxx0, yyy0);
+  print (data, "p1 %.3g %.3g", xxx1, yyy1);
 
-  print_color_line (data, color_line);
+  print_color_stops (data, hb_color_line_get_extend (color_line), stops, len);
   data->level -= 1;
+  free (stops);
 }
 
 static void

@@ -3,7 +3,7 @@ start transform 1 0 0 1 0 0
     start transform 1 0 0 1 0 0
       start clip glyph 3
         start transform 1 0 0 1 0 0
-          solid 0 0 255 127
+          solid 0 0 255 128
         end transform
       end clip
     end transform
@@ -12,7 +12,7 @@ start transform 1 0 0 1 0 0
         start transform 1 0 0 1 0 0
           start clip glyph 3
             start transform 1 0 0 1 0 0
-              solid 255 165 0 178
+              solid 255 165 0 179
             end transform
           end clip
         end transform

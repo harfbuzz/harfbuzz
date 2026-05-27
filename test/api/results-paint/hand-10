@@ -22,7 +22,6 @@ start transform 1 0 0 1 0 0
           linear gradient
             p0 231 -27
             p1 1.02e+03 -27
-            p2 231 -815
             colors 0
               0 164 123 98 255
               1 164 123 98 255
@@ -56,7 +55,6 @@ start transform 1 0 0 1 0 0
           linear gradient
             p0 669 776
             p1 180 -106
-            p2 -212 1.26e+03
             colors 0
               0 100 181 246 255
               1 33 150 243 255

@@ -119,6 +119,12 @@ public:
     hb_font_destroy (font);
   }
 
+  static unsigned
+  color_alpha (hb_color_t color, float alpha)
+  {
+    return roundf (hb_color_get_alpha (color) * alpha);
+  }
+
   hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
   {
     hb_color_t color = foreground;
@@ -136,7 +142,7 @@ public:
     return HB_COLOR (hb_color_get_blue (color),
                      hb_color_get_green (color),
                      hb_color_get_red (color),
-                     hb_color_get_alpha (color) * alpha);
+                     color_alpha (color, alpha));
   }
 
   inline void recurse (const Paint &paint);
