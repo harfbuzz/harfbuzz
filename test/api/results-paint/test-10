@@ -5,11 +5,10 @@ start transform 1 0 0 1 0 0
         start transform 1 0 0 1 0 0
           linear gradient
             p0 100 250
-            p1 900 250
-            p2 100 300
+            p1 1.3e+03 250
             colors 1
               0 255 0 0 255
-              1.5 0 0 255 255
+              1 0 0 255 255
         end transform
       end clip
     end transform

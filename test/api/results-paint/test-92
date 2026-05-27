@@ -6,7 +6,6 @@ start transform 1 0 0 1 0 0
           linear gradient
             p0 0 1.02e+03
             p1 307 1.02e+03
-            p2 0 717
             colors 2
               0 0 128 0 255
               0.5 255 255 255 255
