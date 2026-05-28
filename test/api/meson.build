@@ -130,6 +130,25 @@ foreach source : tests
     suite: suite)
 endforeach
 
+if get_option('harfrust').enabled()
+  harfrust_shape_env = environment()
+  harfrust_shape_env.set('MALLOC_CHECK_', '1')
+  harfrust_shape_env.set('G_DEBUG', 'gc-friendly')
+  harfrust_shape_env.set('G_TEST_SRCDIR', meson.current_source_dir())
+  harfrust_shape_env.set('G_TEST_BUILDDIR', meson.current_build_dir())
+  harfrust_shape_env.set('HB_SHAPER_LIST', 'harfrust')
+
+  test('test-shape-harfrust',
+    executable('test-shape-harfrust', 'test-shape.c',
+      include_directories: [incconfig],
+      dependencies: [libharfbuzz_dep, libharfbuzz_cairo_dep, libharfbuzz_icu_dep],
+      install: false,
+    ),
+    protocol: 'tap',
+    env: harfrust_shape_env,
+    suite: ['api', 'harfrust'])
+endif
+
 if not get_option('raster').disabled()
   test('test-raster',
     executable('test-raster', 'test-raster.cc',

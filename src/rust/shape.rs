@@ -7,7 +7,11 @@ use std::mem::transmute;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
-use harfrust::{FontRef, NormalizedCoord, ShapeOptions, Shaper, ShaperData, ShaperInstance, Tag};
+use harfrust::{
+    funcs::{AdvanceWidthBatch, BuiltinFontFuncs, FontFuncs},
+    FontRef, GlyphExtents, NormalizedCoord, ShapeOptions, Shaper, ShaperData, ShaperInstance, Tag,
+};
+use read_fonts::types::GlyphId;
 
 pub struct HBHarfRustFaceData<'a> {
     face_blob: *mut hb_blob_t,
@@ -55,6 +59,80 @@ pub struct HBHarfRustFontData {
     // Keep the instance alive because `shaper` borrows variation data from it.
     _shaper_instance: Box<ShaperInstance>,
     shaper: Shaper<'static>,
+}
+
+struct HBHarfBuzzFontFuncs {
+    font: *mut hb_font_t,
+}
+
+impl FontFuncs for HBHarfBuzzFontFuncs {
+    fn nominal_glyph(&mut self, _: &BuiltinFontFuncs, c: u32) -> Option<GlyphId> {
+        let mut glyph = 0;
+        if unsafe { hb_font_get_nominal_glyph(self.font, c, &mut glyph) } != 0 {
+            Some(GlyphId::new(glyph))
+        } else {
+            None
+        }
+    }
+
+    fn variant_glyph(&mut self, _: &BuiltinFontFuncs, c: u32, vs: u32) -> Option<GlyphId> {
+        let mut glyph = 0;
+        if unsafe { hb_font_get_variation_glyph(self.font, c, vs, &mut glyph) } != 0 {
+            Some(GlyphId::new(glyph))
+        } else {
+            None
+        }
+    }
+
+    fn advance_width(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
+        unsafe { hb_font_get_glyph_h_advance(self.font, glyph.to_u32()) }
+    }
+
+    fn populate_advance_widths(&mut self, _: &BuiltinFontFuncs, batch: AdvanceWidthBatch<'_>) {
+        let raw = batch.into_raw();
+        unsafe {
+            hb_font_get_glyph_h_advances(
+                self.font,
+                raw.len as u32,
+                raw.gids,
+                raw.gid_stride as u32,
+                raw.advances,
+                raw.advance_stride as u32,
+            );
+        }
+    }
+
+    fn advance_height(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> i32 {
+        unsafe { hb_font_get_glyph_v_advance(self.font, glyph.to_u32()) }
+    }
+
+    fn vertical_origin(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> (i32, i32) {
+        let mut x = 0;
+        let mut y = 0;
+        unsafe {
+            hb_font_get_glyph_v_origin(self.font, glyph.to_u32(), &mut x, &mut y);
+        }
+        (x, y)
+    }
+
+    fn extents(&mut self, _: &BuiltinFontFuncs, glyph: GlyphId) -> Option<GlyphExtents> {
+        let mut extents = hb_glyph_extents_t {
+            x_bearing: 0,
+            y_bearing: 0,
+            width: 0,
+            height: 0,
+        };
+        if unsafe { hb_font_get_glyph_extents(self.font, glyph.to_u32(), &mut extents) } != 0 {
+            Some(GlyphExtents {
+                x_bearing: extents.x_bearing,
+                y_bearing: extents.y_bearing,
+                width: extents.width,
+                height: extents.height,
+            })
+        } else {
+            None
+        }
+    }
 }
 
 fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> ShaperInstance {
@@ -122,12 +200,40 @@ pub unsafe extern "C" fn _hb_harfrust_buffer_destroy_rs(data: *mut c_void) {
     let _hr_buffer = Box::from_raw(data);
 }
 
+fn hb_feature_to_hr_feature(
+    features: *const hb_feature_t,
+    num_features: u32,
+) -> Vec<harfrust::Feature> {
+    if features.is_null() {
+        Vec::new()
+    } else {
+        let features = unsafe { std::slice::from_raw_parts(features, num_features as usize) };
+        features
+            .iter()
+            .map(|f| {
+                let tag = f.tag;
+                let value = f.value;
+                let start = f.start;
+                let end = f.end;
+                harfrust::Feature {
+                    tag: Tag::from_u32(tag),
+                    value,
+                    start,
+                    end,
+                }
+            })
+            .collect::<Vec<_>>()
+    }
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     font_data: *const c_void,
     script: hb_script_t,
     language: hb_language_t,
     direction: hb_direction_t,
+    features: *const hb_feature_t,
+    num_features: u32,
 ) -> *mut c_void {
     let font_data = font_data as *const HBHarfRustFontData;
 
@@ -142,10 +248,12 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
         hb_direction_t_HB_DIRECTION_BTT => harfrust::Direction::BottomToTop,
         _ => harfrust::Direction::Invalid,
     };
+    let features = hb_feature_to_hr_feature(features, num_features);
 
     let shaper = &(*font_data).shaper;
 
-    let hr_shape_plan = harfrust::ShapePlan::new(shaper, direction, script, language.as_ref(), &[]);
+    let hr_shape_plan =
+        harfrust::ShapePlan::new(shaper, direction, script, language.as_ref(), &features);
     let hr_shape_plan = Box::new(hr_shape_plan);
     Box::into_raw(hr_shape_plan) as *mut c_void
 }
@@ -244,39 +352,20 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let ptem = hb_font_get_ptem(font);
     let ptem = if ptem > 0.0 { Some(ptem) } else { None };
 
-    let features = if features.is_null() {
-        Vec::new()
-    } else {
-        let features = std::slice::from_raw_parts(features, num_features as usize);
-        features
-            .iter()
-            .map(|f| {
-                let tag = f.tag;
-                let value = f.value;
-                let start = f.start;
-                let end = f.end;
-                harfrust::Feature {
-                    tag: Tag::from_u32(tag),
-                    value,
-                    start,
-                    end,
-                }
-            })
-            .collect::<Vec<_>>()
-    };
-
-    let shape_plan = if shape_plan.is_null() {
-        None
-    } else {
-        let shape_plan = shape_plan as *const harfrust::ShapePlan;
-        shape_plan.as_ref()
-    };
+    let features = hb_feature_to_hr_feature(features, num_features);
+    let shape_plan = (shape_plan as *const harfrust::ShapePlan).as_ref();
+    let mut x_scale = 0;
+    let mut y_scale = 0;
+    hb_font_get_scale(font, &mut x_scale, &mut y_scale);
+    let mut font_funcs = HBHarfBuzzFontFuncs { font };
     let glyphs = (*font_data).shaper.shape(
         hr_buffer,
         ShapeOptions::new()
             .plan(shape_plan)
+            .scale_separate(Some((x_scale, y_scale)))
             .point_size(ptem)
-            .features(&features),
+            .features(&features)
+            .font_funcs(Some(&mut font_funcs)),
     );
 
     let count = glyphs.len();
@@ -292,25 +381,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     if count != count_out as usize {
         return false as hb_bool_t;
     }
-
-    let mut x_scale: i32 = 0;
-    let mut y_scale: i32 = 0;
-    hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    let upem = (*font_data).shaper.units_per_em();
-    let upem = if upem > 0 { upem } else { 1000 };
-    let x_mult = if x_scale < 0 {
-        -((-x_scale as i64) << 16)
-    } else {
-        (x_scale as i64) << 16
-    } / upem as i64;
-    let y_mult = if y_scale < 0 {
-        -((-y_scale as i64) << 16)
-    } else {
-        (y_scale as i64) << 16
-    } / upem as i64;
-
-    let em_mult =
-        |v: i32, mult: i64| -> hb_position_t { ((v as i64 * mult + 32768) >> 16) as hb_position_t };
 
     for (i, (hr_info, hr_pos)) in glyphs
         .glyph_infos()
@@ -337,10 +407,10 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
                 info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL as u32;
             }
         }
-        pos.x_advance = em_mult(hr_pos.x_advance, x_mult);
-        pos.y_advance = em_mult(hr_pos.y_advance, y_mult);
-        pos.x_offset = em_mult(hr_pos.x_offset, x_mult);
-        pos.y_offset = em_mult(hr_pos.y_offset, y_mult);
+        pos.x_advance = hr_pos.x_advance;
+        pos.y_advance = hr_pos.y_advance;
+        pos.x_offset = hr_pos.x_offset;
+        pos.y_offset = hr_pos.y_offset;
     }
 
     let hr_buffer = glyphs.clear();
