@@ -200,12 +200,40 @@ pub unsafe extern "C" fn _hb_harfrust_buffer_destroy_rs(data: *mut c_void) {
     let _hr_buffer = Box::from_raw(data);
 }
 
+fn hb_feature_to_hr_feature(
+    features: *const hb_feature_t,
+    num_features: u32,
+) -> Vec<harfrust::Feature> {
+    if features.is_null() {
+        Vec::new()
+    } else {
+        let features = unsafe { std::slice::from_raw_parts(features, num_features as usize) };
+        features
+            .iter()
+            .map(|f| {
+                let tag = f.tag;
+                let value = f.value;
+                let start = f.start;
+                let end = f.end;
+                harfrust::Feature {
+                    tag: Tag::from_u32(tag),
+                    value,
+                    start,
+                    end,
+                }
+            })
+            .collect::<Vec<_>>()
+    }
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     font_data: *const c_void,
     script: hb_script_t,
     language: hb_language_t,
     direction: hb_direction_t,
+    features: *const hb_feature_t,
+    num_features: u32,
 ) -> *mut c_void {
     let font_data = font_data as *const HBHarfRustFontData;
 
@@ -220,10 +248,12 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
         hb_direction_t_HB_DIRECTION_BTT => harfrust::Direction::BottomToTop,
         _ => harfrust::Direction::Invalid,
     };
+    let features = hb_feature_to_hr_feature(features, num_features);
 
     let shaper = &(*font_data).shaper;
 
-    let hr_shape_plan = harfrust::ShapePlan::new(shaper, direction, script, language.as_ref(), &[]);
+    let hr_shape_plan =
+        harfrust::ShapePlan::new(shaper, direction, script, language.as_ref(), &features);
     let hr_shape_plan = Box::new(hr_shape_plan);
     Box::into_raw(hr_shape_plan) as *mut c_void
 }
@@ -322,33 +352,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let ptem = hb_font_get_ptem(font);
     let ptem = if ptem > 0.0 { Some(ptem) } else { None };
 
-    let features = if features.is_null() {
-        Vec::new()
-    } else {
-        let features = std::slice::from_raw_parts(features, num_features as usize);
-        features
-            .iter()
-            .map(|f| {
-                let tag = f.tag;
-                let value = f.value;
-                let start = f.start;
-                let end = f.end;
-                harfrust::Feature {
-                    tag: Tag::from_u32(tag),
-                    value,
-                    start,
-                    end,
-                }
-            })
-            .collect::<Vec<_>>()
-    };
-
-    let shape_plan = if shape_plan.is_null() {
-        None
-    } else {
-        let shape_plan = shape_plan as *const harfrust::ShapePlan;
-        shape_plan.as_ref()
-    };
+    let features = hb_feature_to_hr_feature(features, num_features);
+    let shape_plan = (shape_plan as *const harfrust::ShapePlan).as_ref();
     let mut x_scale = 0;
     let mut y_scale = 0;
     hb_font_get_scale(font, &mut x_scale, &mut y_scale);
