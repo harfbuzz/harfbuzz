@@ -271,9 +271,9 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     hr_buffer_box: *const c_void,
     font: *mut hb_font_t,
     buffer: *mut hb_buffer_t,
-    pre_context: *const u8,
+    pre_context: *const u32,
     pre_context_length: u32,
-    post_context: *const u8,
+    post_context: *const u32,
     post_context_length: u32,
     features: *const hb_feature_t,
     num_features: u32,
@@ -345,9 +345,9 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     }
 
     let pre_context = std::slice::from_raw_parts(pre_context, pre_context_length as usize);
-    hr_buffer.set_pre_context(str::from_utf8(pre_context).unwrap());
+    hr_buffer.set_pre_context_codepoints(pre_context);
     let post_context = std::slice::from_raw_parts(post_context, post_context_length as usize);
-    hr_buffer.set_post_context(str::from_utf8(post_context).unwrap());
+    hr_buffer.set_post_context_codepoints(post_context);
 
     let ptem = hb_font_get_ptem(font);
     let ptem = if ptem > 0.0 { Some(ptem) } else { None };
