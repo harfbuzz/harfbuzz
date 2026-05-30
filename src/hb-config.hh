@@ -141,6 +141,10 @@
 #define HB_NO_PAINT
 #endif
 
+#if defined(HB_TINY) && defined(HB_NO_DRAW)
+#define HB_NO_CFF
+#endif
+
 #ifdef HB_NO_CFF
 #define HB_NO_OT_FONT_CFF
 #define HB_NO_SUBSET_CFF
