@@ -285,6 +285,7 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
   return true;
 }
 
+#ifndef HB_NO_OT_FONT_CFF
 void
 update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
 {
@@ -370,6 +371,7 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
   if (vvar_store_cache)
     _vmtx.var_table->get_var_store ().destroy_cache (vvar_store_cache);
 }
+#endif
 
 bool
 get_instance_glyphs_contour_points (hb_subset_plan_t *plan)

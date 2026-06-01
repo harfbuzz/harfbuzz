@@ -743,8 +743,10 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   if (unlikely (in_error ()))
     return;
 
-#ifndef HB_NO_VAR
+#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_CFF)
   update_instance_metrics_map_from_cff2 (this);
+#endif
+#ifndef HB_NO_VAR
   if (!check_success (get_instance_glyphs_contour_points (this)))
       return;
 #endif
