@@ -2411,10 +2411,11 @@ struct COLR
 
   const BaseGlyphPaintRecord* get_base_glyph_paintrecord (hb_codepoint_t gid) const
   {
-    const BaseGlyphPaintRecord* record = &(this+baseGlyphList).bsearch ((unsigned) gid);
-    if ((record && (hb_codepoint_t) record->glyphId != gid))
-      record = nullptr;
-    return record;
+    const BaseGlyphList &list = this+baseGlyphList;
+    unsigned int i;
+    if (!list.bfind ((unsigned) gid, &i))
+      return nullptr;
+    return &list[i];
   }
 
   bool downgrade_to_V0 (const hb_set_t &glyphset) const
