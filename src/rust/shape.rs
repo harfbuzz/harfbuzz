@@ -1,17 +1,53 @@
 #![allow(non_upper_case_globals)]
+// C enum becomes i32 on some systems (eg. Windows).
+#![allow(clippy::unnecessary_cast)]
 
 use super::hb::*;
 
 use std::ffi::c_void;
-use std::mem::transmute;
+use std::mem::{align_of, offset_of, size_of, transmute};
 use std::ptr::null_mut;
 use std::str::FromStr;
 
 use harfrust::{
     funcs::{AdvanceWidthBatch, BuiltinFontFuncs, FontFuncs},
-    FontRef, GlyphExtents, NormalizedCoord, ShapeOptions, Shaper, ShaperData, ShaperInstance, Tag,
+    FontRef, GlyphExtents, GlyphFlags as HRGlyphFlags, GlyphInfo as HRGlyphInfo,
+    GlyphPosition as HRGlyphPosition, NormalizedCoord, ShapeOptions, Shaper, ShaperData,
+    ShaperInstance, Tag,
 };
 use read_fonts::types::GlyphId;
+
+const _: () = {
+    assert!(size_of::<hb_glyph_info_t>() == size_of::<HRGlyphInfo>());
+    assert!(align_of::<hb_glyph_info_t>() == align_of::<HRGlyphInfo>());
+    assert!(offset_of!(hb_glyph_info_t, codepoint) == offset_of!(HRGlyphInfo, glyph_id));
+    assert!(offset_of!(hb_glyph_info_t, cluster) == offset_of!(HRGlyphInfo, cluster));
+    assert!(
+        hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_BREAK as u32
+            == HRGlyphFlags::UNSAFE_TO_BREAK.to_bits()
+    );
+    assert!(
+        hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_CONCAT as u32
+            == HRGlyphFlags::UNSAFE_TO_CONCAT.to_bits()
+    );
+    assert!(
+        hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL as u32
+            == HRGlyphFlags::SAFE_TO_INSERT_TATWEEL.to_bits()
+    );
+    assert!(
+        hb_glyph_flags_t_HB_GLYPH_FLAG_DEFINED as u32
+            == (HRGlyphFlags::UNSAFE_TO_BREAK.to_bits()
+                | HRGlyphFlags::UNSAFE_TO_CONCAT.to_bits()
+                | HRGlyphFlags::SAFE_TO_INSERT_TATWEEL.to_bits())
+    );
+
+    assert!(size_of::<hb_glyph_position_t>() == size_of::<HRGlyphPosition>());
+    assert!(align_of::<hb_glyph_position_t>() == align_of::<HRGlyphPosition>());
+    assert!(offset_of!(hb_glyph_position_t, x_advance) == offset_of!(HRGlyphPosition, x_advance));
+    assert!(offset_of!(hb_glyph_position_t, y_advance) == offset_of!(HRGlyphPosition, y_advance));
+    assert!(offset_of!(hb_glyph_position_t, x_offset) == offset_of!(HRGlyphPosition, x_offset));
+    assert!(offset_of!(hb_glyph_position_t, y_offset) == offset_of!(HRGlyphPosition, y_offset));
+};
 
 pub struct HBHarfRustFaceData<'a> {
     face_blob: *mut hb_blob_t,
@@ -237,8 +273,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
 ) -> *mut c_void {
     let font_data = font_data as *const HBHarfRustFontData;
 
-    // hb_script_t enum becomes i32 on Windows.
-    #[allow(clippy::unnecessary_cast)]
     let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script as u32));
     let language = hb_language_to_hr_language(language);
     let direction = match direction {
@@ -368,12 +402,11 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
             .font_funcs(Some(&mut font_funcs)),
     );
 
-    let count = glyphs.len();
-    hb_buffer_set_length(buffer, 0u32);
     hb_buffer_set_content_type(
         buffer,
         hb_buffer_content_type_t_HB_BUFFER_CONTENT_TYPE_GLYPHS,
     );
+    let count = glyphs.len();
     hb_buffer_set_length(buffer, count as u32);
     let mut count_out: u32 = 0;
     let infos = hb_buffer_get_glyph_infos(buffer, &mut count_out);
@@ -382,23 +415,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         return false as hb_bool_t;
     }
 
-    for (i, (hr_info, hr_pos)) in glyphs
-        .glyph_infos()
-        .iter()
-        .zip(glyphs.glyph_positions())
-        .enumerate()
-    {
-        let info = &mut *infos.add(i);
-        let pos = &mut *positions.add(i);
-        info.codepoint = hr_info.glyph_id;
-        info.cluster = hr_info.cluster;
-        info.mask = hr_info.flags().to_bits(); // Bitwise compatible with HarfBuzz's glyph flags;
-                                               // maybe add a setter later.
-        pos.x_advance = hr_pos.x_advance;
-        pos.y_advance = hr_pos.y_advance;
-        pos.x_offset = hr_pos.x_offset;
-        pos.y_offset = hr_pos.y_offset;
-    }
+    std::ptr::copy_nonoverlapping(glyphs.glyph_infos().as_ptr().cast(), infos, count);
+    std::ptr::copy_nonoverlapping(glyphs.glyph_positions().as_ptr().cast(), positions, count);
 
     let hr_buffer = glyphs.clear();
     *hr_buffer_box = hr_buffer; // Move the buffer back into the box
