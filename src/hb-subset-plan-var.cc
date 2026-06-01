@@ -55,6 +55,7 @@
    }
  }
 
+#ifndef HB_NO_OT_FONT_CFF
  static inline hb_font_t*
  _get_hb_font_with_variations (const hb_subset_plan_t *plan)
  {
@@ -77,6 +78,7 @@
    hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location.get_population ());
    return font;
  }
+#endif
 
  template<typename ItemVarStore>
  void
