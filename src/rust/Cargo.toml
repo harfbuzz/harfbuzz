@@ -8,6 +8,7 @@ skrifa = { version = "0.*", optional = true }
 read-fonts = "0.39.*"
 harfrust = { version = "0.8.2", optional = true }
 # harfrust = { git = "https://github.com/harfbuzz/harfrust", optional = true }
+smallvec = "1.*"
 
 [lib]
 name = "harfbuzz_rust"
