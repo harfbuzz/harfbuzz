@@ -16,6 +16,9 @@ use harfrust::{
     ShaperInstance, Tag,
 };
 use read_fonts::types::GlyphId;
+use smallvec::SmallVec;
+
+type HRFeatureVec = SmallVec<[harfrust::Feature; 4]>;
 
 const _: () = {
     assert!(size_of::<hb_glyph_info_t>() == size_of::<HRGlyphInfo>());
@@ -236,12 +239,9 @@ pub unsafe extern "C" fn _hb_harfrust_buffer_destroy_rs(data: *mut c_void) {
     let _hr_buffer = Box::from_raw(data);
 }
 
-fn hb_feature_to_hr_feature(
-    features: *const hb_feature_t,
-    num_features: u32,
-) -> Vec<harfrust::Feature> {
+fn hb_feature_to_hr_feature(features: *const hb_feature_t, num_features: u32) -> HRFeatureVec {
     if features.is_null() {
-        Vec::new()
+        SmallVec::new()
     } else {
         let features = unsafe { std::slice::from_raw_parts(features, num_features as usize) };
         features
@@ -258,7 +258,7 @@ fn hb_feature_to_hr_feature(
                     end,
                 }
             })
-            .collect::<Vec<_>>()
+            .collect()
     }
 }
 
