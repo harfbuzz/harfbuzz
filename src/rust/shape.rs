@@ -392,21 +392,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         let pos = &mut *positions.add(i);
         info.codepoint = hr_info.glyph_id;
         info.cluster = hr_info.cluster;
-        info.mask = 0;
-        // Needed as rust-bindgen/clang produce an i32 for the hb_glyph_flags_t_* enum
-        // on some platforms, e.g. Windows.
-        #[allow(clippy::unnecessary_cast)]
-        {
-            if hr_info.unsafe_to_break() {
-                info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_BREAK as u32;
-            }
-            if hr_info.unsafe_to_concat() {
-                info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_CONCAT as u32;
-            }
-            if hr_info.safe_to_insert_tatweel() {
-                info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL as u32;
-            }
-        }
+        info.mask = hr_info.flags().to_bits(); // Bitwise compatible with HarfBuzz's glyph flags;
+                                               // maybe add a setter later.
         pos.x_advance = hr_pos.x_advance;
         pos.y_advance = hr_pos.y_advance;
         pos.x_offset = hr_pos.x_offset;

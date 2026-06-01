@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::Mutex;
 
 use skrifa::charmap::Charmap;
-use skrifa::charmap::MapVariant::Variant;
+use skrifa::charmap::MapVariant::{UseDefault, Variant};
 use skrifa::color::ColorGlyphCollection;
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
@@ -217,6 +217,13 @@ extern "C" fn _hb_fontations_get_variation_glyph(
             unsafe { *glyph = glyph_id.to_u32() as hb_codepoint_t };
             true as hb_bool_t
         }
+        Some(UseDefault) => match char_map.map(unicode) {
+            Some(glyph_id) => {
+                unsafe { *glyph = glyph_id.to_u32() as hb_codepoint_t };
+                true as hb_bool_t
+            }
+            None => false as hb_bool_t,
+        },
         _ => false as hb_bool_t,
     }
 }
