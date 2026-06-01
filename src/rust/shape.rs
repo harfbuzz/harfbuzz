@@ -7,7 +7,6 @@ use super::hb::*;
 use std::ffi::c_void;
 use std::mem::{align_of, offset_of, size_of, transmute};
 use std::ptr::null_mut;
-use std::str::FromStr;
 
 use harfrust::{
     funcs::{AdvanceWidthBatch, BuiltinFontFuncs, FontFuncs},
@@ -220,8 +219,7 @@ fn hb_language_to_hr_language(language: hb_language_t) -> Option<harfrust::Langu
         return None;
     }
     let language_str = unsafe { std::ffi::CStr::from_ptr(language_str) };
-    let language_str = language_str.to_str().unwrap_or_default();
-    Some(harfrust::Language::from_str(language_str).unwrap())
+    harfrust::Language::new(language_str.to_bytes())
 }
 
 #[unsafe(no_mangle)]
