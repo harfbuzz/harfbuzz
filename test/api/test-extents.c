@@ -35,10 +35,11 @@ test_glyph_extents_color_v1 (void)
   hb_glyph_extents_t extents;
   hb_bool_t ret;
 
-  /* This font contains a COLRv1 glyph with a ClipBox,
-   * and various components without. The main thing
-   * we test here is that glyphs with no paint return
-   * 0,0,0,0 and not meaningless numbers.
+  /* This font contains COLRv1 glyphs with a ClipBox, as well as plain
+   * glyphs with no COLR paint. Extents resolve from COLR when the glyph
+   * has a paint, and otherwise fall back to the glyph outline. So glyph 0
+   * (.notdef), which has an outline, reports its outline extents, while
+   * the empty glyph 1 (.space) reports 0,0,0,0.
    */
 
   face = hb_test_open_font_file ("fonts/adwaita.ttf");
@@ -46,10 +47,10 @@ test_glyph_extents_color_v1 (void)
 
   ret = hb_font_get_glyph_extents (font, 0, &extents);
   g_assert_true (ret);
-  g_assert_true (extents.x_bearing == 0 &&
-                 extents.y_bearing == 0 &&
-                 extents.width     == 0 &&
-                 extents.height    == 0);
+  g_assert_true (extents.x_bearing ==    51 &&
+                 extents.y_bearing ==   950 &&
+                 extents.width     ==   410 &&
+                 extents.height    == -1200);
 
   ret = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert_true (ret);
