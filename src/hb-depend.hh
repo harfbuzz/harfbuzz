@@ -29,7 +29,7 @@
 
 #include "hb.hh"
 
-#include "hb-depend.h"
+#include "hb-subset-depend.h"
 #include "hb-depend-data.hh"
 
 

@@ -24,13 +24,10 @@
  * Adobe Author(s): Skef Iterum
  */
 
-#if !defined(HB_H_IN) && !defined(HB_NO_SINGLE_HEADER_ERROR)
-#error "Include <hb.h> instead."
-#endif
+#ifndef HB_SUBSET_DEPEND_H
+#define HB_SUBSET_DEPEND_H
 
-#ifndef HB_DEPEND_H
-#define HB_DEPEND_H
-
+#include "hb.h"
 
 HB_BEGIN_DECLS
 
@@ -129,4 +126,4 @@ hb_subset_depend_destroy (hb_subset_depend_t *depend);
 
 HB_END_DECLS
 
-#endif /* HB_DEPEND_H */
+#endif /* HB_SUBSET_DEPEND_H */

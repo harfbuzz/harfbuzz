@@ -1004,7 +1004,7 @@ hb_subset_cff2_get_charstrings_index
 </SECTION>
 
 <SECTION>
-<FILE>hb-depend</FILE>
+<FILE>hb-subset-depend</FILE>
 hb_subset_depend_t
 hb_subset_depend_entry_t
 hb_subset_depend_edge_flags_t

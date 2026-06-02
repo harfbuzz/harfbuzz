@@ -29,6 +29,7 @@
 
 #include "hb.h"
 #include "hb-ot.h"
+#include "hb-subset-depend.h"
 
 HB_BEGIN_DECLS
 
