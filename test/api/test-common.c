@@ -137,6 +137,8 @@ test_types_script (void)
   hb_tag_t Arab = HB_TAG_CHAR4 ("Arab");
   hb_tag_t ARAB = HB_TAG_CHAR4 ("ARAB");
 
+  hb_tag_t Hrkt = HB_TAG_CHAR4 ("Hrkt");
+
   hb_tag_t wWyZ = HB_TAG_CHAR4 ("wWyZ");
   hb_tag_t Wwyz = HB_TAG_CHAR4 ("Wwyz");
 
@@ -155,7 +157,7 @@ test_types_script (void)
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_string ("ARAB", -1));
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_string ("Arabic", 6));
   g_assert_cmphex (HB_SCRIPT_ARABIC, !=, hb_script_from_string ("Arabic", 3));
-  g_assert_cmphex (HB_SCRIPT_KATAKANA_OR_HIRAGANA, ==, hb_script_from_string ("Hrkt", -1));
+  g_assert_cmphex ((hb_script_t) Hrkt, ==, hb_script_from_string ("Hrkt", -1));
 
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (arab));
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (Arab));
@@ -169,7 +171,7 @@ test_types_script (void)
   g_assert_cmphex (HB_SCRIPT_UNKNOWN, ==, hb_script_from_iso15924_tag (x123));
 
   g_assert_cmphex (hb_script_to_iso15924_tag (HB_SCRIPT_ARABIC), ==, Arab);
-  g_assert_cmphex (hb_script_to_iso15924_tag (HB_SCRIPT_KATAKANA_OR_HIRAGANA), ==, HB_TAG_CHAR4 ("Hrkt"));
+  g_assert_cmphex (hb_script_to_iso15924_tag (hb_script_from_string ("Hrkt", -1)), ==, Hrkt);
   g_assert_cmphex (hb_script_to_iso15924_tag (hb_script_from_iso15924_tag (wWyZ)), ==, Wwyz);
 
   g_assert_cmpint (hb_script_get_horizontal_direction (HB_SCRIPT_LATIN), ==, HB_DIRECTION_LTR);

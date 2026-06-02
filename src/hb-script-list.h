@@ -492,14 +492,4 @@ typedef enum
 
 } hb_script_t;
 
-/**
- * HB_SCRIPT_KATAKANA_OR_HIRAGANA:
- *
- * Collective ISO 15924 script tag for Hiragana and Katakana.
- *
- * XSince: REPLACEME
- */
-#define HB_SCRIPT_KATAKANA_OR_HIRAGANA	((hb_script_t) HB_TAG ('H','r','k','t'))
-
-
 #endif /* HB_SCRIPT_LIST_H */
