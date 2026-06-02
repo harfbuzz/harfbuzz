@@ -1,3 +1,36 @@
+Overview of changes leading to 14.2.1
+Tuesday, June 2, 2026
+=====================================
+- Various AAT shaping fixes: legacy `mort` contextual offsets (which could
+  produce out-of-font glyph IDs), in-place deleted-glyph replacements, and
+  overflow in obsolete offset math.
+- Fix Arabic PUA fallback shaping for the isolated lam-alef-maksura ligature.
+- Fix float-to-int overflow in `avar2` mapping with malformed fonts.
+- Harden buffer verification after detecting non-monotone clusters.
+- Various `COLR` v1 fixes: fix handling of `.notdef` without paint, round alpha
+  consistently, and report the root clip under the font transform.
+- Various Glyph-extents fixes: inclusive rounding, and floating-point scaling
+  before rounding so the reported box always covers the glyph.
+- Various Subsetting fixes: keep the `palt` spacing feature by default, raise
+  the repacker `MAX_SPACES` limit, fix a repacker crash on shared `LigatureSet`
+  nodes, guard `gvar` size overflow on 32-bit, and fix the `post` glyph-name
+  sort comparator on macOS.
+- Replace `std::sort` with an internal quicksort, removing leaked `std::`
+  symbols from the `libharfbuzz` ABI.
+- Harden size computations with saturating arithmetic against 32-bit overflow.
+- Various improvements to the experimental Rust shaper (HarfRust) and font
+  functions (`fontations`): honor custom font funcs, key shape plans on
+  features, faster buffer handling, and update to HarfRust 0.8.
+- Various fixes to the experimental `harfbuzz-gpu` and `harfbuzz-vector`
+  libraries, including a `harfbuzz-vector` heap buffer overflow and Windows
+  build fixes.
+- Map the `Hrkt` (Katakana or Hiragana) script tag to the `kana` OpenType tag.
+- Build configuration: new `HB_CONFIG_OVERRIDE_LAST_H` override header,
+  decouple `HB_NO_DRAW` from `HB_NO_CFF`, and an optional `hb-allocator` Cargo
+  feature.
+- Various build, CI, and fuzzing fixes.
+
+
 Overview of changes leading to 14.2.0
 Monday, April 20, 2026
 =====================================
