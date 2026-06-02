@@ -366,14 +366,9 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     // Populate buffer
     let count = hb_buffer_get_length(buffer);
     let infos = hb_buffer_get_glyph_infos(buffer, null_mut());
-
-    hr_buffer.reserve(count as usize);
-
-    for i in 0..count {
-        let info = &*infos.add(i as usize);
-        let unicode = info.codepoint;
-        let cluster = info.cluster;
-        hr_buffer.add(char::from_u32_unchecked(unicode), cluster);
+    let infos = std::slice::from_raw_parts(infos.cast(), count as usize);
+    if !hr_buffer.push_glyph_infos(infos) {
+        return false as hb_bool_t;
     }
 
     let pre_context = std::slice::from_raw_parts(pre_context, pre_context_length as usize);
