@@ -2288,7 +2288,7 @@ hb_ot_layout_get_horizontal_baseline_tag_for_script (hb_script_t script)
  * @language_tag: language tag, currently unused.
  * @coord: (out) (nullable): baseline value if found.
  *
- * Fetches a baseline value from the face.
+ * Fetches a baseline value from the font.
  *
  * Return value: `true` if found baseline value in the font.
  *
@@ -2314,7 +2314,7 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
  * @language: (nullable): language, currently unused.
  * @coord: (out) (nullable): baseline value if found.
  *
- * Fetches a baseline value from the face.
+ * Fetches a baseline value from the font.
  *
  * This function is like hb_ot_layout_get_baseline() but takes
  * #hb_script_t and #hb_language_t instead of OpenType #hb_tag_t.
@@ -2350,7 +2350,7 @@ hb_ot_layout_get_baseline2 (hb_font_t                   *font,
  * @language_tag: language tag, currently unused.
  * @coord: (out): baseline value if found.
  *
- * Fetches a baseline value from the face, and synthesizes
+ * Fetches a baseline value from the font, and synthesizes
  * it if the font does not have it.
  *
  * Since: 4.0.0
@@ -2572,7 +2572,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
  * @language: (nullable): language, currently unused.
  * @coord: (out): baseline value if found.
  *
- * Fetches a baseline value from the face, and synthesizes
+ * Fetches a baseline value from the font, and synthesizes
  * it if the font does not have it.
  *
  * This function is like hb_ot_layout_get_baseline_with_fallback() but takes
