@@ -43,8 +43,10 @@ hb_ot_old_tag_from_script (hb_script_t script)
     case HB_SCRIPT_INVALID:		return HB_OT_TAG_DEFAULT_SCRIPT;
     case HB_SCRIPT_MATH:		return HB_OT_TAG_MATH_SCRIPT;
 
-    /* KATAKANA and HIRAGANA both map to 'kana' */
+    /* Hiragana, Katakana, and their collective ISO 15924 script all map to 'kana'. */
     case HB_SCRIPT_HIRAGANA:		return HB_TAG('k','a','n','a');
+    case HB_TAG('H','r','k','t'):
+					return HB_TAG('k','a','n','a');
 
     /* Spaces at the end are preserved, unlike ISO 15924 */
     case HB_SCRIPT_LAO:			return HB_TAG('l','a','o',' ');
