@@ -1331,7 +1331,7 @@ static inline bool match_class_cached2 (hb_glyph_info_t &info, unsigned value, c
 }
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
-  Offset16To<Coverage> coverage;
+  Offset32To<Coverage> coverage;
   coverage = value;
   return (data+coverage).get_coverage (info.codepoint) != NOT_COVERED;
 }
