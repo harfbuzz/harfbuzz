@@ -1449,7 +1449,7 @@ struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (List16OfOffset16To<TLookup>::sanitize (c, this));
+    return_trace ((List16OfOffsetTo<TLookup, OffsetType>::sanitize (c, this)));
   }
 };
 
