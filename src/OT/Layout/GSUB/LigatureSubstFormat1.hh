@@ -118,12 +118,13 @@ struct LigatureSubstFormat1_2
     return_trace (lig_set.apply (c, seconds));
   }
 
+  template <typename GlyphID>
   bool serialize (hb_serialize_context_t *c,
-                  hb_sorted_array_t<const HBGlyphID16> first_glyphs,
+                  hb_sorted_array_t<GlyphID> first_glyphs,
                   hb_array_t<const unsigned int> ligature_per_first_glyph_count_list,
-                  hb_array_t<const HBGlyphID16> ligatures_list,
+                  hb_array_t<GlyphID> ligatures_list,
                   hb_array_t<const unsigned int> component_count_list,
-                  hb_array_t<const HBGlyphID16> component_list /* Starting from second for each ligature */)
+                  hb_array_t<GlyphID> component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);

@@ -152,10 +152,11 @@ struct LigatureSet
     return_trace (false);
   }
 
+  template <typename GlyphID>
   bool serialize (hb_serialize_context_t *c,
-                  hb_array_t<const HBGlyphID16> ligatures,
+                  hb_array_t<GlyphID> ligatures,
                   hb_array_t<const unsigned int> component_count_list,
-                  hb_array_t<const HBGlyphID16> &component_list /* Starting from second for each ligature */)
+                  hb_array_t<GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
