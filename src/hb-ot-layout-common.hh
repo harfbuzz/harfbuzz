@@ -2073,21 +2073,21 @@ struct ClassDef
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
-    auto it = + it_with_class_zero | hb_filter (hb_second);
+    auto glyphs = + it_with_class_zero | hb_filter (hb_second);
 
     unsigned format = 2;
     hb_codepoint_t glyph_max = 0;
-    if (likely (it))
+    if (likely (glyphs))
     {
-      hb_codepoint_t glyph_min = (*it).first;
+      hb_codepoint_t glyph_min = (*glyphs).first;
       glyph_max = glyph_min;
 
       unsigned num_glyphs = 0;
       unsigned num_ranges = 1;
       hb_codepoint_t prev_gid = glyph_min;
-      unsigned prev_klass = (*it).second;
+      unsigned prev_klass = (*glyphs).second;
 
-      for (const auto gid_klass_pair : it)
+      for (const auto gid_klass_pair : + glyphs)
       {
 	hb_codepoint_t cur_gid = gid_klass_pair.first;
 	unsigned cur_klass = gid_klass_pair.second;
@@ -2122,11 +2122,11 @@ struct ClassDef
 
     switch (u.format.v)
     {
-    case 1: hb_barrier (); return_trace (u.format1.serialize (c, it));
-    case 2: hb_barrier (); return_trace (u.format2.serialize (c, it));
+    case 1: hb_barrier (); return_trace (u.format1.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
+    case 2: hb_barrier (); return_trace (u.format2.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
 #ifndef HB_NO_BEYOND_64K
-    case 3: hb_barrier (); return_trace (u.format3.serialize (c, it));
-    case 4: hb_barrier (); return_trace (u.format4.serialize (c, it));
+    case 3: hb_barrier (); return_trace (u.format3.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
+    case 4: hb_barrier (); return_trace (u.format4.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
 #endif
     default:return_trace (false);
     }

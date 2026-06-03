@@ -146,12 +146,12 @@ struct Coverage
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
-    unsigned count = hb_len (glyphs);
+    unsigned count = hb_len (+ glyphs);
     unsigned num_ranges = 0;
     hb_codepoint_t last = (hb_codepoint_t) -2;
     hb_codepoint_t max = 0;
     bool unsorted = false;
-    for (auto g: glyphs)
+    for (auto g: + glyphs)
     {
       if (last != (hb_codepoint_t) -2 && g < last)
 	unsorted = true;
@@ -176,11 +176,11 @@ struct Coverage
 
     switch (u.format.v)
     {
-    case 1: return_trace (u.format1.serialize (c, glyphs));
-    case 2: return_trace (u.format2.serialize (c, glyphs));
+    case 1: return_trace (u.format1.serialize (c, + glyphs));
+    case 2: return_trace (u.format2.serialize (c, + glyphs));
 #ifndef HB_NO_BEYOND_64K
-    case 3: return_trace (u.format3.serialize (c, glyphs));
-    case 4: return_trace (u.format4.serialize (c, glyphs));
+    case 3: return_trace (u.format3.serialize (c, + glyphs));
+    case 4: return_trace (u.format4.serialize (c, + glyphs));
 #endif
     default:return_trace (false);
     }
