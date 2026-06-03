@@ -2114,8 +2114,8 @@ static inline bool context_cache_func (hb_ot_apply_context_t *c, hb_ot_subtable_
 template <typename Types>
 struct Rule
 {
-  template <typename T>
-  friend struct RuleSet;
+  template <typename SetTypes, typename RuleType>
+  friend struct RuleSetOf;
 
   bool intersects (const hb_set_t *glyphs, ContextClosureLookupContext &lookup_context) const
   {
@@ -2241,18 +2241,16 @@ struct Rule
   DEFINE_SIZE_ARRAY (4, inputZ);
 };
 
-template <typename Types>
-struct RuleSet
+template <typename Types, typename RuleType>
+struct RuleSetOf
 {
-  using Rule = OT::Rule<Types>;
-
   bool intersects (const hb_set_t *glyphs,
 		   ContextClosureLookupContext &lookup_context) const
   {
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_map ([&] (const Rule &_) { return _.intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const RuleType &_) { return _.intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -2265,7 +2263,7 @@ struct RuleSet
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const Rule &_) { _.closure (c, value, lookup_context); })
+    | hb_apply ([&] (const RuleType &_) { _.closure (c, value, lookup_context); })
     ;
   }
 
@@ -2275,7 +2273,7 @@ struct RuleSet
     if (unlikely (c->lookup_limit_exceeded ())) return;
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const Rule &_) { _.closure_lookups (c, lookup_context); })
+    | hb_apply ([&] (const RuleType &_) { _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -2285,7 +2283,7 @@ struct RuleSet
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const Rule &_) { _.collect_glyphs (c, lookup_context); })
+    | hb_apply ([&] (const RuleType &_) { _.collect_glyphs (c, lookup_context); })
     ;
   }
 
@@ -2295,7 +2293,7 @@ struct RuleSet
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_map ([&] (const Rule &_) { return _.would_apply (c, lookup_context); })
+    | hb_map ([&] (const RuleType &_) { return _.would_apply (c, lookup_context); })
     | hb_any
     ;
   }
@@ -2315,7 +2313,7 @@ struct RuleSet
       return_trace (
       + hb_iter (rule)
       | hb_map (hb_add (this))
-      | hb_map ([&] (const Rule &_) { return _.apply (c, lookup_context); })
+      | hb_map ([&] (const RuleType &_) { return _.apply (c, lookup_context); })
       | hb_any
       )
       ;
@@ -2357,8 +2355,8 @@ struct RuleSet
       return_trace (
       + hb_iter (rule)
       | hb_map (hb_add (this))
-      | hb_filter ([&] (const Rule &_) { return _.inputCount <= 1; })
-      | hb_map ([&] (const Rule &_) { return _.apply (c, lookup_context); })
+      | hb_filter ([&] (const RuleType &_) { return _.inputCount <= 1; })
+      | hb_map ([&] (const RuleType &_) { return _.apply (c, lookup_context); })
       | hb_any
       )
       ;
@@ -2436,7 +2434,7 @@ struct RuleSet
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    for (const Offset16To<Rule>& _ : rule)
+    for (const auto& _ : rule)
     {
       if (!_) continue;
       auto o_snap = c->serializer->snapshot ();
@@ -2463,12 +2461,18 @@ struct RuleSet
   }
 
   protected:
-  Array16OfOffset16To<Rule>
+  Array16Of<typename Types::template OffsetTo<RuleType>>
 		rule;			/* Array of Rule tables
 					 * ordered by preference */
   public:
   DEFINE_SIZE_ARRAY (2, rule);
 };
+
+template <typename Types>
+struct RuleSet : RuleSetOf<Types, Rule<Types>> {};
+
+template <typename Types>
+struct ClassRuleSet : RuleSetOf<Types, Rule<SmallTypes>> {};
 
 
 template <typename Types>
@@ -2615,7 +2619,7 @@ struct ContextFormat1_4
   typename Types::template OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Array16Of<typename Types::template OffsetTo<RuleSet>>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<RuleSet>>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by Coverage Index */
   public:
@@ -2626,7 +2630,7 @@ struct ContextFormat1_4
 template <typename Types>
 struct ContextFormat2_5
 {
-  using RuleSet = OT::RuleSet<SmallTypes>;
+  using RuleSet = OT::ClassRuleSet<Types>;
 
   bool intersects (const hb_set_t *glyphs) const
   {
@@ -2875,11 +2879,11 @@ struct ContextFormat2_5
   typename Types::template OffsetTo<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of table */
-  Array16Of<typename Types::template OffsetTo<RuleSet>>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<RuleSet>>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (4 + 2 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + 3 * Types::size, ruleSet);
 };
 
 
