@@ -2883,7 +2883,8 @@ struct ContextFormat2_5
 };
 
 
-struct ContextFormat3
+template <typename Types>
+struct ContextFormat3_6
 {
   using RuleSet = OT::RuleSet<SmallTypes>;
 
@@ -2898,7 +2899,7 @@ struct ContextFormat3
       this
     };
     return context_intersects (glyphs,
-			       glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+			       glyphCount, coverageZ.arrayZ + 1,
 			       lookup_context);
   }
 
@@ -2922,7 +2923,7 @@ struct ContextFormat3
       this
     };
     context_closure_lookup (c,
-			    glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+			    glyphCount, coverageZ.arrayZ + 1,
 			    lookupCount, lookupRecord,
 			    0, lookup_context);
 
@@ -2950,7 +2951,7 @@ struct ContextFormat3
     };
 
     context_collect_glyphs_lookup (c,
-				   glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+				   glyphCount, coverageZ.arrayZ + 1,
 				   lookupCount, lookupRecord,
 				   lookup_context);
   }
@@ -2963,7 +2964,7 @@ struct ContextFormat3
       this
     };
     return context_would_apply_lookup (c,
-				       glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+				       glyphCount, coverageZ.arrayZ + 1,
 				       lookupCount, lookupRecord,
 				       lookup_context);
   }
@@ -2981,7 +2982,7 @@ struct ContextFormat3
       {match_coverage},
       this
     };
-    return_trace (context_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1), lookupCount, lookupRecord, lookup_context));
+    return_trace (context_apply_lookup (c, glyphCount, coverageZ.arrayZ + 1, lookupCount, lookupRecord, lookup_context));
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -2995,10 +2996,10 @@ struct ContextFormat3
 
     auto coverages = coverageZ.as_array (glyphCount);
 
-    for (const Offset16To<Coverage>& offset : coverages)
+    for (const auto& offset : coverages)
     {
       /* TODO(subset) This looks like should not be necessary to write this way. */
-      auto *o = c->serializer->allocate_size<Offset16To<Coverage>> (Offset16To<Coverage>::static_size);
+      auto *o = c->serializer->allocate_size<typename Types::template OffsetTo<Coverage>> (Types::Offset::static_size);
       if (unlikely (!o)) return_trace (false);
       if (!o->serialize_subset (c, offset, this)) return_trace (false);
     }
@@ -3030,7 +3031,7 @@ struct ContextFormat3
   HBUINT16	glyphCount;		/* Number of glyphs in the input glyph
 					 * sequence */
   HBUINT16	lookupCount;		/* Number of LookupRecords */
-  UnsizedArrayOf<Offset16To<Coverage>>
+  UnsizedArrayOf<typename Types::template OffsetTo<Coverage>>
 		coverageZ;		/* Array of offsets to Coverage
 					 * table in glyph sequence order */
 /*UnsizedArrayOf<LookupRecord>
@@ -3054,6 +3055,7 @@ struct Context
 #ifndef HB_NO_BEYOND_64K
     case 4: hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
     case 5: hb_barrier (); return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
+    case 6: hb_barrier (); return_trace (c->dispatch (u.format6, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
     }
@@ -3064,10 +3066,11 @@ struct Context
   struct { HBUINT16 v; }	format;		/* Format identifier */
   ContextFormat1_4<SmallTypes>	format1;
   ContextFormat2_5<SmallTypes>	format2;
-  ContextFormat3		format3;
+  ContextFormat3_6<SmallTypes>	format3;
 #ifndef HB_NO_BEYOND_64K
   ContextFormat1_4<MediumTypes>	format4;
   ContextFormat2_5<MediumTypes>	format5;
+  ContextFormat3_6<MediumTypes>	format6;
 #endif
   } u;
 };
