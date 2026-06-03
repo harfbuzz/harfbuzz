@@ -293,7 +293,7 @@ struct CursivePosFormat1_2
                   const struct CursivePosFormat1_2<Types> *src_base)
   {
     if (unlikely (!c->serializer->extend_min ((*this)))) return;
-    this->format = 1;
+    this->format = src_base->format;
     this->entryExitRecord.len = it.len ();
 
     for (const EntryExitRecord<Types>& entry_record : + it
@@ -316,13 +316,13 @@ struct CursivePosFormat1_2
 
     auto *out = c->serializer->start_embed (*this);
 
-  auto it =
-  + hb_zip (this+coverage, entryExitRecord)
-  | hb_filter (glyphset, hb_first)
-  | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const EntryExitRecord<Types>&> p)
-                            -> hb_pair_t<hb_codepoint_t, const EntryExitRecord<Types>&>
-                            { return hb_pair (glyph_map[p.first], p.second);})
-  ;
+    auto it =
+    + hb_zip (this+coverage, entryExitRecord)
+    | hb_filter (glyphset, hb_first)
+    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const EntryExitRecord<Types>&> p)
+                              -> hb_pair_t<hb_codepoint_t, const EntryExitRecord<Types>&>
+                              { return hb_pair (glyph_map[p.first], p.second);})
+    ;
 
     bool ret = bool (it);
     out->serialize (c, it, this);

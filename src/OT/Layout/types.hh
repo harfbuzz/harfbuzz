@@ -61,7 +61,7 @@ struct MediumTypes {
   using HBUINT = HBUINT24;
   using HBGlyphID = HBGlyphID24;
   using Offset = Offset24;
-   /* Long offsets for large tables. */
+  /* Long offsets for large tables. */
   using LOffset = Offset32;
   template <typename Type, typename BaseType=void, bool has_null=true>
   using OffsetTo = OT::Offset24To<Type, BaseType, has_null>;
