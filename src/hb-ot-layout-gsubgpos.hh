@@ -4697,14 +4697,14 @@ struct GSUBGPOS
 
     bool script_list_ok = scriptList.sanitize (c, this);
     bool feature_list_ok = featureList.sanitize (c, this);
-    bool lookup_list_ok = reinterpret_cast<const Offset16To<TLookupList<TLookup>>&> (lookupList).sanitize (c, this);
+    bool lookup_list_ok = typed_lookup_list_offset<TLookup> ().sanitize (c, this);
 
 #ifndef HB_NO_BEYOND_64K
     if (version.to_int () >= 0x00010002u)
     {
       if (scriptList2) script_list_ok = scriptList2.sanitize (c, this);
       if (featureList2) feature_list_ok = featureList2.sanitize (c, this);
-      if (lookupList2) lookup_list_ok = reinterpret_cast<const Offset32To<TLookupList<TLookup>>&> (lookupList2).sanitize (c, this);
+      if (lookupList2) lookup_list_ok = typed_lookup_list2_offset<TLookup> ().sanitize (c, this);
     }
 #endif
 
@@ -4742,20 +4742,20 @@ struct GSUBGPOS
 
       if (lookupList2)
 	serialize_subset_offset (c->subset_context, out->lookupList2,
-				 reinterpret_cast<const Offset32To<TLookupOffsetList<TLookup>>&> (lookupList2),
+				 subset_lookup_list2_offset<TLookup> (),
 				 this, c);
       else
 	serialize_subset_offset (c->subset_context, out->lookupList2,
-				 reinterpret_cast<const Offset16To<TLookupOffsetList<TLookup>>&> (lookupList),
+				 subset_lookup_list_offset<TLookup> (),
 				 this, c);
 
       if (featureList2)
 	serialize_subset_offset (c->subset_context, out->featureList2,
-				 reinterpret_cast<const Offset32To<RecordListOfFeature>&> (featureList2),
+				 subset_feature_list2_offset (),
 				 this, c);
       else
 	serialize_subset_offset (c->subset_context, out->featureList2,
-				 reinterpret_cast<const Offset16To<RecordListOfFeature>&> (featureList),
+				 subset_feature_list_offset (),
 				 this, c);
 
       if (scriptList2)
@@ -4766,15 +4766,15 @@ struct GSUBGPOS
     else
 #endif
     {
-      reinterpret_cast<Offset16To<TLookupOffsetList<TLookup>> &> (out->lookupList)
+      out->subset_lookup_list_offset<TLookup> ()
 	  .serialize_subset (c->subset_context,
-			     reinterpret_cast<const Offset16To<TLookupOffsetList<TLookup>> &> (lookupList),
+			     subset_lookup_list_offset<TLookup> (),
 			     this,
 			     c);
 
-      reinterpret_cast<Offset16To<RecordListOfFeature> &> (out->featureList)
+      out->subset_feature_list_offset ()
 	  .serialize_subset (c->subset_context,
-			     reinterpret_cast<const Offset16To<RecordListOfFeature> &> (featureList),
+			     subset_feature_list_offset (),
 			     this,
 			     c);
 
@@ -5048,6 +5048,39 @@ struct GSUBGPOS
   };
 
   protected:
+  template <typename TLookup>
+  const Offset16To<TLookupList<TLookup>>& typed_lookup_list_offset () const
+  { return reinterpret_cast<const Offset16To<TLookupList<TLookup>>&> (lookupList); }
+
+#ifndef HB_NO_BEYOND_64K
+  template <typename TLookup>
+  const Offset32To<TLookupList<TLookup>>& typed_lookup_list2_offset () const
+  { return reinterpret_cast<const Offset32To<TLookupList<TLookup>>&> (lookupList2); }
+#endif
+
+  template <typename TLookup>
+  const Offset16To<TLookupOffsetList<TLookup>>& subset_lookup_list_offset () const
+  { return reinterpret_cast<const Offset16To<TLookupOffsetList<TLookup>>&> (lookupList); }
+  template <typename TLookup>
+  Offset16To<TLookupOffsetList<TLookup>>& subset_lookup_list_offset ()
+  { return reinterpret_cast<Offset16To<TLookupOffsetList<TLookup>>&> (lookupList); }
+
+#ifndef HB_NO_BEYOND_64K
+  template <typename TLookup>
+  const Offset32To<TLookupOffsetList<TLookup>>& subset_lookup_list2_offset () const
+  { return reinterpret_cast<const Offset32To<TLookupOffsetList<TLookup>>&> (lookupList2); }
+#endif
+
+  const Offset16To<RecordListOfFeature>& subset_feature_list_offset () const
+  { return reinterpret_cast<const Offset16To<RecordListOfFeature>&> (featureList); }
+  Offset16To<RecordListOfFeature>& subset_feature_list_offset ()
+  { return reinterpret_cast<Offset16To<RecordListOfFeature>&> (featureList); }
+
+#ifndef HB_NO_BEYOND_64K
+  const Offset32To<RecordListOfFeature>& subset_feature_list2_offset () const
+  { return reinterpret_cast<const Offset32To<RecordListOfFeature>&> (featureList2); }
+#endif
+
   const void* get_lookup_list_field_offset () const
   {
 #ifndef HB_NO_BEYOND_64K
