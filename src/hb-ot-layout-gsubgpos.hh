@@ -4622,47 +4622,74 @@ struct hb_ot_layout_lookup_accelerator_t
   hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];
 };
 
-template <typename Types>
-struct GSUBGPOSVersion1_2
+struct GSUBGPOS
 {
-  friend struct GSUBGPOS;
-
-  protected:
-  FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
-				 * to 0x00010000u */
-  typename Types:: template OffsetTo<ScriptList>
-		scriptList;	/* ScriptList table */
-  typename Types::template OffsetTo<FeatureList>
-		featureList;	/* FeatureList table */
-  typename Types::template OffsetTo<LookupList<Types>>
-		lookupList;	/* LookupList table */
-  Offset32To<FeatureVariations>
-		featureVars;	/* Offset to Feature Variations
-				   table--from beginning of table
-				 * (may be NULL).  Introduced
-				 * in version 0x00010001. */
-  public:
-  DEFINE_SIZE_MIN (4 + 3 * Types::size);
+  using LookupListT = LookupList<SmallTypes>;
+  template <typename TLookup>
+  using TLookupList = List16OfOffset16To<TLookup>;
+  template <typename TLookup>
+  using TLookupOffsetList = LookupOffsetList<TLookup, HBUINT16>;
 
   size_t get_size () const
   {
+    if (version.major != 1) return version.static_size;
+
     return min_size +
-	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
+	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0) +
+#ifndef HB_NO_BEYOND_64K
+	   (version.to_int () >= 0x00010002u ? 3 * Offset32::static_size : 0)
+#else
+	   0
+#endif
+	   ;
   }
 
-  const typename Types::template OffsetTo<LookupList<Types>>* get_lookup_list_offset () const
+  const ScriptList &get_script_list () const
   {
-    return &lookupList;
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u && scriptList2) return this + scriptList2;
+#endif
+    return this + scriptList;
+  }
+  const FeatureList &get_feature_list () const
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u && featureList2) return this + featureList2;
+#endif
+    return this + featureList;
+  }
+  const LookupListT &get_lookup_list () const
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u && lookupList2) return this + lookupList2;
+#endif
+    return this + lookupList;
   }
 
   template <typename TLookup>
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    typedef List16OfOffsetTo<TLookup, typename Types::HBUINT> TLookupList;
-    if (unlikely (!(scriptList.sanitize (c, this) &&
-		    featureList.sanitize (c, this) &&
-		    reinterpret_cast<const typename Types::template OffsetTo<TLookupList> &> (lookupList).sanitize (c, this))))
+    if (unlikely (!version.sanitize (c) ||
+		  version.major != 1 ||
+		  !c->check_range (this, get_size ())))
+      return_trace (false);
+    hb_barrier ();
+
+    bool script_list_ok = scriptList.sanitize (c, this);
+    bool feature_list_ok = featureList.sanitize (c, this);
+    bool lookup_list_ok = reinterpret_cast<const Offset16To<TLookupList<TLookup>>&> (lookupList).sanitize (c, this);
+
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u)
+    {
+      if (scriptList2) script_list_ok = scriptList2.sanitize (c, this);
+      if (featureList2) feature_list_ok = featureList2.sanitize (c, this);
+      if (lookupList2) lookup_list_ok = reinterpret_cast<const Offset32To<TLookupList<TLookup>>&> (lookupList2).sanitize (c, this);
+    }
+#endif
+
+    if (unlikely (!(script_list_ok && feature_list_ok && lookup_list_ok)))
       return_trace (false);
 
 #ifndef HB_NO_VAR
@@ -4677,29 +4704,66 @@ struct GSUBGPOSVersion1_2
   bool subset (hb_subset_layout_context_t *c) const
   {
     TRACE_SUBSET (this);
+    if (version.major != 1) return_trace (false);
 
     auto *out = c->subset_context->serializer->start_embed (this);
     if (unlikely (!c->subset_context->serializer->extend_min (out))) return_trace (false);
 
     out->version = version;
 
-    typedef LookupOffsetList<TLookup, typename Types::HBUINT> TLookupList;
-    reinterpret_cast<typename Types::template OffsetTo<TLookupList> &> (out->lookupList)
-	.serialize_subset (c->subset_context,
-			   reinterpret_cast<const typename Types::template OffsetTo<TLookupList> &> (lookupList),
-			   this,
-			   c);
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u)
+    {
+      if (unlikely (!c->subset_context->serializer->extend_min (&out->lookupList2)))
+        return_trace (false);
 
-    reinterpret_cast<typename Types::template OffsetTo<RecordListOfFeature> &> (out->featureList)
-	.serialize_subset (c->subset_context,
-			   reinterpret_cast<const typename Types::template OffsetTo<RecordListOfFeature> &> (featureList),
-			   this,
-			   c);
+      out->scriptList = 0;
+      out->featureList = 0;
+      out->lookupList = 0;
 
-    out->scriptList.serialize_subset (c->subset_context,
-				      scriptList,
-				      this,
-				      c);
+      if (lookupList2)
+	serialize_subset_offset (c->subset_context, out->lookupList2,
+				 reinterpret_cast<const Offset32To<TLookupOffsetList<TLookup>>&> (lookupList2),
+				 this, c);
+      else
+	serialize_subset_offset (c->subset_context, out->lookupList2,
+				 reinterpret_cast<const Offset16To<TLookupOffsetList<TLookup>>&> (lookupList),
+				 this, c);
+
+      if (featureList2)
+	serialize_subset_offset (c->subset_context, out->featureList2,
+				 reinterpret_cast<const Offset32To<RecordListOfFeature>&> (featureList2),
+				 this, c);
+      else
+	serialize_subset_offset (c->subset_context, out->featureList2,
+				 reinterpret_cast<const Offset16To<RecordListOfFeature>&> (featureList),
+				 this, c);
+
+      if (scriptList2)
+	serialize_subset_offset (c->subset_context, out->scriptList2, scriptList2, this, c);
+      else
+	serialize_subset_offset (c->subset_context, out->scriptList2, scriptList, this, c);
+    }
+    else
+#endif
+    {
+      reinterpret_cast<Offset16To<TLookupOffsetList<TLookup>> &> (out->lookupList)
+	  .serialize_subset (c->subset_context,
+			     reinterpret_cast<const Offset16To<TLookupOffsetList<TLookup>> &> (lookupList),
+			     this,
+			     c);
+
+      reinterpret_cast<Offset16To<RecordListOfFeature> &> (out->featureList)
+	  .serialize_subset (c->subset_context,
+			     reinterpret_cast<const Offset16To<RecordListOfFeature> &> (featureList),
+			     this,
+			     c);
+
+      out->scriptList.serialize_subset (c->subset_context,
+					scriptList,
+					this,
+					c);
+    }
 
 #ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)
@@ -4711,111 +4775,32 @@ struct GSUBGPOSVersion1_2
       // if all axes are pinned all feature vars are dropped.
       bool ret = !c->subset_context->plan->all_axes_pinned
                  && out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
-      if (!ret && version.major == 1)
+      if (!ret)
       {
-        c->subset_context->serializer->revert (snapshot);
-	out->version.major = 1;
-	out->version.minor = 0;
+        out->featureVars = 0;
+	if (version.to_int () < 0x00010002u)
+	{
+	  c->subset_context->serializer->revert (snapshot);
+	  out->version.major = 1;
+	  out->version.minor = 0;
+	}
       }
     }
 #endif
 
     return_trace (true);
   }
-};
 
-struct GSUBGPOS
-{
-  size_t get_size () const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return u.version1.get_size ();
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return u.version2.get_size ();
-#endif
-    default: return u.version.static_size;
-    }
-  }
-
-  template <typename TLookup>
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!u.version.sanitize (c))) return_trace (false);
-    hb_barrier ();
-    switch (u.version.major) {
-    case 1: hb_barrier (); return_trace (u.version1.sanitize<TLookup> (c));
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return_trace (u.version2.sanitize<TLookup> (c));
-#endif
-    default: return_trace (true);
-    }
-  }
-
-  template <typename TLookup>
-  bool subset (hb_subset_layout_context_t *c) const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return u.version1.subset<TLookup> (c);
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return u.version2.subset<TLookup> (c);
-#endif
-    default: return false;
-    }
-  }
-
-  const ScriptList &get_script_list () const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return this+u.version1.scriptList;
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return this+u.version2.scriptList;
-#endif
-    default: return Null (ScriptList);
-    }
-  }
-  const FeatureList &get_feature_list () const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return this+u.version1.featureList;
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return this+u.version2.featureList;
-#endif
-    default: return Null (FeatureList);
-    }
-  }
   unsigned int get_lookup_count () const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return (this+u.version1.lookupList).len;
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return (this+u.version2.lookupList).len;
-#endif
-    default: return 0;
-    }
-  }
+  { return get_lookup_list ().len; }
   const Lookup& get_lookup (unsigned int i) const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return (this+u.version1.lookupList)[i];
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return (this+u.version2.lookupList)[i];
-#endif
-    default: return Null (Lookup);
-    }
-  }
+  { return get_lookup_list ()[i]; }
   const FeatureVariations &get_feature_variations () const
   {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return (u.version.to_int () >= 0x00010001u && hb_barrier () ? this+u.version1.featureVars : Null (FeatureVariations));
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return this+u.version2.featureVars;
-#endif
-    default: return Null (FeatureVariations);
-    }
+    return (version.to_int () >= 0x00010001u && hb_barrier ()) ? this+featureVars : Null (FeatureVariations);
   }
 
-  bool has_data () const { return u.version.to_int (); }
+  bool has_data () const { return version.to_int (); }
   unsigned int get_script_count () const
   { return get_script_list ().len; }
   const Tag& get_script_tag (unsigned int i) const
@@ -4857,7 +4842,7 @@ struct GSUBGPOS
   {
 #ifndef HB_NO_VAR
     if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
-	u.version.to_int () >= 0x00010001u)
+	version.to_int () >= 0x00010001u)
     {
       const Feature *feature = get_feature_variations ().find_substitute (variations_index,
 									  feature_index);
@@ -5044,15 +5029,57 @@ struct GSUBGPOS
   };
 
   protected:
-  union {
-  FixedVersion<>			version;	/* Version identifier */
-  GSUBGPOSVersion1_2<SmallTypes>	version1;
+  const void* get_lookup_list_field_offset () const
+  {
 #ifndef HB_NO_BEYOND_64K
-  GSUBGPOSVersion1_2<MediumTypes>	version2;
+    if (version.to_int () >= 0x00010002u && lookupList2) return &lookupList2;
 #endif
-  } u;
+    return &lookupList;
+  }
+
+  template <typename OffsetOut, typename OffsetIn, typename Base, typename ...Ts>
+  static bool serialize_subset_offset (hb_subset_context_t *c,
+				       OffsetOut& out,
+				       const OffsetIn& in,
+				       const Base *base,
+				       Ts&&... ds)
+  {
+    out = 0;
+    if (in.is_null ()) return false;
+
+    auto *s = c->serializer;
+    s->push ();
+    bool ret = c->dispatch (base+in, std::forward<Ts> (ds)...);
+    if (ret) s->add_link (out, s->pop_pack ());
+    else s->pop_discard ();
+    return ret;
+  }
+
+  FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
+				 * to 0x00010000u */
+  Offset16To<ScriptList>
+		scriptList;	/* Offset to ScriptList table */
+  Offset16To<FeatureList>
+		featureList;	/* Offset to FeatureList table */
+  Offset16To<LookupListT>
+		lookupList;	/* Offset to LookupList table */
+  Offset32To<FeatureVariations>
+		featureVars;	/* Offset to Feature Variations table--from
+				 * beginning of table (may be NULL).
+				 * Introduced in version 0x00010001. */
+#ifndef HB_NO_BEYOND_64K
+  Offset32To<ScriptList>
+		scriptList2;	/* 32-bit offset to ScriptList table.
+				 * Introduced in version 0x00010002. */
+  Offset32To<FeatureList>
+		featureList2;	/* 32-bit offset to FeatureList table.
+				 * Introduced in version 0x00010002. */
+  Offset32To<LookupListT>
+		lookupList2;	/* 32-bit offset to LookupList table.
+				 * Introduced in version 0x00010002. */
+#endif
   public:
-  DEFINE_SIZE_MIN (4);
+  DEFINE_SIZE_MIN (10);
 };
 
 

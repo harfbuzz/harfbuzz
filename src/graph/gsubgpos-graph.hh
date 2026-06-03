@@ -413,13 +413,7 @@ struct GSTAR : public OT::GSUBGPOS
 
   const void* get_lookup_list_field_offset () const
   {
-    switch (u.version.major) {
-    case 1: return u.version1.get_lookup_list_offset ();
-#ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.get_lookup_list_offset ();
-#endif
-    default: return 0;
-    }
+    return OT::GSUBGPOS::get_lookup_list_field_offset ();
   }
 
   bool sanitize (const graph_t::vertex_t& vertex)
@@ -433,12 +427,7 @@ struct GSTAR : public OT::GSUBGPOS
   void find_lookups (graph_t& graph,
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {
-    switch (u.version.major) {
-      case 1: find_lookups<SmallTypes> (graph, lookups); break;
-#ifndef HB_NO_BEYOND_64K
-      case 2: find_lookups<MediumTypes> (graph, lookups); break;
-#endif
-    }
+    find_lookups<SmallTypes> (graph, lookups);
   }
 
   unsigned get_lookup_list_index (graph_t& graph)
