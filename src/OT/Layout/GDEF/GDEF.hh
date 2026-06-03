@@ -53,6 +53,9 @@ struct AttachPoint : Array16Of<HBUINT16>
   }
 };
 
+/* AttachList is referenced by both GDEF attachListOffset and
+ * attachListOffset2. The v1.4 top-level offset widens, but the
+ * AttachList table itself keeps Offset16 internals. */
 struct AttachList
 {
   unsigned int get_attach_points (hb_codepoint_t glyph_id,
@@ -310,6 +313,8 @@ struct CaretValue
   DEFINE_SIZE_UNION (2, format.v);
 };
 
+/* LigCaretList2 widens the LigCaretList coverage, count, and LigGlyph
+ * offsets. The LigGlyph table itself keeps Offset16 caretValueOffsets. */
 struct LigGlyph
 {
   unsigned get_lig_carets (hb_font_t            *font,
