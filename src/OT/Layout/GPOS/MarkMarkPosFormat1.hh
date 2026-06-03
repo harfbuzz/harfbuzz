@@ -225,7 +225,7 @@ struct MarkMarkPosFormat1_2
       return_trace (false);
 
     return_trace (out->mark2Array.serialize_subset (c, mark2Array, this,
-						    mark2_iter.len (),
+						    new_coverage.length,
 						    mark2_indexes.iter ()));
 
   }
