@@ -204,6 +204,18 @@ static void test_class_and_coverage_size_estimates ()
   };
   hb_always_assert (check_add_class_def_size (multiple_ranges, 0));
   hb_always_assert (check_add_class_def_size (multiple_ranges, 1));
+
+  gid_and_class_list_t high_consecutive = {
+    {0x10000, 1},
+    {0x10001, 1},
+  };
+  hb_always_assert (check_add_class_def_size (high_consecutive, 1));
+
+  gid_and_class_list_t high_non_consecutive = {
+    {0x10000, 1},
+    {0x10002, 1},
+  };
+  hb_always_assert (check_add_class_def_size (high_non_consecutive, 1));
 }
 
 static void test_running_class_and_coverage_size_estimates () {

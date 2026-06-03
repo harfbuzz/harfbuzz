@@ -135,12 +135,7 @@ struct ClassDef : public OT::ClassDef
 
 struct class_def_size_estimator_t
 {
-  // TODO(garretrieger): update to support beyond64k coverage/classdef tables.
-  constexpr static unsigned class_def_format1_base_size = 6;
-  constexpr static unsigned class_def_format2_base_size = 4;
   constexpr static unsigned coverage_base_size = 4;
-  constexpr static unsigned bytes_per_range = 6;
-  constexpr static unsigned bytes_per_glyph = 2;
 
   template<typename It>
   class_def_size_estimator_t (It glyph_and_class)
@@ -182,8 +177,6 @@ struct class_def_size_estimator_t
   }
 
   void reset() {
-    class_def_1_size = class_def_format1_base_size;
-    class_def_2_size = class_def_format2_base_size;
     included_glyphs.clear();
     included_classes.clear();
   }
@@ -191,8 +184,10 @@ struct class_def_size_estimator_t
   // Compute the size of coverage for all glyphs added via 'add_class_def_size'.
   unsigned coverage_size () const
   {
-    unsigned format1_size = coverage_base_size + bytes_per_glyph * included_glyphs.get_population();
-    unsigned format2_size = coverage_base_size + bytes_per_range * num_glyph_ranges();
+    unsigned glyph_size = glyph_id_size (included_glyphs);
+    unsigned range_size = 2 * glyph_size + OT::HBUINT16::static_size;
+    unsigned format1_size = coverage_base_size + glyph_size * included_glyphs.get_population();
+    unsigned format2_size = coverage_base_size + range_size * num_glyph_ranges (included_glyphs);
     return hb_min(format1_size, format2_size);
   }
 
@@ -205,27 +200,18 @@ struct class_def_size_estimator_t
         included_glyphs.union_(*glyphs);
       }
 
-      class_def_1_size = class_def_format1_base_size;
-      if (!included_glyphs.is_empty()) {
-        unsigned min_glyph = included_glyphs.get_min();
-        unsigned max_glyph = included_glyphs.get_max();
-        class_def_1_size += bytes_per_glyph * (max_glyph - min_glyph + 1);
-      }
-
-      class_def_2_size += bytes_per_range * num_ranges_per_class.get (klass);
-
       included_classes.add(klass);
     }
 
-    return hb_min (class_def_1_size, class_def_2_size);
+    return class_def_uses_format1 () ? class_def_format1_size () : class_def_format2_size ();
   }
 
-  unsigned num_glyph_ranges() const {
+  unsigned num_glyph_ranges (const hb_set_t &glyphs) const {
     hb_codepoint_t start = HB_SET_VALUE_INVALID;
     hb_codepoint_t end = HB_SET_VALUE_INVALID;
 
     unsigned count = 0;
-    while (included_glyphs.next_range (&start, &end)) {
+    while (glyphs.next_range (&start, &end)) {
         count++;
     }
     return count;
@@ -244,12 +230,77 @@ struct class_def_size_estimator_t
   }
 
  private:
+  unsigned glyph_id_size (const hb_set_t &glyphs) const
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (!glyphs.is_empty () && glyphs.get_max () > 0xFFFFu)
+      return OT::Layout::MediumTypes::size;
+#endif
+    return OT::Layout::SmallTypes::size;
+  }
+
+  unsigned class_def_format1_size () const
+  {
+    hb_set_t glyphs;
+    class_def_glyphs (&glyphs);
+    unsigned glyph_size = glyph_id_size (glyphs);
+    unsigned size = OT::HBUINT16::static_size + glyph_size + glyph_size;
+    if (!glyphs.is_empty ())
+      size += glyph_size * (glyphs.get_max () - glyphs.get_min () + 1);
+    return size;
+  }
+
+  unsigned class_def_format2_size () const
+  {
+    hb_set_t glyphs;
+    class_def_glyphs (&glyphs);
+    unsigned glyph_size = glyph_id_size (glyphs);
+    unsigned range_size = 2 * glyph_size + OT::HBUINT16::static_size;
+    unsigned size = OT::HBUINT16::static_size + glyph_size;
+    if (glyphs.is_empty ())
+      return OT::HBUINT16::static_size + OT::Layout::SmallTypes::size;
+    for (unsigned klass : included_classes)
+    {
+      if (!klass) continue;
+      size += range_size * num_ranges_per_class.get (klass);
+    }
+    return size;
+  }
+
+  bool class_def_uses_format1 () const
+  {
+    hb_set_t glyphs;
+    class_def_glyphs (&glyphs);
+    if (glyphs.is_empty ()) return false;
+    return 1 + (glyphs.get_max () - glyphs.get_min () + 1) <= class_def_num_ranges () * 3;
+  }
+
+  void class_def_glyphs (hb_set_t *glyphs) const
+  {
+    for (unsigned klass : included_classes)
+    {
+      if (!klass) continue;
+      hb_set_t *klass_glyphs = nullptr;
+      if (glyphs_per_class.has (klass, &klass_glyphs) && klass_glyphs)
+        glyphs->union_ (*klass_glyphs);
+    }
+  }
+
+  unsigned class_def_num_ranges () const
+  {
+    unsigned count = 0;
+    for (unsigned klass : included_classes)
+    {
+      if (!klass) continue;
+      count += num_ranges_per_class.get (klass);
+    }
+    return count;
+  }
+
   hb_hashmap_t<unsigned, unsigned> num_ranges_per_class;
   hb_hashmap_t<unsigned, hb_set_t> glyphs_per_class;
   hb_set_t included_classes;
   hb_set_t included_glyphs;
-  unsigned class_def_1_size;
-  unsigned class_def_2_size;
 };
 
 
