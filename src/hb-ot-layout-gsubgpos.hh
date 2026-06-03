@@ -517,6 +517,9 @@ struct skipping_iterator_t
     match_glyph_data24 = glyph_data;
   }
 #endif
+  template <typename Type, typename OffsetType, typename BaseType, bool has_null>
+  void set_glyph_data (const OffsetTo<Type, OffsetType, BaseType, has_null> glyph_data[])
+  { this->set_glyph_data ((const OffsetType *) glyph_data); }
 
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
@@ -1184,7 +1187,7 @@ static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, con
 }
 static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data, void *cache HB_UNUSED)
 {
-  Offset16To<Coverage> coverage;
+  Offset32To<Coverage> coverage;
   coverage = value;
   return (data+coverage).intersects (glyphs);
 }
@@ -1221,7 +1224,7 @@ static inline void intersected_class_glyphs (const hb_set_t *glyphs, const void 
 
 static inline void intersected_coverage_glyphs (const hb_set_t *glyphs, const void *data, unsigned value, hb_set_t *intersected_glyphs, HB_UNUSED void *cache)
 {
-  Offset16To<Coverage> coverage;
+  Offset32To<Coverage> coverage;
   coverage = value;
   (data+coverage).intersect_set (*glyphs, *intersected_glyphs);
 }
@@ -1252,7 +1255,7 @@ static inline void collect_class (hb_set_t *glyphs, unsigned value, const void *
 }
 static inline void collect_coverage (hb_set_t *glyphs, unsigned value, const void *data)
 {
-  Offset16To<Coverage> coverage;
+  Offset32To<Coverage> coverage;
   coverage = value;
   (data+coverage).collect_coverage (glyphs);
 }
@@ -1720,9 +1723,9 @@ struct LookupRecord
   DEFINE_SIZE_STATIC (4);
 };
 
-static unsigned serialize_lookuprecord_array (hb_serialize_context_t *c,
-					      const hb_array_t<const LookupRecord> lookupRecords,
-					      const hb_map_t *lookup_map)
+static inline unsigned serialize_lookuprecord_array (hb_serialize_context_t *c,
+						     const hb_array_t<const LookupRecord> lookupRecords,
+						     const hb_map_t *lookup_map)
 {
   unsigned count = 0;
   for (const LookupRecord& r : lookupRecords)
@@ -2986,7 +2989,11 @@ struct ContextFormat3_6
       {match_coverage},
       this
     };
-    return_trace (context_apply_lookup (c, glyphCount, coverageZ.arrayZ + 1, lookupCount, lookupRecord, lookup_context));
+    return_trace (context_apply_lookup (c,
+					glyphCount,
+					coverageZ.arrayZ + 1,
+					lookupCount, lookupRecord,
+					lookup_context));
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -4167,6 +4174,7 @@ struct ChainContextFormat2_5
   DEFINE_SIZE_ARRAY (2 + 5 * Types::size, ruleSet);
 };
 
+template <typename Types>
 struct ChainContextFormat3
 {
   using RuleSet = OT::RuleSet<SmallTypes>;
@@ -4185,9 +4193,9 @@ struct ChainContextFormat3
       {this, this, this}
     };
     return chain_context_intersects (glyphs,
-				     backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-				     input.len, (const HBUINT16 *) input.arrayZ + 1,
-				     lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+				     backtrack.len, backtrack.arrayZ,
+				     input.len, input.arrayZ + 1,
+				     lookahead.len, lookahead.arrayZ,
 				     lookup_context);
   }
 
@@ -4215,9 +4223,9 @@ struct ChainContextFormat3
       {this, this, this}
     };
     chain_context_closure_lookup (c,
-				  backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-				  input.len, (const HBUINT16 *) input.arrayZ + 1,
-				  lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+				  backtrack.len, backtrack.arrayZ,
+				  input.len, input.arrayZ + 1,
+				  lookahead.len, lookahead.arrayZ,
 				  lookup.len, lookup.arrayZ,
 				  0, lookup_context);
 
@@ -4251,9 +4259,9 @@ struct ChainContextFormat3
       {this, this, this}
     };
     chain_context_collect_glyphs_lookup (c,
-					 backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-					 input.len, (const HBUINT16 *) input.arrayZ + 1,
-					 lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+					 backtrack.len, backtrack.arrayZ,
+					 input.len, input.arrayZ + 1,
+					 lookahead.len, lookahead.arrayZ,
 					 lookup.len, lookup.arrayZ,
 					 lookup_context);
   }
@@ -4268,9 +4276,9 @@ struct ChainContextFormat3
       {this, this, this}
     };
     return chain_context_would_apply_lookup (c,
-					     backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-					     input.len, (const HBUINT16 *) input.arrayZ + 1,
-					     lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+					     backtrack.len, backtrack.arrayZ,
+					     input.len, input.arrayZ + 1,
+					     lookahead.len, lookahead.arrayZ,
 					     lookup.len, lookup.arrayZ, lookup_context);
   }
 
@@ -4295,9 +4303,9 @@ struct ChainContextFormat3
       {this, this, this}
     };
     return_trace (chain_context_apply_lookup (c,
-					      backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-					      input.len, (const HBUINT16 *) input.arrayZ + 1,
-					      lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+					      backtrack.len, backtrack.arrayZ,
+					      input.len, input.arrayZ + 1,
+					      lookahead.len, lookahead.arrayZ,
 					      lookup.len, lookup.arrayZ, lookup_context));
   }
 
@@ -4306,10 +4314,8 @@ struct ChainContextFormat3
   bool serialize_coverage_offsets (hb_subset_context_t *c, Iterator it, const void* base) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->serializer->start_embed<Array16OfOffset16To<Coverage>> ();
-
-    if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size)))
-      return_trace (false);
+    auto *out = c->serializer->start_embed<typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>> ();
+    if (unlikely (!out->serialize (c->serializer, 0u))) return_trace (false);
 
     for (auto& offset : it) {
       auto *o = out->serialize_append (c->serializer);
@@ -4365,15 +4371,15 @@ struct ChainContextFormat3
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 3 */
-  Array16OfOffset16To<Coverage>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
 		backtrack;		/* Array of coverage tables
 					 * in backtracking sequence, in  glyph
 					 * sequence order */
-  Array16OfOffset16To<Coverage>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
 		inputX		;	/* Array of coverage
 					 * tables in input sequence, in glyph
 					 * sequence order */
-  Array16OfOffset16To<Coverage>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
 		lookaheadX;		/* Array of coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */
@@ -4381,7 +4387,7 @@ struct ChainContextFormat3
 		lookupX;		/* Array of LookupRecords--in
 					 * design order) */
   public:
-  DEFINE_SIZE_MIN (10);
+  DEFINE_SIZE_MIN (4 + 3 * Types::size);
 };
 
 struct ChainContext
@@ -4408,10 +4414,12 @@ struct ChainContext
   struct { HBUINT16 v; }		format;	/* Format identifier */
   ChainContextFormat1_4<SmallTypes>	format1;
   ChainContextFormat2_5<SmallTypes>	format2;
-  ChainContextFormat3			format3;
+  ChainContextFormat3<SmallTypes>	format3;
 #ifndef HB_NO_BEYOND_64K
   ChainContextFormat1_4<MediumTypes>	format4;
   ChainContextFormat2_5<MediumTypes>	format5;
+  /* The beyond-64k spec adds sequence-context format 6, but no
+   * corresponding chained-context coverage format. */
 #endif
   } u;
 };
