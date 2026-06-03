@@ -32,27 +32,29 @@
 
 namespace graph {
 
-struct ClassDefFormat1 : public OT::ClassDefFormat1_3<SmallTypes>
+template <typename Types>
+struct ClassDefFormat1_3 : public OT::ClassDefFormat1_3<Types>
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
-    constexpr unsigned min_size = OT::ClassDefFormat1_3<SmallTypes>::min_size;
+    constexpr unsigned min_size = OT::ClassDefFormat1_3<Types>::min_size;
     if (vertex_len < min_size) return false;
     hb_barrier ();
-    return vertex_len >= min_size + classValue.get_size () - classValue.len.get_size ();
+    return vertex_len >= min_size + this->classValue.get_size () - this->classValue.len.get_size ();
   }
 };
 
-struct ClassDefFormat2 : public OT::ClassDefFormat2_4<SmallTypes>
+template <typename Types>
+struct ClassDefFormat2_4 : public OT::ClassDefFormat2_4<Types>
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
-    constexpr unsigned min_size = OT::ClassDefFormat2_4<SmallTypes>::min_size;
+    constexpr unsigned min_size = OT::ClassDefFormat2_4<Types>::min_size;
     if (vertex_len < min_size) return false;
     hb_barrier ();
-    return vertex_len >= min_size + rangeRecord.get_size () - rangeRecord.len.get_size ();
+    return vertex_len >= min_size + this->rangeRecord.get_size () - this->rangeRecord.len.get_size ();
   }
 };
 
@@ -119,12 +121,11 @@ struct ClassDef : public OT::ClassDef
     hb_barrier ();
     switch (u.format.v)
     {
-    case 1: return ((ClassDefFormat1*)this)->sanitize (vertex);
-    case 2: return ((ClassDefFormat2*)this)->sanitize (vertex);
+    case 1: return ((ClassDefFormat1_3<SmallTypes>*)this)->sanitize (vertex);
+    case 2: return ((ClassDefFormat2_4<SmallTypes>*)this)->sanitize (vertex);
 #ifndef HB_NO_BEYOND_64K
-    // Not currently supported
-    case 3:
-    case 4:
+    case 3: return ((ClassDefFormat1_3<MediumTypes>*)this)->sanitize (vertex);
+    case 4: return ((ClassDefFormat2_4<MediumTypes>*)this)->sanitize (vertex);
 #endif
     default: return false;
     }
