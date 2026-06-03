@@ -32,23 +32,25 @@
 
 namespace graph {
 
+template <typename Types>
 static bool sanitize (
-  const OT::Layout::Common::CoverageFormat1_3<OT::Layout::SmallTypes>* thiz,
+  const OT::Layout::Common::CoverageFormat1_3<Types>* thiz,
   graph_t::vertex_t& vertex
 ) {
   size_t vertex_len = vertex.obj.tail - vertex.obj.head;
-  constexpr unsigned min_size = OT::Layout::Common::CoverageFormat1_3<OT::Layout::SmallTypes>::min_size;
+  constexpr unsigned min_size = OT::Layout::Common::CoverageFormat1_3<Types>::min_size;
   if (vertex_len < min_size) return false;
   hb_barrier ();
   return vertex_len >= min_size + thiz->glyphArray.get_size () - thiz->glyphArray.len.get_size ();
 }
 
+template <typename Types>
 static bool sanitize (
-  const OT::Layout::Common::CoverageFormat2_4<OT::Layout::SmallTypes>* thiz,
+  const OT::Layout::Common::CoverageFormat2_4<Types>* thiz,
   graph_t::vertex_t& vertex
 ) {
   size_t vertex_len = vertex.obj.tail - vertex.obj.head;
-  constexpr unsigned min_size = OT::Layout::Common::CoverageFormat2_4<OT::Layout::SmallTypes>::min_size;
+  constexpr unsigned min_size = OT::Layout::Common::CoverageFormat2_4<Types>::min_size;
   if (vertex_len < min_size) return false;
   hb_barrier ();
   return vertex_len >= min_size + thiz->rangeRecord.get_size () - thiz->rangeRecord.len.get_size ();
@@ -166,9 +168,8 @@ struct Coverage : public OT::Layout::Common::Coverage
     case 1: return graph::sanitize ((const OT::Layout::Common::CoverageFormat1_3<OT::Layout::SmallTypes>*) this, vertex);
     case 2: return graph::sanitize ((const OT::Layout::Common::CoverageFormat2_4<OT::Layout::SmallTypes>*) this, vertex);
 #ifndef HB_NO_BEYOND_64K
-    // Not currently supported
-    case 3:
-    case 4:
+    case 3: return graph::sanitize ((const OT::Layout::Common::CoverageFormat1_3<OT::Layout::MediumTypes>*) this, vertex);
+    case 4: return graph::sanitize ((const OT::Layout::Common::CoverageFormat2_4<OT::Layout::MediumTypes>*) this, vertex);
 #endif
     default: return false;
     }
