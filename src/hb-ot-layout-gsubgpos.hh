@@ -3253,8 +3253,8 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 template <typename Types>
 struct ChainRule
 {
-  template <typename T>
-  friend struct ChainRuleSet;
+  template <typename SetTypes, typename ChainRuleType>
+  friend struct ChainRuleSetOf;
 
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
@@ -3447,17 +3447,15 @@ struct ChainRule
   DEFINE_SIZE_MIN (8);
 };
 
-template <typename Types>
-struct ChainRuleSet
+template <typename Types, typename ChainRuleType>
+struct ChainRuleSetOf
 {
-  using ChainRule = OT::ChainRule<Types>;
-
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_map ([&] (const ChainRule &_) { return _.intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const ChainRuleType &_) { return _.intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -3468,7 +3466,7 @@ struct ChainRuleSet
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRule &_) { _.closure (c, value, lookup_context); })
+    | hb_apply ([&] (const ChainRuleType &_) { _.closure (c, value, lookup_context); })
     ;
   }
 
@@ -3479,7 +3477,7 @@ struct ChainRuleSet
 
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRule &_) { _.closure_lookups (c, lookup_context); })
+    | hb_apply ([&] (const ChainRuleType &_) { _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -3488,7 +3486,7 @@ struct ChainRuleSet
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRule &_) { _.collect_glyphs (c, lookup_context); })
+    | hb_apply ([&] (const ChainRuleType &_) { _.collect_glyphs (c, lookup_context); })
     ;
   }
 
@@ -3498,7 +3496,7 @@ struct ChainRuleSet
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_map ([&] (const ChainRule &_) { return _.would_apply (c, lookup_context); })
+    | hb_map ([&] (const ChainRuleType &_) { return _.would_apply (c, lookup_context); })
     | hb_any
     ;
   }
@@ -3518,7 +3516,7 @@ struct ChainRuleSet
       return_trace (
       + hb_iter (rule)
       | hb_map (hb_add (this))
-      | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
+      | hb_map ([&] (const ChainRuleType &_) { return _.apply (c, lookup_context); })
       | hb_any
       )
       ;
@@ -3560,13 +3558,13 @@ struct ChainRuleSet
       return_trace (
       + hb_iter (rule)
       | hb_map (hb_add (this))
-      | hb_filter ([&] (const ChainRule &_)
+      | hb_filter ([&] (const ChainRuleType &_)
 		   {
 		     const auto &input = StructAfter<decltype (_.inputX)> (_.backtrack);
 		     const auto &lookahead = StructAfter<decltype (_.lookaheadX)> (input);
 		     return input.lenP1 <= 1 && lookahead.len == 0;
 		   })
-      | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
+      | hb_map ([&] (const ChainRuleType &_) { return _.apply (c, lookup_context); })
       | hb_any
       )
       ;
@@ -3659,7 +3657,7 @@ struct ChainRuleSet
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    for (const Offset16To<ChainRule>& _ : rule)
+    for (const auto& _ : rule)
     {
       if (!_) continue;
       auto o_snap = c->serializer->snapshot ();
@@ -3690,12 +3688,18 @@ struct ChainRuleSet
   }
 
   protected:
-  Array16OfOffset16To<ChainRule>
+  Array16Of<typename Types::template OffsetTo<ChainRuleType>>
 		rule;			/* Array of ChainRule tables
 					 * ordered by preference */
   public:
   DEFINE_SIZE_ARRAY (2, rule);
 };
+
+template <typename Types>
+struct ChainRuleSet : ChainRuleSetOf<Types, ChainRule<Types>> {};
+
+template <typename Types>
+struct ChainClassRuleSet : ChainRuleSetOf<Types, ChainRule<SmallTypes>> {};
 
 template <typename Types>
 struct ChainContextFormat1_4
@@ -3841,7 +3845,7 @@ struct ChainContextFormat1_4
   typename Types::template OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Array16Of<typename Types::template OffsetTo<ChainRuleSet>>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<ChainRuleSet>>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by Coverage Index */
   public:
@@ -3851,7 +3855,7 @@ struct ChainContextFormat1_4
 template <typename Types>
 struct ChainContextFormat2_5
 {
-  using ChainRuleSet = OT::ChainRuleSet<SmallTypes>;
+  using ChainRuleSet = OT::ChainClassRuleSet<Types>;
 
   bool intersects (const hb_set_t *glyphs) const
   {
@@ -4156,11 +4160,11 @@ struct ChainContextFormat2_5
 		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
-  Array16Of<typename Types::template OffsetTo<ChainRuleSet>>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<ChainRuleSet>>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (4 + 4 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + 5 * Types::size, ruleSet);
 };
 
 struct ChainContextFormat3
