@@ -16,11 +16,11 @@ struct MultipleSubstFormat1_2
   typename Types::template OffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of Substitution table */
-  Array16Of<typename Types::template OffsetTo<Sequence<Types>>>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<Sequence<Types>>>
                 sequence;               /* Array of Sequence tables
                                          * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (4 + Types::size, sequence);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, sequence);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

@@ -16,7 +16,7 @@ struct AlternateSubstFormat1_2
   typename Types::template OffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of Substitution table */
-  Array16Of<typename Types::template OffsetTo<AlternateSet<Types>>>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<AlternateSet<Types>>>
                 alternateSet;           /* Array of AlternateSet tables
                                          * ordered by Coverage Index */
   public:

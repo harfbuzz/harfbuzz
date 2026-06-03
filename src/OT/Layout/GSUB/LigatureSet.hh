@@ -12,7 +12,7 @@ template <typename Types>
 struct LigatureSet
 {
   public:
-  Array16OfOffset16To<Ligature<Types>>
+  Array16Of<typename Types::template OffsetTo<Ligature<Types>>>
                 ligature;               /* Array LigatureSet tables
                                          * ordered by preference */
   

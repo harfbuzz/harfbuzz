@@ -15,12 +15,12 @@ struct SingleSubstFormat2_4
   typename Types::template OffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of Substitution table */
-  Array16Of<typename Types::HBGlyphID>
+  typename Types::template ArrayOf<typename Types::HBGlyphID>
                 substitute;             /* Array of substitute
                                          * GlyphIDs--ordered by Coverage Index */
 
   public:
-  DEFINE_SIZE_ARRAY (4 + Types::size, substitute);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, substitute);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
