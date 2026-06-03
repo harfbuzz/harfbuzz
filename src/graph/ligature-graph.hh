@@ -508,7 +508,7 @@ struct LigatureSubst : public OT::Layout::GSUB_impl::LigatureSubst
       return ((LigatureSubstFormat1*)(&u.format1))->split_subtables (c, this_index);
 #ifndef HB_NO_BEYOND_64K
     case 2: HB_FALLTHROUGH;
-      // Don't split 24bit Ligature Subs
+      // 24-bit LigatureSubst already has widened offsets; leave it unsplit.
 #endif
     default:
       return hb_vector_t<unsigned> ();
