@@ -127,11 +127,11 @@ struct ReverseChainSingleSubstFormat1_2
 
     unsigned int start_index = 0, end_index = 0;
     if (match_backtrack (c,
-                         backtrack.len, (const typename Types::HBUINT *) backtrack.arrayZ,
+                         backtrack.len, backtrack.arrayZ,
                          match_coverage, this,
                          &start_index) &&
         match_lookahead (c,
-                         lookahead.len, (const typename Types::HBUINT *) lookahead.arrayZ,
+                         lookahead.len, lookahead.arrayZ,
                          match_coverage, this,
                          c->buffer->idx + 1, &end_index))
     {
