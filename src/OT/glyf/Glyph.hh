@@ -382,19 +382,6 @@ struct Glyph
 #ifndef HB_NO_VAR
     if (hb_any (coords))
     {
-#ifndef HB_NO_BEYOND_64K
-      if (glyf_accelerator.GVAR->has_data ())
-      {
-	if (!glyf_accelerator.GVAR->apply_deltas_to_points (gid,
-							    coords,
-							    points.as_array ().sub_array (old_length),
-							    scratch,
-							    gvar_cache,
-							    phantom_only && type == SIMPLE))
-	  return false;
-      }
-      else
-#endif
       if (!glyf_accelerator.gvar->apply_deltas_to_points (gid,
 							  coords,
 							  points.as_array ().sub_array (old_length),

@@ -172,9 +172,6 @@ struct glyf_accelerator_t
     glyf_table = nullptr;
 #ifndef HB_NO_VAR
     gvar = nullptr;
-#ifndef HB_NO_BEYOND_64K
-    GVAR = nullptr;
-#endif
 #endif
     hmtx = nullptr;
 #ifndef HB_NO_VERTICAL
@@ -190,9 +187,6 @@ struct glyf_accelerator_t
     glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
 #ifndef HB_NO_VAR
     gvar = face->table.gvar;
-#ifndef HB_NO_BEYOND_64K
-    GVAR = face->table.GVAR;
-#endif
 #endif
     hmtx = face->table.hmtx;
 #ifndef HB_NO_VERTICAL
@@ -544,9 +538,6 @@ struct glyf_accelerator_t
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;
-#ifndef HB_NO_BEYOND_64K
-  const GVAR_accelerator_t *GVAR;
-#endif
 #endif
   const hmtx_accelerator_t *hmtx;
 #ifndef HB_NO_VERTICAL
