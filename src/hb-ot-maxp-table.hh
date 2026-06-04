@@ -72,7 +72,7 @@ struct maxpV1Tail
 
 
 template <typename Types>
-struct maxpMAXP
+struct maxp_MAXP
 {
   unsigned int get_num_glyphs () const { return numGlyphs; }
 
@@ -98,7 +98,7 @@ struct maxpMAXP
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    maxpMAXP *maxp_prime = c->serializer->embed (this);
+    maxp_MAXP *maxp_prime = c->serializer->embed (this);
     if (unlikely (!maxp_prime)) return_trace (false);
 
     maxp_prime->numGlyphs = hb_min (c->plan->num_output_glyphs (),
@@ -152,12 +152,12 @@ struct maxpMAXP
   DEFINE_SIZE_STATIC (4 + Types::HBUINT::static_size);
 };
 
-struct maxp : maxpMAXP<Layout::SmallTypes>
+struct maxp : maxp_MAXP<Layout::SmallTypes>
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_maxp;
 };
 
-struct MAXP : maxpMAXP<Layout::MediumTypes>
+struct MAXP : maxp_MAXP<Layout::MediumTypes>
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_MAXP;
 };
