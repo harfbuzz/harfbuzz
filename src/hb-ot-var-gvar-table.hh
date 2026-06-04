@@ -1024,40 +1024,18 @@ struct GVAR : gvar_GVAR<MediumTypes>
 struct gvar_accelerator_t
 {
   gvar_accelerator_t (hb_face_t *face) :
-    gvar_accel (nullptr)
 #ifndef HB_NO_BEYOND_64K
-    , GVAR_accel (nullptr)
+    GVAR_accel (face, GVAR::tableTag),
 #endif
-  {
-#ifndef HB_NO_BEYOND_64K
-    GVAR_accel = create_accelerator<GVAR> (face);
-    if (GVAR_accel && GVAR_accel->has_data ())
-    {
-      gvar_accel = nullptr;
-      return;
-    }
-    destroy_accelerator (GVAR_accel);
-    GVAR_accel = nullptr;
-#endif
-
-    gvar_accel = create_accelerator<gvar> (face);
-  }
-
-  ~gvar_accelerator_t ()
-  {
-    destroy_accelerator (gvar_accel);
-#ifndef HB_NO_BEYOND_64K
-    destroy_accelerator (GVAR_accel);
-#endif
-  }
+    gvar_accel (face, gvar::tableTag)
+  {}
 
   hb_scalar_cache_t *create_cache () const
   {
 #ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel) return GVAR_accel->create_cache ();
+    if (GVAR_accel.has_data ()) return GVAR_accel.create_cache ();
 #endif
-    if (unlikely (!gvar_accel)) return nullptr;
-    return gvar_accel->create_cache ();
+    return gvar_accel.create_cache ();
   }
 
   static void destroy_cache (hb_scalar_cache_t *cache)
@@ -1068,10 +1046,10 @@ struct gvar_accelerator_t
   bool has_data () const
   {
 #ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel) return GVAR_accel->has_data ();
+    if (GVAR_accel.has_data ()) return true;
 #endif
-    if (unlikely (!gvar_accel)) return false;
-    return gvar_accel->has_data ();
+    if (gvar_accel.has_data ()) return true;
+    return false;
   }
 
   bool apply_deltas_to_points (hb_codepoint_t glyph,
@@ -1082,46 +1060,30 @@ struct gvar_accelerator_t
 			       bool phantom_only = false) const
   {
 #ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel)
-      return GVAR_accel->apply_deltas_to_points (glyph, coords, points, scratch,
-						 gvar_cache, phantom_only);
+    if (GVAR_accel.has_data ())
+      return GVAR_accel.apply_deltas_to_points (glyph, coords, points, scratch,
+						gvar_cache, phantom_only);
 #endif
-    if (unlikely (!gvar_accel)) return true;
-    return gvar_accel->apply_deltas_to_points (glyph, coords, points, scratch,
-					       gvar_cache, phantom_only);
+    if (gvar_accel.has_data ())
+      return gvar_accel.apply_deltas_to_points (glyph, coords, points, scratch,
+						gvar_cache, phantom_only);
+    return true;
   }
 
   unsigned int get_axis_count () const
   {
 #ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel) return GVAR_accel->get_axis_count ();
+    if (GVAR_accel.has_data ()) return GVAR_accel.get_axis_count ();
 #endif
-    if (unlikely (!gvar_accel)) return 0;
-    return gvar_accel->get_axis_count ();
+    if (gvar_accel.has_data ()) return gvar_accel.get_axis_count ();
+    return 0;
   }
 
   private:
-  template <typename Table>
-  static typename Table::accelerator_t *create_accelerator (hb_face_t *face)
-  {
-    typename Table::accelerator_t *accel =
-      (typename Table::accelerator_t *) hb_calloc (1, sizeof (typename Table::accelerator_t));
-    if (unlikely (!accel)) return nullptr;
-    return new (accel) typename Table::accelerator_t (face, Table::tableTag);
-  }
-
-  template <typename Accel>
-  static void destroy_accelerator (Accel *accel)
-  {
-    if (!accel) return;
-    accel->~Accel ();
-    hb_free (accel);
-  }
-
-  gvar::accelerator_t *gvar_accel;
 #ifndef HB_NO_BEYOND_64K
-  GVAR::accelerator_t *GVAR_accel;
+  GVAR::accelerator_t GVAR_accel;
 #endif
+  gvar::accelerator_t gvar_accel;
 };
 
 } /* namespace OT */
