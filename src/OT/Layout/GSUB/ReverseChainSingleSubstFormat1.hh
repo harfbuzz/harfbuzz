@@ -15,12 +15,12 @@ struct ReverseChainSingleSubstFormat1_2
   typename Types::template OffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of table */
-  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
+  Array16Of<typename Types::template OffsetTo<Coverage>>
                 backtrack;              /* Array of coverage tables
                                          * in backtracking sequence, in glyph
                                          * sequence order */
-  /* Format 2 widens the lookahead coverage offsets but, unlike the
-   * backtrack and substitute arrays, keeps the lookahead count 16-bit. */
+  /* Format 2 widens the backtrack and lookahead coverage offsets but
+   * keeps their counts 16-bit. */
   Array16Of<typename Types::template OffsetTo<Coverage>>
                 lookaheadX;             /* Array of coverage tables
                                          * in lookahead sequence, in glyph
@@ -29,7 +29,7 @@ struct ReverseChainSingleSubstFormat1_2
                 substituteX;            /* Array of substitute
                                          * GlyphIDs--ordered by Coverage Index */
   public:
-  DEFINE_SIZE_MIN (4 + 3 * Types::size);
+  DEFINE_SIZE_MIN (6 + 2 * Types::size);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -170,7 +170,7 @@ struct ReverseChainSingleSubstFormat1_2
   bool serialize_coverage_offset_array (hb_subset_context_t *c, Iterator it) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->serializer->start_embed<typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>> ();
+    auto *out = c->serializer->start_embed<Array16Of<typename Types::template OffsetTo<Coverage>>> ();
     if (unlikely (!out->serialize (c->serializer, 0u))) return_trace (false);
 
     for (auto& offset : it) {
