@@ -193,11 +193,8 @@ struct hmtxvmtx
 	lm.advance = mtx.first;
 	lm.sb = mtx.second;
       }
-      // TODO(beyond-64k): This assumes that maxp.numGlyphs is 0xFFFF.
-      else if (gid < 0x10000u)
-        short_metrics[gid] = mtx.second;
       else
-        ((UFWORD*) short_metrics)[gid] = mtx.first;
+        short_metrics[gid] = mtx.second;
     }
   }
 
@@ -336,33 +333,15 @@ struct hmtxvmtx
 
     unsigned int get_advance_without_var_unscaled (hb_codepoint_t glyph) const
     {
-      /* OpenType case. */
       if (glyph < num_bearings)
 	return table->longMetricZ[hb_min (glyph, (uint32_t) num_long_metrics - 1)].advance;
 
       /* If num_advances is zero, it means we don't have the metrics table
-       * for this direction: return default advance.  Otherwise, there's a
-       * well-defined answer. */
+       * for this direction: return default advance. */
       if (unlikely (!num_advances))
 	return default_advance;
 
-#ifdef HB_NO_BEYOND_64K
       return 0;
-#endif
-
-      if (unlikely (glyph >= num_glyphs))
-        return 0;
-
-      /* num_bearings <= glyph < num_glyphs;
-       * num_bearings <= num_advances */
-
-      if (num_bearings == num_advances)
-        return get_advance_without_var_unscaled (num_bearings - 1);
-
-      const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_long_metrics];
-      const UFWORD *advances = (const UFWORD *) &bearings[num_bearings - num_long_metrics];
-
-      return advances[hb_min (glyph - num_bearings, num_advances - num_bearings - 1)];
     }
 
 #ifndef HB_NO_VAR
