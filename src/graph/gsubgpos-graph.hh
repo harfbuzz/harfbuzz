@@ -420,6 +420,7 @@ struct GSTAR : public OT::GSUBGPOS
   {
     size_t len = vertex.obj.tail - vertex.obj.head;
     if (len < OT::GSUBGPOS::min_size) return false;
+    if (version.major != 1) return false;
     hb_barrier ();
     return len >= get_size ();
   }
