@@ -162,6 +162,50 @@ struct MAXP : maxp_MAXP<Layout::MediumTypes>
   static constexpr hb_tag_t tableTag = HB_OT_TAG_MAXP;
 };
 
+struct maxp_accelerator_t
+{
+  maxp_accelerator_t ()
+  {
+    blob = hb_blob_get_empty ();
+    numGlyphs = 0;
+  }
+
+  maxp_accelerator_t (hb_face_t *face) : maxp_accelerator_t ()
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (init_table<MAXP> (face))
+      return;
+#endif
+
+    init_table<maxp> (face);
+  }
+
+  ~maxp_accelerator_t () { hb_blob_destroy (blob); }
+
+  unsigned int get_num_glyphs () const { return numGlyphs; }
+  hb_blob_t *get_blob () const { return blob; }
+
+  private:
+  template <typename Table>
+  bool init_table (hb_face_t *face)
+  {
+    hb_sanitize_context_t c;
+    c.set_num_glyphs (0);
+    hb_blob_ptr_t<Table> table = c.reference_table<Table> (face);
+    bool ret = table.get_length ();
+    if (ret)
+    {
+      blob = hb_blob_reference (table.get_blob ());
+      numGlyphs = table->get_num_glyphs ();
+    }
+    table.destroy ();
+    return ret;
+  }
+
+  hb_blob_t *blob;
+  unsigned int numGlyphs;
+};
+
 
 } /* namespace OT */
 
