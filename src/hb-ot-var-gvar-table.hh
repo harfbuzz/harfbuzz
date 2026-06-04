@@ -307,7 +307,8 @@ struct gvar_GVAR
   using GlyphCountType = typename Types::HBUINT;
 
   using GlyphVariationData = TupleVariationData<GlyphCountType>;
-  static constexpr unsigned glyph_count_max = (1u << (8 * GlyphCountType::static_size)) - 1;
+  static constexpr unsigned glyph_count_max ()
+  { return (1u << (8 * GlyphCountType::static_size)) - 1; }
 
   bool has_data () const { return version.to_int () != 0; }
 
@@ -368,7 +369,7 @@ struct gvar_GVAR
     out->version.major = 1;
     out->version.minor = 0;
     out->axisCount = axis_count;
-    out->glyphCountX = hb_min (glyph_count_max, num_glyphs);
+    out->glyphCountX = hb_min (glyph_count_max (), num_glyphs);
 
     unsigned glyph_var_data_size = glyph_vars.compiled_byte_size ();
     /* According to the spec: If the short format (Offset16) is used for offsets,
@@ -443,7 +444,7 @@ struct gvar_GVAR
     out->sharedTupleCount = sharedTupleCount;
 
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
-    out->glyphCountX = hb_min (glyph_count_max, num_glyphs);
+    out->glyphCountX = hb_min (glyph_count_max (), num_glyphs);
 
     auto it = hb_iter (c->plan->new_to_old_gid_list);
     if (it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
