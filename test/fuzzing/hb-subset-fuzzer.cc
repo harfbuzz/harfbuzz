@@ -68,6 +68,11 @@ read_ranges (const uint8_t *&p,
     if (finish < start)
       return false;
 
+    if (finish - start > 5000) {
+      // Prevent fuzzer timeouts by rejecting large ranges.
+      return false;
+    }
+
     if (is_add)
       hb_set_add_range (set, start, finish);
     else
