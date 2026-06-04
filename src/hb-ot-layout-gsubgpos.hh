@@ -4733,7 +4733,7 @@ struct GSUBGPOS
 #ifndef HB_NO_BEYOND_64K
     if (version.to_int () >= 0x00010002u)
     {
-      if (unlikely (!c->subset_context->serializer->extend_min (&out->lookupList2)))
+      if (unlikely (!c->subset_context->serializer->extend_size (out, get_size ())))
         return_trace (false);
 
       out->scriptList = 0;
