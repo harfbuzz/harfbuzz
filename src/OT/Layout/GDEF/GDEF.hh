@@ -675,7 +675,7 @@ struct GDEF
 	      (glyphClassDef2 || attachList2 || ligCaretList2 ||
 	       markAttachClassDef2 || markGlyphSetsDef2);
     if (unlikely (version.to_int () >= 0x00010004u && hb_barrier () &&
-		  !c->serializer->extend_min (&out->markGlyphSetsDef2)))
+		  !c->serializer->extend_size (out, get_size ())))
       return_trace (false);
 #endif
 
