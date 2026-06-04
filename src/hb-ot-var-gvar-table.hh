@@ -1027,7 +1027,11 @@ struct gvar_accelerator_t
 #ifndef HB_NO_BEYOND_64K
     GVAR_accel (face, GVAR::tableTag),
 #endif
-    gvar_accel (face, gvar::tableTag)
+    gvar_accel (
+#ifndef HB_NO_BEYOND_64K
+		GVAR_accel.has_data () ? hb_face_get_empty () :
+#endif
+		face, gvar::tableTag)
   {}
 
   hb_scalar_cache_t *create_cache () const
@@ -1035,7 +1039,8 @@ struct gvar_accelerator_t
 #ifndef HB_NO_BEYOND_64K
     if (GVAR_accel.has_data ()) return GVAR_accel.create_cache ();
 #endif
-    return gvar_accel.create_cache ();
+    if (gvar_accel.has_data ()) return gvar_accel.create_cache ();
+    return nullptr;
   }
 
   static void destroy_cache (hb_scalar_cache_t *cache)
