@@ -4167,11 +4167,11 @@ struct ChainContextFormat2_5
 		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
-  typename Types::template ArrayOf<typename Types::template OffsetTo<ChainRuleSet>>
+  Array16Of<typename Types::template OffsetTo<ChainRuleSet>>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (2 + 5 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (4 + 4 * Types::size, ruleSet);
 };
 
 template <typename Types>
@@ -4314,7 +4314,7 @@ struct ChainContextFormat3
   bool serialize_coverage_offsets (hb_subset_context_t *c, Iterator it, const void* base) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->serializer->start_embed<typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>> ();
+    auto *out = c->serializer->start_embed<Array16Of<typename Types::template OffsetTo<Coverage>>> ();
     if (unlikely (!out->serialize (c->serializer, 0u))) return_trace (false);
 
     for (auto& offset : it) {
@@ -4371,15 +4371,15 @@ struct ChainContextFormat3
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 3 */
-  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
+  Array16Of<typename Types::template OffsetTo<Coverage>>
 		backtrack;		/* Array of coverage tables
 					 * in backtracking sequence, in  glyph
 					 * sequence order */
-  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
+  Array16Of<typename Types::template OffsetTo<Coverage>>
 		inputX		;	/* Array of coverage
 					 * tables in input sequence, in glyph
 					 * sequence order */
-  typename Types::template ArrayOf<typename Types::template OffsetTo<Coverage>>
+  Array16Of<typename Types::template OffsetTo<Coverage>>
 		lookaheadX;		/* Array of coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */
@@ -4387,7 +4387,7 @@ struct ChainContextFormat3
 		lookupX;		/* Array of LookupRecords--in
 					 * design order) */
   public:
-  DEFINE_SIZE_MIN (4 + 3 * Types::size);
+  DEFINE_SIZE_MIN (10);
 };
 
 struct ChainContext
