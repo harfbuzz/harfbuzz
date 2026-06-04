@@ -28,6 +28,7 @@
 #define HB_OT_MAXP_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "OT/Layout/types.hh"
 
 namespace OT {
 
@@ -38,6 +39,7 @@ namespace OT {
  */
 
 #define HB_OT_TAG_maxp HB_TAG('m','a','x','p')
+#define HB_OT_TAG_MAXP HB_TAG('M','A','X','P')
 
 struct maxpV1Tail
 {
@@ -69,10 +71,9 @@ struct maxpV1Tail
 };
 
 
-struct maxp
+template <typename Types>
+struct maxpMAXP
 {
-  static constexpr hb_tag_t tableTag = HB_OT_TAG_maxp;
-
   unsigned int get_num_glyphs () const { return numGlyphs; }
 
   void set_num_glyphs (unsigned int count)
@@ -97,10 +98,11 @@ struct maxp
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    maxp *maxp_prime = c->serializer->embed (this);
+    maxpMAXP *maxp_prime = c->serializer->embed (this);
     if (unlikely (!maxp_prime)) return_trace (false);
 
-    maxp_prime->numGlyphs = hb_min (c->plan->num_output_glyphs (), 0xFFFFu);
+    maxp_prime->numGlyphs = hb_min (c->plan->num_output_glyphs (),
+				    (1u << (8 * Types::size)) - 1);
     if (maxp_prime->version.major == 1)
     {
       hb_barrier ();
@@ -142,11 +144,22 @@ struct maxp
   protected:
   FixedVersion<>version;/* Version of the maxp table (0.5 or 1.0),
 			 * 0x00005000u or 0x00010000u. */
-  HBUINT16	numGlyphs;
+  typename Types::HBUINT
+		numGlyphs;
 			/* The number of glyphs in the font. */
 /*maxpV1Tail	v1Tail[HB_VAR_ARRAY]; */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_STATIC (4 + Types::HBUINT::static_size);
+};
+
+struct maxp : maxpMAXP<Layout::SmallTypes>
+{
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_maxp;
+};
+
+struct MAXP : maxpMAXP<Layout::MediumTypes>
+{
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_MAXP;
 };
 
 

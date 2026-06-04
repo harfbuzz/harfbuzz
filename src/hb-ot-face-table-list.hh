@@ -53,6 +53,9 @@
 /* OpenType fundamentals. */
 HB_OT_CORE_TABLE (OT, head)
 HB_OT_CORE_TABLE (OT, maxp)
+#ifndef HB_NO_BEYOND_64K
+HB_OT_CORE_TABLE (OT, MAXP)
+#endif
 #if !defined(HB_NO_FACE_COLLECT_UNICODES) || !defined(HB_NO_OT_FONT)
 HB_OT_ACCELERATOR (OT, cmap)
 #endif

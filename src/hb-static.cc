@@ -72,6 +72,10 @@ const unsigned char *endchar_str = static_endchar_str;
 static inline unsigned
 load_num_glyphs_from_maxp (const hb_face_t *face)
 {
+#ifndef HB_NO_BEYOND_64K
+  if (face->table.MAXP)
+    return face->table.MAXP->get_num_glyphs ();
+#endif
   return face->table.maxp->get_num_glyphs ();
 }
 
