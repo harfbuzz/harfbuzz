@@ -4788,7 +4788,8 @@ struct GSUBGPOS
     if (version.to_int () >= 0x00010001u)
     {
       auto snapshot = c->subset_context->serializer->snapshot ();
-      if (!c->subset_context->serializer->extend_min (&out->featureVars))
+      if (version.to_int () < 0x00010002u &&
+	  !c->subset_context->serializer->extend_min (&out->featureVars))
         return_trace (false);
 
       // if all axes are pinned all feature vars are dropped.
