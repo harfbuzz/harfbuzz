@@ -26,10 +26,13 @@
 
 #ifndef HB_SUBSET_H
 #define HB_SUBSET_H
+#define HB_SUBSET_H_IN
 
 #include "hb.h"
 #include "hb-ot.h"
 #include "hb-subset-depend.h"
+
+#undef HB_SUBSET_H_IN
 
 HB_BEGIN_DECLS
 
