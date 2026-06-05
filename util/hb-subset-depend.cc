@@ -27,6 +27,8 @@
 #include "batch.hh"
 #include "face-options.hh"
 
+#include <hb-subset.h>
+
 #include <set>
 #include <string>
 #include <vector>

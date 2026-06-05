@@ -38,10 +38,10 @@
 #include "OT/Color/COLR/colrv1-depend.hh"
 
 /**
- * SECTION:hb-depend
- * @title: hb-depend
+ * SECTION:hb-subset-depend
+ * @title: hb-subset-depend
  * @short_description: Glyph dependency graph for font optimization
- * @include: hb-depend.h
+ * @include: hb-subset-depend.h
  *
  * <warning>This API is highly experimental and subject to change. It is not
  * enabled by default and should not be used in production code without

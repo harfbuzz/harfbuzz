@@ -26,6 +26,7 @@
 
 #include <hb.h>
 #include <hb-ot.h>
+#include <hb-subset.h>
 
 #ifndef HB_NO_SUBSET_DEPEND
 

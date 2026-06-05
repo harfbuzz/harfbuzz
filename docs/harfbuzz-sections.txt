@@ -1012,6 +1012,8 @@ hb_subset_depend_from_face_or_fail
 hb_subset_depend_lookup_glyph
 hb_subset_depend_lookup_set
 hb_subset_depend_destroy
+<SUBSECTION Private>
+HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
 </SECTION>
 
 <SECTION>
