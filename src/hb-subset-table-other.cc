@@ -23,6 +23,7 @@ bool _hb_subset_table_other		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb
   case HB_TAG('v','m','t','x'): *success = _hb_subset_table<const OT::vmtx> (plan, buf); return true;
   case HB_TAG('m','a','x','p'): *success = _hb_subset_table<const OT::maxp> (plan, buf); return true;
 #ifndef HB_NO_BEYOND_64K
+  case HB_TAG('G','L','Y','F'): *success = _hb_subset_table<const OT::GLYF> (plan, buf); return true;
   case HB_TAG('H','H','E','A'): *success = true; return true; /* skip HHEA, handled by HMTX */
   case HB_TAG('H','M','T','X'): *success = _hb_subset_table<const OT::HMTX> (plan, buf); return true;
   case HB_TAG('V','H','E','A'): *success = true; return true; /* skip VHEA, handled by VMTX */
@@ -30,6 +31,9 @@ bool _hb_subset_table_other		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb
   case HB_TAG('M','A','X','P'): *success = _hb_subset_table<const OT::MAXP> (plan, buf); return true;
 #endif
   case HB_TAG('l','o','c','a'): *success = true; return true; /* skip loca, handled by glyf */
+#ifndef HB_NO_BEYOND_64K
+  case HB_TAG('L','O','C','A'): *success = true; return true; /* skip LOCA, handled by GLYF */
+#endif
   case HB_TAG('c','m','a','p'): *success = _hb_subset_table<const OT::cmap> (plan, buf); return true;
   case HB_TAG('O','S','/','2'): *success = _hb_subset_table<const OT::OS2 > (plan, buf); return true;
   case HB_TAG('p','o','s','t'): *success = _hb_subset_table<const OT::post> (plan, buf); return true;

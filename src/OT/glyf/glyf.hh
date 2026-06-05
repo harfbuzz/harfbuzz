@@ -38,6 +38,20 @@ struct glyf
     return head.indexToLocFormat <= 1 && head.glyphDataFormat <= 1;
   }
 
+  static bool has_extended_glyf (hb_face_t *face)
+  {
+#ifndef HB_NO_BEYOND_64K
+    hb_blob_ptr_t<glyf> GLYF_table = hb_sanitize_context_t ().reference_table<glyf> (face, HB_OT_TAG_GLYF);
+    hb_blob_ptr_t<loca> LOCA_table = hb_sanitize_context_t ().reference_table<loca> (face, HB_OT_TAG_LOCA);
+    bool ret = GLYF_table.get_length () && LOCA_table.get_length ();
+    GLYF_table.destroy ();
+    LOCA_table.destroy ();
+    return ret;
+#else
+    return false;
+#endif
+  }
+
   bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
@@ -78,6 +92,12 @@ struct glyf
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+
+    bool extended = has_extended_glyf (c->plan->source);
+#ifndef HB_NO_BEYOND_64K
+    if (extended != (c->table_tag == HB_OT_TAG_GLYF))
+      return_trace (false);
+#endif
 
     if (!has_valid_glyf_format (c->plan->source)) {
       // glyf format is unknown don't attempt to subset it.
@@ -134,7 +154,8 @@ struct glyf
 
     if (unlikely (!c->serializer->check_success (glyf_impl::_add_loca_and_head (c,
 						 padded_offsets.iter (),
-						 use_short_loca))))
+						 use_short_loca,
+						 extended))))
       return_trace (false);
 
     return result;
@@ -162,6 +183,13 @@ struct glyf
 			 * check the size externally, allow Null() object of it by
 			 * defining it _MIN instead. */
 };
+
+#ifndef HB_NO_BEYOND_64K
+struct GLYF : glyf
+{
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_GLYF;
+};
+#endif
 
 struct glyf_accelerator_t
 {

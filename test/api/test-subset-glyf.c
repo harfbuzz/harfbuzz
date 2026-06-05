@@ -57,6 +57,68 @@ static void check_maxp_num_glyphs (hb_face_t *face, uint16_t expected_num_glyphs
   hb_blob_destroy (maxp_blob);
 }
 
+#ifndef HB_NO_BEYOND_64K
+static void
+test_subset_GLYF (void)
+{
+  static const char maxp_data[] =
+    "\x00\x00\x50\x00" /* version */
+    "\x00\x01" /* numGlyphs */
+    ;
+  static const char head_data[54] =
+    "\x00\x01\x00\x00" /* version */
+    "\x00\x00\x00\x00" /* fontRevision */
+    "\x00\x00\x00\x00" /* checkSumAdjustment */
+    "\x5F\x0F\x3C\xF5" /* magicNumber */
+    "\x00\x00" /* flags */
+    "\x03\xE8" /* unitsPerEm */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* created */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* modified */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* bounds */
+    "\x00\x00" /* macStyle */
+    "\x00\x00" /* lowestRecPPEM */
+    "\x00\x00" /* fontDirectionHint */
+    "\x00\x01" /* indexToLocFormat */
+    "\x00\x00" /* glyphDataFormat */
+    ;
+  static const char loca_data[8] =
+    "\x00\x00\x00\x00"
+    "\x00\x00\x00\x01"
+    ;
+  static const char glyf_data[] = "\0";
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "head", head_data);
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+  HB_FACE_ADD_TABLE (face, "GLYF", glyf_data);
+  HB_FACE_ADD_TABLE (face, "LOCA", loca_data);
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_set_add (glyphs, 0);
+  hb_face_t *subset = hb_subset_test_create_subset (face,
+    hb_subset_test_create_input_from_glyphs (glyphs));
+  hb_set_destroy (glyphs);
+
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('G','L','Y','F'));
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_table (subset, HB_TAG ('L','O','C','A'));
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_table (subset, HB_TAG ('l','o','c','a'));
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+#endif
+
 static void
 test_subset_glyf (void)
 {
@@ -393,6 +455,9 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_subset_GLYF);
+#endif
   hb_test_add (test_subset_glyf_noop);
   hb_test_add (test_subset_glyf);
   hb_test_add (test_subset_glyf_set_overlaps_flag);
