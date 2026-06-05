@@ -170,6 +170,107 @@ test_subset_invalid_hmtx (void)
   hb_face_destroy (face);
 }
 
+#ifndef HB_NO_BEYOND_64K
+static unsigned
+read_uint (hb_face_t *face, hb_tag_t tag, unsigned offset, unsigned size)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, tag);
+  unsigned length;
+  const uint8_t *data = (const uint8_t *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (offset + size, <=, length);
+
+  unsigned value = 0;
+  for (unsigned i = 0; i < size; i++)
+    value = (value << 8) | data[offset + i];
+
+  hb_blob_destroy (blob);
+  return value;
+}
+
+static void
+test_subset_hybrid_hmtx (void)
+{
+  const char maxp_data[] = "\x00\x00\x50\x00\x00\x03";
+  const char MAXP_data[] = "\x00\x00\x50\x00\x00\x00\x03";
+  const char hhea_data[36] = {
+    [1] = 1,
+    [35] = 3,
+  };
+  const char HHEA_data[38] = {
+    [1] = 1,
+    [37] = 3,
+  };
+  const char vhea_data[36] = {
+    [1] = 1,
+    [35] = 3,
+  };
+  const char VHEA_data[38] = {
+    [1] = 1,
+    [37] = 3,
+  };
+  const char hmtx_data[] = {
+    0, 10, 0, 1,
+    0, 20, 0, 2,
+    0, 30, 0, 3,
+  };
+  const char HMTX_data[] = {
+    0, 100, 0, 4,
+    0, 200, 0, 5,
+    1, 44, 0, 6,
+  };
+  const char vmtx_data[] = {
+    0, 40, 0, 7,
+    0, 50, 0, 8,
+    0, 60, 0, 9,
+  };
+  const char VMTX_data[] = {
+    1, 144, 0, 10,
+    1, 244, 0, 11,
+    2, 88, 0, 12,
+  };
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "MAXP", MAXP_data);
+  HB_FACE_ADD_TABLE (face, "hhea", hhea_data);
+  HB_FACE_ADD_TABLE (face, "HHEA", HHEA_data);
+  HB_FACE_ADD_TABLE (face, "hmtx", hmtx_data);
+  HB_FACE_ADD_TABLE (face, "HMTX", HMTX_data);
+  HB_FACE_ADD_TABLE (face, "vhea", vhea_data);
+  HB_FACE_ADD_TABLE (face, "VHEA", VHEA_data);
+  HB_FACE_ADD_TABLE (face, "vmtx", vmtx_data);
+  HB_FACE_ADD_TABLE (face, "VMTX", VMTX_data);
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_set_add (glyphs, 0);
+  hb_set_add (glyphs, 2);
+  hb_face_t *subset = hb_subset_test_create_subset (face,
+						    hb_subset_test_create_input_from_glyphs (glyphs));
+  hb_set_destroy (glyphs);
+
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('h','h','e','a'), 34, 2), ==, 2);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('H','H','E','A'), 34, 4), ==, 2);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('h','m','t','x'), 0, 2), ==, 10);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('h','m','t','x'), 4, 2), ==, 30);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('H','M','T','X'), 0, 2), ==, 100);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('H','M','T','X'), 4, 2), ==, 300);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('v','h','e','a'), 34, 2), ==, 2);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('V','H','E','A'), 34, 4), ==, 2);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('v','m','t','x'), 0, 2), ==, 40);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('v','m','t','x'), 4, 2), ==, 60);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('V','M','T','X'), 0, 2), ==, 400);
+  g_assert_cmpuint (read_uint (subset, HB_TAG ('V','M','T','X'), 4, 2), ==, 600);
+
+  hb_font_t *font = hb_font_create (subset);
+  g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 0), ==, 100);
+  g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 1), ==, 300);
+  hb_font_destroy (font);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -181,6 +282,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_hmtx_decrease_num_metrics);
   hb_test_add (test_subset_hmtx_noop);
   hb_test_add (test_subset_invalid_hmtx);
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_subset_hybrid_hmtx);
+#endif
 
   return hb_test_run();
 }

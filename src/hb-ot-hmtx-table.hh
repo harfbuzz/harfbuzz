@@ -215,7 +215,7 @@ struct hmtxvmtx
 
       // TODO Don't consider retaingid holes here.
 
-      num_long_metrics = hb_min (plan->num_output_glyphs (), 0xFFFFu);
+      num_long_metrics = hb_min (plan->num_output_glyphs (), H::long_metric_count_max ());
       unsigned int last_advance = get_new_gid_advance_unscaled (plan, mtx_map, num_long_metrics - 1, _mtx);
       while (num_long_metrics > 1 &&
 	     last_advance == get_new_gid_advance_unscaled (plan, mtx_map, num_long_metrics - 2, _mtx))
@@ -371,19 +371,10 @@ struct hmtxvmtx
     private:
     static unsigned get_num_long_metrics (hb_face_t *face)
     {
-      return _get_num_long_metrics (face, (H *) nullptr);
-    }
-    static unsigned _get_num_long_metrics (hb_face_t *face, hhea *)
-    {
-      return HB_DUAL_GET (*face->table.hhea, table->numberOfLongMetrics);
-    }
-    static unsigned _get_num_long_metrics (hb_face_t *face, vhea *)
-    {
-#ifndef HB_NO_VERTICAL
-      return HB_DUAL_GET (*face->table.vhea, table->numberOfLongMetrics);
-#else
-      return 0;
-#endif
+      hb_blob_ptr_t<H> hea = hb_sanitize_context_t ().reference_table<H> (face);
+      unsigned ret = hea->numberOfLongMetrics;
+      hea.destroy ();
+      return ret;
     }
   };
 
@@ -438,25 +429,27 @@ struct hmtx : hmtxvmtx<hmtx, hhea, HVAR> {
   static constexpr hb_tag_t variationsTag = HB_OT_TAG_HVAR;
   static constexpr bool is_horizontal = true;
 };
+struct HMTX : hmtxvmtx<HMTX, HHEA, HVAR> {
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_HMTX;
+  static constexpr hb_tag_t variationsTag = HB_OT_TAG_HVAR;
+  static constexpr bool is_horizontal = true;
+};
 struct vmtx : hmtxvmtx<vmtx, vhea, VVAR> {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_vmtx;
   static constexpr hb_tag_t variationsTag = HB_OT_TAG_VVAR;
   static constexpr bool is_horizontal = false;
 };
-
-struct HMTX_accelerator_t : hmtx::accelerator_t
-{
-  HMTX_accelerator_t (hb_face_t *face) :
-    hmtx::accelerator_t (face->table.hhea->has_upper_data () ? face : hb_face_get_empty (),
-			 HB_OT_TAG_HMTX,
-			 HB_DUAL_GET (*face->table.hhea, table->numberOfLongMetrics)) {}
+struct VMTX : hmtxvmtx<VMTX, VHEA, VVAR> {
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_VMTX;
+  static constexpr hb_tag_t variationsTag = HB_OT_TAG_VVAR;
+  static constexpr bool is_horizontal = false;
 };
 
 struct hmtx_accelerator_t : hb_dual_accelerator_t<hmtx::accelerator_t,
-						  HMTX_accelerator_t>
+						  HMTX::accelerator_t>
 {
   hmtx_accelerator_t (hb_face_t *face) :
-    hb_dual_accelerator_t<hmtx::accelerator_t, HMTX_accelerator_t> (face)
+    hb_dual_accelerator_t<hmtx::accelerator_t, HMTX::accelerator_t> (face)
   {
     var_table = hb_sanitize_context_t ().reference_table<HVAR> (face);
   }
@@ -493,19 +486,11 @@ struct hmtx_accelerator_t : hb_dual_accelerator_t<hmtx::accelerator_t,
 };
 
 #ifndef HB_NO_VERTICAL
-struct VMTX_accelerator_t : vmtx::accelerator_t
-{
-  VMTX_accelerator_t (hb_face_t *face) :
-    vmtx::accelerator_t (face->table.vhea->has_upper_data () ? face : hb_face_get_empty (),
-			 HB_OT_TAG_VMTX,
-			 HB_DUAL_GET (*face->table.vhea, table->numberOfLongMetrics)) {}
-};
-
 struct vmtx_accelerator_t : hb_dual_accelerator_t<vmtx::accelerator_t,
-						  VMTX_accelerator_t>
+						  VMTX::accelerator_t>
 {
   vmtx_accelerator_t (hb_face_t *face) :
-    hb_dual_accelerator_t<vmtx::accelerator_t, VMTX_accelerator_t> (face)
+    hb_dual_accelerator_t<vmtx::accelerator_t, VMTX::accelerator_t> (face)
   {
     var_table = hb_sanitize_context_t ().reference_table<VVAR> (face);
   }

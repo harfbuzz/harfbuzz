@@ -47,6 +47,11 @@ namespace OT {
 template <typename T, typename Types>
 struct _hea
 {
+  using LongMetricCount = typename Types::HBLUINT;
+
+  static constexpr unsigned long_metric_count_max ()
+  { return LongMetricCount::static_size == 4 ? 0xFFFFFFFFu : (1u << (8 * LongMetricCount::static_size)) - 1; }
+
   bool has_data () const { return version.major; }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -87,7 +92,7 @@ struct _hea
   HBINT16	reserved3;	/* Set to 0. */
   HBINT16	reserved4;	/* Set to 0. */
   HBINT16	metricDataFormat;/* 0 for current format. */
-  typename Types::HBLUINT
+  LongMetricCount
 		numberOfLongMetrics;
 				/* Number of LongMetric entries in metric
 				 * table. */
