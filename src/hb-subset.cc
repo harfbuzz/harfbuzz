@@ -265,13 +265,23 @@ _dependencies_satisfied (hb_subset_plan_t *plan, hb_tag_t tag,
                          const hb_set_t &subsetted_tags,
                          const hb_set_t &pending_subset_tags)
 {
+  bool outline_pending = pending_subset_tags.has (HB_TAG('g','l','y','f'));
+#ifndef HB_NO_BEYOND_64K
+  outline_pending |= pending_subset_tags.has (HB_TAG('G','L','Y','F'));
+#endif
+
   switch (tag)
   {
   case HB_TAG('h','m','t','x'):
   case HB_TAG('v','m','t','x'):
   case HB_TAG('m','a','x','p'):
+#ifndef HB_NO_BEYOND_64K
+  case HB_TAG('H','M','T','X'):
+  case HB_TAG('V','M','T','X'):
+  case HB_TAG('M','A','X','P'):
+#endif
   case HB_TAG('O','S','/','2'):
-    return !plan->normalized_coords || !pending_subset_tags.has (HB_TAG('g','l','y','f'));
+    return !plan->normalized_coords || !outline_pending;
   case HB_TAG('G','P','O','S'):
     return plan->all_axes_pinned || !pending_subset_tags.has (HB_TAG('G','D','E','F'));
   default:
