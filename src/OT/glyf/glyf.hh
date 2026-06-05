@@ -24,6 +24,7 @@ namespace OT {
  * https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
  */
 #define HB_OT_TAG_glyf HB_TAG('g','l','y','f')
+#define HB_OT_TAG_GLYF HB_TAG('G','L','Y','F')
 
 struct glyf
 {
@@ -166,6 +167,7 @@ struct glyf_accelerator_t
 {
   glyf_accelerator_t (hb_face_t *face)
   {
+    extended = false;
     short_offset = false;
     num_glyphs = 0;
     loca_table = nullptr;
@@ -183,8 +185,26 @@ struct glyf_accelerator_t
       return;
     short_offset = 0 == head.indexToLocFormat;
 
-    loca_table = face->table.loca.get_blob (); // Needs no destruct!
-    glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
+#ifndef HB_NO_BEYOND_64K
+    hb_blob_ptr_t<glyf> GLYF_table = hb_sanitize_context_t ().reference_table<glyf> (face, HB_OT_TAG_GLYF);
+    hb_blob_ptr_t<loca> LOCA_table = hb_sanitize_context_t ().reference_table<loca> (face, HB_OT_TAG_LOCA);
+    extended = GLYF_table.get_length () && LOCA_table.get_length ();
+    if (extended)
+    {
+      glyf_table = std::move (GLYF_table);
+      loca_table = std::move (LOCA_table);
+    }
+    else
+    {
+      GLYF_table.destroy ();
+      LOCA_table.destroy ();
+    }
+#endif
+    if (!extended)
+    {
+      glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
+      loca_table = hb_sanitize_context_t ().reference_table<loca> (face);
+    }
 #ifndef HB_NO_VAR
     gvar = face->table.gvar;
 #endif
@@ -206,9 +226,11 @@ struct glyf_accelerator_t
     }
 
     glyf_table.destroy ();
+    loca_table.destroy ();
   }
 
   bool has_data () const { return num_glyphs; }
+  bool is_extended () const { return extended; }
 
   protected:
   template<typename T>
@@ -545,6 +567,7 @@ struct glyf_accelerator_t
 #endif
 
   private:
+  bool extended;
   bool short_offset;
   unsigned int num_glyphs;
   hb_blob_ptr_t<loca> loca_table;
