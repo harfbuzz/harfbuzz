@@ -35,9 +35,15 @@
 #include "hb-set.hh"
 #include "hb-bimap.hh"
 #include "hb-cache.hh"
+#include "hb-ot-dual.hh"
+
+using hb_ot_layout_mapping_cache_t = hb_cache_t<16, 8, 8>;
+static_assert (sizeof (hb_ot_layout_mapping_cache_t) == 512, "");
+
+using hb_ot_layout_binary_cache_t = hb_cache_t<14, 1, 8>;
+static_assert (sizeof (hb_ot_layout_binary_cache_t) == 256, "");
 
 #include "OT/Layout/Common/Coverage.hh"
-#include "OT/Layout/types.hh"
 
 // TODO(garretrieger): cleanup these after migration.
 using OT::Layout::Common::Coverage;

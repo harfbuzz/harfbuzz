@@ -30,6 +30,7 @@
 
 #include "hb-decycler.hh"
 #include "hb-open-type.hh"
+#include "hb-ot-dual.hh"
 #include "hb-ot-var-common.hh"
 
 /*

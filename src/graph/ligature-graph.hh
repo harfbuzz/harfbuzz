@@ -31,7 +31,7 @@
 #include "../OT/Layout/GSUB/LigatureSubst.hh"
 #include "../OT/Layout/GSUB/LigatureSubstFormat1.hh"
 #include "../OT/Layout/GSUB/LigatureSet.hh"
-#include "../OT/Layout/types.hh"
+#include "../hb-ot-dual.hh"
 #include <algorithm>
 #include <utility>
 

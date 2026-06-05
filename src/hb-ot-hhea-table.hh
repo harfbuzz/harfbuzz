@@ -28,6 +28,7 @@
 #define HB_OT_HHEA_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-dual.hh"
 
 /*
  * hhea -- Horizontal Header

@@ -29,7 +29,7 @@
 #ifndef OT_LAYOUT_COMMON_COVERAGE_HH
 #define OT_LAYOUT_COMMON_COVERAGE_HH
 
-#include "../types.hh"
+#include "../../../hb-ot-dual.hh"
 #include "CoverageFormat1.hh"
 #include "CoverageFormat2.hh"
 

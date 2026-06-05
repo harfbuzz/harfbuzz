@@ -28,6 +28,7 @@
 #define HB_OT_HMTX_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-dual.hh"
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"

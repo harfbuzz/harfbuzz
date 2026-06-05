@@ -30,9 +30,9 @@
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-shaper-arabic-pua.hh"
 #include "hb-open-type.hh"
+#include "hb-ot-dual.hh"
 #include "hb-set.hh"
 #include "hb-cache.hh"
-#include "OT/Layout/types.hh"
 
 /*
  * cmap -- Character to Glyph Index Mapping

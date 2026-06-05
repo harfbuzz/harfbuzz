@@ -28,7 +28,7 @@
 #define HB_OT_MAXP_TABLE_HH
 
 #include "hb-open-type.hh"
-#include "OT/Layout/types.hh"
+#include "hb-ot-dual.hh"
 
 namespace OT {
 

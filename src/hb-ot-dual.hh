@@ -26,14 +26,11 @@
  * Google Author(s): Behdad Esfahbod, Garret Rieger
  */
 
-#ifndef OT_LAYOUT_TYPES_HH
-#define OT_LAYOUT_TYPES_HH
+#ifndef HB_OT_DUAL_HH
+#define HB_OT_DUAL_HH
 
-using hb_ot_layout_mapping_cache_t = hb_cache_t<16, 8, 8>;
-static_assert (sizeof (hb_ot_layout_mapping_cache_t) == 512, "");
+#include "hb-open-type.hh"
 
-using hb_ot_layout_binary_cache_t = hb_cache_t<14, 1, 8>;
-static_assert (sizeof (hb_ot_layout_binary_cache_t) == 256, "");
 
 namespace OT {
 namespace Layout {
@@ -78,4 +75,71 @@ struct MediumTypes {
 }
 }
 
-#endif  /* OT_LAYOUT_TYPES_HH */
+
+template <typename Lower, typename Upper>
+struct hb_dual_accelerator_t
+{
+  hb_dual_accelerator_t (hb_face_t *face) :
+#ifndef HB_NO_BEYOND_64K
+    upper (face),
+#endif
+    lower (
+#ifndef HB_NO_BEYOND_64K
+	   upper.has_data () ? hb_face_get_empty () :
+#endif
+	   face)
+  {}
+
+  bool has_data () const
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (upper.has_data ()) return true;
+#endif
+    return lower.has_data ();
+  }
+
+  bool has_upper_data () const
+  {
+#ifndef HB_NO_BEYOND_64K
+    return upper.has_data ();
+#else
+    return false;
+#endif
+  }
+
+#ifndef HB_NO_BEYOND_64K
+  Upper upper;
+#endif
+  Lower lower;
+};
+
+template <typename Table>
+struct hb_table_accelerator_t
+{
+  hb_table_accelerator_t (hb_face_t *face) :
+    table (hb_sanitize_context_t ().reference_table<Table> (face))
+  {}
+  ~hb_table_accelerator_t () { table.destroy (); }
+
+  bool has_data () const { return table->has_data (); }
+
+  hb_blob_ptr_t<Table> table;
+};
+
+template <typename Lower, typename Upper>
+struct hb_dual_table_t : hb_dual_accelerator_t<hb_table_accelerator_t<Lower>,
+					       hb_table_accelerator_t<Upper>>
+{
+  hb_dual_table_t (hb_face_t *face) :
+    hb_dual_accelerator_t<hb_table_accelerator_t<Lower>,
+			  hb_table_accelerator_t<Upper>> (face) {}
+};
+
+#ifndef HB_NO_BEYOND_64K
+#define HB_DUAL_GET(accel, expr) ((accel).upper.has_data () ? (accel).upper.expr : (accel).lower.expr)
+#else
+#define HB_DUAL_GET(accel, expr) ((accel).lower.expr)
+#endif
+
+
+#endif  /* HB_OT_DUAL_HH */

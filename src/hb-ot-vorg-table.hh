@@ -28,7 +28,7 @@
 #define HB_OT_VORG_TABLE_HH
 
 #include "hb-open-type.hh"
-#include "OT/Layout/types.hh"
+#include "hb-ot-dual.hh"
 
 /*
  * VORG -- Vertical Origin Table

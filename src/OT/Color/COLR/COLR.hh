@@ -36,7 +36,7 @@
 #include "../../../hb-paint-bounded.hh"
 #include "../../../hb-paint-extents.hh"
 
-#include "../../Layout/types.hh"
+#include "../../../hb-ot-dual.hh"
 #include "../CPAL/CPAL.hh"
 
 /*
