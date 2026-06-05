@@ -177,6 +177,71 @@ struct hb_data_wrapper_t<void, 0>
 template <typename T1, typename T2> struct hb_non_void_t { typedef T1 value; };
 template <typename T2> struct hb_non_void_t<void, T2> { typedef T2 value; };
 
+template <typename Lower, typename Upper>
+struct hb_dual_accelerator_t
+{
+  hb_dual_accelerator_t (hb_face_t *face) :
+#ifndef HB_NO_BEYOND_64K
+    upper (face),
+#endif
+    lower (
+#ifndef HB_NO_BEYOND_64K
+	   upper.has_data () ? hb_face_get_empty () :
+#endif
+	   face)
+  {}
+
+  bool has_data () const
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (upper.has_data ()) return true;
+#endif
+    return lower.has_data ();
+  }
+
+  bool has_upper_data () const
+  {
+#ifndef HB_NO_BEYOND_64K
+    return upper.has_data ();
+#else
+    return false;
+#endif
+  }
+
+#ifndef HB_NO_BEYOND_64K
+  Upper upper;
+#endif
+  Lower lower;
+};
+
+template <typename Table>
+struct hb_table_accelerator_t
+{
+  hb_table_accelerator_t (hb_face_t *face) :
+    table (hb_sanitize_context_t ().reference_table<Table> (face))
+  {}
+  ~hb_table_accelerator_t () { table.destroy (); }
+
+  bool has_data () const { return table->has_data (); }
+
+  hb_blob_ptr_t<Table> table;
+};
+
+template <typename Lower, typename Upper>
+struct hb_dual_table_t : hb_dual_accelerator_t<hb_table_accelerator_t<Lower>,
+					       hb_table_accelerator_t<Upper>>
+{
+  hb_dual_table_t (hb_face_t *face) :
+    hb_dual_accelerator_t<hb_table_accelerator_t<Lower>,
+			  hb_table_accelerator_t<Upper>> (face) {}
+};
+
+#ifndef HB_NO_BEYOND_64K
+#define HB_DUAL_GET(accel, expr) ((accel).upper.has_data () ? (accel).upper.expr : (accel).lower.expr)
+#else
+#define HB_DUAL_GET(accel, expr) ((accel).lower.expr)
+#endif
+
 template <typename Returned,
 	  typename Subclass = void,
 	  typename Data = void,
