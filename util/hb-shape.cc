@@ -39,5 +39,12 @@ int
 main (int argc, char **argv)
 {
   using main_t = main_font_text_t<shape_consumer_t<shape_output_t>, font_options_t, shape_text_options_t>;
+#ifdef _WIN32
+  gchar **argv_utf8 = g_win32_get_command_line ();
+  int ret = batch_main<main_t> ((int) g_strv_length (argv_utf8), argv_utf8);
+  g_strfreev (argv_utf8);
+  return ret;
+#else
   return batch_main<main_t> (argc, argv);
+#endif
 }

@@ -266,7 +266,21 @@ option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
   set_full_description ();
 
   GError *parse_error = nullptr;
-  if (!g_option_context_parse (context, argc, argv, &parse_error))
+  bool parse_ok;
+#ifdef G_OS_WIN32
+  /* g_option_context_parse() on Windows converts argv from the ACP via
+   * g_locale_to_utf8(), but argv is already in UTF-8.
+   * Use g_option_context_parse_strv() to skip the locale conversion. */
+  gchar **win32_argv = g_new (gchar *, *argc + 1);
+  for (int i = 0; i < *argc; i++)
+    win32_argv[i] = g_strdup ((*argv)[i]);
+  win32_argv[*argc] = nullptr;
+  parse_ok = g_option_context_parse_strv (context, &win32_argv, &parse_error);
+  g_strfreev (win32_argv);
+#else
+  parse_ok = g_option_context_parse (context, argc, argv, &parse_error);
+#endif
+  if (!parse_ok)
   {
     if (parse_error)
     {
