@@ -27,6 +27,66 @@
 #include <hb.h>
 
 static void
+write_u16 (char *data, unsigned offset, unsigned value)
+{
+  data[offset] = value >> 8;
+  data[offset + 1] = value;
+}
+
+static void
+write_u32 (char *data, unsigned offset, unsigned value)
+{
+  data[offset] = value >> 24;
+  data[offset + 1] = value >> 16;
+  data[offset + 2] = value >> 8;
+  data[offset + 3] = value;
+}
+
+static void
+write_face (char *data, unsigned offset, hb_tag_t tag,
+	    unsigned table_offset, unsigned table_length)
+{
+  write_u32 (data, offset, 0x00010000);
+  write_u16 (data, offset + 4, 1);
+  write_u32 (data, offset + 12, tag);
+  write_u32 (data, offset + 20, table_offset);
+  write_u32 (data, offset + 24, table_length);
+}
+
+static hb_blob_t *
+create_extended_ttc (unsigned major, unsigned minor, hb_bool_t malformed)
+{
+  unsigned extension_offset = major == 2 ? 32 : 20;
+  unsigned old_face_offset = extension_offset + 8;
+  unsigned new_face_offset = old_face_offset + 28;
+  unsigned maxp_offset = new_face_offset + 28;
+  unsigned MAXP_offset = maxp_offset + 6;
+  unsigned length = MAXP_offset + 7;
+  char *data = g_malloc0 (length);
+
+  write_u32 (data, 0, HB_TAG ('t','t','c','f'));
+  write_u16 (data, 4, major);
+  write_u16 (data, 6, minor);
+  write_u32 (data, 8, 2);
+  write_u32 (data, 12, old_face_offset);
+  write_u32 (data, 16, old_face_offset);
+
+  write_u32 (data, extension_offset, malformed ? 0xFFFFFFFF : 1);
+  write_u32 (data, extension_offset + 4, new_face_offset);
+
+  write_face (data, old_face_offset, HB_TAG ('m','a','x','p'), maxp_offset, 6);
+  write_face (data, new_face_offset, HB_TAG ('M','A','X','P'), MAXP_offset, 7);
+
+  write_u32 (data, maxp_offset, 0x00005000);
+  write_u16 (data, maxp_offset + 4, 5);
+  write_u32 (data, MAXP_offset, 0x00005000);
+  data[MAXP_offset + 4] = 1;
+  data[MAXP_offset + 6] = 1;
+
+  return hb_blob_create (data, length, HB_MEMORY_MODE_WRITABLE, data, g_free);
+}
+
+static void
 test_maxp_and_loca (void)
 {
   hb_face_t *face;
@@ -65,6 +125,49 @@ test_maxp_and_loca (void)
   g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 8);
   hb_face_destroy (face);
 #endif
+}
+
+static void
+test_extended_ttc (void)
+{
+  for (unsigned major = 1; major <= 2; major++)
+  for (unsigned minor = 1; minor <= 2; minor++)
+  {
+    hb_blob_t *blob = create_extended_ttc (major, minor, FALSE);
+#ifndef HB_NO_BEYOND_64K
+    g_assert_cmpuint (hb_face_count (blob), ==, 1);
+#else
+    g_assert_cmpuint (hb_face_count (blob), ==, 2);
+#endif
+
+    hb_face_t *face = hb_face_create (blob, 0);
+#ifndef HB_NO_BEYOND_64K
+    g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 0x10001);
+#else
+    g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 5);
+#endif
+    hb_face_destroy (face);
+    hb_blob_destroy (blob);
+
+    blob = create_extended_ttc (major, minor, TRUE);
+#ifndef HB_NO_BEYOND_64K
+    g_assert_cmpuint (hb_face_count (blob), ==, 0);
+#else
+    g_assert_cmpuint (hb_face_count (blob), ==, 2);
+#endif
+    hb_blob_destroy (blob);
+
+    blob = create_extended_ttc (major, minor, FALSE);
+    char *data = hb_blob_get_data_writable (blob, NULL);
+    write_u32 (data, 12, 0xFFFFFFFF);
+    write_u32 (data, 16, 0xFFFFFFFF);
+#ifndef HB_NO_BEYOND_64K
+    g_assert_cmpuint (hb_face_count (blob), ==, 1);
+#else
+    g_assert_cmpuint (hb_face_count (blob), ==, 0);
+#endif
+    hb_blob_destroy (blob);
+  }
 }
 
 #ifndef HB_NO_BEYOND_64K
@@ -291,6 +394,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_maxp_and_loca);
+  hb_test_add (test_extended_ttc);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_GLYF_and_LOCA);
   hb_test_add (test_GLYF_composite_gid);
