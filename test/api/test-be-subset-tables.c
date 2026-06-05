@@ -132,7 +132,7 @@ static hb_face_t *
 create_vorg_face (void)
 {
   static const char VORG_data[] = {
-    0, 2, 0, 0,			/* version 2.0 */
+    0, 2, 0, 1,			/* version 2.1 */
     0, 123,				/* defaultVertOriginY */
     0, 0, 1,				/* numVertOriginYMetrics */
     1, 0, 1, 1, 65,			/* glyph 0x10001, origin 321 */
@@ -141,11 +141,24 @@ create_vorg_face (void)
 }
 
 static void
-test_vorg_version_2 (void)
+test_vorg_versions (void)
 {
-  hb_face_t *face = create_vorg_face ();
+  static const char VORG1_data[] = {
+    0, 1, 0, 1,			/* version 1.1 */
+    0, 123,				/* defaultVertOriginY */
+    0, 1,				/* numVertOriginYMetrics */
+    0, 1, 1, 65,			/* glyph 1, origin 321 */
+  };
+  hb_face_t *face = create_face ("VORG", VORG1_data, sizeof (VORG1_data));
   hb_font_t *font = hb_font_create (face);
   hb_position_t x, y;
+  g_assert_true (hb_font_get_glyph_v_origin (font, 1, &x, &y));
+  g_assert_cmpint (y, ==, 321);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  face = create_vorg_face ();
+  font = hb_font_create (face);
   g_assert_true (hb_font_get_glyph_v_origin (font, 0x10001, &x, &y));
   g_assert_cmpint (y, ==, 321);
   g_assert_true (hb_font_get_glyph_v_origin (font, 1, &x, &y));
@@ -176,7 +189,7 @@ main (int argc, char **argv)
 
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_colr_paint_glyph2);
-  hb_test_add (test_vorg_version_2);
+  hb_test_add (test_vorg_versions);
 #endif
 
   return hb_test_run ();

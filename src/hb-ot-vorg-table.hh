@@ -124,7 +124,6 @@ struct VORGFormat1_2
     return_trace (c->check_struct (this) &&
 		  hb_barrier () &&
 		  version.major == (Types::size == 2 ? 1 : 2) &&
-		  version.minor == 0 &&
 		  vertYOrigins.sanitize (c));
   }
 
