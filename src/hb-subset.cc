@@ -90,20 +90,38 @@ static hb_tag_t known_tables[] {
   HB_TAG('g','a','s','p'),
   HB_TAG('G','D','E','F'),
   HB_TAG('g','l','y','f'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('G','L','Y','F'),
+#endif
   HB_TAG('G','P','O','S'),
   HB_TAG('G','S','U','B'),
   HB_TAG('g','v','a','r'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('G','V','A','R'),
+#endif
   HB_TAG('h','d','m','x'),
   HB_TAG('h','e','a','d'),
   HB_TAG('h','h','e','a'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('H','H','E','A'),
+#endif
   HB_TAG('h','m','t','x'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('H','M','T','X'),
+#endif
   HB_TAG('H','V','A','R'),
   HB_TAG('J','S','T','F'),
   HB_TAG('k','e','r','n'),
   HB_TAG('l','o','c','a'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('L','O','C','A'),
+#endif
   HB_TAG('L','T','S','H'),
   HB_TAG('M','A','T','H'),
   HB_TAG('m','a','x','p'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('M','A','X','P'),
+#endif
   HB_TAG('M','E','R','G'),
   HB_TAG('m','e','t','a'),
   HB_TAG('M','V','A','R'),
@@ -115,7 +133,13 @@ static hb_tag_t known_tables[] {
   HB_TAG('S','V','G',' '),
   HB_TAG('V','D','M','X'),
   HB_TAG('v','h','e','a'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('V','H','E','A'),
+#endif
   HB_TAG('v','m','t','x'),
+#ifndef HB_NO_BEYOND_64K
+  HB_TAG('V','M','T','X'),
+#endif
   HB_TAG('V','O','R','G'),
   HB_TAG('V','V','A','R'),
   HB_TAG('n','a','m','e'),
