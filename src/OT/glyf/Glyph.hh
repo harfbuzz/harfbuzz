@@ -85,7 +85,7 @@ struct Glyph
   {
     switch (type) {
     case SIMPLE:
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, false, extended)))
         return false;
       break;
     case COMPOSITE:
@@ -276,8 +276,8 @@ struct Glyph
         break;
       case SIMPLE:
         if (!SimpleGlyph (*header, bytes).compile_bytes_with_deltas (all_points,
-                                                                     plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
-                                                                     dest_end))
+								     plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
+								     dest_end))
           return false;
         break;
       case EMPTY:
@@ -339,7 +339,7 @@ struct Glyph
         head_maxp_info->maxContours = hb_max (head_maxp_info->maxContours, (unsigned) header->numberOfContours);
       if (depth > 0 && composite_contours)
         *composite_contours += (unsigned) header->numberOfContours;
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, phantom_only)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, phantom_only, extended)))
 	return false;
       break;
     case COMPOSITE:
@@ -539,13 +539,16 @@ struct Glyph
   Glyph () : bytes (),
              header (bytes.as<GlyphHeader> ()),
              gid (-1),
-             type(EMPTY)
+             type(EMPTY),
+	     extended (false)
   {}
 
   Glyph (hb_bytes_t bytes_,
-	 hb_codepoint_t gid_ = (unsigned) -1) : bytes (bytes_),
-                                                header (bytes.as<GlyphHeader> ()),
-                                                gid (gid_)
+	 hb_codepoint_t gid_ = (unsigned) -1,
+	 bool extended_ = false) : bytes (bytes_),
+				   header (bytes.as<GlyphHeader> ()),
+				   gid (gid_),
+				   extended (extended_)
   {
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;
@@ -559,6 +562,7 @@ struct Glyph
   const GlyphHeader *header;
   hb_codepoint_t gid;
   glyph_type_t type;
+  bool extended;
 };
 
 
