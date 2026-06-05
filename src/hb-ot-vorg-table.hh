@@ -150,7 +150,9 @@ struct VORG
   {
     switch (u.version.v.major) {
     case 1: return u.version1.get_y_origin (glyph);
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.get_y_origin (glyph);
+#endif
     default: return 0;
     }
   }
@@ -160,7 +162,9 @@ struct VORG
     TRACE_SUBSET (this);
     switch (u.version.v.major) {
     case 1: return_trace (u.version1.subset (c));
+#ifndef HB_NO_BEYOND_64K
     case 2: return_trace (u.version2.subset (c));
+#endif
     default: return_trace (false);
     }
   }
@@ -172,7 +176,9 @@ struct VORG
     hb_barrier ();
     switch (u.version.v.major) {
     case 1: hb_barrier (); return_trace (u.version1.sanitize (c));
+#ifndef HB_NO_BEYOND_64K
     case 2: hb_barrier (); return_trace (u.version2.sanitize (c));
+#endif
     default: return_trace (false);
     }
   }
@@ -183,7 +189,9 @@ struct VORG
   FixedVersion<>v;		/* Version of VORG table. */
   }				version;
   VORGFormat1_2<Layout::SmallTypes>version1;
+#ifndef HB_NO_BEYOND_64K
   VORGFormat1_2<Layout::MediumTypes>version2;
+#endif
   } u;
 
   public:

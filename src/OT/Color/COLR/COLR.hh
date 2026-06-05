@@ -1892,7 +1892,9 @@ struct Paint
     case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
     case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
     case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
+#ifndef HB_NO_BEYOND_64K
     case 33: return_trace (c->dispatch (u.paintformat33, std::forward<Ts> (ds)...));
+#endif
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1932,7 +1934,9 @@ struct Paint
   NoVariable<PaintSkewAroundCenter>		paintformat30;
   Variable<PaintSkewAroundCenter>		paintformat31;
   PaintComposite				paintformat32;
+#ifndef HB_NO_BEYOND_64K
   PaintGlyph<Layout::MediumTypes>		paintformat33;
+#endif
   } u;
   public:
   DEFINE_SIZE_MIN (2);
