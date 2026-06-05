@@ -301,7 +301,7 @@ struct glyph_variations_t
   }
 };
 
-template <typename Types>
+template <typename T, typename Types>
 struct gvar_GVAR
 {
   using GlyphCountType = typename Types::HBUINT;
@@ -601,9 +601,9 @@ struct gvar_GVAR
 
     bool has_data () const { return table->has_data (); }
 
-    accelerator_t (hb_face_t *face, hb_tag_t tableTag)
+    accelerator_t (hb_face_t *face)
     {
-      table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face, tableTag);
+      table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face, T::tableTag);
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
     }
@@ -1011,50 +1011,31 @@ struct gvar_GVAR
   DEFINE_SIZE_ARRAY (20, offsetZ);
 };
 
-struct gvar : gvar_GVAR<SmallTypes>
+struct gvar : gvar_GVAR<gvar, SmallTypes>
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_gvar;
 };
 
-struct GVAR : gvar_GVAR<MediumTypes>
+struct GVAR : gvar_GVAR<GVAR, MediumTypes>
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GVAR;
 };
 
-struct gvar_accelerator_t
+struct gvar_accelerator_t : hb_dual_accelerator_t<gvar::accelerator_t,
+						  GVAR::accelerator_t>
 {
   gvar_accelerator_t (hb_face_t *face) :
-#ifndef HB_NO_BEYOND_64K
-    GVAR_accel (face, GVAR::tableTag),
-#endif
-    gvar_accel (
-#ifndef HB_NO_BEYOND_64K
-		GVAR_accel.has_data () ? hb_face_get_empty () :
-#endif
-		face, gvar::tableTag)
-  {}
+    hb_dual_accelerator_t<gvar::accelerator_t, GVAR::accelerator_t> (face) {}
 
   hb_scalar_cache_t *create_cache () const
   {
-#ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel.has_data ()) return GVAR_accel.create_cache ();
-#endif
-    if (gvar_accel.has_data ()) return gvar_accel.create_cache ();
+    if (has_data ()) return HB_DUAL_GET (*this, create_cache ());
     return nullptr;
   }
 
   static void destroy_cache (hb_scalar_cache_t *cache)
   {
     hb_scalar_cache_t::destroy (cache);
-  }
-
-  bool has_data () const
-  {
-#ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel.has_data ()) return true;
-#endif
-    if (gvar_accel.has_data ()) return true;
-    return false;
   }
 
   bool apply_deltas_to_points (hb_codepoint_t glyph,
@@ -1064,31 +1045,16 @@ struct gvar_accelerator_t
 			       hb_scalar_cache_t *gvar_cache = nullptr,
 			       bool phantom_only = false) const
   {
-#ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel.has_data ())
-      return GVAR_accel.apply_deltas_to_points (glyph, coords, points, scratch,
-						gvar_cache, phantom_only);
-#endif
-    if (gvar_accel.has_data ())
-      return gvar_accel.apply_deltas_to_points (glyph, coords, points, scratch,
-						gvar_cache, phantom_only);
-    return true;
+    return HB_DUAL_GET (*this, apply_deltas_to_points (glyph, coords, points,
+						       scratch, gvar_cache,
+						       phantom_only));
   }
 
   unsigned int get_axis_count () const
   {
-#ifndef HB_NO_BEYOND_64K
-    if (GVAR_accel.has_data ()) return GVAR_accel.get_axis_count ();
-#endif
-    if (gvar_accel.has_data ()) return gvar_accel.get_axis_count ();
+    if (has_data ()) return HB_DUAL_GET (*this, get_axis_count ());
     return 0;
   }
-
-  private:
-#ifndef HB_NO_BEYOND_64K
-  GVAR::accelerator_t GVAR_accel;
-#endif
-  gvar::accelerator_t gvar_accel;
 };
 
 } /* namespace OT */
