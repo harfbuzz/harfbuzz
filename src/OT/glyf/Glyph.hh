@@ -37,13 +37,13 @@ struct Glyph
   composite_iter_t get_composite_iterator () const
   {
     if (type != COMPOSITE) return composite_iter_t ();
-    return CompositeGlyph (*header, bytes).iter ();
+    return CompositeGlyph (*header, bytes, extended).iter ();
   }
 
   const hb_bytes_t trim_padding () const
   {
     switch (type) {
-    case COMPOSITE: return CompositeGlyph (*header, bytes).trim_padding ();
+    case COMPOSITE: return CompositeGlyph (*header, bytes, extended).trim_padding ();
     case SIMPLE:    return SimpleGlyph (*header, bytes).trim_padding ();
     case EMPTY:     return bytes;
     default:        return bytes;
@@ -53,7 +53,7 @@ struct Glyph
   void drop_hints ()
   {
     switch (type) {
-    case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints (); return;
+    case COMPOSITE: CompositeGlyph (*header, bytes, extended).drop_hints (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints (); return;
     case EMPTY:     return;
     }
@@ -62,7 +62,7 @@ struct Glyph
   void set_overlaps_flag ()
   {
     switch (type) {
-    case COMPOSITE: CompositeGlyph (*header, bytes).set_overlaps_flag (); return;
+    case COMPOSITE: CompositeGlyph (*header, bytes, extended).set_overlaps_flag (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).set_overlaps_flag (); return;
     case EMPTY:     return;
     }
@@ -71,7 +71,7 @@ struct Glyph
   void drop_hints_bytes (hb_bytes_t &dest_start, hb_bytes_t &dest_end) const
   {
     switch (type) {
-    case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints_bytes (dest_start); return;
+    case COMPOSITE: CompositeGlyph (*header, bytes, extended).drop_hints_bytes (dest_start); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints_bytes (dest_start, dest_end); return;
     case EMPTY:     return;
     }
@@ -85,13 +85,13 @@ struct Glyph
   {
     switch (type) {
     case SIMPLE:
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, false, extended)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, extended)))
         return false;
       break;
     case COMPOSITE:
     {
       for (auto &item : get_composite_iterator ())
-        if (unlikely (!item.get_points (points))) return false;
+        if (unlikely (!item.get_points (points, extended))) return false;
       break;
     }
     case EMPTY:
@@ -269,9 +269,9 @@ struct Glyph
       switch (type)
       {
       case COMPOSITE:
-        if (!CompositeGlyph (*header, bytes).compile_bytes_with_deltas (dest_start,
-                                                                        points_with_deltas,
-                                                                        dest_end))
+        if (!CompositeGlyph (*header, bytes, extended).compile_bytes_with_deltas (dest_start,
+										  points_with_deltas,
+										  dest_end))
           return false;
         break;
       case SIMPLE:
@@ -339,13 +339,13 @@ struct Glyph
         head_maxp_info->maxContours = hb_max (head_maxp_info->maxContours, (unsigned) header->numberOfContours);
       if (depth > 0 && composite_contours)
         *composite_contours += (unsigned) header->numberOfContours;
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, phantom_only, extended)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, extended, phantom_only)))
 	return false;
       break;
     case COMPOSITE:
     {
       for (auto &item : get_composite_iterator ())
-        if (unlikely (!item.get_points (points))) return false;
+        if (unlikely (!item.get_points (points, extended))) return false;
       break;
     }
     case EMPTY:
@@ -414,7 +414,7 @@ struct Glyph
       unsigned int comp_index = 0;
       for (auto &item : get_composite_iterator ())
       {
-	hb_codepoint_t item_gid = item.get_gid ();
+	hb_codepoint_t item_gid = item.get_gid (extended);
 
         if (unlikely (!decycler_node.visit (item_gid)))
 	{
@@ -459,7 +459,7 @@ struct Glyph
 	{
 	  float matrix[4];
 	  contour_point_t default_trans;
-	  item.get_transformation (matrix, default_trans);
+	  item.get_transformation (matrix, default_trans, extended);
 
 	  /* Apply component transformation & translation (with deltas applied) */
 	  item.transform_points (comp_points, matrix, points[old_length + comp_index]);
@@ -468,7 +468,7 @@ struct Glyph
 	if (item.is_anchored () && !phantom_only)
 	{
 	  unsigned int p1, p2;
-	  item.get_anchor_points (p1, p2);
+	  item.get_anchor_points (p1, p2, extended);
 	  if (likely (p1 < all_points.length && p2 < comp_points.length))
 	  {
 	    contour_point_t delta;
@@ -535,6 +535,7 @@ struct Glyph
   hb_bytes_t get_bytes () const { return bytes; }
   glyph_type_t get_type () const { return type; }
   const GlyphHeader *get_header () const { return header; }
+  bool is_extended () const { return extended; }
 
   Glyph () : bytes (),
              header (bytes.as<GlyphHeader> ()),
@@ -544,11 +545,11 @@ struct Glyph
   {}
 
   Glyph (hb_bytes_t bytes_,
-	 hb_codepoint_t gid_ = (unsigned) -1,
-	 bool extended_ = false) : bytes (bytes_),
-				   header (bytes.as<GlyphHeader> ()),
-				   gid (gid_),
-				   extended (extended_)
+	 hb_codepoint_t gid_,
+	 bool extended_) : bytes (bytes_),
+			   header (bytes.as<GlyphHeader> ()),
+			   gid (gid_),
+			   extended (extended_)
   {
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;

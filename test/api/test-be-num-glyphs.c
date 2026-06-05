@@ -144,8 +144,18 @@ quadratic_to (hb_draw_funcs_t *draw_funcs HB_UNUSED,
 	      hb_draw_state_t *draw_state HB_UNUSED,
 	      float control_x HB_UNUSED, float control_y HB_UNUSED,
 	      float to_x HB_UNUSED, float to_y HB_UNUSED,
-	      void *user_data HB_UNUSED)
+	  void *user_data HB_UNUSED)
 {}
+
+static void
+move_to (hb_draw_funcs_t *draw_funcs HB_UNUSED,
+	 void *draw_data,
+	 hb_draw_state_t *draw_state HB_UNUSED,
+	 float to_x HB_UNUSED, float to_y HB_UNUSED,
+	 void *user_data HB_UNUSED)
+{
+  (*(unsigned int *) draw_data)++;
+}
 
 static void
 test_GLYF_and_LOCA (void)
@@ -189,6 +199,89 @@ test_GLYF_and_LOCA (void)
 
   hb_draw_funcs_destroy (draw_funcs);
 }
+
+static hb_face_t *
+create_composite_face (hb_bool_t extended)
+{
+  static const char maxp_data[] =
+    "\x00\x00\x50\x00" /* version */
+    "\x00\x02" /* numGlyphs */
+    ;
+  static const char head_data[54] =
+    "\x00\x01\x00\x00" /* version */
+    "\x00\x00\x00\x00" /* fontRevision */
+    "\x00\x00\x00\x00" /* checkSumAdjustment */
+    "\x5F\x0F\x3C\xF5" /* magicNumber */
+    "\x00\x00" /* flags */
+    "\x03\xE8" /* unitsPerEm */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* created */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* modified */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* bounds */
+    "\x00\x00" /* macStyle */
+    "\x00\x00" /* lowestRecPPEM */
+    "\x00\x00" /* fontDirectionHint */
+    "\x00\x01" /* indexToLocFormat */
+    "\x00\x00" /* glyphDataFormat */
+    ;
+  static const char loca_data[12] =
+    "\x00\x00\x00\x00"
+    "\x00\x00\x00\x11"
+    "\x00\x00\x00\x26"
+    ;
+  static const char glyf_data[38] =
+    "\xFF\xFF" /* numberOfContours */
+    "\x00\x00\x00\x00\x00\x14\x00\x14" /* bounds */
+    "\x20\x02" /* GID_IS_24BIT | ARGS_ARE_XY_VALUES */
+    "\x00\x00\x01" /* glyphIndex */
+    "\x00\x00" /* arguments */
+    "\x00\x01" /* numberOfContours */
+    "\x00\x00\x00\x00\x00\x14\x00\x14" /* bounds */
+    "\x00\x02" /* endPtsOfContours */
+    "\x00\x00" /* instructionLength */
+    "\x31\xB6\x96" /* flags */
+    "\x0A\x0A" /* xCoordinates */
+    "\x0A\x0A" /* yCoordinates */
+    ;
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "head", head_data);
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+  if (extended)
+  {
+    HB_FACE_ADD_TABLE (face, "GLYF", glyf_data);
+    HB_FACE_ADD_TABLE (face, "LOCA", loca_data);
+  }
+  return face;
+}
+
+static void
+test_GLYF_composite_gid (void)
+{
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  unsigned int move_count;
+
+  hb_draw_funcs_set_move_to_func (draw_funcs, move_to, NULL, NULL);
+
+  hb_face_t *face = create_composite_face (TRUE);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  move_count = 0;
+  hb_font_draw_glyph (font, 0, draw_funcs, &move_count);
+  g_assert_cmpuint (move_count, >, 0);
+  hb_font_destroy (font);
+
+  face = create_composite_face (FALSE);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+  move_count = 0;
+  hb_font_draw_glyph (font, 0, draw_funcs, &move_count);
+  g_assert_cmpuint (move_count, ==, 0);
+  hb_font_destroy (font);
+
+  hb_draw_funcs_destroy (draw_funcs);
+}
 #endif
 
 
@@ -200,6 +293,7 @@ main (int argc, char **argv)
   hb_test_add (test_maxp_and_loca);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_GLYF_and_LOCA);
+  hb_test_add (test_GLYF_composite_gid);
 #endif
 
   return hb_test_run();

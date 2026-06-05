@@ -181,8 +181,8 @@ struct SimpleGlyph
   }
 
   bool get_contour_points (contour_point_vector_t &points /* OUT */,
-			   bool phantom_only = false,
-			   bool extended = false) const
+			   bool extended,
+			   bool phantom_only = false) const
   {
     const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
     int num_contours = header.numberOfContours;
