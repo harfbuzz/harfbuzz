@@ -42,7 +42,9 @@
  * https://docs.microsoft.com/en-us/typography/opentype/spec/vmtx
  */
 #define HB_OT_TAG_hmtx HB_TAG('h','m','t','x')
+#define HB_OT_TAG_HMTX HB_TAG('H','M','T','X')
 #define HB_OT_TAG_vmtx HB_TAG('v','m','t','x')
+#define HB_OT_TAG_VMTX HB_TAG('V','M','T','X')
 
 
 namespace OT {
@@ -261,9 +263,13 @@ struct hmtxvmtx
   {
     friend struct hmtxvmtx;
 
-    accelerator_t (hb_face_t *face)
+    accelerator_t (hb_face_t *face) :
+      accelerator_t (face, T::tableTag, get_num_long_metrics (face))
+    {}
+
+    accelerator_t (hb_face_t *face, hb_tag_t tableTag, unsigned num_long_metrics_)
     {
-      table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, T::tableTag);
+      table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, tableTag);
       var_table = hb_sanitize_context_t ().reference_table<V> (face, T::variationsTag);
 
       default_advance = T::is_horizontal ? hb_face_get_upem (face) / 2 : hb_face_get_upem (face);
@@ -274,15 +280,8 @@ struct hmtxvmtx
       if (len & 1)
         len--;
 
-      num_long_metrics = T::is_horizontal ?
-			 face->table.hhea->numberOfLongMetrics :
-#ifndef HB_NO_VERTICAL
-			 face->table.vhea->numberOfLongMetrics
-#else
-			 0
-#endif
-			 ;
-      if (unlikely (num_long_metrics * 4 > len))
+      num_long_metrics = num_long_metrics_;
+      if (unlikely (num_long_metrics > len / 4))
 	num_long_metrics = len / 4;
       len -= num_long_metrics * 4;
 
@@ -368,6 +367,24 @@ struct hmtxvmtx
     public:
     hb_blob_ptr_t<hmtxvmtx> table;
     hb_blob_ptr_t<V> var_table;
+
+    private:
+    static unsigned get_num_long_metrics (hb_face_t *face)
+    {
+      return _get_num_long_metrics (face, (H *) nullptr);
+    }
+    static unsigned _get_num_long_metrics (hb_face_t *face, hhea *)
+    {
+      return HB_DUAL_GET (*face->table.hhea, table->numberOfLongMetrics);
+    }
+    static unsigned _get_num_long_metrics (hb_face_t *face, vhea *)
+    {
+#ifndef HB_NO_VERTICAL
+      return HB_DUAL_GET (*face->table.vhea, table->numberOfLongMetrics);
+#else
+      return 0;
+#endif
+    }
   };
 
   /* get advance: when no variations, call get_advance_without_var_unscaled.
@@ -427,12 +444,107 @@ struct vmtx : hmtxvmtx<vmtx, vhea, VVAR> {
   static constexpr bool is_horizontal = false;
 };
 
-struct hmtx_accelerator_t : hmtx::accelerator_t {
-  hmtx_accelerator_t (hb_face_t *face) : hmtx::accelerator_t (face) {}
+struct HMTX_accelerator_t : hmtx::accelerator_t
+{
+  HMTX_accelerator_t (hb_face_t *face) :
+    hmtx::accelerator_t (face->table.hhea->has_upper_data () ? face : hb_face_get_empty (),
+			 HB_OT_TAG_HMTX,
+			 HB_DUAL_GET (*face->table.hhea, table->numberOfLongMetrics)) {}
 };
+
+struct hmtx_accelerator_t : hb_dual_accelerator_t<hmtx::accelerator_t,
+						  HMTX_accelerator_t>
+{
+  hmtx_accelerator_t (hb_face_t *face) :
+    hb_dual_accelerator_t<hmtx::accelerator_t, HMTX_accelerator_t> (face)
+  {
+    var_table = hb_sanitize_context_t ().reference_table<HVAR> (face);
+  }
+
+  ~hmtx_accelerator_t ()
+  {
+    var_table.destroy ();
+  }
+
+  void get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph,
+						 int *lsb) const
+  {
+    HB_DUAL_GET (*this, get_leading_bearing_without_var_unscaled (glyph, lsb));
+  }
+
+  unsigned int get_advance_without_var_unscaled (hb_codepoint_t glyph) const
+  {
+    return HB_DUAL_GET (*this, get_advance_without_var_unscaled (glyph));
+  }
+
+#ifndef HB_NO_VAR
+  unsigned get_advance_with_var_unscaled (hb_codepoint_t     glyph,
+					  hb_font_t         *font,
+					  hb_scalar_cache_t *store_cache = nullptr) const
+  {
+    unsigned int advance = get_advance_without_var_unscaled (glyph);
+    return hb_max(0.0f, advance + roundf (var_table->get_advance_delta_unscaled (glyph,
+								    font->coords, font->num_coords,
+								    store_cache)));
+  }
+#endif
+
+  hb_blob_ptr_t<HVAR> var_table;
+};
+
+#ifndef HB_NO_VERTICAL
+struct VMTX_accelerator_t : vmtx::accelerator_t
+{
+  VMTX_accelerator_t (hb_face_t *face) :
+    vmtx::accelerator_t (face->table.vhea->has_upper_data () ? face : hb_face_get_empty (),
+			 HB_OT_TAG_VMTX,
+			 HB_DUAL_GET (*face->table.vhea, table->numberOfLongMetrics)) {}
+};
+
+struct vmtx_accelerator_t : hb_dual_accelerator_t<vmtx::accelerator_t,
+						  VMTX_accelerator_t>
+{
+  vmtx_accelerator_t (hb_face_t *face) :
+    hb_dual_accelerator_t<vmtx::accelerator_t, VMTX_accelerator_t> (face)
+  {
+    var_table = hb_sanitize_context_t ().reference_table<VVAR> (face);
+  }
+
+  ~vmtx_accelerator_t ()
+  {
+    var_table.destroy ();
+  }
+
+  void get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph,
+						 int *lsb) const
+  {
+    HB_DUAL_GET (*this, get_leading_bearing_without_var_unscaled (glyph, lsb));
+  }
+
+  unsigned int get_advance_without_var_unscaled (hb_codepoint_t glyph) const
+  {
+    return HB_DUAL_GET (*this, get_advance_without_var_unscaled (glyph));
+  }
+
+#ifndef HB_NO_VAR
+  unsigned get_advance_with_var_unscaled (hb_codepoint_t     glyph,
+					  hb_font_t         *font,
+					  hb_scalar_cache_t *store_cache = nullptr) const
+  {
+    unsigned int advance = get_advance_without_var_unscaled (glyph);
+    return hb_max(0.0f, advance + roundf (var_table->get_advance_delta_unscaled (glyph,
+								    font->coords, font->num_coords,
+								    store_cache)));
+  }
+#endif
+
+  hb_blob_ptr_t<VVAR> var_table;
+};
+#else
 struct vmtx_accelerator_t : vmtx::accelerator_t {
   vmtx_accelerator_t (hb_face_t *face) : vmtx::accelerator_t (face) {}
 };
+#endif
 
 } /* namespace OT */
 

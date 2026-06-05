@@ -42,6 +42,7 @@ struct SmallTypes {
   static constexpr unsigned size = 2;
   using large_int = uint32_t;
   using HBUINT = HBUINT16;
+  using HBLUINT = HBUINT16;
   using HBGlyphID = HBGlyphID16;
   using Offset = Offset16;
   using LOffset = Offset16;
@@ -59,6 +60,7 @@ struct MediumTypes {
   static constexpr unsigned size = 3;
   using large_int = uint64_t;
   using HBUINT = HBUINT24;
+  using HBLUINT = HBUINT32;
   using HBGlyphID = HBGlyphID24;
   using Offset = Offset24;
   /* Long offsets for large tables. */

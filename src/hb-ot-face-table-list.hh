@@ -51,7 +51,7 @@ HB_OT_ACCELERATOR (OT, maxp)
 #if !defined(HB_NO_FACE_COLLECT_UNICODES) || !defined(HB_NO_OT_FONT)
 HB_OT_ACCELERATOR (OT, cmap)
 #endif
-HB_OT_TABLE (OT, hhea)
+HB_OT_ACCELERATOR (OT, hhea)
 HB_OT_ACCELERATOR (OT, hmtx)
 HB_OT_TABLE (OT, OS2)
 #if !defined(HB_NO_OT_FONT_GLYPH_NAMES) || !defined(HB_NO_METRICS) || !defined(HB_NO_STYLE)
@@ -69,7 +69,7 @@ HB_OT_ACCELERATOR (OT, meta)
 
 /* Vertical layout. */
 #ifndef HB_NO_VERTICAL
-HB_OT_TABLE (OT, vhea)
+HB_OT_ACCELERATOR (OT, vhea)
 HB_OT_ACCELERATOR (OT, vmtx)
 HB_OT_TABLE (OT, VORG)
 #endif
