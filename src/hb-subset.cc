@@ -247,6 +247,9 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
   case HB_TAG('a','v','a','r'):
   case HB_TAG('f','v','a','r'):
   case HB_TAG('g','v','a','r'):
+#ifndef HB_NO_BEYOND_64K
+  case HB_TAG('G','V','A','R'):
+#endif
   case HB_TAG('H','V','A','R'):
   case HB_TAG('V','V','A','R'):
   case HB_TAG('M','V','A','R'):
@@ -299,9 +302,19 @@ _subset_table (hb_subset_plan_t *plan,
   switch (tag)
   {
   case HB_TAG('h','e','a','d'):
-    if (_is_table_present (plan->source, HB_TAG('g','l','y','f')) && !_should_drop_table (plan, HB_TAG('g','l','y','f')))
-      return true; /* skip head, handled by glyf */
+  {
+    bool outline_table_handles_head =
+	_is_table_present (plan->source, HB_TAG('g','l','y','f')) &&
+	!_should_drop_table (plan, HB_TAG('g','l','y','f'));
+#ifndef HB_NO_BEYOND_64K
+    outline_table_handles_head |=
+	_is_table_present (plan->source, HB_TAG('G','L','Y','F')) &&
+	!_should_drop_table (plan, HB_TAG('G','L','Y','F'));
+#endif
+    if (outline_table_handles_head)
+      return true; /* skip head, handled by the outline table */
     return _hb_subset_table<const OT::head> (plan, buf);
+  }
 
   case HB_TAG('S','T','A','T'):
     if (!plan->user_axes_location.is_empty ()) return _hb_subset_table<const OT::STAT> (plan, buf);

@@ -97,8 +97,13 @@ test_subset_GLYF (void)
 
   hb_set_t *glyphs = hb_set_create ();
   hb_set_add (glyphs, 0);
+  hb_subset_input_t *input = hb_subset_test_create_input_from_glyphs (glyphs);
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG),
+	      HB_TAG ('g','l','y','f'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG),
+	      HB_TAG ('l','o','c','a'));
   hb_face_t *subset = hb_subset_test_create_subset (face,
-    hb_subset_test_create_input_from_glyphs (glyphs));
+						    input);
   hb_set_destroy (glyphs);
 
   hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('G','L','Y','F'));
@@ -112,6 +117,13 @@ test_subset_GLYF (void)
   hb_blob_destroy (blob);
   blob = hb_face_reference_table (subset, HB_TAG ('l','o','c','a'));
   g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_table (subset, HB_TAG ('h','e','a','d'));
+  unsigned length;
+  const char *data = hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 52);
+  g_assert_cmpuint ((unsigned char) data[50], ==, 0);
+  g_assert_cmpuint ((unsigned char) data[51], ==, 0);
   hb_blob_destroy (blob);
 
   hb_face_destroy (subset);
