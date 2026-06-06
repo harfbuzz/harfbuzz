@@ -3703,7 +3703,7 @@ struct ChainRuleSetOf
 };
 
 template <typename Types>
-struct ChainRuleSet : ChainRuleSetOf<Types, ChainRule<Types>> {};
+struct ChainRuleSet : ChainRuleSetOf<SmallTypes, ChainRule<Types>> {};
 
 template <typename Types>
 struct ChainClassRuleSet : ChainRuleSetOf<Types, ChainRule<SmallTypes>> {};
