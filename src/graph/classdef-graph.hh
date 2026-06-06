@@ -251,8 +251,8 @@ struct class_def_size_estimator_t
     unsigned glyph_size = glyph_id_size (included_class_def_glyphs);
     unsigned size = OT::HBUINT16::static_size + glyph_size + glyph_size;
     if (!included_class_def_glyphs.is_empty ())
-      size += glyph_size * (included_class_def_glyphs.get_max () -
-			    included_class_def_glyphs.get_min () + 1);
+      size += OT::HBUINT16::static_size * (included_class_def_glyphs.get_max () -
+					   included_class_def_glyphs.get_min () + 1);
     return size;
   }
 
@@ -269,9 +269,7 @@ struct class_def_size_estimator_t
   bool class_def_uses_format1 () const
   {
     if (included_class_def_glyphs.is_empty ()) return false;
-    return 1 + (included_class_def_glyphs.get_max () -
-		included_class_def_glyphs.get_min () + 1) <=
-	   class_def_range_count * 3;
+    return class_def_format1_size () <= class_def_format2_size ();
   }
 
   hb_hashmap_t<unsigned, unsigned> num_ranges_per_class;

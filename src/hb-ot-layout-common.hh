@@ -1658,7 +1658,7 @@ struct ClassDefFormat1_3
     }
     /* TODO Speed up, using set overlap first? */
     /* TODO(iter) Rewrite as dagger. */
-    const typename Types::HBUINT *arr = classValue.arrayZ;
+    const HBUINT16 *arr = classValue.arrayZ;
     for (unsigned int i = 0; i < count; i++)
       if (arr[i] == klass && glyphs->has (startGlyph + i))
 	return true;
@@ -1718,7 +1718,7 @@ struct ClassDefFormat1_3
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
   typename Types::HBGlyphID
 		 startGlyph;	/* First GlyphID of the classValueArray */
-  typename Types::template ArrayOf<typename Types::HBUINT>
+  typename Types::template ArrayOf<HBUINT16>
 		classValue;	/* Array of Class Values--one per GlyphID */
   public:
   DEFINE_SIZE_ARRAY (2 + 2 * Types::size, classValue);
