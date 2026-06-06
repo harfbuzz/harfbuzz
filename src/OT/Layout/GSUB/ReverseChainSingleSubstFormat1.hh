@@ -12,7 +12,7 @@ struct ReverseChainSingleSubstFormat1_2
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of table */
   Array16Of<typename Types::template OffsetTo<Coverage>>
@@ -29,7 +29,7 @@ struct ReverseChainSingleSubstFormat1_2
                 substituteX;            /* Array of substitute
                                          * GlyphIDs--ordered by Coverage Index */
   public:
-  DEFINE_SIZE_MIN (6 + 2 * Types::size);
+  DEFINE_SIZE_MIN (6 + Types::LOffset::static_size + Types::HBUINT::static_size);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

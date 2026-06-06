@@ -13,22 +13,22 @@ struct MarkLigPosFormat1_2
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 markCoverage;           /* Offset to Mark Coverage table--from
                                          * beginning of MarkLigPos subtable */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 ligatureCoverage;       /* Offset to Ligature Coverage
                                          * table--from beginning of MarkLigPos
                                          * subtable */
   HBUINT16      classCount;             /* Number of defined mark classes */
-  typename Types::template OffsetTo<MarkArray<Types>>
+  typename Types::template LOffsetTo<MarkArray<Types>>
                 markArray;              /* Offset to MarkArray table--from
                                          * beginning of MarkLigPos subtable */
-  typename Types::template OffsetTo<LigatureArray<Types>>
+  typename Types::template LOffsetTo<LigatureArray<Types>>
                 ligatureArray;          /* Offset to LigatureArray table--from
                                          * beginning of MarkLigPos subtable */
   public:
-  DEFINE_SIZE_STATIC (4 + 4 * Types::size);
+  DEFINE_SIZE_STATIC (4 + 4 * Types::LOffset::static_size);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

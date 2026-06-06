@@ -135,8 +135,6 @@ struct ClassDef : public OT::ClassDef
 
 struct class_def_size_estimator_t
 {
-  constexpr static unsigned coverage_base_size = 4;
-
   template<typename It>
   class_def_size_estimator_t (It glyph_and_class)
       : num_ranges_per_class (), glyphs_per_class ()
@@ -187,7 +185,8 @@ struct class_def_size_estimator_t
   unsigned coverage_size () const
   {
     unsigned glyph_size = glyph_id_size (included_glyphs);
-    unsigned range_size = 2 * glyph_size + OT::HBUINT16::static_size;
+    unsigned coverage_base_size = OT::HBUINT16::static_size + glyph_size;
+    unsigned range_size = 3 * glyph_size;
     unsigned format1_size = coverage_base_size + glyph_size * included_glyphs.get_population();
     unsigned format2_size = coverage_base_size + range_size * num_glyph_ranges (included_glyphs);
     return hb_min(format1_size, format2_size);

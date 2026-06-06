@@ -12,22 +12,22 @@ struct MarkBasePosFormat1_2
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 markCoverage;           /* Offset to MarkCoverage table--from
                                          * beginning of MarkBasePos subtable */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 baseCoverage;           /* Offset to BaseCoverage table--from
                                          * beginning of MarkBasePos subtable */
   HBUINT16      classCount;             /* Number of classes defined for marks */
-  typename Types::template OffsetTo<MarkArray<Types>>
+  typename Types::template LOffsetTo<MarkArray<Types>>
                 markArray;              /* Offset to MarkArray table--from
                                          * beginning of MarkBasePos subtable */
-  typename Types::template OffsetTo<AnchorMatrix<Types>>
+  typename Types::template LOffsetTo<AnchorMatrix<Types>>
                 baseArray;              /* Offset to BaseArray table--from
                                          * beginning of MarkBasePos subtable */
 
   public:
-  DEFINE_SIZE_STATIC (4 + 4 * Types::size);
+  DEFINE_SIZE_STATIC (4 + 4 * Types::LOffset::static_size);
 
     bool sanitize (hb_sanitize_context_t *c) const
   {

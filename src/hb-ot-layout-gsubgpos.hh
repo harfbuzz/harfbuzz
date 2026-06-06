@@ -2472,7 +2472,7 @@ struct RuleSetOf
 };
 
 template <typename Types>
-struct RuleSet : RuleSetOf<Types, Rule<Types>> {};
+struct RuleSet : RuleSetOf<SmallTypes, Rule<Types>> {};
 
 template <typename Types>
 struct ClassRuleSet : RuleSetOf<Types, Rule<SmallTypes>> {};
@@ -2619,14 +2619,14 @@ struct ContextFormat1_4
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
   typename Types::template ArrayOf<typename Types::template OffsetTo<RuleSet>>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + Types::LOffset::static_size + Types::HBUINT::static_size, ruleSet);
 };
 
 
@@ -2876,17 +2876,17 @@ struct ContextFormat2_5
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  typename Types::template OffsetTo<ClassDef>
+  typename Types::template LOffsetTo<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of table */
   typename Types::template ArrayOf<typename Types::template OffsetTo<RuleSet>>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (2 + 3 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::LOffset::static_size + Types::HBUINT::static_size, ruleSet);
 };
 
 
@@ -3849,14 +3849,14 @@ struct ChainContextFormat1_4
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
   typename Types::template ArrayOf<typename Types::template OffsetTo<ChainRuleSet>>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + Types::LOffset::static_size + Types::HBUINT::static_size, ruleSet);
 };
 
 template <typename Types>
@@ -4152,18 +4152,18 @@ struct ChainContextFormat2_5
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  typename Types::template OffsetTo<ClassDef>
+  typename Types::template LOffsetTo<ClassDef>
 		backtrackClassDef;	/* Offset to glyph ClassDef table
 					 * containing backtrack sequence
 					 * data--from beginning of table */
-  typename Types::template OffsetTo<ClassDef>
+  typename Types::template LOffsetTo<ClassDef>
 		inputClassDef;		/* Offset to glyph ClassDef
 					 * table containing input sequence
 					 * data--from beginning of table */
-  typename Types::template OffsetTo<ClassDef>
+  typename Types::template LOffsetTo<ClassDef>
 		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
@@ -4171,7 +4171,7 @@ struct ChainContextFormat2_5
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (4 + 4 * Types::size, ruleSet);
+  DEFINE_SIZE_ARRAY (4 + 4 * Types::LOffset::static_size, ruleSet);
 };
 
 template <typename Types>
