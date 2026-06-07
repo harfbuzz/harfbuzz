@@ -4644,10 +4644,15 @@ struct hb_ot_layout_lookup_accelerator_t
 struct GSUBGPOS
 {
   using LookupListT = LookupList<SmallTypes>;
+  using LookupList2T = LookupList<MediumTypes>;
   template <typename TLookup>
-  using TLookupList = List16OfOffset16To<TLookup>;
+  using TLookupList = List16OfOffsetTo<TLookup, typename SmallTypes::HBLUINT>;
   template <typename TLookup>
-  using TLookupOffsetList = LookupOffsetList<TLookup, HBUINT16>;
+  using TLookupList2 = List16OfOffsetTo<TLookup, typename MediumTypes::HBLUINT>;
+  template <typename TLookup>
+  using TLookupOffsetList = LookupOffsetList<TLookup, typename SmallTypes::HBLUINT>;
+  template <typename TLookup>
+  using TLookupOffsetList2 = LookupOffsetList<TLookup, typename MediumTypes::HBLUINT>;
 
   size_t get_size () const
   {
@@ -4677,14 +4682,6 @@ struct GSUBGPOS
 #endif
     return this + featureList;
   }
-  const LookupListT &get_lookup_list () const
-  {
-#ifndef HB_NO_BEYOND_64K
-    if (version.to_int () >= 0x00010002u && lookupList2) return this + lookupList2;
-#endif
-    return this + lookupList;
-  }
-
   template <typename TLookup>
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -4812,9 +4809,21 @@ struct GSUBGPOS
   }
 
   unsigned int get_lookup_count () const
-  { return get_lookup_list ().len; }
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u && lookupList2)
+      return (this + lookupList2).len;
+#endif
+    return (this + lookupList).len;
+  }
   const Lookup& get_lookup (unsigned int i) const
-  { return get_lookup_list ()[i]; }
+  {
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u && lookupList2)
+      return (this + lookupList2)[i];
+#endif
+    return (this + lookupList)[i];
+  }
   const FeatureVariations &get_feature_variations () const
   {
     return (version.to_int () >= 0x00010001u && hb_barrier ()) ? this+featureVars : Null (FeatureVariations);
@@ -5055,8 +5064,8 @@ struct GSUBGPOS
 
 #ifndef HB_NO_BEYOND_64K
   template <typename TLookup>
-  const Offset32To<TLookupList<TLookup>>& typed_lookup_list2_offset () const
-  { return reinterpret_cast<const Offset32To<TLookupList<TLookup>>&> (lookupList2); }
+  const Offset32To<TLookupList2<TLookup>>& typed_lookup_list2_offset () const
+  { return reinterpret_cast<const Offset32To<TLookupList2<TLookup>>&> (lookupList2); }
 #endif
 
   template <typename TLookup>
@@ -5068,8 +5077,8 @@ struct GSUBGPOS
 
 #ifndef HB_NO_BEYOND_64K
   template <typename TLookup>
-  const Offset32To<TLookupOffsetList<TLookup>>& subset_lookup_list2_offset () const
-  { return reinterpret_cast<const Offset32To<TLookupOffsetList<TLookup>>&> (lookupList2); }
+  const Offset32To<TLookupOffsetList2<TLookup>>& subset_lookup_list2_offset () const
+  { return reinterpret_cast<const Offset32To<TLookupOffsetList2<TLookup>>&> (lookupList2); }
 #endif
 
   const Offset16To<RecordListOfFeature>& subset_feature_list_offset () const
@@ -5127,8 +5136,12 @@ struct GSUBGPOS
   Offset32To<FeatureList>
 		featureList2;	/* 32-bit offset to FeatureList table.
 				 * Introduced in version 0x00010002. */
-  Offset32To<LookupListT>
-		lookupList2;	/* 32-bit offset to LookupList table.
+  Offset32To<LookupList2T>
+		lookupList2;	/* 32-bit offset to LookupList table with
+				 * 32-bit lookup offsets.
+				 * The June 2026 proposed spec points this to
+				 * a LookupList instead; that was not suitable
+				 * for beyond-64k fonts.
 				 * Introduced in version 0x00010002. */
 #endif
   public:

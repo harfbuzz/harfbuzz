@@ -1432,7 +1432,7 @@ struct Lookup
 };
 
 template <typename Types>
-using LookupList = List16OfOffsetTo<Lookup, typename Types::HBUINT>;
+using LookupList = List16OfOffsetTo<Lookup, typename Types::HBLUINT>;
 
 template <typename TLookup, typename OffsetType>
 struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>

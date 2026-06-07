@@ -433,6 +433,9 @@ struct GSTAR : public OT::GSUBGPOS
 
   unsigned get_lookup_list_index (graph_t& graph)
   {
+    if (version.to_int () >= 0x00010002u)
+      return (unsigned) -1;
+
     return graph.index_for_offset (graph.root_idx (),
                                    get_lookup_list_field_offset());
   }
@@ -441,6 +444,9 @@ struct GSTAR : public OT::GSUBGPOS
   void find_lookups (graph_t& graph,
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {
+    if (version.to_int () >= 0x00010002u)
+      return;
+
     unsigned lookup_list_idx = get_lookup_list_index (graph);
     const LookupList<Types>* lookupList =
         (const LookupList<Types>*) graph.object (lookup_list_idx).head;
