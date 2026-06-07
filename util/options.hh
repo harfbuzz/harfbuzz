@@ -56,7 +56,6 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-
 enum return_value_t
 {
   RETURN_VALUE_SUCCESS = 0,
@@ -67,6 +66,33 @@ enum return_value_t
 } return_value = RETURN_VALUE_SUCCESS;
 
 static inline void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
+
+struct argv_t
+{
+  argv_t (int argc_, char **argv_)
+  : argc (argc_), argv (argv_)
+  {
+#ifdef G_OS_WIN32
+    argv_utf8 = g_win32_get_command_line ();
+    argc = (int) g_strv_length (argv_utf8);
+    argv = argv_utf8;
+#endif
+  }
+
+  ~argv_t ()
+  {
+#ifdef G_OS_WIN32
+    g_strfreev (argv_utf8);
+#endif
+  }
+
+  int argc;
+  char **argv;
+
+#ifdef G_OS_WIN32
+  gchar **argv_utf8 = nullptr;
+#endif
+};
 
 static inline void
 fail (hb_bool_t suggest_help, const char *format, ...)

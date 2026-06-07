@@ -1023,7 +1023,7 @@ subset_main_t::add_options ()
 
   GOptionEntry entries[] =
   {
-    {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+    {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_FILENAME,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE] [TEXT]"},
     {nullptr}
   };
@@ -1034,12 +1034,6 @@ subset_main_t::add_options ()
 int
 main (int argc, char **argv)
 {
-#ifdef _WIN32
-  gchar **argv_utf8 = g_win32_get_command_line ();
-  int ret = batch_main<subset_main_t, true> ((int) g_strv_length (argv_utf8), argv_utf8);
-  g_strfreev (argv_utf8);
-  return ret;
-#else
-  return batch_main<subset_main_t, true> (argc, argv);
-#endif
+  argv_t args (argc, argv);
+  return batch_main<subset_main_t, true> (args.argc, args.argv);
 }
