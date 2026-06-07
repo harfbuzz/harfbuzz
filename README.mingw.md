@@ -119,10 +119,14 @@ You can make Wine less verbose, without hiding all errors, by setting:
 
 Add this to your `.bashrc` or `.zshrc` file as well.
 
-Next, let's try some non-Latin text. Unfortunately, the command-line parsing of
-our cross-compiled glib is not quite Unicode-aware, at least when run under
-Wine. So you will need to find some other way to feed Unicode text to the
-shaper. There are three different ways you can try:
+Next, let's try some non-Latin text. You can pass Unicode text to the commands
+and they /should/ just work:
+
+  - `wine build-win/util/hb-shape.exe perf/fonts/Amiri-Regular.ttf حرف`
+
+If not, there are other ways to pass them to the commands that do not involve
+parsing Unicode-aware command-line arguments. There are three different ways
+you can try:
 
   - `echo حرف | wine build-win/util/hb-shape.exe perf/fonts/Amiri-Regular.ttf`
   - `wine build-win/util/hb-shape.exe perf/fonts/Amiri-Regular.ttf -u 062D,0631,0641`

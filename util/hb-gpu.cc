@@ -183,6 +183,7 @@ struct gpu_main_t : base_t
 int
 main (int argc, char **argv)
 {
+  argv_t args (argc, argv);
   gpu_main_t driver;
-  return driver (argc, argv);
+  return driver (args.argc, args.argv);
 }

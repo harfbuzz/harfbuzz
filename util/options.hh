@@ -56,7 +56,6 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-
 enum return_value_t
 {
   RETURN_VALUE_SUCCESS = 0,
@@ -67,6 +66,33 @@ enum return_value_t
 } return_value = RETURN_VALUE_SUCCESS;
 
 static inline void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
+
+struct argv_t
+{
+  argv_t (int argc_, char **argv_)
+  : argc (argc_), argv (argv_)
+  {
+#ifdef G_OS_WIN32
+    argv_utf8 = g_win32_get_command_line ();
+    argc = (int) g_strv_length (argv_utf8);
+    argv = argv_utf8;
+#endif
+  }
+
+  ~argv_t ()
+  {
+#ifdef G_OS_WIN32
+    g_strfreev (argv_utf8);
+#endif
+  }
+
+  int argc;
+  char **argv;
+
+#ifdef G_OS_WIN32
+  gchar **argv_utf8 = nullptr;
+#endif
+};
 
 static inline void
 fail (hb_bool_t suggest_help, const char *format, ...)
@@ -266,7 +292,21 @@ option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
   set_full_description ();
 
   GError *parse_error = nullptr;
-  if (!g_option_context_parse (context, argc, argv, &parse_error))
+  bool parse_ok;
+#ifdef G_OS_WIN32
+  /* g_option_context_parse() on Windows converts argv from the ACP via
+   * g_locale_to_utf8(), but argv is already in UTF-8.
+   * Use g_option_context_parse_strv() to skip the locale conversion. */
+  gchar **win32_argv = g_new (gchar *, *argc + 1);
+  for (int i = 0; i < *argc; i++)
+    win32_argv[i] = g_strdup ((*argv)[i]);
+  win32_argv[*argc] = nullptr;
+  parse_ok = g_option_context_parse_strv (context, &win32_argv, &parse_error);
+  g_strfreev (win32_argv);
+#else
+  parse_ok = g_option_context_parse (context, argc, argv, &parse_error);
+#endif
+  if (!parse_ok)
   {
     if (parse_error)
     {
