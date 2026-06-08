@@ -24,12 +24,12 @@
  * Adobe Author(s): Skef Iterum
  */
 
+#ifndef HB_SUBSET_DEPEND_H
+#define HB_SUBSET_DEPEND_H
+
 #if !defined(HB_SUBSET_H_IN) && !defined(HB_NO_SINGLE_HEADER_ERROR)
 #error "Include <hb-subset.h> instead."
 #endif
-
-#ifndef HB_SUBSET_DEPEND_H
-#define HB_SUBSET_DEPEND_H
 
 #include "hb.h"
 
