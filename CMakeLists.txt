@@ -245,7 +245,6 @@ set (subset_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h
 )
 set (raster_project_sources
-     ${PROJECT_SOURCE_DIR}/src/hb-raster.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster.hh

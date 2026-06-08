@@ -396,7 +396,6 @@ hb_subset_sources = files(
   'hb-subset-cff-common.hh',
   'hb-subset-cff1.cc',
   'hb-subset-cff2.cc',
-  'hb-subset-cff2-to-cff1.cc',
   'hb-subset-cff2-to-cff1.hh',
   'hb-subset-input.cc',
   'hb-subset-input.hh',
@@ -710,7 +709,6 @@ if not get_option('subset').disabled()
 endif
 
 hb_raster_sources = files(
-  'hb-raster.cc',
   'hb-raster-image.cc',
   'hb-raster-image.hh',
   'hb-raster.hh',

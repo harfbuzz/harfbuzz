@@ -137,7 +137,6 @@
 #include "hb-raster-draw.cc"
 #include "hb-raster-image.cc"
 #include "hb-raster-paint.cc"
-#include "hb-raster.cc"
 #include "hb-static.cc"
 #endif
 
@@ -149,7 +148,6 @@
 #include "hb-static.cc"
 #include "hb-subset-cff-common.cc"
 #include "hb-subset-cff1.cc"
-#include "hb-subset-cff2-to-cff1.cc"
 #include "hb-subset-cff2.cc"
 #include "hb-subset-input.cc"
 #include "hb-subset-instancer-iup.cc"
