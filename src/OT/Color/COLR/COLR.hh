@@ -561,44 +561,6 @@ struct ColorLine
 // or all of the specified modes.
 struct CompositeMode : HBUINT8
 {
-  enum {
-    // Porter-Duff modes
-    // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators
-    COMPOSITE_CLEAR          =  0,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_clear
-    COMPOSITE_SRC            =  1,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_src
-    COMPOSITE_DEST           =  2,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dst
-    COMPOSITE_SRC_OVER       =  3,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcover
-    COMPOSITE_DEST_OVER      =  4,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstover
-    COMPOSITE_SRC_IN         =  5,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcin
-    COMPOSITE_DEST_IN        =  6,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstin
-    COMPOSITE_SRC_OUT        =  7,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcout
-    COMPOSITE_DEST_OUT       =  8,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstout
-    COMPOSITE_SRC_ATOP       =  9,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcatop
-    COMPOSITE_DEST_ATOP      = 10,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstatop
-    COMPOSITE_XOR            = 11,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_xor
-    COMPOSITE_PLUS           = 12,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_plus
-
-    // Blend modes
-    // https://www.w3.org/TR/compositing-1/#blending
-    COMPOSITE_SCREEN         = 13,  // https://www.w3.org/TR/compositing-1/#blendingscreen
-    COMPOSITE_OVERLAY        = 14,  // https://www.w3.org/TR/compositing-1/#blendingoverlay
-    COMPOSITE_DARKEN         = 15,  // https://www.w3.org/TR/compositing-1/#blendingdarken
-    COMPOSITE_LIGHTEN        = 16,  // https://www.w3.org/TR/compositing-1/#blendinglighten
-    COMPOSITE_COLOR_DODGE    = 17,  // https://www.w3.org/TR/compositing-1/#blendingcolordodge
-    COMPOSITE_COLOR_BURN     = 18,  // https://www.w3.org/TR/compositing-1/#blendingcolorburn
-    COMPOSITE_HARD_LIGHT     = 19,  // https://www.w3.org/TR/compositing-1/#blendinghardlight
-    COMPOSITE_SOFT_LIGHT     = 20,  // https://www.w3.org/TR/compositing-1/#blendingsoftlight
-    COMPOSITE_DIFFERENCE     = 21,  // https://www.w3.org/TR/compositing-1/#blendingdifference
-    COMPOSITE_EXCLUSION      = 22,  // https://www.w3.org/TR/compositing-1/#blendingexclusion
-    COMPOSITE_MULTIPLY       = 23,  // https://www.w3.org/TR/compositing-1/#blendingmultiply
-
-    // Modes that, uniquely, do not operate on components
-    // https://www.w3.org/TR/compositing-1/#blendingnonseparable
-    COMPOSITE_HSL_HUE        = 24,  // https://www.w3.org/TR/compositing-1/#blendinghue
-    COMPOSITE_HSL_SATURATION = 25,  // https://www.w3.org/TR/compositing-1/#blendingsaturation
-    COMPOSITE_HSL_COLOR      = 26,  // https://www.w3.org/TR/compositing-1/#blendingcolor
-    COMPOSITE_HSL_LUMINOSITY = 27,  // https://www.w3.org/TR/compositing-1/#blendingluminosity
-  };
   public:
   DEFINE_SIZE_STATIC (1);
 };
@@ -1532,11 +1494,49 @@ struct PaintComposite
   void paint_glyph (hb_paint_context_t *c) const
   {
     TRACE_PAINT (this);
+    hb_paint_composite_mode_t composite_mode;
+    switch ((unsigned int) mode)
+    {
+      case HB_PAINT_COMPOSITE_MODE_CLEAR:
+      case HB_PAINT_COMPOSITE_MODE_SRC:
+      case HB_PAINT_COMPOSITE_MODE_DEST:
+      case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+      case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+      case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_XOR:
+      case HB_PAINT_COMPOSITE_MODE_PLUS:
+      case HB_PAINT_COMPOSITE_MODE_SCREEN:
+      case HB_PAINT_COMPOSITE_MODE_OVERLAY:
+      case HB_PAINT_COMPOSITE_MODE_DARKEN:
+      case HB_PAINT_COMPOSITE_MODE_LIGHTEN:
+      case HB_PAINT_COMPOSITE_MODE_COLOR_DODGE:
+      case HB_PAINT_COMPOSITE_MODE_COLOR_BURN:
+      case HB_PAINT_COMPOSITE_MODE_HARD_LIGHT:
+      case HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT:
+      case HB_PAINT_COMPOSITE_MODE_DIFFERENCE:
+      case HB_PAINT_COMPOSITE_MODE_EXCLUSION:
+      case HB_PAINT_COMPOSITE_MODE_MULTIPLY:
+      case HB_PAINT_COMPOSITE_MODE_HSL_HUE:
+      case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION:
+      case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:
+      case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY:
+	composite_mode = (hb_paint_composite_mode_t) (unsigned int) mode;
+	break;
+      default:
+	composite_mode = HB_PAINT_COMPOSITE_MODE_CLEAR;
+	break;
+    }
+
     c->funcs->push_group_for (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
     c->recurse (this+backdrop);
-    c->funcs->push_group_for (c->data, (hb_paint_composite_mode_t) (int) mode);
+    c->funcs->push_group_for (c->data, composite_mode);
     c->recurse (this+src);
-    c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int) mode);
+    c->funcs->pop_group (c->data, composite_mode);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
 
