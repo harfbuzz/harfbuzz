@@ -797,7 +797,7 @@ struct Lookup
   public:
   DEFINE_SIZE_UNION (2, format.v);
 };
-DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (AAT, Lookup, 2);
+DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (AAT, Lookup, 13);
 
 /*
  * (Extended) State Table
