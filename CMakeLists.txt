@@ -7,7 +7,9 @@ if(POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## Disallow in-source builds, as CMake generated make files can collide with autotools ones
@@ -350,7 +352,8 @@ if (HB_HAVE_ICU)
 
   find_package(ICU REQUIRED COMPONENTS uc)
 
-  if (ICU_VERSION VERSION_GREATER_EQUAL 75.1)
+  if (ICU_VERSION VERSION_GREATER_EQUAL 75.1 AND
+      CMAKE_CXX_STANDARD LESS 17)
     set(CMAKE_CXX_STANDARD 17)
   endif ()
 
@@ -758,13 +761,6 @@ if (UNIX OR MINGW OR VITA)
     # No threadsafe statics as we do it ourselves
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics")
   endif ()
-
-  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-  if (COMPILER_SUPPORTS_CXX11)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-  endif()
 endif ()
 
 
