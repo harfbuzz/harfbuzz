@@ -177,6 +177,62 @@ test_subset_cmap_noto_color_emoji_non_consecutive_glyphs (void)
   hb_face_destroy (face);
 }
 
+#ifndef HB_NO_BEYOND_64K
+static void
+test_subset_cmap_format15 (void)
+{
+  const char MAXP_data[] = "\x00\x00\x50\x00\x01\x00\x02";
+  const char cmap_data[] = {
+    0, 0, 0, 3,				/* cmap header */
+    0, 0, 0, 4, 0, 0, 0, 28,		/* encoding records */
+    0, 0, 0, 5, 0, 0, 0, 56,
+    0, 0, 0, 5, 0, 0, 0, 86,
+    0, 12, 0, 0, 0, 0, 0, 28,		/* format 12 header */
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 'A', 0, 0, 0, 'A', 0, 1, 0, 1, /* format 12 group */
+    0, 14, 0, 0, 0, 30, 0, 0, 0, 1,	/* format 14 header */
+    0, 0xFE, 0x0F, 0, 0, 0, 0, 0, 0, 0, 21, /* variation selector */
+    0, 0, 0, 1, 0, 0, 'A', 0, 2,	/* non-default UVS */
+    0, 15, 0, 0, 0, 31, 0, 0, 0, 1,	/* format 15 header */
+    0, 0xFE, 0x0F, 0, 0, 0, 0, 0, 0, 0, 21, /* variation selector */
+    0, 0, 0, 1, 0, 0, 'A', 1, 0, 1,	/* non-default UVS */
+  };
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "MAXP", MAXP_data);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_variation_glyph (font, 'A', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 0x10001);
+  hb_font_destroy (font);
+
+  hb_set_t *set = hb_set_create ();
+  hb_face_collect_variation_selectors (face, set);
+  g_assert_true (hb_set_has (set, 0xFE0F));
+  hb_set_clear (set);
+  hb_face_collect_variation_unicodes (face, 0xFE0F, set);
+  g_assert_true (hb_set_has (set, 'A'));
+  hb_set_destroy (set);
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'A');
+  hb_set_add (codepoints, 0xFE0F);
+  hb_face_t *subset = hb_subset_test_create_subset (face,
+						    hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  font = hb_font_create (subset);
+  g_assert_true (hb_font_get_variation_glyph (font, 'A', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 2);
+  hb_font_destroy (font);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+#endif
+
 // TODO(rsheeter) test cmap to no codepoints
 
 int
@@ -191,6 +247,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cmap_empty_tables);
   hb_test_add (test_subset_cmap_noto_color_emoji_noop);
   hb_test_add (test_subset_cmap_noto_color_emoji_non_consecutive_glyphs);
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_subset_cmap_format15);
+#endif
 
   return hb_test_run();
 }

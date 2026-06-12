@@ -30,6 +30,7 @@
 
 #include "hb-decycler.hh"
 #include "hb-open-type.hh"
+#include "hb-ot-dual.hh"
 #include "hb-ot-var-common.hh"
 
 /*
@@ -301,12 +302,14 @@ struct glyph_variations_t
   }
 };
 
-template <typename GidOffsetType, unsigned TableTag>
+template <typename T, typename Types>
 struct gvar_GVAR
 {
-  static constexpr hb_tag_t tableTag = TableTag;
+  using GlyphCountType = typename Types::HBUINT;
 
-  using GlyphVariationData = TupleVariationData<GidOffsetType>;
+  using GlyphVariationData = TupleVariationData<GlyphCountType>;
+  static constexpr unsigned glyph_count_max ()
+  { return (1u << (8 * GlyphCountType::static_size)) - 1; }
 
   bool has_data () const { return version.to_int () != 0; }
 
@@ -327,7 +330,7 @@ struct gvar_GVAR
   { return sanitize_shallow (c); }
 
   bool decompile_glyph_variations (hb_subset_context_t *c,
-                                   glyph_variations_t<GidOffsetType>& glyph_vars /* OUT */) const
+                                   glyph_variations_t<GlyphCountType>& glyph_vars /* OUT */) const
   {
     hb_hashmap_t<hb_codepoint_t, hb_bytes_t> new_gid_var_data_map;
     auto it = hb_iter (c->plan->new_to_old_gid_list);
@@ -354,7 +357,7 @@ struct gvar_GVAR
   template<typename Iterator,
            hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-                  const glyph_variations_t<GidOffsetType>& glyph_vars,
+                  const glyph_variations_t<GlyphCountType>& glyph_vars,
                   Iterator it,
                   unsigned axis_count,
                   unsigned num_glyphs,
@@ -367,7 +370,7 @@ struct gvar_GVAR
     out->version.major = 1;
     out->version.minor = 0;
     out->axisCount = axis_count;
-    out->glyphCountX = hb_min (0xFFFFu, num_glyphs);
+    out->glyphCountX = hb_min (glyph_count_max (), num_glyphs);
 
     unsigned glyph_var_data_size = glyph_vars.compiled_byte_size ();
     /* According to the spec: If the short format (Offset16) is used for offsets,
@@ -403,7 +406,7 @@ struct gvar_GVAR
   bool instantiate (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    glyph_variations_t<GidOffsetType> glyph_vars;
+    glyph_variations_t<GlyphCountType> glyph_vars;
     if (!decompile_glyph_variations (c, glyph_vars))
       return_trace (false);
 
@@ -442,7 +445,7 @@ struct gvar_GVAR
     out->sharedTupleCount = sharedTupleCount;
 
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
-    out->glyphCountX = hb_min (0xFFFFu, num_glyphs);
+    out->glyphCountX = hb_min (glyph_count_max (), num_glyphs);
 
     auto it = hb_iter (c->plan->new_to_old_gid_list);
     if (it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
@@ -601,7 +604,7 @@ struct gvar_GVAR
 
     accelerator_t (hb_face_t *face)
     {
-      table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face);
+      table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face, T::tableTag);
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
     }
@@ -993,7 +996,8 @@ struct gvar_GVAR
   NNOffset32To<UnsizedArrayOf<F2DOT14>>
 		sharedTuples;	/* Offset from the start of this table to the shared tuple records.
 				 * Array of tuple records shared across all glyph variation data tables. */
-  GidOffsetType	glyphCountX;	/* The number of glyphs in this font. This must match the number of
+  GlyphCountType
+		glyphCountX;	/* The number of glyphs in this font. This must match the number of
 				 * glyphs stored elsewhere in the font. */
   HBUINT16	flags;		/* Bit-field that gives the format of the offset array that follows.
 				 * If bit 0 is clear, the offsets are uint16; if bit 0 is set, the
@@ -1008,14 +1012,50 @@ struct gvar_GVAR
   DEFINE_SIZE_ARRAY (20, offsetZ);
 };
 
-using gvar = gvar_GVAR<HBUINT16, HB_OT_TAG_gvar>;
-using GVAR = gvar_GVAR<HBUINT24, HB_OT_TAG_GVAR>;
-
-struct gvar_accelerator_t : gvar::accelerator_t {
-  gvar_accelerator_t (hb_face_t *face) : gvar::accelerator_t (face) {}
+struct gvar : gvar_GVAR<gvar, SmallTypes>
+{
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_gvar;
 };
-struct GVAR_accelerator_t : GVAR::accelerator_t {
-  GVAR_accelerator_t (hb_face_t *face) : GVAR::accelerator_t (face) {}
+
+struct GVAR : gvar_GVAR<GVAR, MediumTypes>
+{
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_GVAR;
+};
+
+struct gvar_accelerator_t : hb_dual_accelerator_t<gvar::accelerator_t,
+						  GVAR::accelerator_t>
+{
+  gvar_accelerator_t (hb_face_t *face) :
+    hb_dual_accelerator_t<gvar::accelerator_t, GVAR::accelerator_t> (face) {}
+
+  hb_scalar_cache_t *create_cache () const
+  {
+    if (has_data ()) return HB_DUAL_GET (*this, create_cache ());
+    return nullptr;
+  }
+
+  static void destroy_cache (hb_scalar_cache_t *cache)
+  {
+    hb_scalar_cache_t::destroy (cache);
+  }
+
+  bool apply_deltas_to_points (hb_codepoint_t glyph,
+			       hb_array_t<const int> coords,
+			       const hb_array_t<contour_point_t> points,
+			       hb_glyf_scratch_t &scratch,
+			       hb_scalar_cache_t *gvar_cache = nullptr,
+			       bool phantom_only = false) const
+  {
+    return HB_DUAL_GET (*this, apply_deltas_to_points (glyph, coords, points,
+						       scratch, gvar_cache,
+						       phantom_only));
+  }
+
+  unsigned int get_axis_count () const
+  {
+    if (has_data ()) return HB_DUAL_GET (*this, get_axis_count ());
+    return 0;
+  }
 };
 
 } /* namespace OT */
