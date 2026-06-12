@@ -66,7 +66,7 @@ struct head
     head *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       if (unlikely (!c->serializer->check_assign (out->xMin, c->plan->head_maxp_info.xMin,
                                                   HB_SERIALIZE_ERROR_INT_OVERFLOW)))

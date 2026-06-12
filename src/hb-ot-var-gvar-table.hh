@@ -428,7 +428,7 @@ struct gvar_GVAR
     if (c->plan->all_axes_pinned)
       return_trace (false);
 
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
       return_trace (instantiate (c));
 
     unsigned glyph_count = version.to_int () ? c->plan->source->get_num_glyphs () : 0;

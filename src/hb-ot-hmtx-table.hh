@@ -89,7 +89,7 @@ struct hmtxvmtx
     c->serializer->check_assign (table->numberOfLongMetrics, num_hmetrics, HB_SERIALIZE_ERROR_INT_OVERFLOW);
 
 #ifndef HB_NO_VAR
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       auto &MVAR = *c->plan->source->table.MVAR;
       if (T::is_horizontal)

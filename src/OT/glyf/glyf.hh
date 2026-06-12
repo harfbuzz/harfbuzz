@@ -86,7 +86,7 @@ struct glyf
     }
 
     hb_font_t *font = nullptr;
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       font = _create_font_for_instancing (c->plan);
       if (unlikely (!font))
