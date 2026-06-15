@@ -451,6 +451,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   plan->_glyphset_gsub.add (0); // Not-def
 
   _cmap_closure (plan->source, &plan->unicodes, &plan->_glyphset_gsub);
+  plan->_glyphset_cmaped = plan->_glyphset_gsub;
 
   if (!drop_tables->has (HB_OT_TAG_MATH))
   {
