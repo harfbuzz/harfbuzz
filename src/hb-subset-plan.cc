@@ -452,20 +452,20 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   _cmap_closure (plan->source, &plan->unicodes, &plan->_glyphset_gsub);
 
+  if (!drop_tables->has (HB_OT_TAG_MATH))
+  {
+    _math_closure (plan, &plan->_glyphset_gsub);
+    _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
+  }
+  plan->_glyphset_mathed = plan->_glyphset_gsub;
+
 #ifndef HB_NO_SUBSET_LAYOUT
   layout_populate_gids_to_retain(plan, drop_tables);
 #endif
 
   _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
-  plan->_glyphset_mathed = plan->_glyphset_gsub;
-  if (!drop_tables->has (HB_OT_TAG_MATH))
-  {
-    _math_closure (plan, &plan->_glyphset_mathed);
-    _remove_invalid_gids (&plan->_glyphset_mathed, plan->source->get_num_glyphs ());
-  }
-
-  hb_set_t cur_glyphset = plan->_glyphset_mathed;
+  hb_set_t cur_glyphset = plan->_glyphset_gsub;
   if (!drop_tables->has (HB_OT_TAG_COLR))
   {
     _colr_closure (plan, &cur_glyphset);
