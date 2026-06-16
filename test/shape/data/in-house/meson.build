@@ -22,6 +22,7 @@ in_house_tests = [
   'emoji-clusters.tests',
   'fallback-positioning.tests',
   'glyph-props-no-gdef.tests',
+  'hangul-calt.tests',
   'hangul-jamo.tests',
   'harfbust.tests',
   'hebrew-diacritics.tests',
