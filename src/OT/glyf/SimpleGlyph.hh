@@ -125,7 +125,8 @@ struct SimpleGlyph
 
   static bool read_flags (const HBUINT8 *&p /* IN/OUT */,
 			  hb_array_t<contour_point_t> points_ /* IN/OUT */,
-			  const HBUINT8 *end)
+			  const HBUINT8 *end,
+			  bool extended)
   {
     auto *points = points_.arrayZ;
     unsigned count = points_.length;
@@ -133,6 +134,8 @@ struct SimpleGlyph
     {
       if (unlikely (p + 1 > end)) return false;
       uint8_t flag = *p++;
+      if (!extended)
+	flag &= ~FLAG_CUBIC;
       points[i++].flag = flag;
       if (flag & FLAG_REPEAT)
       {
@@ -178,6 +181,7 @@ struct SimpleGlyph
   }
 
   bool get_contour_points (contour_point_vector_t &points /* OUT */,
+			   bool extended,
 			   bool phantom_only = false) const
   {
     const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
@@ -208,7 +212,7 @@ struct SimpleGlyph
     if (unlikely (p >= end)) return false;
 
     /* Read x & y coordinates */
-    return read_flags (p, points_, end)
+    return read_flags (p, points_, end, extended)
         && read_points (p, points_, end, &contour_point_t::x,
 			FLAG_X_SHORT, FLAG_X_SAME)
 	&& read_points (p, points_, end, &contour_point_t::y,

@@ -81,6 +81,7 @@ hb_base_sources = files(
   'hb-object.hh',
   'hb-open-file.hh',
   'hb-open-type.hh',
+  'hb-ot-dual.hh',
   'hb-ot-cff-common.hh',
   'hb-ot-cff1-std-str.hh',
   'hb-ot-cff1-table.cc',
@@ -121,7 +122,6 @@ hb_base_sources = files(
   'OT/glyf/SimpleGlyph.hh',
   'OT/glyf/CompositeGlyph.hh',
   'OT/glyf/SubsetGlyph.hh',
-  'OT/Layout/types.hh',
   'OT/Layout/Common/Coverage.hh',
   'OT/Layout/Common/CoverageFormat1.hh',
   'OT/Layout/Common/CoverageFormat2.hh',
@@ -1000,6 +1000,7 @@ if get_option('tests').enabled()
     'test-priority-queue': ['test-priority-queue.cc', 'hb-static.cc'],
     'test-tuple-varstore': ['test-tuple-varstore.cc', 'hb-subset-instancer-solver.cc', 'hb-subset-instancer-iup.cc', 'hb-static.cc'],
     'test-item-varstore': ['test-item-varstore.cc', 'hb-subset-instancer-solver.cc', 'hb-subset-instancer-iup.cc', 'hb-static.cc'],
+    'test-jstf': ['test-jstf.cc', 'hb-static.cc'],
     'test-unicode-ranges': ['test-unicode-ranges.cc'],
   }
   foreach name, source : compiled_tests

@@ -228,6 +228,36 @@ test_subset_create_for_tables_face (void)
   hb_face_destroy (face_ac);
 }
 
+#ifndef HB_NO_BEYOND_64K
+static void
+test_subset_create_for_tables_face_MAXP (void)
+{
+  static const char MAXP_data[] = "\x00\x00\x50\x00\x00\x00\x03";
+  hb_face_t *source = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (source, "MAXP", MAXP_data);
+  hb_face_t *callback_face = hb_face_create_for_tables (_ref_table, source, NULL);
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_set_add (glyphs, 0);
+  hb_set_add (glyphs, 2);
+  hb_face_t *subset = hb_subset_test_create_subset (
+      callback_face, hb_subset_test_create_input_from_glyphs (glyphs));
+  hb_set_destroy (glyphs);
+
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('M','A','X','P'));
+  unsigned length;
+  const unsigned char *data =
+      (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, ==, 7);
+  g_assert_cmpuint ((data[4] << 16) | (data[5] << 8) | data[6], ==, 2);
+  hb_blob_destroy (blob);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (callback_face);
+  hb_face_destroy (source);
+}
+#endif
+
 #ifdef HB_EXPERIMENTAL_API
 const uint8_t CFF2[226] = {
   // From https://learn.microsoft.com/en-us/typography/opentype/spec/cff2
@@ -415,6 +445,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_sets);
   hb_test_add (test_subset_plan);
   hb_test_add (test_subset_create_for_tables_face);
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_subset_create_for_tables_face_MAXP);
+#endif
 
   #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_cff2_get_charstring_data);

@@ -36,6 +36,7 @@
 #include "../../../hb-paint-bounded.hh"
 #include "../../../hb-paint-extents.hh"
 
+#include "../../../hb-ot-dual.hh"
 #include "../CPAL/CPAL.hh"
 
 /*
@@ -904,8 +905,11 @@ struct PaintSweepGradient
 };
 
 // Paint a non-COLR glyph, filled as indicated by paint.
+template <typename Types>
 struct PaintGlyph
 {
+  using HBGlyphID = typename Types::HBGlyphID;
+
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -940,11 +944,11 @@ struct PaintGlyph
     c->funcs->pop_transform (c->data);
   }
 
-  HBUINT8		format; /* format = 10 */
+  HBUINT8		format; /* format = 10 or 33 */
   Offset24To<Paint>	paint;  /* Offset (from beginning of PaintGlyph table) to Paint subtable. */
-  HBUINT16		gid;
+  HBGlyphID		gid;
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_STATIC (4 + HBGlyphID::static_size);
 };
 
 struct PaintColrGlyph
@@ -1888,6 +1892,9 @@ struct Paint
     case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
     case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
     case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
+#ifndef HB_NO_BEYOND_64K
+    case 33: return_trace (c->dispatch (u.paintformat33, std::forward<Ts> (ds)...));
+#endif
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1904,7 +1911,7 @@ struct Paint
   Variable<PaintRadialGradient<Variable>>	paintformat7;
   NoVariable<PaintSweepGradient<NoVariable>>	paintformat8;
   Variable<PaintSweepGradient<Variable>>	paintformat9;
-  PaintGlyph					paintformat10;
+  PaintGlyph<Layout::SmallTypes>		paintformat10;
   PaintColrGlyph				paintformat11;
   PaintTransform<NoVariable>			paintformat12;
   PaintTransform<Variable>			paintformat13;
@@ -1927,6 +1934,9 @@ struct Paint
   NoVariable<PaintSkewAroundCenter>		paintformat30;
   Variable<PaintSkewAroundCenter>		paintformat31;
   PaintComposite				paintformat32;
+#ifndef HB_NO_BEYOND_64K
+  PaintGlyph<Layout::MediumTypes>		paintformat33;
+#endif
   } u;
   public:
   DEFINE_SIZE_MIN (2);
