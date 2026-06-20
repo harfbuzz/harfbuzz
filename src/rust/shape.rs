@@ -5,16 +5,18 @@
 use super::hb::*;
 
 use std::ffi::c_void;
-use std::mem::{align_of, offset_of, size_of, transmute};
+use std::mem::{align_of, offset_of, size_of};
 use std::ptr::null_mut;
+use std::sync::Arc;
 
 use harfrust::{
-    funcs::{AdvanceWidthBatch, BuiltinFontFuncs, FontFuncs},
-    FontRef, GlyphExtents, GlyphFlags as HRGlyphFlags, GlyphInfo as HRGlyphInfo,
-    GlyphPosition as HRGlyphPosition, NormalizedCoord, ShapeOptions, Shaper, ShaperData,
-    ShaperInstance, Tag,
+    font::{
+        AdvanceWidthBatch, BuiltinFontFuncs, Font, FontBlob, FontFuncs, FontInstance,
+        FontTableFunction,
+    },
+    GlyphExtents, GlyphFlags as HRGlyphFlags, GlyphId, GlyphInfo as HRGlyphInfo,
+    GlyphPosition as HRGlyphPosition, NormalizedCoord, ShapeOptions, Tag,
 };
-use read_fonts::types::GlyphId;
 use smallvec::SmallVec;
 
 type HRFeatureVec = SmallVec<[harfrust::Feature; 4]>;
@@ -51,36 +53,84 @@ const _: () = {
     assert!(offset_of!(hb_glyph_position_t, y_offset) == offset_of!(HRGlyphPosition, y_offset));
 };
 
-pub struct HBHarfRustFaceData<'a> {
-    face_blob: *mut hb_blob_t,
-    font_ref: FontRef<'a>,
-    shaper_data: ShaperData,
+pub struct HBHarfRustFaceData {
+    font: Font,
 }
+
+struct HbFace(*mut hb_face_t);
+
+impl HbFace {
+    unsafe fn new(face: *mut hb_face_t) -> Self {
+        Self(hb_face_reference(face))
+    }
+
+    fn reference_table(&self, tag: Tag) -> *mut hb_blob_t {
+        unsafe { hb_face_reference_table(self.0, u32::from_be_bytes(tag.to_be_bytes())) }
+    }
+}
+
+impl Drop for HbFace {
+    fn drop(&mut self) {
+        unsafe {
+            hb_face_destroy(self.0);
+        }
+    }
+}
+
+unsafe impl Send for HbFace {}
+unsafe impl Sync for HbFace {}
+
+struct HbBlob(*mut hb_blob_t);
+
+impl Drop for HbBlob {
+    fn drop(&mut self) {
+        unsafe {
+            hb_blob_destroy(self.0);
+        }
+    }
+}
+
+impl AsRef<[u8]> for HbBlob {
+    fn as_ref(&self) -> &[u8] {
+        let mut length = 0;
+        let data = unsafe { hb_blob_get_data(self.0, &mut length) };
+        if data.is_null() {
+            &[]
+        } else {
+            unsafe { std::slice::from_raw_parts(data.cast(), length as usize) }
+        }
+    }
+}
+
+unsafe impl Send for HbBlob {}
+unsafe impl Sync for HbBlob {}
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
     face: *mut hb_face_t,
 ) -> *mut c_void {
     let face_index = hb_face_get_index(face);
-    let face_blob = hb_face_reference_blob(face);
-    let blob_length = hb_blob_get_length(face_blob);
-    let blob_data: *const u8 = hb_blob_get_data(face_blob, null_mut()).cast();
-    if blob_data.is_null() {
-        return null_mut();
-    }
-    let face_data = std::slice::from_raw_parts(blob_data, blob_length as usize);
+    let hb_face = HbFace::new(face);
+    let table_fn = FontTableFunction::new(Arc::new(move |tag| {
+        let blob = hb_face.reference_table(tag);
+        if blob.is_null() {
+            return None;
+        }
+        if unsafe { hb_blob_get_length(blob) } == 0 {
+            unsafe {
+                hb_blob_destroy(blob);
+            }
+            return None;
+        }
+        Some(FontBlob::Shared(Arc::new(HbBlob(blob))))
+    }));
 
-    let font_ref = match FontRef::from_index(face_data, face_index) {
-        Ok(f) => f,
+    let font = match Font::new(table_fn, face_index) {
+        Ok(font) => font,
         Err(_) => return null_mut(),
     };
-    let shaper_data = ShaperData::new(&font_ref);
 
-    let hr_face_data = Box::new(HBHarfRustFaceData {
-        face_blob,
-        font_ref,
-        shaper_data,
-    });
+    let hr_face_data = Box::new(HBHarfRustFaceData { font });
 
     Box::into_raw(hr_face_data) as *mut c_void
 }
@@ -88,15 +138,11 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_destroy_rs(data: *mut c_void) {
     let data = data as *mut HBHarfRustFaceData;
-    let hr_face_data = Box::from_raw(data);
-    let blob = hr_face_data.face_blob;
-    hb_blob_destroy(blob);
+    let _hr_face_data = Box::from_raw(data);
 }
 
 pub struct HBHarfRustFontData {
-    // Keep the instance alive because `shaper` borrows variation data from it.
-    _shaper_instance: Box<ShaperInstance>,
-    shaper: Shaper<'static>,
+    instance: FontInstance,
 }
 
 struct HBHarfBuzzFontFuncs {
@@ -173,7 +219,7 @@ impl FontFuncs for HBHarfBuzzFontFuncs {
     }
 }
 
-fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> ShaperInstance {
+fn font_to_instance(font: *mut hb_font_t, font_ref: &Font) -> FontInstance {
     let mut num_coords: u32 = 0;
     let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
     let coords = if coords.is_null() {
@@ -182,7 +228,9 @@ fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> Shap
         unsafe { std::slice::from_raw_parts(coords, num_coords as usize) }
     };
     let coords = coords.iter().map(|&v| NormalizedCoord::from_bits(v as i16));
-    ShaperInstance::from_coords(font_ref, coords)
+    FontInstance::builder(font_ref)
+        .normalized_coords(coords)
+        .build()
 }
 
 #[unsafe(no_mangle)]
@@ -192,19 +240,10 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
 ) -> *mut c_void {
     let face_data = face_data as *const HBHarfRustFaceData;
 
-    let font_ref = &(*face_data).font_ref;
-    let shaper_instance = Box::new(font_to_shaper_instance(font, font_ref));
-    let shaper_instance_ref = &*(&*shaper_instance as *const _);
-    let shaper = (*face_data)
-        .shaper_data
-        .shaper(font_ref)
-        .instance(Some(shaper_instance_ref))
-        .build();
+    let instance = font_to_instance(font, &(*face_data).font);
+    let hr_font_data = HBHarfRustFontData { instance };
 
-    let hr_font_data = Box::new(HBHarfRustFontData {
-        _shaper_instance: shaper_instance,
-        shaper: transmute::<harfrust::Shaper<'_>, harfrust::Shaper<'_>>(shaper),
-    });
+    let hr_font_data = Box::new(hr_font_data);
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
 
     hr_font_data_ptr as *mut c_void
@@ -282,10 +321,13 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     };
     let features = hb_feature_to_hr_feature(features, num_features);
 
-    let shaper = &(*font_data).shaper;
-
-    let hr_shape_plan =
-        harfrust::ShapePlan::new(shaper, direction, script, language.as_ref(), &features);
+    let hr_shape_plan = harfrust::ShapePlan::new(
+        &(*font_data).instance,
+        direction,
+        script,
+        language.as_ref(),
+        &features,
+    );
     let hr_shape_plan = Box::new(hr_shape_plan);
     Box::into_raw(hr_shape_plan) as *mut c_void
 }
@@ -385,15 +427,13 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let mut y_scale = 0;
     hb_font_get_scale(font, &mut x_scale, &mut y_scale);
     let mut font_funcs = HBHarfBuzzFontFuncs { font };
-    let glyphs = (*font_data).shaper.shape(
-        hr_buffer,
-        ShapeOptions::new()
-            .plan(shape_plan)
-            .scale_separate(Some((x_scale, y_scale)))
-            .point_size(ptem)
-            .features(&features)
-            .font_funcs(Some(&mut font_funcs)),
-    );
+    let options = ShapeOptions::new()
+        .plan(shape_plan)
+        .scale_separate(Some((x_scale, y_scale)))
+        .point_size(ptem)
+        .features(&features)
+        .font_funcs(Some(&mut font_funcs));
+    let glyphs = harfrust::shape(&(*font_data).instance, hr_buffer, options);
 
     hb_buffer_set_content_type(
         buffer,
