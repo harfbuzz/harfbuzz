@@ -721,7 +721,7 @@ struct GDEFVersion1_2
       out->version.minor = 3;
       c->plan->has_gdef_varstore = true;
     } else if (subset_markglyphsetsdef) {
-      out->version.minor = 2;      
+      out->version.minor = 2;
     } else  {
       out->version.minor = 0;
       c->serializer->revert (snapshot_version0);
@@ -1003,14 +1003,14 @@ struct GDEF
     }
 
     HB_ALWAYS_INLINE
-    bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
+    bool mark_set_may_cover (unsigned int set_index, hb_codepoint_t glyph_id) const
     {
       return
 #ifndef HB_NO_GDEF_CACHE
 	     // We can access arrayZ directly because of sanitize_lookup_props() guarantee.
 	     mark_glyph_sets.arrayZ[set_index].may_have (glyph_id) &&
 #endif
-	     table->mark_set_covers (set_index, glyph_id)
+	     true
       ;
     }
 

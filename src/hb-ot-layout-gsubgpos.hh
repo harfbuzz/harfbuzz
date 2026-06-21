@@ -851,7 +851,11 @@ struct hb_ot_apply_context_t :
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
-      return gdef_accel.mark_set_covers (match_props >> 16, info->codepoint);
+    {
+      unsigned set_index = match_props >> 16;
+      return gdef_accel.mark_set_may_cover (set_index, info->codepoint) &&
+	     gdef.mark_set_covers (set_index, info->codepoint);
+    }
 
     /* The second byte of match_props has the meaning
      * "ignore marks of attachment type different than
