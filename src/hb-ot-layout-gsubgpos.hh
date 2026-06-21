@@ -577,9 +577,6 @@ struct skipping_iterator_t
     return SKIP;
   }
 
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   bool next (unsigned *unsafe_to = nullptr)
   {
     auto *info = c->buffer->info;
@@ -608,9 +605,6 @@ struct skipping_iterator_t
       *unsafe_to = end;
     return false;
   }
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   bool prev (unsigned *unsafe_from = nullptr)
   {
     auto *out_info = c->buffer->out_info;
