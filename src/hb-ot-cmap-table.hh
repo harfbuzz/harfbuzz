@@ -658,6 +658,7 @@ struct CmapSubtableFormat4
 	    hb_codepoint_t gid = this->glyphIdArray[index];
 	    if (unlikely (!gid))
 	      continue;
+            gid = (gid + this->idDelta[i]) & 0xFFFFu;
 	    unicodes->add (codepoint);
 	    mapping->set (codepoint, gid);
 	  }

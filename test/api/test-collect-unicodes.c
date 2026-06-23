@@ -50,6 +50,64 @@ test_collect_unicodes_format4 (void)
 }
 
 static void
+test_collect_unicodes_format4_with_range_offsets_and_deltas (void)
+{
+  const char cmap_data[44] = {
+    0, 0, 0, 1,		      /* cmap header */
+    0, 0, 0, 3, 0, 0, 0, 12,  /* encoding records */
+    /* cmap 4 */
+    0, 4,          /* format */
+    0, 44,          /* length */
+    0, 0,          /* lang */
+    0, 2,          /* segcountx2 */
+    0, 0,          /* search range */
+    0, 0,          /* entry selector */
+    0, 0,          /* range shift */
+    0, 73,         /* end code [0] */
+    0, 0,          /* pad */
+    0, 70,         /* start code [0] */
+    0, 5,          /* id delta [0] */
+    0, 2,          /* id range offset [0] */
+    0, 8,          /* glyph id u70 */
+    0, 5,          /* glyph id u71 */
+    0, 0,          /* glyph id u72 */
+    0, 12,          /* glyph id u73 */
+  };
+
+  hb_blob_t* cmap = hb_blob_create(cmap_data, 44, HB_MEMORY_MODE_READONLY, 0, 0);
+  hb_face_t* face = hb_face_builder_create();
+  hb_face_builder_add_table(face, HB_TAG('c', 'm', 'a', 'p'), cmap);
+  hb_blob_destroy(cmap);
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_map_t *mapping = hb_map_create();
+  hb_codepoint_t cp;
+
+  hb_face_collect_unicodes (face, codepoints);
+
+  cp = HB_SET_VALUE_INVALID;
+  g_assert_true (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (70, ==, cp);
+  g_assert_true (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (71, ==, cp);
+  g_assert_true (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (73, ==, cp);
+  g_assert_false (hb_set_next (codepoints, &cp));
+
+  hb_set_clear(codepoints);
+  hb_face_collect_nominal_glyph_mapping(face, mapping, codepoints);
+
+  g_assert_cmpuint (hb_map_get(mapping, 70), ==, 8 + 5);
+  g_assert_cmpuint (hb_map_get(mapping, 71), ==, 5 + 5);
+  g_assert_false (hb_map_has(mapping, 72));
+  g_assert_cmpuint (hb_map_get(mapping, 73), ==, 12 + 5);
+
+  hb_map_destroy(mapping);
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static void
 test_collect_unicodes_format12_notdef (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cmunrm.otf");
@@ -135,6 +193,7 @@ main (int argc, char **argv)
   hb_test_add (test_collect_unicodes_format4);
   hb_test_add (test_collect_unicodes_format12);
   hb_test_add (test_collect_unicodes_format12_notdef);
+  hb_test_add (test_collect_unicodes_format4_with_range_offsets_and_deltas);
 
   return hb_test_run();
 }
