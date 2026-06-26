@@ -38,6 +38,11 @@
 #ifndef HB_EXPERIMENTAL_API
 #define HB_NO_BEYOND_64K
 #define HB_NO_CUBIC_GLYF
+#define HB_NO_SUBSET_DEPEND
+#endif
+
+#ifdef HB_SUBSET_DEPEND_API
+#undef HB_NO_SUBSET_DEPEND
 #endif
 
 #ifdef HB_TINY
@@ -78,6 +83,7 @@
 #define HB_NO_OT_FONT_GLYPH_NAMES
 #define HB_NO_SETLOCALE
 #define HB_NO_STYLE
+#define HB_NO_SUBSET_DEPEND
 #define HB_NO_VERTICAL
 #define HB_NO_VAR
 

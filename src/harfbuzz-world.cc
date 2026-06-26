@@ -142,6 +142,7 @@
 
 #ifdef HB_HAS_SUBSET
 #include "graph/gsubgpos-context.cc"
+#include "hb-depend.cc"
 #include "hb-number.cc"
 #include "hb-ot-cff1-table.cc"
 #include "hb-ot-cff2-table.cc"

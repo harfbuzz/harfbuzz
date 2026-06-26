@@ -38,6 +38,34 @@ struct Ligature
     c->output->add (ligGlyph);
   }
 
+  void depend (hb_depend_context_t *c, hb_codepoint_t first) const
+  {
+    // Build the complete ligature set upfront before adding any edges
+    hb_set_t complete_ligset;
+    complete_ligset.add (first);
+    + hb_iter (component) | hb_sink (complete_ligset);
+
+    hb_codepoint_t ligset_idx = c->depend_data->new_ligature_set(complete_ligset);
+
+    // Track whether any edge using this ligset_idx was actually added
+    bool any_added = false;
+
+    // Now add all edges with the complete, immutable set
+    if (c->depend_data->add_gsub_lookup (first, c->lookup_index, ligGlyph, ligset_idx))
+      any_added = true;
+
+    + hb_iter (component)
+    | hb_apply ([&] (const hb_codepoint_t &gid) {
+        if (c->depend_data->add_gsub_lookup (gid, c->lookup_index, ligGlyph, ligset_idx))
+          any_added = true;
+      })
+    ;
+
+    // If no edges were added, the ligset_idx is unused - free it for reuse
+    if (!any_added)
+      c->depend_data->free_ligature_set(ligset_idx);
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     c->input->add_array (component.arrayZ, component.get_length ());

@@ -3,6 +3,7 @@
 
 
 #include "../../hb-open-type.hh"
+#include "../../hb-depend-data.hh"
 #include "../../hb-ot-head-table.hh"
 #include "../../hb-ot-hmtx-table.hh"
 #include "../../hb-ot-var-gvar-table.hh"
@@ -215,6 +216,17 @@ struct glyf_accelerator_t
   }
 
   bool has_data () const { return num_glyphs; }
+
+  void depend (hb_depend_data_builder_t *builder) const
+  {
+    if (!has_data ()) return;
+    for (hb_codepoint_t gid = 0; gid < get_num_glyphs (); gid++)
+    {
+      auto glyph = glyph_for_gid (gid);
+      for (auto &item : glyph.get_composite_iterator ())
+        builder->add_depend (gid, HB_OT_TAG_glyf, item.get_gid ());
+    }
+  }
 
   protected:
   template<typename T>
@@ -541,6 +553,8 @@ struct glyf_accelerator_t
       hb_free (scratch);
     }
   }
+
+  unsigned int get_num_glyphs () const { return num_glyphs; }
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;
