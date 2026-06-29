@@ -112,7 +112,7 @@ struct TupleVariationHeader
   HB_ALWAYS_INLINE
   double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
 			   const hb_array_t<const F2DOT14> shared_tuples,
-			   hb_scalar_cache_t *shared_tuple_scalar_cache = nullptr) const
+			   hb_scalar_cache_t *shared_tuple_scalar_cache = (hb_scalar_cache_t *) &Null(hb_scalar_cache_t)) const
   {
     unsigned tuple_index = tupleIndex;
     unsigned int index = tuple_index & TupleIndex::TupleIndexMask;
@@ -121,8 +121,7 @@ struct TupleVariationHeader
      * Only PrivatePointNumbers may accompany a cached shared-tuple index; any
      * other flag sets a bit at or above 0x1000, making this range test fail.
      */
-    bool plain_shared_tuple = shared_tuple_scalar_cache &&
-			      (tuple_index & ~TupleIndex::PrivatePointNumbers) < shared_tuple_scalar_cache->length;
+    bool plain_shared_tuple = (tuple_index & ~TupleIndex::PrivatePointNumbers) < shared_tuple_scalar_cache->length;
     if (likely (plain_shared_tuple))
     {
       float scalar;
@@ -143,7 +142,7 @@ struct TupleVariationHeader
     {
       float scalar;
       if (!plain_shared_tuple &&
-	  shared_tuple_scalar_cache &&
+	  shared_tuple_scalar_cache->length &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
       {
         if (has_interm && (scalar != 0 && scalar != 1.f))
