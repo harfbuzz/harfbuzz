@@ -2633,8 +2633,9 @@ struct hb_scalar_cache_t
     *cached_value = roundf(value * MULTIPLIER);
   }
 
-  private:
+  public:
   unsigned length;
+  private:
   mutable hb_atomic_t<int> static_values[STATIC_LENGTH];
 };
 

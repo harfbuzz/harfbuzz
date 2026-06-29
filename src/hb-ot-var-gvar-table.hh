@@ -589,7 +589,8 @@ struct gvar_GVAR
 
     hb_scalar_cache_t *create_cache () const
     {
-      return hb_scalar_cache_t::create (table->sharedTupleCount);
+      return hb_scalar_cache_t::create (hb_min ((unsigned) table->sharedTupleCount,
+						TupleVariationHeader::max_shared_tuple_count));
     }
 
     static void destroy_cache (hb_scalar_cache_t *cache)

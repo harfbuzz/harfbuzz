@@ -115,6 +115,20 @@ struct TupleVariationHeader
 			   hb_scalar_cache_t *shared_tuple_scalar_cache = nullptr) const
   {
     unsigned tuple_index = tupleIndex;
+    unsigned int index = tuple_index & TupleIndex::TupleIndexMask;
+
+    /* The gvar shared-tuple cache is clamped to the 12-bit tuple-index range.
+     * Only PrivatePointNumbers may accompany a cached shared-tuple index; any
+     * other flag sets a bit at or above 0x1000, making this range test fail.
+     */
+    bool plain_shared_tuple = shared_tuple_scalar_cache &&
+			      (tuple_index & ~TupleIndex::PrivatePointNumbers) < shared_tuple_scalar_cache->length;
+    if (likely (plain_shared_tuple))
+    {
+      float scalar;
+      if (likely (shared_tuple_scalar_cache->get (index, &scalar)))
+	return (double) scalar;
+    }
 
     const F2DOT14 *peak_tuple;
 
@@ -127,10 +141,9 @@ struct TupleVariationHeader
     }
     else
     {
-      unsigned int index = tuple_index & TupleIndex::TupleIndexMask; // Inlined for performance
-
       float scalar;
-      if (shared_tuple_scalar_cache &&
+      if (!plain_shared_tuple &&
+	  shared_tuple_scalar_cache &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
       {
         if (has_interm && (scalar != 0 && scalar != 1.f))
@@ -201,7 +214,7 @@ struct TupleVariationHeader
         scalar *= (double) v / peak;
     }
     if (shared_tuple_scalar_cache)
-      shared_tuple_scalar_cache->set (get_index (), scalar);
+      shared_tuple_scalar_cache->set (index, scalar);
     return scalar;
   }
 
@@ -209,6 +222,7 @@ struct TupleVariationHeader
   bool   has_intermediate () const { return tupleIndex & TupleIndex::IntermediateRegion; }
   bool has_private_points () const { return tupleIndex & TupleIndex::PrivatePointNumbers; }
   unsigned      get_index () const { return tupleIndex & TupleIndex::TupleIndexMask; }
+  static constexpr unsigned max_shared_tuple_count = 0x1000u;
 
   protected:
   struct TupleIndex : HBUINT16
