@@ -222,7 +222,7 @@ struct TupleVariationHeader
   bool   has_intermediate () const { return tupleIndex & TupleIndex::IntermediateRegion; }
   bool has_private_points () const { return tupleIndex & TupleIndex::PrivatePointNumbers; }
   unsigned      get_index () const { return tupleIndex & TupleIndex::TupleIndexMask; }
-  static const unsigned max_shared_tuple_count = 0x1000u;
+  static constexpr unsigned max_shared_tuple_count = 0x1000u;
 
   protected:
   struct TupleIndex : HBUINT16
