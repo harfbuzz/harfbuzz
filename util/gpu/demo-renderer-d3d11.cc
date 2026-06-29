@@ -167,6 +167,8 @@ struct demo_renderer_d3d11_t : demo_renderer_t
     backend.alloc = [](void *ctx_, const char *data, unsigned len_bytes) -> unsigned {
       auto *self = (demo_renderer_d3d11_t *) ctx_;
       unsigned len_texels = len_bytes / 8;
+      if (self->atlas.cursor + len_texels > self->atlas.capacity)
+	die ("Ran out of atlas memory");
       unsigned offset = self->atlas.cursor;
       self->atlas.cursor += len_texels;
       const int16_t *src = (const int16_t *) data;
