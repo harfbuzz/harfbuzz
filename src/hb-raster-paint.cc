@@ -240,15 +240,15 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
   }
 
   /* Convert mask extents from surface coordinates to clip-buffer coordinates. */
-  int mask_x0 = mask_ext.x_origin - surf->extents.x_origin;
-  int mask_y0 = mask_ext.y_origin - surf->extents.y_origin;
-  int mask_x1 = mask_x0 + (int) mask_ext.width;
-  int mask_y1 = mask_y0 + (int) mask_ext.height;
+  int64_t mask_x0 = (int64_t) mask_ext.x_origin - (int64_t) surf->extents.x_origin;
+  int64_t mask_y0 = (int64_t) mask_ext.y_origin - (int64_t) surf->extents.y_origin;
+  int64_t mask_x1 = mask_x0 + mask_ext.width;
+  int64_t mask_y1 = mask_y0 + mask_ext.height;
 
-  int ix0_i = hb_max ((int) old_clip.min_x, hb_max (mask_x0, 0));
-  int iy0_i = hb_max ((int) old_clip.min_y, hb_max (mask_y0, 0));
-  int ix1_i = hb_min ((int) old_clip.max_x, hb_min (mask_x1, (int) w));
-  int iy1_i = hb_min ((int) old_clip.max_y, hb_min (mask_y1, (int) h));
+  int64_t ix0_i = hb_max ((int64_t) old_clip.min_x, hb_max (mask_x0, (int64_t) 0));
+  int64_t iy0_i = hb_max ((int64_t) old_clip.min_y, hb_max (mask_y0, (int64_t) 0));
+  int64_t ix1_i = hb_min ((int64_t) old_clip.max_x, hb_min (mask_x1, (int64_t) w));
+  int64_t iy1_i = hb_min ((int64_t) old_clip.max_y, hb_min (mask_y1, (int64_t) h));
 
   if (ix0_i >= ix1_i || iy0_i >= iy1_i)
   {
@@ -269,11 +269,11 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
   {
     for (unsigned y = iy0; y < iy1; y++)
     {
-      const uint8_t *mask_row = mask_buf + (unsigned) ((int) y - mask_y0) * mask_ext.stride;
+      const uint8_t *mask_row = mask_buf + (unsigned) ((int64_t) y - mask_y0) * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
       unsigned row_min = ix1;
       unsigned row_max = ix0;
-      unsigned mx = (unsigned) ((int) ix0 - mask_x0);
+      unsigned mx = (unsigned) ((int64_t) ix0 - mask_x0);
       for (unsigned x = ix0; x < ix1; x++)
       {
 	uint8_t a = mask_row[mx++];
@@ -300,13 +300,13 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
     for (unsigned y = iy0; y < iy1; y++)
     {
       const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
-      const uint8_t *mask_row = mask_buf + (unsigned) ((int) y - mask_y0) * mask_ext.stride;
+      const uint8_t *mask_row = mask_buf + (unsigned) ((int64_t) y - mask_y0) * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
       unsigned row_min = ix1;
       unsigned row_max = ix0;
       for (unsigned x = ix0; x < ix1; x++)
       {
-	unsigned mx = (unsigned) ((int) x - mask_x0);
+	unsigned mx = (unsigned) ((int64_t) x - mask_x0);
 	uint8_t a = hb_raster_div255 (mask_row[mx] * old_row[x]);
 	out_row[x] = a;
 	if (a)
