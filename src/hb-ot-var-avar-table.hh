@@ -614,6 +614,46 @@ struct avar
     for (unsigned i = 0; i < axisCount; i++)
       new_varidx_mapping[i] = varidx_map.map (i);
 
+    /* 5.5. Privatize shared varIdx delta rows before adding offset
+     * compensation. avar2's VarIdxMap may map several fvar axes to the SAME
+     * IVS delta row. Writing one axis's offset-compensation deltas into a
+     * shared row would corrupt every other axis that reads that row. So give
+     * each offset-receiving axis whose row is shared its own private copy of
+     * the row (identical contents, preserving the rebased deltas), then
+     * repoint its varIdx. Sharers keep the clean row; the varstore
+     * optimization pass re-merges identical rows afterwards. */
+    hb_hashmap_t<uint32_t, unsigned> varidx_ref_count;
+    for (unsigned i = 0; i < axisCount; i++)
+    {
+      uint32_t varidx = new_varidx_mapping[i];
+      if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX) continue;
+      unsigned *count;
+      if (varidx_ref_count.has (varidx, &count))
+        (*count)++;
+      else if (!varidx_ref_count.set (varidx, 1))
+        return false;
+    }
+    for (unsigned i = 0; i < axisCount; i++)
+    {
+      hb_tag_t *axis_tag_ptr;
+      /* Only axes that will receive offset compensation (restricted or
+       * pinned) can contaminate a shared row. */
+      if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr) ||
+          !c->plan->user_axes_location.has (*axis_tag_ptr))
+        continue;
+      uint32_t varidx = new_varidx_mapping[i];
+      if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        continue; /* gets a fresh, private VarData in the offset loop below */
+      unsigned *count;
+      if (!varidx_ref_count.has (varidx, &count) || *count <= 1)
+        continue; /* sole owner: safe to write offsets in place */
+      unsigned outer = varidx >> 16;
+      unsigned new_inner = item_vars.duplicate_row (outer, varidx & 0xFFFF);
+      if (unlikely (new_inner == (unsigned) -1)) return false;
+      new_varidx_mapping[i] = (outer << 16) | new_inner;
+      (*count)--;
+    }
+
     /* 6. Add offset compensation tuples.
      * Track processed (outer,inner) pairs to avoid adding duplicate biases
      * when multiple axes share the same varIdx. */

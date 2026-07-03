@@ -1832,6 +1832,34 @@ struct item_variations_t
     return false;
   }
 
+  /* Duplicate the delta row at position inner within VarData subtable outer,
+   * appending the copy as a new item. Used to give an axis a private copy of
+   * a delta row that avar2's VarIdxMap shares between several axes, before
+   * per-axis offset-compensation deltas are written into it. Returns the new
+   * inner index, or (unsigned) -1 on failure. */
+  unsigned duplicate_row (unsigned outer, unsigned inner)
+  {
+    if (unlikely (outer >= vars.length ||
+                  inner >= var_data_num_rows[outer] ||
+                  var_data_num_rows[outer] >= 0xFFFFu))
+      return (unsigned) -1;
+    for (tuple_delta_t& tuple : vars[outer].tuple_vars)
+    {
+      if (unlikely (inner >= tuple.deltas_x.length ||
+                    inner >= tuple.indices.length))
+        return (unsigned) -1;
+      tuple.indices.push (tuple.indices.arrayZ[inner]);
+      tuple.deltas_x.push (tuple.deltas_x.arrayZ[inner]);
+      if (inner < tuple.deltas_y.length)
+        tuple.deltas_y.push (tuple.deltas_y.arrayZ[inner]);
+      if (unlikely (tuple.indices.in_error () ||
+                    tuple.deltas_x.in_error () ||
+                    tuple.deltas_y.in_error ()))
+        return (unsigned) -1;
+    }
+    return var_data_num_rows[outer]++;
+  }
+
   /* Add a tuple with a single non-zero delta at position inner.
    * axis_tuples defines the region (empty map = constant/bias tuple). */
   void add_tuple (unsigned outer,
