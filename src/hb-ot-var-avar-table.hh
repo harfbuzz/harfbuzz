@@ -691,9 +691,10 @@ struct avar
   bool _subset_avar2 (hb_subset_context_t *c, avar *out,
                       const hb_vector_t<hb_vector_t<AxisValueMap>> &new_mappings) const
   {
-#ifdef HB_NO_AVAR2
+#if defined (HB_NO_VAR) || defined (HB_NO_AVAR2)
+    /* Not reachable: the plan never sets has_avar2 in these configurations. */
     return false;
-#endif
+#else
 
     /* 1. Locate original avar2 data, keeping per-axis old segment maps */
     hb_vector_t<const SegmentMaps *> old_seg_maps;
@@ -1143,6 +1144,7 @@ struct avar
                               hb_serialize_context_t::Head, bias);
 
     return true;
+#endif
   }
 
   public:
