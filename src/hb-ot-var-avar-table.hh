@@ -400,7 +400,11 @@ struct avar
       int v = coords[i];
       uint32_t varidx = varidx_map.map (i);
       float delta = var_store.get_delta (varidx, coords_2_14.arrayZ, coords_2_14.length, var_store_cache);
-      float d = hb_clamp (delta * 4, -(float) (1<<16), +(float) (1<<16)); // 2.14 -> 16.16
+      /* Apply the delta unclamped and clamp only the result to [-1, +1],
+       * matching fontTools. Since inputs and results are in [-1, +1],
+       * deltas beyond ±2 are equivalent to ±2; clamp to that range only
+       * to keep the float->int conversion safe. */
+      float d = hb_clamp (delta * 4, -(float) (1<<17), +(float) (1<<17)); // 2.14 -> 16.16
       v += (int) roundf (d);
       v = hb_clamp (v, -(1<<16), +(1<<16));
       out.push (v);
@@ -465,8 +469,10 @@ struct avar
       int v = coords_2_14[i];
       uint32_t varidx = varidx_map.map (i);
       float delta = var_store.get_delta (varidx, coords_2_14.arrayZ, coords_2_14.length, var_store_cache);
-      v += roundf (delta);
-      v = hb_clamp (v, -(1<<16), +(1<<16));
+      /* As above: apply the delta unclamped (±2 covers every useful case)
+       * and clamp the result to [-1, +1], matching fontTools. */
+      v += (int) hb_clamp (roundf (delta), -(float) (1<<15), +(float) (1<<15));
+      v = hb_clamp (v, -(1<<14), +(1<<14));
       coords[i] = v / 16384.f;
     }
 
