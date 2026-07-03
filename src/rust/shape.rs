@@ -61,19 +61,11 @@ struct HbFace(*mut hb_face_t);
 
 impl HbFace {
     unsafe fn new(face: *mut hb_face_t) -> Self {
-        Self(hb_face_reference(face))
+        Self(face)
     }
 
     fn reference_table(&self, tag: Tag) -> *mut hb_blob_t {
         unsafe { hb_face_reference_table(self.0, u32::from_be_bytes(tag.to_be_bytes())) }
-    }
-}
-
-impl Drop for HbFace {
-    fn drop(&mut self) {
-        unsafe {
-            hb_face_destroy(self.0);
-        }
     }
 }
 
