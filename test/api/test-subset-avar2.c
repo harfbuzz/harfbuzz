@@ -1,0 +1,414 @@
+/*
+ * Copyright © 2026  Behdad Esfahbod
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ */
+
+#include "hb-test.h"
+
+#include <hb-ot.h>
+#include <hb-subset.h>
+
+/* Differential tests for avar2 partial instancing.
+ *
+ * A partial instance of an avar2 font must produce the same final
+ * normalized coordinates (fvar normalization + avar v1 + avar v2) as the
+ * original font at every retained user-space location; the subsetter
+ * encodes the difference between the old and the new intermediate
+ * coordinate spaces as avar2 deltas ("offset compensation").
+ *
+ * TestAvar2Instance.ttf axes: wght 100/400/900, wdth 50/100/200,
+ * GRAD -200/0/150, XOPQ 10/88/160, opsz 8/14/144. avar v1 has interior
+ * breakpoints on wght (at ±0.5), XOPQ and opsz (at -0.45). The avar2
+ * VarStore drives wght's final coordinate from wdth, and GRAD's and
+ * XOPQ's from wght through a single SHARED delta row (the VarIdxMap maps
+ * GRAD and XOPQ to the same varIdx); wdth and opsz map to
+ * NO_VARIATION_INDEX. opsz's default lies near its minimum, so a
+ * far-moved default makes the retained avar v1 segment steep in the new
+ * space -- the regime where offset compensation is quantization-limited.
+ */
+
+#define WGHT HB_TAG ('w','g','h','t')
+#define WDTH HB_TAG ('w','d','t','h')
+#define GRAD HB_TAG ('G','R','A','D')
+#define XOPQ HB_TAG ('X','O','P','Q')
+#define OPSZ HB_TAG ('o','p','s','z')
+
+/* Compare final normalized coords of two faces at the same user location,
+ * in F2Dot14 units. */
+static void
+check_same_coords (hb_face_t *orig_face, hb_face_t *inst_face,
+		   const hb_variation_t *vars, unsigned n_vars,
+		   int tolerance)
+{
+  hb_font_t *orig_font = hb_font_create (orig_face);
+  hb_font_t *inst_font = hb_font_create (inst_face);
+  hb_font_set_variations (orig_font, vars, n_vars);
+  hb_font_set_variations (inst_font, vars, n_vars);
+
+  unsigned orig_len = 0, inst_len = 0;
+  const int *orig_coords = hb_font_get_var_coords_normalized (orig_font, &orig_len);
+  const int *inst_coords = hb_font_get_var_coords_normalized (inst_font, &inst_len);
+
+  g_assert_cmpuint (orig_len, ==, 5); /* not vacuous */
+  g_assert_cmpuint (orig_len, ==, inst_len);
+  for (unsigned i = 0; i < orig_len; i++)
+    g_assert_cmpint (ABS (orig_coords[i] - inst_coords[i]), <=, tolerance);
+
+  hb_font_destroy (orig_font);
+  hb_font_destroy (inst_font);
+}
+
+static hb_face_t *
+open_original (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/TestAvar2Instance.ttf");
+  g_assert_cmpuint (hb_ot_var_get_axis_count (face), ==, 5);
+  return face;
+}
+
+static hb_face_t *
+instance (hb_face_t *face, hb_subset_input_t *input)
+{
+  hb_face_t *inst = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  g_assert_nonnull (inst);
+  /* All axes are kept (pinned ones as hidden). */
+  g_assert_cmpuint (hb_ot_var_get_axis_count (inst), ==, 5);
+  return inst;
+}
+
+static hb_subset_input_t *
+create_input (void)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  g_assert_nonnull (input);
+  hb_subset_input_keep_everything (input);
+  return input;
+}
+
+static float
+lerp (float lo, float hi, unsigned i, unsigned n)
+{
+  return lo + (hi - lo) * i / (float) (n - 1);
+}
+
+/* Restrict wght without moving its default: the classic two-tent offset
+ * compensation. */
+static void
+test_avar2_restrict_same_default (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float wdths[] = {50.f, 100.f, 150.f, 200.f};
+  for (unsigned i = 0; i < 9; i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (wdths); j++)
+    {
+      hb_variation_t vars[2] = {{WGHT, lerp (200.f, 700.f, i, 9)},
+				{WDTH, wdths[j]}};
+      check_same_coords (face, inst, vars, 2, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Restrict wght MOVING its default: the offset function kinks where the
+ * old default lands in the new space; a plain two-tent encoding gets
+ * interior coordinates wrong. */
+static void
+test_avar2_restrict_moved_default (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 190.f, 900.f, 550.f));
+  hb_face_t *inst = instance (face, input);
+
+  /* Include the exact kink locations: the avar v1 breakpoints (user 250
+   * and 650) and the old default (user 400, the z_old kink). */
+  static const float wdths[] = {50.f, 100.f, 200.f};
+  static const float kinks[] = {250.f, 400.f, 650.f};
+  for (unsigned i = 0; i < 9 + G_N_ELEMENTS (kinks); i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (wdths); j++)
+    {
+      float w = i < 9 ? lerp (190.f, 900.f, i, 9) : kinks[i - 9];
+      hb_variation_t vars[2] = {{WGHT, w},
+				{WDTH, wdths[j]}};
+      check_same_coords (face, inst, vars, 2, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Restrict wght moving its default the other way: the old default lands
+ * ABOVE the new one, putting the z_old kink on the positive side. */
+static void
+test_avar2_restrict_moved_default_positive (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 100.f, 500.f, 250.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float wdths[] = {50.f, 100.f, 200.f};
+  for (unsigned i = 0; i < 9; i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (wdths); j++)
+    {
+      hb_variation_t vars[2] = {{WGHT, lerp (100.f, 500.f, i, 9)},
+				{WDTH, wdths[j]}};
+      check_same_coords (face, inst, vars, 2, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Restrict wdth, which has no avar2 delta row (NO_VARIATION_INDEX): its
+ * offset compensation needs a freshly created VarData. Moved default. */
+static void
+test_avar2_restrict_no_varidx_axis (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WDTH, 60.f, 200.f, 120.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float wghts[] = {100.f, 400.f, 900.f};
+  for (unsigned i = 0; i < 9; i++)
+    for (unsigned k = 0; k < G_N_ELEMENTS (wghts); k++)
+    {
+      hb_variation_t vars[2] = {{WDTH, lerp (60.f, 200.f, i, 9)},
+				{WGHT, wghts[k]}};
+      check_same_coords (face, inst, vars, 2, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Restrict XOPQ (moved default; interior avar v1 breakpoint in range).
+ * XOPQ shares its avar2 delta row with GRAD: without privatizing the
+ * shared row, XOPQ's offset-compensation deltas corrupt free GRAD. */
+static void
+test_avar2_restrict_shared_row (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, XOPQ, 20.f, 160.f, 120.f));
+  hb_face_t *inst = instance (face, input);
+
+  /* Include the exact kink locations: the avar v1 breakpoint (user 52.9)
+   * and the old default (user 88, the z_old kink). */
+  static const float grads[] = {-200.f, -50.f, 0.f, 100.f, 150.f};
+  static const float wghts[] = {100.f, 400.f, 900.f};
+  static const float kinks[] = {52.9f, 88.f};
+  for (unsigned i = 0; i < 9 + G_N_ELEMENTS (kinks); i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (grads); j++)
+      for (unsigned k = 0; k < G_N_ELEMENTS (wghts); k++)
+      {
+	float x = i < 9 ? lerp (20.f, 160.f, i, 9) : kinks[i - 9];
+	hb_variation_t vars[3] = {{XOPQ, x},
+				  {GRAD, grads[j]},
+				  {WGHT, wghts[k]}};
+	check_same_coords (face, inst, vars, 3, 2);
+      }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Pin XOPQ off-default: only its bias is written; free GRAD, sharing the
+ * row, must stay uncorrupted. */
+static void
+test_avar2_pin_shared_row (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, XOPQ, 120.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float grads[] = {-200.f, -50.f, 0.f, 100.f, 150.f};
+  static const float wghts[] = {100.f, 400.f, 700.f, 900.f};
+  for (unsigned j = 0; j < G_N_ELEMENTS (grads); j++)
+    for (unsigned k = 0; k < G_N_ELEMENTS (wghts); k++)
+    {
+      /* Evaluate the original at the pinned XOPQ value. */
+      hb_variation_t vars[3] = {{XOPQ, 120.f},
+				{GRAD, grads[j]},
+				{WGHT, wghts[k]}};
+      check_same_coords (face, inst, vars, 3, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Pin wght off-default: its final coordinate still varies with free wdth
+ * through the (rebased) avar2 delta row. */
+static void
+test_avar2_pin_driven_axis (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, WGHT, 600.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float wdths[] = {50.f, 100.f, 150.f, 200.f};
+  static const float grads[] = {0.f, 100.f};
+  for (unsigned j = 0; j < G_N_ELEMENTS (wdths); j++)
+    for (unsigned k = 0; k < G_N_ELEMENTS (grads); k++)
+    {
+      hb_variation_t vars[3] = {{WGHT, 600.f},
+				{WDTH, wdths[j]},
+				{GRAD, grads[k]}};
+      check_same_coords (face, inst, vars, 3, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Pin axes AT their old defaults (the most common instancing operation):
+ * d_i = 0 and the bias vanishes; the axes just become hidden. XOPQ covers
+ * the shared-row path, wdth the NO_VARIATION_INDEX path. */
+static void
+test_avar2_pin_at_default (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, XOPQ, 88.f));
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, WDTH, 100.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float grads[] = {-200.f, -50.f, 0.f, 100.f, 150.f};
+  static const float wghts[] = {100.f, 250.f, 400.f, 650.f, 900.f};
+  for (unsigned j = 0; j < G_N_ELEMENTS (grads); j++)
+    for (unsigned k = 0; k < G_N_ELEMENTS (wghts); k++)
+    {
+      hb_variation_t vars[4] = {{XOPQ, 88.f},
+				{WDTH, 100.f},
+				{GRAD, grads[j]},
+				{WGHT, wghts[k]}};
+      check_same_coords (face, inst, vars, 4, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Restrict both axes sharing the delta row: each needs a private copy. */
+static void
+test_avar2_restrict_both_shared (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, GRAD, -100.f, 100.f, 0.f));
+  g_assert_true (hb_subset_input_set_axis_range (input, face, XOPQ, 30.f, 140.f, 88.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float wghts[] = {100.f, 400.f, 900.f};
+  for (unsigned i = 0; i < 7; i++)
+    for (unsigned j = 0; j < 7; j++)
+      for (unsigned k = 0; k < G_N_ELEMENTS (wghts); k++)
+      {
+	hb_variation_t vars[3] = {{GRAD, lerp (-100.f, 100.f, i, 7)},
+				  {XOPQ, lerp (30.f, 140.f, j, 7)},
+				  {WGHT, wghts[k]}};
+	check_same_coords (face, inst, vars, 3, 2);
+      }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Move XOPQ's default near the axis edge: the retained avar v1 segment
+ * becomes steep in the new space; interior-breakpoint collection keeps
+ * the residual within quantization noise. */
+static void
+test_avar2_restrict_steep (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, XOPQ, 10.f, 160.f, 140.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float wghts[] = {100.f, 400.f, 900.f};
+  static const float kinks[] = {52.9f, 88.f};
+  for (unsigned i = 0; i < 17 + G_N_ELEMENTS (kinks); i++)
+    for (unsigned k = 0; k < G_N_ELEMENTS (wghts); k++)
+    {
+      float x = i < 17 ? lerp (10.f, 160.f, i, 17) : kinks[i - 17];
+      hb_variation_t vars[2] = {{XOPQ, x},
+				{WGHT, wghts[k]}};
+      check_same_coords (face, inst, vars, 2, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Move opsz's default from near the axis minimum (14) far up the axis:
+ * the retained negative-side avar v1 segment becomes very steep in the
+ * new space and offset compensation is quantization-limited. The
+ * tolerance sits one F2Dot14 unit above the residual achieved WITH
+ * interior-breakpoint collection; dropping the collection (or the whole
+ * knot machinery) exceeds it. */
+static void
+test_avar2_restrict_steep_no_varidx (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, OPSZ, 8.f, 144.f, 120.f));
+  hb_face_t *inst = instance (face, input);
+
+  for (unsigned i = 0; i < 33; i++)
+  {
+    hb_variation_t vars[1] = {{OPSZ, lerp (8.f, 144.f, i, 33)}};
+    check_same_coords (face, inst, vars, 1, 5);
+  }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+int
+main (int argc, char **argv)
+{
+  hb_test_init (&argc, &argv);
+
+  hb_test_add (test_avar2_restrict_same_default);
+  hb_test_add (test_avar2_restrict_moved_default);
+  hb_test_add (test_avar2_restrict_moved_default_positive);
+  hb_test_add (test_avar2_restrict_no_varidx_axis);
+  hb_test_add (test_avar2_restrict_shared_row);
+  hb_test_add (test_avar2_pin_shared_row);
+  hb_test_add (test_avar2_pin_at_default);
+  hb_test_add (test_avar2_pin_driven_axis);
+  hb_test_add (test_avar2_restrict_both_shared);
+  hb_test_add (test_avar2_restrict_steep);
+  hb_test_add (test_avar2_restrict_steep_no_varidx);
+
+  return hb_test_run ();
+}
