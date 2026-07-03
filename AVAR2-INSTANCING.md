@@ -117,7 +117,9 @@ Modify `avar::subset()` to:
 - For avar2 pinned axes: serialize identity segment maps `{-1->-1, 0->0, 1->1}`
   (compile() needs entries for all fvar axes)
 - For avar2 restricted axes: use existing `SegmentMaps::subset()` (works
-  correctly with intermediate-space `axes_location`)
+  correctly with intermediate-space `axes_location`); its optional
+  `out_mappings` parameter hands the instantiated mappings to
+  `_subset_avar2()`, which needs them to locate the new mappings' kinks
 
 #### 2b. avar2 IVS instancing (`_subset_avar2()` helper)
 
@@ -141,30 +143,64 @@ Add helper method `_subset_avar2(hb_subset_context_t *c)`:
    final coord = `d_i + default_delta_i`. These axes can be removed from fvar
    and their contributions folded into gvar/HVAR/etc.
 
-5. **Add offset compensation tuples**: For each fvar axis:
+5. **Privatize shared varIdx delta rows**: the avar2 VarIdxMap may map several
+   fvar axes to the SAME IVS delta row (Amstelvar does: GRAD+XOPQ, and
+   YOPQ+YTLC+YTUC). Writing one axis's offset-compensation deltas into a
+   shared row would corrupt every other axis reading that row. Ref-count
+   varIdxes across all fvar axes; for each offset-receiving axis (in
+   `user_axes_location`) whose row is shared, append a copy of its row within
+   the same VarData via `item_vars.duplicate_row()` and repoint its varIdx.
+   Sharers keep the clean row; the varstore optimization pass re-merges
+   identical rows afterwards.
+
+6. **Add offset compensation tuples**: For each fvar axis:
    - **Restricted or non-self-contained pinned axis** (in `user_axes_location`):
      - If `varIdx == NO_VARIATION_INDEX`: create new VarData via
        `item_vars.add_vardata(1)`, create/update VarIdxMap entry
      - Add bias tuple: empty region, delta = `d_int + round(defaultDelta)`
-     - If not pinned, add neg tent: region `{tag: (-1,-1,0)}`, delta =
-       `a_int + (1<<14) - d_int`
-     - If not pinned, add pos tent: region `{tag: (0,+1,+1)}`, delta =
-       `b_int - (1<<14) - d_int`
+     - If pinned, that bias is all that's needed. Otherwise, encode the
+       piecewise-linear function `offset(z) = inv_renorm(z) - z` as tents:
+       - Collect knots: `z = -1 -> a_i + 1`, `z = 0 -> d_i`,
+         `z = +1 -> b_i - 1`. If the axis default MOVED, `inv_renorm` also
+         kinks where the old default lands in the new space: add
+         `z = z_old -> -z_old` when interior.
+       - Collect interior avar v1 breakpoints: each in-range old breakpoint
+         kinks the new mapping at its output coordinate `z`; add that `z`
+         with its old intermediate value (computed through user space and
+         the old fvar + avar v1 chain) so `offset(z)` is reproduced at every
+         kink. Keep this larger knot set only if it does not increase the
+         residual estimated by a 257-point sweep; emit a `DEBUG_MSG` when
+         the residual exceeds 8 F2Dot14 units (a steep retained segment
+         that F2Dot14 cannot reproduce bit-exactly).
+       - Synthesize one tent per non-zero knot: peak at `z`, extending to the
+         adjacent knots (or the axis end for the outermost knots). Adjacent
+         tents vanish at each other's peaks, so each delta is simply
+         `round((offset(z) - d_i) * 16384)`; the base value `d_i` is carried
+         by the empty-region bias. This reduces to the classic two tents
+         `(-1,-1,0)` / `(0,+1,+1)` when the default is unchanged and there
+         are no interior knots. (Functionally equivalent to the 1-D
+         `VariationModel` synthesis fonttools uses; the serialized regions
+         differ when two or more knots lie strictly on one side of 0 --
+         fonttools extends an inner tent past the next knot and cascades
+         its deltas, while HarfBuzz emits adjacent-knot tents with
+         independent deltas, which rounds slightly better. Both realize
+         the same piecewise-linear function.)
    - **Self-contained pinned axis**: skip offset compensation (will be folded)
    - **Free/private axis** (not in `user_axes_location`):
      - If `round(defaultDelta) != 0`: add bias tuple with `round(defaultDelta)`
+     - Skip varIdxes already processed (multiple free axes can share a row)
 
-6. **Remove self-contained axes from axis order** before building VarStore, so
+7. **Remove self-contained axes from axis order** before building VarStore, so
    VarRegionList matches post-removal fvar axis count.
 
-7. **Finalize**: call `item_vars.build_region_list()` +
+8. **Finalize**: call `item_vars.build_region_list()` +
    `item_vars.as_item_varstore(optimize=true, use_no_variation_idx=false)`.
 
-8. **Serialize avarV2Tail**: serialize `DeltaSetIndexMap` (with updated varIdx
+9. **Serialize avarV2Tail**: serialize `DeltaSetIndexMap` (with updated varIdx
    entries after optimization via `item_vars.get_varidx_map()`) and
    `ItemVariationStore`. Handle Offset32To resolution relative to avar table start.
 
-9. **Store self-contained axes info** in plan for use by other tables.
+10. **Store self-contained axes info** in plan for use by other tables.
 
 
 ### Chunk 3: `item_variations_t` Extensions
@@ -190,6 +226,11 @@ unsigned get_item_count (unsigned outer) const
 void add_tuple (unsigned outer,
                 hb_hashmap_t<hb_tag_t, Triple>&& axis_tuples,
                 unsigned inner, int delta, unsigned item_count)
+
+// Duplicate the delta row at position inner within VarData outer,
+// appending the copy as a new item. Returns the new inner index.
+// Used to privatize shared varIdx rows before offset compensation.
+unsigned duplicate_row (unsigned outer, unsigned inner)
 ```
 
 These methods allow the avar2 subsetting code to manipulate the IVS
@@ -332,12 +373,24 @@ without it, just potentially slightly larger.
 
 ## Verification
 
-1. Take an avar2 font (e.g., RobotoFlex-avar2.ttf), partial-instance with both
+1. **Differential API test** (`test/api/test-subset-avar2.c`, using
+   `test/api/fonts/TestAvar2Instance.ttf`): the final normalized coordinates
+   (`hb_font_get_var_coords_normalized`, i.e. fvar + avar v1 + avar v2) of a
+   partial instance must match the original font's at the same user-space
+   location, within 2 F2Dot14 units (5 for the steepest quantization-limited
+   case, chosen one unit below what dropping the interior-breakpoint
+   collection produces), over grids of locations including the exact kink
+   positions. Covers: same-default and moved-default restriction (both
+   directions), shared-varIdx rows (restricted, pinned, and both-restricted),
+   pinning at and off the default, a pinned axis driven by a free axis, a
+   NO_VARIATION_INDEX axis (fresh VarData), interior avar v1 breakpoints,
+   and steep moved-far-from-min defaults.
+2. Take an avar2 font (e.g., RobotoFlex-avar2.ttf), partial-instance with both
    fonttools and HarfBuzz, compare avar2 VarStore output
-2. Render glyphs at various coordinates using the instanced font -- verify visual
+3. Render glyphs at various coordinates using the instanced font -- verify visual
    match with the original
-3. Test full pinning (all axes) still works (existing path)
-4. Test with NO_VARIATION_INDEX axes, fonts without explicit VarIdxMap, multiple
+4. Test full pinning (all axes) still works (existing path)
+5. Test with NO_VARIATION_INDEX axes, fonts without explicit VarIdxMap, multiple
    restricted axes
-5. Test self-contained axis detection and removal
-6. Test variation culling produces smaller output without visual changes
+6. Test self-contained axis detection and removal
+7. Test variation culling produces smaller output without visual changes
