@@ -260,18 +260,18 @@ struct cff2_instancing_plan_t
     unsigned data_count = new_major_count;
     unsigned header_size = 2 + 4 + 2 + 4 * data_count;
 
-    unsigned offset = header_size;
+    uint64_t offset = header_size;
     hb_vector_t<unsigned> data_offsets;
     for (const vardata_transform_t &t : transforms)
     {
       if (!t.alive ()) continue;
-      data_offsets.push (offset);
-      offset += 6 + 2 * t.region_indices.length;
+      data_offsets.push ((unsigned) offset);
+      offset += 6 + 2 * (uint64_t) t.region_indices.length;
     }
     if (unlikely (data_offsets.in_error () || data_offsets.length != data_count))
       return false;
-    unsigned regions_offset = offset;
-    unsigned total = offset + 4 + new_regions.length * axis_tags.length * 6;
+    unsigned regions_offset = (unsigned) offset;
+    uint64_t total = offset + 4 + (uint64_t) new_regions.length * axis_tags.length * 6;
     if (unlikely (total > 0xFFFFu)) return false;
 
     HBUINT16 *size_field = c->allocate_size<HBUINT16> (HBUINT16::static_size);
