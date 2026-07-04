@@ -53,7 +53,9 @@
 #define OPSZ HB_TAG ('o','p','s','z')
 
 /* Compare final normalized coords of two faces at the same user location,
- * in F2Dot14 units. */
+ * in F2Dot14 units. Compared by axis tag: self-contained pinned axes are
+ * removed from the instance entirely (their contribution is baked into the
+ * variation tables, which check_same_rendering validates). */
 static void
 check_same_coords (hb_face_t *orig_face, hb_face_t *inst_face,
 		   const hb_variation_t *vars, unsigned n_vars,
@@ -68,10 +70,24 @@ check_same_coords (hb_face_t *orig_face, hb_face_t *inst_face,
   const int *orig_coords = hb_font_get_var_coords_normalized (orig_font, &orig_len);
   const int *inst_coords = hb_font_get_var_coords_normalized (inst_font, &inst_len);
 
+  hb_ot_var_axis_info_t orig_axes[8], inst_axes[8];
+  unsigned orig_axis_count = 8, inst_axis_count = 8;
+  hb_ot_var_get_axis_infos (orig_face, 0, &orig_axis_count, orig_axes);
+  hb_ot_var_get_axis_infos (inst_face, 0, &inst_axis_count, inst_axes);
+
   g_assert_cmpuint (orig_len, ==, 6); /* not vacuous */
-  g_assert_cmpuint (orig_len, ==, inst_len);
-  for (unsigned i = 0; i < orig_len; i++)
-    g_assert_cmpint (ABS (orig_coords[i] - inst_coords[i]), <=, tolerance);
+  g_assert_cmpuint (orig_len, ==, orig_axis_count);
+  g_assert_cmpuint (inst_len, ==, inst_axis_count);
+
+  for (unsigned j = 0; j < inst_axis_count; j++)
+  {
+    unsigned i = 0;
+    for (; i < orig_axis_count; i++)
+      if (orig_axes[i].tag == inst_axes[j].tag)
+	break;
+    g_assert_cmpuint (i, <, orig_axis_count); /* tag must exist in original */
+    g_assert_cmpint (ABS (orig_coords[i] - inst_coords[j]), <=, tolerance);
+  }
 
   hb_font_destroy (orig_font);
   hb_font_destroy (inst_font);
@@ -105,6 +121,12 @@ check_same_rendering (hb_face_t *orig_face, hb_face_t *inst_face,
   g_assert_cmpint (ABS (orig_ext.width - inst_ext.width), <=, 1);
   g_assert_cmpint (ABS (orig_ext.height - inst_ext.height), <=, 1);
 
+  /* MVAR-driven metric (underline offset varies with wght). */
+  hb_position_t orig_undo = 0, inst_undo = 0;
+  g_assert_true (hb_ot_metrics_get_position (orig_font, HB_OT_METRICS_TAG_UNDERLINE_OFFSET, &orig_undo));
+  g_assert_true (hb_ot_metrics_get_position (inst_font, HB_OT_METRICS_TAG_UNDERLINE_OFFSET, &inst_undo));
+  g_assert_cmpint (ABS (orig_undo - inst_undo), <=, 1);
+
   hb_font_destroy (orig_font);
   hb_font_destroy (inst_font);
 }
@@ -118,14 +140,21 @@ open_original (void)
 }
 
 static hb_face_t *
-instance (hb_face_t *face, hb_subset_input_t *input)
+instance_n (hb_face_t *face, hb_subset_input_t *input, unsigned expected_axes)
 {
   hb_face_t *inst = hb_subset_or_fail (face, input);
   hb_subset_input_destroy (input);
   g_assert_nonnull (inst);
-  /* All axes are kept (pinned ones as hidden). */
-  g_assert_cmpuint (hb_ot_var_get_axis_count (inst), ==, 6);
+  /* All axes are kept (pinned ones as hidden), except self-contained
+   * pinned axes, which are removed entirely. */
+  g_assert_cmpuint (hb_ot_var_get_axis_count (inst), ==, expected_axes);
   return inst;
+}
+
+static hb_face_t *
+instance (hb_face_t *face, hb_subset_input_t *input)
+{
+  return instance_n (face, input, 6);
 }
 
 static hb_subset_input_t *
@@ -333,7 +362,9 @@ test_avar2_pin_at_default (void)
   hb_subset_input_t *input = create_input ();
   g_assert_true (hb_subset_input_pin_axis_location (input, face, XOPQ, 88.f));
   g_assert_true (hb_subset_input_pin_axis_location (input, face, WDTH, 100.f));
-  hb_face_t *inst = instance (face, input);
+  /* wdth has no avar2 row: pinning it is self-contained, so it is removed
+   * from fvar entirely. XOPQ's row varies with wght, so it stays hidden. */
+  hb_face_t *inst = instance_n (face, input, 5);
 
   static const float grads[] = {-200.f, -50.f, 0.f, 100.f, 150.f};
   static const float wghts[] = {100.f, 250.f, 400.f, 650.f, 900.f};
@@ -396,6 +427,59 @@ test_avar2_restrict_steep (void)
       hb_variation_t vars[2] = {{XOPQ, x},
 				{WGHT, wghts[k]}};
       check_same_coords (face, inst, vars, 2, 2);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Pin opsz (NO_VARIATION_INDEX) off its default: self-contained, so the
+ * axis is removed from fvar entirely and its constant final coordinate is
+ * baked into the variation tables by standard instancing. */
+static void
+test_avar2_self_contained_pin (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, OPSZ, 40.f));
+  hb_face_t *inst = instance_n (face, input, 5);
+
+  static const float grads[] = {-200.f, 0.f, 150.f};
+  for (unsigned i = 0; i < 9; i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (grads); j++)
+    {
+      hb_variation_t vars[3] = {{OPSZ, 40.f},
+				{WGHT, lerp (100.f, 900.f, i, 9)},
+				{GRAD, grads[j]}};
+      check_same_coords (face, inst, vars, 3, 2);
+      check_same_rendering (face, inst, vars, 3);
+    }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
+/* Self-contained pin combined with a range restriction: wdth folds into
+ * the tables (including its constant push on wght's final coordinate,
+ * re-added as a free-axis bias) while wght keeps offset compensation. */
+static void
+test_avar2_self_contained_plus_range (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, WDTH, 150.f));
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 250.f, 700.f, 400.f));
+  hb_face_t *inst = instance_n (face, input, 5);
+
+  static const float grads[] = {-200.f, 0.f, 150.f};
+  for (unsigned i = 0; i < 9; i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (grads); j++)
+    {
+      hb_variation_t vars[3] = {{WDTH, 150.f},
+				{WGHT, lerp (250.f, 700.f, i, 9)},
+				{GRAD, grads[j]}};
+      check_same_coords (face, inst, vars, 3, 2);
+      check_same_rendering (face, inst, vars, 3);
     }
 
   hb_face_destroy (inst);
@@ -481,6 +565,8 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_pin_shared_row);
   hb_test_add (test_avar2_pin_at_default);
   hb_test_add (test_avar2_pin_driven_axis);
+  hb_test_add (test_avar2_self_contained_pin);
+  hb_test_add (test_avar2_self_contained_plus_range);
   hb_test_add (test_avar2_restrict_both_shared);
   hb_test_add (test_avar2_culling);
   hb_test_add (test_avar2_restrict_steep);
