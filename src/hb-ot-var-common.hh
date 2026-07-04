@@ -1934,23 +1934,6 @@ struct item_variations_t
   unsigned get_item_count (unsigned outer) const
   { return outer < var_data_num_rows.length ? var_data_num_rows[outer] : 0; }
 
-  /* Get number of VarData subtables. */
-  unsigned get_vardata_count () const
-  { return vars.length; }
-
-  /* Check if any tuple in a VarData has a non-zero delta at a given inner position. */
-  bool has_nonzero_delta (unsigned outer, unsigned inner) const
-  {
-    if (outer >= vars.length) return false;
-    for (const tuple_delta_t& tuple : vars[outer].tuple_vars)
-    {
-      if (inner < tuple.deltas_x.length &&
-          roundf (tuple.deltas_x[inner]) != 0.f)
-        return true;
-    }
-    return false;
-  }
-
   /* Duplicate the delta row at position inner within VarData subtable outer,
    * appending the copy as a new item. Used to give an axis a private copy of
    * a delta row that avar2's VarIdxMap shares between several axes, before
