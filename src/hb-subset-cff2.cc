@@ -312,25 +312,53 @@ struct cff2_instancing_plan_t
 };
 
 /* Usage-collection pass for partial instancing: record which VarDatas the
- * retained charstrings' and private dicts' blends reference. */
+ * retained charstrings' and private dicts' blends reference.  Mirrors the
+ * emission pass: blends consumed by dropped hint ops don't count. */
 struct cff2_usage_param_t
 {
   void init () {}
 
   cff2_instancing_plan_t *instancing = nullptr;
+  bool drop_hints = false;
   unsigned ivs = 0;	/* dict-side current vsindex */
 };
 
 struct cff2_cs_opset_usage_t : cff2_cs_opset_t<cff2_cs_opset_usage_t, cff2_usage_param_t, blend_arg_t>
 {
-  static void process_blend (cff2_cs_interp_env_t<blend_arg_t> &env, cff2_usage_param_t& param)
+  static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, cff2_usage_param_t& param)
   {
-    param.instancing->note_use (env.get_ivs ());
-    SUPER::process_blend (env, param);
-  }
+    bool counts = true;
+    switch (op)
+    {
+      case OpCode_return:
+      case OpCode_endchar:
+	counts = false;
+	break;
 
-  private:
-  typedef cff2_cs_opset_t<cff2_cs_opset_usage_t, cff2_usage_param_t, blend_arg_t> SUPER;
+      case OpCode_hstem:
+      case OpCode_hstemhm:
+      case OpCode_vstem:
+      case OpCode_vstemhm:
+      case OpCode_hintmask:
+      case OpCode_cntrmask:
+	if (param.drop_hints)
+	  counts = false;
+	break;
+
+      default:
+	break;
+    }
+
+    if (counts)
+      for (unsigned int i = 0; i < env.argStack.get_count (); i++)
+	if (env.argStack[i].blending ())
+	{
+	  param.instancing->note_use (env.get_ivs ());
+	  break;
+	}
+
+    env.clear_args ();
+  }
 };
 
 struct cff2_private_dict_usage_opset_t : dict_opset_t
@@ -555,7 +583,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     }
 
     str_encoder_t encoder (param.flatStr);
-    unsigned k_new = t->matrix.length;
+    unsigned k_new = t->alive () ? t->matrix.length : 0;
 
     if (!k_new)
     {
@@ -789,6 +817,9 @@ struct cff2_private_blend_encoder_param_t
   /* CFF2 partial instancing: when set, blends are rewritten against the
    * instanced variation store instead of being flattened. */
   const cff2_instancing_plan_t *instancer = nullptr;
+  /* Error-compensated fold rounding state, per dict operator. */
+  double fold_exact = 0.;
+  double fold_emitted = 0.;
 };
 
 struct cff2_private_dict_blend_opset_t : dict_opset_t
@@ -799,6 +830,21 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
 				 unsigned n, unsigned i)
   {
     arg.set_int (round (arg.to_real () + param.blend_deltas (blends)));
+  }
+
+  /* The fold added to a value, error-compensated across the operator: most
+   * blended private-dict values (BlueValues, StemSnap*, ...) are
+   * delta-encoded, so independently rounded folds would accumulate in the
+   * decoded absolutes; keeping the emitted cumulative fold equal to the
+   * rounded exact cumulative fold bounds every absolute within ±0.5. */
+  static double fold (cff2_private_blend_encoder_param_t& param,
+		      const hb_array_t<const number_t> blends)
+  {
+    double f = param.blend_deltas (blends);
+    double emit = round (param.fold_exact + f) - param.fold_emitted;
+    param.fold_exact += f;
+    param.fold_emitted += emit;
+    return emit;
   }
 
   /* Partial instancing: emit the args preceding this blend group, then the
@@ -822,15 +868,17 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
     for (unsigned idx = 0; idx < start; idx++)
       encoder.encode_num_tp (env.argStack[idx]);
 
-    unsigned k_new = t->matrix.length;
+    unsigned k_new = t->alive () ? t->matrix.length : 0;
     if (!k_new)
     {
-      /* All of this VarData's regions died; blends dissolve into statics. */
+      /* This VarData died (or is unused by any retained charstring, which
+       * can happen for FDs kept only for retain-gids holes); blends
+       * dissolve into statics. */
       for (unsigned j = 0; j < n; j++)
       {
 	const hb_array_t<const number_t> blends = env.argStack.sub_array (start + n + (j * k), k);
 	number_t v;
-	v.set_real (env.argStack[start + j].to_real () + round (param.blend_deltas (blends)));
+	v.set_real (env.argStack[start + j].to_real () + fold (param, blends));
 	encoder.encode_num_tp (v);
       }
     }
@@ -851,7 +899,7 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
 	{
 	  const hb_array_t<const number_t> blends = env.argStack.sub_array (start + n + (j * k), k);
 	  number_t v;
-	  v.set_real (env.argStack[start + j].to_real () + round (param.blend_deltas (blends)));
+	  v.set_real (env.argStack[start + j].to_real () + fold (param, blends));
 	  encoder.encode_num_tp (v);
 	}
 	for (unsigned j = done; j < done + chunk; j++)
@@ -892,7 +940,7 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
       return;
     }
 
-    if (param.instancer)
+    if (param.instancer && k)
     {
       rewrite_blends (env, param, start, n, k);
       return;
@@ -971,6 +1019,7 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
     param.c->embed (&bytes, bytes.length);
 
     env.clear_args ();
+    param.fold_exact = param.fold_emitted = 0.;
   }
 };
 
@@ -1038,8 +1087,8 @@ struct cff2_subset_plan
     orig_fdcount = acc.fdArray->count;
 
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
-    pinned = plan->all_axes_pinned;
     bool instancing_requested = (bool) plan->normalized_coords;
+    pinned = instancing_requested && plan->all_axes_pinned;
     normalized_coords = plan->normalized_coords;
     head_maxp_info = plan->head_maxp_info;
     hmtx_map = &plan->hmtx_map;
@@ -1048,8 +1097,7 @@ struct cff2_subset_plan
 
     /* Partial instancing: some axes pinned or limited, others kept. */
     partial_instancing = instancing_requested && !pinned &&
-			 acc.varStore != &Null (CFF2ItemVariationStore) &&
-			 acc.varStore->varStore.get_sub_table_count ();
+			 acc.varStore != &Null (CFF2ItemVariationStore);
     if (partial_instancing &&
 	unlikely (!instancing.create (acc.varStore, plan)))
       return false;
@@ -1086,6 +1134,7 @@ struct cff2_subset_plan
 	  cs_interpreter_t<cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_usage_t, cff2_usage_param_t> interp (env);
 	  cff2_usage_param_t param;
 	  param.instancing = &instancing;
+	  param.drop_hints = drop_hints;
 	  if (unlikely (!interp.interpret (param)))
 	    return false;
 	}
@@ -1097,6 +1146,8 @@ struct cff2_subset_plan
 	  for (unsigned j = 0; j < count; j++)
 	  {
 	    const op_str_t &opstr = acc.privateDicts[fd][j];
+	    if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
+	      continue;
 	    cff2_priv_dict_interp_env_t env {hb_ubytes_t (opstr.ptr, opstr.length)};
 	    dict_interpreter_t<cff2_private_dict_usage_opset_t, cff2_usage_param_t, cff2_priv_dict_interp_env_t> interp (env);
 	    if (unlikely (!interp.interpret (param)))
