@@ -341,7 +341,13 @@ Detection is suppressed (such pins stay in fvar as ordinary hidden axes)
 when the face has a CFF2 table -- CFF2 has no partial-pin instancing path;
 its `pinned` path flattens ALL blends and drops the CFF2 VariationStore --
 or a VARC table, which passes through verbatim with explicit fvar axis
-indices that axis removal would desynchronize.
+indices that axis removal would desynchronize. The CFF2 limitation (which
+also silently flattens non-avar2 partial instancing of CFF2 fonts) is
+harfbuzz/harfbuzz#4710; fontTools implements proper partial CFF2
+instancing in fonttools/fonttools#3506 (`instantiateCFF2`: lift blend
+deltas into the CFF2 VarStore, instantiate it, read back the rewritten
+deltas), which is the design to port. Lifting the suppression then just
+means deleting the CFF2 check here.
 
 
 ### Chunk 8: Variation Culling

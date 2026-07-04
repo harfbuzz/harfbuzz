@@ -453,9 +453,13 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
        * axes: pinned axes whose final coordinate is constant. Those are
        * removed from fvar, so suppress the detection when the face has
        * tables that cannot follow: CFF2 has no partial-pin instancing path
-       * (its 'pinned' path flattens ALL blends), and VARC passes through
-       * verbatim with explicit fvar axis indices that renumbering would
-       * desynchronize. Such axes stay in fvar as ordinary hidden pins. */
+       * (its 'pinned' path flattens ALL blends; lift this once
+       * https://github.com/harfbuzz/harfbuzz/pull/4710 lands, porting
+       * fontTools' instantiateCFF2 from
+       * https://github.com/fonttools/fonttools/pull/3506), and VARC passes
+       * through verbatim with explicit fvar axis indices that renumbering
+       * would desynchronize. Such axes stay in fvar as ordinary hidden
+       * pins. */
       bool detect_self_contained = true;
       for (hb_tag_t table_tag : { HB_TAG ('C','F','F','2'), HB_TAG ('V','A','R','C') })
       {
