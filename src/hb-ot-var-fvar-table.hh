@@ -179,6 +179,8 @@ struct AxisRecord
 
   hb_tag_t get_axis_tag () const { return axisTag; }
 
+  bool is_hidden () const { return flags & AXIS_FLAG_HIDDEN; }
+
   float normalize_axis_value (float v) const
   {
     float min_value, default_value, max_value;

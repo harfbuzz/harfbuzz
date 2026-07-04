@@ -552,6 +552,24 @@ struct avar
 
   bool has_v2_data () const { return version.major > 1; }
 
+  /* Resolve the avar2 VarStore and VarIdxMap, for the subset planner. */
+  bool get_v2_store_and_map (const ItemVariationStore **store,
+                             const DeltaSetIndexMap **varidx_map) const
+  {
+#ifndef HB_NO_AVAR2
+    if (version.major < 2) return false;
+    const SegmentMaps *map = &firstAxisSegmentMaps;
+    for (unsigned i = 0; i < axisCount; i++)
+      map = &StructAfter<SegmentMaps> (*map);
+    const auto &v2 = * (const avarV2Tail *) map;
+    *store = &(this+v2.varStore);
+    *varidx_map = &(this+v2.varIdxMap);
+    return true;
+#else
+    return false;
+#endif
+  }
+
   /* Apply avar v1 segment maps only, deliberately omitting avar v2 processing.
    * Used during avar2 partial instancing to compute intermediate-space coords. */
   bool map_coords_v1_only (float *coords, unsigned int coords_length) const

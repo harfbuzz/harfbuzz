@@ -137,6 +137,12 @@ HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_index_map)
 //old intermediate coords (post-fvar, post-avar-v1, pre-avar-v2) at new min/default/max
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), old_intermediates)
 
+//avar2: reachable old-space final-coord range per axis, as Triple
+//(minimum, unused middle, maximum), F2Dot14-quantized. Only axes with a
+//constraining range (narrower than [-1, +1]) have entries. Used to cull
+//variation tuples/regions that a partial instance can never reach.
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), avar2_reachable_ranges)
+
 //axis_index->axis_tag mapping in fvar axis array
 HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_old_index_tag_map)
 //vector of retained axis tags in the order of axes given in the 'fvar' table

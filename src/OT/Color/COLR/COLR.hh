@@ -2480,9 +2480,17 @@ struct COLR
     }
     else
     {
+      /* avar2 partial instancing: cull unreachable regions. */
+      hb_set_t dead_regions;
+      if (c->plan->has_avar2)
+        var_store.collect_dead_regions (c->plan->axes_old_index_tag_map,
+                                        c->plan->avar2_reachable_ranges,
+                                        dead_regions);
+
       if (unlikely (!out->varStore.serialize_serialize (c->serializer,
                                                         &var_store,
-                                                        c->plan->colrv1_varstore_inner_maps.as_array ())))
+                                                        c->plan->colrv1_varstore_inner_maps.as_array (),
+                                                        dead_regions.get_population () ? &dead_regions : nullptr)))
         return_trace (false);
     }
 

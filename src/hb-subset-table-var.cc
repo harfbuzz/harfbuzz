@@ -28,12 +28,16 @@ bool _hb_subset_table_var		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_t
       *success = _hb_subset_table<const OT::avar> (plan, buf);
     return true;
   case HB_TAG('c','v','a','r'):
+    /* TODO: For avar2 partial instancing, cull unreachable tuple
+     * variations (avar2_reachable_ranges) instead of passing through. */
     if (plan->user_axes_location.is_empty () || plan->has_avar2)
       *success = _hb_subset_table_passthrough (plan, tag);
     else
       *success = _hb_subset_table<const OT::cvar> (plan, buf);
     return true;
   case HB_TAG('M','V','A','R'):
+    /* TODO: For avar2 partial instancing, cull unreachable VarStore
+     * regions (avar2_reachable_ranges) instead of passing through. */
     if (plan->user_axes_location.is_empty () || plan->has_avar2)
       *success = _hb_subset_table_passthrough (plan, tag);
     else

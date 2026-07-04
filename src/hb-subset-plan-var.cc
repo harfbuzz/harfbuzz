@@ -55,6 +55,134 @@
    }
  }
 
+ /* Evaluate a variation-region tent at v, mirroring VarRegionAxis::evaluate
+  * (invalid regions evaluate as constant 1). */
+ static double
+ _tent_eval (const Triple &tent, double v)
+ {
+   double start = tent.minimum, peak = tent.middle, end = tent.maximum;
+   if (unlikely (start > peak || peak > end)) return 1.0;
+   if (unlikely (start < 0.0 && end > 0.0 && peak != 0.0)) return 1.0;
+   if (peak == 0.0 || v == peak) return 1.0;
+   if (v <= start || end <= v) return 0.0;
+   if (v < peak) return (v - start) / (peak - start);
+   return (end - v) / (end - peak);
+ }
+
+ /* Range of a tent's scalar over an input interval [lo, hi]. The tent is
+  * unimodal, so the extremes are at the interval endpoints, plus the peak
+  * when it falls inside. */
+ static void
+ _tent_value_range (const Triple &tent, double lo, double hi,
+                    double *tmin, double *tmax)
+ {
+   double a = _tent_eval (tent, lo);
+   double b = _tent_eval (tent, hi);
+   *tmin = hb_min (a, b);
+   *tmax = hb_max (a, b);
+   if (lo <= tent.middle && tent.middle <= hi)
+     *tmax = hb_max (*tmax, 1.0);
+ }
+
+ /* Compute conservative reachable old-space final-coord ranges per axis for
+  * avar2 partial instancing. With offset compensation, the instanced font's
+  * final coordinates equal the original font's over the retained user box,
+  * so the reachable range of axis i's final coordinate is the range of
+  *   final_i = intermediate_i + delta_i(intermediates)
+  * over the box of retained old-intermediate ranges: restricted axes span
+  * their retained [a, b], free public axes [-1, +1], pinned axes sit at
+  * their d_i, and hidden (private) axes at 0. Interval arithmetic over the
+  * avar2 VarStore regions bounds delta_i. Mirrors fontTools'
+  * _computeReachableRangesForAvar2, but computed from the original store at
+  * plan time (the same quantity fontTools bounds via getExtremes on the
+  * instanced store). Only constraining ranges (narrower than [-1, +1]) are
+  * recorded. */
+ static void
+ _compute_avar2_reachable_ranges (hb_subset_plan_t *plan,
+                                  hb_array_t<const OT::AxisRecord> axes,
+                                  const OT::avar *avar_table)
+ {
+   const OT::ItemVariationStore *var_store;
+   const OT::DeltaSetIndexMap *varidx_map;
+   if (!avar_table->get_v2_store_and_map (&var_store, &varidx_map))
+     return;
+
+   /* Old-intermediate input box per axis. */
+   hb_hashmap_t<hb_tag_t, hb_pair_t<double, double>> box;
+   for (const auto &axis : axes)
+   {
+     hb_tag_t tag = axis.get_axis_tag ();
+     double lo = -1.0, hi = +1.0;
+     Triple *old_int;
+     if (plan->user_axes_location.has (tag))
+     {
+       if (!plan->old_intermediates.has (tag, &old_int)) return;
+       lo = hb_min (old_int->minimum, old_int->maximum);
+       hi = hb_max (old_int->minimum, old_int->maximum);
+     }
+     else if (axis.is_hidden ())
+       lo = hi = 0.0; /* private axis: intermediate is always 0 */
+     if (!box.set (tag, hb_pair (lo, hi))) return;
+   }
+
+   hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> regions;
+   if (!var_store->get_region_list ().get_var_regions (plan->axes_old_index_tag_map, regions))
+     return;
+
+   for (unsigned i = 0; i < axes.length; i++)
+   {
+     hb_tag_t tag = axes[i].get_axis_tag ();
+     hb_pair_t<double, double> *identity;
+     if (!box.has (tag, &identity)) return;
+
+     double dmin = 0.0, dmax = 0.0;
+     uint32_t varidx = varidx_map->map (i);
+     if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+     {
+       unsigned outer = varidx >> 16;
+       unsigned inner = varidx & 0xFFFF;
+       if (outer >= var_store->get_sub_table_count ()) continue;
+       const OT::VarData &vd = var_store->get_sub_table (outer);
+       if (inner >= vd.get_item_count ()) continue;
+       const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
+       unsigned row_size = vd.get_row_size ();
+       unsigned region_count = vd.get_region_index_count ();
+       for (unsigned r = 0; r < region_count; r++)
+       {
+         int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
+         if (!delta) continue;
+         unsigned region_idx = vd.get_region_index (r);
+         if (region_idx >= regions.length) continue;
+         double smin = 1.0, smax = 1.0;
+         for (const auto &_ : regions[region_idx])
+         {
+           hb_pair_t<double, double> *input;
+           double blo = -1.0, bhi = +1.0;
+           if (box.has (_.first, &input)) { blo = input->first; bhi = input->second; }
+           double tmin, tmax;
+           _tent_value_range (_.second, blo, bhi, &tmin, &tmax);
+           smin *= tmin;
+           smax *= tmax;
+           if (smax == 0.0) break;
+         }
+         if (delta > 0) { dmin += smin * delta; dmax += smax * delta; }
+         else           { dmin += smax * delta; dmax += smin * delta; }
+       }
+     }
+
+     /* Pad by one F2Dot14 unit against rounding differences with the
+      * runtime's fixed-point evaluation. */
+     double lo = hb_clamp (identity->first + dmin / 16384.0 - 1.0 / 16384.0, -1.0, +1.0);
+     double hi = hb_clamp (identity->second + dmax / 16384.0 + 1.0 / 16384.0, -1.0, +1.0);
+     lo = floor (lo * 16384.0) / 16384.0;
+     hi = ceil (hi * 16384.0) / 16384.0;
+     if (lo <= -1.0 && hi >= +1.0)
+       continue; /* not constraining */
+     if (!plan->avar2_reachable_ranges.set (tag, Triple (lo, hb_clamp (0.0, lo, hi), hi)))
+       return;
+   }
+ }
+
 #ifndef HB_NO_OT_FONT_CFF
  static inline hb_font_t*
  _get_hb_font_with_variations (const hb_subset_plan_t *plan)
@@ -303,6 +431,8 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
         plan->axis_tags.push (axis_tag);
       }
       plan->all_axes_pinned = false;
+
+      _compute_avar2_reachable_ranges (plan, axes, avar_table);
     }
     else
     {
