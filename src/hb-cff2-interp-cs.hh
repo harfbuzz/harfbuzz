@@ -264,6 +264,19 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
   {
     if (env.have_coords ())
       arg.set_int (round (arg.to_real () + env.blend_deltas (blends)));
+    else if (unlikely (arg.blending ()))
+    {
+      /* A blend result used as an operand of a later blend: the value is
+       * default + inner deltas + outer deltas, so accumulate the deltas. */
+      hb_vector_t<number_t> inner = std::move (arg.deltas);
+      arg.set_blends (n, i, blends);
+      if (likely (inner.length == arg.deltas.length))
+	for (unsigned j = 0; j < inner.length; j++)
+	  arg.deltas.arrayZ[j].set_real (arg.deltas.arrayZ[j].to_real () +
+					 inner.arrayZ[j].to_real ());
+      else
+	env.set_error ();
+    }
     else
       arg.set_blends (n, i, blends);
   }
