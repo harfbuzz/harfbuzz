@@ -88,22 +88,30 @@ normalization:
    - Call `map_coords_v1_only()` (instead of `map_coords_2_14()`) for mins,
      defaults, and maxs arrays
    - Store the v1-only mapped values as both `plan->old_intermediates` (for
-     offset compensation later) and `plan->axes_location` (they are the same --
-     both are intermediate-space coords)
+     offset compensation later) and `plan->avar2_axes_location` (they are the
+     same -- both are intermediate-space coords)
+   - Compute `plan->avar2_reachable_ranges` and detect
+     `plan->avar2_self_contained` axes (see Chunks 7 and 8)
    - **Keep ALL axes in `axes_index_map`** (including pinned ones), so pinned
-     axes remain in fvar as hidden. Re-populate `axes_index_map` to include all
-     axes
+     axes remain in fvar as hidden -- EXCEPT self-contained pinned axes,
+     which are removed entirely
+   - Set `plan->axes_location` and `plan->normalized_coords` to the
+     self-contained pins ONLY (in old final-coordinate space); empty when
+     there are none. The rest of the subsetter thereby sees an ordinary
+     partial instancing of just those axes
    - Set `all_axes_pinned = false` to prevent table dropping
 
 2. **Else:** use existing path (`map_coords_2_14()` with full avar v1+v2)
 
-**Why v1-only:** `axes_location` must be in intermediate coordinate space
-(post-fvar, post-avar-v1, pre-avar-v2) because:
+**Why v1-only:** `avar2_axes_location` must be in intermediate coordinate
+space (post-fvar, post-avar-v1, pre-avar-v2) because:
 - avar2 IVS regions are in intermediate space -- `rebaseTent` needs matching
   limits
-- `SegmentMaps::subset()` uses `axes_location` and unmaps through avar v1 --
-  correct with v1-only values
-- Other tables must NOT use these values for instancing (see Chunk 5)
+- `SegmentMaps::subset()` uses it and unmaps through avar v1 -- correct with
+  v1-only values
+- Other tables must NOT use these values for instancing; they consume
+  `axes_location`/`normalized_coords`, which under avar2 hold only the
+  self-contained pins in final space (see Chunks 4 and 7)
 
 
 ### Chunk 2: avar2 Subsetting (Core Algorithm)
@@ -237,50 +245,27 @@ These methods allow the avar2 subsetting code to manipulate the IVS
 representation between rebasing and finalization.
 
 
-### Chunk 4: Skip Instancing in Other Tables
+### Chunk 4: Instancing in Other Tables
 
-For avar2 partial instancing, variation tables must handle glyph subsetting but
-skip variation instancing for non-self-contained axes. Route to existing
-non-instancing code paths.
+Under avar2, the plan presents only the self-contained pins (in old
+final-coordinate space) through `plan->axes_location` and
+`plan->normalized_coords`; both are EMPTY when there are none. The ordinary
+`if (c->plan->normalized_coords)` instancing guards therefore need no avar2
+special-casing at all: with no self-contained axes the tables take their
+existing non-instancing glyph-subsetting paths (variation data preserved in
+old final space), and with self-contained axes the standard instancing
+machinery runs and pins exactly those axes -- which is correct, because
+their final coordinates are constants in the space the variation tables
+live in. This applies uniformly to glyf/head/maxp/hmtx/OS/2/post bounds and
+metrics recomputation, GPOS value-format optimization, gvar, HVAR/VVAR,
+GDEF, COLR (including the paint instancer), BASE, CFF2, cvar (including cvt
+delta application), and MVAR (cvar and MVAR fall back to passthrough when
+there are no self-contained axes).
 
-#### HVAR/VVAR (`src/hb-ot-var-hvar-table.hh`, `_subset()`)
-
-Change: `if (c->plan->normalized_coords)` ->
-`if (c->plan->normalized_coords && !c->plan->has_avar2)`
-
-The `else` branch already handles glyph subsetting (serializes VarStore with
-`inner_maps` filtering, no instancing).
-
-#### GDEF (`src/OT/Layout/GDEF/GDEF.hh`, `subset()`)
-
-Change: `else if (c->plan->normalized_coords)` ->
-`else if (c->plan->normalized_coords && !c->plan->has_avar2)`
-
-The `else` branch handles layout subsetting without instancing.
-
-#### MVAR (`src/hb-ot-var-mvar-table.hh`)
-
-MVAR has no glyph subsetting (global metrics). For avar2: passthrough the entire
-table via `_hb_subset_table_passthrough`.
-
-#### cvar (`src/hb-ot-var-cvar-table.hh` and `src/hb-subset.cc`)
-
-No glyph subsetting (CVT values). For avar2: passthrough. Also skip cvt delta
-application in `hb-subset.cc`.
-
-#### CFF2 (`src/hb-subset-cff2.cc`)
-
-Change: `pinned = (bool) plan->normalized_coords;` ->
-`pinned = (bool) plan->normalized_coords && !plan->has_avar2;`
-
-This skips blend instancing while preserving glyph subsetting.
-
-#### gvar (`src/hb-ot-var-gvar-table.hh`)
-
-Change: `if (c->plan->normalized_coords)` ->
-`if (c->plan->normalized_coords && !c->plan->has_avar2)`
-
-This routes to the non-instancing glyph subsetting path.
+The avar2 variation culling (Chunk 8) hooks both flavors: the byte-level
+paths (gvar verbatim copy, plain VarStore serialization) and the decompiled
+paths (`tuple_variations_t::cull_unreachable`, called from
+`item_variations_t::instantiate` and gvar's `glyph_variations_t`).
 
 
 ### Chunk 5: fvar Changes
@@ -330,45 +315,51 @@ case HB_TAG('C','F','F','2'):
 
 ### Chunk 7: Self-Contained Axis Instancing
 
-After avar subsetting detects self-contained axes, run standard variation
-instancing for those axes at their old-space final coordinates.
+A pinned axis is self-contained when its final coordinate is CONSTANT over
+the retained box: its varIdx is NO_VARIATION_INDEX, or its avar2 delta row
+is constant over the box (detected at plan time with the same interval
+arithmetic as Chunk 8; a constant delta interval has zero width). Its final
+coordinate is `d_i + delta`.
 
-**New plan members:**
+**Plan members:**
 ```cpp
-HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, float>), self_contained_axes)
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), avar2_axes_location)
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, double>), avar2_self_contained)
 ```
 
-The avar2 subsetting step populates this. Other tables check it:
-- If `has_avar2` is true but a table also sees self-contained axes, it can
-  instance for those axes. The self-contained axes have constant final
-  coordinates, so standard instancing (at that coordinate) is correct.
-- The instancing path constructs a restricted `axes_location` containing only
-  the self-contained axes (as pinned points).
-
-This is the most complex chunk and can be deferred. The initial implementation
-(Chunks 1-6) produces correct fonts without self-contained axis optimization --
-all pinned axes are kept as hidden in fvar.
+Self-contained axes are removed from `axes_index_map`/`axis_tags` (dropped
+from fvar and avar entirely; `_subset_avar2` skips them and writes the
+DeltaSetIndexMap over the retained axes only). The plan presents them to
+every other table as an ordinary partial pin at the constant final
+coordinate through `axes_location`/`normalized_coords` (see Chunk 4); the
+intermediate-space ranges avar itself needs move to `avar2_axes_location`.
+This mirrors fontTools' `selfContainedAxes` +
+`_instantiateFvarForAvar2` + second instancing pass, folded into HarfBuzz's
+single-pass architecture.
 
 
 ### Chunk 8: Variation Culling
 
-After all tables are subsetted, cull dead variations in gvar/cvar/HVAR/VVAR/
-MVAR/GDEF whose axis regions fall outside the reachable old-space final-coord
-ranges.
+Cull dead variations in gvar/HVAR/VVAR/GDEF/COLR/BASE whose axis regions
+fall outside the reachable old-space final-coord ranges (cvar/MVAR: TODO;
+they are culled only via their instancing paths when self-contained axes
+exist).
 
-For each axis:
-- **NO_VARIATION_INDEX axes**: exact reachable range is `[a_i, b_i]` from
-  `old_intermediates`.
-- **IVS axes**: conservative bounds from `getExtremes` on the instanced avar2
-  VarStore (including offset compensation).
-- **Private axes** (originally hidden, not user-restricted): pinned at (0,0,0)
-  since their intermediate is always 0.
+Reachable ranges are computed at plan time (`avar2_reachable_ranges`):
+with offset compensation, the instance's final coordinates equal the
+original font's over the retained user box, so bound
+`final_i = intermediate_i + delta_i` over the box of retained
+old-intermediate ranges (restricted axes their `[a_i, b_i]`, free public
+axes `[-1, +1]`, pinned axes their `d_i`, hidden axes 0) with interval
+arithmetic over the original avar2 VarStore. This is the same quantity
+fontTools bounds via `getExtremes` on the instanced store, computed from
+the original store instead; exact (tighter) for pinned and hidden axes.
 
-A TupleVariation is dead if any axis in its region has no overlap with the
-reachable range for that axis.
-
-This is an optimization-only chunk and can be deferred. Fonts are correct
-without it, just potentially slightly larger.
+A TupleVariation/region is dead if some axis's tent is provably zero over
+the axis's entire reachable range (invalid tents evaluate as constant 1 at
+runtime and never kill); ranges are padded by one F2Dot14 unit. Hidden axes
+are assumed to sit at their default, the same semantic assumption fontTools
+makes.
 
 
 ## Verification
@@ -380,11 +371,15 @@ without it, just potentially slightly larger.
    location, within 2 F2Dot14 units (5 for the steepest quantization-limited
    case, chosen one unit below what dropping the interior-breakpoint
    collection produces), over grids of locations including the exact kink
-   positions. Covers: same-default and moved-default restriction (both
-   directions), shared-varIdx rows (restricted, pinned, and both-restricted),
-   pinning at and off the default, a pinned axis driven by a free axis, a
-   NO_VARIATION_INDEX axis (fresh VarData), interior avar v1 breakpoints,
-   and steep moved-far-from-min defaults.
+   positions. Rendering-level outputs (advance width and glyph extents,
+   exercising gvar and HVAR through culling and self-contained instancing)
+   are compared as well. Covers: same-default and moved-default restriction
+   (both directions), shared-varIdx rows (restricted, pinned, and
+   both-restricted), pinning at and off the default, a pinned axis driven
+   by a free axis, a NO_VARIATION_INDEX axis (fresh VarData), interior
+   avar v1 breakpoints, steep moved-far-from-min defaults, variation
+   culling via a hidden driven axis, and self-contained pins (alone and
+   combined with a range restriction).
 2. Take an avar2 font (e.g., RobotoFlex-avar2.ttf), partial-instance with both
    fonttools and HarfBuzz, compare avar2 VarStore output
 3. Render glyphs at various coordinates using the instanced font -- verify visual
