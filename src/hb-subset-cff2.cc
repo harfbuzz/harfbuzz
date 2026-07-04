@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-cff2-table.hh"
+#include "hb-ot-var-common.hh"
 #include "hb-set.h"
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
@@ -489,6 +490,177 @@ struct cff2_private_dict_op_serializer_t : op_serializer_t
 };
 
 
+/*
+ * Partial instancing (some axes pinned or limited, others kept).
+ *
+ * This is a port of fontTools' instantiateCFF2 (fonttools/fonttools#3506),
+ * with one simplification: the variation-store instancing solver acts on
+ * regions independently of the per-blend delta values, so instead of lifting
+ * every blend's deltas into the store, instancing it, and reading the rows
+ * back, we instance each VarData once with identity delta rows.  The
+ * instantiated tuples then give, per VarData, a fixed linear map from old
+ * per-region deltas to new per-region deltas.  The contribution that folds
+ * into each blend's default value is the old store's region scalars
+ * evaluated at the new default location (plan->normalized_coords); the
+ * surviving rebased regions all evaluate to zero there.
+ */
+struct cff2_instancing_plan_t
+{
+  struct vardata_transform_t
+  {
+    /* new_deltas[j] = Σ_i matrix[j][i] * old_deltas[i] */
+    hb_vector_t<hb_vector_t<float>> matrix;
+    /* Default-value fold-in scalars, one per old region: the old store's
+     * region scalars at the new default location. */
+    hb_vector_t<float> gains;
+    /* Index into the new global region list, per new region. */
+    hb_vector_t<unsigned> region_indices;
+    unsigned new_major = 0;
+    bool alive () const { return matrix.length; }
+  };
+
+  hb_vector_t<vardata_transform_t> transforms;  /* per old VarData (vsindex) */
+  hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> new_regions;  /* global region list */
+  unsigned new_major_count = 0;
+
+  bool has_variations () const { return new_major_count; }
+
+  const vardata_transform_t *get_transform (unsigned major) const
+  { return major < transforms.length ? &transforms.arrayZ[major] : nullptr; }
+
+  /* The new vsindex a private dict's (or charstring's) old ivs maps to;
+   * dead VarDatas fall back to 0, their blends having become static. */
+  unsigned remap_ivs (unsigned old_ivs) const
+  {
+    const vardata_transform_t *t = get_transform (old_ivs);
+    return (t && t->alive ()) ? t->new_major : 0;
+  }
+
+  double fold_deltas (unsigned old_ivs, hb_array_t<const number_t> deltas) const
+  {
+    const vardata_transform_t *t = get_transform (old_ivs);
+    if (unlikely (!t || t->gains.length != deltas.length)) return 0.;
+    double v = 0.;
+    for (unsigned i = 0; i < deltas.length; i++)
+      v += (double) t->gains.arrayZ[i] * deltas.arrayZ[i].to_real ();
+    return v;
+  }
+
+  bool create (const CFF2ItemVariationStore *cff2VarStore,
+	       const hb_subset_plan_t *plan)
+  {
+    const OT::ItemVariationStore &varStore = cff2VarStore->varStore;
+    unsigned major_count = varStore.get_sub_table_count ();
+    if (!transforms.resize (major_count)) return false;
+
+    hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> orig_regions;
+    if (!varStore.get_region_list ().get_var_regions (plan->axes_old_index_tag_map, orig_regions))
+      return false;
+
+    /* Instance each VarData with identity delta rows; the surviving tuples'
+     * delta columns are the old-region → new-region transform. */
+    hb_vector_t<OT::tuple_variations_t> tuple_vars_list;
+    if (!tuple_vars_list.resize (major_count)) return false;
+    OT::optimize_scratch_t scratch;
+    for (unsigned m = 0; m < major_count; m++)
+    {
+      const OT::VarData &var_data = varStore.get_sub_table (m);
+      unsigned k = var_data.get_region_index_count ();
+      vardata_transform_t &t = transforms.arrayZ[m];
+
+      if (!t.gains.resize_exact (k)) return false;
+      varStore.get_region_scalars (m, plan->normalized_coords.arrayZ,
+				   plan->normalized_coords.length,
+				   t.gains.arrayZ, k);
+
+      OT::tuple_variations_t &tuples = tuple_vars_list.arrayZ[m];
+      for (unsigned r = 0; r < k; r++)
+      {
+	OT::tuple_delta_t tuple;
+	if (!tuple.deltas_x.resize (k) ||
+	    !tuple.indices.resize (k))
+	  return false;
+	for (unsigned i = 0; i < k; i++)
+	  tuple.indices.arrayZ[i] = true;
+	tuple.deltas_x.arrayZ[r] = 1.f;
+	unsigned region_index = var_data.get_region_index (r);
+	if (unlikely (region_index >= orig_regions.length)) return false;
+	tuple.axis_tuples = orig_regions.arrayZ[region_index];
+	if (unlikely (tuple.axis_tuples.in_error ())) return false;
+	tuples.tuple_vars.push (std::move (tuple));
+      }
+      if (unlikely (tuples.tuple_vars.in_error ())) return false;
+
+      if (!tuples.instantiate (plan->axes_location, plan->axes_triple_distances, scratch))
+	return false;
+    }
+
+    /* Build the new global region list: surviving original regions first,
+     * in their original order, then solver-split new regions in order of
+     * appearance (fontTools' rebuildRegions).  Keys hash by content, so
+     * pointers into different owners compare fine. */
+    hb_hashmap_t<const hb_hashmap_t<hb_tag_t, Triple>*, unsigned> region_idx_map;
+    hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple>*> region_ptrs;
+    for (const auto &tuples : tuple_vars_list)
+      for (const auto &tuple : tuples.tuple_vars)
+	if (!region_idx_map.has (&tuple.axis_tuples))
+	  if (unlikely (!region_idx_map.set (&tuple.axis_tuples, (unsigned) -1)))
+	    return false;
+    for (const auto &r : orig_regions)
+    {
+      unsigned *idx;
+      if (region_idx_map.has (&r, &idx) && *idx == (unsigned) -1)
+      {
+	if (unlikely (!region_idx_map.set (&r, region_ptrs.length))) return false;
+	region_ptrs.push (&r);
+      }
+    }
+    for (const auto &tuples : tuple_vars_list)
+      for (const auto &tuple : tuples.tuple_vars)
+      {
+	unsigned *idx;
+	if (region_idx_map.has (&tuple.axis_tuples, &idx) && *idx == (unsigned) -1)
+	{
+	  if (unlikely (!region_idx_map.set (&tuple.axis_tuples, region_ptrs.length))) return false;
+	  region_ptrs.push (&tuple.axis_tuples);
+	}
+      }
+    if (unlikely (region_ptrs.in_error ())) return false;
+
+    /* Fill in per-VarData transforms and assign new vsindexes. */
+    for (unsigned m = 0; m < major_count; m++)
+    {
+      vardata_transform_t &t = transforms.arrayZ[m];
+      const auto &tuples = tuple_vars_list.arrayZ[m];
+      unsigned k = t.gains.length;
+      for (const auto &tuple : tuples.tuple_vars)
+      {
+	if (unlikely (tuple.deltas_x.length != k)) return false;
+	unsigned *idx;
+	if (unlikely (!region_idx_map.has (&tuple.axis_tuples, &idx))) return false;
+	t.region_indices.push (*idx);
+	hb_vector_t<float> col;
+	if (unlikely (!col.resize_exact (k))) return false;
+	for (unsigned i = 0; i < k; i++)
+	  col.arrayZ[i] = tuple.deltas_x.arrayZ[i];
+	t.matrix.push (std::move (col));
+      }
+      if (unlikely (t.matrix.in_error () || t.region_indices.in_error ())) return false;
+      if (t.alive ())
+	t.new_major = new_major_count++;
+    }
+
+    if (!new_regions.resize (region_ptrs.length)) return false;
+    for (unsigned i = 0; i < region_ptrs.length; i++)
+    {
+      new_regions.arrayZ[i] = *region_ptrs.arrayZ[i];
+      if (unlikely (new_regions.arrayZ[i].in_error ())) return false;
+    }
+
+    return true;
+  }
+};
+
 namespace OT {
 struct cff2_subset_plan
 {
@@ -509,6 +681,14 @@ struct cff2_subset_plan
     hmtx_map = &plan->hmtx_map;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
 		     pinned; // For instancing we need this path
+
+    /* Partial instancing: some axes pinned or limited, others kept. */
+    partial_instancing = plan->normalized_coords && !plan->all_axes_pinned &&
+			 acc.varStore != &Null (CFF2ItemVariationStore) &&
+			 acc.varStore->varStore.get_sub_table_count ();
+    if (partial_instancing &&
+	unlikely (!instancing.create (acc.varStore, plan)))
+      return false;
 
     /* Enable command capture for CFF2→CFF1 conversion (for specialization) */
     capture_commands = pinned;
@@ -603,6 +783,9 @@ struct cff2_subset_plan
 
   bool	    drop_hints = false;
   bool	    desubroutinize = false;
+
+  bool	    partial_instancing = false;
+  cff2_instancing_plan_t instancing;
 
   unsigned  min_charstrings_off_size = 0;
 
