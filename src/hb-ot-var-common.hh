@@ -1305,6 +1305,22 @@ struct TupleVariationData
     }
 
     public:
+    /* avar2 partial-instancing culling: drop tuples whose region a partial
+     * instance can never reach (hb_subset_plan_t::avar2_reachable_ranges). */
+    void cull_unreachable (const hb_hashmap_t<hb_tag_t, Triple> &reachable_ranges)
+    {
+      unsigned j = 0;
+      for (unsigned i = 0; i < tuple_vars.length; i++)
+      {
+	if (_hb_avar2_region_is_dead (tuple_vars.arrayZ[i].axis_tuples, reachable_ranges))
+	  continue;
+	if (i != j)
+	  tuple_vars.arrayZ[j] = std::move (tuple_vars.arrayZ[i]);
+	j++;
+      }
+      tuple_vars.shrink (j);
+    }
+
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
 		      optimize_scratch_t &scratch,
@@ -1839,6 +1855,10 @@ struct item_variations_t
   {
     if (!create_from_item_varstore (varStore, plan->axes_old_index_tag_map, inner_maps))
       return false;
+    /* avar2 partial instancing: cull unreachable regions. */
+    if (plan->has_avar2 && plan->avar2_reachable_ranges.get_population ())
+      for (tuple_variations_t& tuple_vars : vars)
+	tuple_vars.cull_unreachable (plan->avar2_reachable_ranges);
     if (!instantiate_tuple_vars (plan->axes_location, plan->axes_triple_distances))
       return false;
     return as_item_varstore (optimize, use_no_variation_idx);

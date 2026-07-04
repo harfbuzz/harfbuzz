@@ -103,7 +103,7 @@ struct post
       return_trace (false);
 
 #ifndef HB_NO_VAR
-    if (c->plan->normalized_coords && !c->plan->has_avar2)
+    if (c->plan->normalized_coords)
     {
       auto &MVAR = *c->plan->source->table.MVAR;
       auto *table = post_prime;

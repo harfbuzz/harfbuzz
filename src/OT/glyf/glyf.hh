@@ -86,7 +86,7 @@ struct glyf
     }
 
     hb_font_t *font = nullptr;
-    if (c->plan->normalized_coords && !c->plan->has_avar2)
+    if (c->plan->normalized_coords)
     {
       font = _create_font_for_instancing (c->plan);
       if (unlikely (!font))
@@ -613,6 +613,19 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
 {
   hb_font_t *font = hb_font_create (plan->source);
   if (unlikely (font == hb_font_get_empty ())) return nullptr;
+
+#ifndef HB_NO_VAR
+  if (plan->has_avar2)
+  {
+    /* Under avar2, instancing applies only to the self-contained pins,
+     * whose constant final coordinates the plan holds in normalized_coords.
+     * Setting user-space variations would run the full avar2 mapping and
+     * bake contributions that remain live in the instance's variations. */
+    hb_font_set_var_coords_normalized (font, plan->normalized_coords.arrayZ,
+				       plan->normalized_coords.length);
+    return font;
+  }
+#endif
 
   hb_vector_t<hb_variation_t> vars;
   if (unlikely (!vars.alloc (plan->user_axes_location.get_population (), true)))

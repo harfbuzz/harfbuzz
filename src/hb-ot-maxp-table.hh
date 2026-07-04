@@ -111,7 +111,7 @@ struct maxp
       if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
 	drop_hint_fields (dest_v1);
 
-      if (c->plan->normalized_coords && !c->plan->has_avar2)
+      if (c->plan->normalized_coords)
         instancing_update_fields (c->plan->head_maxp_info, dest_v1);
     }
 

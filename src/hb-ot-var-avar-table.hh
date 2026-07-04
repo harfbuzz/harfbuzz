@@ -264,9 +264,14 @@ struct SegmentMaps : Array16Of<AxisValueMap>
      * We should instead keep the design coords in the shape plan and use
      * those. unmap_axis_range needs to be killed. */
 
-    /* avar mapped normalized axis range*/
+    /* avar mapped normalized axis range. Under avar2, axes_location holds
+     * only the self-contained pins for the other tables; avar itself uses
+     * the intermediate-space ranges of all restricted axes. */
+    const auto &axes_location = c->plan->has_avar2
+				? c->plan->avar2_axes_location
+				: c->plan->axes_location;
     Triple *axis_range;
-    if (!c->plan->axes_location.has (axis_tag, &axis_range))
+    if (!axes_location.has (axis_tag, &axis_range))
       return c->serializer->embed (*this);
 
     TripleDistances *axis_triple_distances;
@@ -767,7 +772,7 @@ struct avar
     item_variations_t item_vars;
     if (!item_vars.create_from_item_varstore (var_store, c->plan->axes_old_index_tag_map))
       return false;
-    if (!item_vars.instantiate_tuple_vars_no_region_build (c->plan->axes_location,
+    if (!item_vars.instantiate_tuple_vars_no_region_build (c->plan->avar2_axes_location,
                                                            c->plan->axes_triple_distances))
       return false;
 
@@ -793,6 +798,7 @@ struct avar
     hb_hashmap_t<uint32_t, unsigned> varidx_ref_count;
     for (unsigned i = 0; i < axisCount; i++)
     {
+      if (!c->plan->axes_index_map.has (i)) continue; /* self-contained: dropped */
       uint32_t varidx = new_varidx_mapping[i];
       if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX) continue;
       unsigned *count;
@@ -806,7 +812,8 @@ struct avar
       hb_tag_t *axis_tag_ptr;
       /* Only axes that will receive offset compensation (restricted or
        * pinned) can contaminate a shared row. */
-      if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr) ||
+      if (!c->plan->axes_index_map.has (i) ||
+          !c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr) ||
           !c->plan->user_axes_location.has (*axis_tag_ptr))
         continue;
       uint32_t varidx = new_varidx_mapping[i];
@@ -832,6 +839,11 @@ struct avar
       if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr))
         continue;
       hb_tag_t axis_tag = *axis_tag_ptr;
+
+      /* Self-contained pinned axes are removed from fvar/avar; their
+       * contribution is baked into the variation tables instead. */
+      if (!c->plan->axes_index_map.has (i))
+        continue;
 
       Triple *new_user;
       if (c->plan->user_axes_location.has (axis_tag, &new_user))
@@ -1057,7 +1069,10 @@ struct avar
      * We serialize each sub-object via push/pop_pack, write the tail
      * struct inline, and link offsets to the avar table start. */
 
-    /* Serialize DeltaSetIndexMap (push a new object) */
+    /* Serialize DeltaSetIndexMap (push a new object). Entries cover the
+     * RETAINED axes only (self-contained pinned axes are removed from
+     * fvar), in their retained order. */
+    unsigned retained_axis_count = c->plan->axes_index_map.get_population ();
     hb_serialize_context_t::objidx_t packed_map;
     {
       /* Compute width and inner_bit_count for the mapping.
@@ -1067,6 +1082,7 @@ struct avar
       unsigned max_outer = 0, max_inner = 0;
       for (unsigned i = 0; i < axisCount; i++)
       {
+        if (!c->plan->axes_index_map.has (i)) continue;
         uint32_t varidx = new_varidx_mapping[i];
         if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
         {
@@ -1111,13 +1127,14 @@ struct avar
 
       auto *map_count_field = c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size);
       if (unlikely (!map_count_field)) { c->serializer->pop_discard (); return false; }
-      *map_count_field = axisCount;
+      *map_count_field = retained_axis_count;
 
-      HBUINT8 *p = c->serializer->allocate_size<HBUINT8> (width * axisCount);
+      HBUINT8 *p = c->serializer->allocate_size<HBUINT8> (width * retained_axis_count);
       if (unlikely (!p)) { c->serializer->pop_discard (); return false; }
 
       for (unsigned i = 0; i < axisCount; i++)
       {
+        if (!c->plan->axes_index_map.has (i)) continue;
         uint32_t varidx = new_varidx_mapping[i];
         unsigned o = varidx >> 16;
         unsigned in = varidx & 0xFFFF;

@@ -150,6 +150,9 @@ struct glyph_variations_t
       contour_point_vector_t *all_points;
       if (!plan->new_gid_contour_points_map.has (new_gid, &all_points))
         return false;
+      /* avar2 partial instancing: cull unreachable tuples. */
+      if (plan->has_avar2 && plan->avar2_reachable_ranges.get_population ())
+	glyph_variations[i].cull_unreachable (plan->avar2_reachable_ranges);
       if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, scratch, &pool, all_points, iup_optimize))
         return false;
     }
@@ -428,7 +431,7 @@ struct gvar_GVAR
     if (c->plan->all_axes_pinned)
       return_trace (false);
 
-    if (c->plan->normalized_coords && !c->plan->has_avar2)
+    if (c->plan->normalized_coords)
       return_trace (instantiate (c));
 
     unsigned glyph_count = version.to_int () ? c->plan->source->get_num_glyphs () : 0;

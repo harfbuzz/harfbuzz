@@ -107,8 +107,9 @@ struct InstanceRecord
         if (!axis_coord_pinned_or_within_axis_range (coords, i, *axis_limit))
           return_trace (false);
 
-        //skip pinned axis (but not for avar2, where pinned axes stay in fvar)
-        if (axis_limit->is_point () && !c->plan->has_avar2)
+        //skip axes dropped from fvar (pinned; or self-contained under avar2,
+        //where other pinned axes stay in fvar as hidden)
+        if (axis_limit->is_point () && !c->plan->axes_index_map.has (i))
           continue;
       }
 
