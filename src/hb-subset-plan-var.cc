@@ -100,7 +100,8 @@
  static void
  _compute_avar2_reachable_ranges (hb_subset_plan_t *plan,
                                   hb_array_t<const OT::AxisRecord> axes,
-                                  const OT::avar *avar_table)
+                                  const OT::avar *avar_table,
+                                  bool detect_self_contained)
  {
    const OT::ItemVariationStore *var_store;
    const OT::DeltaSetIndexMap *varidx_map;
@@ -182,14 +183,17 @@
      /* A pinned axis whose delta is constant over the box is self-contained:
       * its final coordinate is a constant. It can be removed from fvar/avar
       * and its contribution baked into the variation tables like an ordinary
-      * pin at that coordinate (in old final space). */
+      * pin at that coordinate (in old final space). Round the delta alone
+      * and add it to the exact quantized intermediate, matching the runtime
+      * (map_coords_2_14) and fontTools. */
      Triple *user;
-     if (dmin == dmax &&
+     if (detect_self_contained && dmin == dmax &&
 	 plan->user_axes_location.has (tag, &user) && user->is_point ())
      {
-       double v = hb_clamp (identity->first + dmin / 16384.0, -1.0, +1.0);
-       v = (double) roundf ((float) (v * 16384.0)) / 16384.0;
-       if (!plan->avar2_self_contained.set (tag, v)) return;
+       int v_int = (int) roundf ((float) identity->first * 16384.f) +
+		   (int) roundf ((float) dmin);
+       v_int = hb_clamp (v_int, -(1 << 14), +(1 << 14));
+       if (!plan->avar2_self_contained.set (tag, v_int / 16384.0)) return;
        continue; /* axis is dropped; no region can reference it afterwards */
      }
 
@@ -446,8 +450,22 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
       }
 
       /* Reachable-range computation also detects self-contained pinned
-       * axes: pinned axes whose final coordinate is constant. */
-      _compute_avar2_reachable_ranges (plan, axes, avar_table);
+       * axes: pinned axes whose final coordinate is constant. Those are
+       * removed from fvar, so suppress the detection when the face has
+       * tables that cannot follow: CFF2 has no partial-pin instancing path
+       * (its 'pinned' path flattens ALL blends), and VARC passes through
+       * verbatim with explicit fvar axis indices that renumbering would
+       * desynchronize. Such axes stay in fvar as ordinary hidden pins. */
+      bool detect_self_contained = true;
+      for (hb_tag_t table_tag : { HB_TAG ('C','F','F','2'), HB_TAG ('V','A','R','C') })
+      {
+        hb_blob_t *blob = hb_face_reference_table (face, table_tag);
+        if (hb_blob_get_length (blob))
+          detect_self_contained = false;
+        hb_blob_destroy (blob);
+      }
+      _compute_avar2_reachable_ranges (plan, axes, avar_table,
+                                       detect_self_contained);
 
       /* Keep all axes in fvar (pinned ones as hidden), EXCEPT self-contained
        * pinned axes, which are removed entirely. */

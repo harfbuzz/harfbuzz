@@ -776,10 +776,12 @@ struct avar
                                                            c->plan->axes_triple_distances))
       return false;
 
-    /* 4. Detect self-contained pinned axes.
-     * A pinned axis is self-contained if after IVS rebasing, no remaining
-     * TupleVariation has a non-zero delta at that axis's inner position. */
-    /* (For now, skip self-contained detection -- all pinned axes kept as hidden) */
+    /* 4. Self-contained pinned axes (whose final coordinate is constant over
+     * the retained box) were detected at plan time
+     * (_compute_avar2_reachable_ranges) and removed from axes_index_map.
+     * They are skipped below; their constant contribution is baked into the
+     * other variation tables by standard instancing at the plan's
+     * axes_location/normalized_coords. */
 
     /* 5. Build per-axis varIdx mapping (may create new VarDatas) */
     hb_vector_t<uint32_t> new_varidx_mapping;
@@ -1071,8 +1073,13 @@ struct avar
 
     /* Serialize DeltaSetIndexMap (push a new object). Entries cover the
      * RETAINED axes only (self-contained pinned axes are removed from
-     * fvar), in their retained order. */
-    unsigned retained_axis_count = c->plan->axes_index_map.get_population ();
+     * fvar), in their retained order. Count what the write loop below will
+     * actually emit: a malformed font's avar may have fewer axes than fvar,
+     * and claiming unwritten entries would map those axes to varIdx 0. */
+    unsigned retained_axis_count = 0;
+    for (unsigned i = 0; i < axisCount; i++)
+      if (c->plan->axes_index_map.has (i))
+	retained_axis_count++;
     hb_serialize_context_t::objidx_t packed_map;
     {
       /* Compute width and inner_bit_count for the mapping.

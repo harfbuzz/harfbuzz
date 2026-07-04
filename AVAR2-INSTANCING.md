@@ -337,6 +337,12 @@ This mirrors fontTools' `selfContainedAxes` +
 `_instantiateFvarForAvar2` + second instancing pass, folded into HarfBuzz's
 single-pass architecture.
 
+Detection is suppressed (such pins stay in fvar as ordinary hidden axes)
+when the face has a CFF2 table -- CFF2 has no partial-pin instancing path;
+its `pinned` path flattens ALL blends and drops the CFF2 VariationStore --
+or a VARC table, which passes through verbatim with explicit fvar axis
+indices that axis removal would desynchronize.
+
 
 ### Chunk 8: Variation Culling
 
