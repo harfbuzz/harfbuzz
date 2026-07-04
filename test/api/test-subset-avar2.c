@@ -68,10 +68,42 @@ check_same_coords (hb_face_t *orig_face, hb_face_t *inst_face,
   const int *orig_coords = hb_font_get_var_coords_normalized (orig_font, &orig_len);
   const int *inst_coords = hb_font_get_var_coords_normalized (inst_font, &inst_len);
 
-  g_assert_cmpuint (orig_len, ==, 5); /* not vacuous */
+  g_assert_cmpuint (orig_len, ==, 6); /* not vacuous */
   g_assert_cmpuint (orig_len, ==, inst_len);
   for (unsigned i = 0; i < orig_len; i++)
     g_assert_cmpint (ABS (orig_coords[i] - inst_coords[i]), <=, tolerance);
+
+  hb_font_destroy (orig_font);
+  hb_font_destroy (inst_font);
+}
+
+/* Compare rendering-level outputs (advance width and extents of 'A') at
+ * the same user location; validates that culled gvar/HVAR variations were
+ * truly unreachable. */
+static void
+check_same_rendering (hb_face_t *orig_face, hb_face_t *inst_face,
+		      const hb_variation_t *vars, unsigned n_vars)
+{
+  hb_font_t *orig_font = hb_font_create (orig_face);
+  hb_font_t *inst_font = hb_font_create (inst_face);
+  hb_font_set_variations (orig_font, vars, n_vars);
+  hb_font_set_variations (inst_font, vars, n_vars);
+
+  hb_codepoint_t orig_gid = 0, inst_gid = 0;
+  g_assert_true (hb_font_get_nominal_glyph (orig_font, 'A', &orig_gid));
+  g_assert_true (hb_font_get_nominal_glyph (inst_font, 'A', &inst_gid));
+
+  hb_position_t orig_adv = hb_font_get_glyph_h_advance (orig_font, orig_gid);
+  hb_position_t inst_adv = hb_font_get_glyph_h_advance (inst_font, inst_gid);
+  g_assert_cmpint (ABS (orig_adv - inst_adv), <=, 1);
+
+  hb_glyph_extents_t orig_ext, inst_ext;
+  g_assert_true (hb_font_get_glyph_extents (orig_font, orig_gid, &orig_ext));
+  g_assert_true (hb_font_get_glyph_extents (inst_font, inst_gid, &inst_ext));
+  g_assert_cmpint (ABS (orig_ext.x_bearing - inst_ext.x_bearing), <=, 1);
+  g_assert_cmpint (ABS (orig_ext.y_bearing - inst_ext.y_bearing), <=, 1);
+  g_assert_cmpint (ABS (orig_ext.width - inst_ext.width), <=, 1);
+  g_assert_cmpint (ABS (orig_ext.height - inst_ext.height), <=, 1);
 
   hb_font_destroy (orig_font);
   hb_font_destroy (inst_font);
@@ -81,7 +113,7 @@ static hb_face_t *
 open_original (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/TestAvar2Instance.ttf");
-  g_assert_cmpuint (hb_ot_var_get_axis_count (face), ==, 5);
+  g_assert_cmpuint (hb_ot_var_get_axis_count (face), ==, 6);
   return face;
 }
 
@@ -92,7 +124,7 @@ instance (hb_face_t *face, hb_subset_input_t *input)
   hb_subset_input_destroy (input);
   g_assert_nonnull (inst);
   /* All axes are kept (pinned ones as hidden). */
-  g_assert_cmpuint (hb_ot_var_get_axis_count (inst), ==, 5);
+  g_assert_cmpuint (hb_ot_var_get_axis_count (inst), ==, 6);
   return inst;
 }
 
@@ -156,6 +188,7 @@ test_avar2_restrict_moved_default (void)
       hb_variation_t vars[2] = {{WGHT, w},
 				{WDTH, wdths[j]}};
       check_same_coords (face, inst, vars, 2, 2);
+      check_same_rendering (face, inst, vars, 2);
     }
 
   hb_face_destroy (inst);
@@ -369,6 +402,48 @@ test_avar2_restrict_steep (void)
   hb_face_destroy (face);
 }
 
+/* Culling: restricting wght narrows the reachable range of the hidden
+ * XTRA axis (driven by wght through avar2), killing the gvar/HVAR
+ * variations that peak outside it. Rendering must be unchanged over the
+ * retained space, and the instance's variation tables must shrink. */
+static void
+test_avar2_culling (void)
+{
+  hb_face_t *face = open_original ();
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 300.f, 500.f, 400.f));
+  hb_face_t *inst = instance (face, input);
+
+  static const float grads[] = {-200.f, 0.f, 150.f};
+  static const float wdths[] = {50.f, 100.f, 200.f};
+  for (unsigned i = 0; i < 9; i++)
+    for (unsigned j = 0; j < G_N_ELEMENTS (grads); j++)
+      for (unsigned k = 0; k < G_N_ELEMENTS (wdths); k++)
+      {
+	hb_variation_t vars[3] = {{WGHT, lerp (300.f, 500.f, i, 9)},
+				  {GRAD, grads[j]},
+				  {WDTH, wdths[k]}};
+	check_same_coords (face, inst, vars, 3, 2);
+	check_same_rendering (face, inst, vars, 3);
+      }
+
+  /* Unreachable gvar/HVAR variations must be gone. */
+  hb_blob_t *orig_gvar = hb_face_reference_table (face, HB_TAG ('g','v','a','r'));
+  hb_blob_t *inst_gvar = hb_face_reference_table (inst, HB_TAG ('g','v','a','r'));
+  g_assert_cmpuint (hb_blob_get_length (inst_gvar), <, hb_blob_get_length (orig_gvar));
+  hb_blob_destroy (orig_gvar);
+  hb_blob_destroy (inst_gvar);
+
+  hb_blob_t *orig_hvar = hb_face_reference_table (face, HB_TAG ('H','V','A','R'));
+  hb_blob_t *inst_hvar = hb_face_reference_table (inst, HB_TAG ('H','V','A','R'));
+  g_assert_cmpuint (hb_blob_get_length (inst_hvar), <, hb_blob_get_length (orig_hvar));
+  hb_blob_destroy (orig_hvar);
+  hb_blob_destroy (inst_hvar);
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+}
+
 /* Move opsz's default from near the axis minimum (14) far up the axis:
  * the retained negative-side avar v1 segment becomes very steep in the
  * new space and offset compensation is quantization-limited. The
@@ -407,6 +482,7 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_pin_at_default);
   hb_test_add (test_avar2_pin_driven_axis);
   hb_test_add (test_avar2_restrict_both_shared);
+  hb_test_add (test_avar2_culling);
   hb_test_add (test_avar2_restrict_steep);
   hb_test_add (test_avar2_restrict_steep_no_varidx);
 
