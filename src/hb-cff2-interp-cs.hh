@@ -78,7 +78,8 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
     num_coords = num_coords_;
     varStore = acc.varStore;
     do_blend = num_coords && varStore->size;
-    set_ivs (acc.privateDicts[fd].ivs);
+    orig_ivs = acc.privateDicts[fd].ivs;
+    set_ivs (orig_ivs);
   }
 
   ~cff2_cs_interp_env_t ()
@@ -179,6 +180,8 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
   void	 set_region_count (unsigned int region_count_) { region_count = region_count_; }
   unsigned int get_ivs () const { return ivs; }
   void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  /* The FD's private-dict ivs, before any vsindex op in the charstring. */
+  unsigned int get_orig_ivs () const { return orig_ivs; }
   bool	 seen_vsindex () const { return seen_vsindex_; }
 
   double blend_deltas (hb_array_t<const ELEM> deltas) const
@@ -204,6 +207,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
   const	 CFF2ItemVariationStore *varStore;
   unsigned int  region_count;
   unsigned int  ivs;
+  unsigned int  orig_ivs;
   hb_vector_t<float>  *scalars = nullptr;
   hb_atomic_t<hb_vector_t<float> *> *cached_scalars_vector = nullptr;
   bool	  do_blend;
