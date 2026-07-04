@@ -448,7 +448,7 @@ struct cff2_private_dict_op_serializer_t : op_serializer_t
 				     const CFF::CFF2ItemVariationStore* varStore_,
 				     hb_array_t<int> normalized_coords_)
     : desubroutinize (desubroutinize_), drop_hints (drop_hints_), pinned (pinned_),
-      varStore (varStore_), normalized_coords (normalized_coords_) {}
+      param (nullptr, varStore_, normalized_coords_) {}
 
   bool serialize (hb_serialize_context_t *c,
 		  const op_str_t &opstr,
@@ -469,9 +469,11 @@ struct cff2_private_dict_op_serializer_t : op_serializer_t
 
     if (pinned)
     {
-      // Reinterpret opstr and process blends.
+      /* Reinterpret opstr and process blends.  The param persists across
+       * this dict's opstrs, so that an ivs set by a vsindexdict opstr is
+       * still in effect when a later opstr's blends are flattened. */
       cff2_priv_dict_interp_env_t env {hb_ubytes_t (opstr.ptr, opstr.length)};
-      cff2_private_blend_encoder_param_t param (c, varStore, normalized_coords);
+      param.c = c;
       dict_interpreter_t<cff2_private_dict_blend_opset_t, cff2_private_blend_encoder_param_t, cff2_priv_dict_interp_env_t> interp (env);
       return_trace (interp.interpret (param));
     }
@@ -483,8 +485,7 @@ struct cff2_private_dict_op_serializer_t : op_serializer_t
   const bool desubroutinize;
   const bool drop_hints;
   const bool pinned;
-  const CFF::CFF2ItemVariationStore* varStore;
-  hb_array_t<int> normalized_coords;
+  mutable cff2_private_blend_encoder_param_t param;
 };
 
 
