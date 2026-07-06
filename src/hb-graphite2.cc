@@ -383,6 +383,16 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
     clusters[ci].advance += gr_seg_advance_X(seg) * xscale - curradv;
   ci++;
 
+  /* A cluster's value must be the minimum of the cluster values of the
+   * characters it covers.  Cluster values are monotone along the buffer
+   * (decreasing if the buffer was reversed above), so the minimum is at
+   * one end of the covered range.  base_char alone is wrong when the
+   * buffer was reversed and the cluster covers more than one character. */
+  for (unsigned int i = 0; i < ci; ++i)
+    if (clusters[i].num_chars)
+      clusters[i].cluster = hb_min (buffer->info[clusters[i].base_char].cluster,
+				    buffer->info[clusters[i].base_char + clusters[i].num_chars - 1].cluster);
+
   for (unsigned int i = 0; i < ci; ++i)
   {
     for (unsigned int j = 0; j < clusters[i].num_glyphs; ++j)
