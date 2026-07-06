@@ -383,15 +383,18 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
     clusters[ci].advance += gr_seg_advance_X(seg) * xscale - curradv;
   ci++;
 
-  /* A cluster's value must be the minimum of the cluster values of the
-   * characters it covers.  Cluster values are monotone along the buffer
-   * (decreasing if the buffer was reversed above), so the minimum is at
-   * one end of the covered range.  base_char alone is wrong when the
-   * buffer was reversed and the cluster covers more than one character. */
-  for (unsigned int i = 0; i < ci; ++i)
-    if (clusters[i].num_chars)
-      clusters[i].cluster = hb_min (buffer->info[clusters[i].base_char].cluster,
-				    buffer->info[clusters[i].base_char + clusters[i].num_chars - 1].cluster);
+  /* At the monotone cluster levels a cluster's value must be the minimum
+   * of the cluster values of the characters it covers, and those values
+   * are monotone along the buffer (decreasing if the buffer was reversed
+   * above), so the minimum is at one end of the covered range.  base_char
+   * alone is wrong when the buffer was reversed and the cluster covers
+   * more than one character.  At non-monotone cluster levels keep the
+   * historic behavior of using base_char's value. */
+  if (HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (buffer->cluster_level))
+    for (unsigned int i = 0; i < ci; ++i)
+      if (clusters[i].num_chars)
+	clusters[i].cluster = hb_min (buffer->info[clusters[i].base_char].cluster,
+				      buffer->info[clusters[i].base_char + clusters[i].num_chars - 1].cluster);
 
   for (unsigned int i = 0; i < ci; ++i)
   {
