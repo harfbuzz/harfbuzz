@@ -1170,6 +1170,11 @@ elif host_machine.system() == 'windows'
   endif
   cmake_config.set('HB_IMPLIB_PREFIX', '${CMAKE_IMPORT_LIBRARY_PREFIX}')
   cmake_config.set('HB_IMPLIB_SUFFIX', '${CMAKE_IMPORT_LIBRARY_SUFFIX}')
+elif host_machine.system() == 'android'
+  # Meson does not version shared libraries on Android.
+  cmake_config.set('HB_LIB_DIR', '${PACKAGE_PREFIX_DIR}/@0@'.format(cmake_install_libdir))
+  cmake_config.set('HB_LIB_PREFIX', '${CMAKE_SHARED_LIBRARY_PREFIX}')
+  cmake_config.set('HB_LIB_SUFFIX', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
 else
   cmake_config.set('HB_LIB_DIR', '${PACKAGE_PREFIX_DIR}/@0@'.format(cmake_install_libdir))
   cmake_config.set('HB_LIB_PREFIX', '${CMAKE_SHARED_LIBRARY_PREFIX}')
