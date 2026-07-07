@@ -1612,11 +1612,11 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   out.append_str ("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
   out.append_num (ex);
   out.append_c (' ');
-  out.append_num (-(ey + eh));
+  out.append_num (ey);
   out.append_c (' ');
   out.append_num (ex + ew);
   out.append_c (' ');
-  out.append_num (-ey);
+  out.append_num (ey + eh);
   out.append_str ("]\n/Contents 4 0 R");
 
   /* Resources. */
@@ -1674,7 +1674,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
     bg_prefix.append_str (" rg\n");
     bg_prefix.append_num (ex);
     bg_prefix.append_c (' ');
-    bg_prefix.append_num (-(ey + eh));
+    bg_prefix.append_num (ey);
     bg_prefix.append_c (' ');
     bg_prefix.append_num (ew);
     bg_prefix.append_c (' ');
