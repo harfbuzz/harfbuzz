@@ -628,7 +628,7 @@ struct FeatureParamsCharacterVariants
   unsigned
   get_characters (unsigned start_offset, unsigned *char_count, hb_codepoint_t *chars) const
   {
-    if (char_count)
+    if (char_count && chars)
     {
       + characters.as_array ().sub_array (start_offset, char_count)
       | hb_sink (hb_array (chars, *char_count))
