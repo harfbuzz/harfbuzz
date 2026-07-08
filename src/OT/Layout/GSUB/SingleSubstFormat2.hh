@@ -89,7 +89,7 @@ struct SingleSubstFormat2_4
       return 0;
     }
 
-    if (alternate_count && *alternate_count)
+    if (alternate_count && *alternate_count && alternate_glyphs)
     {
       glyph_id = substitute[index];
 

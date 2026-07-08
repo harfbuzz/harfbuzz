@@ -285,7 +285,7 @@ struct fvar
 				    unsigned int     *axes_count /* IN/OUT */,
 				    hb_ot_var_axis_t *axes_array /* OUT */) const
   {
-    if (axes_count)
+    if (axes_count && axes_array)
     {
       hb_array_t<const AxisRecord> arr = get_axes ().sub_array (start_offset, axes_count);
       for (unsigned i = 0; i < arr.length; ++i)
@@ -299,7 +299,7 @@ struct fvar
 			       unsigned int          *axes_count /* IN/OUT */,
 			       hb_ot_var_axis_info_t *axes_array /* OUT */) const
   {
-    if (axes_count)
+    if (axes_count && axes_array)
     {
       hb_array_t<const AxisRecord> arr = get_axes ().sub_array (start_offset, axes_count);
       for (unsigned i = 0; i < arr.length; ++i)
@@ -360,7 +360,7 @@ struct fvar
       return 0;
     }
 
-    if (coords_length && *coords_length)
+    if (coords_length && *coords_length && coords)
     {
       hb_array_t<const F16DOT16> instanceCoords = instance->get_coordinates (axisCount)
 							 .sub_array (0, coords_length);

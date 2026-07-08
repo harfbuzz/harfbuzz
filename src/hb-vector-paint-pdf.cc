@@ -546,8 +546,19 @@ hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
   (void) width; (void) height; (void) trns; (void) trns_len;
   return false;
 #else
+  /* Guard the size arithmetic below against 32-bit overflow.  width/height come
+   * from the attacker-controlled PNG IHDR; without this, (width + 1) * height or
+   * width * height can wrap and under-size buffers that are then indexed per
+   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]). */
+  unsigned raw_len, mask_len;
+  if (!width || !height ||
+      width == 0xFFFFFFFFu ||
+      hb_unsigned_mul_overflows (width + 1, height, &raw_len) ||
+      hb_unsigned_mul_overflows (width, height, &mask_len))
+    return false;
+
   /* Decompress IDAT (zlib). */
-  unsigned raw_len = (width + 1) * height; /* 1 filter byte per row + width bytes */
+  /* raw_len = (width + 1) * height: 1 filter byte per row + width bytes. */
   uint8_t *raw = (uint8_t *) hb_malloc (raw_len);
   if (!raw) return false;
   HB_SCOPE_GUARD (hb_free (raw));
@@ -567,7 +578,7 @@ hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
     return false;
 
   /* Un-filter and map to alpha. */
-  if (!out->resize (width * height))
+  if (!out->resize (mask_len))
     return false;
 
   uint8_t *unfiltered = (uint8_t *) hb_malloc (width);
@@ -680,11 +691,14 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   hb_vector_buf_t idat;
 
   unsigned pos = 8;
-  while (pos + 12 <= len)
+  /* Invariant: pos <= len (len >= 8 checked above).  All bounds checks below
+   * are written to avoid 32-bit wrapping: a malicious chunk_len must not be
+   * able to wrap pos + 12 + chunk_len past the end of the buffer. */
+  while (len - pos >= 12)
   {
     uint32_t chunk_len = hb_pdf_png_u32 (data + pos);
     uint32_t chunk_type = hb_pdf_png_u32 (data + pos + 4);
-    if (pos + 12 + chunk_len > len)
+    if (chunk_len > len - pos - 12)
       break;
     const uint8_t *chunk_data = data + pos + 8;
 

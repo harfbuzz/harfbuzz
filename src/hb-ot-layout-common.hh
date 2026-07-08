@@ -441,7 +441,7 @@ struct IndexArray : Array16Of<Index>
 			    unsigned int *_count /* IN/OUT */,
 			    unsigned int *_indexes /* OUT */) const
   {
-    if (_count)
+    if (_count && _indexes)
     {
       + this->as_array ().sub_array (start_offset, _count)
       | hb_sink (hb_array (_indexes, *_count))
@@ -628,7 +628,7 @@ struct FeatureParamsCharacterVariants
   unsigned
   get_characters (unsigned start_offset, unsigned *char_count, hb_codepoint_t *chars) const
   {
-    if (char_count)
+    if (char_count && chars)
     {
       + characters.as_array ().sub_array (start_offset, char_count)
       | hb_sink (hb_array (chars, *char_count))
@@ -900,7 +900,7 @@ struct RecordArrayOf : SortedArray16Of<Record<Type>>
                          unsigned int *record_count /* IN/OUT */,
                          hb_tag_t     *record_tags /* OUT */) const
   {
-    if (record_count)
+    if (record_count && record_tags)
     {
       + this->as_array ().sub_array (start_offset, record_count)
       | hb_map (&Record<Type>::tag)

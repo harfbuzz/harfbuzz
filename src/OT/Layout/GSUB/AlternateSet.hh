@@ -82,7 +82,7 @@ struct AlternateSet
                   unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
                   hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
   {
-    if (alternates.len && alternate_count)
+    if (alternates.len && alternate_count && alternate_glyphs)
     {
       + alternates.as_array ().sub_array (start_offset, alternate_count)
       | hb_sink (hb_array (alternate_glyphs, *alternate_count))

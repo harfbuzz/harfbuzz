@@ -107,11 +107,12 @@ _hb_cg_get_table_tags (const hb_face_t *face HB_UNUSED,
   end_offset = hb_min (end_offset, (unsigned) population);
 
   *table_count = end_offset - start_offset;
-  for (unsigned i = start_offset; i < end_offset; i++)
-  {
-    CTFontTableTag tag = (CTFontTableTag)(uintptr_t) CFArrayGetValueAtIndex (arr, i);
-    table_tags[i - start_offset] = tag;
-  }
+  if (table_tags)
+    for (unsigned i = start_offset; i < end_offset; i++)
+    {
+      CTFontTableTag tag = (CTFontTableTag)(uintptr_t) CFArrayGetValueAtIndex (arr, i);
+      table_tags[i - start_offset] = tag;
+    }
 
   return population;
 }
