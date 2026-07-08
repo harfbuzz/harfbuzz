@@ -680,11 +680,14 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   hb_vector_buf_t idat;
 
   unsigned pos = 8;
-  while (pos + 12 <= len)
+  /* Invariant: pos <= len (len >= 8 checked above).  All bounds checks below
+   * are written to avoid 32-bit wrapping: a malicious chunk_len must not be
+   * able to wrap pos + 12 + chunk_len past the end of the buffer. */
+  while (len - pos >= 12)
   {
     uint32_t chunk_len = hb_pdf_png_u32 (data + pos);
     uint32_t chunk_type = hb_pdf_png_u32 (data + pos + 4);
-    if (pos + 12 + chunk_len > len)
+    if (chunk_len > len - pos - 12)
       break;
     const uint8_t *chunk_data = data + pos + 8;
 
