@@ -155,10 +155,13 @@ struct hb_vector_buf_t : hb_vector_t<char>
 
   bool append_base64 (const uint8_t *data, unsigned len)
   {
-    unsigned out_len = ((len + 2) / 3) * 4;
+    /* Output is 4 bytes per 3 input bytes; compute without overflowing. */
+    unsigned ngroups = len / 3 + (len % 3 != 0);
+    unsigned out_len;
     unsigned old_len = length;
     unsigned new_len;
-    if (unlikely (hb_unsigned_add_overflows (old_len, out_len, &new_len) ||
+    if (unlikely (hb_unsigned_mul_overflows (ngroups, 4, &out_len) ||
+		  hb_unsigned_add_overflows (old_len, out_len, &new_len) ||
 		  !resize_dirty ((int) new_len)))
       return false;
 
