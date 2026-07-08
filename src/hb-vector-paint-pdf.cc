@@ -393,6 +393,58 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
 }
 
 static void
+hb_pdf_paint_fill_glyph (hb_paint_funcs_t *,
+			 void *paint_data,
+			 hb_codepoint_t glyph,
+			 hb_font_t *font,
+			 hb_bool_t,
+			 hb_color_t c,
+			 void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!paint->ensure_initialized ()))
+    return;
+
+  float r = hb_color_get_red (c) / 255.f;
+  float g = hb_color_get_green (c) / 255.f;
+  float b = hb_color_get_blue (c) / 255.f;
+  float a = hb_color_get_alpha (c) / 255.f;
+
+  if (a < 1.f / 255.f)
+    return;
+
+  auto &body = paint->current_body ();
+
+  bool scoped = false;
+  /* Set alpha via ExtGState if needed, scoped so it does not leak
+   * into later paints. */
+  if (a < 1.f - 1.f / 512.f)
+  {
+    auto *res = hb_pdf_get_resources (paint);
+    if (res)
+    {
+      unsigned gs_idx = res->add_extgstate_alpha (a);
+      body.append_str ("q\n");
+      scoped = true;
+      body.append_str ("/GS");
+      body.append_unsigned (gs_idx);
+      body.append_str (" gs\n");
+    }
+  }
+
+  body.append_num (r, 4);
+  body.append_c (' ');
+  body.append_num (g, 4);
+  body.append_c (' ');
+  body.append_num (b, 4);
+  body.append_str (" rg\n");
+  hb_pdf_emit_glyph_path (paint, font, glyph, &body);
+  body.append_str ("f\n");
+  if (scoped)
+    body.append_str ("Q\n");
+}
+
+static void
 hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
 			      void *paint_data,
 			      hb_codepoint_t glyph,
@@ -1534,6 +1586,7 @@ static struct hb_pdf_paint_funcs_lazy_loader_t
     hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
     hb_paint_funcs_set_push_transform_func (funcs, (hb_paint_push_transform_func_t) hb_pdf_paint_push_transform, nullptr, nullptr);
     hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_pdf_paint_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_fill_glyph_func (funcs, (hb_paint_fill_glyph_func_t) hb_pdf_paint_fill_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_pdf_paint_push_clip_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_pdf_paint_push_clip_rectangle, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_path_start_func (funcs, (hb_paint_push_clip_path_start_func_t) hb_pdf_paint_push_clip_path_start, nullptr, nullptr);
