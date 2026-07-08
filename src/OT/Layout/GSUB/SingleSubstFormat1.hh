@@ -109,7 +109,7 @@ struct SingleSubstFormat1_3
       return 0;
     }
 
-    if (alternate_count && *alternate_count)
+    if (alternate_count && *alternate_count && alternate_glyphs)
     {
       hb_codepoint_t d = deltaGlyphID;
       hb_codepoint_t mask = get_mask ();
