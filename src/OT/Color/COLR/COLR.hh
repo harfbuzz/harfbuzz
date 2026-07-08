@@ -2761,9 +2761,7 @@ struct COLR
       {
         hb_bool_t is_foreground;
         hb_color_t color = c.get_color (r.colorIdx, 1., &is_foreground);
-        c.funcs->push_clip_glyph (c.data, r.glyphId, c.font);
-        c.funcs->color (c.data, is_foreground, color);
-        c.funcs->pop_clip (c.data);
+        c.funcs->fill_glyph (c.data, r.glyphId, c.font, is_foreground, color);
       }
 
       return true;
