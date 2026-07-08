@@ -88,7 +88,7 @@ typedef struct OpenTypeOffsetTable
 			       unsigned int *table_count, /* IN/OUT */
 			       hb_tag_t     *table_tags /* OUT */) const
   {
-    if (table_count)
+    if (table_count && table_tags)
     {
       + tables.as_array ().sub_array (start_offset, table_count)
       | hb_map (&TableRecord::tag)

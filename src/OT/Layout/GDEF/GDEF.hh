@@ -70,7 +70,7 @@ struct AttachList
 
     const AttachPoint &points = this+attachPoint[index];
 
-    if (point_count)
+    if (point_count && point_array)
     {
       + points.as_array ().sub_array (start_offset, point_count)
       | hb_sink (hb_array (point_array, *point_count))
@@ -320,7 +320,7 @@ struct LigGlyph
 			   unsigned             *caret_count /* IN/OUT */,
 			   hb_position_t        *caret_array /* OUT */) const
   {
-    if (caret_count)
+    if (caret_count && caret_array)
     {
       + carets.as_array ().sub_array (start_offset, caret_count)
       | hb_map (hb_add (this))

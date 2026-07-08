@@ -112,6 +112,43 @@ test_nullable_output_gsub_alternates (void)
   hb_face_destroy (face);
 }
 
+static void
+test_nullable_output_table_tags (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cpal-v0.ttf");
+  unsigned int count = 100;
+  unsigned int total = hb_face_get_table_tags (face, 0, &count, NULL);
+  g_assert_cmpuint (total, >, 0);
+  hb_face_destroy (face);
+}
+
+static void
+test_nullable_output_var_axis_infos (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
+  unsigned int count = 100;
+  unsigned int total = hb_ot_var_get_axis_infos (face, 0, &count, NULL);
+  g_assert_cmpuint (total, >, 0);
+  hb_face_destroy (face);
+}
+
+static void
+test_nullable_output_math_kernings (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  if (hb_font_get_glyph_from_name (font, "I", -1, &glyph))
+  {
+    unsigned int count = 100;
+    g_assert_cmpuint (hb_ot_math_get_glyph_kernings (font, glyph,
+						     HB_OT_MATH_KERN_TOP_RIGHT,
+						     0, &count, NULL), ==, 10);
+  }
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -126,6 +163,9 @@ main (int argc, char **argv)
 #endif
   hb_test_add (test_nullable_output_cv_characters);
   hb_test_add (test_nullable_output_gsub_alternates);
+  hb_test_add (test_nullable_output_table_tags);
+  hb_test_add (test_nullable_output_var_axis_infos);
+  hb_test_add (test_nullable_output_math_kernings);
 
   return hb_test_run ();
 }
