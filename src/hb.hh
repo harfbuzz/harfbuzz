@@ -92,7 +92,6 @@
 #pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
 #pragma GCC diagnostic error   "-Wunused"
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
-#pragma GCC diagnostic error   "-Wunused-template"
 #pragma GCC diagnostic error   "-Wunused-value"
 #pragma GCC diagnostic error   "-Wunused-variable"
 #pragma GCC diagnostic error   "-Wvla"
@@ -152,6 +151,7 @@
 #pragma GCC diagnostic ignored "-Wrange-loop-analysis" // https://github.com/harfbuzz/harfbuzz/issues/2834
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wunused-template"
 #pragma GCC diagnostic ignored "-Wc++11-compat" // only gcc raises it
 #endif
 
