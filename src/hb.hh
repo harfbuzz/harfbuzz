@@ -92,6 +92,7 @@
 #pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
 #pragma GCC diagnostic error   "-Wunused"
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
+#pragma GCC diagnostic error   "-Wunused-template"
 #pragma GCC diagnostic error   "-Wunused-value"
 #pragma GCC diagnostic error   "-Wunused-variable"
 #pragma GCC diagnostic error   "-Wvla"
