@@ -701,6 +701,32 @@ impl ColorPainter for HbColorPainter<'_> {
     ) {
         unsafe {
             hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
+        }
+
+        if brush_transform.is_none() {
+            if let Brush::Solid {
+                palette_index: color_index,
+                alpha,
+            } = brush
+            {
+                let is_foreground = color_index == 0xFFFF;
+                let color = self.lookup_color(color_index, alpha);
+                unsafe {
+                    hb_paint_fill_glyph(
+                        self.paint_funcs,
+                        self.paint_data,
+                        glyph_id.to_u32() as hb_codepoint_t,
+                        self.font,
+                        is_foreground as hb_bool_t,
+                        color,
+                    );
+                }
+                self.pop_transform();
+                return;
+            }
+        }
+
+        unsafe {
             hb_paint_push_clip_glyph(
                 self.paint_funcs,
                 self.paint_data,
