@@ -335,6 +335,12 @@ struct Variable
     value.get_color_stop (c, stop, varIdxBase, instancer);
   }
 
+  void get_solid_color (hb_paint_context_t *c,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    value.get_solid_color (c, varIdxBase, is_foreground, color);
+  }
+
   hb_paint_extend_t get_extend () const
   {
     return value.get_extend ();
@@ -388,6 +394,12 @@ struct NoVariable
 		       const ItemVarStoreInstancer &instancer) const
   {
     value.get_color_stop (c, stop, VarIdx::NO_VARIATION, instancer);
+  }
+
+  void get_solid_color (hb_paint_context_t *c,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    value.get_solid_color (c, VarIdx::NO_VARIATION, is_foreground, color);
   }
 
   hb_paint_extend_t get_extend () const
@@ -680,15 +692,21 @@ struct PaintSolid
     return_trace (c->check_struct (this));
   }
 
+  void get_solid_color (hb_paint_context_t *c, uint32_t varIdxBase,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    *color = c->get_color (paletteIndex,
+                           alpha.to_float (c->instancer (varIdxBase, 0)),
+                           is_foreground);
+  }
+
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     TRACE_PAINT (this);
     hb_bool_t is_foreground;
     hb_color_t color;
 
-    color = c->get_color (paletteIndex,
-                          alpha.to_float (c->instancer (varIdxBase, 0)),
-                          &is_foreground);
+    get_solid_color (c, varIdxBase, &is_foreground, &color);
     c->funcs->color (c->data, is_foreground, color);
   }
 
@@ -928,17 +946,7 @@ struct PaintGlyph
     return_trace (c->check_struct (this) && paint.sanitize (c, this));
   }
 
-  void paint_glyph (hb_paint_context_t *c) const
-  {
-    TRACE_PAINT (this);
-    c->funcs->push_inverse_font_transform (c->data, c->font);
-    c->funcs->push_clip_glyph (c->data, gid, c->font);
-    c->funcs->push_font_transform (c->data, c->font);
-    c->recurse (this+paint);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_clip (c->data);
-    c->funcs->pop_transform (c->data);
-  }
+  inline void paint_glyph (hb_paint_context_t *c) const;
 
   HBUINT8		format; /* format = 10 */
   Offset24To<Paint>	paint;  /* Offset (from beginning of PaintGlyph table) to Paint subtable. */
@@ -1892,6 +1900,16 @@ struct Paint
     }
   }
 
+  bool get_solid_color (hb_paint_context_t *c,
+			hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    switch (u.format.v) {
+    case 2: u.paintformat2.get_solid_color (c, is_foreground, color); return true;
+    case 3: u.paintformat3.get_solid_color (c, is_foreground, color); return true;
+    default: return false;
+    }
+  }
+
   protected:
   union {
   struct { HBUINT8 v; }				format;
@@ -2801,6 +2819,32 @@ hb_paint_context_t::recurse (const Paint &paint)
   edge_count--;
   paint.dispatch (this);
   depth_left++;
+}
+
+void PaintGlyph::paint_glyph (hb_paint_context_t *c) const
+{
+  TRACE_PAINT (this);
+
+  hb_bool_t is_foreground;
+  hb_color_t color;
+  /* Optimize cases that can use a simple fill-glyph operation. */
+  if (likely (c->depth_left > 0 && c->edge_count > 0) &&
+      (this+paint).get_solid_color (c, &is_foreground, &color))
+  {
+    c->edge_count--;
+    c->funcs->push_inverse_font_transform (c->data, c->font);
+    c->funcs->fill_glyph (c->data, gid, c->font, is_foreground, color);
+    c->funcs->pop_transform (c->data);
+    return;
+  }
+
+  c->funcs->push_inverse_font_transform (c->data, c->font);
+  c->funcs->push_clip_glyph (c->data, gid, c->font);
+  c->funcs->push_font_transform (c->data, c->font);
+  c->recurse (this+paint);
+  c->funcs->pop_transform (c->data);
+  c->funcs->pop_clip (c->data);
+  c->funcs->pop_transform (c->data);
 }
 
 void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const

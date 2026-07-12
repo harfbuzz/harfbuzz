@@ -250,6 +250,42 @@ _hb_ft_color_line_get_extend (hb_color_line_t *color_line,
   }
 }
 
+static void
+_hb_ft_get_solid_color (hb_ft_paint_context_t *c,
+			const FT_ColorIndex &color_index,
+			hb_bool_t *is_foreground,
+			hb_color_t *color)
+{
+  *is_foreground = color_index.palette_index == 0xFFFF;
+
+  if (*is_foreground)
+  {
+    *color = HB_COLOR (hb_color_get_blue (c->foreground),
+		       hb_color_get_green (c->foreground),
+		       hb_color_get_red (c->foreground),
+		       _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
+					   color_index.alpha));
+    return;
+  }
+
+  if (c->funcs->custom_palette_color (c->data, color_index.palette_index, color))
+  {
+    *color = HB_COLOR (hb_color_get_blue (*color),
+		       hb_color_get_green (*color),
+		       hb_color_get_red (*color),
+		       _hb_ft_color_alpha (hb_color_get_alpha (*color),
+					   color_index.alpha));
+    return;
+  }
+
+  FT_Color ft_color = c->palette[color_index.palette_index];
+  *color = HB_COLOR (ft_color.blue,
+		     ft_color.green,
+		     ft_color.red,
+		     _hb_ft_color_alpha (ft_color.alpha,
+					 color_index.alpha));
+}
+
 void
 _hb_ft_paint (hb_ft_paint_context_t *c,
 	      FT_OpaquePaint opaque_paint)
@@ -280,34 +316,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_SOLID:
     {
-      bool is_foreground = paint.u.solid.color.palette_index ==  0xFFFF;
+      hb_bool_t is_foreground;
       hb_color_t color;
-      if (is_foreground)
-	color = HB_COLOR (hb_color_get_blue (c->foreground),
-			  hb_color_get_green (c->foreground),
-			  hb_color_get_red (c->foreground),
-			  _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
-					      paint.u.solid.color.alpha));
-      else
-      {
-	if (c->funcs->custom_palette_color (c->data, paint.u.solid.color.palette_index, &color))
-	{
-	  color = HB_COLOR (hb_color_get_blue (color),
-			    hb_color_get_green (color),
-			    hb_color_get_red (color),
-			    _hb_ft_color_alpha (hb_color_get_alpha (color),
-						paint.u.solid.color.alpha));
-	}
-	else
-	{
-	  FT_Color ft_color = c->palette[paint.u.solid.color.palette_index];
-	  color = HB_COLOR (ft_color.blue,
-			    ft_color.green,
-			    ft_color.red,
-			    _hb_ft_color_alpha (ft_color.alpha,
-						paint.u.solid.color.alpha));
-	}
-      }
+      _hb_ft_get_solid_color (c, paint.u.solid.color, &is_foreground, &color);
       c->funcs->color (c->data, is_foreground, color);
     }
     break;
@@ -362,6 +373,26 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
     {
+      /* Optimize cases that can use a simple fill-glyph operation. */
+      FT_COLR_Paint fill;
+      if (likely (c->depth_left > 0 && c->edge_count > 0) &&
+	  FT_Get_Paint (ft_face, paint.u.glyph.paint, &fill) &&
+	  fill.format == FT_COLR_PAINTFORMAT_SOLID)
+      {
+	hb_bool_t is_foreground;
+	hb_color_t color;
+	_hb_ft_get_solid_color (c, fill.u.solid.color, &is_foreground, &color);
+
+	c->edge_count--;
+	c->funcs->push_inverse_font_transform (c->data, c->font);
+	c->ft_font->lock.unlock ();
+	c->funcs->fill_glyph (c->data, paint.u.glyph.glyphID, c->font,
+			      is_foreground, color);
+	c->ft_font->lock.lock ();
+	c->funcs->pop_transform (c->data);
+	break;
+      }
+
       c->funcs->push_inverse_font_transform (c->data, c->font);
       c->ft_font->lock.unlock ();
       c->funcs->push_clip_glyph (c->data, paint.u.glyph.glyphID, c->font);
