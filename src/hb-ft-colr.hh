@@ -600,10 +600,8 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
       }
 
       ft_font->lock.unlock ();
-      paint_funcs->push_clip_glyph (paint_data, layer_glyph_index, font);
+      paint_funcs->fill_glyph (paint_data, layer_glyph_index, font, is_foreground, color);
       ft_font->lock.lock ();
-      paint_funcs->color (paint_data, is_foreground, color);
-      paint_funcs->pop_clip (paint_data);
 
     } while (FT_Get_Color_Glyph_Layer(ft_face,
 				      gid,
