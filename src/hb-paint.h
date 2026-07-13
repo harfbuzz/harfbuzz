@@ -167,8 +167,10 @@ typedef hb_bool_t (*hb_paint_color_glyph_func_t) (hb_paint_funcs_t *funcs,
  * @color: The color to use, unpremultiplied
  * @user_data: User data pointer passed to hb_paint_funcs_set_fill_glyph_func()
  *
- * A virtual method for the #hb_paint_funcs_t to fill a glyph's
- * shape with a solid color.
+ * A virtual method for the #hb_paint_funcs_t to fill a glyph's shape with
+ * a solid color. If not implemented, a sequence of "push-clip-glyph",
+ * "color", "pop-clip" paint operations, in that order, will be emitted
+ * instead.
  *
  * XSince: REPLACEME
  */
