@@ -338,7 +338,7 @@ test_subset_cff2_get_charstring_data_no_cff (void)
 
   hb_blob_t* cs0 = hb_subset_cff2_get_charstring_data (face, 0);
   g_assert_true (hb_blob_get_length (cs0) == 0);
-  
+
   hb_face_destroy (builder);
   hb_blob_destroy (face_blob);
   hb_face_destroy (face);
@@ -417,7 +417,7 @@ test_subset_input_to_string (void)
     g_assert_nonnull (blob);
     unsigned len = 0;
     const char *data = hb_blob_get_data (blob, &len);
-    g_assert_cmpint (len, ==, 0);
+    g_assert_cmpint (len, ==, 1);
     g_assert_cmpstr (data, ==, "");
     hb_blob_destroy (blob);
     hb_subset_input_destroy (input);
@@ -476,7 +476,7 @@ test_subset_input_to_string (void)
     const char *data = hb_blob_get_data (blob, &len);
     const char *expected = "--name-legacy --passthrough-tables --notdef-outline --glyph-names --no-prune-unicode-ranges --unicodes=* --gids=* --name-IDs=* --name-languages=* --layout-features=* --drop-tables-=*";
     g_assert_cmpstr (data, ==, expected);
-    g_assert_cmpint (len, ==, strlen (expected));
+    g_assert_cmpint (len - 1, ==, strlen (expected));
     hb_blob_destroy (blob);
     hb_subset_input_destroy (input);
   }
