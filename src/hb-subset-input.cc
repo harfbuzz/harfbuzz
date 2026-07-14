@@ -747,6 +747,9 @@ _append_arg (hb_vector_t<char> &sb, const char *arg)
 static void
 _format_number_set (const hb_set_t *set, hb_vector_t<char> &out, unsigned base = 10)
 {
+  assert (base == 10 || base == 16);
+  if (unlikely (base != 10 && base != 16)) return;
+
   hb_codepoint_t first = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
   bool first_range = true;
   while (hb_set_next_range (set, &first, &last))
@@ -785,13 +788,6 @@ _format_tag (hb_tag_t tag, hb_vector_t<char> &out)
   unsigned len = 4;
   while (len > 0 && buf[len - 1] == ' ')
     len--;
-
-  if (len == 0)
-  {
-    static const char spaces[4] = {'_', '_', '_', '_'};
-    out.extend (hb_bytes_t (spaces, 4));
-    return;
-  }
 
   for (unsigned i = 0; i < len; i++)
   {
@@ -836,16 +832,14 @@ _format_set_arg (const hb_set_t *set,
                  Formatter &&formatter,
                  hb_vector_t<char> &sb)
 {
-  char opt_prefix[64];
-  snprintf (opt_prefix, sizeof (opt_prefix), "--%s", opt_name);
-
   if (hb_set_is_inverted (set))
   {
     hb_set_t *excluded = hb_set_copy (set);
     hb_set_invert (excluded);
 
     hb_vector_t<char> opt;
-    opt.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
+    opt.extend (hb_bytes_t ("--", 2));
+    opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
     opt.extend (hb_bytes_t ("=*", 2));
     opt.push ('\0');
     if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
@@ -857,7 +851,8 @@ _format_set_arg (const hb_set_t *set,
       if (formatted.length)
       {
         hb_vector_t<char> opt2;
-        opt2.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
+        opt2.extend (hb_bytes_t ("--", 2));
+        opt2.extend (hb_bytes_t (opt_name, strlen (opt_name)));
         opt2.extend (hb_bytes_t ("-=", 2));
         opt2.extend (formatted.as_array ());
         opt2.push ('\0');
@@ -869,7 +864,8 @@ _format_set_arg (const hb_set_t *set,
   else if (hb_set_is_empty (set))
   {
     hb_vector_t<char> opt;
-    opt.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
+    opt.extend (hb_bytes_t ("--", 2));
+    opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
     opt.extend (hb_bytes_t ("-=*", 3));
     opt.push ('\0');
     if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
@@ -881,7 +877,8 @@ _format_set_arg (const hb_set_t *set,
     if (formatted.length)
     {
       hb_vector_t<char> opt;
-      opt.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
+      opt.extend (hb_bytes_t ("--", 2));
+      opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
       opt.extend (hb_bytes_t ("=", 1));
       opt.extend (formatted.as_array ());
       opt.push ('\0');

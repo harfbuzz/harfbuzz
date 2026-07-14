@@ -585,12 +585,13 @@ test_subset_input_to_string (void)
     hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
     hb_set_clear (features);
     hb_set_add (features, HB_TAG (' ', ' ', ' ', ' '));
+    hb_set_add (features, HB_TAG ('f', 'o', 'o', ' '));
 
     hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
     g_assert_nonnull (blob);
     unsigned len = 0;
     const char *data = hb_blob_get_data (blob, &len);
-    const char *expected = "--layout-features=____ --drop-tables=cvt";
+    const char *expected = "--layout-features=,foo --drop-tables=cvt";
     g_assert_cmpstr (data, ==, expected);
     hb_blob_destroy (blob);
     hb_subset_input_destroy (input);
