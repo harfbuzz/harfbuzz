@@ -14,3 +14,5 @@
 ../../../fuzzing/fonts/noto_handwriting-cff_colr_1.otf;;U+270D;../expected/basic/handwriting-cff-colr-1.svg
 ../../../fuzzing/fonts/noto_handwriting-cff2_colr_1.otf;;U+270D;../expected/basic/handwriting-cff-colr-1.svg
 ../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=65536;U+0061,U+0062,U+0063;../expected/basic/glyf-quadratics.pdf
+../../../api/fonts/TwemojiMozilla.subset.default.32,3299.ttf;--font-size=65536;U+3299;../expected/basic/colrv0-large-scale.svg
+../../../api/fonts/TwemojiMozilla.subset.default.32,3299.ttf;--font-size=65536;U+3299;../expected/basic/colrv0-large-scale.pdf

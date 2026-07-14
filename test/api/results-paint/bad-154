@@ -3,11 +3,7 @@ start transform 1 0 0 1 0 0
     push group
       push group
         start transform 1 0 0 1 0 0
-          start clip glyph 159
-            start transform 1 0 0 1 0 0
-              solid 128 128 128 102
-            end transform
-          end clip
+          fill glyph 159 solid 128 128 128 102
         end transform
       pop group mode 3
     pop group mode 3

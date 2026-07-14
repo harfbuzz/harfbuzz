@@ -1670,9 +1670,7 @@ hb_font_t::paint_glyph (hb_codepoint_t glyph,
     return;
 
   /* Fallback for outline glyph. */
-  paint_funcs->push_clip_glyph (paint_data, glyph, this);
-  paint_funcs->color (paint_data, true, foreground);
-  paint_funcs->pop_clip (paint_data);
+  paint_funcs->fill_glyph (paint_data, glyph, this, true, foreground);
 }
 
 
