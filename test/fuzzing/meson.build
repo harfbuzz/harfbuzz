@@ -122,9 +122,18 @@ fonts_glob = run_command(glob_cmd, meson.current_source_dir() / 'fonts', check:t
 subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts', check:true).stdout().strip().split('\n')
 graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
 
+depend_closure_parity_fonts_glob = []
+foreach font : subset_fonts_glob
+  # These fonts currently spend tens of seconds or more building the
+  # contextual GSUB dependency graph before the parity tests start.
+  if not font.contains('NotoNastaliqUrdu-Bold.ttf') and not font.contains('NotoNastaliqUrdu-Regular.ttf')
+    depend_closure_parity_fonts_glob += [font]
+  endif
+endforeach
+
 # Chunk the glob lists to avoid command line length limits, and for parallelization
 chunk_size = 64
-foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob']
+foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'depend_closure_parity_fonts_glob', 'graphs_glob']
   glob = get_variable(glob_name)
   chunks = []
   chunk = []
@@ -227,10 +236,10 @@ endif
 
 if conf.get('HB_EXPERIMENTAL_API', 0) == 1
   i = 0
-  foreach chunk : subset_fonts_glob_chunks
+  foreach chunk : depend_closure_parity_fonts_glob_chunks
     test('depend-closure-parity-chunk-@0@'.format(i),
       hb_depend_closure_parity_exe,
-      args: ['-s', '42'] + chunk,
+      args: ['-s', '42', '-n', '16'] + chunk,
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],

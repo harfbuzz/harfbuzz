@@ -634,7 +634,7 @@ static bool
 compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
                   uint64_t seed, const char *font_path,
                   bool is_gsub, hb_set_t *start_glyphs, hb_set_t *codepoints,
-                  hb_set_t *test_features)
+                  hb_set_t *test_features, hb_map_t *unicode_to_glyph_cache)
 {
   bool skip_gsub = !is_gsub;
 
@@ -715,14 +715,19 @@ compare_closures (hb_face_t *face, hb_subset_depend_t *depend,
   }
   else
   {
-    hb_map_t *unicode_to_glyph = hb_map_create ();
-    hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph, NULL);
+    hb_map_t *unicode_to_glyph = unicode_to_glyph_cache;
+    if (!unicode_to_glyph)
+    {
+      unicode_to_glyph = hb_map_create ();
+      hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph, NULL);
+    }
     int idx = -1;
     hb_codepoint_t unicode, glyph;
     while (hb_map_next (unicode_to_glyph, &idx, &unicode, &glyph))
       if (hb_set_has (actual_start_glyphs, glyph))
         hb_set_add (uvs_unicodes, unicode);
-    hb_map_destroy (unicode_to_glyph);
+    if (!unicode_to_glyph_cache)
+      hb_map_destroy (unicode_to_glyph);
   }
 
   bool hit_flagged_edge = false;
@@ -1284,6 +1289,13 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
 
   /* Step 1: Determine test type and size range from seed % 100 */
   unsigned type_selector = seed % 100;
+  /* Glyph-starting non-GSUB tests force subset-plan to reverse-map retained
+   * glyphs through cmap. Fonts like AdobeBlank cover most of Unicode, making
+   * that path too expensive to run hundreds of times in one Meson test. Use
+   * codepoint-starting tests for huge-cmap fonts; table dependency coverage
+   * still comes from the rest of the corpus. */
+  if (num_codepoints > 65536)
+    type_selector = 58 + (type_selector % 42);
   unsigned min_size, max_size;
 
   if (type_selector < 21) {
@@ -1334,17 +1346,23 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
     hb_set_t *cp_indices = hb_set_create ();
     rng_select_distinct (selection_rng, cp_indices, params.target_size, num_codepoints);
 
-    hb_codepoint_t idx = HB_SET_VALUE_INVALID;
-    while (hb_set_next (cp_indices, &idx))
+    hb_codepoint_t next_idx = HB_SET_VALUE_INVALID;
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    unsigned current_idx = 0;
+    bool have_idx = hb_set_next (cp_indices, &next_idx);
+    while (have_idx && hb_set_next (all_codepoints, &cp))
     {
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      for (unsigned j = 0; j <= idx && hb_set_next (all_codepoints, &cp); j++)
-        ;
-      hb_set_add (params.codepoints, cp);
+      while (have_idx && current_idx == next_idx)
+      {
+        hb_set_add (params.codepoints, cp);
 
-      hb_codepoint_t gid;
-      if (hb_font_get_nominal_glyph (font, cp, &gid))
-        hb_set_add (params.glyphs, gid);
+        hb_codepoint_t gid;
+        if (hb_font_get_nominal_glyph (font, cp, &gid))
+          hb_set_add (params.glyphs, gid);
+
+        have_idx = hb_set_next (cp_indices, &next_idx);
+      }
+      current_idx++;
     }
     hb_set_destroy (cp_indices);
 
@@ -1451,6 +1469,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   }
 
   hb_font_t *font = hb_font_create (face);
+  hb_map_t *unicode_to_glyph_cache = nullptr;
 
   if (_hb_depend_fuzzer_explicit_test)
   {
@@ -1460,8 +1479,14 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     else
     {
       print_test_params (0, params.is_gsub, params.glyphs, params.codepoints, params.features);
+      if (!params.is_gsub && !unicode_to_glyph_cache)
+      {
+        unicode_to_glyph_cache = hb_map_create ();
+        hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph_cache, NULL);
+      }
       compare_closures (face, depend, 0, _hb_depend_fuzzer_current_font_path,
-                        params.is_gsub, params.glyphs, params.codepoints, params.features);
+                        params.is_gsub, params.glyphs, params.codepoints, params.features,
+                        unicode_to_glyph_cache);
     }
     if (params.glyphs)     hb_set_destroy (params.glyphs);
     if (params.codepoints) hb_set_destroy (params.codepoints);
@@ -1476,8 +1501,14 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     else
     {
       print_test_params (test_seed, params.is_gsub, params.glyphs, params.codepoints, params.features);
+      if (!params.is_gsub && !unicode_to_glyph_cache)
+      {
+        unicode_to_glyph_cache = hb_map_create ();
+        hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph_cache, NULL);
+      }
       compare_closures (face, depend, test_seed, _hb_depend_fuzzer_current_font_path,
-                        params.is_gsub, params.glyphs, params.codepoints, params.features);
+                        params.is_gsub, params.glyphs, params.codepoints, params.features,
+                        unicode_to_glyph_cache);
     }
     if (params.glyphs)     hb_set_destroy (params.glyphs);
     if (params.codepoints) hb_set_destroy (params.codepoints);
@@ -1501,8 +1532,15 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
       if (_hb_depend_fuzzer_verbose)
         print_test_params (test_seed, params.is_gsub, params.glyphs, params.codepoints, params.features);
 
+      if (!params.is_gsub && !unicode_to_glyph_cache)
+      {
+        unicode_to_glyph_cache = hb_map_create ();
+        hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph_cache, NULL);
+      }
+
       compare_closures (face, depend, test_seed, _hb_depend_fuzzer_current_font_path,
-                        params.is_gsub, params.glyphs, params.codepoints, params.features);
+                        params.is_gsub, params.glyphs, params.codepoints, params.features,
+                        unicode_to_glyph_cache);
 
       if (params.glyphs)     hb_set_destroy (params.glyphs);
       if (params.codepoints) hb_set_destroy (params.codepoints);
@@ -1510,6 +1548,8 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     }
   }
 
+  if (unicode_to_glyph_cache)
+    hb_map_destroy (unicode_to_glyph_cache);
   hb_font_destroy (font);
   hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
