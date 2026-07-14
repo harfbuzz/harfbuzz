@@ -302,7 +302,7 @@ struct hb_depend_data_builder_t
       return;
     }
     data.sets[set_index]->clear ();
-    free_set_list.push (set_index);
+    check_success (free_set_list.push_or_fail (set_index));
   }
 
   /* Allocate a new ligature set (no deduplication). */
@@ -321,16 +321,23 @@ struct hb_depend_data_builder_t
     {
       set_index = free_set_list.pop ();
       data.sets[set_index]->set (set);
+      if (unlikely (data.sets[set_index]->in_error ()))
+	return fail_invalid ();
     }
     else
     {
       set_index = data.sets.length;
       hb_set_t *new_set = hb_set_create ();
       if (unlikely (!new_set))
-        return HB_CODEPOINT_INVALID;
+	return fail_invalid ();
       new_set->set (set);
+      if (unlikely (new_set->in_error ()))
+      {
+	hb_set_destroy (new_set);
+	return fail_invalid ();
+      }
       if (unlikely (!data.sets.push_or_fail (hb::unique_ptr<hb_set_t> {new_set})))
-        return HB_CODEPOINT_INVALID;
+	return fail_invalid ();
     }
 
     return set_index;
@@ -348,7 +355,8 @@ struct hb_depend_data_builder_t
     if (unlikely (new_idx == HB_CODEPOINT_INVALID))
       return HB_CODEPOINT_INVALID;
 
-    set_to_index.set (data.sets[new_idx].get (), new_idx);
+    if (unlikely (!set_to_index.set (data.sets[new_idx].get (), new_idx)))
+      return fail_invalid ();
     return new_idx;
   }
 
@@ -401,10 +409,14 @@ struct hb_depend_data_builder_t
           hb_set_t filtered_set;
           filtered_set.set (back_set);
           filtered_set.subtract (direct_requirements);
+          if (unlikely (filtered_set.in_error ()))
+            return fail_invalid ();
 
           if (!filtered_set.is_empty ())
           {
             hb_codepoint_t set_idx = find_or_create_context_set (filtered_set);
+            if (unlikely (set_idx == HB_CODEPOINT_INVALID))
+              return HB_CODEPOINT_INVALID;
             context_elements.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);
           }
         }
@@ -420,10 +432,14 @@ struct hb_depend_data_builder_t
           hb_set_t filtered_set;
           filtered_set.set (look_set);
           filtered_set.subtract (direct_requirements);
+          if (unlikely (filtered_set.in_error ()))
+            return fail_invalid ();
 
           if (!filtered_set.is_empty ())
           {
             hb_codepoint_t set_idx = find_or_create_context_set (filtered_set);
+            if (unlikely (set_idx == HB_CODEPOINT_INVALID))
+              return HB_CODEPOINT_INVALID;
             context_elements.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);
           }
         }
@@ -431,6 +447,9 @@ struct hb_depend_data_builder_t
     }
 
     context_elements.union_ (direct_requirements);
+    if (unlikely (direct_requirements.in_error () ||
+                  context_elements.in_error ()))
+      return fail_invalid ();
 
     if (context_elements.is_empty ())
       return HB_CODEPOINT_INVALID;
@@ -455,11 +474,13 @@ struct hb_depend_data_builder_t
     if (seen_edges.has (key))
       return false;
 
-    seen_edges.set (key, true);
+    if (unlikely (!seen_edges.set (key, true)))
+      return fail ();
 
     auto &gdr = data.glyph_dependencies[target];
-    gdr.dependencies.push (table_tag, dependent, layout_tag, lig_set,
-                           context_set, flags);
+    if (unlikely (!gdr.dependencies.push_or_fail (table_tag, dependent, layout_tag,
+                                                  lig_set, context_set, flags)))
+      return fail ();
     return true;
   }
 
@@ -495,6 +516,8 @@ struct hb_depend_data_builder_t
 
   HB_INTERNAL bool compile (hb_face_t *face);
 
+  bool fail () { successful = false; return false; }
+  hb_codepoint_t fail_invalid () { fail (); return HB_CODEPOINT_INVALID; }
   bool check_success (bool s) { successful = (successful && s); return successful; }
 
   HB_INTERNAL void get_gsub_dependencies (hb_face_t *face);

@@ -90,6 +90,8 @@ struct ReverseChainSingleSubstFormat1
       else if (back_glyphs.get_population () > 1)
       {
         hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (back_glyphs);
+        if (unlikely (set_idx == HB_CODEPOINT_INVALID))
+          return;
         context_glyphs.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);
       }
     }
@@ -105,14 +107,24 @@ struct ReverseChainSingleSubstFormat1
       else if (look_glyphs.get_population () > 1)
       {
         hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (look_glyphs);
+        if (unlikely (set_idx == HB_CODEPOINT_INVALID))
+          return;
         context_glyphs.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);
       }
     }
 
     /* Allocate context set and save/restore around edge creation */
+    if (unlikely (context_glyphs.in_error ()))
+    {
+      c->depend_data->fail ();
+      return;
+    }
     hb_codepoint_t context_set_idx = context_glyphs.is_empty ()
       ? HB_CODEPOINT_INVALID
       : c->depend_data->find_or_create_context_set (context_glyphs);
+    if (unlikely (!context_glyphs.is_empty () &&
+                  context_set_idx == HB_CODEPOINT_INVALID))
+      return;
 
     hb_codepoint_t saved_context = c->depend_data->current_context_set_index;
     c->depend_data->current_context_set_index = context_set_idx;
