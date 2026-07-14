@@ -84,9 +84,9 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * HB_SUBSET_FLAGS_RETAIN_GIDS then the number of glyphs in the font won't
  * be reduced as a result of subsetting. If necessary empty glyphs will be
  * included at the end of the font to keep the number of glyphs unchanged.
- * @HB_SUBSET_FLAGS_DOWNGRADE_CFF2: If set and instantiating a variable font,
- * convert the output CFF2 table to CFF1. This enables compatibility with older
- * renderers that don't support CFF2. Since: 13.0.0
+ * @HB_SUBSET_FLAGS_DOWNGRADE_CFF2: If set and instantiating a variable font
+ * with all axes pinned, convert the output CFF2 table to CFF1. This enables
+ * compatibility with older renderers that don't support CFF2. Since: 13.0.0
  *
  * List of boolean properties that can be configured on the subset input.
  *
