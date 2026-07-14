@@ -228,6 +228,9 @@ hb_subset_axis_range_to_string (hb_subset_input_t *input,
 				unsigned size);
 
 #ifdef HB_EXPERIMENTAL_API
+HB_EXTERN hb_blob_t *
+hb_subset_input_to_string_or_fail (hb_subset_input_t *input);
+
 HB_EXTERN hb_bool_t
 hb_subset_input_override_name_table (hb_subset_input_t  *input,
 				     hb_ot_name_id_t     name_id,

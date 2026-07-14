@@ -734,6 +734,378 @@ hb_subset_axis_range_to_string (hb_subset_input_t *input,
 }
 #endif
 
+#ifdef HB_EXPERIMENTAL_API
+static void
+_append_arg (hb_vector_t<char> &sb, const char *arg)
+{
+  if (sb.in_error ()) return;
+  if (sb.length)
+    sb.push (' ');
+  unsigned len = strlen (arg);
+  sb.extend (hb_bytes_t (arg, len));
+}
+
+static void
+_format_number_set (const hb_set_t *set, bool is_hex, hb_vector_t<char> &out)
+{
+  hb_codepoint_t first = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
+  bool first_range = true;
+  while (hb_set_next_range (set, &first, &last))
+  {
+    if (!first_range)
+      out.push (',');
+    first_range = false;
+
+    char buf[64];
+    int len;
+    if (first == last)
+    {
+      if (is_hex)
+        len = snprintf (buf, sizeof (buf), "%X", first);
+      else
+        len = snprintf (buf, sizeof (buf), "%u", first);
+    }
+    else
+    {
+      if (is_hex)
+        len = snprintf (buf, sizeof (buf), "%X-%X", first, last);
+      else
+        len = snprintf (buf, sizeof (buf), "%u-%u", first, last);
+    }
+    if (unlikely (len < 0 || (size_t) len >= sizeof (buf))) return;
+    out.extend (hb_bytes_t (buf, len));
+  }
+}
+
+static void
+_format_tag (hb_tag_t tag, hb_vector_t<char> &out)
+{
+  char buf[4];
+  hb_tag_to_string (tag, buf);
+
+  unsigned len = 4;
+  while (len > 0 && buf[len - 1] == ' ')
+    len--;
+
+  if (len == 0)
+  {
+    static const char spaces[4] = {'_', '_', '_', '_'};
+    out.extend (hb_bytes_t (spaces, 4));
+    return;
+  }
+
+  for (unsigned i = 0; i < len; i++)
+  {
+    char c = buf[i];
+    if (!((c >= 'a' && c <= 'z') ||
+          (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') ||
+          c == '-' || c == '_'))
+    {
+      c = '_';
+    }
+    out.push (c);
+  }
+}
+
+static void
+_format_tag_set (const hb_set_t *set, hb_vector_t<char> &out)
+{
+  hb_codepoint_t tag = HB_SET_VALUE_INVALID;
+  bool first_tag = true;
+  while (hb_set_next (set, &tag))
+  {
+    if (!first_tag)
+      out.push (',');
+    first_tag = false;
+
+    _format_tag (tag, out);
+  }
+}
+
+static bool
+_is_set_default (const hb_set_t *set, const hb_set_t *default_set)
+{
+  return hb_set_is_inverted (set) == hb_set_is_inverted (default_set) &&
+         hb_set_is_equal (set, default_set);
+}
+
+template <typename Formatter>
+static void
+_format_set_arg (const hb_set_t *set,
+                 const char *opt_name,
+                 Formatter &&formatter,
+                 hb_vector_t<char> &sb)
+{
+  if (hb_set_is_inverted (set))
+  {
+    hb_set_t *excluded = hb_set_copy (set);
+    hb_set_invert (excluded);
+
+    hb_vector_t<char> opt;
+    opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+    opt.extend (hb_bytes_t ("=*", 2));
+    opt.push ('\0');
+    if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
+
+    if (!hb_set_is_empty (excluded))
+    {
+      hb_vector_t<char> formatted;
+      formatter (excluded, formatted);
+      if (formatted.length)
+      {
+        hb_vector_t<char> opt2;
+        opt2.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+        opt2.extend (hb_bytes_t ("-=", 2));
+        opt2.extend (formatted.as_array ());
+        opt2.push ('\0');
+        if (opt2.arrayZ) _append_arg (sb, opt2.arrayZ);
+      }
+    }
+    hb_set_destroy (excluded);
+  }
+  else if (hb_set_is_empty (set))
+  {
+    hb_vector_t<char> opt;
+    opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+    opt.extend (hb_bytes_t ("-=*", 3));
+    opt.push ('\0');
+    if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
+  }
+  else
+  {
+    hb_vector_t<char> formatted;
+    formatter (set, formatted);
+    if (formatted.length)
+    {
+      hb_vector_t<char> opt;
+      opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+      opt.extend (hb_bytes_t ("=", 1));
+      opt.extend (formatted.as_array ());
+      opt.push ('\0');
+      if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
+    }
+  }
+}
+
+static void
+_format_number_set_arg (const hb_set_t *set,
+                        const char *opt_name,
+                        bool is_hex,
+                        hb_vector_t<char> &sb)
+{
+  _format_set_arg (set, opt_name, [is_hex] (const hb_set_t *s, hb_vector_t<char> &out) {
+    _format_number_set (s, is_hex, out);
+  }, sb);
+}
+
+static void
+_format_tag_set_arg (const hb_set_t *set,
+                     const char *opt_name,
+                     hb_vector_t<char> &sb)
+{
+  _format_set_arg (set, opt_name, _format_tag_set, sb);
+}
+
+static bool
+_format_glyph_map_arg (const hb_map_t &glyph_map,
+                       hb_vector_t<char> &sb)
+{
+  if (glyph_map.is_empty ())
+    return true;
+
+  hb_set_t keys;
+  hb_map_keys (&glyph_map, &keys);
+  hb_vector_t<char> pairs;
+  hb_codepoint_t key = HB_SET_VALUE_INVALID;
+  bool first = true;
+  while (hb_set_next (&keys, &key))
+  {
+    if (!first)
+      pairs.push (',');
+    first = false;
+    hb_codepoint_t val = hb_map_get (&glyph_map, key);
+    char buf[64];
+    int len = snprintf (buf, sizeof (buf), "%u:%u", key, val);
+    if (unlikely (len < 0 || (size_t) len >= sizeof (buf))) return false;
+    pairs.extend (hb_bytes_t (buf, len));
+  }
+  if (pairs.length)
+  {
+    hb_vector_t<char> opt;
+    opt.extend (hb_bytes_t ("--gid-map=", 10));
+    opt.extend (pairs.as_array ());
+    opt.push ('\0');
+    if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
+  }
+  return true;
+}
+
+static bool
+_format_axes_location_arg (const hb_hashmap_t<hb_tag_t, Triple> &axes_location,
+                           hb_vector_t<char> &sb)
+{
+  if (axes_location.is_empty ())
+    return true;
+
+  hb_vector_t<hb_tag_t> axis_tags;
+  for (auto tag : axes_location.keys ())
+    axis_tags.push (tag);
+  axis_tags.qsort ([] (const hb_tag_t &a, const hb_tag_t &b) { return a < b ? -1 : a > b ? 1 : 0; });
+
+  hb_vector_t<char> specs;
+  bool first = true;
+  for (hb_tag_t tag : axis_tags)
+  {
+    Triple triple = axes_location.get (tag);
+    if (!first)
+      specs.push (',');
+    first = false;
+
+    hb_vector_t<char> tag_buf;
+    _format_tag (tag, tag_buf);
+
+    char buf[128];
+    int len;
+    if (triple.minimum == triple.middle && triple.middle == triple.maximum)
+    {
+      len = snprintf (buf, sizeof (buf), "%.*s=%g", tag_buf.length, tag_buf.arrayZ, (double) triple.middle);
+    }
+    else if (std::isnan (triple.minimum) && std::isnan (triple.middle) && std::isnan (triple.maximum))
+    {
+      len = snprintf (buf, sizeof (buf), "%.*s=drop", tag_buf.length, tag_buf.arrayZ);
+    }
+    else
+    {
+      len = snprintf (buf, sizeof (buf), "%.*s=%g:%g:%g", tag_buf.length, tag_buf.arrayZ,
+                      (double) triple.minimum, (double) triple.middle, (double) triple.maximum);
+    }
+    if (unlikely (len < 0 || (size_t) len >= sizeof (buf))) return false;
+    specs.extend (hb_bytes_t (buf, len));
+  }
+  if (specs.length)
+  {
+    hb_vector_t<char> opt;
+    opt.extend (hb_bytes_t ("--variations=", 13));
+    opt.extend (specs.as_array ());
+    opt.push ('\0');
+    if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
+  }
+  return true;
+}
+
+/**
+ * hb_subset_input_to_string_or_fail:
+ * @input: a #hb_subset_input_t object.
+ *
+ * Produces a command line string representation of the given subset input
+ * suitable for use with the `util/hb-subset` command line tool.
+ *
+ * Return value: (transfer full): A new #hb_blob_t containing the command line
+ * string, or `NULL` if failed. Destroy with hb_blob_destroy().
+ *
+ * XSince: EXPERIMENTAL
+ **/
+hb_blob_t *
+hb_subset_input_to_string_or_fail (hb_subset_input_t *input)
+{
+  if (unlikely (!input || input->in_error ()))
+    return nullptr;
+
+  hb_vector_t<char> sb;
+
+  struct flag_option_t {
+    hb_subset_flags_t flag;
+    const char *option;
+  };
+  static const flag_option_t flag_options[] = {
+    { HB_SUBSET_FLAGS_NO_HINTING, "--no-hinting" },
+    { HB_SUBSET_FLAGS_RETAIN_GIDS, "--retain-gids" },
+    { HB_SUBSET_FLAGS_DESUBROUTINIZE, "--desubroutinize" },
+    { HB_SUBSET_FLAGS_NAME_LEGACY, "--name-legacy" },
+    { HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG, "--set-overlaps-flag" },
+    { HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED, "--passthrough-tables" },
+    { HB_SUBSET_FLAGS_NOTDEF_OUTLINE, "--notdef-outline" },
+    { HB_SUBSET_FLAGS_GLYPH_NAMES, "--glyph-names" },
+    { HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES, "--no-prune-unicode-ranges" },
+    { HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE, "--no-layout-closure" },
+    { HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS, "--optimize" },
+    { HB_SUBSET_FLAGS_NO_BIDI_CLOSURE, "--no-bidi-closure" },
+#ifdef HB_EXPERIMENTAL_API
+    { HB_SUBSET_FLAGS_IFTB_REQUIREMENTS, "--iftb-requirements" },
+    { HB_SUBSET_FLAGS_RETAIN_NUM_GLYPHS, "--retain-num-glyphs" },
+#endif
+    { HB_SUBSET_FLAGS_DOWNGRADE_CFF2, "--downgrade-cff2" },
+  };
+
+#ifdef HB_EXPERIMENTAL_API
+  static_assert (sizeof (flag_options) / sizeof (flag_options[0]) == 15,
+                 "Check all flags in hb_subset_flags_t are handled here.");
+#else
+  static_assert (sizeof (flag_options) / sizeof (flag_options[0]) == 13,
+                 "Check all flags in hb_subset_flags_t are handled here.");
+#endif
+
+  for (const auto &fo : flag_options)
+  {
+    if (input->flags & fo.flag)
+    {
+      _append_arg (sb, fo.option);
+    }
+  }
+
+  hb_subset_input_t *default_input = hb_subset_input_create_or_fail ();
+  if (unlikely (!default_input))
+    return nullptr;
+
+  // Serialize all set flags if they are not equal to their default setting:
+  if (!_is_set_default (input->sets.unicodes, default_input->sets.unicodes))
+    _format_number_set_arg (input->sets.unicodes, "--unicodes", true, sb);
+
+  if (!_is_set_default (input->sets.glyphs, default_input->sets.glyphs))
+    _format_number_set_arg (input->sets.glyphs, "--gids", false, sb);
+
+  if (!_is_set_default (input->sets.name_ids, default_input->sets.name_ids))
+    _format_number_set_arg (input->sets.name_ids, "--name-IDs", false, sb);
+
+  if (!_is_set_default (input->sets.name_languages, default_input->sets.name_languages))
+    _format_number_set_arg (input->sets.name_languages, "--name-languages", false, sb);
+
+  if (!_is_set_default (input->sets.layout_features, default_input->sets.layout_features))
+    _format_tag_set_arg (input->sets.layout_features, "--layout-features", sb);
+
+  if (!_is_set_default (input->sets.layout_scripts, default_input->sets.layout_scripts))
+    _format_tag_set_arg (input->sets.layout_scripts, "--layout-scripts", sb);
+
+  if (!_is_set_default (input->sets.drop_tables, default_input->sets.drop_tables))
+    _format_tag_set_arg (input->sets.drop_tables, "--drop-tables", sb);
+
+  hb_subset_input_destroy (default_input);
+
+  static_assert (sizeof (input->sets) / sizeof (hb_set_t*) == 8,
+                 "Check all sets in hb_subset_input_t::sets_t are handled here.");
+
+  if (unlikely (!_format_glyph_map_arg (input->glyph_map, sb)))
+    return nullptr;
+
+  if (unlikely (!_format_axes_location_arg (input->axes_location, sb)))
+    return nullptr;
+
+  if (unlikely (sb.in_error ()))
+    return nullptr;
+
+  char *buf = (char *) hb_malloc (sb.length + 1);
+  if (unlikely (!buf))
+    return nullptr;
+
+  if (sb.length)
+    hb_memcpy (buf, sb.arrayZ, sb.length);
+  buf[sb.length] = '\0';
+
+  return hb_blob_create_or_fail (buf, sb.length, HB_MEMORY_MODE_WRITABLE, buf, hb_free);
+}
+#endif
+
 /**
  * hb_subset_preprocess:
  * @source: a #hb_face_t object.

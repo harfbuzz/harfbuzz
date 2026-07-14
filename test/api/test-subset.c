@@ -403,6 +403,201 @@ test_subset_cff2_get_charstring_data_lifetime (void)
 
 #endif
 
+#ifdef HB_EXPERIMENTAL_API
+static void
+test_subset_input_to_string (void)
+{
+  /* Test NULL input */
+  g_assert_null (hb_subset_input_to_string_or_fail (NULL));
+
+  /* Test default input -> empty string */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    g_assert_cmpint (len, ==, 0);
+    g_assert_cmpstr (data, ==, "");
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test unicodes ranges */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_t *unicodes = hb_subset_input_unicode_set (input);
+    hb_set_add (unicodes, 0x41);
+    hb_set_add (unicodes, 0x42);
+    hb_set_add (unicodes, 0x43);
+    hb_set_add (unicodes, 0x45);
+    hb_set_add (unicodes, 0x61);
+    hb_set_add (unicodes, 0x62);
+    hb_set_add (unicodes, 0x63);
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    g_assert_cmpstr (data, ==, "--unicodes=41-43,45,61-63");
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test gids ranges and flags */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_t *gids = hb_subset_input_glyph_set (input);
+    hb_set_add (gids, 1);
+    hb_set_add (gids, 2);
+    hb_set_add (gids, 3);
+    hb_set_add (gids, 5);
+    hb_set_add (gids, 10);
+    hb_set_add (gids, 11);
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING | HB_SUBSET_FLAGS_RETAIN_GIDS);
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    g_assert_cmpstr (data, ==, "--no-hinting --retain-gids --gids=1-3,5,10-11");
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test keep everything */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_subset_input_keep_everything (input);
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    const char *expected = "--name-legacy --passthrough-tables --notdef-outline --glyph-names --no-prune-unicode-ranges --unicodes=* --gids=* --name-IDs=* --name-languages=* --layout-features=* --drop-tables-=*";
+    g_assert_cmpstr (data, ==, expected);
+    g_assert_cmpint (len, ==, strlen (expected));
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test inverted sets with exclusions */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_t *unicodes = hb_subset_input_set (input, HB_SUBSET_SETS_UNICODE);
+    hb_set_invert (unicodes);
+    hb_set_del (unicodes, 0x20);
+    hb_set_del (unicodes, 0x41);
+    hb_set_del (unicodes, 0x42);
+    hb_set_del (unicodes, 0x43);
+
+    hb_set_t *gids = hb_subset_input_set (input, HB_SUBSET_SETS_GLYPH_INDEX);
+    hb_set_invert (gids);
+    hb_set_del (gids, 5);
+    hb_set_del (gids, 6);
+    hb_set_del (gids, 7);
+
+    hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    hb_set_clear (features);
+    hb_set_invert (features);
+    hb_set_del (features, HB_TAG ('k', 'e', 'r', 'n'));
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    const char *expected = "--unicodes=* --unicodes-=20,41-43 --gids=* --gids-=5-7 --layout-features=* --layout-features-=kern";
+    g_assert_cmpstr (data, ==, expected);
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test empty non-default sets */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_clear (hb_subset_input_set (input, HB_SUBSET_SETS_NAME_ID));
+    hb_set_clear (hb_subset_input_set (input, HB_SUBSET_SETS_NAME_LANG_ID));
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    const char *expected = "--name-IDs-=* --name-languages-=*";
+    g_assert_cmpstr (data, ==, expected);
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test non-default non-inverted tag sets */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+
+    hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    hb_set_clear (features);
+    hb_set_add (features, HB_TAG ('l', 'i', 'g', 'a'));
+    hb_set_add (features, HB_TAG ('k', 'e', 'r', 'n'));
+
+    hb_set_t *scripts = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG);
+    hb_set_clear (scripts);
+    hb_set_add (scripts, HB_TAG ('l', 'a', 't', 'n'));
+
+    hb_set_t *drop_tables = hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG);
+    hb_set_clear (drop_tables);
+    hb_set_add (drop_tables, HB_TAG ('G', 'S', 'U', 'B'));
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    const char *expected = "--layout-features=kern,liga --layout-scripts=latn --drop-tables=GSUB";
+    g_assert_cmpstr (data, ==, expected);
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test tag sanitization with unsafe ASCII characters */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+
+    hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    hb_set_clear (features);
+    /* Tag with space, newline, and single-quote: 'a \n'' */
+    hb_set_add (features, HB_TAG ('a', ' ', '\n', '\''));
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    const char *expected = "--layout-features=a___";
+    g_assert_cmpstr (data, ==, expected);
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+
+  /* Test trimming trailing whitespace from tags */
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+
+    hb_set_t *drop_tables = hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG);
+    hb_set_clear (drop_tables);
+    hb_set_add (drop_tables, HB_TAG ('c', 'v', 't', ' '));
+
+    hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    hb_set_clear (features);
+    hb_set_add (features, HB_TAG (' ', ' ', ' ', ' '));
+
+    hb_blob_t *blob = hb_subset_input_to_string_or_fail (input);
+    g_assert_nonnull (blob);
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    const char *expected = "--layout-features=____ --drop-tables=cvt";
+    g_assert_cmpstr (data, ==, expected);
+    hb_blob_destroy (blob);
+    hb_subset_input_destroy (input);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -417,6 +612,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_create_for_tables_face);
 
   #ifdef HB_EXPERIMENTAL_API
+  hb_test_add (test_subset_input_to_string);
   hb_test_add (test_subset_cff2_get_charstring_data);
   hb_test_add (test_subset_cff2_get_all_charstrings_data);
   hb_test_add (test_subset_cff2_get_charstring_data_no_cff);
@@ -426,3 +622,4 @@ main (int argc, char **argv)
 
   return hb_test_run();
 }
+
