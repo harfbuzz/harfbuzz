@@ -744,9 +744,8 @@ _append_arg (hb_vector_t<char> &sb, const char *arg)
   unsigned len = strlen (arg);
   sb.extend (hb_bytes_t (arg, len));
 }
-
 static void
-_format_number_set (const hb_set_t *set, bool is_hex, hb_vector_t<char> &out)
+_format_number_set (const hb_set_t *set, hb_vector_t<char> &out, unsigned base = 10)
 {
   hb_codepoint_t first = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
   bool first_range = true;
@@ -760,14 +759,14 @@ _format_number_set (const hb_set_t *set, bool is_hex, hb_vector_t<char> &out)
     int len;
     if (first == last)
     {
-      if (is_hex)
+      if (base == 16)
         len = snprintf (buf, sizeof (buf), "%X", first);
       else
         len = snprintf (buf, sizeof (buf), "%u", first);
     }
     else
     {
-      if (is_hex)
+      if (base == 16)
         len = snprintf (buf, sizeof (buf), "%X-%X", first, last);
       else
         len = snprintf (buf, sizeof (buf), "%u-%u", first, last);
@@ -837,13 +836,16 @@ _format_set_arg (const hb_set_t *set,
                  Formatter &&formatter,
                  hb_vector_t<char> &sb)
 {
+  char opt_prefix[64];
+  snprintf (opt_prefix, sizeof (opt_prefix), "--%s", opt_name);
+
   if (hb_set_is_inverted (set))
   {
     hb_set_t *excluded = hb_set_copy (set);
     hb_set_invert (excluded);
 
     hb_vector_t<char> opt;
-    opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+    opt.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
     opt.extend (hb_bytes_t ("=*", 2));
     opt.push ('\0');
     if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
@@ -855,7 +857,7 @@ _format_set_arg (const hb_set_t *set,
       if (formatted.length)
       {
         hb_vector_t<char> opt2;
-        opt2.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+        opt2.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
         opt2.extend (hb_bytes_t ("-=", 2));
         opt2.extend (formatted.as_array ());
         opt2.push ('\0');
@@ -867,7 +869,7 @@ _format_set_arg (const hb_set_t *set,
   else if (hb_set_is_empty (set))
   {
     hb_vector_t<char> opt;
-    opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+    opt.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
     opt.extend (hb_bytes_t ("-=*", 3));
     opt.push ('\0');
     if (opt.arrayZ) _append_arg (sb, opt.arrayZ);
@@ -879,7 +881,7 @@ _format_set_arg (const hb_set_t *set,
     if (formatted.length)
     {
       hb_vector_t<char> opt;
-      opt.extend (hb_bytes_t (opt_name, strlen (opt_name)));
+      opt.extend (hb_bytes_t (opt_prefix, strlen (opt_prefix)));
       opt.extend (hb_bytes_t ("=", 1));
       opt.extend (formatted.as_array ());
       opt.push ('\0');
@@ -891,11 +893,11 @@ _format_set_arg (const hb_set_t *set,
 static void
 _format_number_set_arg (const hb_set_t *set,
                         const char *opt_name,
-                        bool is_hex,
-                        hb_vector_t<char> &sb)
+                        hb_vector_t<char> &sb,
+                        unsigned base = 10)
 {
-  _format_set_arg (set, opt_name, [is_hex] (const hb_set_t *s, hb_vector_t<char> &out) {
-    _format_number_set (s, is_hex, out);
+  _format_set_arg (set, opt_name, [base] (const hb_set_t *s, hb_vector_t<char> &out) {
+    _format_number_set (s, out, base);
   }, sb);
 }
 
@@ -969,15 +971,15 @@ _format_axes_location_arg (const hb_hashmap_t<hb_tag_t, Triple> &axes_location,
     int len;
     if (triple.minimum == triple.middle && triple.middle == triple.maximum)
     {
-      len = snprintf (buf, sizeof (buf), "%.*s=%g", tag_buf.length, tag_buf.arrayZ, (double) triple.middle);
+      len = snprintf (buf, sizeof (buf), "%.*s=%g", (int) tag_buf.length, tag_buf.arrayZ, (double) triple.middle);
     }
     else if (std::isnan (triple.minimum) && std::isnan (triple.middle) && std::isnan (triple.maximum))
     {
-      len = snprintf (buf, sizeof (buf), "%.*s=drop", tag_buf.length, tag_buf.arrayZ);
+      len = snprintf (buf, sizeof (buf), "%.*s=drop", (int) tag_buf.length, tag_buf.arrayZ);
     }
     else
     {
-      len = snprintf (buf, sizeof (buf), "%.*s=%g:%g:%g", tag_buf.length, tag_buf.arrayZ,
+      len = snprintf (buf, sizeof (buf), "%.*s=%g:%g:%g", (int) tag_buf.length, tag_buf.arrayZ,
                       (double) triple.minimum, (double) triple.middle, (double) triple.maximum);
     }
     if (unlikely (len < 0 || (size_t) len >= sizeof (buf))) return false;
@@ -999,7 +1001,7 @@ _format_axes_location_arg (const hb_hashmap_t<hb_tag_t, Triple> &axes_location,
  * @input: a #hb_subset_input_t object.
  *
  * Produces a command line string representation of the given subset input
- * suitable for use with the `util/hb-subset` command line tool.
+ * suitable for use with the `hb-subset` command line tool.
  *
  * Return value: (transfer full): A new #hb_blob_t containing the command line
  * string, or `NULL` if failed. Destroy with hb_blob_destroy().
@@ -1016,26 +1018,26 @@ hb_subset_input_to_string_or_fail (hb_subset_input_t *input)
 
   struct flag_option_t {
     hb_subset_flags_t flag;
-    const char *option;
+    char option[32];
   };
   static const flag_option_t flag_options[] = {
-    { HB_SUBSET_FLAGS_NO_HINTING, "--no-hinting" },
-    { HB_SUBSET_FLAGS_RETAIN_GIDS, "--retain-gids" },
-    { HB_SUBSET_FLAGS_DESUBROUTINIZE, "--desubroutinize" },
-    { HB_SUBSET_FLAGS_NAME_LEGACY, "--name-legacy" },
-    { HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG, "--set-overlaps-flag" },
-    { HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED, "--passthrough-tables" },
-    { HB_SUBSET_FLAGS_NOTDEF_OUTLINE, "--notdef-outline" },
-    { HB_SUBSET_FLAGS_GLYPH_NAMES, "--glyph-names" },
-    { HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES, "--no-prune-unicode-ranges" },
-    { HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE, "--no-layout-closure" },
-    { HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS, "--optimize" },
-    { HB_SUBSET_FLAGS_NO_BIDI_CLOSURE, "--no-bidi-closure" },
+    { HB_SUBSET_FLAGS_NO_HINTING, "no-hinting" },
+    { HB_SUBSET_FLAGS_RETAIN_GIDS, "retain-gids" },
+    { HB_SUBSET_FLAGS_DESUBROUTINIZE, "desubroutinize" },
+    { HB_SUBSET_FLAGS_NAME_LEGACY, "name-legacy" },
+    { HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG, "set-overlaps-flag" },
+    { HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED, "passthrough-tables" },
+    { HB_SUBSET_FLAGS_NOTDEF_OUTLINE, "notdef-outline" },
+    { HB_SUBSET_FLAGS_GLYPH_NAMES, "glyph-names" },
+    { HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES, "no-prune-unicode-ranges" },
+    { HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE, "no-layout-closure" },
+    { HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS, "optimize" },
+    { HB_SUBSET_FLAGS_NO_BIDI_CLOSURE, "no-bidi-closure" },
 #ifdef HB_EXPERIMENTAL_API
-    { HB_SUBSET_FLAGS_IFTB_REQUIREMENTS, "--iftb-requirements" },
-    { HB_SUBSET_FLAGS_RETAIN_NUM_GLYPHS, "--retain-num-glyphs" },
+    { HB_SUBSET_FLAGS_IFTB_REQUIREMENTS, "iftb-requirements" },
+    { HB_SUBSET_FLAGS_RETAIN_NUM_GLYPHS, "retain-num-glyphs" },
 #endif
-    { HB_SUBSET_FLAGS_DOWNGRADE_CFF2, "--downgrade-cff2" },
+    { HB_SUBSET_FLAGS_DOWNGRADE_CFF2, "downgrade-cff2" },
   };
 
 #ifdef HB_EXPERIMENTAL_API
@@ -1050,7 +1052,9 @@ hb_subset_input_to_string_or_fail (hb_subset_input_t *input)
   {
     if (input->flags & fo.flag)
     {
-      _append_arg (sb, fo.option);
+      char buf[36];
+      snprintf (buf, sizeof (buf), "--%s", fo.option);
+      _append_arg (sb, buf);
     }
   }
 
@@ -1058,27 +1062,26 @@ hb_subset_input_to_string_or_fail (hb_subset_input_t *input)
   if (unlikely (!default_input))
     return nullptr;
 
-  // Serialize all set flags if they are not equal to their default setting:
-  if (!_is_set_default (input->sets.unicodes, default_input->sets.unicodes))
-    _format_number_set_arg (input->sets.unicodes, "--unicodes", true, sb);
+  // Serialize all sets if they are not equal to their default setting:
+#define PROCESS_NUMBER_SET(field, opt_name, ...) \
+  if (!_is_set_default (input->sets.field, default_input->sets.field)) \
+    _format_number_set_arg (input->sets.field, opt_name, sb, ##__VA_ARGS__)
 
-  if (!_is_set_default (input->sets.glyphs, default_input->sets.glyphs))
-    _format_number_set_arg (input->sets.glyphs, "--gids", false, sb);
+#define PROCESS_TAG_SET(field, opt_name) \
+  if (!_is_set_default (input->sets.field, default_input->sets.field)) \
+    _format_tag_set_arg (input->sets.field, opt_name, sb)
 
-  if (!_is_set_default (input->sets.name_ids, default_input->sets.name_ids))
-    _format_number_set_arg (input->sets.name_ids, "--name-IDs", false, sb);
+  PROCESS_NUMBER_SET (unicodes, "unicodes", 16);
+  PROCESS_NUMBER_SET (glyphs, "gids");
+  PROCESS_NUMBER_SET (name_ids, "name-IDs");
+  PROCESS_NUMBER_SET (name_languages, "name-languages");
+  PROCESS_TAG_SET (layout_features, "layout-features");
+  PROCESS_TAG_SET (layout_scripts, "layout-scripts");
+  PROCESS_TAG_SET (drop_tables, "drop-tables");
+  PROCESS_TAG_SET (no_subset_tables, "passthrough-tables");
 
-  if (!_is_set_default (input->sets.name_languages, default_input->sets.name_languages))
-    _format_number_set_arg (input->sets.name_languages, "--name-languages", false, sb);
-
-  if (!_is_set_default (input->sets.layout_features, default_input->sets.layout_features))
-    _format_tag_set_arg (input->sets.layout_features, "--layout-features", sb);
-
-  if (!_is_set_default (input->sets.layout_scripts, default_input->sets.layout_scripts))
-    _format_tag_set_arg (input->sets.layout_scripts, "--layout-scripts", sb);
-
-  if (!_is_set_default (input->sets.drop_tables, default_input->sets.drop_tables))
-    _format_tag_set_arg (input->sets.drop_tables, "--drop-tables", sb);
+#undef PROCESS_NUMBER_SET
+#undef PROCESS_TAG_SET
 
   hb_subset_input_destroy (default_input);
 
@@ -1091,18 +1094,16 @@ hb_subset_input_to_string_or_fail (hb_subset_input_t *input)
   if (unlikely (!_format_axes_location_arg (input->axes_location, sb)))
     return nullptr;
 
+  sb.push ('\0');
   if (unlikely (sb.in_error ()))
     return nullptr;
 
-  char *buf = (char *) hb_malloc (sb.length + 1);
+  unsigned len = 0;
+  char *buf = sb.steal (&len);
   if (unlikely (!buf))
     return nullptr;
 
-  if (sb.length)
-    hb_memcpy (buf, sb.arrayZ, sb.length);
-  buf[sb.length] = '\0';
-
-  return hb_blob_create_or_fail (buf, sb.length, HB_MEMORY_MODE_WRITABLE, buf, hb_free);
+  return hb_blob_create_or_fail (buf, len, HB_MEMORY_MODE_WRITABLE, buf, hb_free);
 }
 #endif
 
