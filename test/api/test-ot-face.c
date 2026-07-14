@@ -215,6 +215,30 @@ test_ot_var_axis_on_zero_named_instance (void)
   hb_face_destroy (face);
 }
 
+#ifndef HB_NO_VERTICAL
+static void
+test_ot_font_v_origin_cache_invalidated_by_scale (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Mplus1p-Regular.660E.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  hb_position_t x, y1, y2;
+
+  g_assert_true (hb_font_get_nominal_glyph (font, 0x660E, &glyph));
+
+  hb_font_set_scale (font, 1000, 1000);
+  g_assert_true (hb_font_get_glyph_v_origin (font, glyph, &x, &y1));
+
+  hb_font_set_scale (font, 1000, 2000);
+  g_assert_true (hb_font_get_glyph_v_origin (font, glyph, &x, &y2));
+
+  g_assert_cmpint (y2, ==, y1 * 2);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -222,6 +246,9 @@ main (int argc, char **argv)
 
   hb_test_add (test_ot_face_empty);
   hb_test_add (test_ot_var_axis_on_zero_named_instance);
+#ifndef HB_NO_VERTICAL
+  hb_test_add (test_ot_font_v_origin_cache_invalidated_by_scale);
+#endif
 
   return hb_test_run();
 }
