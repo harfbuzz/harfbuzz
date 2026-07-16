@@ -446,6 +446,16 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
   if (unlikely (!s.curve_infos.resize (num_curves)))
     return nullptr;
 
+  /* Validate the extents fit in i16 before quantizing: the casts in
+   * quantize_down()/quantize_up() are undefined for out-of-range
+   * values, and every later i16 conversion of a curve point is bounded
+   * by these extents. */
+  if (!quantize_down_fits_i16 (draw->ext_min_x) ||
+      !quantize_down_fits_i16 (draw->ext_min_y) ||
+      !quantize_up_fits_i16 (draw->ext_max_x) ||
+      !quantize_up_fits_i16 (draw->ext_max_y))
+    return nullptr;
+
   int16_t min_x_q = quantize_down (draw->ext_min_x);
   int16_t min_y_q = quantize_down (draw->ext_min_y);
   int16_t max_x_q = quantize_up (draw->ext_max_x);
@@ -651,12 +661,6 @@ hb_gpu_draw_encode (hb_gpu_draw_t      *draw,
 
   /* Validate fits in uint16 offsets (stored as int16 with bias) */
   if (total_len > (unsigned) UINT16_MAX + 1u)
-    return nullptr;
-
-  if (!quantize_down_fits_i16 (draw->ext_min_x) ||
-      !quantize_down_fits_i16 (draw->ext_min_y) ||
-      !quantize_up_fits_i16 (draw->ext_max_x) ||
-      !quantize_up_fits_i16 (draw->ext_max_y))
     return nullptr;
 
   /* Allocate or reuse encode buffer */
