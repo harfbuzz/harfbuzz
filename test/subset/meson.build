@@ -104,6 +104,7 @@ repack_tests = [
   'isolation',
   'advanced_prioritization',
   'space_splitting',
+  'duplicate_before_mutation',
 ]
 
 run_test = find_program('run-tests.py')
