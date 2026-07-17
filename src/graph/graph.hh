@@ -52,6 +52,7 @@ struct graph_t
     unsigned single_parent = (unsigned) -1;
     bool has_incoming_virtual_edges_ = false;
     hb_hashmap_t<unsigned, unsigned> parents;
+    hb_set_t virtual_parents;
     public:
 
     auto parents_iter () const HB_AUTO_RETURN
@@ -64,7 +65,7 @@ struct graph_t
 
     bool in_error () const
     {
-      return parents.in_error ();
+      return parents.in_error () || virtual_parents.in_error ();
     }
 
     bool has_incoming_virtual_edges () const
@@ -171,6 +172,7 @@ struct graph_t
       hb_swap (a.space, b.space);
       hb_swap (a.single_parent, b.single_parent);
       hb_swap (a.parents, b.parents);
+      hb_swap (a.virtual_parents, b.virtual_parents);
       hb_swap (a.incoming_edges_, b.incoming_edges_);
       hb_swap (a.has_incoming_virtual_edges_, b.has_incoming_virtual_edges_);
       hb_swap (a.start, b.start);
@@ -193,7 +195,7 @@ struct graph_t
 
     bool is_shared () const
     {
-      return parents.get_population () > 1;
+      return parents.get_population () > virtual_parents.get_population () + 1;
     }
 
     unsigned incoming_edges () const
@@ -221,12 +223,15 @@ struct graph_t
       has_incoming_virtual_edges_ = false;
       single_parent = (unsigned) -1;
       parents.reset ();
+      virtual_parents.reset ();
     }
 
     void add_parent (unsigned parent_index, bool is_virtual)
     {
       assert (parent_index != (unsigned) -1);
       has_incoming_virtual_edges_ |= is_virtual;
+      if (is_virtual)
+        virtual_parents.add (parent_index);
 
       if (incoming_edges_ == 0)
       {
@@ -268,7 +273,10 @@ struct graph_t
 	if (*v > 1)
 	  (*v)--;
 	else
+        {
 	  parents.del (parent_index);
+          virtual_parents.del (parent_index);
+        }
 
 	if (incoming_edges_ == 1)
 	{
@@ -295,31 +303,6 @@ struct graph_t
       }
     }
 
-    bool remap_parents (const hb_vector_t<unsigned>& id_map)
-    {
-      if (single_parent != (unsigned) -1)
-      {
-        assert (single_parent < id_map.length);
-	single_parent = id_map[single_parent];
-	return true;
-      }
-
-      hb_hashmap_t<unsigned, unsigned> new_parents;
-      new_parents.alloc (parents.get_population ());
-      for (auto _ : parents)
-      {
-	assert (_.first < id_map.length);
-	assert (!new_parents.has (id_map[_.first]));
-	new_parents.set (id_map[_.first], _.second);
-      }
-
-      if (parents.in_error() || new_parents.in_error ())
-        return false;
-
-      parents = std::move (new_parents);
-      return true;
-    }
-
     void remap_parent (unsigned old_index, unsigned new_index)
     {
       if (single_parent != (unsigned) -1)
@@ -342,6 +325,12 @@ struct graph_t
 	  single_parent = *parents.keys ();
 	  parents.reset ();
 	}
+      }
+
+      if (virtual_parents.has (old_index))
+      {
+        virtual_parents.del (old_index);
+        virtual_parents.add (new_index);
       }
     }
 
