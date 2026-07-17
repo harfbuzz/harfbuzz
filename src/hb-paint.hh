@@ -93,7 +93,7 @@ struct hb_paint_funcs_t
   { return func.color_glyph (this, paint_data,
                              glyph,
                              font,
-                             !user_data ? nullptr : user_data->push_clip_glyph); }
+                             !user_data ? nullptr : user_data->color_glyph); }
   void push_clip_glyph (void *paint_data,
                         hb_codepoint_t glyph,
                         hb_font_t *font)

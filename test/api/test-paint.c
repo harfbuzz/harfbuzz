@@ -875,6 +875,42 @@ test_fill_glyph_nil_decomposes (void)
   hb_paint_funcs_destroy (funcs);
 }
 
+static void *color_glyph_user_data_seen;
+
+static hb_bool_t
+color_glyph_record_user_data (hb_paint_funcs_t *funcs HB_UNUSED,
+                              void *paint_data HB_UNUSED,
+                              hb_codepoint_t glyph HB_UNUSED,
+                              hb_font_t *font HB_UNUSED,
+                              void *user_data)
+{
+  color_glyph_user_data_seen = user_data;
+  return TRUE;
+}
+
+/* Each callback must be handed the user_data it was registered with,
+ * not another callback's. */
+static void
+test_color_glyph_user_data (void)
+{
+  char color_glyph_ctx = 0;
+  char push_clip_glyph_ctx = 0;
+
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_color_glyph_func (funcs, color_glyph_record_user_data,
+                                       &color_glyph_ctx, NULL);
+  hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph,
+                                           &push_clip_glyph_ctx, NULL);
+  hb_paint_funcs_make_immutable (funcs);
+
+  color_glyph_user_data_seen = NULL;
+  hb_paint_color_glyph (funcs, NULL, 42, hb_font_get_empty ());
+
+  g_assert_true (color_glyph_user_data_seen == &color_glyph_ctx);
+
+  hb_paint_funcs_destroy (funcs);
+}
+
 
 int
 main (int argc, char **argv)
@@ -888,6 +924,7 @@ main (int argc, char **argv)
   hb_test_add (test_push_clip_path_nil_returns_null);
   hb_test_add (test_push_clip_path_round_trip);
   hb_test_add (test_fill_glyph_nil_decomposes);
+  hb_test_add (test_color_glyph_user_data);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {
