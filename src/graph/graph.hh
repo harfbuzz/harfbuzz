@@ -437,19 +437,23 @@ struct graph_t
     }
   };
 
-  template <typename T>
+  template <typename T, bool is_const = false>
   struct vertex_and_table_t
   {
     vertex_and_table_t () : index (0), vertex (nullptr), table (nullptr)
     {}
 
-    unsigned index;
-    vertex_t* vertex;
-    T* table;
+    template <bool other_const>
+    vertex_and_table_t (const vertex_and_table_t<T, other_const>& o)
+      : index (o.index), vertex (o.vertex), table (o.table)
+    {}
 
-    operator bool () {
-       return table && vertex;
-    }
+    unsigned index;
+    typename std::conditional<is_const, const vertex_t*, vertex_t*>::type vertex;
+    typename std::conditional<is_const, const T*, T*>::type table;
+
+    operator bool () const
+    { return table && vertex; }
   };
 
   /*
@@ -712,32 +716,51 @@ struct graph_t
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T> as_table (unsigned parent, const void* offset, Ts... ds)
+  vertex_and_table_t<T, true> as_table (unsigned parent, const void* offset, Ts... ds) const
   {
     return as_table_from_index<T> (index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
+  vertex_and_table_t<T, false> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
   {
-    return as_table_from_index<T> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
+    return as_table_from_index<T, false> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
+  }
+
+  template <typename T, bool is_const = false, typename ...Ts>
+  vertex_and_table_t<T, is_const> as_table_from_index (unsigned index, Ts... ds)
+  {
+    if (index >= vertices_.length)
+      return vertex_and_table_t<T, is_const> ();
+
+    vertex_and_table_t<T, is_const> r;
+    r.vertex = &vertices_[index];
+    r.table = (typename std::conditional<is_const, const T*, T*>::type) r.vertex->obj.head;
+    r.index = index;
+    if (!r.table)
+      return vertex_and_table_t<T, is_const> ();
+
+    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
+      return vertex_and_table_t<T, is_const> ();
+
+    return r;
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T> as_table_from_index (unsigned index, Ts... ds)
+  vertex_and_table_t<T, true> as_table_from_index (unsigned index, Ts... ds) const
   {
     if (index >= vertices_.length)
-      return vertex_and_table_t<T> ();
+      return vertex_and_table_t<T, true> ();
 
-    vertex_and_table_t<T> r;
+    vertex_and_table_t<T, true> r;
     r.vertex = &vertices_[index];
-    r.table = (T*) r.vertex->obj.head;
+    r.table = (const T*) r.vertex->obj.head;
     r.index = index;
     if (!r.table)
-      return vertex_and_table_t<T> ();
+      return vertex_and_table_t<T, true> ();
 
     if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
-      return vertex_and_table_t<T> ();
+      return vertex_and_table_t<T, true> ();
 
     return r;
   }
@@ -773,7 +796,7 @@ struct graph_t
     for (unsigned p : child.parents_iter ())
     {
       if (p != node_idx) {
-        return duplicate (node_idx, child_idx);
+        return duplicate (node_idx, child_idx, true);
       }
     }
 
@@ -1065,7 +1088,7 @@ struct graph_t
   /*
    * Creates a copy of node_idx and returns it's new index.
    */
-  unsigned duplicate (unsigned node_idx)
+  unsigned duplicate (unsigned node_idx, bool deep_copy = false)
   {
     if (vertices_.length >= HB_REPACKER_MAX_VERTICES)
     {
@@ -1085,8 +1108,27 @@ struct graph_t
       return -1;
     }
 
-    clone->obj.head = child.obj.head;
-    clone->obj.tail = child.obj.tail;
+    if (deep_copy)
+    {
+      unsigned table_size = child.obj.tail - child.obj.head;
+      if (table_size)
+      {
+        char* buffer = (char*) hb_malloc (table_size);
+        if (!check_success (buffer && add_buffer (buffer)))
+        {
+          hb_free (buffer);
+          return -1;
+        }
+        hb_memcpy (buffer, child.obj.head, table_size);
+        clone->obj.head = buffer;
+        clone->obj.tail = buffer + table_size;
+      }
+    }
+    else
+    {
+      clone->obj.head = child.obj.head;
+      clone->obj.tail = child.obj.tail;
+    }
     clone->distance = child.distance;
     clone->space = child.space;
     clone->reset_parents ();
@@ -1118,7 +1160,7 @@ struct graph_t
    * If the child_idx only has incoming edges from parent_idx,
    * duplication isn't possible and this will return -1.
    */
-  unsigned duplicate (unsigned parent_idx, unsigned child_idx)
+  unsigned duplicate (unsigned parent_idx, unsigned child_idx, bool deep_copy = false)
   {
     update_parents ();
 
@@ -1142,7 +1184,7 @@ struct graph_t
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u => %u",
                parent_idx, child_idx);
 
-    unsigned clone_idx = duplicate (child_idx);
+    unsigned clone_idx = duplicate (child_idx, deep_copy);
     if (clone_idx == (unsigned) -1) return -1;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
     if (parent_idx == clone_idx) parent_idx++;
@@ -1301,7 +1343,7 @@ struct graph_t
       if (l.objidx != old_child_idx || offset != parent.head + l.position)
         continue;
       
-      unsigned new_child_idx = duplicate (old_child_idx);
+      unsigned new_child_idx = duplicate (old_child_idx, true);
       if (new_child_idx == (unsigned) -1) return -1;
       reassign_link (l, parent_idx, new_child_idx, false);
       return new_child_idx;
