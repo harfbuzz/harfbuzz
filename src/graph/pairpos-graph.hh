@@ -37,7 +37,7 @@ namespace graph {
 
 struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>
 {
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (const graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     unsigned min_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
@@ -193,7 +193,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 
 struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>
 {
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (const graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.table_size ();
     unsigned min_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size;
@@ -621,7 +621,7 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
     }
   }
 
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (const graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < u.format.v.get_size ()) return false;
