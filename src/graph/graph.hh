@@ -705,7 +705,7 @@ struct graph_t
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T, true> as_table (unsigned parent, const void* offset, Ts... ds) const
+  const vertex_and_table_t<T, true> as_table (unsigned parent, const void* offset, Ts... ds) const
   {
     return as_table_from_index<T> (index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
