@@ -315,7 +315,7 @@ hb_directwrite_face_create_from_file_or_fail (const char   *file_name,
  * Creates an #hb_face_t face object from the specified
  * blob and face index.
  *
- * This is similar in functionality to hb_face_create_from_blob_or_fail(),
+ * This is similar in functionality to hb_face_create_or_fail(),
  * but uses the DirectWrite library for loading the font data.
  *
  * Return value: (transfer full): The new face object, or `NULL` if
