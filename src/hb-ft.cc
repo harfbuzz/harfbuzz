@@ -1615,7 +1615,7 @@ _destroy_blob (void *p)
  * Creates an #hb_face_t face object from the specified
  * font blob and face index.
  *
- * This is similar in functionality to hb_face_create_from_blob_or_fail(),
+ * This is similar in functionality to hb_face_create_or_fail(),
  * but uses the FreeType library for loading the font blob. This can
  * be useful, for example, to load WOFF and WOFF2 font data.
  *
