@@ -816,6 +816,9 @@ struct graph_t
       unsigned next_space = this->next_space ();
       if (next_space >= HB_REPACKER_MAX_SPACES)
       {
+        DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "num of spaces %u exceeds HB_REPACKER_MAX_SPACES.",
+                 next_space);
         check_success (false);
         break;
       }
@@ -1069,6 +1072,9 @@ struct graph_t
   {
     if (vertices_.length >= HB_REPACKER_MAX_VERTICES)
     {
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "duplicating node: num of vertices %u exceeds HB_REPACKER_MAX_VERTICES.",
+                 vertices_.length);
       check_success (false);
       return -1;
     }
@@ -1234,6 +1240,9 @@ struct graph_t
   {
     if (vertices_.length >= HB_REPACKER_MAX_VERTICES)
     {
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "creating new node: num of vertices %u exceeds HB_REPACKER_MAX_VERTICES.",
+                 vertices_.length);
       check_success (false);
       return -1;
     }
@@ -1428,6 +1437,9 @@ struct graph_t
   {
     if (num_roots_for_space_.length >= HB_REPACKER_MAX_SPACES)
     {
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "move_to_new_space: num of spaces %u exceeds HB_REPACKER_MAX_SPACES.",
+                 num_roots_for_space_.length);
       check_success (false);
       return;
     }
