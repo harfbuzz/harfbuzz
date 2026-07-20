@@ -946,7 +946,8 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	float ix = (gx - img_x) / img_sx;
 	float iy = (float) (src_height - 1) - (gy - img_y) / img_sy;
 
-	if (ix < 0.f || iy < 0.f ||
+	if (unlikely (!std::isfinite (ix) || !std::isfinite (iy)) ||
+	    ix < 0.f || iy < 0.f ||
 	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
 	{
 	  gx += inv_xx;
@@ -984,7 +985,8 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	float ix = (gx - img_x) / img_sx;
 	float iy = (float) (src_height - 1) - (gy - img_y) / img_sy;
 
-	if (ix < 0.f || iy < 0.f ||
+	if (unlikely (!std::isfinite (ix) || !std::isfinite (iy)) ||
+	    ix < 0.f || iy < 0.f ||
 	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
 	{
 	  gx += inv_xx;
