@@ -291,6 +291,9 @@ test_ot_tags_to_script_and_language (void)
   test_tags_to_script_and_language ("dev2", "MAR", "Deva", "mr-x-hbsc-64657632");
   test_tags_to_script_and_language ("dev3", "MAR", "Deva", "mr");
   test_tags_to_script_and_language ("qaa", "QTZ0", "Qaaa", "x-hbot-51545a30-hbsc-71616120");
+  /* Default language tag maps to a NULL language; the script-suffix path
+   * must not dereference it. */
+  test_tags_to_script_and_language ("DFLT", "dflt", "", NULL);
 }
 
 static void
