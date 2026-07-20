@@ -263,6 +263,7 @@ struct graph_t
       {
 	single_parent = (unsigned) -1;
 	incoming_edges_--;
+	virtual_parents.reset ();
 	return;
       }
 
@@ -308,7 +309,14 @@ struct graph_t
       if (single_parent != (unsigned) -1)
       {
         if (single_parent == old_index)
+        {
 	  single_parent = new_index;
+          if (virtual_parents.has (old_index))
+          {
+            virtual_parents.del (old_index);
+            virtual_parents.add (new_index);
+          }
+        }
         return;
       }
 
@@ -426,20 +434,26 @@ struct graph_t
     }
   };
 
-  template <typename T, bool is_const = false>
+  enum vertex_mutability_t
+  {
+    Immutable,
+    Mutable
+  };
+
+  template <typename T, vertex_mutability_t mutability = Mutable>
   struct vertex_and_table_t
   {
     vertex_and_table_t () : index (0), vertex (nullptr), table (nullptr)
     {}
 
-    template <bool other_const>
-    vertex_and_table_t (const vertex_and_table_t<T, other_const>& o)
+    template <vertex_mutability_t other_mutability>
+    vertex_and_table_t (const vertex_and_table_t<T, other_mutability>& o)
       : index (o.index), vertex (o.vertex), table (o.table)
     {}
 
     unsigned index;
-    typename std::conditional<is_const, const vertex_t*, vertex_t*>::type vertex;
-    typename std::conditional<is_const, const T*, T*>::type table;
+    typename std::conditional<mutability == Immutable, const vertex_t*, vertex_t*>::type vertex;
+    typename std::conditional<mutability == Immutable, const T*, T*>::type table;
 
     operator bool () const
     { return table && vertex; }
@@ -705,51 +719,32 @@ struct graph_t
   }
 
   template <typename T, typename ...Ts>
-  const vertex_and_table_t<T, true> as_table (unsigned parent, const void* offset, Ts... ds) const
+  const vertex_and_table_t<T, Immutable> as_table (unsigned parent, const void* offset, Ts... ds)
   {
     return as_table_from_index<T> (index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T, false> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
+  vertex_and_table_t<T, Mutable> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
   {
-    return as_table_from_index<T, false> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
+    return as_table_from_index<T, Mutable> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
 
-  template <typename T, bool is_const = false, typename ...Ts>
-  vertex_and_table_t<T, is_const> as_table_from_index (unsigned index, Ts... ds)
+  template <typename T, vertex_mutability_t mutability = Mutable, typename ...Ts>
+  vertex_and_table_t<T, mutability> as_table_from_index (unsigned index, Ts... ds)
   {
     if (index >= vertices_.length)
-      return vertex_and_table_t<T, is_const> ();
+      return vertex_and_table_t<T, mutability> ();
 
-    vertex_and_table_t<T, is_const> r;
-    r.vertex = &vertices_[index];
-    r.table = (typename std::conditional<is_const, const T*, T*>::type) r.vertex->obj.head;
+    vertex_and_table_t<T, mutability> r;
+    r.vertex = (typename std::conditional<mutability == Immutable, const vertex_t*, vertex_t*>::type) &vertices_[index];
+    r.table = (typename std::conditional<mutability == Immutable, const T*, T*>::type) r.vertex->obj.head;
     r.index = index;
     if (!r.table)
-      return vertex_and_table_t<T, is_const> ();
+      return vertex_and_table_t<T, mutability> ();
 
     if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
-      return vertex_and_table_t<T, is_const> ();
-
-    return r;
-  }
-
-  template <typename T, typename ...Ts>
-  vertex_and_table_t<T, true> as_table_from_index (unsigned index, Ts... ds) const
-  {
-    if (index >= vertices_.length)
-      return vertex_and_table_t<T, true> ();
-
-    vertex_and_table_t<T, true> r;
-    r.vertex = &vertices_[index];
-    r.table = (const T*) r.vertex->obj.head;
-    r.index = index;
-    if (!r.table)
-      return vertex_and_table_t<T, true> ();
-
-    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
-      return vertex_and_table_t<T, true> ();
+      return vertex_and_table_t<T, mutability> ();
 
     return r;
   }
@@ -1077,7 +1072,7 @@ struct graph_t
   /*
    * Creates a copy of node_idx and returns it's new index.
    */
-  unsigned duplicate (unsigned node_idx, bool deep_copy = false)
+  unsigned duplicate (unsigned node_idx, bool copy_table = false)
   {
     if (vertices_.length >= HB_REPACKER_MAX_VERTICES)
     {
@@ -1097,21 +1092,18 @@ struct graph_t
       return -1;
     }
 
-    if (deep_copy)
+    unsigned table_size = child.obj.tail - child.obj.head;
+    if (copy_table && table_size)
     {
-      unsigned table_size = child.obj.tail - child.obj.head;
-      if (table_size)
+      char* buffer = (char*) hb_malloc (table_size);
+      if (!check_success (buffer && add_buffer (buffer)))
       {
-        char* buffer = (char*) hb_malloc (table_size);
-        if (!check_success (buffer && add_buffer (buffer)))
-        {
-          hb_free (buffer);
-          return -1;
-        }
-        hb_memcpy (buffer, child.obj.head, table_size);
-        clone->obj.head = buffer;
-        clone->obj.tail = buffer + table_size;
+        hb_free (buffer);
+        return -1;
       }
+      hb_memcpy (buffer, child.obj.head, table_size);
+      clone->obj.head = buffer;
+      clone->obj.tail = buffer + table_size;
     }
     else
     {
@@ -1149,7 +1141,7 @@ struct graph_t
    * If the child_idx only has incoming edges from parent_idx,
    * duplication isn't possible and this will return -1.
    */
-  unsigned duplicate (unsigned parent_idx, unsigned child_idx, bool deep_copy = false)
+  unsigned duplicate (unsigned parent_idx, unsigned child_idx, bool copy_table = false)
   {
     update_parents ();
 
@@ -1173,7 +1165,7 @@ struct graph_t
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u => %u",
                parent_idx, child_idx);
 
-    unsigned clone_idx = duplicate (child_idx, deep_copy);
+    unsigned clone_idx = duplicate (child_idx, copy_table);
     if (clone_idx == (unsigned) -1) return -1;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
     if (parent_idx == clone_idx) parent_idx++;
