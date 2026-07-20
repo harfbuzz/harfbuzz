@@ -108,8 +108,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     return result;
   }
 
-  template <bool is_const>
-  hb_vector_t<unsigned> ligature_index_to_object_id(const graph_t::vertex_and_table_t<LigatureSet, is_const>& liga_set) const {
+  template <graph_t::vertex_mutability_t mutability>
+  hb_vector_t<unsigned> ligature_index_to_object_id(const graph_t::vertex_and_table_t<LigatureSet, mutability>& liga_set) const {
     hb_vector_t<unsigned> map;
     map.resize_exact(liga_set.table->ligature.len);
     if (map.in_error()) return map;
