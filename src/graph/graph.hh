@@ -52,6 +52,7 @@ struct graph_t
     unsigned single_parent = (unsigned) -1;
     bool has_incoming_virtual_edges_ = false;
     hb_hashmap_t<unsigned, unsigned> parents;
+    hb_set_t virtual_parents;
     public:
 
     auto parents_iter () const HB_AUTO_RETURN
@@ -64,7 +65,7 @@ struct graph_t
 
     bool in_error () const
     {
-      return parents.in_error ();
+      return parents.in_error () || virtual_parents.in_error ();
     }
 
     bool has_incoming_virtual_edges () const
@@ -171,6 +172,7 @@ struct graph_t
       hb_swap (a.space, b.space);
       hb_swap (a.single_parent, b.single_parent);
       hb_swap (a.parents, b.parents);
+      hb_swap (a.virtual_parents, b.virtual_parents);
       hb_swap (a.incoming_edges_, b.incoming_edges_);
       hb_swap (a.has_incoming_virtual_edges_, b.has_incoming_virtual_edges_);
       hb_swap (a.start, b.start);
@@ -193,7 +195,7 @@ struct graph_t
 
     bool is_shared () const
     {
-      return parents.get_population () > 1;
+      return parents.get_population () > virtual_parents.get_population () + 1;
     }
 
     unsigned incoming_edges () const
@@ -221,12 +223,15 @@ struct graph_t
       has_incoming_virtual_edges_ = false;
       single_parent = (unsigned) -1;
       parents.reset ();
+      virtual_parents.reset ();
     }
 
     void add_parent (unsigned parent_index, bool is_virtual)
     {
       assert (parent_index != (unsigned) -1);
       has_incoming_virtual_edges_ |= is_virtual;
+      if (is_virtual)
+        virtual_parents.add (parent_index);
 
       if (incoming_edges_ == 0)
       {
@@ -258,6 +263,7 @@ struct graph_t
       {
 	single_parent = (unsigned) -1;
 	incoming_edges_--;
+	virtual_parents.reset ();
 	return;
       }
 
@@ -268,7 +274,10 @@ struct graph_t
 	if (*v > 1)
 	  (*v)--;
 	else
+        {
 	  parents.del (parent_index);
+          virtual_parents.del (parent_index);
+        }
 
 	if (incoming_edges_ == 1)
 	{
@@ -295,37 +304,19 @@ struct graph_t
       }
     }
 
-    bool remap_parents (const hb_vector_t<unsigned>& id_map)
-    {
-      if (single_parent != (unsigned) -1)
-      {
-        assert (single_parent < id_map.length);
-	single_parent = id_map[single_parent];
-	return true;
-      }
-
-      hb_hashmap_t<unsigned, unsigned> new_parents;
-      new_parents.alloc (parents.get_population ());
-      for (auto _ : parents)
-      {
-	assert (_.first < id_map.length);
-	assert (!new_parents.has (id_map[_.first]));
-	new_parents.set (id_map[_.first], _.second);
-      }
-
-      if (parents.in_error() || new_parents.in_error ())
-        return false;
-
-      parents = std::move (new_parents);
-      return true;
-    }
-
     void remap_parent (unsigned old_index, unsigned new_index)
     {
       if (single_parent != (unsigned) -1)
       {
         if (single_parent == old_index)
+        {
 	  single_parent = new_index;
+          if (virtual_parents.has (old_index))
+          {
+            virtual_parents.del (old_index);
+            virtual_parents.add (new_index);
+          }
+        }
         return;
       }
 
@@ -342,6 +333,12 @@ struct graph_t
 	  single_parent = *parents.keys ();
 	  parents.reset ();
 	}
+      }
+
+      if (virtual_parents.has (old_index))
+      {
+        virtual_parents.del (old_index);
+        virtual_parents.add (new_index);
       }
     }
 
@@ -437,19 +434,29 @@ struct graph_t
     }
   };
 
-  template <typename T>
+  enum vertex_mutability_t
+  {
+    Immutable,
+    Mutable
+  };
+
+  template <typename T, vertex_mutability_t mutability = Mutable>
   struct vertex_and_table_t
   {
     vertex_and_table_t () : index (0), vertex (nullptr), table (nullptr)
     {}
 
-    unsigned index;
-    vertex_t* vertex;
-    T* table;
+    template <vertex_mutability_t other_mutability>
+    vertex_and_table_t (const vertex_and_table_t<T, other_mutability>& o)
+      : index (o.index), vertex (o.vertex), table (o.table)
+    {}
 
-    operator bool () {
-       return table && vertex;
-    }
+    unsigned index;
+    typename std::conditional<mutability == Immutable, const vertex_t*, vertex_t*>::type vertex;
+    typename std::conditional<mutability == Immutable, const T*, T*>::type table;
+
+    operator bool () const
+    { return table && vertex; }
   };
 
   /*
@@ -712,32 +719,32 @@ struct graph_t
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T> as_table (unsigned parent, const void* offset, Ts... ds)
+  const vertex_and_table_t<T, Immutable> as_table (unsigned parent, const void* offset, Ts... ds)
   {
     return as_table_from_index<T> (index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
 
   template <typename T, typename ...Ts>
-  vertex_and_table_t<T> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
+  vertex_and_table_t<T, Mutable> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
   {
-    return as_table_from_index<T> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
+    return as_table_from_index<T, Mutable> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
 
-  template <typename T, typename ...Ts>
-  vertex_and_table_t<T> as_table_from_index (unsigned index, Ts... ds)
+  template <typename T, vertex_mutability_t mutability = Mutable, typename ...Ts>
+  vertex_and_table_t<T, mutability> as_table_from_index (unsigned index, Ts... ds)
   {
     if (index >= vertices_.length)
-      return vertex_and_table_t<T> ();
+      return vertex_and_table_t<T, mutability> ();
 
-    vertex_and_table_t<T> r;
-    r.vertex = &vertices_[index];
-    r.table = (T*) r.vertex->obj.head;
+    vertex_and_table_t<T, mutability> r;
+    r.vertex = (typename std::conditional<mutability == Immutable, const vertex_t*, vertex_t*>::type) &vertices_[index];
+    r.table = (typename std::conditional<mutability == Immutable, const T*, T*>::type) r.vertex->obj.head;
     r.index = index;
     if (!r.table)
-      return vertex_and_table_t<T> ();
+      return vertex_and_table_t<T, mutability> ();
 
     if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
-      return vertex_and_table_t<T> ();
+      return vertex_and_table_t<T, mutability> ();
 
     return r;
   }
@@ -773,7 +780,7 @@ struct graph_t
     for (unsigned p : child.parents_iter ())
     {
       if (p != node_idx) {
-        return duplicate (node_idx, child_idx);
+        return duplicate (node_idx, child_idx, true);
       }
     }
 
@@ -1065,7 +1072,7 @@ struct graph_t
   /*
    * Creates a copy of node_idx and returns it's new index.
    */
-  unsigned duplicate (unsigned node_idx)
+  unsigned duplicate (unsigned node_idx, bool copy_table = false)
   {
     if (vertices_.length >= HB_REPACKER_MAX_VERTICES)
     {
@@ -1085,8 +1092,24 @@ struct graph_t
       return -1;
     }
 
-    clone->obj.head = child.obj.head;
-    clone->obj.tail = child.obj.tail;
+    unsigned table_size = child.obj.tail - child.obj.head;
+    if (copy_table && table_size)
+    {
+      char* buffer = (char*) hb_malloc (table_size);
+      if (!check_success (buffer && add_buffer (buffer)))
+      {
+        hb_free (buffer);
+        return -1;
+      }
+      hb_memcpy (buffer, child.obj.head, table_size);
+      clone->obj.head = buffer;
+      clone->obj.tail = buffer + table_size;
+    }
+    else
+    {
+      clone->obj.head = child.obj.head;
+      clone->obj.tail = child.obj.tail;
+    }
     clone->distance = child.distance;
     clone->space = child.space;
     clone->reset_parents ();
@@ -1118,7 +1141,7 @@ struct graph_t
    * If the child_idx only has incoming edges from parent_idx,
    * duplication isn't possible and this will return -1.
    */
-  unsigned duplicate (unsigned parent_idx, unsigned child_idx)
+  unsigned duplicate (unsigned parent_idx, unsigned child_idx, bool copy_table = false)
   {
     update_parents ();
 
@@ -1142,7 +1165,7 @@ struct graph_t
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u => %u",
                parent_idx, child_idx);
 
-    unsigned clone_idx = duplicate (child_idx);
+    unsigned clone_idx = duplicate (child_idx, copy_table);
     if (clone_idx == (unsigned) -1) return -1;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
     if (parent_idx == clone_idx) parent_idx++;
@@ -1283,31 +1306,6 @@ struct graph_t
       reassign_link (l, parent_idx, new_child_idx, true);
     }
     return new_child_idx;
-  }
-
-  /*
-   * Creates a new child node and remap the old child at specified position to it.
-   *
-   * Returns the index of the newly created child.
-   *
-   */
-  unsigned remap_child_at_position (unsigned parent_idx, unsigned old_child_idx, const void* offset)
-  {
-    const auto& parent = object (parent_idx);
-    if (!offset || offset < parent.head || offset >= parent.tail) return -1;
-
-    for (auto& l : parent.real_links)
-    {
-      if (l.objidx != old_child_idx || offset != parent.head + l.position)
-        continue;
-      
-      unsigned new_child_idx = duplicate (old_child_idx);
-      if (new_child_idx == (unsigned) -1) return -1;
-      reassign_link (l, parent_idx, new_child_idx, false);
-      return new_child_idx;
-    }
-
-    return -1;
   }
 
   /*
