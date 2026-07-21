@@ -71,7 +71,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
                                          unsigned this_index)
   {
     auto split_points = compute_split_points(c, this_index);
-    if (!split_points || !duplicate_shared_liga_sets(c, this_index))
+    if (!split_points)
       return hb_vector_t<unsigned> ();
 
     split_context_t split_context {
@@ -124,23 +124,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       map[array_index] = l.objidx;
     }
     return map;
-  }
-
-  bool duplicate_shared_liga_sets(gsubgpos_graph_context_t& c, unsigned this_index) const
-  {
-    for (unsigned i = 0; i < ligatureSet.len; i++)
-    {
-      auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
-      if (!liga_set.table) return false;
-
-      if (liga_set.vertex->incoming_edges () > 1)
-      {
-        unsigned liga_set_index = liga_set.index;
-        unsigned new_index = c.graph.remap_child_at_position (this_index, liga_set_index, &ligatureSet[i]);
-        if (new_index == (unsigned) -1) return false;
-      }
-    }
-    return true;
   }
 
   hb_vector_t<unsigned> compute_split_points(gsubgpos_graph_context_t& c,
