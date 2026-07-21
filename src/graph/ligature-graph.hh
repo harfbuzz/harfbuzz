@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2025  Google, Inc.
  *
@@ -40,7 +39,7 @@ namespace graph {
 
 struct LigatureSet : public OT::Layout::GSUB_impl::LigatureSet<SmallTypes>
 {
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  bool sanitize (graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < OT::Layout::GSUB_impl::LigatureSet<SmallTypes>::min_size) return false;
@@ -56,7 +55,7 @@ struct LigatureSet : public OT::Layout::GSUB_impl::LigatureSet<SmallTypes>
 
 struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1_2<SmallTypes>
 {
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  bool sanitize (graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     unsigned min_size = OT::Layout::GSUB_impl::LigatureSubstFormat1_2<SmallTypes>::min_size;
@@ -71,7 +70,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
                                          unsigned this_index)
   {
     auto split_points = compute_split_points(c, this_index);
-    if (!split_points)
+    if (!split_points || !duplicate_shared_liga_sets(c, this_index))
       return hb_vector_t<unsigned> ();
 
     split_context_t split_context {
@@ -108,8 +107,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     return result;
   }
 
-  template <graph_t::vertex_mutability_t mutability>
-  hb_vector_t<unsigned> ligature_index_to_object_id(const graph_t::vertex_and_table_t<LigatureSet, mutability>& liga_set) const {
+  hb_vector_t<unsigned> ligature_index_to_object_id(const graph_t::vertex_and_table_t<LigatureSet>& liga_set) const {
     hb_vector_t<unsigned> map;
     map.resize_exact(liga_set.table->ligature.len);
     if (map.in_error()) return map;
@@ -124,6 +122,28 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       map[array_index] = l.objidx;
     }
     return map;
+  }
+
+  bool duplicate_shared_liga_sets(gsubgpos_graph_context_t& c, unsigned this_index) const
+  {
+    hb_set_t visited;
+    for (unsigned i = 0; i < ligatureSet.len; i++)
+    {
+      auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
+      if (!liga_set.table) return false;
+
+      unsigned liga_set_index = liga_set.index;
+      if (visited.has (liga_set_index))
+      {
+        unsigned new_index = c.graph.remap_child_at_position (this_index, liga_set_index, &ligatureSet[i]);
+        if (new_index == (unsigned) -1) return false;
+      }
+      else
+      {
+        visited.add (liga_set_index);
+      }
+    }
+    return true;
   }
 
   hb_vector_t<unsigned> compute_split_points(gsubgpos_graph_context_t& c,
@@ -322,12 +342,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         continue;
       }
 
-      auto liga_set = c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]);
+      auto liga_set_index = c.graph.index_for_offset(this_index, &ligatureSet[i]);
+      auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
       if (!liga_set.table) {
         return -1;
       }
 
-      unsigned liga_set_index = liga_set.index;
       // Bounds may need to be adjusted if some ligas have been previously removed.
       hb_pair_t<unsigned, unsigned> liga_bounds = current_liga_set_bounds(c, liga_set_index, liga_set.vertex->obj);
       current_start = hb_max(count + liga_bounds.first, current_start);
@@ -408,7 +428,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned new_liga_set_count = 0;
     for (unsigned i = 0; i < liga_counts.length; i++)
     {
-      auto liga_set = c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]);
+      auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
       if (!liga_set.table) {
         return false;
       }
@@ -495,7 +515,7 @@ struct LigatureSubst : public OT::Layout::GSUB_impl::LigatureSubst
     }
   }
 
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  bool sanitize (graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < u.format.v.get_size ()) return false;

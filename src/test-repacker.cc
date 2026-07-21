@@ -1939,7 +1939,7 @@ static void test_duplicate_leaf ()
   populate_serializer_complex_2 (&a);
 
   graph_t graph (a.object_graph ());
-  graph.duplicate (4, 1, false);
+  graph.duplicate (4, 1);
   graph.normalize();
 
   e.start_serialize();
@@ -1979,7 +1979,7 @@ static void test_duplicate_interior ()
   populate_serializer_complex_3 (&c);
 
   graph_t graph (c.object_graph ());
-  graph.duplicate (3, 2, false);
+  graph.duplicate (3, 2);
 
   hb_always_assert(strncmp (graph.object (6).head, "jkl", 3) == 0);
   hb_always_assert(graph.object (6).real_links.length == 1);
