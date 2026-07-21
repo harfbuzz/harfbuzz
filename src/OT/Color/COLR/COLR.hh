@@ -122,7 +122,9 @@ public:
   static unsigned
   color_alpha (hb_color_t color, float alpha)
   {
-    return roundf (hb_color_get_alpha (color) * alpha);
+    /* Font-supplied alpha is F2DOT14 plus variation deltas, so it can be
+     * negative or greater than one; converting that to unsigned is UB. */
+    return roundf (hb_color_get_alpha (color) * hb_clamp (alpha, 0.f, 1.f));
   }
 
   hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
@@ -808,10 +810,10 @@ struct PaintRadialGradient
     {
       out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
       out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
-      out->radius0 = radius0 + (unsigned) roundf (instancer (varIdxBase, 2));
+      out->radius0 = hb_clamp ((int) radius0 + (int) roundf (instancer (varIdxBase, 2)), 0, 0xFFFF);
       out->x1 = x1 + (int) roundf (instancer (varIdxBase, 3));
       out->y1 = y1 + (int) roundf (instancer (varIdxBase, 4));
-      out->radius1 = radius1 + (unsigned) roundf (instancer (varIdxBase, 5));
+      out->radius1 = hb_clamp ((int) radius1 + (int) roundf (instancer (varIdxBase, 5)), 0, 0xFFFF);
     }
 
     if (format == 7 && c->plan->all_axes_pinned)
