@@ -7,6 +7,7 @@
 #include "hb-buffer-verify.cc"
 #include "hb-buffer.cc"
 #include "hb-common.cc"
+#include "hb-depend.cc"
 #include "hb-draw.cc"
 #include "hb-face-builder.cc"
 #include "hb-face.cc"
