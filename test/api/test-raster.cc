@@ -225,6 +225,43 @@ test_set_glyph_extents_with_transform (void)
   hb_raster_draw_destroy (rdr);
 }
 
+/* ── Test 6: image paint under an overflowing transform ──────────── */
+
+/* Nested scales, each representable, whose product overflows to infinity.
+ * The inverse transform then carries NaN into the image sampler's texel
+ * coordinates.  Exercised for the float-to-int conversion, so this needs a
+ * sanitizer build to catch a regression. */
+static void
+test_image_nonfinite_transform (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+
+  hb_raster_extents_t ext = {0, 0, 32, 32, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+
+  hb_paint_push_transform (funcs, paint, 1e30f, 0.f, 0.f, 1e30f, 0.f, 0.f);
+  hb_paint_push_transform (funcs, paint, 1e30f, 0.f, 0.f, 1e30f, 0.f, 0.f);
+
+  const unsigned w = 4, h = 4;
+  char pixels[w * h * 4];
+  memset (pixels, 0, sizeof (pixels));
+  hb_blob_t *blob = hb_blob_create (pixels, sizeof (pixels),
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+
+  hb_glyph_extents_t gext = {0, 32, 32, -32};
+  hb_paint_image (funcs, paint, blob, w, h,
+		  HB_PAINT_IMAGE_FORMAT_BGRA, 0.f, &gext);
+
+  hb_paint_pop_transform (funcs, paint);
+  hb_paint_pop_transform (funcs, paint);
+
+  hb_blob_destroy (blob);
+  hb_raster_paint_destroy (paint);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -237,6 +274,7 @@ main (int argc, char **argv)
   hb_test_add (test_subpixel_edge);
   hb_test_add (test_transform);
   hb_test_add (test_set_glyph_extents_with_transform);
+  hb_test_add (test_image_nonfinite_transform);
 
   return hb_test_run ();
 }
