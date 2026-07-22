@@ -165,6 +165,13 @@ hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
   }
   int idx = (int) (c->sub_blobs.length - 1);
 
+  if (unlikely (c->clip_depth >= HB_GPU_PAINT_MAX_CLIP_DEPTH))
+  {
+    c->unsupported = true;
+    c->clip_depth++;
+    return;
+  }
+
   int x0 = ext.x_bearing;
   int x1 = (int) ((int64_t) ext.x_bearing + ext.width);
   int y0 = ext.y_bearing;
