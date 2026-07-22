@@ -29,6 +29,17 @@
 
 #include "hb.hh"
 
+/* Convert a coordinate to int32_t, saturating instead of relying on the
+ * undefined behavior of an out-of-range float-to-int conversion.  NaN
+ * saturates to INT32_MIN. */
+static HB_ALWAYS_INLINE int32_t
+hb_raster_clamp_to_int32 (float v)
+{
+  return (int32_t) hb_clamp ((double) v,
+			     (double) INT32_MIN,
+			     (double) INT32_MAX);
+}
+
 /* Shared pixel helpers (used by paint and image compositing). */
 
 static HB_ALWAYS_INLINE uint8_t
