@@ -262,6 +262,30 @@ test_image_nonfinite_transform (void)
   hb_raster_paint_destroy (paint);
 }
 
+/* ── Test 7: glyph extents that overflow the int grid ────────────── */
+
+/* Glyph extents are int32, so a transform that scales them up puts the
+ * corner coordinates far outside the int range before they are floored
+ * back to the integer pixel grid.  Exercised for the conversion itself,
+ * so this needs a sanitizer build to catch a regression. */
+static void
+test_set_glyph_extents_overflow (void)
+{
+  hb_glyph_extents_t gext = {-2000000000, 2000000000, 2000000000, -2000000000};
+
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
+  g_assert_nonnull (rdr);
+  hb_raster_draw_set_transform (rdr, 1000.f, 0.f, 0.f, 1000.f, 0.f, 0.f);
+  hb_raster_draw_set_glyph_extents (rdr, &gext);
+  hb_raster_draw_destroy (rdr);
+
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  hb_raster_paint_set_transform (paint, 1000.f, 0.f, 0.f, 1000.f, 0.f, 0.f);
+  hb_raster_paint_set_glyph_extents (paint, &gext);
+  hb_raster_paint_destroy (paint);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -275,6 +299,7 @@ main (int argc, char **argv)
   hb_test_add (test_transform);
   hb_test_add (test_set_glyph_extents_with_transform);
   hb_test_add (test_image_nonfinite_transform);
+  hb_test_add (test_set_glyph_extents_overflow);
 
   return hb_test_run ();
 }
