@@ -786,7 +786,12 @@ struct cff2_private_blend_encoder_param_t
     if (!seen_blend)
     {
       region_count = varStore->varStore.get_region_index_count (ivs);
-      scalars.resize_exact (region_count);
+      if (unlikely (!scalars.resize_exact (region_count)))
+      {
+	if (c) c->err (HB_SERIALIZE_ERROR_OTHER);
+	seen_blend = true;
+	return;
+      }
       varStore->varStore.get_region_scalars (ivs, normalized_coords.arrayZ, normalized_coords.length,
 					     &scalars[0], region_count);
       seen_blend = true;
