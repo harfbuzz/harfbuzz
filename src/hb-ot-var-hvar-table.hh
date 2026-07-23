@@ -49,6 +49,12 @@ struct index_map_subset_plan_t
 	     bool bypass_empty = true)
   {
     map_count = 0;
+    full_map_count = plan->new_to_old_gid_list.length ?
+		     plan->new_to_old_gid_list.tail ().first + 1 : 0;
+    /* Only the advance mapping may be dropped in favor of implicit
+     * glyph-id indexing (for the others a null offset means no deltas),
+     * and only when the source was map-less too, preserving its form. */
+    can_drop_to_implicit = !bypass_empty && !index_map;
     max_inners.init ();
     output_map.init ();
 
@@ -187,11 +193,24 @@ struct index_map_subset_plan_t
 					 DeltaSetIndexMap::min_size);
   }
 
-  bool is_identity () const { return get_output_map ().length == 0; }
+  bool is_identity () const
+  {
+    if (!output_map) return true;
+    /* An advance map whose entries are the identity over every output
+     * glyph is equivalent to implicit glyph-id indexing; drop it.  A
+     * truncated map doesn't qualify: glyphs past its end share its last
+     * value, not their own ids. */
+    if (!can_drop_to_implicit || map_count != full_map_count) return false;
+    for (unsigned i = 0; i < map_count; i++)
+      if (output_map.arrayZ[i] != i) return false;
+    return true;
+  }
   hb_array_t<const uint32_t> get_output_map () const { return output_map.as_array (); }
 
   protected:
   unsigned int map_count;
+  unsigned int full_map_count;
+  bool can_drop_to_implicit;
   hb_vector_t<unsigned int> max_inners;
   unsigned int outer_bit_count;
   unsigned int inner_bit_count;
