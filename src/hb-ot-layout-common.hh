@@ -2807,6 +2807,35 @@ struct VarRegionList
   DEFINE_SIZE_ARRAY (4, axesZ);
 };
 
+/* Whether a variation region is unreachable given per-axis reachable
+ * final-coordinate ranges, in F2Dot14 units (avar2 partial-instancing
+ * culling; see hb_subset_plan_t::avar2_reachable_ranges). A region is dead
+ * if some axis's tent evaluates to zero over the axis's entire reachable
+ * range. Mirrors the runtime evaluation: invalid tents evaluate as
+ * constant 1 and never kill a region. */
+static inline bool
+_hb_avar2_region_is_dead (const hb_hashmap_t<hb_tag_t, Triple> &axis_tuples,
+			  const hb_hashmap_t<hb_tag_t, Triple> &reachable_ranges)
+{
+  for (auto _ : axis_tuples)
+  {
+    Triple *range;
+    if (!reachable_ranges.has (_.first, &range)) continue;
+    const Triple &tent = _.second;
+    int start = (int) roundf ((float) tent.minimum * 16384.f);
+    int peak  = (int) roundf ((float) tent.middle * 16384.f);
+    int end   = (int) roundf ((float) tent.maximum * 16384.f);
+    if (!peak) continue;
+    if (start > peak || peak > end) continue;
+    if (start < 0 && end > 0) continue;
+    int lo = (int) roundf ((float) range->minimum * 16384.f);
+    int hi = (int) roundf ((float) range->maximum * 16384.f);
+    if (hi <= start || lo >= end)
+      return true;
+  }
+  return false;
+}
+
 struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
 {
   float evaluate (const int *coords, unsigned int coord_len) const
@@ -3047,7 +3076,8 @@ struct VarData
   bool serialize (hb_serialize_context_t *c,
 		  const VarData *src,
 		  const hb_inc_bimap_t &inner_map,
-		  const hb_inc_bimap_t &region_map)
+		  const hb_inc_bimap_t &region_map,
+		  const hb_set_t *culled_regions = nullptr)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
@@ -3092,6 +3122,8 @@ struct VarData
       bool short_circuit = src_long_words == has_long && src_word_count <= r;
 
       delta_sz[r] = kZero;
+      if (culled_regions && culled_regions->has (src->regionIndices[r]))
+	continue; /* unreachable region: drop its column */
       for (unsigned old_gid : inner_map.keys())
       {
 	int32_t delta = src->get_item_delta_fast (old_gid, r, src_delta_bytes, src_row_size);
@@ -3400,7 +3432,8 @@ struct ItemVariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const ItemVariationStore *src,
-		  const hb_array_t <const hb_inc_bimap_t> &inner_maps)
+		  const hb_array_t <const hb_inc_bimap_t> &inner_maps,
+		  const hb_set_t *culled_regions = nullptr)
   {
     TRACE_SERIALIZE (this);
 #ifdef HB_NO_VAR
@@ -3427,6 +3460,9 @@ struct ItemVariationStore
 
     region_indices.del_range ((src_regions).regionCount, hb_set_t::INVALID);
 
+    if (culled_regions)
+      region_indices.subtract (*culled_regions);
+
     /* TODO use constructor when our data-structures support that. */
     hb_inc_bimap_t region_map;
     + hb_iter (region_indices)
@@ -3448,7 +3484,8 @@ struct ItemVariationStore
     {
       if (!inner_maps[i].get_population ()) continue;
       if (unlikely (!dataSets[set_index++]
-		     .serialize_serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
+		     .serialize_serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map,
+					   culled_regions)))
 	return_trace (false);
     }
 
@@ -3480,6 +3517,30 @@ struct ItemVariationStore
     return_trace (out);
   }
 
+  /* Collect regions that a partial avar2 instance can never reach, per the
+   * plan's reachable final-coordinate ranges. */
+  bool collect_dead_regions (const hb_map_t &axes_old_index_tag_map,
+			     const hb_hashmap_t<hb_tag_t, Triple> &reachable_ranges,
+			     hb_set_t &dead_regions /* OUT */) const
+  {
+#ifndef HB_NO_VAR
+    if (!reachable_ranges.get_population ()) return true;
+    const VarRegionList &region_list = this+regions;
+    unsigned count = region_list.regionCount;
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+      if (!region_list.get_var_region (i, axes_old_index_tag_map, axis_tuples))
+	return false;
+      if (_hb_avar2_region_is_dead (axis_tuples, reachable_ranges))
+	dead_regions.add (i);
+    }
+    return !dead_regions.in_error ();
+#else
+    return true;
+#endif
+  }
+
   bool subset (hb_subset_context_t *c, const hb_array_t<const hb_inc_bimap_t> &inner_maps) const
   {
     TRACE_SUBSET (this);
@@ -3490,7 +3551,15 @@ struct ItemVariationStore
     ItemVariationStore *varstore_prime = c->serializer->start_embed<ItemVariationStore> ();
     if (unlikely (!varstore_prime)) return_trace (false);
 
-    varstore_prime->serialize (c->serializer, this, inner_maps);
+    /* avar2 partial instancing: cull unreachable regions. */
+    hb_set_t dead_regions;
+    if (c->plan->has_avar2)
+      collect_dead_regions (c->plan->axes_old_index_tag_map,
+			    c->plan->avar2_reachable_ranges,
+			    dead_regions);
+
+    varstore_prime->serialize (c->serializer, this, inner_maps,
+			       dead_regions.get_population () ? &dead_regions : nullptr);
 
     return_trace (
         !c->serializer->in_error()

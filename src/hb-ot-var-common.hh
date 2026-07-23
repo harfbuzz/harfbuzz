@@ -1305,6 +1305,22 @@ struct TupleVariationData
     }
 
     public:
+    /* avar2 partial-instancing culling: drop tuples whose region a partial
+     * instance can never reach (hb_subset_plan_t::avar2_reachable_ranges). */
+    void cull_unreachable (const hb_hashmap_t<hb_tag_t, Triple> &reachable_ranges)
+    {
+      unsigned j = 0;
+      for (unsigned i = 0; i < tuple_vars.length; i++)
+      {
+	if (_hb_avar2_region_is_dead (tuple_vars.arrayZ[i].axis_tuples, reachable_ranges))
+	  continue;
+	if (i != j)
+	  tuple_vars.arrayZ[j] = std::move (tuple_vars.arrayZ[i]);
+	j++;
+      }
+      tuple_vars.shrink (j);
+    }
+
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
 		      optimize_scratch_t &scratch,
@@ -1526,6 +1542,105 @@ struct TupleVariationData
 
   bool has_shared_point_numbers () const { return tupleVarCount.has_shared_point_numbers (); }
 
+  /* avar2 partial-instancing culling: rewrite this tuple variation data,
+   * dropping TupleVariations whose region a partial instance can never
+   * reach (see hb_subset_plan_t::avar2_reachable_ranges). On success with
+   * *changed set, out contains the rewritten data — possibly empty, when
+   * every tuple died. Keeps the original data (*changed stays false) when
+   * nothing is culled or the data is malformed. Returns false only on
+   * allocation failure. */
+  bool cull_tuple_variations (hb_bytes_t var_data_bytes,
+			      unsigned axis_count,
+			      hb_array_t<const F2DOT14> shared_tuples,
+			      const hb_map_t *axes_old_index_tag_map,
+			      const hb_hashmap_t<hb_tag_t, Triple> &reachable_ranges,
+			      hb_vector_t<char> &out /* OUT */,
+			      bool *changed /* OUT */) const
+  {
+    *changed = false;
+
+    hb_vector_t<unsigned int> shared_indices;
+    tuple_iterator_t iterator;
+    if (!get_tuple_iterator (var_data_bytes, axis_count, this,
+			     shared_indices, &iterator))
+      return true; /* no tuples or malformed: keep original */
+
+    const char *bytes_start = var_data_bytes.arrayZ;
+    const char *bytes_end = bytes_start + var_data_bytes.length;
+    const char *serialized_base = (const char *) &(this+data);
+    const char *shared_points_end = (const char *) iterator.get_serialized_data ();
+    if (unlikely (serialized_base < bytes_start || serialized_base > bytes_end ||
+		  shared_points_end < serialized_base || shared_points_end > bytes_end))
+      return true;
+
+    struct kept_tuple_t
+    {
+      const char *header;
+      unsigned header_size;
+      const char *data;
+      unsigned data_size;
+    };
+    hb_vector_t<kept_tuple_t> kept;
+    unsigned total = 0;
+    unsigned kept_headers_size = 0, kept_data_size = 0;
+    do
+    {
+      const TupleVariationHeader *header = iterator.current_tuple;
+      unsigned header_size = header->get_size (axis_count * 2);
+      unsigned data_size = header->get_data_size ();
+      const char *tuple_data = (const char *) iterator.get_serialized_data ();
+      if (unlikely (tuple_data < serialized_base ||
+		    data_size > (unsigned) (bytes_end - tuple_data)))
+	return true; /* malformed: keep original */
+
+      hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+      if (!header->unpack_axis_tuples (axis_count, shared_tuples,
+				       axes_old_index_tag_map, axis_tuples))
+	return true;
+
+      total++;
+      if (!_hb_avar2_region_is_dead (axis_tuples, reachable_ranges))
+      {
+	kept.push (kept_tuple_t {(const char *) header, header_size,
+				 tuple_data, data_size});
+	kept_headers_size += header_size;
+	kept_data_size += data_size;
+      }
+    } while (iterator.move_to_next ());
+
+    if (unlikely (kept.in_error ())) return false;
+    if (kept.length == total) return true; /* nothing to cull */
+
+    *changed = true;
+    if (!kept.length) return true; /* everything culled: no variation data */
+
+    unsigned shared_points_size = shared_points_end - serialized_base;
+    unsigned data_offset = min_size + kept_headers_size;
+    unsigned new_size = data_offset + shared_points_size + kept_data_size;
+    if (unlikely (!out.resize (new_size)))
+      return false;
+
+    TupleVariationData *out_data = (TupleVariationData *) out.arrayZ;
+    out_data->tupleVarCount = (uint16_t) (kept.length |
+					  (has_shared_point_numbers () ? 0x8000u : 0u));
+    out_data->data = data_offset;
+
+    char *p = out.arrayZ + min_size;
+    for (const auto &t : kept)
+    {
+      hb_memcpy (p, t.header, t.header_size);
+      p += t.header_size;
+    }
+    hb_memcpy (p, serialized_base, shared_points_size);
+    p += shared_points_size;
+    for (const auto &t : kept)
+    {
+      hb_memcpy (p, t.data, t.data_size);
+      p += t.data_size;
+    }
+    return true;
+  }
+
   static bool decompile_points (const HBUINT8 *&p /* IN/OUT */,
 				hb_vector_t<unsigned int> &points /* OUT */,
 				const HBUINT8 *end)
@@ -1740,6 +1855,10 @@ struct item_variations_t
   {
     if (!create_from_item_varstore (varStore, plan->axes_old_index_tag_map, inner_maps))
       return false;
+    /* avar2 partial instancing: cull unreachable regions. */
+    if (plan->has_avar2 && plan->avar2_reachable_ranges.get_population ())
+      for (tuple_variations_t& tuple_vars : vars)
+	tuple_vars.cull_unreachable (plan->avar2_reachable_ranges);
     if (!instantiate_tuple_vars (plan->axes_location, plan->axes_triple_distances))
       return false;
     return as_item_varstore (optimize, use_no_variation_idx);
@@ -1788,6 +1907,79 @@ struct item_variations_t
 
     if (!build_region_list ()) return false;
     return true;
+  }
+
+  /* Like instantiate_tuple_vars but does NOT call build_region_list().
+   * Caller can add more tuples between this call and build_region_list(). */
+  bool instantiate_tuple_vars_no_region_build (
+      const hb_hashmap_t<hb_tag_t, Triple>& axes_location,
+      const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+  {
+    optimize_scratch_t scratch;
+    for (tuple_variations_t& tuple_vars : vars)
+      if (!tuple_vars.instantiate (axes_location, axes_triple_distances, scratch))
+        return false;
+    return true;
+  }
+
+  /* Add a new VarData subtable. Returns outer index. */
+  unsigned add_vardata (unsigned item_count)
+  {
+    vars.push (tuple_variations_t ());
+    var_data_num_rows.push (item_count);
+    return vars.length - 1;
+  }
+
+  /* Get item count for a VarData subtable. */
+  unsigned get_item_count (unsigned outer) const
+  { return outer < var_data_num_rows.length ? var_data_num_rows[outer] : 0; }
+
+  /* Duplicate the delta row at position inner within VarData subtable outer,
+   * appending the copy as a new item. Used to give an axis a private copy of
+   * a delta row that avar2's VarIdxMap shares between several axes, before
+   * per-axis offset-compensation deltas are written into it. Returns the new
+   * inner index, or (unsigned) -1 on failure. */
+  unsigned duplicate_row (unsigned outer, unsigned inner)
+  {
+    if (unlikely (outer >= vars.length ||
+                  inner >= var_data_num_rows[outer] ||
+                  var_data_num_rows[outer] >= 0xFFFFu))
+      return (unsigned) -1;
+    for (tuple_delta_t& tuple : vars[outer].tuple_vars)
+    {
+      if (unlikely (inner >= tuple.deltas_x.length ||
+                    inner >= tuple.indices.length))
+        return (unsigned) -1;
+      tuple.indices.push (tuple.indices.arrayZ[inner]);
+      tuple.deltas_x.push (tuple.deltas_x.arrayZ[inner]);
+      if (inner < tuple.deltas_y.length)
+        tuple.deltas_y.push (tuple.deltas_y.arrayZ[inner]);
+      if (unlikely (tuple.indices.in_error () ||
+                    tuple.deltas_x.in_error () ||
+                    tuple.deltas_y.in_error ()))
+        return (unsigned) -1;
+    }
+    return var_data_num_rows[outer]++;
+  }
+
+  /* Add a tuple with a single non-zero delta at position inner.
+   * axis_tuples defines the region (empty map = constant/bias tuple). */
+  void add_tuple (unsigned outer,
+                  hb_hashmap_t<hb_tag_t, Triple>&& axis_tuples,
+                  unsigned inner, int delta, unsigned item_count)
+  {
+    if (outer >= vars.length) return;
+    tuple_delta_t tuple;
+    tuple.axis_tuples = std::move (axis_tuples);
+    if (!tuple.indices.resize (item_count) ||
+        !tuple.deltas_x.resize (item_count)) return;
+    for (unsigned i = 0; i < item_count; i++)
+    {
+      tuple.indices.arrayZ[i] = true;
+      tuple.deltas_x.arrayZ[i] = 0.f;
+    }
+    tuple.deltas_x[inner] = (float) delta;
+    vars[outer].tuple_vars.push (std::move (tuple));
   }
 
   bool build_region_list ()

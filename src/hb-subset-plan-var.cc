@@ -55,11 +55,177 @@
    }
  }
 
+ /* Evaluate a variation-region tent at v, mirroring VarRegionAxis::evaluate
+  * (invalid regions evaluate as constant 1). */
+ static double
+ _tent_eval (const Triple &tent, double v)
+ {
+   double start = tent.minimum, peak = tent.middle, end = tent.maximum;
+   if (unlikely (start > peak || peak > end)) return 1.0;
+   if (unlikely (start < 0.0 && end > 0.0 && peak != 0.0)) return 1.0;
+   if (peak == 0.0 || v == peak) return 1.0;
+   if (v <= start || end <= v) return 0.0;
+   if (v < peak) return (v - start) / (peak - start);
+   return (end - v) / (end - peak);
+ }
+
+ /* Range of a tent's scalar over an input interval [lo, hi]. The tent is
+  * unimodal, so the extremes are at the interval endpoints, plus the peak
+  * when it falls inside. */
+ static void
+ _tent_value_range (const Triple &tent, double lo, double hi,
+                    double *tmin, double *tmax)
+ {
+   double a = _tent_eval (tent, lo);
+   double b = _tent_eval (tent, hi);
+   *tmin = hb_min (a, b);
+   *tmax = hb_max (a, b);
+   if (lo <= tent.middle && tent.middle <= hi)
+     *tmax = hb_max (*tmax, 1.0);
+ }
+
+ /* Compute conservative reachable old-space final-coord ranges per axis for
+  * avar2 partial instancing. With offset compensation, the instanced font's
+  * final coordinates equal the original font's over the retained user box,
+  * so the reachable range of axis i's final coordinate is the range of
+  *   final_i = intermediate_i + delta_i(intermediates)
+  * over the box of retained old-intermediate ranges: restricted axes span
+  * their retained [a, b], free public axes [-1, +1], pinned axes sit at
+  * their d_i, and hidden (private) axes at 0. Interval arithmetic over the
+  * avar2 VarStore regions bounds delta_i. Mirrors fontTools'
+  * _computeReachableRangesForAvar2, but computed from the original store at
+  * plan time (the same quantity fontTools bounds via getExtremes on the
+  * instanced store). Only constraining ranges (narrower than [-1, +1]) are
+  * recorded. */
+ static void
+ _compute_avar2_reachable_ranges (hb_subset_plan_t *plan,
+                                  hb_array_t<const OT::AxisRecord> axes,
+                                  const OT::avar *avar_table,
+                                  bool detect_self_contained)
+ {
+   const OT::ItemVariationStore *var_store;
+   const OT::DeltaSetIndexMap *varidx_map;
+   if (!avar_table->get_v2_store_and_map (&var_store, &varidx_map))
+     return;
+
+   /* Old-intermediate input box per axis. */
+   hb_hashmap_t<hb_tag_t, hb_pair_t<double, double>> box;
+   for (const auto &axis : axes)
+   {
+     hb_tag_t tag = axis.get_axis_tag ();
+     double lo = -1.0, hi = +1.0;
+     Triple *old_int;
+     if (plan->user_axes_location.has (tag))
+     {
+       if (!plan->old_intermediates.has (tag, &old_int)) return;
+       lo = hb_min (old_int->minimum, old_int->maximum);
+       hi = hb_max (old_int->minimum, old_int->maximum);
+     }
+     else if (axis.is_hidden ())
+       lo = hi = 0.0; /* private axis: intermediate is always 0 */
+     if (!box.set (tag, hb_pair (lo, hi))) return;
+   }
+
+   hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> regions;
+   if (!var_store->get_region_list ().get_var_regions (plan->axes_old_index_tag_map, regions))
+     return;
+
+   for (unsigned i = 0; i < axes.length; i++)
+   {
+     hb_tag_t tag = axes[i].get_axis_tag ();
+     hb_pair_t<double, double> *identity;
+     if (!box.has (tag, &identity)) return;
+
+     double dmin = 0.0, dmax = 0.0;
+     bool bounded = true;
+     uint32_t varidx = varidx_map->map (i);
+     if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+     {
+       unsigned outer = varidx >> 16;
+       unsigned inner = varidx & 0xFFFF;
+       if (outer >= var_store->get_sub_table_count ()) bounded = false;
+       else
+       {
+	 const OT::VarData &vd = var_store->get_sub_table (outer);
+	 if (inner >= vd.get_item_count ()) bounded = false;
+	 else
+	 {
+	   const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
+	   unsigned row_size = vd.get_row_size ();
+	   unsigned region_count = vd.get_region_index_count ();
+	   for (unsigned r = 0; r < region_count && bounded; r++)
+	   {
+	     int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
+	     if (!delta) continue;
+	     unsigned region_idx = vd.get_region_index (r);
+	     if (region_idx >= regions.length) { bounded = false; break; }
+	     double smin = 1.0, smax = 1.0;
+	     for (const auto &_ : regions[region_idx])
+	     {
+	       hb_pair_t<double, double> *input;
+	       double blo = -1.0, bhi = +1.0;
+	       if (box.has (_.first, &input)) { blo = input->first; bhi = input->second; }
+	       double tmin, tmax;
+	       _tent_value_range (_.second, blo, bhi, &tmin, &tmax);
+	       smin *= tmin;
+	       smax *= tmax;
+	       if (smax == 0.0) break;
+	     }
+	     if (delta > 0) { dmin += smin * delta; dmax += smax * delta; }
+	     else           { dmin += smax * delta; dmax += smin * delta; }
+	   }
+	 }
+       }
+     }
+     if (!bounded)
+       continue; /* malformed row: no constraint, not self-contained */
+
+     /* A pinned axis whose delta is constant over the box is self-contained:
+      * its final coordinate is a constant. It can be removed from fvar/avar
+      * and its contribution baked into the variation tables like an ordinary
+      * pin at that coordinate (in old final space). Round the delta alone
+      * and add it to the exact quantized intermediate, matching the runtime
+      * (map_coords_2_14) and fontTools. */
+     Triple *user;
+     if (detect_self_contained && dmin == dmax &&
+	 plan->user_axes_location.has (tag, &user) && user->is_point ())
+     {
+       int v_int = (int) roundf ((float) identity->first * 16384.f) +
+		   (int) roundf ((float) dmin);
+       v_int = hb_clamp (v_int, -(1 << 14), +(1 << 14));
+       if (!plan->avar2_self_contained.set (tag, v_int / 16384.0)) return;
+       continue; /* axis is dropped; no region can reference it afterwards */
+     }
+
+     /* Pad by one F2Dot14 unit against rounding differences with the
+      * runtime's fixed-point evaluation. */
+     double lo = hb_clamp (identity->first + dmin / 16384.0 - 1.0 / 16384.0, -1.0, +1.0);
+     double hi = hb_clamp (identity->second + dmax / 16384.0 + 1.0 / 16384.0, -1.0, +1.0);
+     lo = floor (lo * 16384.0) / 16384.0;
+     hi = ceil (hi * 16384.0) / 16384.0;
+     if (lo <= -1.0 && hi >= +1.0)
+       continue; /* not constraining */
+     if (!plan->avar2_reachable_ranges.set (tag, Triple (lo, hb_clamp (0.0, lo, hi), hi)))
+       return;
+   }
+ }
+
 #ifndef HB_NO_OT_FONT_CFF
  static inline hb_font_t*
  _get_hb_font_with_variations (const hb_subset_plan_t *plan)
  {
    hb_font_t *font = hb_font_create (plan->source);
+
+   if (plan->has_avar2)
+   {
+     /* Under avar2, instancing applies only to the self-contained pins,
+      * whose constant final coordinates the plan holds in normalized_coords.
+      * Setting user-space variations would run the full avar2 mapping and
+      * bake contributions that remain live in the instance's variations. */
+     hb_font_set_var_coords_normalized (font, plan->normalized_coords.arrayZ,
+                                        plan->normalized_coords.length);
+     return font;
+   }
 
    hb_vector_t<hb_variation_t> vars;
    if (!vars.alloc (plan->user_axes_location.get_population ())) {
@@ -253,34 +419,125 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
   if (has_avar)
   {
     const OT::avar* avar_table = face->table.avar;
+    unsigned coords_len = last_idx + 1;
+
     if (avar_table->has_v2_data () && !plan->all_axes_pinned)
     {
-      DEBUG_MSG (SUBSET, nullptr, "Partial-instancing avar2 table is not supported.");
-      return false;
-    }
+      /* avar2 partial instancing: use v1-only mapping to get intermediate-space
+       * coords. These are used for IVS rebasing and offset compensation. */
+      plan->has_avar2 = true;
 
-    unsigned coords_len = last_idx + 1;
-    if (!plan->check_success (avar_table->map_coords_2_14 (normalized_mins.arrayZ, coords_len)) ||
-        !plan->check_success (avar_table->map_coords_2_14 (normalized_defaults.arrayZ, coords_len)) ||
-        !plan->check_success (avar_table->map_coords_2_14 (normalized_maxs.arrayZ, coords_len)))
-      return false;
+      if (!plan->check_success (avar_table->map_coords_v1_only (normalized_mins.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_v1_only (normalized_defaults.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_v1_only (normalized_maxs.arrayZ, coords_len)))
+        return false;
 
-    for (const auto& _ : + hb_enumerate (axes))
-    {
-      unsigned i = _.first;
-      hb_tag_t axis_tag = _.second.get_axis_tag ();
-      if (plan->user_axes_location.has (axis_tag))
+      for (const auto& _ : + hb_enumerate (axes))
       {
-        plan->axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
-                                                   (double) normalized_defaults[i],
-                                                   (double) normalized_maxs[i]));
-        float normalized_default = normalized_defaults[i];
-        if (normalized_default == -0.f)
-          normalized_default = 0.f; // Normalize -0 to 0
-        if (normalized_default != 0.f)
-          plan->pinned_at_default = false;
+        unsigned i = _.first;
+        hb_tag_t axis_tag = _.second.get_axis_tag ();
+        if (plan->user_axes_location.has (axis_tag))
+        {
+          /* Store intermediate-space coords for offset compensation and
+           * for avar's own segment-map renormalization and IVS rebasing. */
+          plan->old_intermediates.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                         (double) normalized_defaults[i],
+                                                         (double) normalized_maxs[i]));
+          plan->avar2_axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                           (double) normalized_defaults[i],
+                                                           (double) normalized_maxs[i]));
+        }
+      }
 
-        plan->normalized_coords[i] = roundf (normalized_default * 16384.f);
+      /* Reachable-range computation also detects self-contained pinned
+       * axes: pinned axes whose final coordinate is constant. Those are
+       * removed from fvar, so suppress the detection when the face has
+       * tables that cannot follow: CFF2 has no partial-pin instancing path
+       * (its 'pinned' path flattens ALL blends; lift this once
+       * https://github.com/harfbuzz/harfbuzz/pull/4710 lands, porting
+       * fontTools' instantiateCFF2 from
+       * https://github.com/fonttools/fonttools/pull/3506), and VARC passes
+       * through verbatim with explicit fvar axis indices that renumbering
+       * would desynchronize. Such axes stay in fvar as ordinary hidden
+       * pins. */
+      bool detect_self_contained = true;
+      for (hb_tag_t table_tag : { HB_TAG ('C','F','F','2'), HB_TAG ('V','A','R','C') })
+      {
+        hb_blob_t *blob = hb_face_reference_table (face, table_tag);
+        if (hb_blob_get_length (blob))
+          detect_self_contained = false;
+        hb_blob_destroy (blob);
+      }
+      _compute_avar2_reachable_ranges (plan, axes, avar_table,
+                                       detect_self_contained);
+
+      /* Keep all axes in fvar (pinned ones as hidden), EXCEPT self-contained
+       * pinned axes, which are removed entirely. */
+      plan->axes_index_map.reset ();
+      plan->axis_tags.reset ();
+      unsigned retained_axis_idx = 0;
+      for (const auto& _ : + hb_enumerate (axes))
+      {
+        unsigned i = _.first;
+        hb_tag_t axis_tag = _.second.get_axis_tag ();
+        if (plan->avar2_self_contained.has (axis_tag))
+          continue;
+        plan->axes_index_map.set (i, retained_axis_idx++);
+        plan->axis_tags.push (axis_tag);
+      }
+      plan->all_axes_pinned = false;
+
+      /* The other tables see ONLY the self-contained pins, as an ordinary
+       * partial instancing in old final-coordinate space; the standard
+       * instancing machinery bakes those axes' contributions in. The
+       * remaining restriction is carried entirely by avar. */
+      plan->axes_location.reset ();
+      if (plan->avar2_self_contained.get_population ())
+      {
+        bool sc_pinned_at_default = true;
+        for (auto _ : plan->avar2_self_contained)
+        {
+          plan->axes_location.set (_.first, Triple (_.second, _.second, _.second));
+          if (_.second != 0.0)
+            sc_pinned_at_default = false;
+        }
+        for (const auto& _ : + hb_enumerate (axes))
+        {
+          double *v;
+          plan->normalized_coords[_.first] =
+              plan->avar2_self_contained.has (_.second.get_axis_tag (), &v)
+              ? (int) roundf ((float) (*v * 16384.0)) : 0;
+        }
+        plan->pinned_at_default = sc_pinned_at_default;
+      }
+      else
+        plan->normalized_coords.shrink (0);
+    }
+    else
+    {
+      /* Standard avar v1 (or v1+v2 with all axes pinned) */
+      if (!plan->check_success (avar_table->map_coords_2_14 (normalized_mins.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_2_14 (normalized_defaults.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_2_14 (normalized_maxs.arrayZ, coords_len)))
+        return false;
+
+      for (const auto& _ : + hb_enumerate (axes))
+      {
+        unsigned i = _.first;
+        hb_tag_t axis_tag = _.second.get_axis_tag ();
+        if (plan->user_axes_location.has (axis_tag))
+        {
+          plan->axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                     (double) normalized_defaults[i],
+                                                     (double) normalized_maxs[i]));
+          float normalized_default = normalized_defaults[i];
+          if (normalized_default == -0.f)
+            normalized_default = 0.f;
+          if (normalized_default != 0.f)
+            plan->pinned_at_default = false;
+
+          plan->normalized_coords[i] = roundf (normalized_default * 16384.f);
+        }
       }
     }
   }
