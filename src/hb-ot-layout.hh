@@ -567,6 +567,20 @@ _hb_glyph_info_multiplied (const hb_glyph_info_t *info)
   return info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
 }
 
+static inline unsigned int
+_hb_glyph_info_get_lig_num_comps_in_ligation (const hb_glyph_info_t *info)
+{
+  /* When a glyph is decomposed by a MultipleSubst and its pieces later become
+   * components of a ligature, the pieces belong to the same ligature component
+   * as the first piece, matching how MarkBasePos attaches marks only to the
+   * first piece.  So the non-first pieces contribute no extra component.
+   * https://github.com/harfbuzz/harfbuzz/issues/4969 */
+  if (_hb_glyph_info_multiplied (info) &&
+      _hb_glyph_info_get_lig_comp (info))
+    return 0;
+  return _hb_glyph_info_get_lig_num_comps (info);
+}
+
 static inline bool
 _hb_glyph_info_ligated_and_didnt_multiply (const hb_glyph_info_t *info)
 {
