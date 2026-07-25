@@ -1,1 +1,3 @@
 ../fonts/98b7887cff91f722b92a8ff800120954606354f9.ttf;;U+100F,U+103C,U+102F,U+1036;[uni103C102F=0+150|uni100F=0+550|uni1036=0@-150,0+0]
+../fonts/55db4d5539b0f7f0b5e6cdb3ce6dd1eab6b3392a.ttf;;U+066E,U+064E,U+0644,U+064E;[fatha-ar=0@359,727+0|_lam.bowl=0+537|fatha-ar=0@20,370+0|behDotless_lam-ar.init=0+246]
+../fonts/55db4d5539b0f7f0b5e6cdb3ce6dd1eab6b3392a.ttf;--features=-liga;U+066E,U+064E,U+0644,U+064E;[fatha-ar=2@369,717+0|_lam.bowl=2+537|_lam=2+108|fatha-ar=0@20,370+0|behDotless-ar.init=0+220]
