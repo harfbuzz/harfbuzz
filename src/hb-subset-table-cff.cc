@@ -39,6 +39,35 @@ bool _hb_subset_table_cff		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_t
 }
 
 
+#ifndef HB_NO_CFF
+/**
+ * hb_subset_cff_get_glyph_cid:
+ * @face: A face object
+ * @glyph: The glyph index to get the CID of
+ * @cid: (out): The CID of @glyph
+ *
+ * Fetches the CID of the specified glyph from the charset of @face's `CFF `
+ * table, if the font is CID-keyed.
+ *
+ * Return value: `true` if @face is CID-keyed and @glyph is valid, `false`
+ * otherwise
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_subset_cff_get_glyph_cid (hb_face_t      *face,
+			     hb_codepoint_t  glyph,
+			     hb_codepoint_t *cid)
+{
+  auto &cff = *face->table.cff1;
+  if (unlikely (!cff.is_valid () || !cff.is_CID () || glyph >= cff.num_glyphs))
+    return false;
+
+  *cid = cff.glyph_to_sid (glyph);
+  return true;
+}
+#endif
+
 #ifdef HB_EXPERIMENTAL_API
 #ifndef HB_NO_CFF
 

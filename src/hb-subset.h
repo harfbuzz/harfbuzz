@@ -258,6 +258,11 @@ HB_EXTERN hb_blob_t*
 hb_subset_cff2_get_charstrings_index (hb_face_t* face);
 #endif
 
+HB_EXTERN hb_bool_t
+hb_subset_cff_get_glyph_cid (hb_face_t      *face,
+			     hb_codepoint_t  glyph,
+			     hb_codepoint_t *cid);
+
 HB_EXTERN hb_face_t *
 hb_subset_preprocess (hb_face_t *source);
 

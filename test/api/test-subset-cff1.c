@@ -336,6 +336,62 @@ test_subset_cff1_j_retaingids (void)
   hb_face_destroy (face_41_4c2e);
 }
 
+static void
+test_subset_cff1_get_glyph_cid (void)
+{
+  hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  hb_codepoint_t cid = (hb_codepoint_t) -1;
+
+  g_assert_true (hb_subset_cff_get_glyph_cid (face_41_3041_4c2e, 0, &cid));
+  g_assert_cmpuint (cid, ==, 0);
+  g_assert_true (hb_subset_cff_get_glyph_cid (face_41_3041_4c2e, 1, &cid));
+  g_assert_cmpuint (cid, ==, 34);
+  g_assert_true (hb_subset_cff_get_glyph_cid (face_41_3041_4c2e, 2, &cid));
+  g_assert_cmpuint (cid, ==, 1453);
+  g_assert_true (hb_subset_cff_get_glyph_cid (face_41_3041_4c2e, 3, &cid));
+  g_assert_cmpuint (cid, ==, 9407);
+
+  /* Out of range glyph */
+  g_assert_false (hb_subset_cff_get_glyph_cid (face_41_3041_4c2e, 5, &cid));
+
+  hb_face_destroy (face_41_3041_4c2e);
+}
+
+static void
+test_subset_cff1_get_glyph_cid_subset (void)
+{
+  hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_41_3041_4c2e_subset;
+  hb_codepoint_t cid = (hb_codepoint_t) -1;
+  hb_set_add (codepoints, 0x4C2E);
+  face_41_3041_4c2e_subset
+      = hb_subset_test_create_subset (face_41_3041_4c2e, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  /* U+4C2E is glyph 3 in the original font and glyph 1 in the subset, the CID
+   * remains the same. */
+  g_assert_true (hb_subset_cff_get_glyph_cid (face_41_3041_4c2e_subset, 1, &cid));
+  g_assert_cmpuint (cid, ==, 9407);
+
+  hb_face_destroy (face_41_3041_4c2e_subset);
+  hb_face_destroy (face_41_3041_4c2e);
+}
+
+static void
+test_subset_cff1_get_glyph_cid_name_keyed (void)
+{
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
+  hb_codepoint_t cid = (hb_codepoint_t) -1;
+
+  /* Not a CID-keyed font */
+  g_assert_false (hb_subset_cff_get_glyph_cid (face_abc, 0, &cid));
+  g_assert_false (hb_subset_cff_get_glyph_cid (face_abc, 1, &cid));
+
+  hb_face_destroy (face_abc);
+}
+
 #ifdef HB_EXPERIMENTAL_API
 static void
 test_subset_cff1_iftb_requirements (void)
@@ -383,6 +439,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_dotsection);
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
+  hb_test_add (test_subset_cff1_get_glyph_cid);
+  hb_test_add (test_subset_cff1_get_glyph_cid_subset);
+  hb_test_add (test_subset_cff1_get_glyph_cid_name_keyed);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_cff1_iftb_requirements);

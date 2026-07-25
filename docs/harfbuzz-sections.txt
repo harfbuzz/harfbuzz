@@ -991,6 +991,7 @@ hb_subset_plan_unicode_to_old_glyph_mapping
 hb_subset_plan_new_to_old_glyph_mapping
 hb_subset_plan_old_to_new_glyph_mapping
 hb_subset_preprocess
+hb_subset_cff_get_glyph_cid
 hb_subset_flags_t
 hb_subset_input_t
 hb_subset_sets_t
