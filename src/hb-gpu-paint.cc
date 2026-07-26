@@ -877,7 +877,7 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
   hb_color_stop_t *heap_stops = nullptr;
   if (count > 16)
   {
-    heap_stops = (hb_color_stop_t *) hb_malloc (count * sizeof (hb_color_stop_t));
+    heap_stops = (hb_color_stop_t *) hb_malloc2 (count, sizeof (hb_color_stop_t));
     if (unlikely (!heap_stops)) { c->unsupported = true; return; }
     stops = heap_stops;
   }
