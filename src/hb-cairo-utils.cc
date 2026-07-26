@@ -237,7 +237,7 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
     return false;
   if (len > *count)
   {
-    *stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
+    *stops = (hb_color_stop_t *) hb_malloc2 (len, sizeof (hb_color_stop_t));
     if (unlikely (!*stops))
       return false;
     allocated = true;

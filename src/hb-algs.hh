@@ -39,6 +39,19 @@
 #include <functional>
 #include <new>
 
+static HB_ALWAYS_INLINE void *
+hb_malloc2 (size_t nmemb, size_t size)
+{
+  if (size && nmemb > SIZE_MAX / size) return nullptr;
+  return hb_malloc (nmemb * size);
+}
+static HB_ALWAYS_INLINE void *
+hb_realloc2 (void *ptr, size_t nmemb, size_t size)
+{
+  if (size && nmemb > SIZE_MAX / size) return nullptr;
+  return hb_realloc (ptr, nmemb * size);
+}
+
 /*
  * Flags
  */
