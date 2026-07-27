@@ -280,7 +280,7 @@
 #if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
 #define HB_UNUSED	__attribute__((unused))
 #elif defined(_MSC_VER) /* https://github.com/harfbuzz/harfbuzz/issues/635 */
-#define HB_UNUSED __pragma(warning(suppress: 4100 4101))
+#define HB_UNUSED __pragma(warning(suppress: 4100 4101 4189))
 #else
 #define HB_UNUSED
 #endif
