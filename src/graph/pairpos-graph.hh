@@ -608,8 +608,10 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
   {
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       return ((PairPosFormat1*)(&u.format1))->split_subtables (c, this_index);
     case 2:
+      hb_barrier ();
       return ((PairPosFormat2*)(&u.format2))->split_subtables (c, this_index);
 #ifndef HB_NO_BEYOND_64K
     case 3: HB_FALLTHROUGH;
@@ -629,8 +631,10 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
 
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       return ((PairPosFormat1*)(&u.format1))->sanitize (vertex);
     case 2:
+      hb_barrier ();
       return ((PairPosFormat2*)(&u.format2))->sanitize (vertex);
 #ifndef HB_NO_BEYOND_64K
     case 3: HB_FALLTHROUGH;
