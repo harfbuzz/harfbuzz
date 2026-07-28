@@ -414,9 +414,9 @@ struct GSTAR : public OT::GSUBGPOS
   const void* get_lookup_list_field_offset () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.get_lookup_list_offset ();
+    case 1: hb_barrier (); return u.version1.get_lookup_list_offset ();
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.get_lookup_list_offset ();
+    case 2: hb_barrier (); return u.version2.get_lookup_list_offset ();
 #endif
     default: return 0;
     }

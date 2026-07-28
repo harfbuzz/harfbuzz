@@ -1636,8 +1636,8 @@ struct ClipBox
   {
     TRACE_SUBSET (this);
     switch (u.format.v) {
-    case 1: return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
-    case 2: return_trace (u.format2.subset (c, instancer));
+    case 1: hb_barrier (); return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
+    case 2: hb_barrier (); return_trace (u.format2.subset (c, instancer));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1645,7 +1645,7 @@ struct ClipBox
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     switch (u.format.v) {
-    case 2: u.format2.closurev1 (c); return;
+    case 2: hb_barrier (); u.format2.closurev1 (c); return;
     default:return;
     }
   }
@@ -1656,8 +1656,8 @@ struct ClipBox
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1668,9 +1668,11 @@ struct ClipBox
     ClipBoxData clip_box;
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       u.format1.get_clip_box (clip_box, instancer);
       break;
     case 2:
+      hb_barrier ();
       u.format2.get_clip_box (clip_box, instancer);
       break;
     default:
@@ -1866,38 +1868,38 @@ struct Paint
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
-    case 4: return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
-    case 6: return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
-    case 7: return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
-    case 8: return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
-    case 9: return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
-    case 10: return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
-    case 11: return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
-    case 12: return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
-    case 13: return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
-    case 14: return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
-    case 15: return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
-    case 16: return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
-    case 17: return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
-    case 18: return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
-    case 19: return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
-    case 20: return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
-    case 21: return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
-    case 22: return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
-    case 23: return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
-    case 24: return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
-    case 25: return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
-    case 26: return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
-    case 27: return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
-    case 28: return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
-    case 29: return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
-    case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
-    case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
-    case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
+    case 6: hb_barrier (); return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
+    case 7: hb_barrier (); return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
+    case 8: hb_barrier (); return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
+    case 9: hb_barrier (); return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
+    case 10: hb_barrier (); return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
+    case 11: hb_barrier (); return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
+    case 12: hb_barrier (); return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
+    case 13: hb_barrier (); return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
+    case 14: hb_barrier (); return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
+    case 15: hb_barrier (); return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
+    case 16: hb_barrier (); return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
+    case 17: hb_barrier (); return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
+    case 18: hb_barrier (); return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
+    case 19: hb_barrier (); return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
+    case 20: hb_barrier (); return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
+    case 21: hb_barrier (); return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
+    case 22: hb_barrier (); return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
+    case 23: hb_barrier (); return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
+    case 24: hb_barrier (); return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
+    case 25: hb_barrier (); return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
+    case 26: hb_barrier (); return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
+    case 27: hb_barrier (); return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
+    case 28: hb_barrier (); return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
+    case 29: hb_barrier (); return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
+    case 30: hb_barrier (); return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
+    case 31: hb_barrier (); return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
+    case 32: hb_barrier (); return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1906,8 +1908,8 @@ struct Paint
 			hb_bool_t *is_foreground, hb_color_t *color) const
   {
     switch (u.format.v) {
-    case 2: u.paintformat2.get_solid_color (c, is_foreground, color); return true;
-    case 3: u.paintformat3.get_solid_color (c, is_foreground, color); return true;
+    case 2: hb_barrier (); u.paintformat2.get_solid_color (c, is_foreground, color); return true;
+    case 3: hb_barrier (); u.paintformat3.get_solid_color (c, is_foreground, color); return true;
     default: return false;
     }
   }

@@ -2059,7 +2059,7 @@ struct cmap
       this->subtable_uvs = &Null (CmapSubtableFormat14);
       {
 	const CmapSubtable *st = table->find_subtable (0, 5);
-	if (st && st->u.format.v == 14)
+	if (st && st->u.format.v == 14 && hb_barrier ())
 	  subtable_uvs = &st->u.format14;
       }
 
@@ -2141,6 +2141,7 @@ struct cmap
 	    break;
 	  case  4:
 	  {
+	    hb_barrier ();
 	    this->format4_accel.init (&subtable->u.format4,
 				      get_subtable_data_size (subtable));
 	    this->get_glyph_data = &this->format4_accel;

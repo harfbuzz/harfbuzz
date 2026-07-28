@@ -706,7 +706,7 @@ struct FeatureParams
     return true;
 #endif
     TRACE_SANITIZE (this);
-    if (tag == HB_TAG ('s','i','z','e'))
+    if (tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return_trace (u.size.sanitize (c));
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return_trace (u.stylisticSet.sanitize (c));
@@ -720,7 +720,7 @@ struct FeatureParams
 #ifdef HB_NO_LAYOUT_FEATURE_PARAMS
     return;
 #endif
-    if (tag == HB_TAG ('s','i','z','e'))
+    if (tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return (u.size.collect_name_ids (nameids_to_retain));
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return (u.stylisticSet.collect_name_ids (nameids_to_retain));
@@ -732,7 +732,7 @@ struct FeatureParams
   {
     TRACE_SUBSET (this);
     if (!tag) return_trace (false);
-    if (*tag == HB_TAG ('s','i','z','e'))
+    if (*tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return_trace (u.size.subset (c));
     if ((*tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return_trace (u.stylisticSet.subset (c));
@@ -744,7 +744,7 @@ struct FeatureParams
 #ifndef HB_NO_LAYOUT_FEATURE_PARAMS
   const FeatureParamsSize& get_size_params (hb_tag_t tag) const
   {
-    if (tag == HB_TAG ('s','i','z','e'))
+    if (tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return u.size;
     return Null (FeatureParamsSize);
   }
@@ -4955,10 +4955,12 @@ struct Device
     {
 #ifndef HB_NO_HINTING
     case 1: case 2: case 3:
+      hb_barrier ();
       return u.hinting.get_x_delta (font);
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return u.variation.get_x_delta (font, store, store_cache);
 #endif
     default:
@@ -4973,10 +4975,12 @@ struct Device
     {
     case 1: case 2: case 3:
 #ifndef HB_NO_HINTING
+      hb_barrier ();
       return u.hinting.get_y_delta (font);
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return u.variation.get_y_delta (font, store, store_cache);
 #endif
     default:
@@ -4991,10 +4995,12 @@ struct Device
     switch (u.b.format) {
 #ifndef HB_NO_HINTING
     case 1: case 2: case 3:
+      hb_barrier ();
       return_trace (u.hinting.sanitize (c));
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return_trace (u.variation.sanitize (c));
 #endif
     default:
@@ -5011,10 +5017,12 @@ struct Device
     case 1:
     case 2:
     case 3:
+      hb_barrier ();
       return_trace (reinterpret_cast<Device *> (u.hinting.copy (c)));
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return_trace (reinterpret_cast<Device *> (u.variation.copy (c, layout_variation_idx_delta_map)));
 #endif
     default:
@@ -5033,6 +5041,7 @@ struct Device
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       u.variation.collect_variation_index (c);
       return;
 #endif
@@ -5046,6 +5055,7 @@ struct Device
     switch (u.b.format) {
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return u.variation.varIdx;
 #endif
     default:

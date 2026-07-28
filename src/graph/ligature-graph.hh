@@ -485,6 +485,7 @@ struct LigatureSubst : public OT::Layout::GSUB_impl::LigatureSubst
   {
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       return ((LigatureSubstFormat1*)(&u.format1))->split_subtables (c, this_index);
 #ifndef HB_NO_BEYOND_64K
     case 2: HB_FALLTHROUGH;
@@ -503,6 +504,7 @@ struct LigatureSubst : public OT::Layout::GSUB_impl::LigatureSubst
 
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       return ((LigatureSubstFormat1*)(&u.format1))->sanitize (vertex);
 #ifndef HB_NO_BEYOND_64K
     case 2:  HB_FALLTHROUGH;

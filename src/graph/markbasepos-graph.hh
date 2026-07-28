@@ -480,6 +480,7 @@ struct MarkBasePos : public OT::Layout::GPOS_impl::MarkBasePos
   {
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       return ((MarkBasePosFormat1*)(&u.format1))->split_subtables (c, this_index);
 #ifndef HB_NO_BEYOND_64K
     case 2: HB_FALLTHROUGH;
@@ -498,6 +499,7 @@ struct MarkBasePos : public OT::Layout::GPOS_impl::MarkBasePos
 
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       return ((MarkBasePosFormat1*)(&u.format1))->sanitize (vertex);
 #ifndef HB_NO_BEYOND_64K
     case 2: HB_FALLTHROUGH;
