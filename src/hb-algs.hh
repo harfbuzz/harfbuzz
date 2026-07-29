@@ -890,6 +890,18 @@ struct
 }
 HB_FUNCOBJ (hb_clamp);
 
+/* Convert a floating-point value to integer type T, saturating to T's
+ * range instead of relying on the undefined behavior of an out-of-range
+ * float-to-int conversion.  NaN saturates to the minimum of T. */
+template <typename T>
+static inline T
+hb_clamp_to (double v)
+{
+  return (T) hb_clamp (v,
+		       (double) hb_int_min (T),
+		       (double) hb_int_max (T));
+}
+
 /*
  * Bithacks.
  */
