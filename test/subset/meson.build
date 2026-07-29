@@ -76,6 +76,7 @@ tests = [
   'instantiate_cff2_update_metrics',
   'layout.empty_ligature_offset',
   'glyf_partial_instancing',
+  'hvar_partial_instance_implicit_map',
   'mvar_partial_instance',
   'update_def_wght',
   'feature_variations_partial_instance',
