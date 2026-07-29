@@ -268,6 +268,7 @@ static void hb_vector_paint_push_transform (hb_paint_funcs_t *, void *,
                                             float, float, float, float, float, float,
                                             void *);
 static void hb_vector_paint_pop_transform (hb_paint_funcs_t *, void *, void *);
+static void hb_vector_paint_fill_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, hb_bool_t, hb_color_t, void *);
 static void hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, void *);
 static void hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *, void *, float, float, float, float, void *);
 static hb_draw_funcs_t * hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *, void *, void **, void *);
@@ -308,6 +309,7 @@ static struct hb_vector_paint_funcs_lazy_loader_t
     hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
     hb_paint_funcs_set_push_transform_func (funcs, (hb_paint_push_transform_func_t) hb_vector_paint_push_transform, nullptr, nullptr);
     hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_vector_paint_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_fill_glyph_func (funcs, (hb_paint_fill_glyph_func_t) hb_vector_paint_fill_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_vector_paint_push_clip_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_vector_paint_push_clip_rectangle, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_path_start_func (funcs, (hb_paint_push_clip_path_start_func_t) hb_vector_paint_push_clip_path_start, nullptr, nullptr);
@@ -411,6 +413,32 @@ hb_vector_paint_pop_transform (hb_paint_funcs_t *,
   paint->transform_group_open_mask >>= 1;
   if (opened)
     paint->current_body ().append_str ("</g>\n");
+}
+
+static void
+hb_vector_paint_fill_glyph (hb_paint_funcs_t *,
+                            void *paint_data,
+                            hb_codepoint_t glyph,
+                            hb_font_t *font,
+                            hb_bool_t,
+                            hb_color_t color,
+                            void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!paint->ensure_initialized ()))
+    return;
+
+  paint->path.clear ();
+  hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
+			       paint->x_scale_factor, paint->y_scale_factor};
+  hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
+
+  auto &body = paint->current_body ();
+  body.append_str ("<path d=\"");
+  body.append_len (paint->path.arrayZ, paint->path.length);
+  body.append_str ("\" fill=\"");
+  body.append_svg_color (color, true);
+  body.append_str ("\"/>\n");
 }
 
 static void

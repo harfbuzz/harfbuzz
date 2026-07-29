@@ -520,6 +520,46 @@ test_paint_recycle_blob (void)
 
 
 static void
+test_paint_clip_path_depth_overflow (void)
+{
+  /* push_clip_path_end must honor the same clip-depth cap as
+   * push_clip_glyph and push_clip_path_start.  Interleaving clip
+   * pushes drives clip_depth past HB_GPU_PAINT_MAX_CLIP_DEPTH before
+   * the path is closed; without a bound check push_clip_path_end
+   * wrote past the fixed-size clip_stack (heap-buffer-overflow). */
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+  hb_gpu_paint_set_scale (p, 1000, 1000);
+
+  hb_paint_funcs_t *pf = hb_gpu_paint_get_funcs (p);
+  hb_font_t *font = hb_font_get_empty ();
+
+  void *draw_data = nullptr;
+  hb_draw_funcs_t *df = hb_paint_push_clip_path_start (pf, p, &draw_data);
+  g_assert_nonnull (df);
+
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (df, draw_data, &st, 0.f, 0.f);
+  hb_draw_line_to (df, draw_data, &st, 100.f, 0.f);
+  hb_draw_line_to (df, draw_data, &st, 100.f, 100.f);
+  hb_draw_close_path (df, draw_data, &st);
+
+  /* Push more clips than the stack holds before closing the path. */
+  for (unsigned i = 0; i < 4; i++)
+    hb_paint_push_clip_glyph (pf, p, i, font);
+
+  hb_paint_push_clip_path_end (pf, p);
+
+  /* Overflowing the clip stack marks the paint unsupported rather
+   * than writing past clip_stack, so encode returns NULL. */
+  hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+  g_assert_null (blob);
+
+  hb_gpu_paint_destroy (p);
+}
+
+
+static void
 test_shapes (void)
 {
   hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
@@ -633,6 +673,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_auto_clear_on_encode);
   hb_test_add (test_paint_reset);
   hb_test_add (test_paint_recycle_blob);
+  hb_test_add (test_paint_clip_path_depth_overflow);
 
   return hb_test_run ();
 }

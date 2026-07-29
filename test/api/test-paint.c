@@ -111,6 +111,24 @@ pop_transform (hb_paint_funcs_t *funcs HB_UNUSED,
   print (data, "end transform");
 }
 
+static void
+fill_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
+            void *paint_data,
+            hb_codepoint_t glyph,
+            hb_font_t *font HB_UNUSED,
+            hb_bool_t use_foreground HB_UNUSED,
+            hb_color_t color,
+            void *user_data HB_UNUSED)
+{
+  paint_data_t *data = paint_data;
+
+  print (data, "fill glyph %u solid %d %d %d %d", glyph,
+         hb_color_get_red (color),
+         hb_color_get_green (color),
+         hb_color_get_blue (color),
+         hb_color_get_alpha (color));
+}
+
 static hb_bool_t
 paint_color_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
                    void *paint_data,
@@ -341,6 +359,7 @@ get_test_paint_funcs (void)
 
     hb_paint_funcs_set_push_transform_func (funcs, push_transform, NULL, NULL);
     hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, NULL, NULL);
+    hb_paint_funcs_set_fill_glyph_func (funcs, fill_glyph, NULL, NULL);
     hb_paint_funcs_set_color_glyph_func (funcs, paint_color_glyph, NULL, NULL);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, NULL, NULL);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, push_clip_rectangle, NULL, NULL);
@@ -828,6 +847,70 @@ test_push_clip_path_round_trip (void)
   hb_draw_funcs_destroy (sink);
 }
 
+/* Test the default implementation of fill_glyph does the
+ * push_clip_glyph + color + pop_clip sequence. */
+static void
+test_fill_glyph_nil_decomposes (void)
+{
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, NULL, NULL);
+  hb_paint_funcs_set_color_func (funcs, paint_color, NULL, NULL);
+  hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, NULL, NULL);
+  hb_paint_funcs_make_immutable (funcs);
+
+  paint_data_t data;
+  data.string = g_string_new ("");
+  data.level = 0;
+
+  hb_paint_fill_glyph (funcs, &data, 42, hb_font_get_empty (),
+                       FALSE, HB_COLOR (1, 2, 3, 4));
+
+  g_assert_true (data.level == 0);
+  g_assert_cmpstr (data.string->str, ==,
+                   "start clip glyph 42\n"
+                   "  solid 3 2 1 4\n"
+                   "end clip\n");
+
+  g_string_free (data.string, TRUE);
+  hb_paint_funcs_destroy (funcs);
+}
+
+static void *color_glyph_user_data_seen;
+
+static hb_bool_t
+color_glyph_record_user_data (hb_paint_funcs_t *funcs HB_UNUSED,
+                              void *paint_data HB_UNUSED,
+                              hb_codepoint_t glyph HB_UNUSED,
+                              hb_font_t *font HB_UNUSED,
+                              void *user_data)
+{
+  color_glyph_user_data_seen = user_data;
+  return TRUE;
+}
+
+/* Each callback must be handed the user_data it was registered with,
+ * not another callback's. */
+static void
+test_color_glyph_user_data (void)
+{
+  char color_glyph_ctx = 0;
+  char push_clip_glyph_ctx = 0;
+
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_color_glyph_func (funcs, color_glyph_record_user_data,
+                                       &color_glyph_ctx, NULL);
+  hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph,
+                                           &push_clip_glyph_ctx, NULL);
+  hb_paint_funcs_make_immutable (funcs);
+
+  color_glyph_user_data_seen = NULL;
+  hb_paint_color_glyph (funcs, NULL, 42, hb_font_get_empty ());
+
+  g_assert_true (color_glyph_user_data_seen == &color_glyph_ctx);
+
+  hb_paint_funcs_destroy (funcs);
+}
+
 
 int
 main (int argc, char **argv)
@@ -840,6 +923,8 @@ main (int argc, char **argv)
    * below doesn't prevent them from running. */
   hb_test_add (test_push_clip_path_nil_returns_null);
   hb_test_add (test_push_clip_path_round_trip);
+  hb_test_add (test_fill_glyph_nil_decomposes);
+  hb_test_add (test_color_glyph_user_data);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {

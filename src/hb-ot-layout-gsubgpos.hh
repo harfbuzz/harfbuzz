@@ -580,9 +580,6 @@ struct skipping_iterator_t
     return SKIP;
   }
 
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   bool next (unsigned *unsafe_to = nullptr)
   {
     auto *info = c->buffer->info;
@@ -611,9 +608,6 @@ struct skipping_iterator_t
       *unsafe_to = end;
     return false;
   }
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   bool prev (unsigned *unsafe_from = nullptr)
   {
     auto *out_info = c->buffer->out_info;
@@ -854,7 +848,11 @@ struct hb_ot_apply_context_t :
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
-      return gdef_accel.mark_set_covers (match_props >> 16, info->codepoint);
+    {
+      unsigned set_index = match_props >> 16;
+      return gdef_accel.mark_set_may_cover (set_index, info->codepoint) &&
+	     gdef.mark_set_covers (set_index, info->codepoint);
+    }
 
     /* The second byte of match_props has the meaning
      * "ignore marks of attachment type different than

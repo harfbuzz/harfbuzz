@@ -21,6 +21,7 @@ if '--experimental-api' not in sys.argv:
 	experimental_symbols = \
 """hb_shape_justify
 hb_subset_input_override_name_table
+hb_subset_input_to_string_or_fail
 hb_subset_cff_get_charstring_data
 hb_subset_cff_get_charstrings_index
 hb_subset_cff2_get_charstring_data

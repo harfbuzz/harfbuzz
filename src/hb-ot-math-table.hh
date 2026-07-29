@@ -372,7 +372,7 @@ struct MathKern
     const MathValueRecord* kernValue = mathValueRecordsZ.arrayZ + heightCount;
     const unsigned int entriesCount = heightCount + 1;
 
-    if (entries_count)
+    if (entries_count && kern_entries)
     {
       unsigned int start = hb_min (start_offset, entriesCount);
       unsigned int end = hb_min (start + *entries_count, entriesCount);
@@ -776,7 +776,7 @@ struct MathGlyphAssembly
 			  hb_ot_math_glyph_part_t *parts /* OUT */,
 			  hb_position_t *italics_correction /* OUT */) const
   {
-    if (parts_count)
+    if (parts_count && parts)
     {
       int64_t mult = font->dir_mult (direction);
       for (auto _ : hb_zip (partRecords.as_array ().sub_array (start_offset, parts_count),
@@ -845,7 +845,7 @@ struct MathGlyphConstruction
 			     unsigned int *variants_count, /* IN/OUT */
 			     hb_ot_math_glyph_variant_t *variants /* OUT */) const
   {
-    if (variants_count)
+    if (variants_count && variants)
     {
       int64_t mult = font->dir_mult (direction);
       for (auto _ : hb_zip (mathGlyphVariantRecord.as_array ().sub_array (start_offset, variants_count),
@@ -931,7 +931,7 @@ struct MathVariants
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = c->plan->_glyphset_mathed;
+    const hb_set_t &glyphset = c->plan->_glyphset_cmaped;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     auto *out = c->serializer->start_embed (*this);

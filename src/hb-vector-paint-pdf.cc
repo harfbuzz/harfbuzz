@@ -393,6 +393,58 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
 }
 
 static void
+hb_pdf_paint_fill_glyph (hb_paint_funcs_t *,
+			 void *paint_data,
+			 hb_codepoint_t glyph,
+			 hb_font_t *font,
+			 hb_bool_t,
+			 hb_color_t c,
+			 void *)
+{
+  auto *paint = (hb_vector_paint_t *) paint_data;
+  if (unlikely (!paint->ensure_initialized ()))
+    return;
+
+  float r = hb_color_get_red (c) / 255.f;
+  float g = hb_color_get_green (c) / 255.f;
+  float b = hb_color_get_blue (c) / 255.f;
+  float a = hb_color_get_alpha (c) / 255.f;
+
+  if (a < 1.f / 255.f)
+    return;
+
+  auto &body = paint->current_body ();
+
+  bool scoped = false;
+  /* Set alpha via ExtGState if needed, scoped so it does not leak
+   * into later paints. */
+  if (a < 1.f - 1.f / 512.f)
+  {
+    auto *res = hb_pdf_get_resources (paint);
+    if (res)
+    {
+      unsigned gs_idx = res->add_extgstate_alpha (a);
+      body.append_str ("q\n");
+      scoped = true;
+      body.append_str ("/GS");
+      body.append_unsigned (gs_idx);
+      body.append_str (" gs\n");
+    }
+  }
+
+  body.append_num (r, 4);
+  body.append_c (' ');
+  body.append_num (g, 4);
+  body.append_c (' ');
+  body.append_num (b, 4);
+  body.append_str (" rg\n");
+  hb_pdf_emit_glyph_path (paint, font, glyph, &body);
+  body.append_str ("f\n");
+  if (scoped)
+    body.append_str ("Q\n");
+}
+
+static void
 hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
 			      void *paint_data,
 			      hb_codepoint_t glyph,
@@ -546,8 +598,19 @@ hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
   (void) width; (void) height; (void) trns; (void) trns_len;
   return false;
 #else
+  /* Guard the size arithmetic below against 32-bit overflow.  width/height come
+   * from the attacker-controlled PNG IHDR; without this, (width + 1) * height or
+   * width * height can wrap and under-size buffers that are then indexed per
+   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]). */
+  unsigned raw_len, mask_len;
+  if (!width || !height ||
+      width == 0xFFFFFFFFu ||
+      hb_unsigned_mul_overflows (width + 1, height, &raw_len) ||
+      hb_unsigned_mul_overflows (width, height, &mask_len))
+    return false;
+
   /* Decompress IDAT (zlib). */
-  unsigned raw_len = (width + 1) * height; /* 1 filter byte per row + width bytes */
+  /* raw_len = (width + 1) * height: 1 filter byte per row + width bytes. */
   uint8_t *raw = (uint8_t *) hb_malloc (raw_len);
   if (!raw) return false;
   HB_SCOPE_GUARD (hb_free (raw));
@@ -567,7 +630,7 @@ hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
     return false;
 
   /* Un-filter and map to alpha. */
-  if (!out->resize (width * height))
+  if (!out->resize (mask_len))
     return false;
 
   uint8_t *unfiltered = (uint8_t *) hb_malloc (width);
@@ -680,11 +743,14 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   hb_vector_buf_t idat;
 
   unsigned pos = 8;
-  while (pos + 12 <= len)
+  /* Invariant: pos <= len (len >= 8 checked above).  All bounds checks below
+   * are written to avoid 32-bit wrapping: a malicious chunk_len must not be
+   * able to wrap pos + 12 + chunk_len past the end of the buffer. */
+  while (len - pos >= 12)
   {
     uint32_t chunk_len = hb_pdf_png_u32 (data + pos);
     uint32_t chunk_type = hb_pdf_png_u32 (data + pos + 4);
-    if (pos + 12 + chunk_len > len)
+    if (chunk_len > len - pos - 12)
       break;
     const uint8_t *chunk_data = data + pos + 8;
 
@@ -1520,6 +1586,7 @@ static struct hb_pdf_paint_funcs_lazy_loader_t
     hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
     hb_paint_funcs_set_push_transform_func (funcs, (hb_paint_push_transform_func_t) hb_pdf_paint_push_transform, nullptr, nullptr);
     hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_pdf_paint_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_fill_glyph_func (funcs, (hb_paint_fill_glyph_func_t) hb_pdf_paint_fill_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_pdf_paint_push_clip_glyph, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_pdf_paint_push_clip_rectangle, nullptr, nullptr);
     hb_paint_funcs_set_push_clip_path_start_func (funcs, (hb_paint_push_clip_path_start_func_t) hb_pdf_paint_push_clip_path_start, nullptr, nullptr);
@@ -1598,11 +1665,11 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   out.append_str ("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
   out.append_num (ex);
   out.append_c (' ');
-  out.append_num (-(ey + eh));
+  out.append_num (ey);
   out.append_c (' ');
   out.append_num (ex + ew);
   out.append_c (' ');
-  out.append_num (-ey);
+  out.append_num (ey + eh);
   out.append_str ("]\n/Contents 4 0 R");
 
   /* Resources. */
@@ -1660,7 +1727,7 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
     bg_prefix.append_str (" rg\n");
     bg_prefix.append_num (ex);
     bg_prefix.append_c (' ');
-    bg_prefix.append_num (-(ey + eh));
+    bg_prefix.append_num (ey);
     bg_prefix.append_c (' ');
     bg_prefix.append_num (ew);
     bg_prefix.append_c (' ');

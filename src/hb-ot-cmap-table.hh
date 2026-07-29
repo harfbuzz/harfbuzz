@@ -659,6 +659,7 @@ struct CmapSubtableFormat4
 	    hb_codepoint_t gid = this->glyphIdArray[index];
 	    if (unlikely (!gid))
 	      continue;
+            gid = (gid + this->idDelta[i]) & 0xFFFFu;
 	    unicodes->add (codepoint);
 	    mapping->set (codepoint, gid);
 	  }
@@ -2237,6 +2238,7 @@ struct cmap
 	    break;
 	  case  4:
 	  {
+	    hb_barrier ();
 	    this->format4_accel.init (&subtable->u.format4,
 				      get_subtable_data_size (subtable));
 	    this->get_glyph_data = &this->format4_accel;

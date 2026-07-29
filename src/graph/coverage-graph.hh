@@ -35,7 +35,7 @@ namespace graph {
 template <typename Types>
 static bool sanitize (
   const OT::Layout::Common::CoverageFormat1_3<Types>* thiz,
-  graph_t::vertex_t& vertex
+  const graph_t::vertex_t& vertex
 ) {
   size_t vertex_len = vertex.obj.tail - vertex.obj.head;
   constexpr unsigned min_size = OT::Layout::Common::CoverageFormat1_3<Types>::min_size;
@@ -47,7 +47,7 @@ static bool sanitize (
 template <typename Types>
 static bool sanitize (
   const OT::Layout::Common::CoverageFormat2_4<Types>* thiz,
-  graph_t::vertex_t& vertex
+  const graph_t::vertex_t& vertex
 ) {
   size_t vertex_len = vertex.obj.tail - vertex.obj.head;
   constexpr unsigned min_size = OT::Layout::Common::CoverageFormat2_4<Types>::min_size;
@@ -158,7 +158,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     return true;
   }
 
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (const graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < OT::Layout::Common::Coverage::min_size) return false;

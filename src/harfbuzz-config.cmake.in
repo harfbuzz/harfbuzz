@@ -4,31 +4,40 @@ set_and_check(HARFBUZZ_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
 
 set(HARFBUZZ_VERSION "@HARFBUZZ_VERSION@")
 
+function(_harfbuzz_set_imported_library target library_name)
+  set_target_properties("${target}" PROPERTIES
+    IMPORTED_LOCATION "@HB_LIB_DIR@/@HB_LIB_PREFIX@${library_name}@HB_LIB_SUFFIX@")
+  if (@HB_HAS_IMPORT_LIBRARY@)
+    set_target_properties("${target}" PROPERTIES
+      IMPORTED_IMPLIB "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@HB_IMPLIB_PREFIX@${library_name}@HB_IMPLIB_SUFFIX@")
+  endif ()
+endfunction()
+
 # Add the libraries.
 add_library(harfbuzz::harfbuzz @HB_LIBRARY_TYPE@ IMPORTED)
 set_target_properties(harfbuzz::harfbuzz PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_INCLUDE_INSTALL_DIR@"
-  IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@HB_LIB_PREFIX@harfbuzz@HB_LIB_SUFFIX@")
+  INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_INCLUDE_INSTALL_DIR@")
+_harfbuzz_set_imported_library(harfbuzz::harfbuzz harfbuzz)
 
 add_library(harfbuzz::icu @HB_LIBRARY_TYPE@ IMPORTED)
 set_target_properties(harfbuzz::icu PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_INCLUDE_INSTALL_DIR@"
-  INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz"
-  IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@HB_LIB_PREFIX@harfbuzz-icu@HB_LIB_SUFFIX@")
+  INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz")
+_harfbuzz_set_imported_library(harfbuzz::icu harfbuzz-icu)
 
 add_library(harfbuzz::subset @HB_LIBRARY_TYPE@ IMPORTED)
 set_target_properties(harfbuzz::subset PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_INCLUDE_INSTALL_DIR@"
-  INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz"
-  IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@HB_LIB_PREFIX@harfbuzz-subset@HB_LIB_SUFFIX@")
+  INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz")
+_harfbuzz_set_imported_library(harfbuzz::subset harfbuzz-subset)
 
 # Only add the gobject library if it was built.
 if (@HB_HAVE_GOBJECT@)
   add_library(harfbuzz::gobject @HB_LIBRARY_TYPE@ IMPORTED)
   set_target_properties(harfbuzz::gobject PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_INCLUDE_INSTALL_DIR@"
-    INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz"
-    IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@HB_LIB_PREFIX@harfbuzz-gobject@HB_LIB_SUFFIX@")
+    INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz")
+  _harfbuzz_set_imported_library(harfbuzz::gobject harfbuzz-gobject)
 endif ()
 
 check_required_components(harfbuzz)

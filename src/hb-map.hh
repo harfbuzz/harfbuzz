@@ -204,7 +204,7 @@ struct hb_hashmap_t
 
     unsigned int power = hb_bit_storage (hb_max (hb_max ((unsigned) population, new_population) * 2, 4u));
     unsigned int new_size = 1u << power;
-    item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
+    item_t *new_items = (item_t *) hb_malloc2 ((size_t) new_size, sizeof (item_t));
     if (unlikely (!new_items))
     {
       successful = false;

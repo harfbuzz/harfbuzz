@@ -28,7 +28,7 @@ hb_subset_cli_sources = [
 
 # If found, invoke it on our four binaries to build man pages
 # If not found, just skip this step
-if not get_option('docs').disabled()
+if not get_option('docs').disabled() and not meson.is_cross_build()
   help2man = find_program('help2man', required: false)
 else
   help2man = disabler()

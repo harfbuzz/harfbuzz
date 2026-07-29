@@ -981,6 +981,7 @@ subset_main_t::add_options ()
     {"retain-gids",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,		"If set don't renumber glyph ids in the subset.", nullptr},
     {"desubroutinize",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,		"Remove CFF/CFF2 use of subroutines", nullptr},
     {"downgrade-cff2",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DOWNGRADE_CFF2>,		"Convert instantiated variable fonts from CFF2 to CFF1", nullptr},
+    {"cff-identity-charset",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET>,	"Emit identity CFF charset (CID = new GID) for CID-keyed CFF", nullptr},
     {"name-legacy",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,		"Keep legacy (non-Unicode) 'name' table entries", nullptr},
     {"set-overlaps-flag",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,	"Set the overlaps flag on each glyph.", nullptr},
     {"notdef-outline",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,		"Keep the outline of \'.notdef\' glyph", nullptr},
@@ -1023,7 +1024,7 @@ subset_main_t::add_options ()
 
   GOptionEntry entries[] =
   {
-    {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+    {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_FILENAME,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE] [TEXT]"},
     {nullptr}
   };
@@ -1034,5 +1035,6 @@ subset_main_t::add_options ()
 int
 main (int argc, char **argv)
 {
-  return batch_main<subset_main_t, true> (argc, argv);
+  argv_t args (argc, argv);
+  return batch_main<subset_main_t, true> (args.argc, args.argv);
 }

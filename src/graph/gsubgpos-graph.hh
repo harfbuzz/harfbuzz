@@ -50,7 +50,7 @@ struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
     this->extensionOffset = 0;
   }
 
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (const graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     return vertex_len >= OT::ExtensionFormat1<T>::static_size;
@@ -74,7 +74,7 @@ struct Lookup : public OT::Lookup
     return subTable.len;
   }
 
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (const graph_t::vertex_t& vertex) const
   {
     size_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < OT::Lookup::min_size) return false;

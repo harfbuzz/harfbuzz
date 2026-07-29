@@ -7,7 +7,9 @@ if(POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## Disallow in-source builds, as CMake generated make files can collide with autotools ones
@@ -58,6 +60,18 @@ option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
 option(HB_BUILD_RASTER "Build harfbuzz-raster" ON)
 option(HB_BUILD_VECTOR "Build harfbuzz-vector" ON)
 option(HB_BUILD_GPU "Build harfbuzz-gpu" ON)
+set(HB_BUILD_GPU_DEMO "AUTO" CACHE STRING "Build hb-gpu demo tool (AUTO, ON, or OFF)")
+set_property(CACHE HB_BUILD_GPU_DEMO PROPERTY STRINGS AUTO ON OFF)
+string(TOUPPER "${HB_BUILD_GPU_DEMO}" HB_BUILD_GPU_DEMO)
+if (NOT HB_BUILD_GPU_DEMO MATCHES "^(AUTO|ON|OFF)$")
+  message(FATAL_ERROR "HB_BUILD_GPU_DEMO must be AUTO, ON, or OFF")
+endif ()
+if (HB_BUILD_GPU_DEMO STREQUAL "ON" AND NOT HB_BUILD_GPU)
+  message(FATAL_ERROR "HB_BUILD_GPU_DEMO is ON but HB_BUILD_GPU is OFF")
+endif ()
+if (HB_BUILD_GPU_DEMO STREQUAL "ON" AND NOT HB_BUILD_UTILS)
+  message(FATAL_ERROR "HB_BUILD_GPU_DEMO is ON but HB_BUILD_UTILS is OFF")
+endif ()
 set(HB_HAVE_SUBSET ${HB_BUILD_SUBSET})
 set(HB_HAVE_RASTER ${HB_BUILD_RASTER})
 set(HB_HAVE_VECTOR ${HB_BUILD_VECTOR})
@@ -245,7 +259,6 @@ set (subset_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h
 )
 set (raster_project_sources
-     ${PROJECT_SOURCE_DIR}/src/hb-raster.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.cc
      ${PROJECT_SOURCE_DIR}/src/hb-raster-image.hh
      ${PROJECT_SOURCE_DIR}/src/hb-raster.hh
@@ -351,7 +364,8 @@ if (HB_HAVE_ICU)
 
   find_package(ICU REQUIRED COMPONENTS uc)
 
-  if (ICU_VERSION VERSION_GREATER_EQUAL 75.1)
+  if (ICU_VERSION VERSION_GREATER_EQUAL 75.1 AND
+      CMAKE_CXX_STANDARD LESS 17)
     set(CMAKE_CXX_STANDARD 17)
   endif ()
 
@@ -759,13 +773,6 @@ if (UNIX OR MINGW OR VITA)
     # No threadsafe statics as we do it ourselves
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics")
   endif ()
-
-  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-  if (COMPILER_SUPPORTS_CXX11)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-  endif()
 endif ()
 
 
@@ -1036,7 +1043,7 @@ if (HB_BUILD_UTILS)
     target_link_libraries(hb-info harfbuzz-gobject harfbuzz)
   endif()
 
-  if (HB_BUILD_GPU)
+  if (HB_BUILD_GPU AND NOT HB_BUILD_GPU_DEMO STREQUAL "OFF")
     find_package(OpenGL QUIET)
     find_package(GLEW QUIET)
     find_package(glfw3 QUIET)
@@ -1069,6 +1076,23 @@ if (HB_BUILD_UTILS)
         target_link_libraries(hb-gpu
             "${D3D11_LIBRARY}"
             "${D3DCOMPILER_LIBRARY}")
+      endif ()
+    else ()
+      set(_hb_gpu_demo_missing_deps)
+      if (NOT OpenGL_FOUND)
+        list(APPEND _hb_gpu_demo_missing_deps OpenGL)
+      endif ()
+      if (NOT GLEW_FOUND)
+        list(APPEND _hb_gpu_demo_missing_deps GLEW)
+      endif ()
+      if (NOT glfw3_FOUND)
+        list(APPEND _hb_gpu_demo_missing_deps glfw3)
+      endif ()
+      string(REPLACE ";" ", " _hb_gpu_demo_missing_deps "${_hb_gpu_demo_missing_deps}")
+      if (HB_BUILD_GPU_DEMO STREQUAL "ON")
+        message(FATAL_ERROR "HB_BUILD_GPU_DEMO is ON but missing dependencies: ${_hb_gpu_demo_missing_deps}")
+      else ()
+        message(STATUS "Not building hb-gpu: missing dependencies: ${_hb_gpu_demo_missing_deps}")
       endif ()
     endif ()
   endif ()

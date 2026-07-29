@@ -123,7 +123,9 @@ public:
   static unsigned
   color_alpha (hb_color_t color, float alpha)
   {
-    return roundf (hb_color_get_alpha (color) * alpha);
+    /* Font-supplied alpha is F2DOT14 plus variation deltas, so it can be
+     * negative or greater than one; converting that to unsigned is UB. */
+    return roundf (hb_color_get_alpha (color) * hb_clamp (alpha, 0.f, 1.f));
   }
 
   hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
@@ -336,6 +338,12 @@ struct Variable
     value.get_color_stop (c, stop, varIdxBase, instancer);
   }
 
+  void get_solid_color (hb_paint_context_t *c,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    value.get_solid_color (c, varIdxBase, is_foreground, color);
+  }
+
   hb_paint_extend_t get_extend () const
   {
     return value.get_extend ();
@@ -389,6 +397,12 @@ struct NoVariable
 		       const ItemVarStoreInstancer &instancer) const
   {
     value.get_color_stop (c, stop, VarIdx::NO_VARIATION, instancer);
+  }
+
+  void get_solid_color (hb_paint_context_t *c,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    value.get_solid_color (c, VarIdx::NO_VARIATION, is_foreground, color);
   }
 
   hb_paint_extend_t get_extend () const
@@ -562,44 +576,6 @@ struct ColorLine
 // or all of the specified modes.
 struct CompositeMode : HBUINT8
 {
-  enum {
-    // Porter-Duff modes
-    // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators
-    COMPOSITE_CLEAR          =  0,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_clear
-    COMPOSITE_SRC            =  1,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_src
-    COMPOSITE_DEST           =  2,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dst
-    COMPOSITE_SRC_OVER       =  3,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcover
-    COMPOSITE_DEST_OVER      =  4,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstover
-    COMPOSITE_SRC_IN         =  5,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcin
-    COMPOSITE_DEST_IN        =  6,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstin
-    COMPOSITE_SRC_OUT        =  7,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcout
-    COMPOSITE_DEST_OUT       =  8,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstout
-    COMPOSITE_SRC_ATOP       =  9,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcatop
-    COMPOSITE_DEST_ATOP      = 10,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstatop
-    COMPOSITE_XOR            = 11,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_xor
-    COMPOSITE_PLUS           = 12,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_plus
-
-    // Blend modes
-    // https://www.w3.org/TR/compositing-1/#blending
-    COMPOSITE_SCREEN         = 13,  // https://www.w3.org/TR/compositing-1/#blendingscreen
-    COMPOSITE_OVERLAY        = 14,  // https://www.w3.org/TR/compositing-1/#blendingoverlay
-    COMPOSITE_DARKEN         = 15,  // https://www.w3.org/TR/compositing-1/#blendingdarken
-    COMPOSITE_LIGHTEN        = 16,  // https://www.w3.org/TR/compositing-1/#blendinglighten
-    COMPOSITE_COLOR_DODGE    = 17,  // https://www.w3.org/TR/compositing-1/#blendingcolordodge
-    COMPOSITE_COLOR_BURN     = 18,  // https://www.w3.org/TR/compositing-1/#blendingcolorburn
-    COMPOSITE_HARD_LIGHT     = 19,  // https://www.w3.org/TR/compositing-1/#blendinghardlight
-    COMPOSITE_SOFT_LIGHT     = 20,  // https://www.w3.org/TR/compositing-1/#blendingsoftlight
-    COMPOSITE_DIFFERENCE     = 21,  // https://www.w3.org/TR/compositing-1/#blendingdifference
-    COMPOSITE_EXCLUSION      = 22,  // https://www.w3.org/TR/compositing-1/#blendingexclusion
-    COMPOSITE_MULTIPLY       = 23,  // https://www.w3.org/TR/compositing-1/#blendingmultiply
-
-    // Modes that, uniquely, do not operate on components
-    // https://www.w3.org/TR/compositing-1/#blendingnonseparable
-    COMPOSITE_HSL_HUE        = 24,  // https://www.w3.org/TR/compositing-1/#blendinghue
-    COMPOSITE_HSL_SATURATION = 25,  // https://www.w3.org/TR/compositing-1/#blendingsaturation
-    COMPOSITE_HSL_COLOR      = 26,  // https://www.w3.org/TR/compositing-1/#blendingcolor
-    COMPOSITE_HSL_LUMINOSITY = 27,  // https://www.w3.org/TR/compositing-1/#blendingluminosity
-  };
   public:
   DEFINE_SIZE_STATIC (1);
 };
@@ -719,15 +695,21 @@ struct PaintSolid
     return_trace (c->check_struct (this));
   }
 
+  void get_solid_color (hb_paint_context_t *c, uint32_t varIdxBase,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    *color = c->get_color (paletteIndex,
+                           alpha.to_float (c->instancer (varIdxBase, 0)),
+                           is_foreground);
+  }
+
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     TRACE_PAINT (this);
     hb_bool_t is_foreground;
     hb_color_t color;
 
-    color = c->get_color (paletteIndex,
-                          alpha.to_float (c->instancer (varIdxBase, 0)),
-                          &is_foreground);
+    get_solid_color (c, varIdxBase, &is_foreground, &color);
     c->funcs->color (c->data, is_foreground, color);
   }
 
@@ -829,10 +811,10 @@ struct PaintRadialGradient
     {
       out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
       out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
-      out->radius0 = radius0 + (unsigned) roundf (instancer (varIdxBase, 2));
+      out->radius0 = hb_clamp ((int) radius0 + (int) roundf (instancer (varIdxBase, 2)), 0, 0xFFFF);
       out->x1 = x1 + (int) roundf (instancer (varIdxBase, 3));
       out->y1 = y1 + (int) roundf (instancer (varIdxBase, 4));
-      out->radius1 = radius1 + (unsigned) roundf (instancer (varIdxBase, 5));
+      out->radius1 = hb_clamp ((int) radius1 + (int) roundf (instancer (varIdxBase, 5)), 0, 0xFFFF);
     }
 
     if (format == 7 && c->plan->all_axes_pinned)
@@ -970,17 +952,7 @@ struct PaintGlyph
     return_trace (c->check_struct (this) && paint.sanitize (c, this));
   }
 
-  void paint_glyph (hb_paint_context_t *c) const
-  {
-    TRACE_PAINT (this);
-    c->funcs->push_inverse_font_transform (c->data, c->font);
-    c->funcs->push_clip_glyph (c->data, gid, c->font);
-    c->funcs->push_font_transform (c->data, c->font);
-    c->recurse (this+paint);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_clip (c->data);
-    c->funcs->pop_transform (c->data);
-  }
+  inline void paint_glyph (hb_paint_context_t *c) const;
 
   HBUINT8		format; /* format = 10 or 33 */
   Offset24To<Paint>	paint;  /* Offset (from beginning of PaintGlyph table) to Paint subtable. */
@@ -1536,11 +1508,49 @@ struct PaintComposite
   void paint_glyph (hb_paint_context_t *c) const
   {
     TRACE_PAINT (this);
+    hb_paint_composite_mode_t composite_mode;
+    switch ((unsigned int) mode)
+    {
+      case HB_PAINT_COMPOSITE_MODE_CLEAR:
+      case HB_PAINT_COMPOSITE_MODE_SRC:
+      case HB_PAINT_COMPOSITE_MODE_DEST:
+      case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+      case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+      case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_XOR:
+      case HB_PAINT_COMPOSITE_MODE_PLUS:
+      case HB_PAINT_COMPOSITE_MODE_SCREEN:
+      case HB_PAINT_COMPOSITE_MODE_OVERLAY:
+      case HB_PAINT_COMPOSITE_MODE_DARKEN:
+      case HB_PAINT_COMPOSITE_MODE_LIGHTEN:
+      case HB_PAINT_COMPOSITE_MODE_COLOR_DODGE:
+      case HB_PAINT_COMPOSITE_MODE_COLOR_BURN:
+      case HB_PAINT_COMPOSITE_MODE_HARD_LIGHT:
+      case HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT:
+      case HB_PAINT_COMPOSITE_MODE_DIFFERENCE:
+      case HB_PAINT_COMPOSITE_MODE_EXCLUSION:
+      case HB_PAINT_COMPOSITE_MODE_MULTIPLY:
+      case HB_PAINT_COMPOSITE_MODE_HSL_HUE:
+      case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION:
+      case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:
+      case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY:
+	composite_mode = (hb_paint_composite_mode_t) (unsigned int) mode;
+	break;
+      default:
+	composite_mode = HB_PAINT_COMPOSITE_MODE_CLEAR;
+	break;
+    }
+
     c->funcs->push_group_for (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
     c->recurse (this+backdrop);
-    c->funcs->push_group_for (c->data, (hb_paint_composite_mode_t) (int) mode);
+    c->funcs->push_group_for (c->data, composite_mode);
     c->recurse (this+src);
-    c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int) mode);
+    c->funcs->pop_group (c->data, composite_mode);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
 
@@ -1630,8 +1640,8 @@ struct ClipBox
   {
     TRACE_SUBSET (this);
     switch (u.format.v) {
-    case 1: return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
-    case 2: return_trace (u.format2.subset (c, instancer));
+    case 1: hb_barrier (); return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
+    case 2: hb_barrier (); return_trace (u.format2.subset (c, instancer));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1639,7 +1649,7 @@ struct ClipBox
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     switch (u.format.v) {
-    case 2: u.format2.closurev1 (c); return;
+    case 2: hb_barrier (); u.format2.closurev1 (c); return;
     default:return;
     }
   }
@@ -1650,8 +1660,8 @@ struct ClipBox
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1662,9 +1672,11 @@ struct ClipBox
     ClipBoxData clip_box;
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       u.format1.get_clip_box (clip_box, instancer);
       break;
     case 2:
+      hb_barrier ();
       u.format2.get_clip_box (clip_box, instancer);
       break;
     default:
@@ -1860,42 +1872,52 @@ struct Paint
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
-    case 4: return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
-    case 6: return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
-    case 7: return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
-    case 8: return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
-    case 9: return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
-    case 10: return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
-    case 11: return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
-    case 12: return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
-    case 13: return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
-    case 14: return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
-    case 15: return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
-    case 16: return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
-    case 17: return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
-    case 18: return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
-    case 19: return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
-    case 20: return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
-    case 21: return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
-    case 22: return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
-    case 23: return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
-    case 24: return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
-    case 25: return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
-    case 26: return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
-    case 27: return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
-    case 28: return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
-    case 29: return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
-    case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
-    case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
-    case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
+    case 6: hb_barrier (); return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
+    case 7: hb_barrier (); return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
+    case 8: hb_barrier (); return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
+    case 9: hb_barrier (); return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
+    case 10: hb_barrier (); return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
+    case 11: hb_barrier (); return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
+    case 12: hb_barrier (); return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
+    case 13: hb_barrier (); return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
+    case 14: hb_barrier (); return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
+    case 15: hb_barrier (); return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
+    case 16: hb_barrier (); return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
+    case 17: hb_barrier (); return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
+    case 18: hb_barrier (); return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
+    case 19: hb_barrier (); return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
+    case 20: hb_barrier (); return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
+    case 21: hb_barrier (); return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
+    case 22: hb_barrier (); return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
+    case 23: hb_barrier (); return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
+    case 24: hb_barrier (); return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
+    case 25: hb_barrier (); return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
+    case 26: hb_barrier (); return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
+    case 27: hb_barrier (); return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
+    case 28: hb_barrier (); return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
+    case 29: hb_barrier (); return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
+    case 30: hb_barrier (); return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
+    case 31: hb_barrier (); return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
+    case 32: hb_barrier (); return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BEYOND_64K
-    case 33: return_trace (c->dispatch (u.paintformat33, std::forward<Ts> (ds)...));
+    case 33: hb_barrier (); return_trace (c->dispatch (u.paintformat33, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
+    }
+  }
+
+  bool get_solid_color (hb_paint_context_t *c,
+			hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    switch (u.format.v) {
+    case 2: hb_barrier (); u.paintformat2.get_solid_color (c, is_foreground, color); return true;
+    case 3: hb_barrier (); u.paintformat3.get_solid_color (c, is_foreground, color); return true;
+    default: return false;
     }
   }
 
@@ -2131,7 +2153,7 @@ struct COLR
     hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
     hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
 								       record.numLayers);
-    if (count)
+    if (count && layers)
     {
       + glyph_layers.sub_array (start_offset, count)
       | hb_sink (hb_array (layers, *count))
@@ -2771,9 +2793,7 @@ struct COLR
       {
         hb_bool_t is_foreground;
         hb_color_t color = c.get_color (r.colorIdx, 1., &is_foreground);
-        c.funcs->push_clip_glyph (c.data, r.glyphId, c.font);
-        c.funcs->color (c.data, is_foreground, color);
-        c.funcs->pop_clip (c.data);
+        c.funcs->fill_glyph (c.data, r.glyphId, c.font, is_foreground, color);
       }
 
       return true;
@@ -2813,6 +2833,33 @@ hb_paint_context_t::recurse (const Paint &paint)
   edge_count--;
   paint.dispatch (this);
   depth_left++;
+}
+
+template <typename Types>
+void PaintGlyph<Types>::paint_glyph (hb_paint_context_t *c) const
+{
+  TRACE_PAINT (this);
+
+  hb_bool_t is_foreground;
+  hb_color_t color;
+  /* Optimize cases that can use a simple fill-glyph operation. */
+  if (likely (c->depth_left > 0 && c->edge_count > 0) &&
+      (this+paint).get_solid_color (c, &is_foreground, &color))
+  {
+    c->edge_count--;
+    c->funcs->push_inverse_font_transform (c->data, c->font);
+    c->funcs->fill_glyph (c->data, gid, c->font, is_foreground, color);
+    c->funcs->pop_transform (c->data);
+    return;
+  }
+
+  c->funcs->push_inverse_font_transform (c->data, c->font);
+  c->funcs->push_clip_glyph (c->data, gid, c->font);
+  c->funcs->push_font_transform (c->data, c->font);
+  c->recurse (this+paint);
+  c->funcs->pop_transform (c->data);
+  c->funcs->pop_clip (c->data);
+  c->funcs->pop_transform (c->data);
 }
 
 void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
