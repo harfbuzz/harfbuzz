@@ -382,10 +382,10 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
     ty_max = hb_max (ty_max, ty);
   }
 
-  int32_t ex0 = hb_raster_clamp_to_int32 (floorf (tx_min));
-  int32_t ey0 = hb_raster_clamp_to_int32 (floorf (ty_min));
-  int32_t ex1 = hb_raster_clamp_to_int32 (ceilf  (tx_max));
-  int32_t ey1 = hb_raster_clamp_to_int32 (ceilf  (ty_max));
+  int32_t ex0 = hb_clamp_to<int32_t> (floorf (tx_min));
+  int32_t ey0 = hb_clamp_to<int32_t> (floorf (ty_min));
+  int32_t ex1 = hb_clamp_to<int32_t> (ceilf  (tx_max));
+  int32_t ey1 = hb_clamp_to<int32_t> (ceilf  (ty_max));
 
   if (ex1 <= ex0 || ey1 <= ey0)
   {
@@ -483,10 +483,10 @@ emit_segment (hb_raster_draw_t *draw,
 	      float x0, float y0,
 	      float x1, float y1)
 {
-  int32_t X0 = hb_raster_clamp_to_int32 (roundf (x0 * HB_RASTER_ONE_PIXEL));
-  int32_t Y0 = hb_raster_clamp_to_int32 (roundf (y0 * HB_RASTER_ONE_PIXEL));
-  int32_t X1 = hb_raster_clamp_to_int32 (roundf (x1 * HB_RASTER_ONE_PIXEL));
-  int32_t Y1 = hb_raster_clamp_to_int32 (roundf (y1 * HB_RASTER_ONE_PIXEL));
+  int32_t X0 = hb_clamp_to<int32_t> (roundf (x0 * HB_RASTER_ONE_PIXEL));
+  int32_t Y0 = hb_clamp_to<int32_t> (roundf (y0 * HB_RASTER_ONE_PIXEL));
+  int32_t X1 = hb_clamp_to<int32_t> (roundf (x1 * HB_RASTER_ONE_PIXEL));
+  int32_t Y1 = hb_clamp_to<int32_t> (roundf (y1 * HB_RASTER_ONE_PIXEL));
 
   if (Y0 == Y1) return; /* horizontal — skip */
 

@@ -2081,10 +2081,10 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
     ty_max = hb_max (ty_max, py[i]);
   }
 
-  int32_t ex0 = hb_raster_clamp_to_int32 (floorf (tx_min));
-  int32_t ey0 = hb_raster_clamp_to_int32 (floorf (ty_min));
-  int32_t ex1 = hb_raster_clamp_to_int32 (ceilf  (tx_max));
-  int32_t ey1 = hb_raster_clamp_to_int32 (ceilf  (ty_max));
+  int32_t ex0 = hb_clamp_to<int32_t> (floorf (tx_min));
+  int32_t ey0 = hb_clamp_to<int32_t> (floorf (ty_min));
+  int32_t ex1 = hb_clamp_to<int32_t> (ceilf  (tx_max));
+  int32_t ey1 = hb_clamp_to<int32_t> (ceilf  (ty_max));
 
   if (ex1 <= ex0 || ey1 <= ey0)
   {
