@@ -199,7 +199,8 @@ try:
                 print("# " + str(e))
                 continue
 
-            with tempfile.NamedTemporaryFile(prefix="hb-vector-test-", suffix=".svg", delete=False) as tmp:
+            suffix = os.path.splitext(expected_file)[1]
+            with tempfile.NamedTemporaryFile(prefix="hb-vector-test-", suffix=suffix, delete=False) as tmp:
                 output_path = tmp.name
 
             try:
@@ -220,9 +221,9 @@ try:
                     print("# hb-vector did not create output file")
                     continue
 
-                with open(expected_path, encoding="utf-8") as fp:
+                with open(expected_path, encoding="utf-8", errors="surrogateescape") as fp:
                     expected = fp.read()
-                with open(output_path, encoding="utf-8") as fp:
+                with open(output_path, encoding="utf-8", errors="surrogateescape") as fp:
                     actual = fp.read()
 
                 if actual == expected:

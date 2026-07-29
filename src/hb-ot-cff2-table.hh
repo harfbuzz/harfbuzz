@@ -346,6 +346,12 @@ struct cff2_private_dict_opset_subset_t : dict_opset_t
 	env.clear_args ();
 	break;
 
+      case OpCode_vsindexdict:
+	env.process_vsindex ();
+	dictval.ivs = env.get_ivs ();
+	env.clear_args ();
+	break;
+
       default:
 	SUPER::process_op (op, env);
 	if (!env.argStack.is_empty ()) return;

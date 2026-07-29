@@ -1964,10 +1964,16 @@ struct item_variations_t
 	if (!front_mapping.set ((major<<16) + minor, &row))
 	  return false;
 
-	if (delta_rows_map.has (&row))
-	  continue;
+	/* Duplicate rows may only be dropped when optimizing: without a
+	 * varidx_map the caller relies on original VariationIndex values
+	 * staying valid (e.g. HVAR/VVAR with an implicit advance mapping). */
+	if (optimize)
+	{
+	  if (delta_rows_map.has (&row))
+	    continue;
 
-	delta_rows_map.set (&row, 1);
+	  delta_rows_map.set (&row, 1);
+	}
 
 	major_rows.push (&row);
       }

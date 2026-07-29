@@ -870,11 +870,11 @@ struct KerxSubTable
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
-    case 0:	return_trace (c->dispatch (u.format0, std::forward<Ts> (ds)...));
-    case 1:	return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2:	return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-    case 4:	return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
-    case 6:	return_trace (c->dispatch (u.format6, std::forward<Ts> (ds)...));
+    case 0:	hb_barrier (); return_trace (c->dispatch (u.format0, std::forward<Ts> (ds)...));
+    case 1:	hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2:	hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 4:	hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 6:	hb_barrier (); return_trace (c->dispatch (u.format6, std::forward<Ts> (ds)...));
     default:	return_trace (c->default_return_value ());
     }
   }
@@ -884,11 +884,11 @@ struct KerxSubTable
   {
     unsigned int subtable_type = get_type ();
     switch (subtable_type) {
-    case 0:	u.format0.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 1:	u.format1.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 2:	u.format2.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 4:	u.format4.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 6:	u.format6.collect_glyphs (first_set, second_set, num_glyphs); return;
+    case 0:	hb_barrier (); u.format0.collect_glyphs (first_set, second_set, num_glyphs); return;
+    case 1:	hb_barrier (); u.format1.collect_glyphs (first_set, second_set, num_glyphs); return;
+    case 2:	hb_barrier (); u.format2.collect_glyphs (first_set, second_set, num_glyphs); return;
+    case 4:	hb_barrier (); u.format4.collect_glyphs (first_set, second_set, num_glyphs); return;
+    case 6:	hb_barrier (); u.format6.collect_glyphs (first_set, second_set, num_glyphs); return;
     default:	return;
     }
   }
