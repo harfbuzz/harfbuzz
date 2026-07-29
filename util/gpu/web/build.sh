@@ -12,6 +12,7 @@ mkdir -p "$OUTDIR"
 
 em++ \
   -std=c++17 \
+  -Wno-unused-template \
   -Oz -flto \
   -I"$SRCDIR/src" \
   -I"$SRCDIR/util/gpu/web" \
