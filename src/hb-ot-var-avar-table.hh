@@ -812,10 +812,11 @@ struct avar
     for (unsigned i = 0; i < axisCount; i++)
     {
       hb_tag_t *axis_tag_ptr;
+      if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr))
+        return false;
       /* Only axes that will receive offset compensation (restricted or
        * pinned) can contaminate a shared row. */
       if (!c->plan->axes_index_map.has (i) ||
-          !c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr) ||
           !c->plan->user_axes_location.has (*axis_tag_ptr))
         continue;
       uint32_t varidx = new_varidx_mapping[i];
@@ -839,7 +840,7 @@ struct avar
     {
       hb_tag_t *axis_tag_ptr;
       if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr))
-        continue;
+        return false;
       hb_tag_t axis_tag = *axis_tag_ptr;
 
       /* Self-contained pinned axes are removed from fvar/avar; their
@@ -853,7 +854,7 @@ struct avar
         /* This axis is being restricted or pinned */
         Triple *old_int;
         if (!c->plan->old_intermediates.has (axis_tag, &old_int))
-          continue;
+          return false;
 
         float a_i = (float) old_int->minimum;
         float d_i = (float) old_int->middle;

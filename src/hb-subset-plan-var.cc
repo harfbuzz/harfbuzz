@@ -97,7 +97,7 @@
   * plan time (the same quantity fontTools bounds via getExtremes on the
   * instanced store). Only constraining ranges (narrower than [-1, +1]) are
   * recorded. */
- static void
+ static bool
  _compute_avar2_reachable_ranges (hb_subset_plan_t *plan,
                                   hb_array_t<const OT::AxisRecord> axes,
                                   const OT::avar *avar_table,
@@ -106,7 +106,7 @@
    const OT::ItemVariationStore *var_store;
    const OT::DeltaSetIndexMap *varidx_map;
    if (!avar_table->get_v2_store_and_map (&var_store, &varidx_map))
-     return;
+     return false;
 
    /* Old-intermediate input box per axis. */
    hb_hashmap_t<hb_tag_t, hb_pair_t<double, double>> box;
@@ -117,48 +117,47 @@
      Triple *old_int;
      if (plan->user_axes_location.has (tag))
      {
-       if (!plan->old_intermediates.has (tag, &old_int)) return;
-       lo = hb_min (old_int->minimum, old_int->maximum);
-       hi = hb_max (old_int->minimum, old_int->maximum);
+       if (!plan->old_intermediates.has (tag, &old_int)) return false;
+       lo = old_int->minimum;
+       hi = old_int->maximum;
      }
      else if (axis.is_hidden ())
        lo = hi = 0.0; /* private axis: intermediate is always 0 */
-     if (!box.set (tag, hb_pair (lo, hi))) return;
+     if (!box.set (tag, hb_pair (lo, hi))) return false;
    }
 
    hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> regions;
    if (!var_store->get_region_list ().get_var_regions (plan->axes_old_index_tag_map, regions))
-     return;
+     return false;
 
    for (unsigned i = 0; i < axes.length; i++)
    {
      hb_tag_t tag = axes[i].get_axis_tag ();
      hb_pair_t<double, double> *identity;
-     if (!box.has (tag, &identity)) return;
+     if (!box.has (tag, &identity)) return false;
 
      double dmin = 0.0, dmax = 0.0;
-     bool bounded = true;
      uint32_t varidx = varidx_map->map (i);
      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
      {
        unsigned outer = varidx >> 16;
        unsigned inner = varidx & 0xFFFF;
-       if (outer >= var_store->get_sub_table_count ()) bounded = false;
+       if (outer >= var_store->get_sub_table_count ()) return false;
        else
        {
 	 const OT::VarData &vd = var_store->get_sub_table (outer);
-	 if (inner >= vd.get_item_count ()) bounded = false;
+	 if (inner >= vd.get_item_count ()) return false;
 	 else
 	 {
 	   const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
 	   unsigned row_size = vd.get_row_size ();
 	   unsigned region_count = vd.get_region_index_count ();
-	   for (unsigned r = 0; r < region_count && bounded; r++)
+	   for (unsigned r = 0; r < region_count; r++)
 	   {
 	     int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
 	     if (!delta) continue;
 	     unsigned region_idx = vd.get_region_index (r);
-	     if (region_idx >= regions.length) { bounded = false; break; }
+	     if (region_idx >= regions.length) return false;
 	     double smin = 1.0, smax = 1.0;
 	     for (const auto &_ : regions[region_idx])
 	     {
@@ -177,9 +176,6 @@
 	 }
        }
      }
-     if (!bounded)
-       continue; /* malformed row: no constraint, not self-contained */
-
      /* A pinned axis whose delta is constant over the box is self-contained:
       * its final coordinate is a constant. It can be removed from fvar/avar
       * and its contribution baked into the variation tables like an ordinary
@@ -193,7 +189,7 @@
        int v_int = (int) roundf ((float) identity->first * 16384.f) +
 		   (int) roundf ((float) dmin);
        v_int = hb_clamp (v_int, -(1 << 14), +(1 << 14));
-       if (!plan->avar2_self_contained.set (tag, v_int / 16384.0)) return;
+       if (!plan->avar2_self_contained.set (tag, v_int / 16384.0)) return false;
        continue; /* axis is dropped; no region can reference it afterwards */
      }
 
@@ -206,8 +202,9 @@
      if (lo <= -1.0 && hi >= +1.0)
        continue; /* not constraining */
      if (!plan->avar2_reachable_ranges.set (tag, Triple (lo, hb_clamp (0.0, lo, hi), hi)))
-       return;
+       return false;
    }
+   return true;
  }
 
 #ifndef HB_NO_OT_FONT_CFF
@@ -468,8 +465,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
           detect_self_contained = false;
         hb_blob_destroy (blob);
       }
-      _compute_avar2_reachable_ranges (plan, axes, avar_table,
-                                       detect_self_contained);
+      if (!_compute_avar2_reachable_ranges (plan, axes, avar_table,
+                                            detect_self_contained))
+        return false;
 
       /* Keep all axes in fvar (pinned ones as hidden), EXCEPT self-contained
        * pinned axes, which are removed entirely. */
