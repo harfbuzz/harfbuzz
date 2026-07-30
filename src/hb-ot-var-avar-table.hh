@@ -696,13 +696,66 @@ struct avar
     }
 
     if (c->plan->has_avar2)
-      return_trace (_subset_avar2 (c, out, new_mappings));
+      return_trace (_subset_avar2 (c, new_mappings));
 
     return_trace (true);
   }
 
   private:
-  bool _subset_avar2 (hb_subset_context_t *c, avar *out,
+  struct avar2_index_map_plan_t
+  {
+    bool init (const hb_vector_t<uint32_t> &varidx_mapping,
+	       const hb_map_t &axes_index_map,
+	       unsigned axis_count)
+    {
+      if (!output_map.alloc (axes_index_map.get_population ()))
+	return false;
+
+      bool has_no_variation = false;
+      unsigned max_outer = 0, max_inner = 0;
+      for (unsigned i = 0; i < axis_count; i++)
+      {
+	if (!axes_index_map.has (i)) continue;
+	uint32_t varidx = varidx_mapping[i];
+	output_map.push (varidx);
+	if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+	{
+	  has_no_variation = true;
+	  continue;
+	}
+	max_outer = hb_max (max_outer, varidx >> 16);
+	max_inner = hb_max (max_inner, varidx & 0xFFFF);
+      }
+      if (output_map.in_error () ||
+	  output_map.length != axes_index_map.get_population ())
+	return false;
+
+      if (has_no_variation)
+      {
+	width = 4;
+	inner_bit_count = 16;
+      }
+      else
+      {
+	inner_bit_count = hb_max (1u, hb_bit_storage (max_inner));
+	unsigned outer_bit_count = hb_max (1u, hb_bit_storage (max_outer));
+	width = hb_clamp ((inner_bit_count + outer_bit_count + 7) / 8, 1u, 4u);
+	if (inner_bit_count + outer_bit_count > width * 8)
+	  inner_bit_count = width * 8 - outer_bit_count;
+      }
+      return true;
+    }
+
+    unsigned get_inner_bit_count () const { return inner_bit_count; }
+    unsigned get_width () const { return width; }
+    hb_array_t<const uint32_t> get_output_map () const { return output_map.as_array (); }
+
+    unsigned inner_bit_count = 1;
+    unsigned width = 1;
+    hb_vector_t<uint32_t> output_map;
+  };
+
+  bool _subset_avar2 (hb_subset_context_t *c,
                       const hb_vector_t<hb_vector_t<AxisValueMap>> &new_mappings) const
   {
 #if defined (HB_NO_VAR) || defined (HB_NO_AVAR2)
@@ -1058,125 +1111,24 @@ struct avar
         new_varidx_mapping[i] = *new_idx;
     }
 
-    /* 9. Serialize avarV2Tail */
-    /* The avarV2Tail has two Offset32 fields (varIdxMap and varStore)
-     * whose offsets are relative to the beginning of the avar table.
-     * We serialize each sub-object via push/pop_pack, write the tail
-     * struct inline, and link offsets to the avar table start. */
+    /* 9. Serialize avarV2Tail. Entries cover the retained axes only;
+     * self-contained pinned axes are removed from fvar. */
+    avar2_index_map_plan_t index_map_plan;
+    if (!index_map_plan.init (new_varidx_mapping,
+			      c->plan->axes_index_map,
+			      axisCount))
+      return false;
 
-    /* Serialize DeltaSetIndexMap (push a new object). Entries cover the
-     * RETAINED axes only (self-contained pinned axes are removed from
-     * fvar), in their retained order. Count what the write loop below will
-     * actually emit: a malformed font's avar may have fewer axes than fvar,
-     * and claiming unwritten entries would map those axes to varIdx 0. */
-    unsigned retained_axis_count = 0;
-    for (unsigned i = 0; i < axisCount; i++)
-      if (c->plan->axes_index_map.has (i))
-	retained_axis_count++;
-    hb_serialize_context_t::objidx_t packed_map;
-    {
-      /* Compute width and inner_bit_count for the mapping.
-       * If any entry is NO_VARIATION_INDEX (0xFFFFFFFF), we need full
-       * 4-byte width to represent it. */
-      bool has_no_variation = false;
-      unsigned max_outer = 0, max_inner = 0;
-      for (unsigned i = 0; i < axisCount; i++)
-      {
-        if (!c->plan->axes_index_map.has (i)) continue;
-        uint32_t varidx = new_varidx_mapping[i];
-        if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
-        {
-          has_no_variation = true;
-          continue;
-        }
-        unsigned o = varidx >> 16;
-        unsigned in = varidx & 0xFFFF;
-        if (o > max_outer) max_outer = o;
-        if (in > max_inner) max_inner = in;
-      }
-
-      unsigned inner_bit_count, width;
-      if (has_no_variation)
-      {
-        /* Need 4 bytes to encode NO_VARIATION_INDEX = 0xFFFFFFFF */
-        width = 4;
-        inner_bit_count = 16;
-      }
-      else
-      {
-        inner_bit_count = hb_max (1u, hb_bit_storage (max_inner));
-        unsigned outer_bit_count = hb_max (1u, hb_bit_storage (max_outer));
-        width = (inner_bit_count + outer_bit_count + 7) / 8;
-        width = hb_max (width, 1u);
-        width = hb_min (width, 4u);
-
-        /* Recalculate inner_bit_count based on width */
-        if (inner_bit_count + outer_bit_count > width * 8)
-          inner_bit_count = width * 8 - outer_bit_count;
-      }
-
-      /* Serialize DeltaSetIndexMap format 0 (HBUINT16 mapCount) */
-      c->serializer->push ();
-      auto *fmt = c->serializer->allocate_size<HBUINT8> (1);
-      if (unlikely (!fmt)) { c->serializer->pop_discard (); return false; }
-      *fmt = 0; /* format 0 */
-
-      auto *entry_format = c->serializer->allocate_size<HBUINT8> (1);
-      if (unlikely (!entry_format)) { c->serializer->pop_discard (); return false; }
-      *entry_format = ((width - 1) << 4) | (inner_bit_count - 1);
-
-      auto *map_count_field = c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size);
-      if (unlikely (!map_count_field)) { c->serializer->pop_discard (); return false; }
-      *map_count_field = retained_axis_count;
-
-      HBUINT8 *p = c->serializer->allocate_size<HBUINT8> (width * retained_axis_count);
-      if (unlikely (!p)) { c->serializer->pop_discard (); return false; }
-
-      for (unsigned i = 0; i < axisCount; i++)
-      {
-        if (!c->plan->axes_index_map.has (i)) continue;
-        uint32_t varidx = new_varidx_mapping[i];
-        unsigned o = varidx >> 16;
-        unsigned in = varidx & 0xFFFF;
-        unsigned u = (o << inner_bit_count) | in;
-        for (unsigned w = width; w > 0;)
-        {
-          p[--w] = u;
-          u >>= 8;
-        }
-        p += width;
-      }
-
-      packed_map = c->serializer->pop_pack ();
-    }
-
-    /* Serialize ItemVariationStore (push a new object) */
-    hb_serialize_context_t::objidx_t packed_store;
-    {
-      c->serializer->push ();
-      auto *ivs = c->serializer->start_embed<ItemVariationStore> ();
-      if (!ivs->serialize (c->serializer,
-                           item_vars.has_long_word (),
-                           c->plan->axis_tags,
-                           item_vars.get_region_list (),
-                           item_vars.get_vardata_encodings ()))
-      {
-        c->serializer->pop_discard ();
-        return false;
-      }
-      packed_store = c->serializer->pop_pack ();
-    }
-
-    /* Write the avarV2Tail struct inline in the avar table */
     auto *tail = c->serializer->allocate_size<avarV2Tail> (avarV2Tail::static_size);
     if (unlikely (!tail)) return false;
-
-    /* Link offsets relative to the avar table start */
-    unsigned bias = c->serializer->to_bias (out);
-    c->serializer->add_link (tail->varIdxMap, packed_map,
-                              hb_serialize_context_t::Head, bias);
-    c->serializer->add_link (tail->varStore, packed_store,
-                              hb_serialize_context_t::Head, bias);
+    if (!tail->varIdxMap.serialize_serialize (c->serializer, index_map_plan))
+      return false;
+    if (!tail->varStore.serialize_serialize (c->serializer,
+					     item_vars.has_long_word (),
+					     c->plan->axis_tags,
+					     item_vars.get_region_list (),
+					     item_vars.get_vardata_encodings ()))
+      return false;
 
     return true;
 #endif
