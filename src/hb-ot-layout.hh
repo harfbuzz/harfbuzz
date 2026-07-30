@@ -159,7 +159,8 @@ static inline unsigned int
 _hb_next_syllable (hb_buffer_t *buffer, unsigned int start)
 {
   hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
+  unsigned int count = start + hb_min (buffer->len - start,
+				       (unsigned) HB_MAX_SYLLABLE_LENGTH);
 
   unsigned int syllable = info[start].syllable();
   while (++start < count && syllable == info[start].syllable())
