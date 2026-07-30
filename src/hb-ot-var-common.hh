@@ -1898,28 +1898,15 @@ struct item_variations_t
   }
 
   bool instantiate_tuple_vars (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
-                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+                               bool build_regions = true)
   {
     optimize_scratch_t scratch;
     for (tuple_variations_t& tuple_vars : vars)
       if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances, scratch))
         return false;
 
-    if (!build_region_list ()) return false;
-    return true;
-  }
-
-  /* Like instantiate_tuple_vars but does NOT call build_region_list().
-   * Caller can add more tuples between this call and build_region_list(). */
-  bool instantiate_tuple_vars_no_region_build (
-      const hb_hashmap_t<hb_tag_t, Triple>& axes_location,
-      const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
-  {
-    optimize_scratch_t scratch;
-    for (tuple_variations_t& tuple_vars : vars)
-      if (!tuple_vars.instantiate (axes_location, axes_triple_distances, scratch))
-        return false;
-    return true;
+    return !build_regions || build_region_list ();
   }
 
   /* Add a new VarData subtable. Returns outer index. */

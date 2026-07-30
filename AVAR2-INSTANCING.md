@@ -57,24 +57,19 @@ HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), old_intermediates)
   coords at new min/default/max. These are the coordinates needed for offset
   compensation.
 
-#### 1b. avar v1-only mapping method (`hb-ot-var-avar-table.hh`)
+#### 1b. avar v1-only mapping (`hb-ot-var-avar-table.hh`)
 
-Add `map_coords_v1_only()` to `struct avar`. Identical to `map_coords_2_14()`
-but omits the avar v2 tail processing. Returns the avar-v1-mapped values in
-floats (2.14 representation) for each axis:
+Add a `v1_only` argument to `map_coords_2_14()`. When set, return after the
+avar v1 segment maps and omit the avar v2 tail processing:
 
 ```cpp
-bool map_coords_v1_only (float *coords, unsigned int coords_length) const
+bool map_coords_2_14 (float *coords, unsigned int coords_length,
+                      bool v1_only = false) const
 {
-    unsigned int count = hb_min (coords_length, axisCount);
-    const SegmentMaps *map = &firstAxisSegmentMaps;
-    for (unsigned int i = 0; i < count; i++)
-    {
-        int v = roundf (map->map_float (coords[i]) * 16384.f);
-        coords[i] = v / 16384.f;
-        map = &StructAfter<SegmentMaps> (*map);
-    }
-    return true;
+    // Existing avar v1 mapping...
+    if (v1_only)
+        return true;
+    // Existing avar v2 mapping...
 }
 ```
 
@@ -85,11 +80,8 @@ normalization:
 
 1. **When avar2 partial instancing is detected** (`has_v2_data() && !all_axes_pinned`):
    - Set `plan->has_avar2 = true`
-   - Call `map_coords_v1_only()` (instead of `map_coords_2_14()`) for mins,
-     defaults, and maxs arrays
-   - Store the v1-only mapped values as both `plan->old_intermediates` (for
-     offset compensation later) and `plan->avar2_axes_location` (they are the
-     same -- both are intermediate-space coords)
+   - Call `map_coords_2_14(..., true)` for mins, defaults, and maxs arrays
+   - Store the v1-only mapped values in `plan->old_intermediates`
    - Compute `plan->avar2_reachable_ranges` and detect
      `plan->avar2_self_contained` axes (see Chunks 7 and 8)
    - **Keep ALL axes in `axes_index_map`** (including pinned ones), so pinned
@@ -99,12 +91,10 @@ normalization:
      self-contained pins ONLY (in old final-coordinate space); empty when
      there are none. The rest of the subsetter thereby sees an ordinary
      partial instancing of just those axes
-   - Set `all_axes_pinned = false` to prevent table dropping
-
 2. **Else:** use existing path (`map_coords_2_14()` with full avar v1+v2)
 
-**Why v1-only:** `avar2_axes_location` must be in intermediate coordinate
-space (post-fvar, post-avar-v1, pre-avar-v2) because:
+**Why v1-only:** `old_intermediates` must be in intermediate coordinate space
+(post-fvar, post-avar-v1, pre-avar-v2) because:
 - avar2 IVS regions are in intermediate space -- `rebaseTent` needs matching
   limits
 - `SegmentMaps::subset()` uses it and unmaps through avar v1 -- correct with
@@ -218,11 +208,11 @@ Add helper method `_subset_avar2(hb_subset_context_t *c)`:
 Add public methods to `item_variations_t`:
 
 ```cpp
-// Like instantiate_tuple_vars but does NOT call build_region_list().
-// Caller adds tuples between this call and build_region_list().
-bool instantiate_tuple_vars_no_region_build (
+// Pass false to add tuples before explicitly building the region list.
+bool instantiate_tuple_vars (
     const hb_hashmap_t<hb_tag_t, Triple>& axes_location,
-    const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+    const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+    bool build_regions = true)
 
 // Add a new VarData subtable. Returns outer index.
 unsigned add_vardata (unsigned item_count)
@@ -323,7 +313,6 @@ coordinate is `d_i + delta`.
 
 **Plan members:**
 ```cpp
-HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), avar2_axes_location)
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, double>), avar2_self_contained)
 ```
 
@@ -332,7 +321,7 @@ from fvar and avar entirely; `_subset_avar2` skips them and writes the
 DeltaSetIndexMap over the retained axes only). The plan presents them to
 every other table as an ordinary partial pin at the constant final
 coordinate through `axes_location`/`normalized_coords` (see Chunk 4); the
-intermediate-space ranges avar itself needs move to `avar2_axes_location`.
+intermediate-space ranges avar itself needs remain in `old_intermediates`.
 This mirrors fontTools' `selfContainedAxes` +
 `_instantiateFvarForAvar2` + second instancing pass, folded into HarfBuzz's
 single-pass architecture.

@@ -424,9 +424,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
        * coords. These are used for IVS rebasing and offset compensation. */
       plan->has_avar2 = true;
 
-      if (!plan->check_success (avar_table->map_coords_v1_only (normalized_mins.arrayZ, coords_len)) ||
-          !plan->check_success (avar_table->map_coords_v1_only (normalized_defaults.arrayZ, coords_len)) ||
-          !plan->check_success (avar_table->map_coords_v1_only (normalized_maxs.arrayZ, coords_len)))
+      if (!plan->check_success (avar_table->map_coords_2_14 (normalized_mins.arrayZ, coords_len, true)) ||
+          !plan->check_success (avar_table->map_coords_2_14 (normalized_defaults.arrayZ, coords_len, true)) ||
+          !plan->check_success (avar_table->map_coords_2_14 (normalized_maxs.arrayZ, coords_len, true)))
         return false;
 
       for (const auto& _ : + hb_enumerate (axes))
@@ -435,14 +435,11 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
         hb_tag_t axis_tag = _.second.get_axis_tag ();
         if (plan->user_axes_location.has (axis_tag))
         {
-          /* Store intermediate-space coords for offset compensation and
-           * for avar's own segment-map renormalization and IVS rebasing. */
+          /* Store intermediate-space coords for offset compensation,
+           * segment-map renormalization, and IVS rebasing. */
           plan->old_intermediates.set (axis_tag, Triple ((double) normalized_mins[i],
                                                          (double) normalized_defaults[i],
                                                          (double) normalized_maxs[i]));
-          plan->avar2_axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
-                                                           (double) normalized_defaults[i],
-                                                           (double) normalized_maxs[i]));
         }
       }
 
@@ -483,8 +480,6 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
         plan->axes_index_map.set (i, retained_axis_idx++);
         plan->axis_tags.push (axis_tag);
       }
-      plan->all_axes_pinned = false;
-
       /* The other tables see ONLY the self-contained pins, as an ordinary
        * partial instancing in old final-coordinate space; the standard
        * instancing machinery bakes those axes' contributions in. The

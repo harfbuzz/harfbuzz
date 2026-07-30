@@ -268,7 +268,7 @@ struct SegmentMaps : Array16Of<AxisValueMap>
      * only the self-contained pins for the other tables; avar itself uses
      * the intermediate-space ranges of all restricted axes. */
     const auto &axes_location = c->plan->has_avar2
-				? c->plan->avar2_axes_location
+				? c->plan->old_intermediates
 				: c->plan->axes_location;
     Triple *axis_range;
     if (!axes_location.has (axis_tag, &axis_range))
@@ -575,37 +575,27 @@ struct avar
 #endif
   }
 
-  /* Apply avar v1 segment maps only, deliberately omitting avar v2 processing.
-   * Used during avar2 partial instancing to compute intermediate-space coords. */
-  bool map_coords_v1_only (float *coords, unsigned int coords_length) const
-  {
-    unsigned int count = hb_min (coords_length, axisCount);
-    const SegmentMaps *map = &firstAxisSegmentMaps;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      int v = roundf (map->map_float (coords[i]) * 16384.f);
-      coords[i] = v / 16384.f;
-      map = &StructAfter<SegmentMaps> (*map);
-    }
-    return true;
-  }
-
   // axis normalization is done in 2.14 here
   // TODO: deprecate this API once fonttools is updated to use 16.16 normalization
-  bool map_coords_2_14 (float *coords, unsigned int coords_length) const
+  bool map_coords_2_14 (float *coords, unsigned int coords_length,
+			bool v1_only = false) const
   {
     hb_vector_t<int> coords_2_14;
-    if (!coords_2_14.resize (coords_length)) return false;
+    if (!v1_only && !coords_2_14.resize (coords_length)) return false;
     unsigned int count = hb_min (coords_length, axisCount);
 
     const SegmentMaps *map = &firstAxisSegmentMaps;
     for (unsigned int i = 0; i < count; i++)
     {
       int v = roundf (map->map_float (coords[i]) * 16384.f);
-      coords_2_14[i] = v;
+      if (!v1_only)
+	coords_2_14[i] = v;
       coords[i] = v / 16384.f;
       map = &StructAfter<SegmentMaps> (*map);
     }
+
+    if (v1_only)
+      return true;
 
 #ifndef HB_NO_AVAR2
     if (version.major < 2)
@@ -672,9 +662,10 @@ struct avar
         if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag))
           return_trace (false);
 
+        Triple *axis_location;
         if (c->plan->has_avar2 &&
-            c->plan->user_axes_location.has (*axis_tag) &&
-            c->plan->user_axes_location.get (*axis_tag).is_point ())
+            c->plan->user_axes_location.has (*axis_tag, &axis_location) &&
+            axis_location->is_point ())
         {
           /* Pinned axis in avar2 mode: serialize identity segment map
            * {-1->-1, 0->0, 1->1}. The axis is kept in fvar as hidden,
@@ -772,8 +763,9 @@ struct avar
     item_variations_t item_vars;
     if (!item_vars.create_from_item_varstore (var_store, c->plan->axes_old_index_tag_map))
       return false;
-    if (!item_vars.instantiate_tuple_vars_no_region_build (c->plan->avar2_axes_location,
-                                                           c->plan->axes_triple_distances))
+    if (!item_vars.instantiate_tuple_vars (c->plan->old_intermediates,
+                                           c->plan->axes_triple_distances,
+                                           false))
       return false;
 
     /* 4. Self-contained pinned axes (whose final coordinate is constant over

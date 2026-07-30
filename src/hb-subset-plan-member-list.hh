@@ -143,12 +143,6 @@ HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), old_intermediates)
 //variation tuples/regions that a partial instance can never reach.
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), avar2_reachable_ranges)
 
-//avar2: intermediate-space (post-avar-v1) axis ranges of all restricted
-//axes, used by avar itself for segment-map renormalization and IVS
-//rebasing. Under avar2, axes_location instead holds only the
-//self-contained pins (final space) for the other tables to instance.
-HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), avar2_axes_location)
-
 //avar2: self-contained pinned axes -> constant old-space final coord.
 //These axes are removed from fvar/avar entirely; their contribution is
 //baked into the variation tables like an ordinary pin at that coord.
