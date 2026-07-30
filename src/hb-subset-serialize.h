@@ -27,7 +27,8 @@
 #define HB_SUBSET_SERIALIZE_H
 
 #if !defined(HB_SUBSET_H_IN) && !defined(HB_NO_SINGLE_HEADER_ERROR)
-#warning "Include <hb-subset.h> instead."
+// Disabled to not break pre-existing users.
+//#error "Include <hb-subset.h> instead."
 #endif
 
 #include "hb.h"
