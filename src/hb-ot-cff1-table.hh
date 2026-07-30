@@ -28,6 +28,7 @@
 #define HB_OT_CFF1_TABLE_HH
 
 #include "hb-ot-cff-common.hh"
+#include "hb-depend-data.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-draw.hh"
 #include "hb-paint.hh"
@@ -1533,6 +1534,20 @@ struct cff1_accelerator_t : cff1::accelerator_t {
 
 struct cff1_subset_accelerator_t : cff1::accelerator_subset_t {
   cff1_subset_accelerator_t (hb_face_t *face) : cff1::accelerator_subset_t (face) {}
+
+  void depend (hb_depend_data_builder_t *builder) const
+  {
+    if (!is_valid ()) return;
+    for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+    {
+      hb_codepoint_t base_gid, accent_gid;
+      if (get_seac_components (gid, &base_gid, &accent_gid))
+      {
+        builder->add_depend (gid, HB_TAG('C','F','F',' '), base_gid);
+        builder->add_depend (gid, HB_TAG('C','F','F',' '), accent_gid);
+      }
+    }
+  }
 };
 
 } /* namespace OT */

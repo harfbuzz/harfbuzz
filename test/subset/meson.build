@@ -62,6 +62,7 @@ tests = [
   'instantiate_colrv1',
   'instantiate_glyf',
   'instantiate_cff2',
+  'instantiate_cff2_partial',
   'downgrade_cff2',
   'instantiate_cff2_tsb',
   'full_instance',
@@ -75,6 +76,7 @@ tests = [
   'instantiate_cff2_update_metrics',
   'layout.empty_ligature_offset',
   'glyf_partial_instancing',
+  'hvar_partial_instance_implicit_map',
   'mvar_partial_instance',
   'update_def_wght',
   'feature_variations_partial_instance',
@@ -103,6 +105,7 @@ repack_tests = [
   'isolation',
   'advanced_prioritization',
   'space_splitting',
+  'duplicate_before_mutation',
 ]
 
 run_test = find_program('run-tests.py')

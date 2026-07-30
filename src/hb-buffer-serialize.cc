@@ -796,19 +796,19 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
     return false;
   }
 
-  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
-
   if (!font)
     font = hb_font_get_empty ();
 
   switch (format)
   {
     case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
+      hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
       return _hb_buffer_deserialize_text_glyphs (buffer,
 						 buf, buf_len, end_ptr,
 						 font);
 
     case HB_BUFFER_SERIALIZE_FORMAT_JSON:
+      hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
       return _hb_buffer_deserialize_json (buffer,
                                           buf, buf_len, end_ptr,
                                           font);
@@ -867,18 +867,18 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
     return false;
   }
 
-  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
-
   hb_font_t* font = hb_font_get_empty ();
 
   switch (format)
   {
     case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
+      hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
       return _hb_buffer_deserialize_text_unicode (buffer,
 						  buf, buf_len, end_ptr,
 						  font);
 
     case HB_BUFFER_SERIALIZE_FORMAT_JSON:
+      hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
       return _hb_buffer_deserialize_json (buffer,
                                           buf, buf_len, end_ptr,
                                           font);

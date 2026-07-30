@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "hb-subset-serialize.h"
+#include "hb-subset.h"
 
 typedef struct
 {

@@ -35,6 +35,7 @@
 #include "../../../hb-paint.hh"
 #include "../../../hb-paint-bounded.hh"
 #include "../../../hb-paint-extents.hh"
+#include "../../../hb-depend-data.hh"
 
 #include "../CPAL/CPAL.hh"
 
@@ -122,7 +123,9 @@ public:
   static unsigned
   color_alpha (hb_color_t color, float alpha)
   {
-    return roundf (hb_color_get_alpha (color) * alpha);
+    /* Font-supplied alpha is F2DOT14 plus variation deltas, so it can be
+     * negative or greater than one; converting that to unsigned is UB. */
+    return roundf (hb_color_get_alpha (color) * hb_clamp (alpha, 0.f, 1.f));
   }
 
   hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
@@ -225,6 +228,58 @@ struct hb_colrv1_closure_context_t :
   {}
 };
 
+
+struct hb_colrv1_depend_context_t :
+       hb_dispatch_context_t<hb_colrv1_depend_context_t>
+{
+  template <typename T>
+  return_t dispatch (const T &obj)
+  {
+    if (unlikely (nesting_level_left == 0))
+      return hb_empty_t ();
+
+    if (paint_visited (&obj))
+      return hb_empty_t ();
+
+    nesting_level_left--;
+    obj.dependv1 (this);
+    nesting_level_left++;
+    return hb_empty_t ();
+  }
+  static return_t default_return_value () { return hb_empty_t (); }
+
+  bool paint_visited (const void *paint)
+  {
+    hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) paint - (uintptr_t) colr);
+    if (visited_paint.in_error() || visited_paint.has (delta))
+      return true;
+
+    visited_paint.add (delta);
+    if (unlikely (visited_paint.in_error ()))
+      depend_data->fail ();
+    return false;
+  }
+
+  const COLR* get_colr_table () const
+  { return colr; }
+
+  public:
+  const COLR *colr;
+  hb_depend_data_builder_t *depend_data;
+  hb_set_t visited_paint;
+  unsigned nesting_level_left;
+  hb_codepoint_t source_gid;
+
+  hb_colrv1_depend_context_t (const COLR *colr_,
+                              hb_depend_data_builder_t *depend_data_,
+                              unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
+                          colr (colr_),
+                          depend_data (depend_data_),
+                          nesting_level_left (nesting_level_left_),
+                          source_gid (0)
+  {}
+};
+
 struct LayerRecord
 {
   operator hb_ot_color_layer_t () const { return {glyphId, colorIdx}; }
@@ -286,6 +341,9 @@ struct Variable
     return_trace (c->embed (this));
   }
 
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  { value.dependv1 (c); }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     c->num_var_idxes = 0;
@@ -335,6 +393,12 @@ struct Variable
     value.get_color_stop (c, stop, varIdxBase, instancer);
   }
 
+  void get_solid_color (hb_paint_context_t *c,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    value.get_solid_color (c, varIdxBase, is_foreground, color);
+  }
+
   hb_paint_extend_t get_extend () const
   {
     return value.get_extend ();
@@ -360,6 +424,9 @@ struct NoVariable
     TRACE_SERIALIZE (this);
     return_trace (c->embed (this));
   }
+
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  { value.dependv1 (c); }
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { value.closurev1 (c); }
@@ -390,6 +457,12 @@ struct NoVariable
     value.get_color_stop (c, stop, VarIdx::NO_VARIATION, instancer);
   }
 
+  void get_solid_color (hb_paint_context_t *c,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    value.get_solid_color (c, VarIdx::NO_VARIATION, is_foreground, color);
+  }
+
   hb_paint_extend_t get_extend () const
   {
     return value.get_extend ();
@@ -404,6 +477,8 @@ struct NoVariable
 
 struct ColorStop
 {
+  void dependv1 (hb_colrv1_depend_context_t * c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     c->add_palette_index (paletteIndex);
@@ -466,6 +541,8 @@ struct Extend : HBUINT8
 template <template<typename> class Var>
 struct ColorLine
 {
+  void dependv1 (hb_colrv1_depend_context_t * c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     for (const auto &stop : stops.iter ())
@@ -573,6 +650,8 @@ struct Affine2x3
     return_trace (c->check_struct (this));
   }
 
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { c->num_var_idxes = 6; }
 
@@ -619,7 +698,8 @@ struct Affine2x3
 
 struct PaintColrLayers
 {
-  void closurev1 (hb_colrv1_closure_context_t* c) const;
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
                const ItemVarStoreInstancer &instancer HB_UNUSED) const
@@ -650,6 +730,7 @@ struct PaintColrLayers
 
 struct PaintSolid
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     c->add_palette_index (paletteIndex);
@@ -680,15 +761,21 @@ struct PaintSolid
     return_trace (c->check_struct (this));
   }
 
+  void get_solid_color (hb_paint_context_t *c, uint32_t varIdxBase,
+                        hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    *color = c->get_color (paletteIndex,
+                           alpha.to_float (c->instancer (varIdxBase, 0)),
+                           is_foreground);
+  }
+
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     TRACE_PAINT (this);
     hb_bool_t is_foreground;
     hb_color_t color;
 
-    color = c->get_color (paletteIndex,
-                          alpha.to_float (c->instancer (varIdxBase, 0)),
-                          &is_foreground);
+    get_solid_color (c, varIdxBase, &is_foreground, &color);
     c->funcs->color (c->data, is_foreground, color);
   }
 
@@ -702,6 +789,8 @@ struct PaintSolid
 template <template<typename> class Var>
 struct PaintLinearGradient
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     (this+colorLine).closurev1 (c);
@@ -772,6 +861,8 @@ struct PaintLinearGradient
 template <template<typename> class Var>
 struct PaintRadialGradient
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     (this+colorLine).closurev1 (c);
@@ -790,10 +881,10 @@ struct PaintRadialGradient
     {
       out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
       out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
-      out->radius0 = radius0 + (unsigned) roundf (instancer (varIdxBase, 2));
+      out->radius0 = hb_clamp ((int) radius0 + (int) roundf (instancer (varIdxBase, 2)), 0, 0xFFFF);
       out->x1 = x1 + (int) roundf (instancer (varIdxBase, 3));
       out->y1 = y1 + (int) roundf (instancer (varIdxBase, 4));
-      out->radius1 = radius1 + (unsigned) roundf (instancer (varIdxBase, 5));
+      out->radius1 = hb_clamp ((int) radius1 + (int) roundf (instancer (varIdxBase, 5)), 0, 0xFFFF);
     }
 
     if (format == 7 && c->plan->all_axes_pinned)
@@ -842,6 +933,8 @@ struct PaintRadialGradient
 template <template<typename> class Var>
 struct PaintSweepGradient
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     (this+colorLine).closurev1 (c);
@@ -906,7 +999,8 @@ struct PaintSweepGradient
 // Paint a non-COLR glyph, filled as indicated by paint.
 struct PaintGlyph
 {
-  void closurev1 (hb_colrv1_closure_context_t* c) const;
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
                const ItemVarStoreInstancer &instancer) const
@@ -928,17 +1022,7 @@ struct PaintGlyph
     return_trace (c->check_struct (this) && paint.sanitize (c, this));
   }
 
-  void paint_glyph (hb_paint_context_t *c) const
-  {
-    TRACE_PAINT (this);
-    c->funcs->push_inverse_font_transform (c->data, c->font);
-    c->funcs->push_clip_glyph (c->data, gid, c->font);
-    c->funcs->push_font_transform (c->data, c->font);
-    c->recurse (this+paint);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_clip (c->data);
-    c->funcs->pop_transform (c->data);
-  }
+  inline void paint_glyph (hb_paint_context_t *c) const;
 
   HBUINT8		format; /* format = 10 */
   Offset24To<Paint>	paint;  /* Offset (from beginning of PaintGlyph table) to Paint subtable. */
@@ -949,7 +1033,8 @@ struct PaintGlyph
 
 struct PaintColrGlyph
 {
-  void closurev1 (hb_colrv1_closure_context_t* c) const;
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
                const ItemVarStoreInstancer &instancer HB_UNUSED) const
@@ -979,6 +1064,7 @@ struct PaintColrGlyph
 template <template<typename> class Var>
 struct PaintTransform
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1018,6 +1104,7 @@ struct PaintTransform
 
 struct PaintTranslate
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1067,6 +1154,7 @@ struct PaintTranslate
 
 struct PaintScale
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1116,6 +1204,7 @@ struct PaintScale
 
 struct PaintScaleAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1171,6 +1260,7 @@ struct PaintScaleAroundCenter
 
 struct PaintScaleUniform
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1215,6 +1305,7 @@ struct PaintScaleUniform
 
 struct PaintScaleUniformAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1267,6 +1358,7 @@ struct PaintScaleUniformAroundCenter
 
 struct PaintRotate
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1311,6 +1403,7 @@ struct PaintRotate
 
 struct PaintRotateAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1363,6 +1456,7 @@ struct PaintRotateAroundCenter
 
 struct PaintSkew
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1412,6 +1506,7 @@ struct PaintSkew
 
 struct PaintSkewAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1467,7 +1562,8 @@ struct PaintSkewAroundCenter
 
 struct PaintComposite
 {
-  void closurev1 (hb_colrv1_closure_context_t* c) const;
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
                const ItemVarStoreInstancer &instancer) const
@@ -1626,8 +1722,8 @@ struct ClipBox
   {
     TRACE_SUBSET (this);
     switch (u.format.v) {
-    case 1: return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
-    case 2: return_trace (u.format2.subset (c, instancer));
+    case 1: hb_barrier (); return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
+    case 2: hb_barrier (); return_trace (u.format2.subset (c, instancer));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1635,7 +1731,7 @@ struct ClipBox
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     switch (u.format.v) {
-    case 2: u.format2.closurev1 (c); return;
+    case 2: hb_barrier (); u.format2.closurev1 (c); return;
     default:return;
     }
   }
@@ -1646,8 +1742,8 @@ struct ClipBox
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1658,9 +1754,11 @@ struct ClipBox
     ClipBoxData clip_box;
     switch (u.format.v) {
     case 1:
+      hb_barrier ();
       u.format1.get_clip_box (clip_box, instancer);
       break;
     case 2:
+      hb_barrier ();
       u.format2.get_clip_box (clip_box, instancer);
       break;
     default:
@@ -1856,39 +1954,49 @@ struct Paint
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
-    case 4: return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
-    case 6: return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
-    case 7: return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
-    case 8: return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
-    case 9: return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
-    case 10: return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
-    case 11: return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
-    case 12: return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
-    case 13: return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
-    case 14: return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
-    case 15: return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
-    case 16: return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
-    case 17: return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
-    case 18: return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
-    case 19: return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
-    case 20: return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
-    case 21: return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
-    case 22: return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
-    case 23: return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
-    case 24: return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
-    case 25: return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
-    case 26: return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
-    case 27: return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
-    case 28: return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
-    case 29: return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
-    case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
-    case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
-    case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
+    case 6: hb_barrier (); return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
+    case 7: hb_barrier (); return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
+    case 8: hb_barrier (); return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
+    case 9: hb_barrier (); return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
+    case 10: hb_barrier (); return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
+    case 11: hb_barrier (); return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
+    case 12: hb_barrier (); return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
+    case 13: hb_barrier (); return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
+    case 14: hb_barrier (); return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
+    case 15: hb_barrier (); return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
+    case 16: hb_barrier (); return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
+    case 17: hb_barrier (); return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
+    case 18: hb_barrier (); return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
+    case 19: hb_barrier (); return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
+    case 20: hb_barrier (); return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
+    case 21: hb_barrier (); return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
+    case 22: hb_barrier (); return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
+    case 23: hb_barrier (); return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
+    case 24: hb_barrier (); return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
+    case 25: hb_barrier (); return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
+    case 26: hb_barrier (); return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
+    case 27: hb_barrier (); return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
+    case 28: hb_barrier (); return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
+    case 29: hb_barrier (); return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
+    case 30: hb_barrier (); return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
+    case 31: hb_barrier (); return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
+    case 32: hb_barrier (); return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
+    }
+  }
+
+  bool get_solid_color (hb_paint_context_t *c,
+			hb_bool_t *is_foreground, hb_color_t *color) const
+  {
+    switch (u.format.v) {
+    case 2: hb_barrier (); u.paintformat2.get_solid_color (c, is_foreground, color); return true;
+    case 3: hb_barrier (); u.paintformat3.get_solid_color (c, is_foreground, color); return true;
+    default: return false;
     }
   }
 
@@ -2121,7 +2229,7 @@ struct COLR
     hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
     hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
 								       record.numLayers);
-    if (count)
+    if (count && layers)
     {
       + glyph_layers.sub_array (start_offset, count)
       | hb_sink (hb_array (layers, *count))
@@ -2184,6 +2292,12 @@ struct COLR
 
     bool is_valid () { return colr.get_blob ()->length; }
 
+    void depend (hb_depend_data_builder_t *depend_data) const
+    {
+      if (!has_data ()) return;
+      colr->depend (depend_data);
+    }
+
     void closure_glyphs (hb_codepoint_t glyph,
 			 hb_set_t *related_ids /* OUT */) const
     { colr->closure_glyphs (glyph, related_ids); }
@@ -2244,6 +2358,35 @@ struct COLR
     private:
     mutable hb_atomic_t<hb_colr_scratch_t *> cached_scratch;
   };
+
+  void depend (hb_depend_data_builder_t *depend_data) const
+  {
+    // v0
+    hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
+    for (const BaseGlyphRecord &record : baseGlyphs)
+    {
+      auto glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record.firstLayerIdx,
+                                                                         record.numLayers);
+      for (const LayerRecord layer : glyph_layers)
+        depend_data->add_depend(record.glyphId, HB_OT_TAG_COLR, layer.glyphId);
+    }
+
+    if (!has_v1_data())
+      return;
+
+    // v1
+    hb_colrv1_depend_context_t c (this, depend_data);
+    const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
+
+    for (const BaseGlyphPaintRecord &baseglyph_paintrecord: baseglyph_paintrecords.iter ())
+    {
+      c.source_gid = baseglyph_paintrecord.glyphId;
+      c.visited_paint.clear ();
+
+      const Paint &paint = &baseglyph_paintrecords+baseglyph_paintrecord.paint;
+      paint.dispatch (&c);
+    }
+  }
 
   void closure_glyphs (hb_codepoint_t glyph,
 		       hb_set_t *related_ids /* OUT */) const
@@ -2769,9 +2912,7 @@ struct COLR
       {
         hb_bool_t is_foreground;
         hb_color_t color = c.get_color (r.colorIdx, 1., &is_foreground);
-        c.funcs->push_clip_glyph (c.data, r.glyphId, c.font);
-        c.funcs->color (c.data, is_foreground, color);
-        c.funcs->pop_clip (c.data);
+        c.funcs->fill_glyph (c.data, r.glyphId, c.font, is_foreground, color);
       }
 
       return true;
@@ -2811,6 +2952,32 @@ hb_paint_context_t::recurse (const Paint &paint)
   edge_count--;
   paint.dispatch (this);
   depth_left++;
+}
+
+void PaintGlyph::paint_glyph (hb_paint_context_t *c) const
+{
+  TRACE_PAINT (this);
+
+  hb_bool_t is_foreground;
+  hb_color_t color;
+  /* Optimize cases that can use a simple fill-glyph operation. */
+  if (likely (c->depth_left > 0 && c->edge_count > 0) &&
+      (this+paint).get_solid_color (c, &is_foreground, &color))
+  {
+    c->edge_count--;
+    c->funcs->push_inverse_font_transform (c->data, c->font);
+    c->funcs->fill_glyph (c->data, gid, c->font, is_foreground, color);
+    c->funcs->pop_transform (c->data);
+    return;
+  }
+
+  c->funcs->push_inverse_font_transform (c->data, c->font);
+  c->funcs->push_clip_glyph (c->data, gid, c->font);
+  c->funcs->push_font_transform (c->data, c->font);
+  c->recurse (this+paint);
+  c->funcs->pop_transform (c->data);
+  c->funcs->pop_clip (c->data);
+  c->funcs->pop_transform (c->data);
 }
 
 void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const

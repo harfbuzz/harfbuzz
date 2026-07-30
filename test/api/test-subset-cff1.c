@@ -336,6 +336,54 @@ test_subset_cff1_j_retaingids (void)
   hb_face_destroy (face_41_4c2e);
 }
 
+static void
+test_subset_cff1_identity_charset (void)
+{
+  /* The flag has no effect on a name-keyed font, so this is the same output
+   * as test_subset_cff1(). */
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/SourceSansPro-Regular.ac.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'c');
+  input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET);
+  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_ac);
+}
+
+static void
+test_subset_cff1_j_identity_charset (void)
+{
+  hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  hb_face_t *face_41_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,4C2E.identity.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_41_3041_4c2e_subset;
+  hb_set_add (codepoints, 0x41);
+  hb_set_add (codepoints, 0x4C2E);
+  input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_41_3041_4c2e_subset);
+  hb_face_destroy (face_41_3041_4c2e);
+  hb_face_destroy (face_41_4c2e);
+}
+
 #ifdef HB_EXPERIMENTAL_API
 static void
 test_subset_cff1_iftb_requirements (void)
@@ -383,6 +431,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_dotsection);
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
+  hb_test_add (test_subset_cff1_identity_charset);
+  hb_test_add (test_subset_cff1_j_identity_charset);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_cff1_iftb_requirements);

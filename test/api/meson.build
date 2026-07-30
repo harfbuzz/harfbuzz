@@ -34,6 +34,7 @@ tests = [
   'test-ot-layout.c',
   'test-ot-ligature-carets.c',
   'test-ot-name.c',
+  'test-ot-nullable-output.c',
   'test-ot-math.c',
   'test-ot-meta.c',
   'test-ot-metrics.c',
@@ -93,6 +94,10 @@ if conf.get('HAVE_PTHREAD', 0) == 1
   tests += 'test-multithread.c'
 endif
 
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1
+  tests += 'test-ot-depend.c'
+endif
+
 # Default test running environment
 env = environment()
 env.set('MALLOC_CHECK_', '1')
@@ -108,7 +113,7 @@ foreach source : tests
           libharfbuzz_cairo_dep,
           libharfbuzz_icu_dep]
   suite = ['api']
-  if test_name.contains('-subset') or test_name.contains('-instance')
+  if test_name.contains('-subset') or test_name.contains('-instance') or test_name.contains('-depend')
     if get_option('subset').disabled()
       continue
     endif

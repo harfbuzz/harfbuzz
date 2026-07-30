@@ -151,6 +151,7 @@
 #pragma GCC diagnostic ignored "-Wrange-loop-analysis" // https://github.com/harfbuzz/harfbuzz/issues/2834
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wunused-template"
 #pragma GCC diagnostic ignored "-Wc++11-compat" // only gcc raises it
 #endif
 
@@ -203,6 +204,7 @@
 #define HB_OT_H_IN
 #include "hb-aat.h"
 #define HB_AAT_H_IN
+#define HB_SUBSET_H_IN
 
 #include <cassert>
 #include <cfloat>
@@ -279,7 +281,7 @@
 #if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
 #define HB_UNUSED	__attribute__((unused))
 #elif defined(_MSC_VER) /* https://github.com/harfbuzz/harfbuzz/issues/635 */
-#define HB_UNUSED __pragma(warning(suppress: 4100 4101))
+#define HB_UNUSED __pragma(warning(suppress: 4100 4101 4189))
 #else
 #define HB_UNUSED
 #endif

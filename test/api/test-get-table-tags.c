@@ -27,6 +27,7 @@
 #include "hb-test.h"
 
 #include <hb.h>
+#include <string.h>
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
@@ -128,6 +129,63 @@ test_get_table_tags_ft (void)
   FT_Done_FreeType (ft_library);
   hb_blob_destroy (blob);
 }
+
+static unsigned long
+_ft_stream_read (FT_Stream       stream,
+		 unsigned long   offset,
+		 unsigned char  *buffer,
+		 unsigned long   count)
+{
+  hb_blob_t *blob = (hb_blob_t *) stream->descriptor.pointer;
+  unsigned int length;
+  const char *data = hb_blob_get_data (blob, &length);
+  if (offset > length)
+    return 0;
+  if (count == 0) /* Seek. */
+    return 0;
+  if (offset + count > length)
+    count = length - offset;
+  memcpy (buffer, data + offset, count);
+  return count;
+}
+
+static void
+_ft_stream_close (FT_Stream stream HB_UNUSED) {}
+
+static void
+test_get_table_tags_ft_stream (void)
+{
+  /* Exercise the streaming-face path, which (unlike an in-memory face) uses
+   * hb-ft's own _hb_ft_get_table_tags callback. */
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_blob_t *blob = hb_face_reference_blob (source);
+  hb_face_destroy (source);
+
+  FT_Library ft_library;
+  g_assert_cmpint (0, ==, FT_Init_FreeType (&ft_library));
+
+  FT_StreamRec stream = {0};
+  stream.size = hb_blob_get_length (blob);
+  stream.descriptor.pointer = blob;
+  stream.read = _ft_stream_read;
+  stream.close = _ft_stream_close;
+
+  FT_Open_Args args = {0};
+  args.flags = FT_OPEN_STREAM;
+  args.stream = &stream;
+
+  FT_Face ft_face;
+  g_assert_cmpint (0, ==, FT_Open_Face (ft_library, &args, 0, &ft_face));
+
+  hb_face_t *face = hb_ft_face_create (ft_face, NULL);
+
+  _test_get_table_tags (face);
+
+  hb_face_destroy (face);
+  FT_Done_Face (ft_face);
+  FT_Done_FreeType (ft_library);
+  hb_blob_destroy (blob);
+}
 #endif
 
 #ifdef HAVE_CORETEXT
@@ -167,6 +225,7 @@ main (int argc, char **argv)
   hb_test_add (test_get_table_tags_builder);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_get_table_tags_ft);
+  hb_test_add (test_get_table_tags_ft_stream);
 #endif
 #ifdef HAVE_CORETEXT
   hb_test_add (test_get_table_tags_ct);
