@@ -1583,7 +1583,7 @@ static bool match_input (hb_ot_apply_context_t *c,
 	return_trace (false);
     }
 
-    total_component_count += _hb_glyph_info_get_lig_num_comps (&buffer->info[skippy_iter.idx]);
+    total_component_count += _hb_glyph_info_get_lig_num_comps_in_ligation (&buffer->info[skippy_iter.idx]);
   }
 
   *end_position = skippy_iter.idx + 1;
@@ -1687,7 +1687,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
     }
 
     last_lig_id = _hb_glyph_info_get_lig_id (&buffer->cur());
-    last_num_components = _hb_glyph_info_get_lig_num_comps (&buffer->cur());
+    last_num_components = _hb_glyph_info_get_lig_num_comps_in_ligation (&buffer->cur());
     components_so_far += last_num_components;
 
     /* Skip the base glyph */
