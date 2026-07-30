@@ -101,6 +101,9 @@ if conf.get('HB_EXPERIMENTAL_API', 0) == 1
     # hb-depend-closure-parity needs glib for option parsing
     test_deps = []
     if test_name == 'hb-depend-closure-parity'
+      if conf.get('HAVE_GLIB', 0) == 0
+        continue
+      endif
       test_deps = [glib_dep]
     endif
 
@@ -235,17 +238,19 @@ if not get_option('subset').disabled()
 endif
 
 if conf.get('HB_EXPERIMENTAL_API', 0) == 1
-  i = 0
-  foreach chunk : depend_closure_parity_fonts_glob_chunks
-    test('depend-closure-parity-chunk-@0@'.format(i),
-      hb_depend_closure_parity_exe,
-      args: ['-s', '42', '-n', '16'] + chunk,
-      workdir: meson.current_build_dir() / '..' / '..',
-      protocol: 'tap',
-      suite: ['fuzzing'],
-    )
-    i += 1
-  endforeach
+  if conf.get('HAVE_GLIB', 0) == 1
+    i = 0
+    foreach chunk : depend_closure_parity_fonts_glob_chunks
+      test('depend-closure-parity-chunk-@0@'.format(i),
+        hb_depend_closure_parity_exe,
+        args: ['-s', '42', '-n', '16'] + chunk,
+        workdir: meson.current_build_dir() / '..' / '..',
+        protocol: 'tap',
+        suite: ['fuzzing'],
+      )
+      i += 1
+    endforeach
+  endif
 
   i = 0
   foreach chunk : fonts_glob_chunks
