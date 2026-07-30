@@ -425,11 +425,15 @@ hb_subset_sources = files(
   'graph/split-helpers.hh',
   'hb-subset.cc',
   'hb-subset.hh',
+  'hb-depend.cc',
+  'hb-depend.hh',
+  'hb-depend-data.hh',
 )
 
 hb_subset_headers = files(
   'hb-subset.h',
-  'hb-subset-serialize.h'
+  'hb-subset-serialize.h',
+  'hb-subset-depend.h',
 )
 
 hb_gobject_sources = files(
@@ -625,7 +629,6 @@ gen_def_cmd = [gen_def, '@OUTPUT@', '@INPUT@']
 if get_option('experimental_api')
   gen_def_cmd += '--experimental-api'
 endif
-
 # harfbuzz
 harfbuzz_def = custom_target('harfbuzz.def',
     command: gen_def_cmd,

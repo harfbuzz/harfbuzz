@@ -193,6 +193,7 @@ hb_free
 HB_H_IN
 HB_OT_H_IN
 HB_AAT_H_IN
+HB_SUBSET_H_IN
 </SECTION>
 
 <SECTION>
@@ -1005,6 +1006,19 @@ hb_subset_cff_get_charstring_data
 hb_subset_cff_get_charstrings_index
 hb_subset_cff2_get_charstring_data
 hb_subset_cff2_get_charstrings_index
+</SECTION>
+
+<SECTION>
+<FILE>hb-subset-depend</FILE>
+hb_subset_depend_t
+hb_subset_depend_entry_t
+hb_subset_depend_edge_flags_t
+hb_subset_depend_from_face_or_fail
+hb_subset_depend_lookup_glyph
+hb_subset_depend_lookup_set
+hb_subset_depend_destroy
+<SUBSECTION Private>
+HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
 </SECTION>
 
 <SECTION>

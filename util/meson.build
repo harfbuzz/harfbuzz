@@ -203,6 +203,14 @@ if conf.get('HAVE_GLIB', 0) == 1
       ),
       workdir : meson.current_source_dir(),
       suite: ['util'])
+
+      executable('hb-subset-depend', ['hb-subset-depend.cc'],
+        cpp_args: cpp_args + ['-DHB_EXPERIMENTAL_API'],
+        include_directories: [incconfig, incsrc],
+        dependencies: util_deps,
+        link_with: [libharfbuzz, libharfbuzz_subset],
+        install: false,
+      )
     endif
   endif
 else

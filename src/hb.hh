@@ -204,6 +204,7 @@
 #define HB_OT_H_IN
 #include "hb-aat.h"
 #define HB_AAT_H_IN
+#define HB_SUBSET_H_IN
 
 #include <cassert>
 #include <cfloat>

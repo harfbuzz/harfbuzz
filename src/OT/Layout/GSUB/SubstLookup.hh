@@ -61,6 +61,12 @@ struct SubstLookup : Lookup
     return ret;
   }
 
+  void depend (hb_depend_context_t *c) const
+  {
+    c->set_recurse_func (dispatch_depend_recurse_func);
+    dispatch (c);
+  }
+
   hb_closure_lookups_context_t::return_t closure_lookups (hb_closure_lookups_context_t *c, unsigned this_index) const
   {
     if (c->is_lookup_visited (this_index))
@@ -189,6 +195,7 @@ struct SubstLookup : Lookup
 
   static inline typename hb_closure_context_t::return_t closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
 
+
   static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
   {
     if (!c->should_visit_lookup (lookup_index))
@@ -202,6 +209,13 @@ struct SubstLookup : Lookup
     //c->flush ();
 
     return ret;
+  }
+
+  static inline hb_depend_context_t::return_t depend_glyphs_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
+
+  static inline hb_depend_context_t::return_t dispatch_depend_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
+  {
+    return depend_glyphs_recurse_func (c, lookup_index, covered_seq_indices, seq_index, end_index);
   }
 
   template <typename context_t, typename ...Ts>
