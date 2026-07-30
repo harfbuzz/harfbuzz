@@ -154,6 +154,37 @@ test_ot_bits_invalid (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_number_bounding_box (void)
+{
+  hb_face_t *adwaita = hb_test_open_font_file ("fonts/adwaita.ttf");
+  hb_face_t *abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
+
+  g_assert_cmpint (hb_ot_fetch_number (adwaita, HB_OT_NUMBER_TAG_FONT_X_MIN), ==, 51);
+  g_assert_cmpint (hb_ot_fetch_number (adwaita, HB_OT_NUMBER_TAG_FONT_Y_MIN), ==, -250);
+  g_assert_cmpint (hb_ot_fetch_number (adwaita, HB_OT_NUMBER_TAG_FONT_X_MAX), ==, 1238);
+  g_assert_cmpint (hb_ot_fetch_number (adwaita, HB_OT_NUMBER_TAG_FONT_Y_MAX), ==, 950);
+
+  g_assert_cmpint (hb_ot_fetch_number (abc, HB_OT_NUMBER_TAG_FONT_X_MIN), ==, -454);
+  g_assert_cmpint (hb_ot_fetch_number (abc, HB_OT_NUMBER_TAG_FONT_Y_MIN), ==, -293);
+  g_assert_cmpint (hb_ot_fetch_number (abc, HB_OT_NUMBER_TAG_FONT_X_MAX), ==, 2159);
+  g_assert_cmpint (hb_ot_fetch_number (abc, HB_OT_NUMBER_TAG_FONT_Y_MAX), ==, 968);
+
+  hb_face_destroy (adwaita);
+  hb_face_destroy (abc);
+}
+
+static void
+test_ot_number_invalid (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/adwaita.ttf");
+
+  g_assert_cmpint (hb_ot_fetch_number (face, (hb_ot_number_tag_t) HB_TAG ('x','x','x','x')), ==, 0);
+  g_assert_cmpint (hb_ot_fetch_number (hb_face_get_empty (), HB_OT_NUMBER_TAG_FONT_X_MIN), ==, 0);
+
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -166,6 +197,8 @@ main (int argc, char **argv)
   hb_test_add (test_ot_bits_ranges);
   hb_test_add (test_ot_bits_missing_tables);
   hb_test_add (test_ot_bits_invalid);
+  hb_test_add (test_ot_number_bounding_box);
+  hb_test_add (test_ot_number_invalid);
 
   return hb_test_run ();
 }

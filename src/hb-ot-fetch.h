@@ -71,6 +71,31 @@ HB_EXTERN uint32_t
 hb_ot_fetch_bits (hb_face_t        *face,
 		hb_ot_bits_tag_t  tag);
 
+/**
+ * hb_ot_number_tag_t:
+ * @HB_OT_NUMBER_TAG_FONT_X_MIN: `xMin` of the `head` table.
+ * @HB_OT_NUMBER_TAG_FONT_Y_MIN: `yMin` of the `head` table.
+ * @HB_OT_NUMBER_TAG_FONT_X_MAX: `xMax` of the `head` table.
+ * @HB_OT_NUMBER_TAG_FONT_Y_MAX: `yMax` of the `head` table.
+ *
+ * Numbers that can be fetched with hb_ot_fetch_number().
+ *
+ * XSince: REPLACEME
+ **/
+typedef enum {
+  HB_OT_NUMBER_TAG_FONT_X_MIN		= HB_TAG ('x','m','i','n'),
+  HB_OT_NUMBER_TAG_FONT_Y_MIN		= HB_TAG ('y','m','i','n'),
+  HB_OT_NUMBER_TAG_FONT_X_MAX		= HB_TAG ('x','m','a','x'),
+  HB_OT_NUMBER_TAG_FONT_Y_MAX		= HB_TAG ('y','m','a','x'),
+
+  /*< private >*/
+  _HB_OT_NUMBER_TAG_MAX_VALUE = HB_TAG_MAX_SIGNED /*< skip >*/
+} hb_ot_number_tag_t;
+
+HB_EXTERN int32_t
+hb_ot_fetch_number (hb_face_t          *face,
+		  hb_ot_number_tag_t  tag);
+
 HB_END_DECLS
 
 #endif /* HB_OT_FETCH_H */
