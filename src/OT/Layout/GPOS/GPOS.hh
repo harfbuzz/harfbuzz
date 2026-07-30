@@ -107,8 +107,10 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
   }
   else /*if (type & GPOS_impl::ATTACH_TYPE_MARK)*/
   {
-    pos[i].x_offset += pos[j].x_offset;
-    pos[i].y_offset += pos[j].y_offset;
+    if (HB_DIRECTION_IS_HORIZONTAL (direction))
+      pos[i].x_offset += pos[j].x_offset;
+    else
+      pos[i].y_offset += pos[j].y_offset;
 
     // i is the position of the mark; j is the base.
     if (j < i)
