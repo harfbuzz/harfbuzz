@@ -44,8 +44,15 @@ struct Ligature
     hb_set_t complete_ligset;
     complete_ligset.add (first);
     + hb_iter (component) | hb_sink (complete_ligset);
+    if (unlikely (complete_ligset.in_error ()))
+    {
+      c->depend_data->fail ();
+      return;
+    }
 
     hb_codepoint_t ligset_idx = c->depend_data->new_ligature_set(complete_ligset);
+    if (unlikely (ligset_idx == HB_CODEPOINT_INVALID))
+      return;
 
     // Track whether any edge using this ligset_idx was actually added
     bool any_added = false;

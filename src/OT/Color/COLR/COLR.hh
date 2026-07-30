@@ -238,6 +238,9 @@ struct hb_colrv1_depend_context_t :
     if (unlikely (nesting_level_left == 0))
       return hb_empty_t ();
 
+    if (paint_visited (&obj))
+      return hb_empty_t ();
+
     nesting_level_left--;
     obj.dependv1 (this);
     nesting_level_left++;
@@ -245,12 +248,25 @@ struct hb_colrv1_depend_context_t :
   }
   static return_t default_return_value () { return hb_empty_t (); }
 
+  bool paint_visited (const void *paint)
+  {
+    hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) paint - (uintptr_t) colr);
+    if (visited_paint.in_error() || visited_paint.has (delta))
+      return true;
+
+    visited_paint.add (delta);
+    if (unlikely (visited_paint.in_error ()))
+      depend_data->fail ();
+    return false;
+  }
+
   const COLR* get_colr_table () const
   { return colr; }
 
   public:
   const COLR *colr;
   hb_depend_data_builder_t *depend_data;
+  hb_set_t visited_paint;
   unsigned nesting_level_left;
   hb_codepoint_t source_gid;
 
@@ -2365,6 +2381,7 @@ struct COLR
     for (const BaseGlyphPaintRecord &baseglyph_paintrecord: baseglyph_paintrecords.iter ())
     {
       c.source_gid = baseglyph_paintrecord.glyphId;
+      c.visited_paint.clear ();
 
       const Paint &paint = &baseglyph_paintrecords+baseglyph_paintrecord.paint;
       paint.dispatch (&c);

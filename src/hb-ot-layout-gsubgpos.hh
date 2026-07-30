@@ -443,9 +443,9 @@ struct hb_depend_context_t :
     hb_vector_t<hb_set_t> lookahead_sets;  /* Sets of glyphs in lookahead positions */
   };
 
-  void push_context (context_info_t &&ctx)
+  bool push_context (context_info_t &&ctx)
   {
-    context_stack.push (std::move (ctx));
+    return depend_data->check_success (context_stack.push_or_fail (std::move (ctx)));
   }
 
   void pop_context ()
@@ -1976,6 +1976,11 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       hb_set_t filtered;
       filtered.set (*original_set);
       filtered.subtract (position_context);
+      if (unlikely (filtered.in_error ()))
+      {
+        c->depend_data->fail ();
+        return;
+      }
 
       if (filtered == *original_set) {
         /* No overlap with position_context - add full requirement */
@@ -1993,10 +1998,17 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
         hb_set_t filtered;
         filtered.set ((*input_position_glyphs)[j]);
         filtered.subtract (position_context);
+        if (unlikely (filtered.in_error ()))
+        {
+          c->depend_data->fail ();
+          return;
+        }
 
         if (filtered == (*input_position_glyphs)[j]) {
           /* No overlap with position_context - add full requirement */
           hb_codepoint_t idx = c->depend_data->find_or_create_context_set ((*input_position_glyphs)[j]);
+          if (unlikely (idx == HB_CODEPOINT_INVALID))
+            return;
           filtered_disjunctive_indices.add (HB_DEPEND_CONTEXT_SET_FLAG | idx);
         }
         /* Otherwise: position_context intersects, requirement satisfied */
@@ -2005,11 +2017,20 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
 
     /* Combine direct + disjunctive */
     position_context.union_ (filtered_disjunctive_indices);
+    if (unlikely (position_context.in_error () ||
+                  filtered_disjunctive_indices.in_error ()))
+    {
+      c->depend_data->fail ();
+      return;
+    }
 
     /* Allocate final context_set */
     hb_codepoint_t context_set_idx = position_context.is_empty ()
       ? HB_CODEPOINT_INVALID
       : c->depend_data->find_or_create_context_set (position_context);
+    if (unlikely (!position_context.is_empty () &&
+                  context_set_idx == HB_CODEPOINT_INVALID))
+      return;
 
     /* Save outer context to restore after this lookup. When a contextual lookup
      * calls another contextual lookup, we want each lookup in this rule to see
@@ -2078,7 +2099,11 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     covered_seq_indicies.add (seqIndex);
     hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
+    {
+      c->depend_data->current_context_set_index = saved_context_set_index;
+      c->depend_data->current_edge_flags = saved_edge_flags;
       return;
+    }
     if (has_pos_glyphs) {
       *cur_active_glyphs = std::move (pos_glyphs);
     } else {
@@ -2351,7 +2376,11 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
       collect_coverage (&pos0_glyphs, value, lookup_context.intersects_data);
       break;
   }
-  input_position_glyphs.push (pos0_glyphs);
+  if (unlikely (!input_position_glyphs.push_or_fail (pos0_glyphs)))
+  {
+    c->depend_data->fail ();
+    return;
+  }
 
   /* Positions 1+ (Input array) */
   for (unsigned i = 0; i < inputCount - 1; i++)
@@ -2369,12 +2398,17 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
         collect_coverage (&pos_glyphs, input[i], lookup_context.intersects_data);
         break;
     }
-    input_position_glyphs.push (pos_glyphs);
+    if (unlikely (!input_position_glyphs.push_or_fail (pos_glyphs)))
+    {
+      c->depend_data->fail ();
+      return;
+    }
   }
 
   /* Push context before recursing (for backtrack/lookahead tracking - empty for ContextSubst) */
   typename hb_depend_context_t::context_info_t ctx_info;
-  c->push_context (std::move (ctx_info));
+  if (unlikely (!c->push_context (std::move (ctx_info))))
+    return;
 
   context_depend_recurse_lookups (c,
 				  inputCount, input,
@@ -3665,7 +3699,13 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
         break;
     }
     if (!pos_glyphs.is_empty ())
-      ctx_info.backtrack_sets.push (pos_glyphs);
+    {
+      if (unlikely (!ctx_info.backtrack_sets.push_or_fail (pos_glyphs)))
+      {
+        c->depend_data->fail ();
+        return;
+      }
+    }
   }
 
   /* Extract lookahead glyphs */
@@ -3685,7 +3725,13 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
         break;
     }
     if (!pos_glyphs.is_empty ())
-      ctx_info.lookahead_sets.push (pos_glyphs);
+    {
+      if (unlikely (!ctx_info.lookahead_sets.push_or_fail (pos_glyphs)))
+      {
+        c->depend_data->fail ();
+        return;
+      }
+    }
   }
 
   /* Build preliminary_context with backtrack + lookahead encoded */
@@ -3696,6 +3742,8 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
       preliminary_context.add (back_set.get_min ());  // Direct glyph
     } else if (back_set.get_population () > 1) {
       hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (back_set);
+      if (unlikely (set_idx == HB_CODEPOINT_INVALID))
+        return;
       preliminary_context.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);  // Encoded set reference
     }
   }
@@ -3705,8 +3753,15 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
       preliminary_context.add (look_set.get_min ());  // Direct glyph
     } else if (look_set.get_population () > 1) {
       hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (look_set);
+      if (unlikely (set_idx == HB_CODEPOINT_INVALID))
+        return;
       preliminary_context.add (HB_DEPEND_CONTEXT_SET_FLAG | set_idx);  // Encoded set reference
     }
+  }
+  if (unlikely (preliminary_context.in_error ()))
+  {
+    c->depend_data->fail ();
+    return;
   }
 
   /* Build glyph sets for ALL input positions */
@@ -3728,7 +3783,11 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
       collect_coverage (&pos0_glyphs, value, lookup_context.intersects_data[1]);
       break;
   }
-  input_position_glyphs.push (pos0_glyphs);
+  if (unlikely (!input_position_glyphs.push_or_fail (pos0_glyphs)))
+  {
+    c->depend_data->fail ();
+    return;
+  }
 
   /* Positions 1+ (Input array) */
   for (unsigned i = 0; i < inputCount - 1; i++)
@@ -3746,11 +3805,16 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
         collect_coverage (&pos_glyphs, input[i], lookup_context.intersects_data[1]);
         break;
     }
-    input_position_glyphs.push (pos_glyphs);
+    if (unlikely (!input_position_glyphs.push_or_fail (pos_glyphs)))
+    {
+      c->depend_data->fail ();
+      return;
+    }
   }
 
   /* Push context before recursing (use move to avoid copy issues) */
-  c->push_context (std::move (ctx_info));
+  if (unlikely (!c->push_context (std::move (ctx_info))))
+    return;
 
   context_depend_recurse_lookups (c,
 				  inputCount, input,

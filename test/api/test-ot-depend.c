@@ -387,7 +387,7 @@ test_depend_math (void)
 static void
 test_depend_gsub_formats (void)
 {
-  hb_tag_t layout_tag;
+  hb_tag_t layout_tag = HB_TAG_NONE;
   hb_codepoint_t ligature_set;
 
   /* ===== BASIC SUBSTITUTION TYPES ===== */

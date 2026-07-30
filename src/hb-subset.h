@@ -30,6 +30,7 @@
 
 #include "hb.h"
 #include "hb-ot.h"
+#include "hb-subset-serialize.h"
 #include "hb-subset-depend.h"
 #include "hb-subset-serialize.h"
 
