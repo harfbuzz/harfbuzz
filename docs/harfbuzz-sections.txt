@@ -838,6 +838,8 @@ hb_ot_var_axis_info_t
 <FILE>hb-ot-fetch</FILE>
 hb_ot_bits_tag_t
 hb_ot_fetch_bits
+hb_ot_number_tag_t
+hb_ot_fetch_number
 </SECTION>
 
 <SECTION>

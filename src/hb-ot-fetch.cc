@@ -35,10 +35,11 @@
 /**
  * SECTION:hb-ot-fetch
  * @title: hb-ot-fetch
- * @short_description: OpenType bit fields
+ * @short_description: OpenType bit fields and numbers
  * @include: hb-ot.h
  *
- * Functions for fetching various bit fields scattered around OpenType tables.
+ * Functions for fetching various bit fields and numbers scattered around
+ * OpenType tables.
  *
  * These are raw table values, and many of them are legacy or unreliable, but
  * applications might need them for various legacy reasons.
@@ -73,6 +74,31 @@ hb_ot_fetch_bits (hb_face_t        *face,
   case HB_OT_BITS_TAG_CODE_PAGE_RANGE_1: return face->table.OS2->v1 ().ulCodePageRange1;
   case HB_OT_BITS_TAG_CODE_PAGE_RANGE_2: return face->table.OS2->v1 ().ulCodePageRange2;
   default:				 return 0;
+  }
+}
+
+/**
+ * hb_ot_fetch_number:
+ * @face: #hb_face_t to work upon
+ * @tag: tag of the number to fetch
+ *
+ * Fetches a number of @face in font units.
+ *
+ * Return value: the number, or zero if the font does not have it.
+ *
+ * XSince: REPLACEME
+ **/
+int32_t
+hb_ot_fetch_number (hb_face_t          *face,
+		  hb_ot_number_tag_t  tag)
+{
+  switch ((unsigned) tag)
+  {
+  case HB_OT_NUMBER_TAG_FONT_X_MIN: return face->table.head->xMin;
+  case HB_OT_NUMBER_TAG_FONT_Y_MIN: return face->table.head->yMin;
+  case HB_OT_NUMBER_TAG_FONT_X_MAX: return face->table.head->xMax;
+  case HB_OT_NUMBER_TAG_FONT_Y_MAX: return face->table.head->yMax;
+  default:		       return 0;
   }
 }
 
