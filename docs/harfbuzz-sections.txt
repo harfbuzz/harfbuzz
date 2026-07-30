@@ -267,6 +267,8 @@ hb_paint_pop_transform_func_t
 hb_paint_funcs_set_pop_transform_func
 hb_paint_color_glyph_func_t
 hb_paint_funcs_set_color_glyph_func
+hb_paint_fill_glyph_func_t
+hb_paint_funcs_set_fill_glyph_func
 hb_paint_push_clip_glyph_func_t
 hb_paint_funcs_set_push_clip_glyph_func
 hb_paint_push_clip_rectangle_func_t
@@ -312,6 +314,7 @@ hb_paint_push_font_transform
 hb_paint_push_inverse_font_transform
 hb_paint_pop_transform
 hb_paint_color_glyph
+hb_paint_fill_glyph
 hb_paint_push_clip_glyph
 hb_paint_push_clip_rectangle
 hb_paint_push_clip_path_start
@@ -997,6 +1000,7 @@ hb_subset_serialize_link_t
 hb_subset_serialize_object_t
 hb_subset_serialize_or_fail
 <SUBSECTION Private>
+hb_subset_input_to_string_or_fail
 hb_subset_input_override_name_table
 hb_subset_cff_get_charstring_data
 hb_subset_cff_get_charstrings_index

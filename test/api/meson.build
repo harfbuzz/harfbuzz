@@ -34,6 +34,7 @@ tests = [
   'test-ot-layout.c',
   'test-ot-ligature-carets.c',
   'test-ot-name.c',
+  'test-ot-nullable-output.c',
   'test-ot-math.c',
   'test-ot-meta.c',
   'test-ot-metrics.c',

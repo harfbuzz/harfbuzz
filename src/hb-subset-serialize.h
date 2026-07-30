@@ -27,11 +27,7 @@
 #define HB_SUBSET_SERIALIZE_H
 
 #if !defined(HB_SUBSET_H_IN) && !defined(HB_NO_SINGLE_HEADER_ERROR)
-#if defined(__GNUC__) || defined(__clang__)
 #warning "Include <hb-subset.h> instead."
-#elif defined(_MSC_VER)
-#pragma message("Include <hb-subset.h> instead.")
-#endif
 #endif
 
 #include "hb.h"

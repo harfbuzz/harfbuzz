@@ -1,0 +1,13 @@
+FONTS:
+ImplicitHVAR.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+ABC
+
+INSTANCES:
+wght=300:600
+wght=200:400:800

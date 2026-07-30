@@ -70,7 +70,7 @@ struct AttachList
 
     const AttachPoint &points = this+attachPoint[index];
 
-    if (point_count)
+    if (point_count && point_array)
     {
       + points.as_array ().sub_array (start_offset, point_count)
       | hb_sink (hb_array (point_array, *point_count))
@@ -253,9 +253,9 @@ struct CaretValue
 				 const ItemVariationStore &var_store) const
   {
     switch (u.format.v) {
-    case 1: return u.format1.get_caret_value (font, direction);
-    case 2: return u.format2.get_caret_value (font, direction, glyph_id);
-    case 3: return u.format3.get_caret_value (font, direction, var_store);
+    case 1: hb_barrier (); return u.format1.get_caret_value (font, direction);
+    case 2: hb_barrier (); return u.format2.get_caret_value (font, direction, glyph_id);
+    case 3: hb_barrier (); return u.format3.get_caret_value (font, direction, var_store);
     default:return 0;
     }
   }
@@ -266,9 +266,9 @@ struct CaretValue
     if (unlikely (!c->may_dispatch (this, &u.format.v))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format.v);
     switch (u.format.v) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -280,6 +280,7 @@ struct CaretValue
     case 2:
       return;
     case 3:
+      hb_barrier ();
       u.format3.collect_variation_indices (c);
       return;
     default: return;
@@ -292,9 +293,9 @@ struct CaretValue
     if (!u.format.v.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format.v) {
-    case 1: return_trace (u.format1.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
-    case 3: return_trace (u.format3.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c));
+    case 2: hb_barrier (); return_trace (u.format2.sanitize (c));
+    case 3: hb_barrier (); return_trace (u.format3.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -320,7 +321,7 @@ struct LigGlyph
 			   unsigned             *caret_count /* IN/OUT */,
 			   hb_position_t        *caret_array /* OUT */) const
   {
-    if (caret_count)
+    if (caret_count && caret_array)
     {
       + carets.as_array ().sub_array (start_offset, caret_count)
       | hb_map (hb_add (this))
@@ -520,7 +521,7 @@ struct MarkGlyphSets
   bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   {
     switch (u.format.v) {
-    case 1: return u.format1.covers (set_index, glyph_id);
+    case 1: hb_barrier (); return u.format1.covers (set_index, glyph_id);
     default:return false;
     }
   }
@@ -529,7 +530,7 @@ struct MarkGlyphSets
   void collect_coverage (hb_vector_t<set_t> &sets) const
   {
     switch (u.format.v) {
-    case 1: u.format1.collect_coverage (sets); return;
+    case 1: hb_barrier (); u.format1.collect_coverage (sets); return;
     default:return;
     }
   }
@@ -538,7 +539,7 @@ struct MarkGlyphSets
                                hb_set_t& used_mark_sets /* OUT */) const
   {
     switch (u.format.v) {
-    case 1: u.format1.collect_used_mark_sets (glyph_set, used_mark_sets); return;
+    case 1: hb_barrier (); u.format1.collect_used_mark_sets (glyph_set, used_mark_sets); return;
     default:return;
     }
   }
@@ -547,7 +548,7 @@ struct MarkGlyphSets
   {
     TRACE_SUBSET (this);
     switch (u.format.v) {
-    case 1: return_trace (u.format1.subset (c));
+    case 1: hb_barrier (); return_trace (u.format1.subset (c));
     default:return_trace (false);
     }
   }
@@ -558,7 +559,7 @@ struct MarkGlyphSets
     if (!u.format.v.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format.v) {
-    case 1: return_trace (u.format1.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -721,7 +722,7 @@ struct GDEFVersion1_2
       out->version.minor = 3;
       c->plan->has_gdef_varstore = true;
     } else if (subset_markglyphsetsdef) {
-      out->version.minor = 2;      
+      out->version.minor = 2;
     } else  {
       out->version.minor = 0;
       c->serializer->revert (snapshot_version0);
@@ -758,9 +759,9 @@ struct GDEF
   size_t get_size () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.get_size ();
+    case 1: hb_barrier (); return u.version1.get_size ();
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.get_size ();
+    case 2: hb_barrier (); return u.version2.get_size ();
 #endif
     default: return u.version.static_size;
     }
@@ -772,9 +773,9 @@ struct GDEF
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     hb_barrier ();
     switch (u.version.major) {
-    case 1: return_trace (u.version1.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.version1.sanitize (c));
 #ifndef HB_NO_BEYOND_64K
-    case 2: return_trace (u.version2.sanitize (c));
+    case 2: hb_barrier (); return_trace (u.version2.sanitize (c));
 #endif
     default: return_trace (true);
     }
@@ -783,9 +784,9 @@ struct GDEF
   bool subset (hb_subset_context_t *c) const
   {
     switch (u.version.major) {
-    case 1: return u.version1.subset (c);
+    case 1: hb_barrier (); return u.version1.subset (c);
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.subset (c);
+    case 2: hb_barrier (); return u.version2.subset (c);
 #endif
     default: return false;
     }
@@ -794,9 +795,9 @@ struct GDEF
   bool has_glyph_classes () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.glyphClassDef != 0;
+    case 1: hb_barrier (); return u.version1.glyphClassDef != 0;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.glyphClassDef != 0;
+    case 2: hb_barrier (); return u.version2.glyphClassDef != 0;
 #endif
     default: return false;
     }
@@ -804,9 +805,9 @@ struct GDEF
   const ClassDef &get_glyph_class_def () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.glyphClassDef;
+    case 1: hb_barrier (); return this+u.version1.glyphClassDef;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.glyphClassDef;
+    case 2: hb_barrier (); return this+u.version2.glyphClassDef;
 #endif
     default: return Null(ClassDef);
     }
@@ -814,9 +815,9 @@ struct GDEF
   bool has_attach_list () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.attachList != 0;
+    case 1: hb_barrier (); return u.version1.attachList != 0;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.attachList != 0;
+    case 2: hb_barrier (); return u.version2.attachList != 0;
 #endif
     default: return false;
     }
@@ -824,9 +825,9 @@ struct GDEF
   const AttachList &get_attach_list () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.attachList;
+    case 1: hb_barrier (); return this+u.version1.attachList;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.attachList;
+    case 2: hb_barrier (); return this+u.version2.attachList;
 #endif
     default: return Null(AttachList);
     }
@@ -834,9 +835,9 @@ struct GDEF
   bool has_lig_carets () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.ligCaretList != 0;
+    case 1: hb_barrier (); return u.version1.ligCaretList != 0;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.ligCaretList != 0;
+    case 2: hb_barrier (); return u.version2.ligCaretList != 0;
 #endif
     default: return false;
     }
@@ -844,9 +845,9 @@ struct GDEF
   const LigCaretList &get_lig_caret_list () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.ligCaretList;
+    case 1: hb_barrier (); return this+u.version1.ligCaretList;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.ligCaretList;
+    case 2: hb_barrier (); return this+u.version2.ligCaretList;
 #endif
     default: return Null(LigCaretList);
     }
@@ -854,9 +855,9 @@ struct GDEF
   bool has_mark_attachment_types () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.markAttachClassDef != 0;
+    case 1: hb_barrier (); return u.version1.markAttachClassDef != 0;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.markAttachClassDef != 0;
+    case 2: hb_barrier (); return u.version2.markAttachClassDef != 0;
 #endif
     default: return false;
     }
@@ -864,9 +865,9 @@ struct GDEF
   const ClassDef &get_mark_attach_class_def () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.markAttachClassDef;
+    case 1: hb_barrier (); return this+u.version1.markAttachClassDef;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.markAttachClassDef;
+    case 2: hb_barrier (); return this+u.version2.markAttachClassDef;
 #endif
     default: return Null(ClassDef);
     }
@@ -876,7 +877,7 @@ struct GDEF
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010002u && hb_barrier () && u.version1.markGlyphSetsDef != 0;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.markGlyphSetsDef != 0;
+    case 2: hb_barrier (); return u.version2.markGlyphSetsDef != 0;
 #endif
     default: return false;
     }
@@ -886,7 +887,7 @@ struct GDEF
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010002u && hb_barrier () ? this+u.version1.markGlyphSetsDef : Null(MarkGlyphSets);
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.markGlyphSetsDef;
+    case 2: hb_barrier (); return this+u.version2.markGlyphSetsDef;
 #endif
     default: return Null(MarkGlyphSets);
     }
@@ -896,7 +897,7 @@ struct GDEF
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010003u && hb_barrier () && u.version1.varStore != 0;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.varStore != 0;
+    case 2: hb_barrier (); return u.version2.varStore != 0;
 #endif
     default: return false;
     }
@@ -906,7 +907,7 @@ struct GDEF
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010003u && hb_barrier () ? this+u.version1.varStore : Null(ItemVariationStore);
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.varStore;
+    case 2: hb_barrier (); return this+u.version2.varStore;
 #endif
     default: return Null(ItemVariationStore);
     }
@@ -1003,14 +1004,14 @@ struct GDEF
     }
 
     HB_ALWAYS_INLINE
-    bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
+    bool mark_set_may_cover (unsigned int set_index, hb_codepoint_t glyph_id) const
     {
       return
 #ifndef HB_NO_GDEF_CACHE
 	     // We can access arrayZ directly because of sanitize_lookup_props() guarantee.
 	     mark_glyph_sets.arrayZ[set_index].may_have (glyph_id) &&
 #endif
-	     table->mark_set_covers (set_index, glyph_id)
+	     true
       ;
     }
 

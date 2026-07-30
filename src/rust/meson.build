@@ -55,6 +55,7 @@ harfbuzz_rust = custom_target(
   input: sources + ['Cargo.toml'],
   output: ['libharfbuzz_rust.a'],
   depends: [hb_rs],
+  build_always_stale: true,
   env: ['OUT_DIR=' + meson.current_build_dir(),
         'RUSTFLAGS=' + rust_flags,
   ],

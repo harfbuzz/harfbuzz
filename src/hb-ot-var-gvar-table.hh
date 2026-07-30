@@ -589,7 +589,8 @@ struct gvar_GVAR
 
     hb_scalar_cache_t *create_cache () const
     {
-      return hb_scalar_cache_t::create (table->sharedTupleCount);
+      return hb_scalar_cache_t::create (hb_min ((unsigned) table->sharedTupleCount,
+						+TupleVariationHeader::max_shared_tuple_count));
     }
 
     static void destroy_cache (hb_scalar_cache_t *cache)
@@ -721,6 +722,9 @@ struct gvar_GVAR
 				 bool phantom_only = false) const
     {
       if (unlikely (glyph >= glyphCount)) return true;
+      hb_scalar_cache_t *scalar_cache = gvar_cache ?
+					gvar_cache :
+					(hb_scalar_cache_t *) &Null(hb_scalar_cache_t);
 
       hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyphCount, glyph);
       if (!var_data_bytes.as<GlyphVariationData> ()->has_data ()) return true;
@@ -760,7 +764,7 @@ struct gvar_GVAR
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples,
-								 gvar_cache);
+								 scalar_cache);
 
 	if (scalar == 0.f) continue;
 

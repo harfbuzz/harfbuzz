@@ -143,7 +143,7 @@ struct info_t :
     GOptionEntry entries[] =
     {
       {"quiet",		'q', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->verbose,	"Generate machine-readable output",	nullptr},
-      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_FILENAME,
 				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE]"},
       {nullptr}
     };
@@ -1437,5 +1437,6 @@ retry:
 int
 main (int argc, char **argv)
 {
-  return batch_main<info_t> (argc, argv);
+  argv_t args (argc, argv);
+  return batch_main<info_t> (args.argc, args.argv);
 }

@@ -334,6 +334,8 @@ struct cs_command_t
 
 typedef hb_vector_t<cs_command_t> *cs_command_vec_t;
 
+struct cff2_instancing_plan_t;
+
 struct flatten_param_t
 {
   flatten_param_t (str_buff_t &flatStr_,
@@ -346,6 +348,11 @@ struct flatten_param_t
   bool	drop_hints;
   const hb_subset_plan_t *plan;
   cs_command_vec_t commands; /* Optional: capture parsed commands for specialization */
+
+  /* CFF2 partial instancing: when set, blends are rewritten against the
+   * instanced variation store instead of being copied or flattened. */
+  const cff2_instancing_plan_t *instancer = nullptr;
+  bool emitted_blend = false;
 };
 
 template <typename ACC, typename ENV, typename OPSET, op_code_t endchar_op=OpCode_Invalid>

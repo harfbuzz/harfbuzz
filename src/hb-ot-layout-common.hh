@@ -441,7 +441,7 @@ struct IndexArray : Array16Of<Index>
 			    unsigned int *_count /* IN/OUT */,
 			    unsigned int *_indexes /* OUT */) const
   {
-    if (_count)
+    if (_count && _indexes)
     {
       + this->as_array ().sub_array (start_offset, _count)
       | hb_sink (hb_array (_indexes, *_count))
@@ -628,7 +628,7 @@ struct FeatureParamsCharacterVariants
   unsigned
   get_characters (unsigned start_offset, unsigned *char_count, hb_codepoint_t *chars) const
   {
-    if (char_count)
+    if (char_count && chars)
     {
       + characters.as_array ().sub_array (start_offset, char_count)
       | hb_sink (hb_array (chars, *char_count))
@@ -706,7 +706,7 @@ struct FeatureParams
     return true;
 #endif
     TRACE_SANITIZE (this);
-    if (tag == HB_TAG ('s','i','z','e'))
+    if (tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return_trace (u.size.sanitize (c));
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return_trace (u.stylisticSet.sanitize (c));
@@ -720,7 +720,7 @@ struct FeatureParams
 #ifdef HB_NO_LAYOUT_FEATURE_PARAMS
     return;
 #endif
-    if (tag == HB_TAG ('s','i','z','e'))
+    if (tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return (u.size.collect_name_ids (nameids_to_retain));
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return (u.stylisticSet.collect_name_ids (nameids_to_retain));
@@ -732,7 +732,7 @@ struct FeatureParams
   {
     TRACE_SUBSET (this);
     if (!tag) return_trace (false);
-    if (*tag == HB_TAG ('s','i','z','e'))
+    if (*tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return_trace (u.size.subset (c));
     if ((*tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return_trace (u.stylisticSet.subset (c));
@@ -744,7 +744,7 @@ struct FeatureParams
 #ifndef HB_NO_LAYOUT_FEATURE_PARAMS
   const FeatureParamsSize& get_size_params (hb_tag_t tag) const
   {
-    if (tag == HB_TAG ('s','i','z','e'))
+    if (tag == HB_TAG ('s','i','z','e') && hb_barrier ())
       return u.size;
     return Null (FeatureParamsSize);
   }
@@ -900,7 +900,7 @@ struct RecordArrayOf : SortedArray16Of<Record<Type>>
                          unsigned int *record_count /* IN/OUT */,
                          hb_tag_t     *record_tags /* OUT */) const
   {
-    if (record_count)
+    if (record_count && record_tags)
     {
       + this->as_array ().sub_array (start_offset, record_count)
       | hb_map (&Record<Type>::tag)
@@ -2633,8 +2633,9 @@ struct hb_scalar_cache_t
     *cached_value = roundf(value * MULTIPLIER);
   }
 
-  private:
+  public:
   unsigned length;
+  private:
   mutable hb_atomic_t<int> static_values[STATIC_LENGTH];
 };
 
@@ -4959,10 +4960,12 @@ struct Device
     {
 #ifndef HB_NO_HINTING
     case 1: case 2: case 3:
+      hb_barrier ();
       return u.hinting.get_x_delta (font);
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return u.variation.get_x_delta (font, store, store_cache);
 #endif
     default:
@@ -4977,10 +4980,12 @@ struct Device
     {
     case 1: case 2: case 3:
 #ifndef HB_NO_HINTING
+      hb_barrier ();
       return u.hinting.get_y_delta (font);
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return u.variation.get_y_delta (font, store, store_cache);
 #endif
     default:
@@ -4995,10 +5000,12 @@ struct Device
     switch (u.b.format) {
 #ifndef HB_NO_HINTING
     case 1: case 2: case 3:
+      hb_barrier ();
       return_trace (u.hinting.sanitize (c));
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return_trace (u.variation.sanitize (c));
 #endif
     default:
@@ -5015,10 +5022,12 @@ struct Device
     case 1:
     case 2:
     case 3:
+      hb_barrier ();
       return_trace (reinterpret_cast<Device *> (u.hinting.copy (c)));
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return_trace (reinterpret_cast<Device *> (u.variation.copy (c, layout_variation_idx_delta_map)));
 #endif
     default:
@@ -5037,6 +5046,7 @@ struct Device
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       u.variation.collect_variation_index (c);
       return;
 #endif
@@ -5050,6 +5060,7 @@ struct Device
     switch (u.b.format) {
 #ifndef HB_NO_VAR
     case 0x8000:
+      hb_barrier ();
       return u.variation.varIdx;
 #endif
     default:

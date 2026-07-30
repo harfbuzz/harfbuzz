@@ -112,9 +112,22 @@ struct TupleVariationHeader
   HB_ALWAYS_INLINE
   double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
 			   const hb_array_t<const F2DOT14> shared_tuples,
-			   hb_scalar_cache_t *shared_tuple_scalar_cache = nullptr) const
+			   hb_scalar_cache_t *shared_tuple_scalar_cache = (hb_scalar_cache_t *) &Null(hb_scalar_cache_t)) const
   {
     unsigned tuple_index = tupleIndex;
+    unsigned int index = tuple_index & TupleIndex::TupleIndexMask;
+
+    /* The gvar shared-tuple cache is clamped to the 12-bit tuple-index range.
+     * Only PrivatePointNumbers may accompany a cached shared-tuple index; any
+     * other flag sets a bit at or above 0x1000, making this range test fail.
+     */
+    bool plain_shared_tuple = (tuple_index & ~TupleIndex::PrivatePointNumbers) < shared_tuple_scalar_cache->length;
+    if (likely (plain_shared_tuple))
+    {
+      float scalar;
+      if (likely (shared_tuple_scalar_cache->get (index, &scalar)))
+	return (double) scalar;
+    }
 
     const F2DOT14 *peak_tuple;
 
@@ -127,10 +140,9 @@ struct TupleVariationHeader
     }
     else
     {
-      unsigned int index = tuple_index & TupleIndex::TupleIndexMask; // Inlined for performance
-
       float scalar;
-      if (shared_tuple_scalar_cache &&
+      if (!plain_shared_tuple &&
+	  shared_tuple_scalar_cache->length &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
       {
         if (has_interm && (scalar != 0 && scalar != 1.f))
@@ -201,7 +213,7 @@ struct TupleVariationHeader
         scalar *= (double) v / peak;
     }
     if (shared_tuple_scalar_cache)
-      shared_tuple_scalar_cache->set (get_index (), scalar);
+      shared_tuple_scalar_cache->set (index, scalar);
     return scalar;
   }
 
@@ -209,6 +221,7 @@ struct TupleVariationHeader
   bool   has_intermediate () const { return tupleIndex & TupleIndex::IntermediateRegion; }
   bool has_private_points () const { return tupleIndex & TupleIndex::PrivatePointNumbers; }
   unsigned      get_index () const { return tupleIndex & TupleIndex::TupleIndexMask; }
+  static constexpr unsigned max_shared_tuple_count = 0x1000u;
 
   protected:
   struct TupleIndex : HBUINT16
@@ -1951,10 +1964,16 @@ struct item_variations_t
 	if (!front_mapping.set ((major<<16) + minor, &row))
 	  return false;
 
-	if (delta_rows_map.has (&row))
-	  continue;
+	/* Duplicate rows may only be dropped when optimizing: without a
+	 * varidx_map the caller relies on original VariationIndex values
+	 * staying valid (e.g. HVAR/VVAR with an implicit advance mapping). */
+	if (optimize)
+	{
+	  if (delta_rows_map.has (&row))
+	    continue;
 
-	delta_rows_map.set (&row, 1);
+	  delta_rows_map.set (&row, 1);
+	}
 
 	major_rows.push (&row);
       }
