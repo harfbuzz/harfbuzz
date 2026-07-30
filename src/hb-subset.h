@@ -31,6 +31,7 @@
 #include "hb.h"
 #include "hb-ot.h"
 #include "hb-subset-depend.h"
+#include "hb-subset-serialize.h"
 
 #undef HB_SUBSET_H_IN
 
