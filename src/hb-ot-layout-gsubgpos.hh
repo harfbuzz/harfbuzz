@@ -106,9 +106,12 @@ struct hb_closure_context_t :
       return true;
 
     /* Have we visited this lookup with the current set of glyphs? */
-    if (done_lookups_glyph_count->get (lookup_index) != glyphs->get_population ())
+    unsigned pop = glyphs->get_population ();
+    if (unlikely (pop == HB_MAP_VALUE_INVALID)) // Avoid sentinel interference.
+      pop--;
+    if (done_lookups_glyph_count->get (lookup_index) != pop)
     {
-      done_lookups_glyph_count->set (lookup_index, glyphs->get_population ());
+      done_lookups_glyph_count->set (lookup_index, pop);
 
       if (!done_lookups_glyph_set->has (lookup_index))
       {
