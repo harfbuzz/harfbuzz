@@ -30,6 +30,14 @@ jobs:
             SANITIZE: thread
           - name: msan
             SANITIZE: memory
+            MESON_ARGS: >-
+              -Dglib=disabled
+              -Dgobject=disabled
+              -Dcairo=disabled
+              -Dfreetype=disabled
+              -Dicu=disabled
+              -Dzlib=disabled
+              -Dpng=disabled
 
     steps:
     - name: Checkout
@@ -63,7 +71,8 @@ jobs:
           --buildtype=debugoptimized \
           --wrap-mode=nodownload \
           -Db_sanitize=${{ matrix.SANITIZE }} \
-          -Dexperimental_api=true
+          -Dexperimental_api=true \
+          ${{ matrix.MESON_ARGS }}
     - name: Build
       run: meson compile -Cbuild
     - name: Test
