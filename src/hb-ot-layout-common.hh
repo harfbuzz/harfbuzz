@@ -4027,6 +4027,7 @@ struct ConditionAxisRange
     return filterRangeMinValue.to_int () <= coord && coord <= filterRangeMaxValue.to_int ();
   }
 
+  public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -4072,6 +4073,7 @@ struct ConditionValue
     return_trace (false);
   }
 
+  public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -4120,6 +4122,7 @@ struct ConditionAnd
     return_trace (false);
   }
 
+  public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -4167,6 +4170,7 @@ struct ConditionOr
     return_trace (false);
   }
 
+  public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -4210,6 +4214,7 @@ struct ConditionNegate
     return_trace (false);
   }
 
+  public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -4267,16 +4272,11 @@ struct Condition
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.format.v.sanitize (c)) return_trace (false);
-    hb_barrier ();
-    switch (u.format.v) {
-    case 1: hb_barrier (); return_trace (u.format1.sanitize (c));
-    case 2: hb_barrier (); return_trace (u.format2.sanitize (c));
-    case 3: hb_barrier (); return_trace (u.format3.sanitize (c));
-    case 4: hb_barrier (); return_trace (u.format4.sanitize (c));
-    case 5: hb_barrier (); return_trace (u.format5.sanitize (c));
-    default:return_trace (true);
-    }
+
+    if (unlikely (!c->check_start_recursion (HB_MAX_NESTING_LEVEL)))
+      return_trace (c->no_dispatch_return_value ());
+
+    return_trace (c->end_recursion (this->dispatch (c)));
   }
 
   protected:
