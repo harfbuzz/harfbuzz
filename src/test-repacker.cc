@@ -2732,6 +2732,126 @@ test_dont_duplicate_virtual ()
   free (expected_buffer);
 }
 
+static void
+test_deep_graph_traversal ()
+{
+  size_t buffer_size = 1000000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned prev = add_object ("leaf", 4, &c);
+  for (unsigned i = 0; i < 2000; i++)
+  {
+    start_object ("node", 4, &c);
+    add_offset (prev, &c);
+    prev = c.pop_pack (false);
+  }
+  c.end_serialize ();
+
+  graph_t graph (c.object_graph ());
+  hb_always_assert (!graph.in_error ());
+
+  // Test find_subgraph (set)
+  hb_set_t visited_set;
+  graph.find_subgraph (graph.root_idx (), visited_set);
+  hb_always_assert (visited_set.get_population () == 2001);
+
+  // Test find_subgraph_size
+  hb_set_t size_set;
+  size_t sz = graph.find_subgraph_size (graph.root_idx (), size_set);
+  hb_always_assert (sz == 4 + 2000 * 6);
+
+  // Test find_subgraph (map)
+  hb_map_t map;
+  map.set (graph.root_idx (), 1);
+  graph.find_subgraph (graph.root_idx (), map);
+  hb_always_assert (map.get_population () == 2001);
+
+  // Test assign_spaces (which exercises find_connected_nodes and find_space_roots)
+  graph.assign_spaces ();
+  hb_always_assert (!graph.in_error ());
+
+  // Test duplicate_subgraph
+  hb_map_t index_map;
+  graph.duplicate_subgraph (graph.root_idx (), index_map);
+  hb_always_assert (index_map.get_population () == 2001);
+
+  free (buffer);
+}
+
+static void
+test_32bit_roots_traversal ()
+{
+  size_t buffer_size = 1000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaf1 = add_object ("l1", 4, &c);
+  unsigned leaf2 = add_object ("l2", 4, &c);
+
+  start_object ("mid", 4, &c);
+  add_wide_offset (leaf1, &c);
+  unsigned mid = c.pop_pack (false);
+
+  start_object ("root", 4, &c);
+  add_offset (mid, &c);
+  add_wide_offset (leaf2, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph (c.object_graph ());
+  hb_always_assert (!graph.in_error ());
+
+  hb_set_t roots;
+  graph.find_32bit_roots (graph.root_idx (), roots);
+  hb_always_assert (roots.has (leaf1 - 1));
+  hb_always_assert (roots.has (leaf2 - 1));
+  hb_always_assert (!roots.has (mid - 1));
+  hb_always_assert (roots.get_population () == 2);
+
+  free (buffer);
+
+  // Test case where DFS fails but BFS succeeds:
+  // root -16-> a
+  // root -32-> a
+  // a -32-> b
+  //
+  // DFS will first explore the 16 bit link to a and then recurse the 32 bit link from a to b
+  // and consider b a root. However, b should not be a root since it's not a top level 32 bit link.
+  // BFS will handle this correctly by discovering a as a top level root and then avoiding further
+  // exploring it.
+  buffer_size = 1000;
+  buffer = malloc (buffer_size);
+  hb_serialize_context_t c2 (buffer, buffer_size);
+
+  c2.start_serialize ();
+  unsigned b = add_object ("b", 1, &c2);
+
+  start_object ("a", 1, &c2);
+  add_wide_offset (b, &c2);
+  unsigned a = c2.pop_pack (false);
+
+  start_object ("r", 1, &c2);
+  add_offset (a, &c2);
+  add_wide_offset (a, &c2);
+  c2.pop_pack (false);
+
+  c2.end_serialize ();
+
+  graph_t graph2 (c2.object_graph ());
+  hb_always_assert (!graph2.in_error ());
+
+  hb_set_t roots2;
+  graph2.find_32bit_roots (graph2.root_idx (), roots2);
+  hb_always_assert (roots2.get_population () == 1);
+  hb_always_assert (roots2.has (a - 1));
+  hb_always_assert (!roots2.has (b - 1));
+
+  free (buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -2775,6 +2895,8 @@ main (int argc, char **argv)
   test_resolve_with_liga_split_overlapping_clone ();
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();
+  test_deep_graph_traversal ();
+  test_32bit_roots_traversal ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.

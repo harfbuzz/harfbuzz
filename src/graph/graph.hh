@@ -474,6 +474,15 @@ struct graph_t
         successful (true),
         buffers ()
   {
+    if (objects.length > HB_REPACKER_MAX_VERTICES)
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "constructing graph: num of objects %u exceeds HB_REPACKER_MAX_VERTICES.",
+                 objects.length);
+      check_success (false);
+      return;
+    }
+
     num_roots_for_space_.push (1);
     bool removed_nil = false;
     vertices_.alloc (objects.length);
@@ -919,41 +928,113 @@ struct graph_t
     return true;
   }
 
+  // BFS graph traversal starting at start_idx, op() will be called for each edge (plus once for the root).
+  // if it returns false the children of the edges destination will not be traversed.
+  // Does not implement a visited set, it's expected that op() will handle that as needed.
+  template <typename Op>
+  void traverse_directed_bfs (unsigned start_idx, Op&& op)
+  {
+    if (unlikely (!check_success(start_idx < vertices_.length)))
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "traverse_directed_bfs: unexpected start_idx out of bounds.");
+      return;
+    }
+
+    // For performance we want to avoid allocating extra memory. So use the ordering_scratch_
+    // buffer to implement a queue for BFS.
+    if (unlikely (!check_success (ordering_scratch_.resize (vertices_.length))))
+      return;
+
+    if (!op (HB_CODEPOINT_INVALID, nullptr, start_idx, 0))
+      return;
+
+    unsigned head = 0;
+    unsigned tail = 0;
+    auto& queue = ordering_scratch_;
+    queue[tail++] = start_idx;
+
+    unsigned depth = 0;
+    while (head < tail)
+    {
+      unsigned level_end = tail;
+      while (head < level_end)
+      {
+        unsigned node_idx = queue[head++];
+        const auto& v = vertices_[node_idx];
+
+        unsigned num_real = v.obj.real_links.length;
+        unsigned total_links = num_real + v.obj.virtual_links.length;
+
+        for (unsigned i = 0; i < total_links; i++)
+        {
+          // vertices_ may have re-alloc'd inside an op() call, so reassign the v ref.
+          const auto& v = vertices_[node_idx];
+          const auto& link = (i < num_real)
+                             ? v.obj.real_links[i]
+                             : v.obj.virtual_links[i - num_real];
+          unsigned child_idx = link.objidx;
+
+          if (!op (node_idx, &link, child_idx, depth + 1))
+            continue;
+
+          if (unlikely (!check_success (tail < queue.length)))
+            return;
+
+          queue[tail++] = child_idx;
+        }
+      }
+      depth++;
+    }
+  }
+
   void find_subgraph (unsigned node_idx, hb_map_t& subgraph)
   {
-    for (const auto& link : vertices_[node_idx].obj.all_links ())
-    {
-      hb_codepoint_t *v;
-      if (subgraph.has (link.objidx, &v))
+    traverse_directed_bfs (node_idx, [&] (
+      unsigned parent,
+      const hb_serialize_context_t::object_t::link_t* link,
+      unsigned child,
+      unsigned depth) {
+      if (depth == 0) return true;
+      hb_codepoint_t *count;
+      if (subgraph.has (child, &count))
       {
-        (*v)++;
-        continue;
+        (*count)++;
+        return false;
       }
-      subgraph.set (link.objidx, 1);
-      find_subgraph (link.objidx, subgraph);
-    }
+      subgraph.set (child, 1);
+      return true;
+    });
   }
 
   void find_subgraph (unsigned node_idx, hb_set_t& subgraph)
   {
-    if (subgraph.has (node_idx)) return;
-    subgraph.add (node_idx);
-    for (const auto& link : vertices_[node_idx].obj.all_links ())
-      find_subgraph (link.objidx, subgraph);
+    traverse_directed_bfs (node_idx, [&] (
+      unsigned parent,
+      const hb_serialize_context_t::object_t::link_t* link,
+      unsigned child,
+      unsigned depth) {
+      if (subgraph.has (child)) return false;
+      subgraph.add (child);
+      return true;
+    });
   }
 
   size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph, unsigned max_depth = -1)
   {
-    if (subgraph.has (node_idx)) return 0;
-    subgraph.add (node_idx);
+    size_t size = 0;
+    traverse_directed_bfs (node_idx, [&] (
+      unsigned parent,
+      const hb_serialize_context_t::object_t::link_t* link,
+      unsigned child,
+      unsigned depth) {
+      if (subgraph.has (child)) return false;
+      subgraph.add (child);
 
-    const auto& o = vertices_[node_idx].obj;
-    size_t size = o.tail - o.head;
-    if (max_depth == 0)
-      return size;
-
-    for (const auto& link : o.all_links ())
-      size += find_subgraph_size (link.objidx, subgraph, max_depth - 1);
+      const auto& o = vertices_[child].obj;
+      size += o.tail - o.head;
+      return depth < max_depth;
+    });
     return size;
   }
 
@@ -963,14 +1044,30 @@ struct graph_t
    */
   void find_32bit_roots (unsigned node_idx, hb_set_t& found)
   {
-    for (const auto& link : vertices_[node_idx].obj.all_links ())
-    {
-      if (!link.is_signed && link.width == 4) {
-        found.add (link.objidx);
-        continue;
+    // Note: this specifically requires a BFS based traversal to ensure we don't recurse through
+    // a node that is accessible via both 32bit and non-32 bit links.
+    hb_set_t visited;
+    traverse_directed_bfs (node_idx, [&] (
+      unsigned parent,
+      const hb_serialize_context_t::object_t::link_t* link,
+      unsigned child,
+      unsigned _) {
+
+      if (link && found.has(parent))
+        // Don't traverse from something that's already marked as a root.
+        return false;
+
+      if (link && !link->is_signed && link->width == 4)
+      {
+        found.add (link->objidx);
+        visited.add (link->objidx);
+        return false;
       }
-      find_32bit_roots (link.objidx, found);
-    }
+
+      if (visited.has (child)) return false;
+      visited.add (child);
+      return true;
+    });
   }
 
   /*
@@ -1059,17 +1156,17 @@ struct graph_t
    */
   void duplicate_subgraph (unsigned node_idx, hb_map_t& index_map)
   {
-    if (index_map.has (node_idx))
-      return;
-
-    unsigned clone_idx = duplicate (node_idx);
-    if (!check_success (clone_idx != (unsigned) -1))
-      return;
-
-    index_map.set (node_idx, clone_idx);
-    for (const auto& l : object (node_idx).all_links ()) {
-      duplicate_subgraph (l.objidx, index_map);
-    }
+    traverse_directed_bfs (node_idx, [&] (
+      unsigned parent,
+      const hb_serialize_context_t::object_t::link_t* link,
+      unsigned child,
+      unsigned _) {
+      if (index_map.has (child)) return false;
+      unsigned clone_idx = duplicate (child);
+      if (!check_success (clone_idx != (unsigned) -1)) return false;
+      index_map.set (child, clone_idx);
+      return true;
+    });
   }
 
   /*
@@ -1691,22 +1788,53 @@ struct graph_t
   {
     if (unlikely (!check_success (!visited.in_error ()))) return;
     if (visited.has (start_idx)) return;
-    visited.add (start_idx);
-
-    if (targets.has (start_idx))
+    if (unlikely (!check_success(start_idx < vertices_.length)))
     {
-      targets.del (start_idx);
-      connected.add (start_idx);
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "find_connected_nodes: unexpected start_idx out of bounds.");
+      return;
     }
 
-    const auto& v = vertices_[start_idx];
+    // For performance we want to avoid allocating extra memory. So use the ordering_scratch_
+    // buffer to implement a stack for DFS.
+    if (unlikely (!check_success (ordering_scratch_.resize (vertices_.length)))) return;
 
-    // Graph is treated as undirected so search children and parents of start_idx
-    for (const auto& l : v.obj.all_links ())
-      find_connected_nodes (l.objidx, targets, visited, connected);
+    auto& stack = ordering_scratch_;
+    unsigned stack_len = 0;
 
-    for (unsigned p : v.parents_iter ())
-      find_connected_nodes (p, targets, visited, connected);
+    auto handle_node = [&] (unsigned node_idx) {
+      visited.add (node_idx);
+      if (targets.has (node_idx)) {
+        targets.del (node_idx);
+        connected.add (node_idx);
+      }
+
+      if (unlikely (!check_success (stack_len < stack.length))) return false;
+      stack[stack_len++] = node_idx;
+      return true;
+    };
+
+    if (!handle_node (start_idx)) return;
+
+    while (stack_len > 0)
+    {
+      unsigned node_idx = stack[--stack_len];
+      const auto& v = vertices_[node_idx];
+
+      // Graph is treated as undirected so search children and parents of node_idx
+      for (const auto& l : v.obj.all_links ())
+      {
+        unsigned child_idx = l.objidx;
+        if (visited.has (child_idx)) continue;
+        if (!handle_node (child_idx)) return;
+      }
+
+      for (unsigned parent_idx : v.parents_iter ())
+      {
+        if (visited.has (parent_idx)) continue;
+        if (!handle_node (parent_idx)) return;
+      }
+    }
   }
 
  public:
