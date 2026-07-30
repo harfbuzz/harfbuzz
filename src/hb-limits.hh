@@ -58,6 +58,10 @@
 #define HB_MAX_CONTEXT_LENGTH 64
 #endif
 
+#ifndef HB_MAX_SYLLABLE_LENGTH
+#define HB_MAX_SYLLABLE_LENGTH 64
+#endif
+
 #ifndef HB_CLOSURE_MAX_STAGES
 /*
  * The maximum number of times a lookup can be applied during shaping.
