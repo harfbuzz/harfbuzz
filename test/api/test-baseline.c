@@ -109,6 +109,43 @@ test_ot_layout_base_with_fallback (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_layout_base_format4 (void)
+{
+  static const char BASE_data[] = {
+    0, 1, 0, 0,			/* version */
+    0, 8,				/* horizontal axis offset */
+    0, 0,				/* vertical axis offset */
+    0, 4,				/* base tag list offset */
+    0, 10,				/* base script list offset */
+    0, 1, 'r', 'o', 'm', 'n',		/* base tag list */
+    0, 1, 'l', 'a', 't', 'n', 0, 8,	/* base script list */
+    0, 6, 0, 0, 0, 0,			/* base script */
+    0, 0, 0, 1, 0, 6,			/* base values */
+    0, 4, 0, 123, 0, 0, 0, 0, 0,	/* BaseCoord format 4 */
+  };
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "BASE", BASE_data);
+  hb_font_t *font = hb_font_create (face);
+  hb_position_t position;
+
+#ifndef HB_NO_BEYOND_64K
+  g_assert_true (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_TAG_ROMAN,
+					    HB_DIRECTION_LTR,
+					    HB_TAG ('l','a','t','n'),
+					    HB_TAG_NONE, &position));
+  g_assert_cmpint (position, ==, 123);
+#else
+  g_assert_false (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_TAG_ROMAN,
+					     HB_DIRECTION_LTR,
+					     HB_TAG ('l','a','t','n'),
+					     HB_TAG_NONE, &position));
+#endif
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -116,6 +153,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_ot_layout_base);
   hb_test_add (test_ot_layout_base_with_fallback);
+  hb_test_add (test_ot_layout_base_format4);
 
   return hb_test_run();
 }

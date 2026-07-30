@@ -90,6 +90,44 @@ test_subset_gvar_retaingids (void)
   hb_face_destroy (face_ac);
 }
 
+#ifndef HB_NO_BEYOND_64K
+static void
+test_subset_GVAR_all_axes_pinned (void)
+{
+  hb_face_t *source = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.abc.ttf");
+  hb_face_t *face = hb_face_builder_create ();
+
+  unsigned count = hb_face_get_table_tags (source, 0, NULL, NULL);
+  hb_tag_t *tags = g_new (hb_tag_t, count);
+  unsigned total = count;
+  g_assert_cmpuint (hb_face_get_table_tags (source, 0, &count, tags), ==, total);
+  for (unsigned i = 0; i < count; i++)
+  {
+    hb_blob_t *blob = hb_face_reference_table (source, tags[i]);
+    g_assert_true (hb_face_builder_add_table (face, tags[i], blob));
+    hb_blob_destroy (blob);
+  }
+  g_free (tags);
+  hb_face_destroy (source);
+
+  static const char GVAR_data[] = "\0";
+  HB_FACE_ADD_TABLE (face, "GVAR", GVAR_data);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  g_assert_true (hb_subset_input_pin_all_axes_to_default (input, face));
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('G','V','A','R'));
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  hb_blob_destroy (blob);
+
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -98,6 +136,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_gvar_noop);
   hb_test_add (test_subset_gvar);
   hb_test_add (test_subset_gvar_retaingids);
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_subset_GVAR_all_axes_pinned);
+#endif
 
   return hb_test_run ();
 }

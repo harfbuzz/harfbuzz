@@ -367,6 +367,9 @@ struct LigGlyph
   DEFINE_SIZE_ARRAY (2, carets);
 };
 
+/* LigCaretList2 widens the LigCaretList coverage, count, and LigGlyph
+ * offsets. The LigGlyph table itself keeps Offset16 caretValueOffsets. */
+template <typename Types>
 struct LigCaretList
 {
   unsigned int get_lig_carets (hb_font_t *font,
@@ -426,14 +429,14 @@ struct LigCaretList
   }
 
   protected:
-  Offset16To<Coverage>
+  typename Types::template LOffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of LigCaretList table */
-  Array16OfOffset16To<LigGlyph>
+  typename Types::template ArrayOf<typename Types::template OffsetTo<LigGlyph>>
 		ligGlyph;		/* Array of LigGlyph tables
 					 * in Coverage Index order */
   public:
-  DEFINE_SIZE_ARRAY (4, ligGlyph);
+  DEFINE_SIZE_ARRAY (Types::size + Types::size, ligGlyph);
 };
 
 
@@ -596,7 +599,7 @@ struct GDEFVersion1_2
 		attachList;		/* Offset to list of glyphs with
 					 * attachment points--from beginning
 					 * of GDEF header (may be Null) */
-  typename Types::template OffsetTo<LigCaretList>
+  typename Types::template OffsetTo<LigCaretList<Types>>
 		ligCaretList;		/* Offset to list of positioning points
 					 * for ligature carets--from beginning
 					 * of GDEF header (may be Null) */
@@ -842,16 +845,6 @@ struct GDEF
     default: return false;
     }
   }
-  const LigCaretList &get_lig_caret_list () const
-  {
-    switch (u.version.major) {
-    case 1: hb_barrier (); return this+u.version1.ligCaretList;
-#ifndef HB_NO_BEYOND_64K
-    case 2: hb_barrier (); return this+u.version2.ligCaretList;
-#endif
-    default: return Null(LigCaretList);
-    }
-  }
   bool has_mark_attachment_types () const
   {
     switch (u.version.major) {
@@ -935,9 +928,19 @@ struct GDEF
 			       unsigned int start_offset,
 			       unsigned int *caret_count /* IN/OUT */,
 			       hb_position_t *caret_array /* OUT */) const
-  { return get_lig_caret_list ().get_lig_carets (font,
-						 direction, glyph_id, get_var_store(),
-						 start_offset, caret_count, caret_array); }
+  {
+    switch (u.version.major) {
+    case 1: hb_barrier (); return (this+u.version1.ligCaretList).get_lig_carets (font,
+					direction, glyph_id, get_var_store (),
+					start_offset, caret_count, caret_array);
+#ifndef HB_NO_BEYOND_64K
+    case 2: hb_barrier (); return (this+u.version2.ligCaretList).get_lig_carets (font,
+					direction, glyph_id, get_var_store (),
+					start_offset, caret_count, caret_array);
+#endif
+    default: if (caret_count) *caret_count = 0; return 0;
+    }
+  }
 
   bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return get_mark_glyph_sets ().covers (set_index, glyph_id); }
@@ -1037,7 +1040,15 @@ struct GDEF
   };
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
-  { get_lig_caret_list ().collect_variation_indices (c); }
+  {
+    switch (u.version.major) {
+    case 1: hb_barrier (); (this+u.version1.ligCaretList).collect_variation_indices (c); return;
+#ifndef HB_NO_BEYOND_64K
+    case 2: hb_barrier (); (this+u.version2.ligCaretList).collect_variation_indices (c); return;
+#endif
+    default: return;
+    }
+  }
 
   protected:
   union {

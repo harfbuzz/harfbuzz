@@ -16,7 +16,7 @@ struct PairPosFormat1_3
 
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of subtable */
   ValueFormat   valueFormat[2];         /* [0] Defines the types of data in
@@ -25,11 +25,11 @@ struct PairPosFormat1_3
                                         /* [1] Defines the types of data in
                                          * ValueRecord2--for the second glyph
                                          * in the pair--may be zero (0) */
-  Array16Of<typename Types::template OffsetTo<PairSet>>
-                pairSet;                /* Array of PairSet tables
-                                         * ordered by Coverage Index */
+  typename Types::template ArrayOf<typename Types::template OffsetTo<PairSet>>
+                pairSet;                /* Array of PairSet tables ordered by
+                                         * Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (8 + Types::size, pairSet);
+  DEFINE_SIZE_ARRAY (2 + Types::LOffset::static_size + 2 * ValueFormat::static_size + Types::HBUINT::static_size, pairSet);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -56,7 +56,7 @@ struct PairPosFormat1_3
 
     if (pairSet.len > glyphs->get_population () * hb_bit_storage ((unsigned) pairSet.len))
     {
-      for (hb_codepoint_t g : glyphs->iter())
+      for (hb_codepoint_t g : glyphs->iter ())
       {
 	unsigned i = cov.get_coverage (g);
 	if ((this+pairSet[i]).intersects (glyphs, valueFormat))

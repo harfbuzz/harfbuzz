@@ -405,7 +405,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
   for (auto &item : glyph.get_composite_iterator ())
     operation_count =
       _glyf_add_gid_and_children (glyf,
-				  item.get_gid (),
+				  item.get_gid (glyph.is_extended ()),
 				  gids_to_retain,
 				  operation_count,
 				  depth);

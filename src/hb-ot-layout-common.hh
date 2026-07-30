@@ -35,9 +35,15 @@
 #include "hb-set.hh"
 #include "hb-bimap.hh"
 #include "hb-cache.hh"
+#include "hb-ot-dual.hh"
+
+using hb_ot_layout_mapping_cache_t = hb_cache_t<16, 8, 8>;
+static_assert (sizeof (hb_ot_layout_mapping_cache_t) == 512, "");
+
+using hb_ot_layout_binary_cache_t = hb_cache_t<14, 1, 8>;
+static_assert (sizeof (hb_ot_layout_binary_cache_t) == 256, "");
 
 #include "OT/Layout/Common/Coverage.hh"
-#include "OT/Layout/types.hh"
 
 // TODO(garretrieger): cleanup these after migration.
 using OT::Layout::Common::Coverage;
@@ -1426,7 +1432,7 @@ struct Lookup
 };
 
 template <typename Types>
-using LookupList = List16OfOffsetTo<Lookup, typename Types::HBUINT>;
+using LookupList = List16OfOffsetTo<Lookup, typename Types::HBLUINT>;
 
 template <typename TLookup, typename OffsetType>
 struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
@@ -1449,7 +1455,7 @@ struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (List16OfOffset16To<TLookup>::sanitize (c, this));
+    return_trace ((List16OfOffsetTo<TLookup, OffsetType>::sanitize (c, this)));
   }
 };
 
@@ -1522,7 +1528,7 @@ struct ClassDefFormat1_3
 
     if (unlikely (!it))
     {
-      classFormat = 1;
+      classFormat = Types::size == 2 ? 1 : 3;
       startGlyph = 0;
       classValue.len = 0;
       return_trace (true);
@@ -1747,7 +1753,7 @@ struct ClassDefFormat2_4
 
     if (unlikely (!it))
     {
-      classFormat = 2;
+      classFormat = Types::size == 2 ? 2 : 4;
       rangeRecord.len = 0;
       return_trace (true);
     }
@@ -2073,21 +2079,21 @@ struct ClassDef
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
-    auto it = + it_with_class_zero | hb_filter (hb_second);
+    auto glyphs = + it_with_class_zero | hb_filter (hb_second);
 
     unsigned format = 2;
     hb_codepoint_t glyph_max = 0;
-    if (likely (it))
+    if (likely (glyphs))
     {
-      hb_codepoint_t glyph_min = (*it).first;
+      hb_codepoint_t glyph_min = (*glyphs).first;
       glyph_max = glyph_min;
 
       unsigned num_glyphs = 0;
       unsigned num_ranges = 1;
       hb_codepoint_t prev_gid = glyph_min;
-      unsigned prev_klass = (*it).second;
+      unsigned prev_klass = (*glyphs).second;
 
-      for (const auto gid_klass_pair : it)
+      for (const auto gid_klass_pair : + glyphs)
       {
 	hb_codepoint_t cur_gid = gid_klass_pair.first;
 	unsigned cur_klass = gid_klass_pair.second;
@@ -2108,7 +2114,7 @@ struct ClassDef
 
 #ifndef HB_NO_BEYOND_64K
     if (glyph_max > 0xFFFFu)
-      u.format.v += 2;
+      format += 2;
     if (unlikely (glyph_max > 0xFFFFFFu))
 #else
     if (unlikely (glyph_max > 0xFFFFu))
@@ -2122,11 +2128,11 @@ struct ClassDef
 
     switch (u.format.v)
     {
-    case 1: hb_barrier (); return_trace (u.format1.serialize (c, it));
-    case 2: hb_barrier (); return_trace (u.format2.serialize (c, it));
+    case 1: hb_barrier (); return_trace (u.format1.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
+    case 2: hb_barrier (); return_trace (u.format2.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
 #ifndef HB_NO_BEYOND_64K
-    case 3: hb_barrier (); return_trace (u.format3.serialize (c, it));
-    case 4: hb_barrier (); return_trace (u.format4.serialize (c, it));
+    case 3: hb_barrier (); return_trace (u.format3.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
+    case 4: hb_barrier (); return_trace (u.format4.serialize (c, + it_with_class_zero | hb_filter (hb_second)));
 #endif
     default:return_trace (false);
     }

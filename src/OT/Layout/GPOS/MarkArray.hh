@@ -8,22 +8,27 @@ namespace OT {
 namespace Layout {
 namespace GPOS_impl {
 
-struct MarkArray : Array16Of<MarkRecord>        /* Array of MarkRecords--in Coverage order */
+template <typename Types>
+struct MarkArray : Types::template ArrayOf<MarkRecord<Types>>
+                                                /* Array of MarkRecords--in Coverage order */
 {
+  typedef typename Types::template ArrayOf<MarkRecord<Types>> Super;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (Array16Of<MarkRecord>::sanitize (c, this));
+    return_trace (Super::sanitize (c, this));
   }
 
+  template <typename AnchorMatrixType>
   bool apply (hb_ot_apply_context_t *c,
               unsigned int mark_index, unsigned int glyph_index,
-              const AnchorMatrix &anchors, unsigned int class_count,
+              const AnchorMatrixType &anchors, unsigned int class_count,
               unsigned int glyph_pos) const
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    const MarkRecord &record = Array16Of<MarkRecord>::operator[](mark_index);
+    const MarkRecord<Types> &record = Super::operator[](mark_index);
     unsigned int mark_class = record.klass;
 
     const Anchor& mark_anchor = this + record.markAnchor;
@@ -103,18 +108,19 @@ struct MarkArray : Array16Of<MarkRecord>        /* Array of MarkRecords--in Cove
   }
 };
 
+template <typename Types>
 HB_INTERNAL inline
-void Markclass_closure_and_remap_indexes (const Coverage  &mark_coverage,
-                                          const MarkArray &mark_array,
-                                          const hb_set_t  &glyphset,
-                                          hb_map_t*        klass_mapping /* INOUT */)
+void Markclass_closure_and_remap_indexes (const Coverage     &mark_coverage,
+                                          const MarkArray<Types> &mark_array,
+                                          const hb_set_t     &glyphset,
+                                          hb_map_t*           klass_mapping /* INOUT */)
 {
   hb_set_t orig_classes;
 
   + hb_zip (mark_coverage, mark_array)
   | hb_filter (glyphset, hb_first)
   | hb_map (hb_second)
-  | hb_map (&MarkRecord::get_class)
+  | hb_map (&MarkRecord<Types>::get_class)
   | hb_sink (orig_classes)
   ;
 
