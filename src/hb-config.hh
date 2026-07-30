@@ -41,10 +41,6 @@
 #define HB_NO_SUBSET_DEPEND
 #endif
 
-#ifdef HB_SUBSET_DEPEND_API
-#undef HB_NO_SUBSET_DEPEND
-#endif
-
 #ifdef HB_TINY
 #define HB_LEAN
 #define HB_MINI
