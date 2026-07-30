@@ -48,6 +48,7 @@ tests = [
   'test-shape-plan.c',
   'test-style.c',
   'test-subset.c',
+  'test-subset-avar2.c',
   'test-subset-cmap.c',
   'test-subset-drop-tables.c',
   'test-subset-glyf.c',
