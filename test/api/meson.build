@@ -30,6 +30,7 @@ tests = [
   'test-ot-collect-glyphs.c',
   'test-ot-color.c',
   'test-ot-face.c',
+  'test-ot-fetch.c',
   'test-ot-glyphname.c',
   'test-ot-layout.c',
   'test-ot-ligature-carets.c',

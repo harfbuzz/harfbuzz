@@ -76,6 +76,7 @@
 #define HB_NO_MMAP
 #define HB_NO_NAME
 #define HB_NO_OPEN
+#define HB_NO_OT_FETCH
 #define HB_NO_OT_FONT_GLYPH_NAMES
 #define HB_NO_SETLOCALE
 #define HB_NO_STYLE

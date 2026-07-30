@@ -85,6 +85,7 @@
         <xi:include href="xml/hb-ot-name.xml"/>
         <xi:include href="xml/hb-ot-shape.xml"/>
         <xi:include href="xml/hb-ot-var.xml"/>
+        <xi:include href="xml/hb-ot-fetch.xml"/>
       </chapter>
 
       <chapter id="apple-advanced-typography-api">
