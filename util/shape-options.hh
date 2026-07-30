@@ -369,11 +369,13 @@ shape_options_t::add_options (option_parser_t *parser)
       g_string_printf (s, "Set shapers to use (default: none)\n    No supported shapers found");
     else
     {
+      char *default_str = g_strjoinv (",", (char **) supported_shapers);
       char *supported_str = g_strjoinv ("/", (char **) supported_shapers);
       g_string_printf (s, "Set shapers to use (default: %s)\n    Supported shapers are: %s",
-		       supported_shapers[0],
+		       default_str,
 		       supported_str);
       g_free (supported_str);
+      g_free (default_str);
     }
     shapers_text = g_string_free (s, FALSE);
     parser->free_later (shapers_text);
