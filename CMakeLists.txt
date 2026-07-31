@@ -236,6 +236,7 @@ set (project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-map.h
      ${PROJECT_SOURCE_DIR}/src/hb-ot-color.h
      ${PROJECT_SOURCE_DIR}/src/hb-ot-deprecated.h
+     ${PROJECT_SOURCE_DIR}/src/hb-ot-fetch.h
      ${PROJECT_SOURCE_DIR}/src/hb-ot-font.h
      ${PROJECT_SOURCE_DIR}/src/hb-ot-layout.h
      ${PROJECT_SOURCE_DIR}/src/hb-ot-math.h
