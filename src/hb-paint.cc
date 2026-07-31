@@ -577,7 +577,7 @@ hb_paint_color_glyph (hb_paint_funcs_t *funcs, void *paint_data,
  * Perform a "fill-glyph" paint operation: fill the glyph's shape
  * with a solid color.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  */
 void
 hb_paint_fill_glyph (hb_paint_funcs_t *funcs, void *paint_data,

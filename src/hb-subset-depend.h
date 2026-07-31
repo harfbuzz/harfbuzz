@@ -60,7 +60,7 @@ HB_BEGIN_DECLS
  * known limitations of static dependency analysis (expected over-approximation)
  * from bugs (unexpected over-approximation).
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  */
 typedef enum { /*< flags >*/
   HB_SUBSET_DEPEND_EDGE_FLAG_NONE                   = 0x00u,
@@ -79,7 +79,7 @@ typedef enum { /*< flags >*/
  *
  * <warning>Highly experimental API. Subject to change.</warning>
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  */
 typedef struct hb_subset_depend_t hb_subset_depend_t;
 
@@ -97,7 +97,7 @@ typedef struct hb_subset_depend_t hb_subset_depend_t;
  *
  * A single dependency edge returned by hb_subset_depend_lookup_glyph().
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  */
 typedef struct {
   hb_tag_t table_tag;

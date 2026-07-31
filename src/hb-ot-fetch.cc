@@ -55,7 +55,7 @@
  *
  * Return value: the bit field, or zero if the font does not have it.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 uint32_t
 hb_ot_fetch_bits (hb_face_t        *face,
@@ -86,7 +86,7 @@ hb_ot_fetch_bits (hb_face_t        *face,
  *
  * Return value: the number, or zero if the font does not have it.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 int32_t
 hb_ot_fetch_number (hb_face_t          *face,

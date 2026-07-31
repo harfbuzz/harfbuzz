@@ -1,3 +1,73 @@
+Overview of changes leading to 14.3.0
+Friday, July 31, 2026
+=====================================
+- Changes affecting shaping output:
+  * Lookup order is now respected for mark positioning in the cross-direction
+    (y in horizontal text, x in vertical text): marks no longer follow a
+    cross-direction shift that a later lookup applies to the base. This
+    improves compatibility with DirectWrite and Core Text.
+  * Fix mark attachment to ligatures formed from decomposed glyphs.
+  * The `calt` feature in Hangul text is now disabled only for the Jamos,
+    not the whole buffer.
+
+- Support for partially instancing version of `avar` table, as well as `CFF2`
+  table.
+
+- New fill-glyph paint operation and APIs for the common case of filling a
+  glyph with a solid color.
+
+- New API to fetch assorted raw values from the `OS/2`, `head`, and `post`
+  tables.
+
+- New experimental API to extract a font’s glyph dependency graph, that
+  applications can use to compute glyph closures themselves without running the
+  subsetter.
+
+- New subset flag to convert the charset of a subsetted CID-keyed `CFF` fonts
+  into identity charset, and a matching `hb-subset` option. Useful for
+  embedding fonts in PDF.
+
+- Command-line utilities now handle non-ASCII arguments correctly on Windows.
+
+- Various instancing and subsetting fixes.
+
+- Various fixes to the experimental `harfbuzz-vector`, `harfbuzz-raster` and
+  `harfbuzz-gpu` libraries.
+
+- Various improvements to the HarfRust integration shaper.
+
+- Various build, CI, portability, and fuzzing fixes.
+
+- New API:
+  * OpenType:
+    +HB_OT_BITS_TAG_FS_TYPE
+    +HB_OT_BITS_TAG_FS_SELECTION
+    +HB_OT_BITS_TAG_MAC_STYLE
+    +HB_OT_BITS_TAG_IS_FIXED_PITCH
+    +HB_OT_BITS_TAG_UNICODE_RANGE_1
+    +HB_OT_BITS_TAG_UNICODE_RANGE_2
+    +HB_OT_BITS_TAG_UNICODE_RANGE_3
+    +HB_OT_BITS_TAG_UNICODE_RANGE_4
+    +HB_OT_BITS_TAG_CODE_PAGE_RANGE_1
+    +HB_OT_BITS_TAG_CODE_PAGE_RANGE_2
+    +HB_OT_NUMBER_TAG_FONT_X_MIN
+    +HB_OT_NUMBER_TAG_FONT_Y_MIN
+    +HB_OT_NUMBER_TAG_FONT_X_MAX
+    +HB_OT_NUMBER_TAG_FONT_Y_MAX
+    +hb_ot_bits_tag_t
+    +hb_ot_fetch_bits()
+    +hb_ot_number_tag_t
+    +hb_ot_fetch_number()
+
+  * Paint:
+    +hb_paint_fill_glyph_func_t
+    +hb_paint_fill_glyph()
+    +hb_paint_funcs_set_fill_glyph_func()
+
+  * Subset library:
+    +HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET
+
+
 Overview of changes leading to 14.2.1
 Tuesday, June 2, 2026
 =====================================

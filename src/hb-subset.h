@@ -95,7 +95,7 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * compatibility with older renderers that don't support CFF2. Since: 13.0.0
  * @HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET: If set and subsetting a CID-keyed CFF
  * font, the output CFF charset will use sequential identity CIDs (CID = new
- * GID) rather than preserving the original CIDs. XSince: REPLACEME
+ * GID) rather than preserving the original CIDs. Since: 14.3.0
  *
  * List of boolean properties that can be configured on the subset input.
  *

@@ -172,7 +172,7 @@ typedef hb_bool_t (*hb_paint_color_glyph_func_t) (hb_paint_funcs_t *funcs,
  * "color", "pop-clip" paint operations, in that order, will be emitted
  * instead.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  */
 typedef void (*hb_paint_fill_glyph_func_t) (hb_paint_funcs_t *funcs,
                                             void *paint_data,
@@ -888,7 +888,7 @@ hb_paint_funcs_set_color_glyph_func (hb_paint_funcs_t                *funcs,
  *
  * Sets the fill-glyph callback on the paint functions struct.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  */
 HB_EXTERN void
 hb_paint_funcs_set_fill_glyph_func (hb_paint_funcs_t           *funcs,

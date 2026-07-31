@@ -48,7 +48,7 @@ HB_BEGIN_DECLS
  *
  * Bit fields that can be fetched with hb_ot_fetch_bits().
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 typedef enum {
   HB_OT_BITS_TAG_FS_TYPE		= HB_TAG ('f','s','t','p'),
@@ -80,7 +80,7 @@ hb_ot_fetch_bits (hb_face_t        *face,
  *
  * Numbers that can be fetched with hb_ot_fetch_number().
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 typedef enum {
   HB_OT_NUMBER_TAG_FONT_X_MIN		= HB_TAG ('x','m','i','n'),

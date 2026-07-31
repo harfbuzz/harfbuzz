@@ -123,7 +123,7 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
  * Return value: (transfer full): New depend object, or `nullptr` if creation
  * failed (out of memory or invalid face). Destroy with hb_subset_depend_destroy().
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 hb_subset_depend_t *
 hb_subset_depend_from_face_or_fail (hb_face_t *face)
@@ -168,7 +168,7 @@ hb_subset_depend_from_face_or_fail (hb_face_t *face)
  *
  * Return value: Total number of dependency edges for @gid.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 unsigned int
 hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
@@ -218,7 +218,7 @@ hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
  *
  * Return value: true if there is such a set, false otherwise
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 hb_bool_t
 hb_subset_depend_lookup_set (hb_subset_depend_t *depend, hb_codepoint_t index,
@@ -237,7 +237,7 @@ hb_subset_depend_lookup_set (hb_subset_depend_t *depend, hb_codepoint_t index,
  * Decreases the reference count on @depend, and if it reaches zero, destroys
  * @depend, freeing all memory.
  *
- * XSince: REPLACEME
+ * Since: 14.3.0
  **/
 void
 hb_subset_depend_destroy (hb_subset_depend_t *depend)
