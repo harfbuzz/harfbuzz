@@ -2795,12 +2795,7 @@ struct COLR
       extents->height = 0;
     }
     else
-    {
-      extents->x_bearing = e.xmin;
-      extents->y_bearing = e.ymax;
-      extents->width = e.xmax - e.xmin;
-      extents->height = e.ymin - e.ymax;
-    }
+      *extents = e.to_glyph_extents ();
 
     return ret;
   }
