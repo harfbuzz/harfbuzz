@@ -928,11 +928,21 @@ struct graph_t
     return true;
   }
 
-  // BFS graph traversal starting at start_idx, op() will be called for each edge (plus once for the root).
-  // if it returns false the children of the edges destination will not be traversed.
-  // Does not implement a visited set, it's expected that op() will handle that as needed.
-  template <typename Op>
-  void traverse_directed_bfs (unsigned start_idx, Op&& op)
+  // BFS graph traversal starting at start_idx.
+  //
+  // The visit_edge function will be called once for the root node and then for each traversed edge
+  // with the following signature:
+  //
+  // bool VisitEdgeFunc(unsigned parent, const link_t* link, unsigned child, unsigned depth)
+  //
+  // Where a return value of false signals that traversal should not continue into child's outgoing
+  // edges. parent/child are the vertex indices. depth starts at 0 for the root node.
+  // link will be null when called for entering the root node at the start of the traversal.
+  //
+  // This traversal does not use a visited set internally, it is the responsibility of visit_edge
+  // to track and filter visited nodes if required for the particular traversal.
+  template <typename VisitEdgeFunc>
+  void traverse_directed_bfs (unsigned start_idx, VisitEdgeFunc&& visit_edge)
   {
     if (unlikely (!check_success(start_idx < vertices_.length)))
     {
@@ -946,7 +956,7 @@ struct graph_t
     if (unlikely (!check_success (ordering_scratch_.resize (vertices_.length))))
       return;
 
-    if (!op (HB_CODEPOINT_INVALID, nullptr, start_idx, 0))
+    if (!visit_edge (HB_CODEPOINT_INVALID, nullptr, start_idx, 0))
       return;
 
     unsigned head = 0;
@@ -975,7 +985,7 @@ struct graph_t
                              : v.obj.virtual_links[i - num_real];
           unsigned child_idx = link.objidx;
 
-          if (!op (node_idx, &link, child_idx, depth + 1))
+          if (!visit_edge (node_idx, &link, child_idx, depth + 1))
             continue;
 
           if (unlikely (!check_success (tail < queue.length)))
