@@ -955,9 +955,12 @@ struct avar
 
           const hb_vector_t<AxisValueMap> &new_mapping = new_mappings[i];
 
-          float old_min = 0.f, old_def = 0.f, old_max = 0.f;
+          float min_f = 0.f, def_f = 0.f, max_f = 0.f;
           if (likely (i < fvar_axes.length))
-            fvar_axes[i].get_coordinates (old_min, old_def, old_max);
+            fvar_axes[i].get_coordinates (min_f, def_f, max_f);
+          double old_min = (double) min_f;
+          double old_def = (double) def_f;
+          double old_max = (double) max_f;
 
           /* If the axis default MOVED, inv_renorm also kinks where the OLD
            * default lands in the new space (the old intermediate coordinate
