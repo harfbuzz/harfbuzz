@@ -83,10 +83,16 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
    * constructor (which references a hidden is_blocklisted symbol) in this TU. */
   if (hb_ot_layout_has_substitution (face))
     face->table.GSUB.get_relaxed ()->depend (this, face);
+#ifndef HB_NO_MATH
   face->table.MATH->depend (this);
+#endif
+#ifndef HB_NO_COLOR
   face->table.COLR->depend (this);
+#endif
   face->table.glyf->depend (this);
+#ifndef HB_NO_CFF
   OT::cff1_subset_accelerator_t (face).depend (this);
+#endif
   /* XXX TODO: add face->table.VARC->depend (this) here.
    * VARC closure and subsetting are not yet implemented (see hb-subset-plan.cc),
    * so the right traversal architecture for VarComponent records hasn't been
