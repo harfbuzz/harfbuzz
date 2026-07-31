@@ -76,4 +76,4 @@ jobs:
     - name: Build
       run: meson compile -Cbuild
     - name: Test
-      run: meson test -Cbuild -t 10 --print-errorlogs | asan_symbolize | c++filt
+      run: meson test -Cbuild -t 10 --print-errorlogs
