@@ -1289,11 +1289,13 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	ymax = hb_max (ymax, e.yH);
       }
 
-      /* Convert fixed-point → pixels (floor for min, ceil for max) */
+      /* Convert fixed-point → pixels (floor for min, ceil for max).  Edge
+	 coordinates are saturated to int32 range in emit_segment, so the
+	 +MASK ceil step must be widened to avoid signed overflow. */
       int x0 = xmin >> HB_RASTER_PIXEL_BITS;
       int y0 = ymin >> HB_RASTER_PIXEL_BITS;
-      int x1 = (xmax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS;
-      int y1 = (ymax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS;
+      int x1 = (int) (((int64_t) xmax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS);
+      int y1 = (int) (((int64_t) ymax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS);
 
       ext.x_origin = x0;
       ext.y_origin = y0;

@@ -433,10 +433,14 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     fmax_x = hb_max (fmax_x, cx[i]); fmax_y = hb_max (fmax_y, cy[i]);
   }
 
-  int px0 = (int) floorf (fmin_x) - surf->extents.x_origin;
-  int py0 = (int) floorf (fmin_y) - surf->extents.y_origin;
-  int px1 = (int) ceilf (fmax_x) - surf->extents.x_origin;
-  int py1 = (int) ceilf (fmax_y) - surf->extents.y_origin;
+  /* A spec-legal but very large transform can push these bounds past the int
+     range or to non-finite values; a bare float->int conversion would then be
+     undefined.  Saturate through hb_clamp_to<> (which also maps NaN to
+     INT32_MIN); the subtraction is done in double to avoid overflow. */
+  int px0 = hb_clamp_to<int32_t> ((double) floorf (fmin_x) - surf->extents.x_origin);
+  int py0 = hb_clamp_to<int32_t> ((double) floorf (fmin_y) - surf->extents.y_origin);
+  int px1 = hb_clamp_to<int32_t> ((double) ceilf  (fmax_x) - surf->extents.x_origin);
+  int py1 = hb_clamp_to<int32_t> ((double) ceilf  (fmax_y) - surf->extents.y_origin);
 
   /* Clamp to surface bounds */
   px0 = hb_max (px0, 0);
