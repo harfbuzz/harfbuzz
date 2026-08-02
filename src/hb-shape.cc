@@ -142,6 +142,8 @@ hb_shape_full (hb_font_t          *font,
     hb_buffer_append (text_buffer, buffer, 0, -1);
   }
 
+	hb_buffer_set_variation_deltas_num_coords(buffer, hb_font_get_variation_axis_count(font));
+
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached2 (font->face, &buffer->props,
 							      features, num_features,
 							      font->coords, font->num_coords,
