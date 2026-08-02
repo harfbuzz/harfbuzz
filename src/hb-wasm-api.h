@@ -173,6 +173,12 @@ HB_WASM_API (void, buffer_reverse) (HB_WASM_EXEC_ENV
 HB_WASM_API (void, buffer_reverse_clusters) (HB_WASM_EXEC_ENV
 					     ptr_d(buffer_t, buffer));
 
+HB_WASM_API (void, buffer_set_glyph_variation_delta) (HB_WASM_EXEC_ENV
+						       ptr_d(buffer_t, buffer),
+						       uint32_t glyph_index,
+						       uint32_t axis_index,
+						       int32_t delta);
+
 /* face */
 
 typedef struct face_t face_t;
