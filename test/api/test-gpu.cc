@@ -291,6 +291,115 @@ test_recycle_blob (void)
   hb_gpu_draw_destroy (draw);
 }
 
+/* The fragment shader picks a single horizontal and a single vertical
+ * band from the fragment position and only walks that band's curve
+ * list.  So every curve must be listed in every band that its
+ * *quantized* bounding box reaches into; a curve missing from a band
+ * gives fragments in that band the wrong winding number, which shows
+ * up as a thin black line through the glyph.
+ *
+ * https://github.com/harfbuzz/harfbuzz/issues/6131 */
+static void
+assert_band_membership (hb_blob_t *blob)
+{
+  unsigned texel_count;
+  const hb_gpu_test_texel_t *t = blob_as_texels (blob, &texel_count);
+  if (texel_count < 2)
+    return;
+
+  /* Coordinates are stored as quarters of a font unit. */
+  double min_x = t[0].r / 4., min_y = t[0].g / 4.;
+  double max_x = t[0].b / 4., max_y = t[0].a / 4.;
+  unsigned num_hbands = (unsigned) t[1].r;
+  unsigned num_vbands = (unsigned) t[1].g;
+  g_assert_cmpuint (num_hbands, >, 0);
+  g_assert_cmpuint (num_vbands, >, 0);
+  g_assert_cmpuint (2 + num_hbands + num_vbands, <=, texel_count);
+
+  double hband_size = (max_y - min_y) / num_hbands;
+  double vband_size = (max_x - min_x) / num_vbands;
+
+  for (unsigned b = 0; b < num_hbands + num_vbands; b++)
+  {
+    hb_bool_t horizontal = b < num_hbands;
+    unsigned count = (unsigned) (uint16_t) t[2 + b].r;
+    unsigned list = (unsigned) ((int) t[2 + b].g + 32768);
+    g_assert_cmpuint (list + count, <=, texel_count);
+
+    for (unsigned ci = 0; ci < count; ci++)
+    {
+      unsigned c = (unsigned) ((int) t[list + ci].r + 32768);
+      g_assert_cmpuint (c + 1, <, texel_count);
+
+      /* Every band the curve reaches into, in the axis of this band. */
+      int lo, hi;
+      if (horizontal)
+      {
+	int q1 = t[c].g, q2 = t[c].a, q3 = t[c + 1].g;
+	if (q1 == q2 && q2 == q3) continue; /* horizontal: skipped by design */
+	if (!(hband_size > 0)) continue;
+	lo = (int) floor ((MIN (MIN (q1, q2), q3) / 4. - min_y) / hband_size);
+	hi = (int) floor ((MAX (MAX (q1, q2), q3) / 4. - min_y) / hband_size);
+	lo = MAX (lo, 0);
+	hi = MIN (hi, (int) num_hbands - 1);
+      }
+      else
+      {
+	int q1 = t[c].r, q2 = t[c].b, q3 = t[c + 1].r;
+	if (q1 == q2 && q2 == q3) continue; /* vertical: skipped by design */
+	if (!(vband_size > 0)) continue;
+	lo = (int) floor ((MIN (MIN (q1, q2), q3) / 4. - min_x) / vband_size);
+	hi = (int) floor ((MAX (MAX (q1, q2), q3) / 4. - min_x) / vband_size);
+	lo = MAX (lo, 0);
+	hi = MIN (hi, (int) num_vbands - 1);
+      }
+
+      for (int ob = lo; ob <= hi; ob++)
+      {
+	unsigned obb = horizontal ? (unsigned) ob : num_hbands + (unsigned) ob;
+	unsigned ocount = (unsigned) (uint16_t) t[2 + obb].r;
+	unsigned olist = (unsigned) ((int) t[2 + obb].g + 32768);
+	g_assert_cmpuint (olist + ocount, <=, texel_count);
+
+	hb_bool_t found = false;
+	for (unsigned oi = 0; oi < ocount && !found; oi++)
+	  found = (unsigned) ((int) t[olist + oi].r + 32768) == c;
+	g_assert_true (found);
+      }
+    }
+  }
+}
+
+static void
+test_encode_band_membership (void)
+{
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  g_assert_nonnull (face);
+  hb_font_t *font = hb_font_create (face);
+  /* A scale other than the font's upem makes the glyph coordinates
+   * fractional, so quantizing them rounds.  Band membership derived
+   * from the unquantized coordinates then misses bands. */
+  hb_font_set_scale (font, 128, 128);
+
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  for (hb_codepoint_t gid = 0; gid < glyph_count; gid++)
+  {
+    hb_gpu_draw_clear (draw);
+    hb_gpu_draw_glyph (draw, font, gid);
+    hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
+    g_assert_nonnull (blob);
+    assert_band_membership (blob);
+    hb_blob_destroy (blob);
+  }
+
+  hb_gpu_draw_destroy (draw);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static void
 test_extents_saturate_overflow (void)
 {
@@ -661,6 +770,7 @@ main (int argc, char **argv)
   hb_test_add (test_encode_quantizes_extents_outward);
   hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
+  hb_test_add (test_encode_band_membership);
   hb_test_add (test_extents_saturate_overflow);
   hb_test_add (test_shapes);
 
