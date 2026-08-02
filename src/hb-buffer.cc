@@ -170,6 +170,7 @@ hb_buffer_t::enlarge (unsigned int size)
   unsigned int new_allocated = allocated;
   hb_glyph_position_t *new_pos = nullptr;
   hb_glyph_info_t *new_info = nullptr;
+  int *new_coords_deltas = nullptr;
   bool separate_out = out_info != info;
 
   if (unlikely (hb_unsigned_mul_overflows (size, sizeof (info[0]))))
@@ -186,8 +187,15 @@ hb_buffer_t::enlarge (unsigned int size)
   new_pos = (hb_glyph_position_t *) hb_realloc (pos, new_bytes);
   new_info = (hb_glyph_info_t *) hb_realloc (info, new_bytes);
 
+  if (num_coords_deltas)
+  {
+    unsigned new_coords_bytes;
+    if (likely (!hb_unsigned_mul_overflows (new_allocated, num_coords_deltas * sizeof (int), &new_coords_bytes)))
+      new_coords_deltas = (int *) hb_realloc (coords_deltas, new_coords_bytes);
+  }
+
 done:
-  if (unlikely (!new_pos || !new_info))
+  if (unlikely (!new_pos || !new_info || (num_coords_deltas && !new_coords_deltas)))
     successful = false;
 
   if (likely (new_pos))
@@ -195,6 +203,20 @@ done:
 
   if (likely (new_info))
     info = new_info;
+
+  if (likely (new_coords_deltas || !num_coords_deltas))
+  {
+    /* Zero out newly allocated glyph slots in the deltas array. */
+    if (coords_deltas && new_coords_deltas && new_coords_deltas != coords_deltas &&
+	allocated > 0 && new_allocated > allocated)
+    {
+      unsigned int old_bytes = allocated * num_coords_deltas * sizeof (int);
+      unsigned int new_bytes = new_allocated * num_coords_deltas * sizeof (int);
+      hb_memset ((char *) new_coords_deltas + old_bytes, 0,
+		 new_bytes - old_bytes);
+    }
+    coords_deltas = new_coords_deltas;
+  }
 
   out_info = separate_out ? (hb_glyph_info_t *) pos : info;
   if (likely (successful))
@@ -235,6 +257,12 @@ hb_buffer_t::shift_forward (unsigned int count)
   }
 
   memmove (info + idx + count, info + idx, (len - idx) * sizeof (info[0]));
+  if (coords_deltas)
+  {
+    memmove (coords_deltas + (idx + count) * num_coords_deltas,
+             coords_deltas + idx * num_coords_deltas,
+             (len - idx) * num_coords_deltas * sizeof (int));
+  }
   if (idx + count > len)
   {
     /* Under memory failure we might expose this area.  At least
@@ -293,6 +321,7 @@ hb_buffer_t::reset ()
   invisible = 0;
   not_found = 0;
   not_found_variation_selector = HB_CODEPOINT_INVALID;
+  num_coords_deltas = 0;
 
   clear ();
 }
@@ -312,6 +341,13 @@ hb_buffer_t::clear ()
   len = 0;
   out_len = 0;
   out_info = info;
+
+  /* Zero variation deltas but keep the axis count. */
+  if (coords_deltas)
+  {
+    unsigned int coords_bytes = num_coords_deltas * allocated * sizeof (int);
+    hb_memset (coords_deltas, 0, coords_bytes);
+  }
 
   hb_memset (context, 0, sizeof context);
   hb_memset (context_len, 0, sizeof context_len);
@@ -485,6 +521,12 @@ hb_buffer_t::move_to (unsigned int i)
     if (unlikely (!make_room_for (count, count))) return false;
 
     memmove (out_info + out_len, info + idx, count * sizeof (out_info[0]));
+    if (coords_deltas)
+    {
+      memmove (coords_deltas + out_len * num_coords_deltas,
+               coords_deltas + idx * num_coords_deltas,
+               count * num_coords_deltas * sizeof (int));
+    }
     idx += count;
     out_len += count;
   }
@@ -507,6 +549,12 @@ hb_buffer_t::move_to (unsigned int i)
     idx -= count;
     out_len -= count;
     memmove (info + idx, out_info + out_len, count * sizeof (out_info[0]));
+    if (coords_deltas)
+    {
+      memmove (coords_deltas + idx * num_coords_deltas,
+               coords_deltas + out_len * num_coords_deltas,
+               count * num_coords_deltas * sizeof (int));
+    }
   }
 
   return true;
@@ -868,6 +916,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 
   hb_free (buffer->info);
   hb_free (buffer->pos);
+  hb_free (buffer->coords_deltas);
 #ifndef HB_NO_BUFFER_MESSAGE
   if (buffer->message_destroy)
     buffer->message_destroy (buffer->message_data);
@@ -2059,6 +2108,11 @@ hb_buffer_append (hb_buffer_t *buffer,
   hb_memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
   if (buffer->have_positions)
     hb_memcpy (buffer->pos + orig_len, source->pos + start, (end - start) * sizeof (buffer->pos[0]));
+  if (buffer->coords_deltas && source->coords_deltas &&
+      buffer->num_coords_deltas == source->num_coords_deltas)
+    hb_memcpy (buffer->coords_deltas + orig_len * buffer->num_coords_deltas,
+               source->coords_deltas + start * source->num_coords_deltas,
+               (end - start) * source->num_coords_deltas * sizeof (int));
 
   if (source->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE)
   {
@@ -2353,6 +2407,74 @@ void
 hb_buffer_changed (hb_buffer_t *buffer)
 {
   buffer->changed ();
+}
+
+/**
+ * hb_buffer_set_variation_deltas_num_coords:
+ * @buffer: An #hb_buffer_t
+ * @num_coords: Number of variation axes for per-glyph deltas
+ *
+ * Sets the number of variation axes for per-glyph delta storage.
+ * Must be called before setting per-glyph variation deltas.
+ * Pass 0 to disable per-glyph deltas and free associated storage.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_buffer_set_variation_deltas_num_coords (hb_buffer_t *buffer,
+					   unsigned int  num_coords)
+{
+  if (!buffer || !buffer->successful)
+    return;
+
+  if (unlikely (!buffer->setup_variation_deltas (num_coords)))
+    return;
+}
+
+/**
+ * hb_buffer_set_glyph_variation_delta:
+ * @buffer: An #hb_buffer_t
+ * @glyph_index: Index of the glyph in the buffer
+ * @axis_index: Index of the variation axis
+ * @delta: Normalized variation delta (2.14 fixed-point)
+ *
+ * Sets a per-glyph variation delta for a specific axis, in 2.14
+ * fixed-point format (matching hb_font_t's internal normalized
+ * coordinate representation).
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_buffer_set_glyph_variation_delta (hb_buffer_t *buffer,
+				     unsigned int  glyph_index,
+				     unsigned int  axis_index,
+				     int           delta)
+{
+  if (buffer)
+    buffer->set_variation_delta (glyph_index, axis_index, delta);
+}
+
+/**
+ * hb_buffer_get_glyph_variation_delta:
+ * @buffer: An #hb_buffer_t
+ * @glyph_index: Index of the glyph in the buffer
+ * @axis_index: Index of the variation axis
+ *
+ * Gets the per-glyph variation delta for a specific axis.
+ *
+ * Return value: The normalized variation delta (2.14 fixed-point),
+ * or 0 if not set.
+ *
+ * Since: REPLACEME
+ **/
+int
+hb_buffer_get_glyph_variation_delta (hb_buffer_t *buffer,
+				     unsigned int  glyph_index,
+				     unsigned int  axis_index)
+{
+  if (!buffer)
+    return 0;
+  return buffer->get_variation_delta (glyph_index, axis_index);
 }
 
 bool

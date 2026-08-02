@@ -873,6 +873,20 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
 HB_EXTERN void
 hb_buffer_changed (hb_buffer_t *buffer);
 
+HB_EXTERN void
+hb_buffer_set_variation_deltas_num_coords (hb_buffer_t *buffer, unsigned int num_coords);
+
+HB_EXTERN void
+hb_buffer_set_glyph_variation_delta (hb_buffer_t *buffer,
+				     unsigned int glyph_index,
+				     unsigned int axis_index,
+				     int delta);
+
+HB_EXTERN int
+hb_buffer_get_glyph_variation_delta (hb_buffer_t *buffer,
+				     unsigned int glyph_index,
+				     unsigned int axis_index);
+
 
 HB_END_DECLS
 
