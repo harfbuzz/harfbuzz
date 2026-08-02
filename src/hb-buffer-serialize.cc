@@ -177,6 +177,21 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
         p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"fl\":%u", info[i].mask & HB_GLYPH_FLAG_DEFINED));
     }
 
+    if (buffer->coords_deltas && buffer->num_coords_deltas)
+    {
+      int *deltas = &buffer->coords_deltas[i * buffer->num_coords_deltas];
+      bool any_delta = false;
+      for (unsigned int j = 0; j < buffer->num_coords_deltas; j++)
+	if (deltas[j]) { any_delta = true; break; }
+      if (any_delta)
+      {
+	p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"vd\":["));
+	for (unsigned int j = 0; j < buffer->num_coords_deltas; j++)
+	  p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "%s%d", j ? "," : "", deltas[j]));
+	*p++ = ']';
+      }
+    }
+
     if (flags & HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS)
     {
       hb_glyph_extents_t extents;
@@ -337,6 +352,20 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
     {
       if (info[i].mask & HB_GLYPH_FLAG_DEFINED)
         p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "#%X", info[i].mask &HB_GLYPH_FLAG_DEFINED));
+    }
+
+    if (buffer->coords_deltas && buffer->num_coords_deltas)
+    {
+      int *deltas = &buffer->coords_deltas[i * buffer->num_coords_deltas];
+      bool any_delta = false;
+      for (unsigned int j = 0; j < buffer->num_coords_deltas; j++)
+	if (deltas[j]) { any_delta = true; break; }
+      if (any_delta)
+      {
+	p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "~"));
+	for (unsigned int j = 0; j < buffer->num_coords_deltas; j++)
+	  p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "%s%d", j ? "," : "", deltas[j]));
+      }
     }
 
     if (flags & HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS)
