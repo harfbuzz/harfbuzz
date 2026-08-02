@@ -45,6 +45,7 @@ extern "C" {
     fn face_copy_table(font: u32, tag: u32, blob: *mut Blob) -> bool;
     fn buffer_copy_contents(buffer: u32, cbuffer: *mut CBufferContents) -> bool;
     fn buffer_set_contents(buffer: u32, cbuffer: &CBufferContents) -> bool;
+    fn buffer_set_glyph_variation_delta(buffer: u32, glyph_index: u32, axis_index: u32, delta: i32);
     fn debugprint(s: *const u8);
     fn shape_with(
         font: u32,
@@ -288,6 +289,20 @@ impl<T: BufferItem> Buffer<T> {
                 .map(|(i, p)| T::from_c(i, p))
                 .collect(),
             _ptr: ptr,
+        }
+    }
+
+    /// Set a per-glyph variation delta for a specific axis.
+    ///
+    /// The delta is a normalized 2.14 fixed-point value (per the
+    /// OpenType specification) that will be added to the font's
+    /// variation coordinate for that axis when rendering this glyph.
+    /// You must have previously called
+    /// `hb_buffer_set_variation_deltas_num_coords` (in C) to set
+    /// the number of variation axes.
+    pub fn set_glyph_variation_delta(&self, glyph_index: u32, axis_index: u32, delta: i32) {
+        unsafe {
+            buffer_set_glyph_variation_delta(self._ptr, glyph_index, axis_index, delta);
         }
     }
 }
