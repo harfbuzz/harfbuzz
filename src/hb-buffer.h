@@ -887,6 +887,9 @@ hb_buffer_get_glyph_variation_delta (hb_buffer_t *buffer,
 				     unsigned int glyph_index,
 				     unsigned int axis_index);
 
+HB_EXTERN unsigned int
+hb_buffer_get_variation_deltas_num_coords (hb_buffer_t *buffer);
+
 
 HB_END_DECLS
 

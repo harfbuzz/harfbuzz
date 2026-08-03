@@ -2477,6 +2477,25 @@ hb_buffer_get_glyph_variation_delta (hb_buffer_t *buffer,
   return buffer->get_variation_delta (glyph_index, axis_index);
 }
 
+/**
+ * hb_buffer_get_variation_deltas_num_coords:
+ * @buffer: An #hb_buffer_t
+ *
+ * Returns the number of variation axes currently configured for
+ * per-glyph delta storage, or 0 if not configured.
+ *
+ * Return value: The number of variation axes
+ *
+ * Since: REPLACEME
+ **/
+unsigned int
+hb_buffer_get_variation_deltas_num_coords (hb_buffer_t *buffer)
+{
+  if (!buffer)
+    return 0;
+  return buffer->num_coords_deltas;
+}
+
 bool
 hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
 {
