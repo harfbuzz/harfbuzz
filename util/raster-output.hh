@@ -167,11 +167,27 @@ struct raster_output_t : output_options_t<true>, view_options_t
     line.glyphs.reserve (line.glyphs.size () + count);
     for (unsigned i = 0; i < count; i++)
     {
-      line.glyphs.push_back ({
+      glyph_instance_t g = {
 	infos[i].codepoint,
 	(float) (pen_x + positions[i].x_offset),
 	(float) (pen_y + positions[i].y_offset),
-      });
+      };
+      unsigned num_delta_axes = hb_buffer_get_variation_deltas_num_coords (buffer);
+      if (num_delta_axes)
+      {
+	/* Check if any delta is non-zero before copying the row. */
+	for (unsigned j = 0; j < num_delta_axes; j++)
+	{
+	  if (hb_buffer_get_glyph_variation_delta (buffer, i, j))
+	  {
+	    g.coords_deltas.resize (num_delta_axes);
+	    for (unsigned k = 0; k < num_delta_axes; k++)
+	      g.coords_deltas[k] = hb_buffer_get_glyph_variation_delta (buffer, i, k);
+	    break;
+	  }
+	}
+      }
+      line.glyphs.push_back (std::move (g));
       pen_x += positions[i].x_advance;
       pen_y += positions[i].y_advance;
     }
@@ -249,15 +265,17 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	    float pen_x = g.x + off_x;
 	    float pen_y = g.y + off_y;
 	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
-	    hb_raster_draw_glyph (rdr, font, g.gid);
-	    if (show_extents)
-	    {
-	      hb_glyph_extents_t ge;
-	      if (hb_font_get_glyph_extents (font, g.gid, &ge))
-		util_emit_extents_overlay_into_draw (
-		  hb_raster_draw_get_funcs (rdr), rdr,
-		  &ge, pen_x, pen_y, extents_stroke_width ());
-	    }
+	    with_glyph_coords (g, [&] () {
+	      hb_raster_draw_glyph (rdr, font, g.gid);
+	      if (show_extents)
+	      {
+		hb_glyph_extents_t ge;
+		if (hb_font_get_glyph_extents (font, g.gid, &ge))
+		  util_emit_extents_overlay_into_draw (
+		    hb_raster_draw_get_funcs (rdr), rdr,
+		    &ge, pen_x, pen_y, extents_stroke_width ());
+	      }
+	    });
 	  }
 	}
 
@@ -276,12 +294,45 @@ struct raster_output_t : output_options_t<true>, view_options_t
 
   private:
 
-  struct glyph_instance_t { hb_codepoint_t gid; float x, y; };
+  struct glyph_instance_t { hb_codepoint_t gid; float x, y; std::vector<int> coords_deltas; };
   struct line_t
   {
     float advance_x = 0.f, advance_y = 0.f;
     std::vector<glyph_instance_t> glyphs;
   };
+
+  /* Apply per-glyph variation deltas (if any) while rendering a glyph,
+   * then restore the font's original coords. */
+  template <typename F>
+  void with_glyph_coords (const glyph_instance_t &g, F &&render)
+  {
+    if (g.coords_deltas.empty ()) { render (); return; }
+
+    unsigned nc;
+    const int *base = hb_font_get_var_coords_normalized (font, &nc);
+    if (!base || !nc) { render (); return; }
+
+    /* Save a copy — hb_font_set_var_coords_normalized frees the old array. */
+    std::vector<int> saved (base, base + nc);
+
+    unsigned n = hb_min (nc, (unsigned) g.coords_deltas.size ());
+    std::vector<int> modified (n);
+    bool any_delta = false;
+    for (unsigned j = 0; j < n; j++)
+    {
+      modified[j] = base[j] + g.coords_deltas[j];
+      if (g.coords_deltas[j]) any_delta = true;
+    }
+    /* Fill remaining axes (if font has more) from saved coords. */
+    if (n < nc)
+      modified.insert (modified.end (), saved.begin () + n, saved.end ());
+
+    if (!any_delta) { render (); return; }
+
+    hb_font_set_var_coords_normalized (font, modified.data (), nc);
+    render ();
+    hb_font_set_var_coords_normalized (font, saved.data (), nc);
+  }
 
   float extents_stroke_width () const
   {
@@ -332,16 +383,18 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	  hb_raster_paint_set_palette (pnt, palette);
 	  hb_raster_paint_set_foreground (pnt, glyph_fg);
 
-	  hb_raster_paint_glyph (pnt, font, g.gid);
+	  with_glyph_coords (g, [&] () {
+	    hb_raster_paint_glyph (pnt, font, g.gid);
 
-	  if (show_extents)
-	  {
-	    hb_glyph_extents_t ge;
-	    if (hb_font_get_glyph_extents (font, g.gid, &ge))
-	      util_emit_extents_overlay_into_paint (
-		hb_raster_paint_get_funcs (pnt), pnt,
-		&ge, pen_x, pen_y, extents_stroke_width ());
-	  }
+	    if (show_extents)
+	    {
+	      hb_glyph_extents_t ge;
+	      if (hb_font_get_glyph_extents (font, g.gid, &ge))
+		util_emit_extents_overlay_into_paint (
+		  hb_raster_paint_get_funcs (pnt), pnt,
+		  &ge, pen_x, pen_y, extents_stroke_width ());
+	    }
+	  });
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	  if (img)
@@ -424,15 +477,17 @@ struct raster_output_t : output_options_t<true>, view_options_t
 					       scalbnf (1.f, (int) subpixel_bits));
 	  hb_raster_draw_set_extents (rdr, &ext);
 	  hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, g.x + off_x, g.y + off_y);
-	  hb_raster_draw_glyph (rdr, font, g.gid);
-	  if (show_extents)
-	  {
-	    hb_glyph_extents_t ge;
-	    if (hb_font_get_glyph_extents (font, g.gid, &ge))
-	      util_emit_extents_overlay_into_draw (
-		hb_raster_draw_get_funcs (rdr), rdr,
-		&ge, g.x + off_x, g.y + off_y, extents_stroke_width ());
-	  }
+	  with_glyph_coords (g, [&] () {
+	    hb_raster_draw_glyph (rdr, font, g.gid);
+	    if (show_extents)
+	    {
+	      hb_glyph_extents_t ge;
+	      if (hb_font_get_glyph_extents (font, g.gid, &ge))
+		util_emit_extents_overlay_into_draw (
+		  hb_raster_draw_get_funcs (rdr), rdr,
+		  &ge, g.x + off_x, g.y + off_y, extents_stroke_width ());
+	    }
+	  });
 
 	  hb_raster_image_t *img = hb_raster_draw_render (rdr);
 	  if (!img) { glyph_index++; continue; }
@@ -568,11 +623,15 @@ struct raster_output_t : output_options_t<true>, view_options_t
       float off_x = vertical ? -(step * (float) li) : 0.f;
       float off_y = vertical ?  0.f                 : -(step * (float) li);
 
-      for (const auto &g : lines[li].glyphs)
-      {
-	hb_glyph_extents_t gext;
-	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
-	  continue;
+	      for (const auto &g : lines[li].glyphs)
+	      {
+		hb_glyph_extents_t gext;
+		bool got_extents;
+		with_glyph_coords (g, [&] () {
+		  got_extents = hb_font_get_glyph_extents (font, g.gid, &gext);
+		});
+		if (!got_extents)
+		  continue;
 
 	float gx = (g.x + off_x) * sx;
 	float gy = (g.y + off_y) * sy;
