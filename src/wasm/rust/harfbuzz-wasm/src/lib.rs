@@ -45,6 +45,8 @@ extern "C" {
     fn face_copy_table(font: u32, tag: u32, blob: *mut Blob) -> bool;
     fn buffer_copy_contents(buffer: u32, cbuffer: *mut CBufferContents) -> bool;
     fn buffer_set_contents(buffer: u32, cbuffer: &CBufferContents) -> bool;
+    fn feature_copy_contents(features: u32, num_features: u32, output: *mut CFFeatures) -> bool;
+    fn features_free(features: *mut CFFeatures);
     fn debugprint(s: *const u8);
     fn shape_with(
         font: u32,
@@ -363,12 +365,46 @@ pub struct CGlyphExtents {
     pub height: i32,
 }
 
+/// An OpenType feature passed to the shaper.
+#[derive(Debug, Clone, Copy)]
+pub struct Feature {
+    /// The feature tag (e.g. `TAG(b'k', b'e', b'r', b'n')`)
+    pub tag: [u8; 4],
+    /// The feature value (0 = off, 1 = on, etc.)
+    pub value: u32,
+    /// Start index of the feature range, or `FEATURE_GLOBAL_START`
+    pub start: u32,
+    /// End index of the feature range, or `FEATURE_GLOBAL_END`
+    pub end: u32,
+}
+
+/// Start index for features that apply globally.
+pub const FEATURE_GLOBAL_START: u32 = 0;
+/// End index for features that apply globally.
+pub const FEATURE_GLOBAL_END: u32 = u32::MAX;
+
 #[derive(Debug)]
 #[repr(C)]
 struct CBufferContents {
     length: u32,
     info: *mut CGlyphInfo,
     position: *mut CGlyphPosition,
+}
+
+#[derive(Debug)]
+#[repr(C)]
+struct CFFeatures {
+    length: u32,
+    features: *mut CFeature,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+struct CFeature {
+    tag: u32,
+    value: u32,
+    start: u32,
+    end: u32,
 }
 
 /// Ergonomic representation of a Harfbuzz buffer item
@@ -454,6 +490,78 @@ struct CGlyphOutline {
 
 /// Our default buffer item struct. See also [`Glyph`].
 pub type GlyphBuffer = Buffer<Glyph>;
+
+/// A collection of OpenType features passed to the shaper.
+#[derive(Debug)]
+pub struct Features {
+    features: Vec<Feature>,
+}
+
+fn u32_to_tag(tag: u32) -> [u8; 4] {
+    [
+        ((tag >> 24) & 0xFF) as u8,
+        ((tag >> 16) & 0xFF) as u8,
+        ((tag >> 8) & 0xFF) as u8,
+        (tag & 0xFF) as u8,
+    ]
+}
+
+impl Features {
+    /// Construct a `Features` from the raw pointer and count
+    /// passed to the `shape` function by the WASM host.
+    pub fn from_raw(ptr: u32, count: u32) -> Self {
+        let mut c_features = CFFeatures {
+            length: 0,
+            features: std::ptr::null_mut(),
+        };
+        if count > 0 {
+            unsafe {
+                feature_copy_contents(ptr, count, &mut c_features);
+            }
+        }
+        let slice =
+            unsafe { std::slice::from_raw_parts(c_features.features, c_features.length as usize) };
+        let features: Vec<Feature> = slice
+            .iter()
+            .map(|f| Feature {
+                tag: u32_to_tag(f.tag),
+                value: f.value,
+                start: f.start,
+                end: f.end,
+            })
+            .collect();
+        Features { features }
+    }
+
+    /// Returns the number of features.
+    pub fn len(&self) -> usize {
+        self.features.len()
+    }
+
+    /// Returns true if there are no features.
+    pub fn is_empty(&self) -> bool {
+        self.features.is_empty()
+    }
+
+    /// Returns a slice of all features.
+    pub fn as_slice(&self) -> &[Feature] {
+        &self.features
+    }
+
+    /// Iterate over the features.
+    pub fn iter(&self) -> impl Iterator<Item = &Feature> {
+        self.features.iter()
+    }
+}
+
+impl Drop for Features {
+    fn drop(&mut self) {
+        // CFFeatures is stack-allocated but it points to WASM memory.
+        // We don't need to free since feature_copy_contents allocates
+        // in WASM heap and we copied values out. The WASM module
+        // frees its heap on deinstantiation.
+    }
+}
 
 /// Write a string to the Harfbuzz debug log.
 pub fn debug(s: &str) {
