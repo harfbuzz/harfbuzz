@@ -1238,6 +1238,9 @@ hb_font_set_synthetic_slant (hb_font_t *font, float slant);
 HB_EXTERN float
 hb_font_get_synthetic_slant (hb_font_t *font);
 
+HB_EXTERN unsigned int
+hb_font_get_variation_axis_count (hb_font_t *font);
+
 HB_EXTERN void
 hb_font_set_variations (hb_font_t *font,
 			const hb_variation_t *variations,

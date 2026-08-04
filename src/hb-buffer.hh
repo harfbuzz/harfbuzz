@@ -103,6 +103,13 @@ struct hb_buffer_t
   hb_glyph_info_t     *out_info;
   hb_glyph_position_t *pos;
 
+  /* Per-glyph normalized variation deltas (2.14 fixed-point, per OpenType spec).
+   * Sized num_coords_deltas * len, one int per axis per glyph,
+   * laid out as deltas[glyph_idx * num_coords_deltas + axis].
+   * nullptr when num_coords_deltas == 0. */
+  unsigned int num_coords_deltas;
+  int *coords_deltas;
+
   /* Text before / after the main buffer contents.
    * Always in Unicode, and ordered outward.
    * Index 0 is for "pre-context", 1 for "post-context". */
@@ -248,6 +255,19 @@ struct hb_buffer_t
     hb_array_t<hb_glyph_info_t> (info, len).reverse (start, end);
     if (have_positions)
       hb_array_t<hb_glyph_position_t> (pos, len).reverse (start, end);
+    if (coords_deltas && num_coords_deltas)
+    {
+      /* Reverse each glyph's delta block, which is num_coords_deltas ints each. */
+      int *base = coords_deltas + start * num_coords_deltas;
+      unsigned count = end - start;
+      for (unsigned i = 0; i < count / 2; i++)
+      {
+	int *a = base + i * num_coords_deltas;
+	int *b = base + (count - 1 - i) * num_coords_deltas;
+	for (unsigned j = 0; j < num_coords_deltas; j++)
+	  hb_swap (a[j], b[j]);
+      }
+    }
   }
   void reverse () { reverse_range (0, len); }
 
@@ -710,6 +730,62 @@ struct hb_buffer_t
   {
     for (unsigned int i = 0; i < len; i++)
       info[i].mask = (info[i].mask & ~HB_GLYPH_FLAG_DEFINED) | (mask & HB_GLYPH_FLAG_DEFINED);
+  }
+
+  HB_NODISCARD bool setup_variation_deltas (unsigned int num_coords)
+  {
+    if (num_coords_deltas == num_coords)
+      return true;
+
+    if (num_coords == 0)
+    {
+      num_coords_deltas = 0;
+      hb_free (coords_deltas);
+      coords_deltas = nullptr;
+      return true;
+    }
+
+    /* Ensure info/pos arrays are allocated first. */
+    if (unlikely (!ensure (len ? len : 1)))
+      return false;
+
+    /* Allocate or reallocate the deltas array. */
+    unsigned int coords_bytes = allocated * num_coords * sizeof (int);
+    int *new_deltas = (int *) hb_realloc (coords_deltas, coords_bytes);
+    if (unlikely (!new_deltas))
+    {
+      successful = false;
+      return false;
+    }
+
+    /* Zero out existing entries if we had fewer axes before. */
+    if (num_coords > num_coords_deltas && allocated > 0 && num_coords_deltas > 0)
+    {
+      /* We grew in axis count; zero the new axis columns for all rows. */
+      for (unsigned int i = 0; i < allocated; i++)
+	hb_memset (new_deltas + i * num_coords + num_coords_deltas, 0,
+		   (num_coords - num_coords_deltas) * sizeof (int));
+    }
+
+    coords_deltas = new_deltas;
+    num_coords_deltas = num_coords;
+    return true;
+  }
+
+  HB_ALWAYS_INLINE
+  int get_variation_delta (unsigned int glyph_idx, unsigned int axis) const
+  {
+    if (unlikely (!coords_deltas || axis >= num_coords_deltas || glyph_idx >= len))
+      return 0;
+    return coords_deltas[glyph_idx * num_coords_deltas + axis];
+  }
+
+  HB_ALWAYS_INLINE
+  void set_variation_delta (unsigned int glyph_idx, unsigned int axis, int delta)
+  {
+    if (unlikely (!coords_deltas || axis >= num_coords_deltas || glyph_idx >= len))
+      return;
+    coords_deltas[glyph_idx * num_coords_deltas + axis] = delta;
   }
 };
 DECLARE_NULL_INSTANCE (hb_buffer_t);

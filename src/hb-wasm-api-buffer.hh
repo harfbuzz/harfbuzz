@@ -205,11 +205,22 @@ HB_WASM_API (void, buffer_reverse) (HB_WASM_EXEC_ENV
 }
 
 HB_WASM_API (void, buffer_reverse_clusters) (HB_WASM_EXEC_ENV
-					     ptr_d(buffer_t, buffer))
+				     ptr_d(buffer_t, buffer))
 {
   HB_REF2OBJ (buffer);
 
   hb_buffer_reverse_clusters (buffer);
+}
+
+HB_WASM_API (void, buffer_set_glyph_variation_delta) (HB_WASM_EXEC_ENV
+					     ptr_d(buffer_t, buffer),
+					     uint32_t glyph_index,
+					     uint32_t axis_index,
+					     int32_t delta)
+{
+  HB_REF2OBJ (buffer);
+
+  hb_buffer_set_glyph_variation_delta (buffer, glyph_index, axis_index, delta);
 }
 
 }}

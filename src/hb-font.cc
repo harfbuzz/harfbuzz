@@ -3077,6 +3077,27 @@ hb_font_set_variations (hb_font_t            *font,
 }
 
 /**
+ * hb_font_get_variation_axis_count:
+ * @font: #hb_font_t to work upon
+ *
+ * Returns the number of variation axes in the font.
+ *
+ * Since: 1.4.2
+ */
+unsigned int
+hb_font_get_variation_axis_count (hb_font_t *font)
+{
+  if (unlikely (!font->face->table.fvar))
+    return 0;
+
+  const OT::fvar &fvar = *font->face->table.fvar;
+  auto axes = fvar.get_axes ();
+  return axes.length;
+}
+
+
+
+/**
  * hb_font_set_variation:
  * @font: #hb_font_t to work upon
  * @tag: The #hb_tag_t tag of the variation-axis name

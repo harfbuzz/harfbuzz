@@ -420,7 +420,13 @@ wasm-bindgen = "0.2"
 harfbuzz-wasm = { path = "your-harfbuzz-source/src/wasm/rust/harfbuzz-wasm"}
 ```
 
-*
+* Harfbuzz will be providing some functions in the WASM host environment which Rust won't be able to see at link-time, so we're going to need the Rust compiler to ignore undefined symbols when linking the WASM module. We can do this by creating a `.cargo/config.toml` file:
+
+```toml
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=--import-undefined"]
+```
+
 * And now we'll create our shaper code. In `src/lib.rs`:
 
 ```rust
