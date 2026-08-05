@@ -607,9 +607,14 @@ struct avar
 #endif
   }
 
+  /* An avar version 2 font is never downgraded to v1: even with a NULL
+   * varStore offset (legal; maps like plain v1) the avar2 subsetting path
+   * applies, with "no variation" semantics for rows that don't resolve —
+   * offset compensation then creates delta rows on demand. */
   bool has_v2_data () const { return version.major > 1; }
 
-  /* Resolve the avar2 VarStore and VarIdxMap, for the subset planner. */
+  /* Resolve the avar2 VarStore and VarIdxMap, for the subset planner.
+   * Either pointer may be to the Null object (nullable offsets). */
   bool get_v2_store_and_map (const ItemVariationStore **store,
                              const DeltaSetIndexMap **varidx_map) const
   {
@@ -880,11 +885,26 @@ struct avar
      * other variation tables by standard instancing at the plan's
      * axes_location/normalized_coords. */
 
-    /* 5. Build per-axis varIdx mapping (may create new VarDatas) */
+    /* 5. Build per-axis varIdx mapping (may create new VarDatas).
+     * Entries (or the implicit identity mapping) that don't resolve to a
+     * real store row behave as "no variation" at runtime; normalize them to
+     * NO_VARIATIONS_INDEX so the offset loop creates fresh rows instead of
+     * writing into nonexistent ones. This also covers a NULL VarStore
+     * (never downgraded: rows are created on demand). */
     hb_vector_t<uint32_t> new_varidx_mapping;
     if (!new_varidx_mapping.resize (axisCount)) return false;
     for (unsigned i = 0; i < axisCount; i++)
-      new_varidx_mapping[i] = varidx_map.map (i);
+    {
+      uint32_t varidx = varidx_map.map (i);
+      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      {
+	unsigned outer = varidx >> 16;
+	if (outer >= var_store.get_sub_table_count () ||
+	    (varidx & 0xFFFF) >= var_store.get_sub_table (outer).get_item_count ())
+	  varidx = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
+      }
+      new_varidx_mapping[i] = varidx;
+    }
 
     /* 5.5. Privatize shared varIdx delta rows before adding offset
      * compensation. avar2's VarIdxMap may map several fvar axes to the SAME
