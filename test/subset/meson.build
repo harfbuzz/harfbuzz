@@ -88,6 +88,7 @@ tests = [
   'colrv1_partial_instance',
   'instantiate_gvar_padding',
   'avar2_full_instance',
+  'avar2_null_varstore_partial_instance',
   'subset_gvar_padding',
 ]
 
