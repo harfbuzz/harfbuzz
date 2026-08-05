@@ -404,6 +404,35 @@ _avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
            + (double) mappings.arrayZ[len - 1].coords[1].to_float ();
 }
 
+/* Inverse of _avar2_map_new_mapping: pull an output coordinate back to a
+ * preimage input coordinate. For a non-strictly-monotone mapping this picks
+ * one preimage, which is fine for its only use (augmenting the error
+ * estimator's sample set). */
+static inline double
+_avar2_unmap_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
+{
+  unsigned len = mappings.length;
+  if (!len) return v;
+
+  for (unsigned i = 0; i < len; i++)
+  {
+    double to = (double) mappings.arrayZ[i].coords[1].to_float ();
+    if (v == to) return (double) mappings.arrayZ[i].coords[0].to_float ();
+    if (v < to)
+    {
+      double from = (double) mappings.arrayZ[i].coords[0].to_float ();
+      if (!i) return v - to + from;
+      double prev_to = (double) mappings.arrayZ[i - 1].coords[1].to_float ();
+      double prev_from = (double) mappings.arrayZ[i - 1].coords[0].to_float ();
+      double denom = to - prev_to;
+      if (denom == 0.0) return prev_from;
+      return prev_from + (from - prev_from) * (v - prev_to) / denom;
+    }
+  }
+  return v - (double) mappings.arrayZ[len - 1].coords[1].to_float ()
+	   + (double) mappings.arrayZ[len - 1].coords[0].to_float ();
+}
+
 /* Plain (non-avar) fvar-style normalization of a user value against a
  * user-space (min, default, max) triple. */
 static inline double
@@ -429,8 +458,13 @@ _avar2_denormalize_value (double v, double min, double def, double max)
  * through the knots. The residual is dominated by F2Dot14 requantization of
  * a steep retained avar v1 segment (e.g. a moved default compressing part
  * of the axis into a narrow z band); offset compensation cannot remove it.
- * Used only to pick the better knot set and decide whether to warn, so a
- * coarse uniform sample suffices. */
+ * Used only to pick the better knot set and decide whether to warn.
+ *
+ * Sampled on a uniform grid augmented with the user-space preimages of
+ * every kink of the residual (old/new avar v1 breakpoints and offset(z)
+ * knots), so the worst kink cannot fall between uniform samples. The
+ * pointwise F2Dot14 rounding makes this an estimate rather than an exact
+ * bound, but every piecewise-linear extremum is visited. */
 static inline unsigned
 _avar2_estimate_offset_error (const SegmentMaps &old_seg,
                               const hb_vector_t<AxisValueMap> &new_mapping,
@@ -438,11 +472,29 @@ _avar2_estimate_offset_error (const SegmentMaps &old_seg,
                               double new_min, double new_def, double new_max,
                               const hb_vector_t<avar2_offset_knot_t> &knots)
 {
-  unsigned max_err = 0;
   constexpr unsigned samples = 257;
+  hb_vector_t<double> us;
+  if (unlikely (!us.alloc (samples + old_seg.as_array ().length +
+                           new_mapping.length + knots.length)))
+    return UINT_MAX; /* estimator only; fail towards "worse" */
   for (unsigned i = 0; i < samples; i++)
+    us.push (new_min + (new_max - new_min) * i / (samples - 1));
+  for (const auto &_ : old_seg.as_array ())
+    us.push (_avar2_denormalize_value ((double) _.coords[0].to_float (),
+                                       old_min, old_def, old_max));
+  for (const auto &_ : new_mapping)
+    us.push (_avar2_denormalize_value ((double) _.coords[0].to_float (),
+                                       new_min, new_def, new_max));
+  for (const auto &knot : knots)
+    us.push (_avar2_denormalize_value (
+               _avar2_unmap_new_mapping (new_mapping, knot.z),
+               new_min, new_def, new_max));
+  if (unlikely (us.in_error ())) return UINT_MAX;
+
+  unsigned max_err = 0;
+  for (double u : us)
   {
-    double u = new_min + (new_max - new_min) * i / (samples - 1);
+    if (u < new_min || u > new_max) continue;
     double n_old = _avar2_normalize_value (u, old_min, old_def, old_max);
     double old_final = (double) old_seg.map_float ((float) n_old);
     double n_new = _avar2_normalize_value (u, new_min, new_def, new_max);
@@ -555,9 +607,14 @@ struct avar
 #endif
   }
 
+  /* An avar version 2 font is never downgraded to v1: even with a NULL
+   * varStore offset (legal; maps like plain v1) the avar2 subsetting path
+   * applies, with "no variation" semantics for rows that don't resolve —
+   * offset compensation then creates delta rows on demand. */
   bool has_v2_data () const { return version.major > 1; }
 
-  /* Resolve the avar2 VarStore and VarIdxMap, for the subset planner. */
+  /* Resolve the avar2 VarStore and VarIdxMap, for the subset planner.
+   * Either pointer may be to the Null object (nullable offsets). */
   bool get_v2_store_and_map (const ItemVariationStore **store,
                              const DeltaSetIndexMap **varidx_map) const
   {
@@ -828,11 +885,26 @@ struct avar
      * other variation tables by standard instancing at the plan's
      * axes_location/normalized_coords. */
 
-    /* 5. Build per-axis varIdx mapping (may create new VarDatas) */
+    /* 5. Build per-axis varIdx mapping (may create new VarDatas).
+     * Entries (or the implicit identity mapping) that don't resolve to a
+     * real store row behave as "no variation" at runtime; normalize them to
+     * NO_VARIATIONS_INDEX so the offset loop creates fresh rows instead of
+     * writing into nonexistent ones. This also covers a NULL VarStore
+     * (never downgraded: rows are created on demand). */
     hb_vector_t<uint32_t> new_varidx_mapping;
     if (!new_varidx_mapping.resize (axisCount)) return false;
     for (unsigned i = 0; i < axisCount; i++)
-      new_varidx_mapping[i] = varidx_map.map (i);
+    {
+      uint32_t varidx = varidx_map.map (i);
+      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      {
+	unsigned outer = varidx >> 16;
+	if (outer >= var_store.get_sub_table_count () ||
+	    (varidx & 0xFFFF) >= var_store.get_sub_table (outer).get_item_count ())
+	  varidx = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
+      }
+      new_varidx_mapping[i] = varidx;
+    }
 
     /* 5.5. Privatize shared varIdx delta rows before adding offset
      * compensation. avar2's VarIdxMap may map several fvar axes to the SAME
