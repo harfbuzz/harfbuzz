@@ -136,7 +136,11 @@
      hb_pair_t<double, double> *identity;
      if (!box.has (tag, &identity)) return false;
 
-     double dmin = 0.0, dmax = 0.0;
+     /* Collect the row's active regions (non-zero delta). A varidx (or the
+      * implicit identity mapping) that doesn't resolve to a real store row
+      * behaves as "no variation" at runtime, so it contributes no regions;
+      * this also covers a NULL VarStore. */
+     hb_vector_t<hb_pair_t<int, unsigned>> active; /* (delta, region index) */
      uint32_t varidx = varidx_map->map (i);
      /* Runtime treats out-of-range delta-set indices as zero. */
      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX &&
@@ -156,8 +160,139 @@
 	 if (!delta) continue;
 	 unsigned region_idx = vd.get_region_index (r);
 	 if (region_idx >= regions.length) return false;
+	 active.push (hb_pair (delta, region_idx));
+       }
+       if (active.in_error ()) return false;
+     }
+
+     /* The delta is piecewise multilinear in the axis coordinates (each
+      * region scalar is a product of independent per-axis tents), so over
+      * the box its exact extremes are attained at vertices of the grid of
+      * per-axis tent breakpoints. Enumerate that grid when it is small
+      * (real fonts); otherwise fall back to per-region interval
+      * arithmetic, which ignores correlations between regions and is
+      * looser but still conservative. Mirrors fontTools'
+      * VarStore.getExtremes. */
+     constexpr unsigned MAX_GRID = 1u << 14;
+     bool exact = true;
+     double dmin = 0.0, dmax = 0.0; /* delta extremes, F2Dot14 units */
+     double vmin = 0.0, vmax = 0.0; /* identity + delta extremes, coord units */
+
+     /* Grid axes: the target axis (identity term), plus every axis a valid
+      * tent of an active region references. */
+     hb_vector_t<hb_tag_t> grid_tags;
+     hb_hashmap_t<hb_tag_t, unsigned> grid_pos;
+     hb_vector_t<hb_vector_t<double>> grid_points;
+     auto add_grid_axis = [&] (hb_tag_t t) -> int
+     {
+       unsigned *pos;
+       if (grid_pos.has (t, &pos)) return (int) *pos;
+       hb_pair_t<double, double> *input;
+       double blo = -1.0, bhi = +1.0;
+       if (box.has (t, &input)) { blo = input->first; bhi = input->second; }
+       grid_tags.push (t);
+       grid_points.push (hb_vector_t<double> ());
+       if (grid_tags.in_error () || grid_points.in_error ()) return -1;
+       auto &points = grid_points[grid_points.length - 1];
+       points.push (blo);
+       points.push (bhi);
+       if (points.in_error () || !grid_pos.set (t, grid_tags.length - 1)) return -1;
+       return (int) (grid_tags.length - 1);
+     };
+
+     if (add_grid_axis (tag) < 0) return false;
+     /* Per active region: (grid axis position, tent) for its valid tents. */
+     hb_vector_t<hb_vector_t<hb_pair_t<unsigned, Triple>>> region_tents;
+     for (const auto &ar : active)
+     {
+       region_tents.push (hb_vector_t<hb_pair_t<unsigned, Triple>> ());
+       if (region_tents.in_error ()) return false;
+       auto &tents = region_tents[region_tents.length - 1];
+       for (const auto &_ : regions[ar.second])
+       {
+	 const Triple &tent = _.second;
+	 /* Tents the runtime ignores (constant scalar 1) add no breakpoints. */
+	 if (tent.middle == 0.0 ||
+	     tent.minimum > tent.middle || tent.middle > tent.maximum ||
+	     (tent.minimum < 0.0 && tent.maximum > 0.0))
+	   continue;
+	 int pos = add_grid_axis (_.first);
+	 if (pos < 0) return false;
+	 hb_pair_t<double, double> *input;
+	 double blo = -1.0, bhi = +1.0;
+	 if (box.has (_.first, &input)) { blo = input->first; bhi = input->second; }
+	 auto &points = grid_points[pos];
+	 points.push (hb_clamp (tent.minimum, blo, bhi));
+	 points.push (hb_clamp (tent.middle, blo, bhi));
+	 points.push (hb_clamp (tent.maximum, blo, bhi));
+	 tents.push (hb_pair ((unsigned) pos, tent));
+	 if (points.in_error () || tents.in_error ()) return false;
+       }
+     }
+
+     unsigned grid_size = 1;
+     for (auto &points : grid_points)
+     {
+       points.qsort ([] (const double &a, const double &b) -> int
+		     { return a < b ? -1 : a > b ? +1 : 0; });
+       unsigned n = 0;
+       for (unsigned j = 0; j < points.length; j++)
+	 if (!n || points.arrayZ[j] != points.arrayZ[n - 1])
+	   points.arrayZ[n++] = points.arrayZ[j];
+       points.shrink (n);
+       grid_size *= points.length;
+       if (grid_size > MAX_GRID) { exact = false; break; }
+     }
+
+     if (exact)
+     {
+       unsigned target_pos = 0; /* the target axis was added first */
+       hb_vector_t<unsigned> odometer;
+       if (!odometer.resize (grid_tags.length)) return false;
+       bool first = true;
+       for (;;)
+       {
+	 double delta_sum = 0.0;
+	 for (unsigned r = 0; r < active.length; r++)
+	 {
+	   double scalar = 1.0;
+	   for (const auto &pt : region_tents[r])
+	   {
+	     double v = grid_points[pt.first][odometer[pt.first]];
+	     scalar *= _tent_eval (pt.second, v);
+	     if (scalar == 0.0) break;
+	   }
+	   delta_sum += scalar * active[r].first;
+	 }
+	 double coord = grid_points[target_pos][odometer[target_pos]];
+	 double value = coord + delta_sum / 16384.0;
+	 if (first)
+	 {
+	   dmin = dmax = delta_sum;
+	   vmin = vmax = value;
+	   first = false;
+	 }
+	 else
+	 {
+	   dmin = hb_min (dmin, delta_sum); dmax = hb_max (dmax, delta_sum);
+	   vmin = hb_min (vmin, value);     vmax = hb_max (vmax, value);
+	 }
+	 unsigned k = 0;
+	 for (; k < odometer.length; k++)
+	 {
+	   if (++odometer[k] < grid_points[k].length) break;
+	   odometer[k] = 0;
+	 }
+	 if (k == odometer.length) break;
+       }
+     }
+     else
+     {
+       for (const auto &ar : active)
+       {
+	 int delta = ar.first;
 	 double smin = 1.0, smax = 1.0;
-	 for (const auto &_ : regions[region_idx])
+	 for (const auto &_ : regions[ar.second])
 	 {
 	   hb_pair_t<double, double> *input;
 	   double blo = -1.0, bhi = +1.0;
@@ -171,6 +306,8 @@
 	 if (delta > 0) { dmin += smin * delta; dmax += smax * delta; }
 	 else           { dmin += smax * delta; dmax += smin * delta; }
        }
+       vmin = identity->first + dmin / 16384.0;
+       vmax = identity->second + dmax / 16384.0;
      }
      /* A pinned axis whose delta is constant over the box is self-contained:
       * its final coordinate is a constant. It can be removed from fvar/avar
@@ -191,8 +328,8 @@
 
      /* Pad by one F2Dot14 unit against rounding differences with the
       * runtime's fixed-point evaluation. */
-     double lo = hb_clamp (identity->first + dmin / 16384.0 - 1.0 / 16384.0, -1.0, +1.0);
-     double hi = hb_clamp (identity->second + dmax / 16384.0 + 1.0 / 16384.0, -1.0, +1.0);
+     double lo = hb_clamp (vmin - 1.0 / 16384.0, -1.0, +1.0);
+     double hi = hb_clamp (vmax + 1.0 / 16384.0, -1.0, +1.0);
      lo = floor (lo * 16384.0) / 16384.0;
      hi = ceil (hi * 16384.0) / 16384.0;
      if (lo <= -1.0 && hi >= +1.0)
