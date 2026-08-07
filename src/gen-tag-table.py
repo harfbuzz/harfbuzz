@@ -52,6 +52,60 @@ def write (s):
 	sys.stdout.flush ()
 	sys.stdout.buffer.write (s.encode ('utf-8'))
 
+_ALLOWED_COMMENT_PUNCT = set (" -—–.,;:’'ʼ()[]/!=>_+")
+
+def sanitize_comment (s):
+	"""Validate that a comment contains only safe characters and return the stripped string.
+
+	Raises ValueError if any character outside the allowlist is present.
+	"""
+	if not isinstance (s, str):
+		raise TypeError ("Expected string for comment, got %s" % type (s).__name__)
+	s = s.strip ()
+	if not s:
+		return ''
+	for ch in s:
+		cat = unicodedata.category (ch)
+		if not (cat.startswith (('L', 'M', 'N', 'Z')) or ch in _ALLOWED_COMMENT_PUNCT):
+			raise ValueError ("Disallowed character %r (U+%04X) in comment: %r" % (ch, ord (ch), s))
+	return s
+
+def sanitize_header (s):
+	"""Validate that a header string contains only safe characters and return the stripped string.
+
+	Raises ValueError if any character outside the allowlist is present.
+	"""
+	if not isinstance (s, str):
+		raise TypeError ("Expected string for header, got %s" % type (s).__name__)
+	s = s.strip ()
+	if not re.fullmatch (r'[a-zA-Z0-9 <>=/:\-_."]{1,200}', s):
+		raise ValueError ("Invalid header line %r: contains disallowed characters" % s)
+	return s
+
+def sanitize_bcp47_tag (s):
+	"""Validate that a BCP-47 tag or subtag contains only alphanumeric characters and hyphens.
+
+	Raises ValueError if any character outside the allowlist is present.
+	"""
+	if not isinstance (s, str):
+		raise TypeError ("Expected string, got %s" % type (s).__name__)
+	if not re.fullmatch (r'[a-zA-Z0-9-]+', s):
+		raise ValueError ("Invalid BCP-47 tag or subtag literal %r: must contain only alphanumeric characters and hyphens" % s)
+	return s
+
+def sanitize_tag (tag):
+	"""Validate that an OpenType tag contains only 1-4 alphanumeric characters or spaces.
+
+	Raises ValueError if any character outside the allowlist is present.
+	"""
+	if not isinstance (tag, str):
+		raise TypeError ("Expected string for tag, got %s" % type (tag).__name__)
+	if tag == DEFAULT_LANGUAGE_SYSTEM:
+		return ''
+	if not re.fullmatch (r'[a-zA-Z0-9 ]{1,4}', tag):
+		raise ValueError ("Invalid tag %r: must contain only 1-4 alphanumeric characters or spaces" % tag)
+	return tag
+
 DEFAULT_LANGUAGE_SYSTEM = ''
 
 # from https://www-01.sil.org/iso639-3/iso-639-3.tab
@@ -873,7 +927,7 @@ disambiguation = {
 ot.inherit_from_macrolanguages ()
 bcp_47.remove_extra_macrolanguages ()
 ot.inherit_from_macrolanguages ()
-ot.names[DEFAULT_LANGUAGE_SYSTEM] = '*/'
+ot.names[DEFAULT_LANGUAGE_SYSTEM] = ''
 ot.ranks[DEFAULT_LANGUAGE_SYSTEM] = max (ot.ranks.values ()) + 1
 for tricky_ot_tag in filter (lambda tag: re.match ('[A-Z]{3}$', tag), ot.names):
 	possible_bcp_47_tag = tricky_ot_tag.lower ()
@@ -886,6 +940,7 @@ if output_rust:
 	def hb_tag_rust (tag):
 		if tag == DEFAULT_LANGUAGE_SYSTEM:
 			return 'Tag::new(&[0; 4])'
+		sanitize_tag (tag)
 		return 'Tag::new(b"%s%s%s%s")' % tuple (('%-4s' % tag)[:4])
 
 	def get_variant_set_rust (name):
@@ -934,22 +989,23 @@ if output_rust:
 			continue
 		commented_out = len (language) == 3 and len (tags) == 1 and language == tags[0].lower ()
 		for tag in tags:
-			print ('%sLangTag { language: lang(b"%s"), \ttag: %s },' % ('//  ' if commented_out else '    ', language, hb_tag_rust (tag)), end='')
+			print ('%sLangTag { language: lang(b"%s"), \ttag: %s },' % ('//  ' if commented_out else '    ', sanitize_bcp47_tag (language), hb_tag_rust (tag)), end='')
 			print (' // ', end='')
 			bcp_47_name = bcp_47.names.get (language, '')
 			bcp_47_name_candidates = bcp_47_name.split ('\n')
 			ot_name = ot.names[tag]
 			scope = bcp_47.scopes.get (language, '')
 			if tag == DEFAULT_LANGUAGE_SYSTEM:
-				print (f'{bcp_47_name_candidates[0]}{scope} != {ot.names[language.upper ()]}')
+				comment = f'{bcp_47_name_candidates[0]}{scope} != {ot.names[language.upper ()]}'
 			else:
 				intersection = language_name_intersection_rust (bcp_47_name, ot_name)
 				if not intersection:
-					print ('%s%s -> %s' % (bcp_47_name_candidates[0], scope, ot_name))
+					comment = '%s%s -> %s' % (bcp_47_name_candidates[0], scope, ot_name)
 				else:
 					name = get_matching_language_name_rust (intersection, bcp_47_name_candidates)
 					bcp_47.names[language] = name
-					print ('%s%s' % (name if len (name) > len (ot_name) else ot_name, scope))
+					comment = '%s%s' % (name if len (name) > len (ot_name) else ot_name, scope)
+			print (sanitize_comment (comment))
 
 	print ('];')
 	print ()
@@ -960,7 +1016,7 @@ if output_rust:
 		if subtag:
 			if new_line:
 				print (' && ', end='')
-			print ('subtag_matches(language, "-%s")' % subtag, end='')
+			print ('subtag_matches(language, "-%s")' % sanitize_bcp47_tag (subtag), end='')
 
 	complex_tags = collections.defaultdict (list)
 	for initial, group in itertools.groupby ((lt_tags for lt_tags in [
@@ -985,13 +1041,13 @@ if output_rust:
 			print_subtag_matches_rust (lt.region, False)
 			print_subtag_matches_rust (lt.variant, False)
 			print (' {')
-			print ('        // %s' % bcp_47.get_name (lt))
+			print ('        // %s' % sanitize_comment (bcp_47.get_name (lt)))
 			if len (tags) == 1:
-				print ('        tags.push(%s); // %s' % (hb_tag_rust (tags[0]), ot.names[tags[0]]))
+				print ('        tags.push(%s); // %s' % (hb_tag_rust (tags[0]), sanitize_comment (ot.names[tags[0]])))
 			else:
 				print ('        let possible_tags = &[')
 				for tag in tags:
-					print ('            %s, // %s' % (hb_tag_rust (tag), ot.names[tag]))
+					print ('            %s, // %s' % (hb_tag_rust (tag), sanitize_comment (ot.names[tag])))
 				print ('        ];')
 				print ('        tags.extend_from_slice(possible_tags);')
 			print ('        return true;')
@@ -1001,7 +1057,7 @@ if output_rust:
 	for initial, items in sorted (complex_tags.items ()):
 		if initial == 'und':
 			continue
-		print ("        b'%s' => {" % initial)
+		print ("        b'%s' => {" % sanitize_bcp47_tag (initial))
 		for lt, tags in items:
 			if not tags:
 				continue
@@ -1009,7 +1065,7 @@ if output_rust:
 			script = lt.script
 			region = lt.region
 			if lt.grandfathered:
-				print ('&language[1..] == "%s"' % lt.language[1:], end='')
+				print ('&language[1..] == "%s"' % sanitize_bcp47_tag (lt.language[1:]), end='')
 			else:
 				string_literal = lt.language[1:] + '-'
 				if script:
@@ -1019,20 +1075,20 @@ if output_rust:
 						string_literal += '-' + region
 						region = None
 				if string_literal[-1] == '-':
-					print ('strncmp(&language[1..], "%s", %i)' % (string_literal, len (string_literal)), end='')
+					print ('strncmp(&language[1..], "%s", %i)' % (sanitize_bcp47_tag (string_literal), len (string_literal)), end='')
 				else:
-					print ('lang_matches(&language[1..], "%s")' % string_literal, end='')
+					print ('lang_matches(&language[1..], "%s")' % sanitize_bcp47_tag (string_literal), end='')
 			print_subtag_matches_rust (script, True)
 			print_subtag_matches_rust (region, True)
 			print_subtag_matches_rust (lt.variant, True)
 			print (' {')
-			print ('                // %s' % bcp_47.get_name (lt))
+			print ('                // %s' % sanitize_comment (bcp_47.get_name (lt)))
 			if len (tags) == 1:
-				print ('                tags.push(%s); // %s' % (hb_tag_rust (tags[0]), ot.names[tags[0]]))
+				print ('                tags.push(%s); // %s' % (hb_tag_rust (tags[0]), sanitize_comment (ot.names[tags[0]])))
 			else:
 				print ('                let possible_tags = &[')
 				for tag in tags:
-					print ('                    %s, // %s' % (hb_tag_rust (tag), ot.names[tag]))
+					print ('                    %s, // %s' % (hb_tag_rust (tag), sanitize_comment (ot.names[tag])))
 				print ('                ];')
 				print ('                tags.extend_from_slice(possible_tags);')
 			print ('                return true;')
@@ -1052,8 +1108,8 @@ print (' *   %s languagetags language-subtag-registry' % os.path.basename (sys.a
 print (' *')
 print (' * on files with these headers:')
 print (' *')
-print (' * %s' % ot.header.strip ())
-print (' * %s' % bcp_47.header)
+print (' * %s' % sanitize_header (ot.header))
+print (' * %s' % sanitize_header (bcp_47.header))
 print (' */')
 print ()
 print ('#ifndef HB_OT_TAG_TABLE_HH')
@@ -1071,6 +1127,7 @@ def hb_tag (tag):
 	"""
 	if tag == DEFAULT_LANGUAGE_SYSTEM:
 		return 'HB_TAG_NONE\t       '
+	sanitize_tag (tag)
 	return "HB_TAG('%s','%s','%s','%s')" % tuple (('%-4s' % tag)[:4])
 
 def get_variant_set (name):
@@ -1117,13 +1174,16 @@ def format_language_comment (language, tag):
 	ot_name = ot.names[tag]
 	scope = bcp_47.scopes.get (language, '')
 	if tag == DEFAULT_LANGUAGE_SYSTEM:
-		return f'{bcp_47_name_candidates[0]}{scope} != {ot.names[language.upper ()]}'
-	intersection = language_name_intersection (bcp_47_name, ot_name)
-	if not intersection:
-		return '%s%s -> %s' % (bcp_47_name_candidates[0], scope, ot_name)
-	name = get_matching_language_name (intersection, bcp_47_name_candidates)
-	bcp_47.names[language] = name
-	return '%s%s' % (name if len (name) > len (ot_name) else ot_name, scope)
+		comment = f'{bcp_47_name_candidates[0]}{scope} != {ot.names[language.upper ()]}'
+	else:
+		intersection = language_name_intersection (bcp_47_name, ot_name)
+		if not intersection:
+			comment = '%s%s -> %s' % (bcp_47_name_candidates[0], scope, ot_name)
+		else:
+			name = get_matching_language_name (intersection, bcp_47_name_candidates)
+			bcp_47.names[language] = name
+			comment = '%s%s' % (name if len (name) > len (ot_name) else ot_name, scope)
+	return sanitize_comment (comment)
 
 print ('static const LangTag ot_languages2[] = {')
 for language, tags in sorted (ot.from_bcp_47.items ()):
@@ -1183,8 +1243,8 @@ print ('static const LangTagRange ot_languages3_multi[] = {')
 for language, offset, count, first_tag in languages3_multi_ranges:
 	print ('  {%s,\t%u,\t%u},\t/* %s */' % (
 		hb_tag (language),
-		offset,
-		count,
+		int(offset),
+		int(count),
 		format_language_comment (language, first_tag)))
 print ('};')
 print ('#endif')
@@ -1216,7 +1276,7 @@ def print_subtag_matches (subtag, string, new_line):
 		if new_line:
 			print ()
 			print ('\t&& ', end='')
-		print ('subtag_matches (%s, limit, "-%s", %i)' % (string, subtag, 1 + len (subtag)), end='')
+		print ('subtag_matches (%s, limit, "-%s", %i)' % (string, sanitize_bcp47_tag (subtag), 1 + len (subtag)), end='')
 
 complex_tags = collections.defaultdict (list)
 for initial, group in itertools.groupby ((lt_tags for lt_tags in [
@@ -1260,16 +1320,16 @@ for initial, items in sorted (complex_tags.items ()):
 		print_subtag_matches (lt.variant, 'p', False)
 		print (')')
 		print ('    {')
-		write ('      /* %s */' % bcp_47.get_name (lt))
+		write ('      /* %s */' % sanitize_comment (bcp_47.get_name (lt)))
 		print ()
 		if len (tags) == 1:
-			write ('      tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
+			write ('      tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), sanitize_comment (ot.names[tags[0]])))
 			print ()
 			print ('      *count = 1;')
 		else:
 			print ('    hb_tag_t possible_tags[] = {')
 			for tag in tags:
-				write ('      %s,  /* %s */' % (hb_tag (tag), ot.names[tag]))
+				write ('      %s,  /* %s */' % (hb_tag (tag), sanitize_comment (ot.names[tag])))
 				print ()
 			print ('      };')
 			print ('      for (i = 0; i < %s && i < *count; i++)' % len (tags))
@@ -1285,7 +1345,7 @@ print ('  {')
 for initial, items in sorted (complex_tags.items ()):
 	if initial == 'und':
 		continue
-	print ("  case '%s':" % initial)
+	print ("  case '%s':" % sanitize_bcp47_tag (initial))
 	for lt, tags in items:
 		if not tags:
 			continue
@@ -1293,7 +1353,7 @@ for initial, items in sorted (complex_tags.items ()):
 		script = lt.script
 		region = lt.region
 		if lt.grandfathered:
-			print ('0 == strcmp (&lang_str[1], "%s")' % lt.language[1:], end='')
+			print ('0 == strcmp (&lang_str[1], "%s")' % sanitize_bcp47_tag (lt.language[1:]), end='')
 		else:
 			string_literal = lt.language[1:] + '-'
 			if script:
@@ -1303,25 +1363,25 @@ for initial, items in sorted (complex_tags.items ()):
 					string_literal += '-' + region
 					region = None
 			if string_literal[-1] == '-':
-				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
+				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (sanitize_bcp47_tag (string_literal), len (string_literal)), end='')
 			else:
-				print ('lang_matches (&lang_str[1], limit, "%s", %i)' % (string_literal, len (string_literal)), end='')
+				print ('lang_matches (&lang_str[1], limit, "%s", %i)' % (sanitize_bcp47_tag (string_literal), len (string_literal)), end='')
 		print_subtag_matches (script, 'lang_str', True)
 		print_subtag_matches (region, 'lang_str', True)
 		print_subtag_matches (lt.variant, 'lang_str', True)
 		print (')')
 		print ('    {')
-		write ('      /* %s */' % bcp_47.get_name (lt))
+		write ('      /* %s */' % sanitize_comment (bcp_47.get_name (lt)))
 		print ()
 		if len (tags) == 1:
-			write ('      tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
+			write ('      tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), sanitize_comment (ot.names[tags[0]])))
 			print ()
 			print ('      *count = 1;')
 		else:
 			print ('      unsigned int i;')
 			print ('      hb_tag_t possible_tags[] = {')
 			for tag in tags:
-				write ('\t%s,  /* %s */' % (hb_tag (tag), ot.names[tag]))
+				write ('\t%s,  /* %s */' % (hb_tag (tag), sanitize_comment (ot.names[tag])))
 				print ()
 			print ('      };')
 			print ('      for (i = 0; i < %s && i < *count; i++)' % len (tags))
@@ -1420,9 +1480,9 @@ def verify_disambiguation_dict ():
 
 verify_disambiguation_dict ()
 for ot_tag, bcp_47_tag in sorted (disambiguation.items ()):
-	write ('  case %s:  /* %s */' % (hb_tag (ot_tag), ot.names[ot_tag]))
+	write ('  case %s:  /* %s */' % (hb_tag (ot_tag), sanitize_comment (ot.names[ot_tag])))
 	print ()
-	write ('    return hb_language_from_string (\"%s\", -1);  /* %s */' % (bcp_47_tag, bcp_47.get_name (LanguageTag (bcp_47_tag))))
+	write ('    return hb_language_from_string (\"%s\", -1);  /* %s */' % (sanitize_bcp47_tag (bcp_47_tag), sanitize_comment (bcp_47.get_name (LanguageTag (bcp_47_tag)))))
 	print ()
 
 print ('  default:')
