@@ -182,20 +182,26 @@ struct hb_aat_apply_context_t :
       buffer_glyph_set->add_array (glyphs, count);
     for (unsigned int i = 0; i < count; i++)
     {
+      bool at_end_of_text = buffer->idx == buffer->len;
+      if (at_end_of_text)
+	if (unlikely (!buffer->output_glyph (glyphs[i]))) return false;
+
+      hb_glyph_info_t &info = at_end_of_text ? buffer->prev () : buffer->cur ();
       if (glyphs[i] == DELETED_GLYPH)
       {
         buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED;
-	_hb_glyph_info_set_aat_deleted (&buffer->cur());
+	_hb_glyph_info_set_aat_deleted (&info);
       }
       else
       {
 #ifndef HB_NO_OT_LAYOUT
 	if (has_glyph_classes)
-	  _hb_glyph_info_set_glyph_props (&buffer->cur(),
+	  _hb_glyph_info_set_glyph_props (&info,
 					  gdef.get_glyph_props (glyphs[i]));
 #endif
       }
-      if (unlikely (!buffer->output_glyph (glyphs[i]))) return false;
+      if (!at_end_of_text)
+	if (unlikely (!buffer->output_glyph (glyphs[i]))) return false;
     }
     return true;
   }
