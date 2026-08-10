@@ -1057,7 +1057,10 @@ edge_sweep_row (int32_t                *area,
 		unsigned               &x_min,
 		unsigned               &x_max)
 {
-  int32_t y_bot = y_top + HB_RASTER_ONE_PIXEL;
+  /* Saturate: y_top can be within ONE_PIXEL of INT32_MAX when the surface
+   * sits at the extreme of the fixed-point coordinate space.  Edges are
+   * int32-clamped too, so no coverage exists beyond INT32_MAX anyway. */
+  int32_t y_bot = (int32_t) hb_min ((int64_t) y_top + HB_RASTER_ONE_PIXEL, (int64_t) INT32_MAX);
 
   int32_t ey0 = hb_max (edge.yL, y_top);
   int32_t ey1 = hb_min (edge.yH, y_bot);
