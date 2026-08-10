@@ -100,21 +100,6 @@
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
 
-/* Cumulative work budget for one VARC glyph (draw or extents), shared
- * by all leaf glyphs loaded from glyf/CFF/CFF2, in units of glyf points
- * / CFF charstring ops.  Bounds the product of the VARC composite-graph
- * limits and the per-leaf-glyph work limits. */
-#ifndef HB_VARC_MAX_WORK
-#define HB_VARC_MAX_WORK (1 << 20)
-#endif
-
-/* Cumulative work budget for one paint-extents session, in outline
- * points consumed by clip-glyph draws.  Bounds the product of the
- * paint-graph traversal limits (COLR) and per-glyph outline work. */
-#ifndef HB_PAINT_EXTENTS_MAX_WORK
-#define HB_PAINT_EXTENTS_MAX_WORK ((int64_t) 1 << 20)
-#endif
-
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif
@@ -135,23 +120,8 @@
 #define HB_GPU_DRAW_MAX_CURVES 65536
 #endif
 
-/* Cumulative work budget for one GPU paint walk, in curve units.
- * Bounds the product of the paint-graph traversal limits (COLR) and
- * per-glyph outline work when clip glyphs are re-encoded. */
-#ifndef HB_GPU_PAINT_MAX_WORK
-#define HB_GPU_PAINT_MAX_WORK ((int64_t) 1 << 20)
-#endif
-
 #ifndef HB_SVG_MAX_DOCUMENT_SIZE
 #define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
-#endif
-
-/* Cumulative work budget for one vector (SVG/PDF) paint session, in
- * bytes of generated outline path data.  Bounds the product of the
- * paint-graph traversal limits (COLR) and per-glyph outline work.
- * Once exhausted, further glyph-outline extractions are skipped. */
-#ifndef HB_VECTOR_MAX_PAINT_WORK
-#define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
 #endif
 
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
@@ -166,14 +136,49 @@
 #define HB_RASTER_MAX_AUTO_DIMENSION 4096
 #endif
 
-/* Cumulative work budget for one raster paint session (everything painted
- * between two render/clear calls), in pixel-op units.  Bounds the product
- * of the paint-graph traversal limits (COLR) and the per-node raster cost:
- * pixel loops charge their area, consumed outline segments are charged
- * with a fixed weight.  Once exhausted, further paint operations are
- * skipped best-effort.  The session budget is the larger of this flat
- * value and HB_RASTER_MAX_PAINT_WORK_PASSES full-surface passes, so very
- * large surfaces still get a few full-surface operations. */
+/*
+ * Cumulative work budgets.
+ *
+ * The limits above bound work within one subsystem: points per glyf
+ * glyph, ops per CFF charstring, nodes in a COLR or VARC graph,
+ * pixels per raster surface.  When one subsystem drives another --
+ * COLR driving a paint backend, a paint backend or VARC loading
+ * glyf/CFF outlines -- those limits multiply.  Each driving session
+ * therefore carries one cumulative budget, initialized once per
+ * top-level entry and only ever decremented, shared by everything
+ * the session consumes.  Once a budget is exhausted, further work
+ * is skipped best-effort.
+ */
+
+/* One VARC glyph (draw or extents), shared by all leaf glyphs loaded
+ * from glyf/CFF/CFF2, in units of glyf points / CFF charstring ops. */
+#ifndef HB_VARC_MAX_WORK
+#define HB_VARC_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
+/* One paint-extents session, in outline points consumed by
+ * clip-glyph draws. */
+#ifndef HB_PAINT_EXTENTS_MAX_WORK
+#define HB_PAINT_EXTENTS_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
+/* One GPU paint walk, in curves consumed by clip encodes. */
+#ifndef HB_GPU_PAINT_MAX_WORK
+#define HB_GPU_PAINT_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
+/* One vector (SVG/PDF) paint session, in bytes of generated outline
+ * path data. */
+#ifndef HB_VECTOR_MAX_PAINT_WORK
+#define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
+#endif
+
+/* One raster paint session (everything painted between two
+ * render/clear calls), in pixel-op units; pixel loops charge their
+ * area, consumed outline segments are charged with a fixed weight.
+ * The session budget is the larger of this flat value and
+ * HB_RASTER_MAX_PAINT_WORK_PASSES full-surface passes, so very large
+ * surfaces still get a few full-surface operations. */
 #ifndef HB_RASTER_MAX_PAINT_WORK
 #define HB_RASTER_MAX_PAINT_WORK ((int64_t) 1 << 26)
 #endif
