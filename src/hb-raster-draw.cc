@@ -346,6 +346,8 @@ hb_raster_draw_get_extents (const hb_raster_draw_t    *draw,
  * This is equivalent to computing a transformed bounding box in pixel
  * space and calling hb_raster_draw_set_extents().
  *
+ * The resulting dimensions are capped at 4096 pixels per side.
+ *
  * Return value: `true` if transformed extents are non-empty and set;
  * `false` otherwise.
  *
@@ -396,8 +398,8 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 
   draw->fixed_extents = {
     ex0, ey0,
-    (unsigned) ((int64_t) ex1 - ex0),
-    (unsigned) ((int64_t) ey1 - ey0),
+    (unsigned) hb_min ((int64_t) ex1 - ex0, (int64_t) HB_RASTER_MAX_AUTO_DIMENSION),
+    (unsigned) hb_min ((int64_t) ey1 - ey0, (int64_t) HB_RASTER_MAX_AUTO_DIMENSION),
     0
   };
   draw->has_extents = true;
@@ -1057,7 +1059,10 @@ edge_sweep_row (int32_t                *area,
 		unsigned               &x_min,
 		unsigned               &x_max)
 {
-  int32_t y_bot = y_top + HB_RASTER_ONE_PIXEL;
+  /* Saturate: y_top can be within ONE_PIXEL of INT32_MAX when the surface
+   * sits at the extreme of the fixed-point coordinate space.  Edges are
+   * int32-clamped too, so no coverage exists beyond INT32_MAX anyway. */
+  int32_t y_bot = (int32_t) hb_min ((int64_t) y_top + HB_RASTER_ONE_PIXEL, (int64_t) INT32_MAX);
 
   int32_t ey0 = hb_max (edge.yL, y_top);
   int32_t ey1 = hb_min (edge.yH, y_bot);
@@ -1299,8 +1304,8 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
       ext.x_origin = x0;
       ext.y_origin = y0;
-      ext.width    = (unsigned) hb_max (0, x1 - x0);
-      ext.height   = (unsigned) hb_max (0, y1 - y0);
+      ext.width    = (unsigned) hb_min (hb_max (0, x1 - x0), HB_RASTER_MAX_AUTO_DIMENSION);
+      ext.height   = (unsigned) hb_min (hb_max (0, y1 - y0), HB_RASTER_MAX_AUTO_DIMENSION);
       ext.stride   = 0; /* filled below */
     }
   }

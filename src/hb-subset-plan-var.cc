@@ -587,6 +587,10 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       if (_hmtx.var_table.get_length ())
         hori_aw += (int) roundf (_hmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
                                                                               hvar_store_cache));
+      /* Malicious deltas can take the advance out of the UFWORD range that
+       * hmtx serialization stores.  Clamp, to keep downstream consumers
+       * (e.g. CFF width optimizer) bounded and consistent with hmtx. */
+      hori_aw = hb_clamp (hori_aw, 0, 0xFFFF);
       int lsb = extents.x_bearing;
       if (!has_bounds_info)
       {
@@ -602,6 +606,7 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       if (_vmtx.var_table.get_length ())
         vert_aw += (int) roundf (_vmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
                                                                               vvar_store_cache));
+      vert_aw = hb_clamp (vert_aw, 0, 0xFFFF);
       hb_position_t vorg_x = 0;
       hb_position_t vorg_y = 0;
       int tsb = 0;
