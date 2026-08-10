@@ -128,6 +128,14 @@
 #define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 30)
 #endif
 
+/* Maximum surface dimension (pixels per side) when extents are derived
+ * from font data (glyph extents or accumulated outline bounds).  Bounds
+ * attacker-controlled allocations; extents set explicitly through
+ * hb_raster_{draw,paint}_set_extents() are not limited. */
+#ifndef HB_RASTER_MAX_AUTO_DIMENSION
+#define HB_RASTER_MAX_AUTO_DIMENSION 4096
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500

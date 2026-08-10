@@ -2045,6 +2045,8 @@ hb_raster_paint_get_extents (const hb_raster_paint_t   *paint,
  * This is equivalent to computing a transformed bounding box in pixel
  * space and calling hb_raster_paint_set_extents().
  *
+ * The resulting dimensions are capped at 4096 pixels per side.
+ *
  * Return value: `true` if transformed extents are non-empty and set;
  * `false` otherwise.
  *
@@ -2099,8 +2101,8 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
 
   paint->fixed_extents = {
     ex0, ey0,
-    (unsigned) ((int64_t) ex1 - ex0),
-    (unsigned) ((int64_t) ey1 - ey0),
+    (unsigned) hb_min ((int64_t) ex1 - ex0, (int64_t) HB_RASTER_MAX_AUTO_DIMENSION),
+    (unsigned) hb_min ((int64_t) ey1 - ey0, (int64_t) HB_RASTER_MAX_AUTO_DIMENSION),
     0
   };
   paint->has_extents = true;
