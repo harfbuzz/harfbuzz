@@ -72,9 +72,9 @@ struct hb_kern_machine_t
 
       skippy_iter.reset_fast (idx);
       unsigned unsafe_to;
-      if (!skippy_iter.next (&unsafe_to))
+      if (unlikely (!skippy_iter.next (&unsafe_to)))
       {
-	idx++;
+	idx = unsafe_to;
 	continue;
       }
 
