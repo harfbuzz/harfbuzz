@@ -28,6 +28,7 @@
 
 #include "hb-gpu.h"
 #include "hb-gpu-paint.hh"
+#include "hb-gpu-draw.hh"
 #include "hb-draw.hh"
 #include "hb-machinery.hh"
 #include "hb-paint.hh"
@@ -154,6 +155,8 @@ hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
   if (unlikely (!c->pending_clip_path))
     return;
   c->pending_clip_path = false;
+
+  c->work_left -= 1 + (int64_t) c->scratch_draw->num_curves;
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
@@ -444,6 +447,15 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
     return -1;
   }
 
+  /* Out of budget: skip the glyph-outline extraction entirely, so
+   * per-glyph outline limits cannot multiply with the caller's
+   * paint-graph traversal limits. */
+  if (unlikely (c->work_left <= 0))
+  {
+    c->unsupported = true;
+    return -1;
+  }
+
   if (unlikely (!c->scratch_draw))
   {
     c->scratch_draw = hb_gpu_draw_create_or_fail ();
@@ -484,6 +496,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
      * hb_font_draw_glyph_or_fail only closes via our pen's state. */
     pen.dfuncs->close_path (pen.data, pen.down_st);
   }
+  c->work_left -= 1 + (int64_t) c->scratch_draw->num_curves;
   if (!ok)
     return -1;  /* Clip glyph has no outline -- skip. */
 
@@ -1549,6 +1562,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
   paint->clip_depth = 0;
   paint->pending_clip_path = false;
   paint->unsupported = false;
+  paint->work_left = HB_GPU_PAINT_MAX_WORK;
   paint->cur_transform = {1, 0, 0, 1, 0, 0};
   paint->transform_stack.reset ();
   paint->ext_min_x =  0x7fffffff;

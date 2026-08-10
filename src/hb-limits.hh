@@ -128,6 +128,13 @@
 #define HB_GPU_DRAW_MAX_CURVES 65536
 #endif
 
+/* Cumulative work budget for one GPU paint walk, in curve units.
+ * Bounds the product of the paint-graph traversal limits (COLR) and
+ * per-glyph outline work when clip glyphs are re-encoded. */
+#ifndef HB_GPU_PAINT_MAX_WORK
+#define HB_GPU_PAINT_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
 #ifndef HB_SVG_MAX_DOCUMENT_SIZE
 #define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
 #endif
