@@ -139,6 +139,14 @@
 #define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
 #endif
 
+/* Cumulative work budget for one vector (SVG/PDF) paint session, in
+ * bytes of generated outline path data.  Bounds the product of the
+ * paint-graph traversal limits (COLR) and per-glyph outline work.
+ * Once exhausted, further glyph-outline extractions are skipped. */
+#ifndef HB_VECTOR_MAX_PAINT_WORK
+#define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
+#endif
+
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
 #define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 30)
 #endif

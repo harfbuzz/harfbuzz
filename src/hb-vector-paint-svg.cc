@@ -429,9 +429,15 @@ hb_vector_paint_fill_glyph (hb_paint_funcs_t *,
     return;
 
   paint->path.clear ();
-  hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
-			       paint->x_scale_factor, paint->y_scale_factor};
-  hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
+  /* Skip the outline extraction when the session work budget is
+   * spent; an empty path keeps the document structure intact. */
+  if (likely (paint->work_left > 0))
+  {
+    hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
+				 paint->x_scale_factor, paint->y_scale_factor};
+    hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
+    paint->work_left -= paint->path.length;
+  }
 
   auto &body = paint->current_body ();
   body.append_str ("<path d=\"");
@@ -456,10 +462,14 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   unsigned pfx_len = paint->id_prefix_length;
 
   paint->path.clear ();
+  /* Skip the outline extraction when the session work budget is
+   * spent; an empty clip path clips everything out. */
+  if (likely (paint->work_left > 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
 				 paint->x_scale_factor, paint->y_scale_factor};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
+    paint->work_left -= paint->path.length;
   }
 
   unsigned def_id = paint->path_def_count++;

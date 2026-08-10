@@ -339,12 +339,18 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 			 hb_codepoint_t glyph,
 			 hb_vector_buf_t *buf)
 {
-  hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
-			       paint->x_scale_factor, paint->y_scale_factor};
   paint->path.clear ();
-  hb_font_draw_glyph (font, glyph,
-		       hb_vector_pdf_path_draw_funcs_get (),
-		       &sink);
+  /* Skip the outline extraction when the session work budget is
+   * spent; an empty path keeps the document structure intact. */
+  if (likely (paint->work_left > 0))
+  {
+    hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
+				 paint->x_scale_factor, paint->y_scale_factor};
+    hb_font_draw_glyph (font, glyph,
+			hb_vector_pdf_path_draw_funcs_get (),
+			&sink);
+    paint->work_left -= paint->path.length;
+  }
   buf->append_len (paint->path.arrayZ, paint->path.length);
   paint->path.clear ();
 }
