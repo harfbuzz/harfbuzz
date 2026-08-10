@@ -108,6 +108,13 @@
 #define HB_VARC_MAX_WORK (1 << 20)
 #endif
 
+/* Cumulative work budget for one paint-extents session, in outline
+ * points consumed by clip-glyph draws.  Bounds the product of the
+ * paint-graph traversal limits (COLR) and per-glyph outline work. */
+#ifndef HB_PAINT_EXTENTS_MAX_WORK
+#define HB_PAINT_EXTENTS_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif
