@@ -100,6 +100,14 @@
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
 
+/* Cumulative work budget for one VARC glyph (draw or extents), shared
+ * by all leaf glyphs loaded from glyf/CFF/CFF2, in units of glyf points
+ * / CFF charstring ops.  Bounds the product of the VARC composite-graph
+ * limits and the per-leaf-glyph work limits. */
+#ifndef HB_VARC_MAX_WORK
+#define HB_VARC_MAX_WORK (1 << 20)
+#endif
+
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif
