@@ -136,6 +136,22 @@
 #define HB_RASTER_MAX_AUTO_DIMENSION 4096
 #endif
 
+/* Cumulative work budget for one raster paint session (everything painted
+ * between two render/clear calls), in pixel-op units.  Bounds the product
+ * of the paint-graph traversal limits (COLR) and the per-node raster cost:
+ * pixel loops charge their area, consumed outline segments are charged
+ * with a fixed weight.  Once exhausted, further paint operations are
+ * skipped best-effort.  The session budget is the larger of this flat
+ * value and HB_RASTER_MAX_PAINT_WORK_PASSES full-surface passes, so very
+ * large surfaces still get a few full-surface operations. */
+#ifndef HB_RASTER_MAX_PAINT_WORK
+#define HB_RASTER_MAX_PAINT_WORK ((int64_t) 1 << 26)
+#endif
+
+#ifndef HB_RASTER_MAX_PAINT_WORK_PASSES
+#define HB_RASTER_MAX_PAINT_WORK_PASSES 4
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500

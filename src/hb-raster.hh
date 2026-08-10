@@ -29,6 +29,14 @@
 
 #include "hb.hh"
 
+#include "hb-raster.h"
+
+/* Number of edges accumulated in @draw since the last render/clear.
+ * Used by the paint layer to charge consumed outline work against
+ * its session work budget. */
+HB_INTERNAL unsigned
+hb_raster_draw_get_edge_count (hb_raster_draw_t *draw);
+
 /* Shared pixel helpers (used by paint and image compositing). */
 
 static HB_ALWAYS_INLINE uint8_t

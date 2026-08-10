@@ -445,6 +445,12 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   hb_raster_draw_clear (draw);
 }
 
+unsigned
+hb_raster_draw_get_edge_count (hb_raster_draw_t *draw)
+{
+  return draw->edges.length;
+}
+
 /**
  * hb_raster_draw_recycle_image:
  * @draw: a rasterizer

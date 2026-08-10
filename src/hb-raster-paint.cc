@@ -134,6 +134,12 @@ ensure_initialized (hb_raster_paint_t *c)
     return;
   }
 
+  /* Session work budget: flat floor, or a few passes over the (possibly
+   * client-sized) surface, whichever is larger. */
+  c->work_left = hb_max ((int64_t) HB_RASTER_MAX_PAINT_WORK,
+			 (int64_t) HB_RASTER_MAX_PAINT_WORK_PASSES *
+			 c->fixed_extents.width * c->fixed_extents.height);
+
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
@@ -236,10 +242,25 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
 				    hb_raster_image_t *surf,
 				    unsigned w, unsigned h)
 {
+  /* Charge accumulated outline segments before rendering them. */
+  c->work_left -= 16 * (int64_t) hb_raster_draw_get_edge_count (rdr);
+
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
 
   if (unlikely (!mask_img))
   {
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
+
+  /* Charge the mask render (its own area; may exceed the surface) plus
+   * the clip-buffer pass below. */
+  hb_raster_extents_t mask_render_ext;
+  hb_raster_image_get_extents (mask_img, &mask_render_ext);
+  if (unlikely (!c->charge_work ((int64_t) mask_render_ext.width * mask_render_ext.height +
+				 (int64_t) w * h)))
+  {
+    hb_raster_draw_recycle_image (rdr, mask_img);
     hb_raster_paint_push_empty_clip (c, w, h);
     return;
   }
@@ -360,6 +381,15 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   unsigned w = surf->extents.width;
   unsigned h = surf->extents.height;
 
+  /* Out of budget: skip the glyph-outline extraction entirely, so
+   * per-glyph outline limits cannot multiply with the caller's
+   * paint-graph traversal limits. */
+  if (unlikely (c->work_left <= 0))
+  {
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
+
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
@@ -450,6 +480,14 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   const hb_raster_clip_t &old_clip = c->current_clip ();
   if (unlikely (!old_clip.has_valid_alpha_mask ()))
+  {
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
+
+  /* All paths below except rect-on-rect run a full clip-buffer pass. */
+  if (!(is_axis_aligned && old_clip.is_rect) &&
+      unlikely (!c->charge_work ((int64_t) w * h)))
   {
     hb_raster_paint_push_empty_clip (c, w, h);
     return;
@@ -670,6 +708,13 @@ hb_raster_paint_push_clip_path_end (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned w = surf->extents.width;
   unsigned h = surf->extents.height;
 
+  if (unlikely (c->work_left <= 0))
+  {
+    hb_raster_draw_clear (c->clip_rdr);
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
+
   hb_raster_paint_finalize_path_clip (c, c->clip_rdr, surf, w, h);
 }
 
@@ -692,6 +737,10 @@ hb_raster_paint_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   ensure_initialized (c);
 
+  /* acquire_surface() clears a full surface; charge its area. */
+  if (unlikely (!c->charge_work ((int64_t) c->fixed_extents.width * c->fixed_extents.height)))
+    return;
+
   hb_raster_image_t *new_surf = c->acquire_surface ();
   if (unlikely (!new_surf)) return;
   if (unlikely (!c->surface_stack.push_or_fail (new_surf)))
@@ -711,7 +760,8 @@ hb_raster_paint_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *src = c->surface_stack.pop ();
   hb_raster_image_t *dst = c->current_surface ();
 
-  if (dst && src)
+  if (dst && src &&
+      likely (c->charge_work ((int64_t) dst->extents.width * dst->extents.height)))
     hb_raster_image_composite (dst, src, mode);
 
   c->release_surface (src);
@@ -746,6 +796,9 @@ hb_raster_paint_solid (hb_raster_paint_t *c,
 					 &ix0, &iy0, &ix1, &iy1))
       return;
   }
+
+  if (unlikely (!c->charge_work ((int64_t) (ix1 - ix0) * (iy1 - iy0))))
+    return;
 
   if (likely (!clip.is_rect))
   {
@@ -837,6 +890,9 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
 
+  /* Out of budget: skip the glyph-outline extraction entirely. */
+  if (unlikely (c->work_left <= 0)) return;
+
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
@@ -844,10 +900,16 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_glyph_clip_data_t data = {glyph, font};
   hb_raster_paint_emit_clip_glyph_mask (rdr, &data);
 
+  /* Charge accumulated outline segments before rendering them. */
+  c->work_left -= 16 * (int64_t) hb_raster_draw_get_edge_count (rdr);
+
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
   if (unlikely (!mask_img)) return;
 
-  hb_raster_paint_solid (c, surf, color, mask_img);
+  hb_raster_extents_t mask_ext;
+  hb_raster_image_get_extents (mask_img, &mask_ext);
+  if (likely (c->charge_work ((int64_t) mask_ext.width * mask_ext.height)))
+    hb_raster_paint_solid (c, surf, color, mask_img);
 
   hb_raster_draw_recycle_image (rdr, mask_img);
 }
@@ -866,6 +928,9 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
 
   ensure_initialized (c);
+
+  /* Out of budget: skip, including the image decode below. */
+  if (unlikely (c->work_left <= 0)) return false;
 
   unsigned src_width = width;
   unsigned src_height = height;
@@ -936,6 +1001,14 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float img_sy = (float) extents->height / src_height;
   if (fabsf (img_sx) < 1e-10f || fabsf (img_sy) < 1e-10f)
     return false;
+
+  {
+    unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
+    unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+    if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h +
+				   (int64_t) src_width * src_height)))
+      return false;
+  }
 
   if (clip.is_rect)
   {
@@ -1168,6 +1241,8 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_raster_clip_t &clip = c->current_clip ();
   unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+  if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
+    return;
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
   if (use_lut)
@@ -1317,6 +1392,8 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_raster_clip_t &clip = c->current_clip ();
   unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+  if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
+    return;
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
   if (use_lut)
@@ -1593,6 +1670,8 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_raster_clip_t &clip = c->current_clip ();
   unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+  if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
+    return;
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
   if (use_lut)
@@ -2432,6 +2511,7 @@ hb_raster_paint_clear (hb_raster_paint_t *paint)
 {
   paint->fixed_extents = {};
   paint->has_extents = false;
+  paint->work_left = HB_RASTER_MAX_PAINT_WORK;
   paint->transform_stack.clear ();
   paint->release_all_clips ();
   for (auto *s : paint->surface_stack)
