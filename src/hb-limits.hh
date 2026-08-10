@@ -136,6 +136,57 @@
 #define HB_RASTER_MAX_AUTO_DIMENSION 4096
 #endif
 
+/*
+ * Cumulative work budgets.
+ *
+ * The limits above bound work within one subsystem: points per glyf
+ * glyph, ops per CFF charstring, nodes in a COLR or VARC graph,
+ * pixels per raster surface.  When one subsystem drives another --
+ * COLR driving a paint backend, a paint backend or VARC loading
+ * glyf/CFF outlines -- those limits multiply.  Each driving session
+ * therefore carries one cumulative budget, initialized once per
+ * top-level entry and only ever decremented, shared by everything
+ * the session consumes.  Once a budget is exhausted, further work
+ * is skipped best-effort.
+ */
+
+/* One VARC glyph (draw or extents), shared by all leaf glyphs loaded
+ * from glyf/CFF/CFF2, in units of glyf points / CFF charstring ops. */
+#ifndef HB_VARC_MAX_WORK
+#define HB_VARC_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
+/* One paint-extents session, in outline points consumed by
+ * clip-glyph draws. */
+#ifndef HB_PAINT_EXTENTS_MAX_WORK
+#define HB_PAINT_EXTENTS_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
+/* One GPU paint walk, in curves consumed by clip encodes. */
+#ifndef HB_GPU_PAINT_MAX_WORK
+#define HB_GPU_PAINT_MAX_WORK ((int64_t) 1 << 20)
+#endif
+
+/* One vector (SVG/PDF) paint session, in bytes of generated outline
+ * path data. */
+#ifndef HB_VECTOR_MAX_PAINT_WORK
+#define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
+#endif
+
+/* One raster paint session (everything painted between two
+ * render/clear calls), in pixel-op units; pixel loops charge their
+ * area, consumed outline segments are charged with a fixed weight.
+ * The session budget is the larger of this flat value and
+ * HB_RASTER_MAX_PAINT_WORK_PASSES full-surface passes, so very large
+ * surfaces still get a few full-surface operations. */
+#ifndef HB_RASTER_MAX_PAINT_WORK
+#define HB_RASTER_MAX_PAINT_WORK ((int64_t) 1 << 26)
+#endif
+
+#ifndef HB_RASTER_MAX_PAINT_WORK_PASSES
+#define HB_RASTER_MAX_PAINT_WORK_PASSES 4
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500

@@ -445,6 +445,16 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   hb_raster_draw_clear (draw);
 }
 
+int64_t
+hb_raster_draw_get_edge_work (hb_raster_draw_t *draw, unsigned max_rows)
+{
+  int64_t work = 0;
+  for (const auto &e : draw->edges)
+    work += 1 + hb_min ((int64_t) (e.yH - e.yL) >> HB_RASTER_PIXEL_BITS,
+			(int64_t) max_rows);
+  return work;
+}
+
 /**
  * hb_raster_draw_recycle_image:
  * @draw: a rasterizer
