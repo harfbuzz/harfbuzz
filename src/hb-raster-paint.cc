@@ -242,8 +242,9 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
 				    hb_raster_image_t *surf,
 				    unsigned w, unsigned h)
 {
-  /* Charge accumulated outline segments before rendering them. */
-  c->work_left -= 16 * (int64_t) hb_raster_draw_get_edge_count (rdr);
+  /* Charge the scanline work of the accumulated outline before
+   * rendering it. */
+  c->work_left -= hb_raster_draw_get_edge_work (rdr, h);
 
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
 
@@ -900,8 +901,9 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_glyph_clip_data_t data = {glyph, font};
   hb_raster_paint_emit_clip_glyph_mask (rdr, &data);
 
-  /* Charge accumulated outline segments before rendering them. */
-  c->work_left -= 16 * (int64_t) hb_raster_draw_get_edge_count (rdr);
+  /* Charge the scanline work of the accumulated outline before
+   * rendering it. */
+  c->work_left -= hb_raster_draw_get_edge_work (rdr, surf->extents.height);
 
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
   if (unlikely (!mask_img)) return;

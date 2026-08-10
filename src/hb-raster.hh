@@ -31,11 +31,14 @@
 
 #include "hb-raster.h"
 
-/* Number of edges accumulated in @draw since the last render/clear.
- * Used by the paint layer to charge consumed outline work against
- * its session work budget. */
-HB_INTERNAL unsigned
-hb_raster_draw_get_edge_count (hb_raster_draw_t *draw);
+/* Scanline work of the edges accumulated in @draw since the last
+ * render/clear: one unit per edge plus its span in rows, clamped to
+ * @max_rows per edge.  This is what rasterizing the edges costs, as
+ * each edge is walked once per row it crosses.  Used by the paint
+ * layer to charge consumed outline work against its session work
+ * budget. */
+HB_INTERNAL int64_t
+hb_raster_draw_get_edge_work (hb_raster_draw_t *draw, unsigned max_rows);
 
 /* Shared pixel helpers (used by paint and image compositing). */
 
