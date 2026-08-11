@@ -99,8 +99,11 @@ struct glyf
       return_trace (false);
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
-    if (!_populate_subset_glyphs (c->plan, font, glyphs))
+    /* SubsetGlyphs borrow bytes from this blob until they are serialized. */
+    hb_blob_t *source_glyf = nullptr;
+    if (!_populate_subset_glyphs (c->plan, font, glyphs, &source_glyf))
     {
+      hb_blob_destroy (source_glyf);
       hb_font_destroy (font);
       return_trace (false);
     }
@@ -131,6 +134,7 @@ struct glyf
     bool result = glyf_prime->serialize (c->serializer, hb_iter (glyphs), use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
+    hb_blob_destroy (source_glyf);
 
     if (unlikely (!c->serializer->check_success (glyf_impl::_add_loca_and_head (c,
 						 padded_offsets.iter (),
@@ -143,7 +147,8 @@ struct glyf
   bool
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			   hb_font_t                *font,
-			   hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const;
+			   hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */,
+			   hb_blob_t               **source_glyf /* OUT */) const;
 
   hb_font_t *
   _create_font_for_instancing (const hb_subset_plan_t *plan) const;
@@ -560,6 +565,8 @@ struct glyf_accelerator_t
   }
 
   unsigned int get_num_glyphs () const { return num_glyphs; }
+  hb_blob_t *reference_glyf_table () const
+  { return hb_blob_reference (glyf_table.get_blob ()); }
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;
@@ -584,10 +591,12 @@ struct glyf_accelerator_t
 inline bool
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_font_t *font,
-			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
+			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */,
+			       hb_blob_t **source_glyf /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
   if (!glyphs.alloc_exact (plan->new_to_old_gid_list.length)) return false;
+  *source_glyf = glyf.reference_glyf_table ();
 
   for (const auto &pair : plan->new_to_old_gid_list)
   {
