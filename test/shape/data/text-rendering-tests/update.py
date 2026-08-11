@@ -115,13 +115,17 @@ for x in sorted(os.listdir("text-rendering-tests/testcases")):
 
 subprocess.run([git, "add", "tests"], check=True)
 
+def escape_meson(s):
+    return s.replace("\\", "\\\\").replace("'", "\\'")
+
+
 with open("meson.build", "w") as f:
     f.write(
         "\n".join(
             ["text_rendering_tests_tests = ["]
-            + ["  '%s'," % x.split("tests/")[1] for x in tests]
+            + ["  '%s'," % escape_meson(x.split("tests/")[1]) for x in tests]
             + ["]", "", "disabled_text_rendering_tests_tests = ["]
-            + ["  '%s'," % x.split("tests/")[1] for x in disabled_tests]
+            + ["  '%s'," % escape_meson(x.split("tests/")[1]) for x in disabled_tests]
             + ["]", ""]
         )
     )
