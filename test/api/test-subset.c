@@ -193,9 +193,12 @@ test_subset_plan (void)
 }
 
 static hb_blob_t*
-_ref_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+_copy_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
-  return hb_face_reference_table ((hb_face_t*) user_data, tag);
+  hb_blob_t *table = hb_face_reference_table ((hb_face_t*) user_data, tag);
+  hb_blob_t *copy = hb_blob_copy_writable_or_fail (table);
+  hb_blob_destroy (table);
+  return copy;
 }
 
 static void
@@ -204,7 +207,7 @@ test_subset_create_for_tables_face (void)
   hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
   hb_face_t *face_ac = hb_test_open_font_file ("fonts/Roboto-Regular.ac.ttf");
   hb_face_t *face_create_for_tables = hb_face_create_for_tables (
-      _ref_table,
+      _copy_table,
       face_abc,
       NULL);
 
