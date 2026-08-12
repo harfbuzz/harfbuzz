@@ -958,6 +958,17 @@ hb_clamp_to (double v)
 		       (double) hb_int_max (T));
 }
 
+template <typename T>
+static HB_ALWAYS_INLINE T
+hb_clamp_to (int64_t v)
+{
+  static_assert (std::is_integral<T>::value && std::is_signed<T>::value, "");
+
+  return (T) hb_clamp (v,
+		       (int64_t) hb_int_min (T),
+		       (int64_t) hb_int_max (T));
+}
+
 /*
  * Bithacks.
  */
