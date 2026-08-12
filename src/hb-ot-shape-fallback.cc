@@ -197,8 +197,10 @@ zero_mark_advances (hb_buffer_t *buffer,
     {
       if (adjust_offsets_when_zeroing)
       {
-	buffer->pos[i].x_offset -= buffer->pos[i].x_advance;
-	buffer->pos[i].y_offset -= buffer->pos[i].y_advance;
+	buffer->pos[i].x_offset = hb_saturate_sub (buffer->pos[i].x_offset,
+						     buffer->pos[i].x_advance);
+	buffer->pos[i].y_offset = hb_saturate_sub (buffer->pos[i].y_offset,
+						     buffer->pos[i].y_advance);
       }
       buffer->pos[i].x_advance = 0;
       buffer->pos[i].y_advance = 0;
