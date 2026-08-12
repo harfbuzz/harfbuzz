@@ -233,10 +233,12 @@ position_mark (const hb_ot_shape_plan_t *plan HB_UNUSED,
     case HB_UNICODE_COMBINING_CLASS_DOUBLE_BELOW:
     case HB_UNICODE_COMBINING_CLASS_DOUBLE_ABOVE:
       if (buffer->props.direction == HB_DIRECTION_LTR) {
-	pos.x_offset += base_extents.x_bearing + base_extents.width - mark_extents.width / 2 - mark_extents.x_bearing;
+	pos.x_offset = hb_clamp_to<hb_position_t> ((int64_t) base_extents.x_bearing + base_extents.width -
+						    mark_extents.width / 2 - mark_extents.x_bearing);
 	break;
       } else if (buffer->props.direction == HB_DIRECTION_RTL) {
-	pos.x_offset += base_extents.x_bearing - mark_extents.width / 2 - mark_extents.x_bearing;
+	pos.x_offset = hb_clamp_to<hb_position_t> ((int64_t) base_extents.x_bearing -
+						    mark_extents.width / 2 - mark_extents.x_bearing);
 	break;
       }
       HB_FALLTHROUGH;
@@ -247,21 +249,24 @@ position_mark (const hb_ot_shape_plan_t *plan HB_UNUSED,
     case HB_UNICODE_COMBINING_CLASS_BELOW:
     case HB_UNICODE_COMBINING_CLASS_ABOVE:
       /* Center align. */
-      pos.x_offset += base_extents.x_bearing + (base_extents.width - mark_extents.width) / 2 - mark_extents.x_bearing;
+      pos.x_offset = hb_clamp_to<hb_position_t> ((int64_t) base_extents.x_bearing +
+						((int64_t) base_extents.width - mark_extents.width) / 2 -
+						mark_extents.x_bearing);
       break;
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT:
     case HB_UNICODE_COMBINING_CLASS_BELOW_LEFT:
     case HB_UNICODE_COMBINING_CLASS_ABOVE_LEFT:
       /* Left align. */
-      pos.x_offset += base_extents.x_bearing - mark_extents.x_bearing;
+      pos.x_offset = hb_saturate_sub (base_extents.x_bearing, mark_extents.x_bearing);
       break;
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT:
     case HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT:
     case HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT:
       /* Right align. */
-      pos.x_offset += base_extents.x_bearing + base_extents.width - mark_extents.width - mark_extents.x_bearing;
+      pos.x_offset = hb_clamp_to<hb_position_t> ((int64_t) base_extents.x_bearing + base_extents.width -
+						mark_extents.width - mark_extents.x_bearing);
       break;
   }
 
@@ -273,19 +278,20 @@ position_mark (const hb_ot_shape_plan_t *plan HB_UNUSED,
     case HB_UNICODE_COMBINING_CLASS_BELOW:
     case HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT:
       /* Add gap, fall-through. */
-      base_extents.height -= y_gap;
+      base_extents.height = hb_saturate_sub (base_extents.height, y_gap);
       HB_FALLTHROUGH;
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
-      pos.y_offset = base_extents.y_bearing + base_extents.height - mark_extents.y_bearing;
+      pos.y_offset = hb_clamp_to<hb_position_t> ((int64_t) base_extents.y_bearing +
+						base_extents.height - mark_extents.y_bearing);
       /* Never shift up "below" marks. */
       if ((y_gap > 0) == (pos.y_offset > 0))
       {
-	base_extents.height -= pos.y_offset;
+	base_extents.height = hb_saturate_sub (base_extents.height, pos.y_offset);
 	pos.y_offset = 0;
       }
-      base_extents.height += mark_extents.height;
+      base_extents.height = hb_saturate_add (base_extents.height, mark_extents.height);
       break;
 
     case HB_UNICODE_COMBINING_CLASS_DOUBLE_ABOVE:
@@ -293,23 +299,24 @@ position_mark (const hb_ot_shape_plan_t *plan HB_UNUSED,
     case HB_UNICODE_COMBINING_CLASS_ABOVE:
     case HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT:
       /* Add gap, fall-through. */
-      base_extents.y_bearing += y_gap;
-      base_extents.height -= y_gap;
+      base_extents.y_bearing = hb_saturate_add (base_extents.y_bearing, y_gap);
+      base_extents.height = hb_saturate_sub (base_extents.height, y_gap);
       HB_FALLTHROUGH;
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT:
-      pos.y_offset = base_extents.y_bearing - (mark_extents.y_bearing + mark_extents.height);
+      pos.y_offset = hb_clamp_to<hb_position_t> ((int64_t) base_extents.y_bearing -
+						mark_extents.y_bearing - mark_extents.height);
       /* Don't shift down "above" marks too much. */
       if ((y_gap > 0) != (pos.y_offset > 0))
       {
-	int correction = -pos.y_offset / 2;
-	base_extents.y_bearing += correction;
-	base_extents.height -= correction;
-	pos.y_offset += correction;
+	hb_position_t correction = -(pos.y_offset / 2);
+	base_extents.y_bearing = hb_saturate_add (base_extents.y_bearing, correction);
+	base_extents.height = hb_saturate_sub (base_extents.height, correction);
+	pos.y_offset = hb_saturate_add (pos.y_offset, correction);
       }
-      base_extents.y_bearing -= mark_extents.height;
-      base_extents.height += mark_extents.height;
+      base_extents.y_bearing = hb_saturate_sub (base_extents.y_bearing, mark_extents.height);
+      base_extents.height = hb_saturate_add (base_extents.height, mark_extents.height);
       break;
   }
 }
