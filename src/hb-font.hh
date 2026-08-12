@@ -216,33 +216,31 @@ struct hb_font_t
     /* Slant. */
     if (slant_xy)
     {
-      hb_position_t x1 = extents->x_bearing;
-      hb_position_t y1 = extents->y_bearing;
-      hb_position_t x2 = extents->x_bearing + extents->width;
-      hb_position_t y2 = extents->y_bearing + extents->height;
+      double x1 = extents->x_bearing;
+      float y1 = (float) extents->y_bearing;
+      double x2 = (int64_t) extents->x_bearing + extents->width;
+      float y2 = (float) ((int64_t) extents->y_bearing + extents->height);
 
-      x1 += floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
-      x2 += ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
+      x1 += (double) floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
+      x2 += (double) ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
 
-      extents->x_bearing = x1;
-      extents->width = x2 - extents->x_bearing;
+      extents->x_bearing = hb_clamp_to<hb_position_t> (x1);
+      extents->width = hb_clamp_to<hb_position_t> (x2 - x1);
     }
 
     /* Embolden. */
     if (x_strength || y_strength)
     {
       /* Y */
-      int y_shift = y_strength;
-      if (y_scale < 0) y_shift = -y_shift;
-      extents->y_bearing += y_shift;
-      extents->height -= y_shift;
+      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
+      extents->y_bearing = hb_saturate_add (extents->y_bearing, y_shift);
+      extents->height = hb_saturate_sub (extents->height, y_shift);
 
       /* X */
-      int x_shift = x_strength;
-      if (x_scale < 0) x_shift = -x_shift;
+      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
       if (embolden_in_place)
-	extents->x_bearing -= x_shift / 2;
-      extents->width += x_shift;
+	extents->x_bearing = hb_saturate_sub (extents->x_bearing, x_shift / 2);
+      extents->width = hb_saturate_add (extents->width, x_shift);
     }
   }
 
