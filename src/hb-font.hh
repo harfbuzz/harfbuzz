@@ -1159,8 +1159,8 @@ struct hb_font_t
 
     is_synthetic =  x_embolden || y_embolden || slant;
 
-    x_strength = roundf (abs (x_scale) * x_embolden);
-    y_strength = roundf (abs (y_scale) * y_embolden);
+    x_strength = hb_clamp_to<int32_t> (roundf (fabsf ((float) x_scale) * x_embolden));
+    y_strength = hb_clamp_to<int32_t> (roundf (fabsf ((float) y_scale) * y_embolden));
 
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
 
