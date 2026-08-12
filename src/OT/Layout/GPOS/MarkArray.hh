@@ -25,7 +25,8 @@ resolve_cross_offset (const hb_glyph_position_t *pos,
     if (unlikely (parent >= len))
       break;
     glyph_pos = parent;
-    offset += horizontal ? pos[glyph_pos].y_offset : pos[glyph_pos].x_offset;
+    offset = hb_saturate_add (offset,
+			      horizontal ? pos[glyph_pos].y_offset : pos[glyph_pos].x_offset);
   }
   return offset;
 }
