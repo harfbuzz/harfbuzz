@@ -82,9 +82,9 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos,
   reverse_cursive_minor_offset (pos, len, j, direction, new_parent);
 
   if (HB_DIRECTION_IS_HORIZONTAL (direction))
-    pos[j].y_offset = -pos[i].y_offset;
+    pos[j].y_offset = hb_saturate_neg (pos[i].y_offset);
   else
-    pos[j].x_offset = -pos[i].x_offset;
+    pos[j].x_offset = hb_saturate_neg (pos[i].x_offset);
 
   pos[j].attach_chain() = reversed_chain;
   pos[j].attach_type() = type;
