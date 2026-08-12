@@ -360,8 +360,8 @@ struct hb_font_t
     if (synthetic && x_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
-      advance += advance ? strength : 0;
+      hb_position_t strength = x_scale >= 0 ? x_strength : hb_saturate_neg (x_strength);
+      advance = hb_saturate_add (advance, advance ? strength : 0);
     }
 
     return advance;
@@ -377,8 +377,8 @@ struct hb_font_t
     if (synthetic && y_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
-      advance += advance ? strength : 0;
+      hb_position_t strength = y_scale >= 0 ? y_strength : hb_saturate_neg (y_strength);
+      advance = hb_saturate_add (advance, advance ? strength : 0);
     }
 
     return advance;
@@ -400,10 +400,10 @@ struct hb_font_t
     if (synthetic && x_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
+      hb_position_t strength = x_scale >= 0 ? x_strength : hb_saturate_neg (x_strength);
       for (unsigned int i = 0; i < count; i++)
       {
-	*first_advance += *first_advance ? strength : 0;
+	*first_advance = hb_saturate_add (*first_advance, *first_advance ? strength : 0);
 	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
       }
     }
@@ -425,10 +425,10 @@ struct hb_font_t
     if (synthetic && y_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
+      hb_position_t strength = y_scale >= 0 ? y_strength : hb_saturate_neg (y_strength);
       for (unsigned int i = 0; i < count; i++)
       {
-	*first_advance += *first_advance ? strength : 0;
+	*first_advance = hb_saturate_add (*first_advance, *first_advance ? strength : 0);
 	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
       }
     }
@@ -450,8 +450,8 @@ struct hb_font_t
       /* Embolden */
       if (!embolden_in_place)
       {
-        *x += x_scale < 0 ? -x_strength : x_strength;
-	*y += y_scale < 0 ? -y_strength : y_strength;
+        *x = hb_saturate_add (*x, x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength);
+	*y = hb_saturate_add (*y, y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength);
       }
     }
 
@@ -474,8 +474,8 @@ struct hb_font_t
       /* Embolden */
       if (!embolden_in_place)
       {
-        *x += x_scale < 0 ? -x_strength : x_strength;
-	*y += y_scale < 0 ? -y_strength : y_strength;
+        *x = hb_saturate_add (*x, x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength);
+	*y = hb_saturate_add (*y, y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength);
       }
     }
 
@@ -500,8 +500,8 @@ struct hb_font_t
 
     if (synthetic && ret)
     {
-      hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
-      hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
+      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
+      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
       for (unsigned i = 0; i < count; i++)
       {
 	/* Slant is ignored as it does not affect glyph origin */
@@ -509,8 +509,8 @@ struct hb_font_t
 	/* Embolden */
 	if (!embolden_in_place)
 	{
-	  *first_x += x_shift;
-	  *first_y += y_shift;
+	  *first_x = hb_saturate_add (*first_x, x_shift);
+	  *first_y = hb_saturate_add (*first_y, y_shift);
 	}
 	first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
 	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
@@ -538,8 +538,8 @@ struct hb_font_t
 
     if (synthetic && is_synthetic && ret)
     {
-      hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
-      hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
+      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
+      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
       for (unsigned i = 0; i < count; i++)
       {
 	/* Slant is ignored as it does not affect glyph origin */
@@ -547,8 +547,8 @@ struct hb_font_t
 	/* Embolden */
 	if (!embolden_in_place)
 	{
-	  *first_x += x_shift;
-	  *first_y += y_shift;
+	  *first_x = hb_saturate_add (*first_x, x_shift);
+	  *first_y = hb_saturate_add (*first_y, y_shift);
 	}
 	first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
 	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
