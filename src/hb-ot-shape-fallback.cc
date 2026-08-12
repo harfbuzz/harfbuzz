@@ -341,7 +341,8 @@ position_around_base (const hb_ot_shape_plan_t *plan,
     zero_mark_advances (buffer, base + 1, end, adjust_offsets_when_zeroing);
     return;
   }
-  base_extents.y_bearing += buffer->pos[base].y_offset;
+  base_extents.y_bearing = hb_saturate_add (base_extents.y_bearing,
+					    buffer->pos[base].y_offset);
   /* Use horizontal advance for horizontal positioning.
    * Generally a better idea.  Also works for zero-ink glyphs.  See:
    * https://github.com/harfbuzz/harfbuzz/issues/1532 */
@@ -355,8 +356,8 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 
   hb_position_t x_offset = 0, y_offset = 0;
   if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
-    x_offset -= buffer->pos[base].x_advance;
-    y_offset -= buffer->pos[base].y_advance;
+    x_offset = hb_saturate_neg (buffer->pos[base].x_advance);
+    y_offset = hb_saturate_neg (buffer->pos[base].y_advance);
   }
 
   hb_glyph_extents_t component_extents = base_extents;
@@ -385,9 +386,13 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 	      horiz_dir = hb_script_get_horizontal_direction (plan->props.script);
 	  }
 	  if (horiz_dir == HB_DIRECTION_LTR)
-	    component_extents.x_bearing += (this_lig_component * component_extents.width) / num_lig_components;
+	    component_extents.x_bearing = hb_clamp_to<hb_position_t> (
+		(int64_t) component_extents.x_bearing +
+		(int64_t) this_lig_component * component_extents.width / num_lig_components);
 	  else
-	    component_extents.x_bearing += ((num_lig_components - 1 - this_lig_component) * component_extents.width) / num_lig_components;
+	    component_extents.x_bearing = hb_clamp_to<hb_position_t> (
+		(int64_t) component_extents.x_bearing +
+		(int64_t) (num_lig_components - 1 - this_lig_component) * component_extents.width / num_lig_components);
 	  component_extents.width /= num_lig_components;
 	}
       }
@@ -403,16 +408,16 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 
       buffer->pos[i].x_advance = 0;
       buffer->pos[i].y_advance = 0;
-      buffer->pos[i].x_offset += x_offset;
-      buffer->pos[i].y_offset += y_offset;
+      buffer->pos[i].x_offset = hb_saturate_add (buffer->pos[i].x_offset, x_offset);
+      buffer->pos[i].y_offset = hb_saturate_add (buffer->pos[i].y_offset, y_offset);
 
     } else {
       if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
-	x_offset -= buffer->pos[i].x_advance;
-	y_offset -= buffer->pos[i].y_advance;
+	x_offset = hb_saturate_sub (x_offset, buffer->pos[i].x_advance);
+	y_offset = hb_saturate_sub (y_offset, buffer->pos[i].y_advance);
       } else {
-	x_offset += buffer->pos[i].x_advance;
-	y_offset += buffer->pos[i].y_advance;
+	x_offset = hb_saturate_add (x_offset, buffer->pos[i].x_advance);
+	y_offset = hb_saturate_add (y_offset, buffer->pos[i].y_advance);
       }
     }
 }
