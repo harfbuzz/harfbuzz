@@ -173,13 +173,13 @@ struct hb_font_t
   hb_position_t parent_scale_x_distance (hb_position_t v)
   {
     if (unlikely (parent && parent->x_scale && parent->x_scale != x_scale))
-      return (hb_position_t) (v * (int64_t) this->x_scale / this->parent->x_scale);
+      return hb_clamp_to<hb_position_t> (v * (int64_t) this->x_scale / this->parent->x_scale);
     return v;
   }
   hb_position_t parent_scale_y_distance (hb_position_t v)
   {
     if (unlikely (parent && parent->y_scale && parent->y_scale != y_scale))
-      return (hb_position_t) (v * (int64_t) this->y_scale / this->parent->y_scale);
+      return hb_clamp_to<hb_position_t> (v * (int64_t) this->y_scale / this->parent->y_scale);
     return v;
   }
   hb_position_t parent_scale_x_position (hb_position_t v)
@@ -1170,9 +1170,9 @@ struct hb_font_t
   }
 
   hb_position_t em_mult (int16_t v, int64_t mult)
-  { return (hb_position_t) ((v * mult + 32768) >> 16); }
+  { return hb_clamp_to<hb_position_t> ((v * mult + 32768) >> 16); }
   hb_position_t em_multf (float v, float mult)
-  { return (hb_position_t) roundf (em_fmultf (v, mult)); }
+  { return hb_clamp_to<hb_position_t> (roundf (em_fmultf (v, mult))); }
   float em_fmultf (float v, float mult)
   { return v * mult; }
   float em_fmult (int16_t v, float mult)
