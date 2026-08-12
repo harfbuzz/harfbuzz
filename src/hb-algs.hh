@@ -890,6 +890,53 @@ struct
 }
 HB_FUNCOBJ (hb_clamp);
 
+/* Signed saturating arithmetic. */
+template <typename T>
+static HB_ALWAYS_INLINE T
+hb_saturate_add (T a, T b)
+{
+  static_assert (std::is_integral<T>::value && std::is_signed<T>::value, "");
+
+#if hb_has_builtin(__builtin_add_overflow)
+  T result;
+  if (likely (!__builtin_add_overflow (a, b, &result)))
+    return result;
+#else
+  if (b > 0)
+  {
+    if (likely (a <= hb_int_max (T) - b))
+      return a + b;
+  }
+  else if (likely (a >= hb_int_min (T) - b))
+    return a + b;
+#endif
+
+  return a < 0 ? hb_int_min (T) : hb_int_max (T);
+}
+
+template <typename T>
+static HB_ALWAYS_INLINE T
+hb_saturate_sub (T a, T b)
+{
+  static_assert (std::is_integral<T>::value && std::is_signed<T>::value, "");
+
+#if hb_has_builtin(__builtin_sub_overflow)
+  T result;
+  if (likely (!__builtin_sub_overflow (a, b, &result)))
+    return result;
+#else
+  if (b > 0)
+  {
+    if (likely (a >= hb_int_min (T) + b))
+      return a - b;
+  }
+  else if (likely (a <= hb_int_max (T) + b))
+    return a - b;
+#endif
+
+  return b < 0 ? hb_int_max (T) : hb_int_min (T);
+}
+
 /* Convert a floating-point value to integer type T, saturating to T's
  * range instead of relying on the undefined behavior of an out-of-range
  * float-to-int conversion.  NaN saturates to the minimum of T. */
