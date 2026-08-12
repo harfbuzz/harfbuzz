@@ -973,8 +973,8 @@ hb_ot_substitute_post (const hb_ot_shape_context_t *c)
 static inline void
 adjust_mark_offsets (hb_glyph_position_t *pos)
 {
-  pos->x_offset -= pos->x_advance;
-  pos->y_offset -= pos->y_advance;
+  pos->x_offset = hb_saturate_sub (pos->x_offset, pos->x_advance);
+  pos->y_offset = hb_saturate_sub (pos->y_offset, pos->y_advance);
 }
 
 static inline void
