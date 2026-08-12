@@ -1,3 +1,13 @@
+Overview of changes leading to 14.3.1
+Thursday, August 13, 2026
+=====================================
+- Various fuzzing and build fixes.
+- Various subsetting fixes.
+- Fix AAT insertion at the end of the text.
+- Fix various rendering bugs in the experimental GPU library.
+- WASM shaper code can now read the user features.
+
+
 Overview of changes leading to 14.3.0
 Friday, July 31, 2026
 =====================================
