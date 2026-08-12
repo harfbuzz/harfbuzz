@@ -905,8 +905,8 @@ struct hb_font_t
 	  for (unsigned j = 0; j < n; j++)
 	  {
 	    hb_codepoint_t glyph = buf->info[offset + j].codepoint;
-	    origins[j].x -= get_glyph_h_advance (glyph) / 2;
-	    origins[j].y -= ascender;
+	    origins[j].x = hb_saturate_sub (origins[j].x, get_glyph_h_advance (glyph) / 2);
+	    origins[j].y = hb_saturate_sub (origins[j].y, ascender);
 	  }
 	}
 	else
@@ -969,8 +969,8 @@ struct hb_font_t
 	  for (unsigned j = 0; j < n; j++)
 	  {
 	    hb_codepoint_t glyph = buf->info[offset + j].codepoint;
-	    origins[j].x += get_glyph_h_advance (glyph) / 2;
-	    origins[j].y += ascender;
+	    origins[j].x = hb_saturate_add (origins[j].x, get_glyph_h_advance (glyph) / 2);
+	    origins[j].y = hb_saturate_add (origins[j].y, ascender);
 	  }
 	}
 	else
