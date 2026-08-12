@@ -96,6 +96,12 @@ main (int argc, char **argv)
   hb_always_assert (hb_saturate_sub (INT_MAX, -1) == INT_MAX);
   hb_always_assert (hb_saturate_sub (INT_MIN, 1) == INT_MIN);
   hb_always_assert (hb_saturate_sub (INT_MIN, INT_MIN) == 0);
+  hb_always_assert (hb_saturate_neg (2) == -2);
+  hb_always_assert (hb_saturate_neg (-2) == 2);
+  hb_always_assert (hb_saturate_neg (INT_MIN) == INT_MAX);
+  hb_always_assert (hb_clamp_to<int> (1.) == 1);
+  hb_always_assert (hb_clamp_to<int> ((double) INT_MAX + 1.) == INT_MAX);
+  hb_always_assert (hb_clamp_to<int> ((double) INT_MIN - 1.) == INT_MIN);
 
   x = 1;
   hb_always_assert (++hb_inc (x) == 3);

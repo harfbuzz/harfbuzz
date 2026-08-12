@@ -937,11 +937,20 @@ hb_saturate_sub (T a, T b)
   return b < 0 ? hb_int_max (T) : hb_int_min (T);
 }
 
+template <typename T>
+static HB_ALWAYS_INLINE T
+hb_saturate_neg (T a)
+{
+  static_assert (std::is_integral<T>::value && std::is_signed<T>::value, "");
+
+  return hb_saturate_sub ((T) 0, a);
+}
+
 /* Convert a floating-point value to integer type T, saturating to T's
  * range instead of relying on the undefined behavior of an out-of-range
  * float-to-int conversion.  NaN saturates to the minimum of T. */
 template <typename T>
-static inline T
+static HB_ALWAYS_INLINE T
 hb_clamp_to (double v)
 {
   return (T) hb_clamp (v,
