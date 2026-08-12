@@ -837,20 +837,28 @@ struct hb_font_t
   {
     assert (mult == -1 || mult == +1);
 
-    *x += dx * mult;
-    *y += dy * mult;
+    if (mult > 0)
+    {
+      *x = hb_saturate_add (*x, dx);
+      *y = hb_saturate_add (*y, dy);
+    }
+    else
+    {
+      *x = hb_saturate_sub (*x, dx);
+      *y = hb_saturate_sub (*y, dy);
+    }
   }
   void add_offset (hb_position_t *x, hb_position_t *y,
 		   hb_position_t dx, hb_position_t dy)
   {
-    *x += dx;
-    *y += dy;
+    *x = hb_saturate_add (*x, dx);
+    *y = hb_saturate_add (*y, dy);
   }
   void subtract_offset (hb_position_t *x, hb_position_t *y,
 			hb_position_t dx, hb_position_t dy)
   {
-    *x -= dx;
-    *y -= dy;
+    *x = hb_saturate_sub (*x, dx);
+    *y = hb_saturate_sub (*y, dy);
   }
 
   void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,
