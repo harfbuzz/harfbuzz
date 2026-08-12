@@ -584,8 +584,8 @@ struct KerxSubTableFormat4
 							      &currX, &currY))
 	      return;
 
-	    o.x_offset = markX - currX;
-	    o.y_offset = markY - currY;
+	    o.x_offset = hb_saturate_sub (markX, currX);
+	    o.y_offset = hb_saturate_sub (markY, currY);
 	  }
 	  break;
 
@@ -606,8 +606,10 @@ struct KerxSubTableFormat4
 								  currAnchorPoint,
 								  c->sanitizer.get_num_glyphs ());
 
-	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
-	    o.y_offset = c->font->em_scale_y (markAnchor.yCoordinate) - c->font->em_scale_y (currAnchor.yCoordinate);
+	    o.x_offset = hb_saturate_sub (c->font->em_scale_x (markAnchor.xCoordinate),
+					  c->font->em_scale_x (currAnchor.xCoordinate));
+	    o.y_offset = hb_saturate_sub (c->font->em_scale_y (markAnchor.yCoordinate),
+					  c->font->em_scale_y (currAnchor.yCoordinate));
 	  }
 	  break;
 
@@ -623,8 +625,8 @@ struct KerxSubTableFormat4
 	    int currX = *data++;
 	    int currY = *data++;
 
-	    o.x_offset = c->font->em_scale_x (markX) - c->font->em_scale_x (currX);
-	    o.y_offset = c->font->em_scale_y (markY) - c->font->em_scale_y (currY);
+	    o.x_offset = hb_saturate_sub (c->font->em_scale_x (markX), c->font->em_scale_x (currX));
+	    o.y_offset = hb_saturate_sub (c->font->em_scale_y (markY), c->font->em_scale_y (currY));
 	  }
 	  break;
 	}
