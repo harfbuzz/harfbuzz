@@ -280,8 +280,8 @@ struct hb_font_t
     if (synthetic && ret)
     {
       /* Embolden */
-      int y_shift = y_scale < 0 ? -y_strength : y_strength;
-      extents->ascender += y_shift;
+      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
+      extents->ascender = hb_saturate_add (extents->ascender, y_shift);
     }
 
     return ret;
@@ -297,14 +297,14 @@ struct hb_font_t
     if (synthetic && ret)
     {
       /* Embolden */
-      int x_shift = x_scale < 0 ? -x_strength : x_strength;
+      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
       if (embolden_in_place)
       {
-	extents->ascender += x_shift / 2;
-	extents->descender -= x_shift - x_shift / 2;
+	extents->ascender = hb_saturate_add (extents->ascender, x_shift / 2);
+	extents->descender = hb_saturate_sub (extents->descender, hb_saturate_sub (x_shift, x_shift / 2));
       }
       else
-	extents->ascender += x_shift;
+	extents->ascender = hb_saturate_add (extents->ascender, x_shift);
     }
 
     return ret;
