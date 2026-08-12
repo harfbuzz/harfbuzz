@@ -193,7 +193,8 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
      * as it gets weird otherwise. */
     for (unsigned i = 0; i < len; i++)
       if (unlikely (pos[i].y_offset))
-        pos[i].x_offset += roundf (font->slant_xy * pos[i].y_offset);
+        pos[i].x_offset = hb_clamp_to<hb_position_t> ((double) pos[i].x_offset +
+						      (double) roundf (font->slant_xy * pos[i].y_offset));
   }
 }
 
