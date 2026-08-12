@@ -79,12 +79,12 @@ struct MarkArray : Array16Of<MarkRecord>        /* Array of MarkRecords--in Cove
       goto overflow;
     }
     mark.attach_type() = ATTACH_TYPE_MARK;
-    mark.x_offset = roundf (base_x - mark_x);
-    mark.y_offset = roundf (base_y - mark_y);
+    mark.x_offset = hb_clamp_to<hb_position_t> (roundf (base_x - mark_x));
+    mark.y_offset = hb_clamp_to<hb_position_t> (roundf (base_y - mark_y));
     if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-      mark.y_offset += base_offset;
+      mark.y_offset = hb_saturate_add (mark.y_offset, base_offset);
     else
-      mark.x_offset += base_offset;
+      mark.x_offset = hb_saturate_add (mark.x_offset, base_offset);
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
