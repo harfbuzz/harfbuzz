@@ -184,32 +184,32 @@ struct CursivePosFormat1
     /* Main-direction adjustment */
     switch (c->direction) {
       case HB_DIRECTION_LTR:
-        pos[i].x_advance  = roundf (exit_x) + pos[i].x_offset;
+        pos[i].x_advance = hb_clamp_to<hb_position_t> ((double) roundf (exit_x) + pos[i].x_offset);
 
-        d = roundf (entry_x) + pos[j].x_offset;
-        pos[j].x_advance -= d;
-        pos[j].x_offset  -= d;
+        d = hb_clamp_to<hb_position_t> ((double) roundf (entry_x) + pos[j].x_offset);
+        pos[j].x_advance = hb_saturate_sub (pos[j].x_advance, d);
+        pos[j].x_offset = hb_saturate_sub (pos[j].x_offset, d);
         break;
       case HB_DIRECTION_RTL:
-        d = roundf (exit_x) + pos[i].x_offset;
-        pos[i].x_advance -= d;
-        pos[i].x_offset  -= d;
+        d = hb_clamp_to<hb_position_t> ((double) roundf (exit_x) + pos[i].x_offset);
+        pos[i].x_advance = hb_saturate_sub (pos[i].x_advance, d);
+        pos[i].x_offset = hb_saturate_sub (pos[i].x_offset, d);
 
-        pos[j].x_advance  = roundf (entry_x) + pos[j].x_offset;
+        pos[j].x_advance = hb_clamp_to<hb_position_t> ((double) roundf (entry_x) + pos[j].x_offset);
         break;
       case HB_DIRECTION_TTB:
-        pos[i].y_advance  = roundf (exit_y) + pos[i].y_offset;
+        pos[i].y_advance = hb_clamp_to<hb_position_t> ((double) roundf (exit_y) + pos[i].y_offset);
 
-        d = roundf (entry_y) + pos[j].y_offset;
-        pos[j].y_advance -= d;
-        pos[j].y_offset  -= d;
+        d = hb_clamp_to<hb_position_t> ((double) roundf (entry_y) + pos[j].y_offset);
+        pos[j].y_advance = hb_saturate_sub (pos[j].y_advance, d);
+        pos[j].y_offset = hb_saturate_sub (pos[j].y_offset, d);
         break;
       case HB_DIRECTION_BTT:
-        d = roundf (exit_y) + pos[i].y_offset;
-        pos[i].y_advance -= d;
-        pos[i].y_offset  -= d;
+        d = hb_clamp_to<hb_position_t> ((double) roundf (exit_y) + pos[i].y_offset);
+        pos[i].y_advance = hb_saturate_sub (pos[i].y_advance, d);
+        pos[i].y_offset = hb_saturate_sub (pos[i].y_offset, d);
 
-        pos[j].y_advance  = roundf (entry_y);
+        pos[j].y_advance = hb_clamp_to<hb_position_t> (roundf (entry_y));
         break;
       case HB_DIRECTION_INVALID:
       default:
@@ -226,15 +226,15 @@ struct CursivePosFormat1
      * Arabic. */
     unsigned int child  = i;
     unsigned int parent = j;
-    hb_position_t x_offset = roundf (entry_x - exit_x);
-    hb_position_t y_offset = roundf (entry_y - exit_y);
+    hb_position_t x_offset = hb_clamp_to<hb_position_t> (roundf (entry_x - exit_x));
+    hb_position_t y_offset = hb_clamp_to<hb_position_t> (roundf (entry_y - exit_y));
     if  (!(c->lookup_props & LookupFlag::RightToLeft))
     {
       unsigned int k = child;
       child = parent;
       parent = k;
-      x_offset = -x_offset;
-      y_offset = -y_offset;
+      x_offset = hb_saturate_neg (x_offset);
+      y_offset = hb_saturate_neg (y_offset);
     }
 
     /* If child was already connected to someone else, walk through its old
