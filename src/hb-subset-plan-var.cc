@@ -138,42 +138,38 @@
 
      double dmin = 0.0, dmax = 0.0;
      uint32_t varidx = varidx_map->map (i);
+     /* Runtime treats out-of-range delta-set indices as zero. */
+     if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX &&
+	 !var_store->has_delta_set (varidx))
+       varidx = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
      {
        unsigned outer = varidx >> 16;
        unsigned inner = varidx & 0xFFFF;
-       if (outer >= var_store->get_sub_table_count ()) return false;
-       else
+       const OT::VarData &vd = var_store->get_sub_table (outer);
+       const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
+       unsigned row_size = vd.get_row_size ();
+       unsigned region_count = vd.get_region_index_count ();
+       for (unsigned r = 0; r < region_count; r++)
        {
-	 const OT::VarData &vd = var_store->get_sub_table (outer);
-	 if (inner >= vd.get_item_count ()) return false;
-	 else
+	 int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
+	 if (!delta) continue;
+	 unsigned region_idx = vd.get_region_index (r);
+	 if (region_idx >= regions.length) return false;
+	 double smin = 1.0, smax = 1.0;
+	 for (const auto &_ : regions[region_idx])
 	 {
-	   const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
-	   unsigned row_size = vd.get_row_size ();
-	   unsigned region_count = vd.get_region_index_count ();
-	   for (unsigned r = 0; r < region_count; r++)
-	   {
-	     int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
-	     if (!delta) continue;
-	     unsigned region_idx = vd.get_region_index (r);
-	     if (region_idx >= regions.length) return false;
-	     double smin = 1.0, smax = 1.0;
-	     for (const auto &_ : regions[region_idx])
-	     {
-	       hb_pair_t<double, double> *input;
-	       double blo = -1.0, bhi = +1.0;
-	       if (box.has (_.first, &input)) { blo = input->first; bhi = input->second; }
-	       double tmin, tmax;
-	       _tent_value_range (_.second, blo, bhi, &tmin, &tmax);
-	       smin *= tmin;
-	       smax *= tmax;
-	       if (smax == 0.0) break;
-	     }
-	     if (delta > 0) { dmin += smin * delta; dmax += smax * delta; }
-	     else           { dmin += smax * delta; dmax += smin * delta; }
-	   }
+	   hb_pair_t<double, double> *input;
+	   double blo = -1.0, bhi = +1.0;
+	   if (box.has (_.first, &input)) { blo = input->first; bhi = input->second; }
+	   double tmin, tmax;
+	   _tent_value_range (_.second, blo, bhi, &tmin, &tmax);
+	   smin *= tmin;
+	   smax *= tmax;
+	   if (smax == 0.0) break;
 	 }
+	 if (delta > 0) { dmin += smin * delta; dmax += smax * delta; }
+	 else           { dmin += smax * delta; dmax += smin * delta; }
        }
      }
      /* A pinned axis whose delta is constant over the box is self-contained:

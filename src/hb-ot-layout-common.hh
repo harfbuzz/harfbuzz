@@ -3369,6 +3369,18 @@ struct ItemVariationStore
   }
 
   public:
+  bool has_delta_set (unsigned int index) const
+  {
+#ifdef HB_NO_VAR
+    return false;
+#endif
+
+    unsigned int outer = index >> 16;
+    unsigned int inner = index & 0xFFFF;
+    return outer < dataSets.len &&
+	   inner < (this+dataSets[outer]).get_item_count ();
+  }
+
   float get_delta (unsigned int index,
 		   const int *coords, unsigned int coord_count,
 		   hb_scalar_cache_t *cache = nullptr) const

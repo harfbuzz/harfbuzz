@@ -832,7 +832,13 @@ struct avar
     hb_vector_t<uint32_t> new_varidx_mapping;
     if (!new_varidx_mapping.resize (axisCount)) return false;
     for (unsigned i = 0; i < axisCount; i++)
-      new_varidx_mapping[i] = varidx_map.map (i);
+    {
+      uint32_t varidx = varidx_map.map (i);
+      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX &&
+	  !var_store.has_delta_set (varidx))
+	varidx = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
+      new_varidx_mapping[i] = varidx;
+    }
 
     /* 5.5. Privatize shared varIdx delta rows before adding offset
      * compensation. avar2's VarIdxMap may map several fvar axes to the SAME
