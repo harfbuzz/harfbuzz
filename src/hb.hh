@@ -377,16 +377,6 @@
 #  define HB_NODISCARD
 #endif
 
-/* https://github.com/harfbuzz/harfbuzz/issues/1852 */
-#if defined(__clang__) && !(defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__)))
-/* Disable certain sanitizer errors. */
-/* https://github.com/harfbuzz/harfbuzz/issues/1247 */
-#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
-#else
-#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
-#endif
-
-
 #ifdef _WIN32
    /* We need Windows Vista for both Uniscribe backend and for
     * MemoryBarrier.  We don't support compiling on Windows XP,
