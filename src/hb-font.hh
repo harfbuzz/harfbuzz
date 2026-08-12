@@ -200,15 +200,20 @@ struct hb_font_t
 
   void scale_glyph_extents (hb_glyph_extents_t *extents)
   {
-    float x1 = em_fscale_x (extents->x_bearing);
-    float y1 = em_fscale_y (extents->y_bearing);
-    float x2 = em_fscale_x (extents->x_bearing + extents->width);
-    float y2 = em_fscale_y (extents->y_bearing + extents->height);
+    float x1 = em_fscalef_x ((float) extents->x_bearing);
+    float y1 = em_fscalef_y ((float) extents->y_bearing);
+    float x2 = em_fscalef_x ((float) ((int64_t) extents->x_bearing + extents->width));
+    float y2 = em_fscalef_y ((float) ((int64_t) extents->y_bearing + extents->height));
 
-    extents->x_bearing = floorf (x1);
-    extents->y_bearing = floorf (y1);
-    extents->width = ceilf (x2) - extents->x_bearing;
-    extents->height = ceilf (y2) - extents->y_bearing;
+    double rx1 = floorf (x1);
+    double ry1 = floorf (y1);
+    double rx2 = ceilf (x2);
+    double ry2 = ceilf (y2);
+
+    extents->x_bearing = hb_clamp_to<hb_position_t> (rx1);
+    extents->y_bearing = hb_clamp_to<hb_position_t> (ry1);
+    extents->width = hb_clamp_to<hb_position_t> (rx2 - rx1);
+    extents->height = hb_clamp_to<hb_position_t> (ry2 - ry1);
   }
 
   void synthetic_glyph_extents (hb_glyph_extents_t *extents)
