@@ -322,15 +322,15 @@ struct KerxSubTableFormat1
 	      }
 	      else if (o.attach_type())
 	      {
-		o.y_offset += c->font->em_scale_y (v);
+		o.y_offset = hb_saturate_add (o.y_offset, c->font->em_scale_y (v));
 		buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	      }
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
 	      auto scaled = c->font->em_scale_x (v);
-	      o.x_advance += scaled;
-	      o.x_offset += scaled;
+	      o.x_advance = hb_saturate_add (o.x_advance, scaled);
+	      o.x_offset = hb_saturate_add (o.x_offset, scaled);
 	    }
 	  }
 	  else
@@ -346,14 +346,15 @@ struct KerxSubTableFormat1
 	      }
 	      else if (o.attach_type())
 	      {
-		o.x_offset += c->font->em_scale_x (v);
+		o.x_offset = hb_saturate_add (o.x_offset, c->font->em_scale_x (v));
 		buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	      }
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
-	      o.y_advance += c->font->em_scale_y (v);
-	      o.y_offset += c->font->em_scale_y (v);
+	      auto scaled = c->font->em_scale_y (v);
+	      o.y_advance = hb_saturate_add (o.y_advance, scaled);
+	      o.y_offset = hb_saturate_add (o.y_offset, scaled);
 	    }
 	  }
 	}
