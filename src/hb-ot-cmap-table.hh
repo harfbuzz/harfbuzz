@@ -29,6 +29,7 @@
 
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-shaper-arabic-pua.hh"
+#include "hb-ot-shaper-hebrew-pua.hh"
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 #include "hb-cache.hh"
@@ -2083,29 +2084,43 @@ struct cmap
 	this->get_glyph_data = &this->format4_accel;
 	this->get_glyph_funcZ = func;
       };
+      auto font_page = face->table.OS2->get_font_page ();
+#ifndef HB_NO_OT_SHAPER_HEBREW_FALLBACK
+      if (unlikely (font_page == OS2::font_page_t::FONT_PAGE_HEBREW))
+      {
+	if (is_format4)
+	  set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_hebrew_pua_map>);
+	else
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_hebrew_pua_map>;
+      }
+      else
+#endif
+#ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
+      if (unlikely (font_page == OS2::font_page_t::FONT_PAGE_SIMP_ARABIC))
+      {
+	if (is_format4)
+	  set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_simp_map>);
+	else
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_simp_map>;
+      }
+      else if (unlikely (font_page == OS2::font_page_t::FONT_PAGE_TRAD_ARABIC))
+      {
+	if (is_format4)
+	  set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_trad_map>);
+	else
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_trad_map>;
+      }
+      else
+#endif
       if (unlikely (symbol))
       {
-	switch ((unsigned) face->table.OS2->get_font_page ()) {
+	switch ((unsigned) font_page) {
 	case OS2::font_page_t::FONT_PAGE_NONE:
 	  if (is_format4)
 	    set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_symbol_pua_map>);
 	  else
 	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_symbol_pua_map>;
 	  break;
-#ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
-	case OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
-	  if (is_format4)
-	    set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_simp_map>);
-	  else
-	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_simp_map>;
-	  break;
-	case OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
-	  if (is_format4)
-	    set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_trad_map>);
-	  else
-	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_trad_map>;
-	  break;
-#endif
 	default:
 	  if (is_format4)
 	    set_format4_getter (get_glyph_from<CmapSubtableFormat4::accelerator_t>);

@@ -26,6 +26,7 @@ in_house_tests = [
   'hangul-jamo.tests',
   'harfbust.tests',
   'hebrew-diacritics.tests',
+  'hebrew-legacy.tests',
   'hyphens.tests',
   'indic-consonant-with-stacker.tests',
   'indic-decompose.tests',
