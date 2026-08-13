@@ -2389,7 +2389,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 	   hb_font_get_nominal_glyph (font, '-', &glyph)) &&
 	  hb_font_get_glyph_extents (font, glyph, &extents))
       {
-	*coord = extents.y_bearing + extents.height / 2;
+	*coord = hb_saturate_add (extents.y_bearing, extents.height / 2);
       }
       else
       {
