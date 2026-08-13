@@ -356,7 +356,10 @@ struct MathKern
     unsigned int pos;
     auto cmp = +[](const void* key, const void* p,
                    int sign, hb_font_t* font, const MathKern* mathKern) -> int {
-      return sign * *(hb_position_t*)key - sign * ((MathValueRecord*)p)->get_y_value(font, mathKern);
+      hb_position_t a = *(hb_position_t *) key;
+      hb_position_t b = ((MathValueRecord *) p)->get_y_value (font, mathKern);
+      if (a == b) return 0;
+      return sign > 0 ? (a < b ? -1 : +1) : (b < a ? -1 : +1);
     };
     unsigned int i = hb_bsearch_impl(&pos, correction_height, correctionHeight,
                                      heightCount, MathValueRecord::static_size,
