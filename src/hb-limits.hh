@@ -177,7 +177,7 @@
 #endif
 
 /* One vector (SVG/PDF) paint session, in bytes of generated outline
- * path data. */
+ * path and sweep-gradient patch data. */
 #ifndef HB_VECTOR_MAX_PAINT_WORK
 #define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
 #endif
