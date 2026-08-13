@@ -618,9 +618,9 @@ retry_getglyphs:
     info->cluster = vis_clusters[i];
 
     /* The rest is crap.  Let's store position info there for now. */
-    info->mask = glyphAdvances[i];
-    info->var1.i32 = glyphOffsets[i].advanceOffset;
-    info->var2.i32 = glyphOffsets[i].ascenderOffset;
+    info->mask = (hb_mask_t) hb_clamp_to<int32_t> (glyphAdvances[i]);
+    info->var1.i32 = hb_clamp_to<int32_t> (glyphOffsets[i].advanceOffset);
+    info->var2.i32 = hb_clamp_to<int32_t> (glyphOffsets[i].ascenderOffset);
   }
 
   /* Set glyph positions */
@@ -631,9 +631,10 @@ retry_getglyphs:
     hb_glyph_position_t *pos = &buffer->pos[i];
 
     /* TODO vertical */
-    pos->x_advance = round (x_mult * (int32_t) info->mask);
-    pos->x_offset = round (x_mult * (isRightToLeft ? -info->var1.i32 : info->var1.i32));
-    pos->y_offset = round (y_mult * info->var2.i32);
+    pos->x_advance = hb_clamp_to<hb_position_t> (round (x_mult * (int32_t) info->mask));
+    double x_offset = isRightToLeft ? -(double) info->var1.i32 : info->var1.i32;
+    pos->x_offset = hb_clamp_to<hb_position_t> (round (x_mult * x_offset));
+    pos->y_offset = hb_clamp_to<hb_position_t> (round (y_mult * info->var2.i32));
   }
 
   if (isRightToLeft) hb_buffer_reverse (buffer);
