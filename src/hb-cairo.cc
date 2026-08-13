@@ -549,8 +549,8 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
       cairo_matrix_t font_matrix;
       cairo_scaled_font_get_scale_matrix (scaled_font, &font_matrix);
       hb_font_set_scale (font,
-			 round (font_matrix.xx * scale_factor),
-			 round (font_matrix.yy * scale_factor));
+			 hb_clamp_to<int32_t> (round (font_matrix.xx * scale_factor)),
+			 hb_clamp_to<int32_t> (round (font_matrix.yy * scale_factor)));
     }
 
     auto *init_func = (hb_cairo_font_init_func_t)
@@ -578,7 +578,7 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
   hb_font_get_h_extents (font, &hb_extents);
 
   extents->ascent  = (double)  hb_extents.ascender  / y_scale;
-  extents->descent = (double) -hb_extents.descender / y_scale;
+  extents->descent = -(double) hb_extents.descender / y_scale;
   extents->height  = extents->ascent + extents->descent;
 
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
@@ -1014,15 +1014,15 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 
   double x_scale = x_scale_factor ? 1. / x_scale_factor : 0.;
   double y_scale = y_scale_factor ? 1. / y_scale_factor : 0.;
-  hb_position_t hx = 0, hy = 0;
+  double hx = 0, hy = 0;
   int i;
   for (i = 0; i < (int) *num_glyphs; i++)
   {
     (*glyphs)[i].index = hb_glyph[i].codepoint;
-    (*glyphs)[i].x = x + (+hb_position->x_offset + hx) * x_scale;
-    (*glyphs)[i].y = y + (-hb_position->y_offset + hy) * y_scale;
+    (*glyphs)[i].x = x + ((double) hb_position->x_offset + hx) * x_scale;
+    (*glyphs)[i].y = y + (-(double) hb_position->y_offset + hy) * y_scale;
     hx +=  hb_position->x_advance;
-    hy += -hb_position->y_advance;
+    hy -= hb_position->y_advance;
 
     hb_position++;
   }
