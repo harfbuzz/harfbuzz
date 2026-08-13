@@ -391,6 +391,27 @@ test_buffer_positions (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 }
 
 static void
+test_buffer_diff_positions (void)
+{
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_t *reference = hb_buffer_create ();
+
+  hb_buffer_add (buffer, 1, 0);
+  hb_buffer_add (reference, 1, 0);
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
+  hb_buffer_set_content_type (reference, HB_BUFFER_CONTENT_TYPE_GLYPHS);
+
+  hb_buffer_get_glyph_positions (buffer, NULL)[0].x_advance = INT32_MIN;
+  hb_buffer_get_glyph_positions (reference, NULL)[0].x_advance = INT32_MAX;
+
+  g_assert_true (hb_buffer_diff (buffer, reference, (hb_codepoint_t) -1, 1) &
+		 HB_BUFFER_DIFF_FLAG_POSITION_MISMATCH);
+
+  hb_buffer_destroy (buffer);
+  hb_buffer_destroy (reference);
+}
+
+static void
 test_buffer_allocation (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
   fixture_t *fixture = fixture_;
@@ -1094,6 +1115,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf16_conversion);
   hb_test_add (test_buffer_utf32_conversion);
   hb_test_add (test_buffer_empty);
+  hb_test_add (test_buffer_diff_positions);
   hb_test_add (test_buffer_create_similar);
   hb_test_add (test_buffer_serialize_deserialize);
   hb_test_add (test_buffer_serialize_no_advances);

@@ -2258,15 +2258,20 @@ hb_buffer_diff (hb_buffer_t *buffer,
 
   if (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS)
   {
+    auto position_diff = [] (hb_position_t a, hb_position_t b) -> uint64_t
+    {
+      int64_t diff = (int64_t) a - b;
+      return diff < 0 ? -diff : diff;
+    };
     assert (buffer->have_positions);
     const hb_glyph_position_t *buf_pos = buffer->pos;
     const hb_glyph_position_t *ref_pos = reference->pos;
     for (unsigned int i = 0; i < count; i++)
     {
-      if ((unsigned int) abs (buf_pos->x_advance - ref_pos->x_advance) > position_fuzz ||
-	  (unsigned int) abs (buf_pos->y_advance - ref_pos->y_advance) > position_fuzz ||
-	  (unsigned int) abs (buf_pos->x_offset - ref_pos->x_offset) > position_fuzz ||
-	  (unsigned int) abs (buf_pos->y_offset - ref_pos->y_offset) > position_fuzz)
+      if (position_diff (buf_pos->x_advance, ref_pos->x_advance) > position_fuzz ||
+	  position_diff (buf_pos->y_advance, ref_pos->y_advance) > position_fuzz ||
+	  position_diff (buf_pos->x_offset, ref_pos->x_offset) > position_fuzz ||
+	  position_diff (buf_pos->y_offset, ref_pos->y_offset) > position_fuzz)
       {
 	result |= HB_BUFFER_DIFF_FLAG_POSITION_MISMATCH;
 	break;
