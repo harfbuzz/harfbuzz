@@ -1461,10 +1461,10 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     if (_hb_depend_fuzzer_verbose)
     {
       fprintf (stderr, "# Adaptive error injection: %u total edges, est. %.0f edges/test\n",
-               total_edges, estimated_edges_per_test);
+               total_edges, (double) estimated_edges_per_test);
       fprintf (stderr, "# Calculated per-edge probabilities: over=%.6f under=%.6f\n",
-               _hb_depend_fuzzer_inject_over_approx,
-               _hb_depend_fuzzer_inject_under_approx);
+               (double) _hb_depend_fuzzer_inject_over_approx,
+               (double) _hb_depend_fuzzer_inject_under_approx);
     }
   }
 

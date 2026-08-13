@@ -29,7 +29,7 @@
 /* Unit tests for hb-buffer.h */
 
 
-static const char utf8[10] = "ab\360\240\200\200defg";
+static const char utf8[10] = {'a', 'b', '\360', '\240', '\200', '\200', 'd', 'e', 'f', 'g'};
 static const uint16_t utf16[8] = {'a', 'b', 0xD840, 0xDC00, 'd', 'e', 'f', 'g'};
 static const uint32_t utf32[7] = {'a', 'b', 0x20000, 'd', 'e', 'f', 'g'};
 
