@@ -2881,10 +2881,10 @@ struct COLR
 
 	if (clip)
 	  c.funcs->push_clip_rectangle (c.data,
-					extents.x_bearing,
-					extents.y_bearing + extents.height,
-					extents.x_bearing + extents.width,
-					extents.y_bearing);
+					(float) extents.x_bearing,
+					(float) extents.y_bearing + extents.height,
+					(float) extents.x_bearing + extents.width,
+					(float) extents.y_bearing);
 
 	if (is_bounded)
 	  c.recurse (*paint);
@@ -3014,10 +3014,10 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 
   if (has_clip_box)
     c->funcs->push_clip_rectangle (c->data,
-				   extents.x_bearing,
-				   extents.y_bearing + extents.height,
-				   extents.x_bearing + extents.width,
-				   extents.y_bearing);
+				   (float) extents.x_bearing,
+				   (float) extents.y_bearing + extents.height,
+				   (float) extents.x_bearing + extents.width,
+				   (float) extents.y_bearing);
 
   if (paint)
     c->recurse (*paint);
