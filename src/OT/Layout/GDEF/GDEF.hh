@@ -192,8 +192,8 @@ struct CaretValueFormat3
 				 const ItemVariationStore &var_store) const
   {
     return HB_DIRECTION_IS_HORIZONTAL (direction) ?
-	   font->em_scale_x (coordinate) + (this+deviceTable).get_x_delta (font, var_store) :
-	   font->em_scale_y (coordinate) + (this+deviceTable).get_y_delta (font, var_store);
+	   hb_saturate_add (font->em_scale_x (coordinate), (this+deviceTable).get_x_delta (font, var_store)) :
+	   hb_saturate_add (font->em_scale_y (coordinate), (this+deviceTable).get_y_delta (font, var_store));
   }
 
   bool subset (hb_subset_context_t *c) const
