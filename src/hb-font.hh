@@ -162,8 +162,8 @@ struct hb_font_t
   hb_position_t em_scale_y (int32_t v) { return em_mult (v, y_mult); }
   hb_position_t em_scalef_x (float v) { return em_multf (v, x_multf); }
   hb_position_t em_scalef_y (float v) { return em_multf (v, y_multf); }
-  float em_fscale_x (int16_t v) { return em_fmult (v, x_multf); }
-  float em_fscale_y (int16_t v) { return em_fmult (v, y_multf); }
+  float em_fscale_x (int32_t v) { return em_fmult (v, x_multf); }
+  float em_fscale_y (int32_t v) { return em_fmult (v, y_multf); }
   float em_fscalef_x (float v) { return em_fmultf (v, x_multf); }
   float em_fscalef_y (float v) { return em_fmultf (v, y_multf); }
   hb_position_t em_scale_dir (int16_t v, hb_direction_t direction)
@@ -173,13 +173,13 @@ struct hb_font_t
   hb_position_t parent_scale_x_distance (hb_position_t v)
   {
     if (unlikely (parent && parent->x_scale && parent->x_scale != x_scale))
-      return hb_clamp_to<hb_position_t> (v * (int64_t) this->x_scale / this->parent->x_scale);
+      return (hb_position_t) (v * (int64_t) this->x_scale / this->parent->x_scale);
     return v;
   }
   hb_position_t parent_scale_y_distance (hb_position_t v)
   {
     if (unlikely (parent && parent->y_scale && parent->y_scale != y_scale))
-      return hb_clamp_to<hb_position_t> (v * (int64_t) this->y_scale / this->parent->y_scale);
+      return (hb_position_t) (v * (int64_t) this->y_scale / this->parent->y_scale);
     return v;
   }
   hb_position_t parent_scale_x_position (hb_position_t v)
@@ -200,20 +200,15 @@ struct hb_font_t
 
   void scale_glyph_extents (hb_glyph_extents_t *extents)
   {
-    float x1 = em_fscalef_x ((float) extents->x_bearing);
-    float y1 = em_fscalef_y ((float) extents->y_bearing);
-    float x2 = em_fscalef_x ((float) ((int64_t) extents->x_bearing + extents->width));
-    float y2 = em_fscalef_y ((float) ((int64_t) extents->y_bearing + extents->height));
+    float x1 = em_fscale_x (extents->x_bearing);
+    float y1 = em_fscale_y (extents->y_bearing);
+    float x2 = em_fscale_x (extents->x_bearing + extents->width);
+    float y2 = em_fscale_y (extents->y_bearing + extents->height);
 
-    double rx1 = floorf (x1);
-    double ry1 = floorf (y1);
-    double rx2 = ceilf (x2);
-    double ry2 = ceilf (y2);
-
-    extents->x_bearing = hb_clamp_to<hb_position_t> (rx1);
-    extents->y_bearing = hb_clamp_to<hb_position_t> (ry1);
-    extents->width = hb_clamp_to<hb_position_t> (rx2 - rx1);
-    extents->height = hb_clamp_to<hb_position_t> (ry2 - ry1);
+    extents->x_bearing = floorf (x1);
+    extents->y_bearing = floorf (y1);
+    extents->width = ceilf (x2) - extents->x_bearing;
+    extents->height = ceilf (y2) - extents->y_bearing;
   }
 
   void synthetic_glyph_extents (hb_glyph_extents_t *extents)
@@ -221,31 +216,33 @@ struct hb_font_t
     /* Slant. */
     if (slant_xy)
     {
-      double x1 = extents->x_bearing;
-      float y1 = (float) extents->y_bearing;
-      double x2 = (int64_t) extents->x_bearing + extents->width;
-      float y2 = (float) ((int64_t) extents->y_bearing + extents->height);
+      hb_position_t x1 = extents->x_bearing;
+      hb_position_t y1 = extents->y_bearing;
+      hb_position_t x2 = extents->x_bearing + extents->width;
+      hb_position_t y2 = extents->y_bearing + extents->height;
 
-      x1 += (double) floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
-      x2 += (double) ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
+      x1 += floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
+      x2 += ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
 
-      extents->x_bearing = hb_clamp_to<hb_position_t> (x1);
-      extents->width = hb_clamp_to<hb_position_t> (x2 - x1);
+      extents->x_bearing = x1;
+      extents->width = x2 - extents->x_bearing;
     }
 
     /* Embolden. */
     if (x_strength || y_strength)
     {
       /* Y */
-      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
-      extents->y_bearing = hb_saturate_add (extents->y_bearing, y_shift);
-      extents->height = hb_saturate_sub (extents->height, y_shift);
+      int y_shift = y_strength;
+      if (y_scale < 0) y_shift = -y_shift;
+      extents->y_bearing += y_shift;
+      extents->height -= y_shift;
 
       /* X */
-      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
+      int x_shift = x_strength;
+      if (x_scale < 0) x_shift = -x_shift;
       if (embolden_in_place)
-	extents->x_bearing = hb_saturate_sub (extents->x_bearing, x_shift / 2);
-      extents->width = hb_saturate_add (extents->width, x_shift);
+	extents->x_bearing -= x_shift / 2;
+      extents->width += x_shift;
     }
   }
 
@@ -285,8 +282,8 @@ struct hb_font_t
     if (synthetic && ret)
     {
       /* Embolden */
-      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
-      extents->ascender = hb_saturate_add (extents->ascender, y_shift);
+      int y_shift = y_scale < 0 ? -y_strength : y_strength;
+      extents->ascender += y_shift;
     }
 
     return ret;
@@ -302,14 +299,14 @@ struct hb_font_t
     if (synthetic && ret)
     {
       /* Embolden */
-      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
+      int x_shift = x_scale < 0 ? -x_strength : x_strength;
       if (embolden_in_place)
       {
-	extents->ascender = hb_saturate_add (extents->ascender, x_shift / 2);
-	extents->descender = hb_saturate_sub (extents->descender, hb_saturate_sub (x_shift, x_shift / 2));
+	extents->ascender += x_shift / 2;
+	extents->descender -= x_shift - x_shift / 2;
       }
       else
-	extents->ascender = hb_saturate_add (extents->ascender, x_shift);
+	extents->ascender += x_shift;
     }
 
     return ret;
@@ -363,8 +360,8 @@ struct hb_font_t
     if (synthetic && x_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = x_scale >= 0 ? x_strength : hb_saturate_neg (x_strength);
-      advance = hb_saturate_add (advance, advance ? strength : 0);
+      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
+      advance += advance ? strength : 0;
     }
 
     return advance;
@@ -380,8 +377,8 @@ struct hb_font_t
     if (synthetic && y_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = y_scale >= 0 ? y_strength : hb_saturate_neg (y_strength);
-      advance = hb_saturate_add (advance, advance ? strength : 0);
+      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
+      advance += advance ? strength : 0;
     }
 
     return advance;
@@ -403,10 +400,10 @@ struct hb_font_t
     if (synthetic && x_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = x_scale >= 0 ? x_strength : hb_saturate_neg (x_strength);
+      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
       for (unsigned int i = 0; i < count; i++)
       {
-	*first_advance = hb_saturate_add (*first_advance, *first_advance ? strength : 0);
+	*first_advance += *first_advance ? strength : 0;
 	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
       }
     }
@@ -428,10 +425,10 @@ struct hb_font_t
     if (synthetic && y_strength && !embolden_in_place)
     {
       /* Embolden */
-      hb_position_t strength = y_scale >= 0 ? y_strength : hb_saturate_neg (y_strength);
+      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
       for (unsigned int i = 0; i < count; i++)
       {
-	*first_advance = hb_saturate_add (*first_advance, *first_advance ? strength : 0);
+	*first_advance += *first_advance ? strength : 0;
 	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
       }
     }
@@ -453,8 +450,8 @@ struct hb_font_t
       /* Embolden */
       if (!embolden_in_place)
       {
-        *x = hb_saturate_add (*x, x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength);
-	*y = hb_saturate_add (*y, y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength);
+        *x += x_scale < 0 ? -x_strength : x_strength;
+	*y += y_scale < 0 ? -y_strength : y_strength;
       }
     }
 
@@ -477,8 +474,8 @@ struct hb_font_t
       /* Embolden */
       if (!embolden_in_place)
       {
-        *x = hb_saturate_add (*x, x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength);
-	*y = hb_saturate_add (*y, y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength);
+        *x += x_scale < 0 ? -x_strength : x_strength;
+	*y += y_scale < 0 ? -y_strength : y_strength;
       }
     }
 
@@ -503,8 +500,8 @@ struct hb_font_t
 
     if (synthetic && ret)
     {
-      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
-      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
+      hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
+      hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
       for (unsigned i = 0; i < count; i++)
       {
 	/* Slant is ignored as it does not affect glyph origin */
@@ -512,8 +509,8 @@ struct hb_font_t
 	/* Embolden */
 	if (!embolden_in_place)
 	{
-	  *first_x = hb_saturate_add (*first_x, x_shift);
-	  *first_y = hb_saturate_add (*first_y, y_shift);
+	  *first_x += x_shift;
+	  *first_y += y_shift;
 	}
 	first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
 	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
@@ -541,8 +538,8 @@ struct hb_font_t
 
     if (synthetic && is_synthetic && ret)
     {
-      hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
-      hb_position_t y_shift = y_scale < 0 ? hb_saturate_neg (y_strength) : y_strength;
+      hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
+      hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
       for (unsigned i = 0; i < count; i++)
       {
 	/* Slant is ignored as it does not affect glyph origin */
@@ -550,8 +547,8 @@ struct hb_font_t
 	/* Embolden */
 	if (!embolden_in_place)
 	{
-	  *first_x = hb_saturate_add (*first_x, x_shift);
-	  *first_y = hb_saturate_add (*first_y, y_shift);
+	  *first_x += x_shift;
+	  *first_y += y_shift;
 	}
 	first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
 	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
@@ -655,14 +652,13 @@ struct hb_font_t
     {
       /* Slant */
       if (slant_xy)
-        *x = hb_saturate_add (*x,
-			      hb_clamp_to<hb_position_t> (roundf (*y * slant_xy)));
+        *x += roundf (*y * slant_xy);
 
       /* Embolden */
       if (!embolden_in_place)
       {
-        hb_position_t x_shift = x_scale < 0 ? hb_saturate_neg (x_strength) : x_strength;
-	*x = hb_saturate_add (*x, x_shift);
+	int x_shift = x_scale < 0 ? -x_strength : x_strength;
+	*x += x_shift;
       }
     }
 
@@ -726,7 +722,7 @@ struct hb_font_t
     {
       hb_position_t xo = 0, yo = 0;
       get_glyph_h_origin (glyph, &xo, &yo, false);
-      outline.translate (-(float) xo, -(float) yo);
+      outline.translate (-xo, -yo);
       outline.slant (slant_xy);
       outline.translate (xo, yo);
     }
@@ -841,28 +837,20 @@ struct hb_font_t
   {
     assert (mult == -1 || mult == +1);
 
-    if (mult > 0)
-    {
-      *x = hb_saturate_add (*x, dx);
-      *y = hb_saturate_add (*y, dy);
-    }
-    else
-    {
-      *x = hb_saturate_sub (*x, dx);
-      *y = hb_saturate_sub (*y, dy);
-    }
+    *x += dx * mult;
+    *y += dy * mult;
   }
   void add_offset (hb_position_t *x, hb_position_t *y,
 		   hb_position_t dx, hb_position_t dy)
   {
-    *x = hb_saturate_add (*x, dx);
-    *y = hb_saturate_add (*y, dy);
+    *x += dx;
+    *y += dy;
   }
   void subtract_offset (hb_position_t *x, hb_position_t *y,
 			hb_position_t dx, hb_position_t dy)
   {
-    *x = hb_saturate_sub (*x, dx);
-    *y = hb_saturate_sub (*y, dy);
+    *x -= dx;
+    *y -= dy;
   }
 
   void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,
@@ -909,8 +897,8 @@ struct hb_font_t
 	  for (unsigned j = 0; j < n; j++)
 	  {
 	    hb_codepoint_t glyph = buf->info[offset + j].codepoint;
-	    origins[j].x = hb_saturate_sub (origins[j].x, get_glyph_h_advance (glyph) / 2);
-	    origins[j].y = hb_saturate_sub (origins[j].y, ascender);
+	    origins[j].x -= get_glyph_h_advance (glyph) / 2;
+	    origins[j].y -= ascender;
 	  }
 	}
 	else
@@ -973,8 +961,8 @@ struct hb_font_t
 	  for (unsigned j = 0; j < n; j++)
 	  {
 	    hb_codepoint_t glyph = buf->info[offset + j].codepoint;
-	    origins[j].x = hb_saturate_add (origins[j].x, get_glyph_h_advance (glyph) / 2);
-	    origins[j].y = hb_saturate_add (origins[j].y, ascender);
+	    origins[j].x += get_glyph_h_advance (glyph) / 2;
+	    origins[j].y += ascender;
 	  }
 	}
 	else
@@ -1161,8 +1149,8 @@ struct hb_font_t
 
     is_synthetic =  x_embolden || y_embolden || slant;
 
-    x_strength = hb_clamp_to<int32_t> (roundf (fabsf ((float) x_scale) * x_embolden));
-    y_strength = hb_clamp_to<int32_t> (roundf (fabsf ((float) y_scale) * y_embolden));
+    x_strength = roundf (abs (x_scale) * x_embolden);
+    y_strength = roundf (abs (y_scale) * y_embolden);
 
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
 
@@ -1174,10 +1162,10 @@ struct hb_font_t
   hb_position_t em_mult (int32_t v, int64_t mult)
   { return (hb_position_t) ((v * mult + 32768) >> 16); }
   hb_position_t em_multf (float v, float mult)
-  { return hb_clamp_to<hb_position_t> (roundf (em_fmultf (v, mult))); }
+  { return (hb_position_t) roundf (em_fmultf (v, mult)); }
   float em_fmultf (float v, float mult)
   { return v * mult; }
-  float em_fmult (int16_t v, float mult)
+  float em_fmult (int32_t v, float mult)
   { return (float) v * mult; }
 };
 DECLARE_NULL_INSTANCE (hb_font_t);
