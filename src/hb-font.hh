@@ -738,7 +738,7 @@ struct hb_font_t
     {
       hb_position_t xo = 0, yo = 0;
       get_glyph_h_origin (glyph, &xo, &yo, false);
-      outline.translate (-xo, -yo);
+      outline.translate (-(float) xo, -(float) yo);
       outline.slant (slant_xy);
       outline.translate (xo, yo);
     }
