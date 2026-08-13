@@ -41,7 +41,7 @@
 static hb_position_t
 hb_directwrite_scale_x (hb_font_t *font, int64_t value)
 {
-  if (hb_in_range<int64_t> (value, INT16_MIN, INT16_MAX))
+  if (value >= INT16_MIN && value <= INT16_MAX)
     return font->em_scale_x ((int16_t) value);
   return font->em_scalef_x ((float) value);
 }
@@ -49,7 +49,7 @@ hb_directwrite_scale_x (hb_font_t *font, int64_t value)
 static hb_position_t
 hb_directwrite_scale_y (hb_font_t *font, int64_t value)
 {
-  if (hb_in_range<int64_t> (value, INT16_MIN, INT16_MAX))
+  if (value >= INT16_MIN && value <= INT16_MAX)
     return font->em_scale_y ((int16_t) value);
   return font->em_scalef_y ((float) value);
 }
