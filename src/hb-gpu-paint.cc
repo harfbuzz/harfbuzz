@@ -512,9 +512,9 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
   /* Accumulate extents: x_bearing/y_bearing are top-left, width
    * positive, height negative (growing down). */
   int x0 = ext.x_bearing;
-  int x1 = (int) ((int64_t) ext.x_bearing + ext.width);
+  int x1 = hb_saturate_add (ext.x_bearing, ext.width);
   int y0 = ext.y_bearing;
-  int y1 = (int) ((int64_t) ext.y_bearing + ext.height);
+  int y1 = hb_saturate_add (ext.y_bearing, ext.height);
   c->ext_min_x = hb_min (c->ext_min_x, hb_min (x0, x1));
   c->ext_max_x = hb_max (c->ext_max_x, hb_max (x0, x1));
   c->ext_min_y = hb_min (c->ext_min_y, hb_min (y0, y1));
