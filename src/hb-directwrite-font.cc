@@ -38,6 +38,22 @@
 
 #define MAX_GLYPHS 256u
 
+static hb_position_t
+hb_directwrite_scale_x (hb_font_t *font, int64_t value)
+{
+  if (hb_in_range<int64_t> (value, INT16_MIN, INT16_MAX))
+    return font->em_scale_x ((int16_t) value);
+  return font->em_scalef_x ((float) value);
+}
+
+static hb_position_t
+hb_directwrite_scale_y (hb_font_t *font, int64_t value)
+{
+  if (hb_in_range<int64_t> (value, INT16_MIN, INT16_MAX))
+    return font->em_scale_y ((int16_t) value);
+  return font->em_scalef_y ((float) value);
+}
+
 static unsigned int
 hb_directwrite_get_nominal_glyphs (hb_font_t *font,
 				   void *font_data HB_UNUSED,
@@ -91,9 +107,9 @@ hb_directwrite_get_font_h_extents (hb_font_t *font,
   DWRITE_FONT_METRICS dw_metrics;
   dw_face->GetMetrics (&dw_metrics);
 
-  metrics->ascender = font->em_scale_y (dw_metrics.ascent);
-  metrics->descender = -font->em_scale_y (dw_metrics.descent);
-  metrics->line_gap = font->em_scale_y (dw_metrics.lineGap);
+  metrics->ascender = hb_directwrite_scale_y (font, dw_metrics.ascent);
+  metrics->descender = hb_saturate_neg (hb_directwrite_scale_y (font, dw_metrics.descent));
+  metrics->line_gap = hb_directwrite_scale_y (font, dw_metrics.lineGap);
 
   return true;
 }
@@ -200,8 +216,8 @@ hb_directwrite_get_glyph_v_origin (hb_font_t *font,
   if (FAILED (dw_face->GetDesignGlyphMetrics (&gid, 1, &metrics)))
     return false;
 
-  *x = font->em_scale_x (metrics.advanceWidth / 2);
-  *y = font->em_scale_y (metrics.verticalOriginY); // Untested
+  *x = hb_directwrite_scale_x (font, metrics.advanceWidth / 2);
+  *y = hb_directwrite_scale_y (font, metrics.verticalOriginY); // Untested
 
   return true;
 }
@@ -222,10 +238,15 @@ hb_directwrite_get_glyph_extents (hb_font_t *font,
   if (FAILED (dw_face->GetDesignGlyphMetrics (&gid, 1, &metrics)))
     return false;
 
-  extents->x_bearing = font->em_scale_x (metrics.leftSideBearing);
-  extents->y_bearing = font->em_scale_y (metrics.verticalOriginY - metrics.topSideBearing);
-  extents->width = font->em_scale_x (metrics.advanceWidth - metrics.rightSideBearing) - extents->x_bearing;
-  extents->height = font->em_scale_y (metrics.verticalOriginY - metrics.advanceHeight + metrics.bottomSideBearing) - extents->y_bearing; // Magic
+  int64_t right = (int64_t) metrics.advanceWidth - metrics.rightSideBearing;
+  int64_t top = (int64_t) metrics.verticalOriginY - metrics.topSideBearing;
+  int64_t bottom = (int64_t) metrics.verticalOriginY - metrics.advanceHeight + metrics.bottomSideBearing;
+
+  extents->x_bearing = hb_directwrite_scale_x (font, metrics.leftSideBearing);
+  extents->y_bearing = hb_directwrite_scale_y (font, top);
+  extents->width = hb_saturate_sub (hb_directwrite_scale_x (font, right), extents->x_bearing);
+  extents->height = hb_saturate_sub (hb_directwrite_scale_y (font, bottom),
+				     extents->y_bearing); // Magic
 
   return true;
 }
