@@ -192,7 +192,7 @@ hb_directwrite_get_glyph_v_advances (hb_font_t* font,
     dw_face1->GetDesignGlyphAdvances (n, gids, advances, true);
     for (unsigned j = 0; j < n; j++)
     {
-      *first_advance = -font->em_scale_y (advances[j]);
+      *first_advance = hb_saturate_neg (hb_directwrite_scale_y (font, advances[j]));
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
     }
 
