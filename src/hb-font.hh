@@ -158,20 +158,8 @@ struct hb_font_t
   /* Convert from font-space to user-space */
   int64_t dir_mult (hb_direction_t direction)
   { return HB_DIRECTION_IS_VERTICAL(direction) ? y_mult : x_mult; }
-  hb_position_t em_scale_x (int16_t v) { return em_mult (v, x_mult); }
-  hb_position_t em_scale_y (int16_t v) { return em_mult (v, y_mult); }
-  hb_position_t em_scale_x_full (int32_t v)
-  {
-    if (likely (v >= INT16_MIN && v <= INT16_MAX))
-      return em_scale_x ((int16_t) v);
-    return em_scalef_x ((float) v);
-  }
-  hb_position_t em_scale_y_full (int32_t v)
-  {
-    if (likely (v >= INT16_MIN && v <= INT16_MAX))
-      return em_scale_y ((int16_t) v);
-    return em_scalef_y ((float) v);
-  }
+  hb_position_t em_scale_x (int32_t v) { return em_mult (v, x_mult); }
+  hb_position_t em_scale_y (int32_t v) { return em_mult (v, y_mult); }
   hb_position_t em_scalef_x (float v) { return em_multf (v, x_multf); }
   hb_position_t em_scalef_y (float v) { return em_multf (v, y_multf); }
   float em_fscale_x (int16_t v) { return em_fmult (v, x_multf); }
@@ -1183,8 +1171,8 @@ struct hb_font_t
     serial++;
   }
 
-  hb_position_t em_mult (int16_t v, int64_t mult)
-  { return hb_clamp_to<hb_position_t> ((v * mult + 32768) >> 16); }
+  hb_position_t em_mult (int32_t v, int64_t mult)
+  { return (hb_position_t) ((v * mult + 32768) >> 16); }
   hb_position_t em_multf (float v, float mult)
   { return hb_clamp_to<hb_position_t> (roundf (em_fmultf (v, mult))); }
   float em_fmultf (float v, float mult)
