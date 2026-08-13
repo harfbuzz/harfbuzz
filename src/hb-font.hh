@@ -1168,10 +1168,8 @@ struct hb_font_t
 
     x_multf = x_scale / upem;
     y_multf = y_scale / upem;
-    bool x_neg = x_scale < 0;
-    x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) / upem;
-    bool y_neg = y_scale < 0;
-    y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
+    x_mult = (int64_t) x_scale * 0x10000 / upem;
+    y_mult = (int64_t) y_scale * 0x10000 / upem;
 
     is_synthetic =  x_embolden || y_embolden || slant;
 
