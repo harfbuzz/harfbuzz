@@ -1375,6 +1375,7 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
 
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
 struct hb_pdf_sweep_ctx_t {
+  hb_vector_paint_t *paint;
   hb_vector_buf_t *mesh;
   hb_vector_buf_t *alpha_mesh;
   float cx, cy, xlo, xhi, ylo, yhi;
@@ -1386,10 +1387,21 @@ hb_pdf_sweep_emit_patch (float a0, hb_color_t c0,
 			 void *user_data)
 {
   auto *ctx = (hb_pdf_sweep_ctx_t *) user_data;
+  auto *paint = ctx->paint;
+  /* Skip patch generation when the session work budget is spent, so
+   * per-gradient patch counts cannot multiply with the paint-graph
+   * traversal limits of the font tables driving us. */
+  if (unlikely (paint->work_left <= 0))
+    return;
+  unsigned before = ctx->mesh->length +
+		    (ctx->alpha_mesh ? ctx->alpha_mesh->length : 0);
   hb_pdf_add_sweep_patch (ctx->mesh, ctx->alpha_mesh,
 			  ctx->cx, ctx->cy,
 			  ctx->xlo, ctx->xhi, ctx->ylo, ctx->yhi,
 			  a0, c0, a1, c1);
+  unsigned after = ctx->mesh->length +
+		   (ctx->alpha_mesh ? ctx->alpha_mesh->length : 0);
+  paint->work_left -= after - before;
 }
 
 static void
@@ -1431,7 +1443,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   if (needs_alpha)
     alpha_mesh.alloc (256);
 
-  hb_pdf_sweep_ctx_t ctx { &mesh, needs_alpha ? &alpha_mesh : nullptr,
+  hb_pdf_sweep_ctx_t ctx { paint, &mesh, needs_alpha ? &alpha_mesh : nullptr,
 			    scx, scy, xlo, xhi, ylo, yhi };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length, extend,
 				 start_angle, end_angle,

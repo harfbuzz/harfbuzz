@@ -1120,34 +1120,53 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
   else
   {
     float span = angles[n_stops - 1] - angles[0];
-    if (fabsf (span) < 1e-6f)
+    if (!(fabsf (span) >= 1e-6f)) /* Reversed to catch NaN. */
       goto done;
 
-    int k = 0;
-    if (angles[0] >= 0)
+    span = fabsf (span);
+
+    if (span < HB_2_PI / HB_PAINT_MAX_SWEEP_TILES)
     {
-      float ss = angles[0];
-      while (ss > 0)
+      /* The pattern repeats faster than the tile resolution; tiling
+       * it would cost unbounded work for sub-visual detail.  Fill
+       * the whole circle with the period-average color instead. */
+      float r = 0.f, g = 0.f, b = 0.f, a = 0.f;
+      for (unsigned i = 1; i < n_stops; i++)
       {
-	if (span > 0) { ss -= span; k--; }
-	else          { ss += span; k++; }
+	float w = (angles[i] - angles[i - 1]) / span * 0.5f;
+	r += w * (hb_color_get_red (colors[i - 1]) + hb_color_get_red (colors[i]));
+	g += w * (hb_color_get_green (colors[i - 1]) + hb_color_get_green (colors[i]));
+	b += w * (hb_color_get_blue (colors[i - 1]) + hb_color_get_blue (colors[i]));
+	a += w * (hb_color_get_alpha (colors[i - 1]) + hb_color_get_alpha (colors[i]));
       }
-    }
-    else
-    {
-      float ee = angles[n_stops - 1];
-      while (ee < 0)
-      {
-	if (span > 0) { ee += span; k++; }
-	else          { ee -= span; k--; }
-      }
+      hb_color_t avg = HB_COLOR (hb_clamp_to<uint8_t> ((double) b + 0.5),
+				 hb_clamp_to<uint8_t> ((double) g + 0.5),
+				 hb_clamp_to<uint8_t> ((double) r + 0.5),
+				 hb_clamp_to<uint8_t> ((double) a + 0.5));
+      emit_patch (0.f, avg, HB_2_PI, avg, user_data);
+      goto done;
     }
 
-    span = fabsf (span);
-    for (int l = k; l < 1000; l++)
+    /* First repeat that can reach angle 0, computed by division;
+     * counting there one span at a time can take effectively forever,
+     * or fail to terminate outright once the span drops below the
+     * float ulp of the angles.  One repeat of slack absorbs rounding
+     * differences; earlier repeats are fully clipped anyway. */
+    double dk = floor (-(double) hb_max (angles[0], angles[n_stops - 1]) / (double) span) - 1.;
+    if (!(dk >= -1.e18 && dk <= 1.e18)) /* Non-finite angles. */
+      goto done;
+
+    unsigned iterations = 0, tiles = 0;
+    for (int64_t l = (int64_t) dk; ; l++)
     {
       for (unsigned i = 1; i < n_stops; i++)
       {
+	/* Bounds clipped-away segments too; those stay negligible for
+	 * sorted stops but are unbounded if the sort contract is
+	 * violated. */
+	if (unlikely (iterations++ >= 256 * HB_PAINT_MAX_SWEEP_TILES))
+	  goto done;
+
 	float a0_l, a1_l;
 	hb_color_t col0, col1;
 	if ((l % 2 != 0) && (extend == HB_PAINT_EXTEND_REFLECT))
@@ -1166,6 +1185,8 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
 	}
 
 	if (a1_l < 0.f) continue;
+	if (unlikely (tiles++ >= HB_PAINT_MAX_SWEEP_TILES))
+	  goto done;
 	if (a0_l < 0.f)
 	{
 	  float f = (0.f - a0_l) / (a1_l - a0_l);

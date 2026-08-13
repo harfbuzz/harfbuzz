@@ -120,6 +120,15 @@
 #define HB_GPU_DRAW_MAX_CURVES 65536
 #endif
 
+/* Tiles emitted by one hb_paint_sweep_gradient_tiles() call.  Also
+ * sets the angular resolution (2π over this) below which a repeating
+ * color line is filled with its average color instead of tiled;
+ * a repeat/reflect color line whose stops span a tiny angle could
+ * otherwise emit millions of patches while covering 0..2π. */
+#ifndef HB_PAINT_MAX_SWEEP_TILES
+#define HB_PAINT_MAX_SWEEP_TILES 4096
+#endif
+
 #ifndef HB_SVG_MAX_DOCUMENT_SIZE
 #define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
 #endif
@@ -168,7 +177,7 @@
 #endif
 
 /* One vector (SVG/PDF) paint session, in bytes of generated outline
- * path data. */
+ * path and sweep-gradient patch data. */
 #ifndef HB_VECTOR_MAX_PAINT_WORK
 #define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
 #endif
