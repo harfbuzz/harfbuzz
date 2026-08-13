@@ -176,9 +176,9 @@ hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
   }
 
   int x0 = ext.x_bearing;
-  int x1 = (int) ((int64_t) ext.x_bearing + ext.width);
+  int x1 = hb_saturate_add (ext.x_bearing, ext.width);
   int y0 = ext.y_bearing;
-  int y1 = (int) ((int64_t) ext.y_bearing + ext.height);
+  int y1 = hb_saturate_add (ext.y_bearing, ext.height);
 
   c->clip_stack[c->clip_depth] = {
     HB_CODEPOINT_INVALID, nullptr,
