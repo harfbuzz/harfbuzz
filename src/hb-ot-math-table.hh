@@ -38,9 +38,9 @@ namespace OT {
 struct MathValueRecord
 {
   hb_position_t get_x_value (hb_font_t *font, const void *base) const
-  { return font->em_scale_x (value) + (base+deviceTable).get_x_delta (font); }
+  { return hb_saturate_add (font->em_scale_x (value), (base+deviceTable).get_x_delta (font)); }
   hb_position_t get_y_value (hb_font_t *font, const void *base) const
-  { return font->em_scale_y (value) + (base+deviceTable).get_y_delta (font); }
+  { return hb_saturate_add (font->em_scale_y (value), (base+deviceTable).get_y_delta (font)); }
 
   MathValueRecord* copy (hb_serialize_context_t *c, const void *base) const
   {
