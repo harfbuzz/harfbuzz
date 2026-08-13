@@ -277,21 +277,21 @@ public:
 
   void STDMETHODCALLTYPE BeginFigure(D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN) override
   {
-    drawing.move_to (font->em_scalef_x (startPoint.x), -font->em_scalef_y (startPoint.y));
+    drawing.move_to (font->em_scalef_x (startPoint.x), -(float) font->em_scalef_y (startPoint.y));
   }
 
   void STDMETHODCALLTYPE AddBeziers(const D2D1_BEZIER_SEGMENT *beziers, UINT beziersCount) override
   {
     for (unsigned i = 0; i < beziersCount; ++i)
-      drawing.cubic_to (font->em_scalef_x (beziers[i].point1.x), -font->em_scalef_y (beziers[i].point1.y),
-			font->em_scalef_x (beziers[i].point2.x), -font->em_scalef_y (beziers[i].point2.y),
-			font->em_scalef_x (beziers[i].point3.x), -font->em_scalef_y (beziers[i].point3.y));
+      drawing.cubic_to (font->em_scalef_x (beziers[i].point1.x), -(float) font->em_scalef_y (beziers[i].point1.y),
+			font->em_scalef_x (beziers[i].point2.x), -(float) font->em_scalef_y (beziers[i].point2.y),
+			font->em_scalef_x (beziers[i].point3.x), -(float) font->em_scalef_y (beziers[i].point3.y));
   }
 
   void STDMETHODCALLTYPE AddLines(const D2D1_POINT_2F *points, UINT pointsCount) override
   {
     for (unsigned i = 0; i < pointsCount; ++i)
-      drawing.line_to (font->em_scalef_x (points[i].x), -font->em_scalef_y (points[i].y));
+      drawing.line_to (font->em_scalef_x (points[i].x), -(float) font->em_scalef_y (points[i].y));
   }
 
   void STDMETHODCALLTYPE EndFigure(D2D1_FIGURE_END) override
