@@ -178,7 +178,7 @@ hb_ot_metrics_get_position (hb_font_t           *font,
       bool ret = GET_METRIC_Y (hhea, caretSlopeRise);
 
       if (position)
-	*position *= mult;
+	*position = hb_clamp_to<hb_position_t> ((int64_t) *position * mult);
 
       return ret;
     }
@@ -193,10 +193,11 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 
       if (position)
       {
-	*position *= mult;
+	*position = hb_clamp_to<hb_position_t> ((int64_t) *position * mult);
 
 	if (font->slant)
-	  *position += roundf (mult * font->slant_xy * rise);
+	  *position = hb_saturate_add (*position,
+				       hb_clamp_to<hb_position_t> (roundf (mult * font->slant_xy * rise)));
       }
 
       return ret;
