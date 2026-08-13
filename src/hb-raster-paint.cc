@@ -107,6 +107,21 @@ ensure_initialized (hb_raster_paint_t *c)
 {
   if (c->surface_stack.length) return;
 
+  /* A failed stack push (OOM) leaves the vector in a sticky error
+   * state, so initialization can never succeed; bail out cheaply
+   * instead of re-paying the surface acquire-and-clear below on
+   * every subsequent paint callback. */
+  if (unlikely (c->surface_stack.in_error () || c->clip_stack.in_error ()))
+    return;
+
+  /* acquire_surface() clears a full surface; charge its area, so
+   * repeated failed initialization attempts cannot re-pay it
+   * indefinitely.  Successful initialization re-arms the session
+   * budget below, making the charge a no-op for normal sessions. */
+  if (unlikely (!c->charge_work ((int64_t) c->fixed_extents.width *
+				 c->fixed_extents.height)))
+    return;
+
   /* Root surface */
   hb_raster_image_t *root = c->acquire_surface ();
   if (unlikely (!root)) return;
@@ -145,7 +160,6 @@ ensure_initialized (hb_raster_paint_t *c)
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
   if (unlikely (!c->clip_stack.push_or_fail (std::move (clip))))
   {
-    c->transform_stack.pop ();
     c->release_surface (c->surface_stack.pop ());
     return;
   }
