@@ -2764,13 +2764,13 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
       ret = pos.x_offset;
       break;
     case HB_DIRECTION_RTL:
-      ret = pos.x_advance - pos.x_offset;
+      ret = hb_saturate_sub (pos.x_advance, pos.x_offset);
       break;
     case HB_DIRECTION_TTB:
       ret = pos.y_offset;
       break;
     case HB_DIRECTION_BTT:
-      ret = pos.y_advance - pos.y_offset;
+      ret = hb_saturate_sub (pos.y_advance, pos.y_offset);
       break;
     case HB_DIRECTION_INVALID:
     default:
