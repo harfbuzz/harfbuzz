@@ -150,7 +150,7 @@ hb_directwrite_get_glyph_h_advances (hb_font_t* font,
     {
       // https://github.com/harfbuzz/harfbuzz/issues/5319
       auto advance = gids[j] < num_glyphs ? advances[j] : 0;
-      *first_advance = font->em_scale_x (advance);
+      *first_advance = hb_directwrite_scale_x (font, advance);
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
     }
 
