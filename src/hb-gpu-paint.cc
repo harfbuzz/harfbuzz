@@ -1527,8 +1527,8 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
   {
     extents->x_bearing = paint->ext_min_x;
     extents->y_bearing = paint->ext_max_y;
-    extents->width     = (int) ((int64_t) paint->ext_max_x - paint->ext_min_x);
-    extents->height    = (int) ((int64_t) paint->ext_min_y - paint->ext_max_y);
+    extents->width     = hb_saturate_sub (paint->ext_max_x, paint->ext_min_x);
+    extents->height    = hb_saturate_sub (paint->ext_min_y, paint->ext_max_y);
   }
 
   hb_blob_t *recycled = paint->recycled_blob;
