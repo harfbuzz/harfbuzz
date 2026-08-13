@@ -1767,8 +1767,8 @@ struct ClipBox
 
     extents->x_bearing = clip_box.xMin;
     extents->y_bearing = clip_box.yMax;
-    extents->width = clip_box.xMax - clip_box.xMin;
-    extents->height = clip_box.yMin - clip_box.yMax;
+    extents->width = hb_saturate_sub (clip_box.xMax, clip_box.xMin);
+    extents->height = hb_saturate_sub (clip_box.yMin, clip_box.yMax);
     return true;
   }
 
