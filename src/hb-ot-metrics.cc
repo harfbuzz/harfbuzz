@@ -326,9 +326,10 @@ hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,
   case HB_OT_METRICS_TAG_CAP_HEIGHT:
     if (hb_font_get_nominal_glyph (font, 'O', &glyph) &&
         hb_font_get_glyph_extents (font, glyph, &extents))
-      *position = extents.height + 2 * extents.y_bearing;
+      *position = hb_clamp_to<hb_position_t> ((int64_t) extents.height +
+					      2 * (int64_t) extents.y_bearing);
     else
-      *position = font->y_scale * 2 / 3;
+      *position = hb_clamp_to<hb_position_t> ((int64_t) font->y_scale * 2 / 3);
     break;
 
   case HB_OT_METRICS_TAG_STRIKEOUT_SIZE:
@@ -347,17 +348,17 @@ hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,
     break;
 
   case HB_OT_METRICS_TAG_UNDERLINE_OFFSET:
-    *position = - font->y_scale / 18;
+    *position = hb_saturate_neg (font->y_scale) / 18;
     break;
 
   case HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_SIZE:
   case HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_SIZE:
-    *position = font->x_scale * 10 / 12;
+    *position = hb_clamp_to<hb_position_t> ((int64_t) font->x_scale * 10 / 12);
     break;
 
   case HB_OT_METRICS_TAG_SUBSCRIPT_EM_Y_SIZE:
   case HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_SIZE:
-    *position = font->y_scale * 10 / 12;
+    *position = hb_clamp_to<hb_position_t> ((int64_t) font->y_scale * 10 / 12);
     break;
 
   case HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_OFFSET:
