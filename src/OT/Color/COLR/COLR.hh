@@ -1704,10 +1704,10 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
     value.get_clip_box(clip_box, instancer);
     if (instancer)
     {
-      clip_box.xMin += roundf (instancer (varIdxBase, 0));
-      clip_box.yMin += roundf (instancer (varIdxBase, 1));
-      clip_box.xMax += roundf (instancer (varIdxBase, 2));
-      clip_box.yMax += roundf (instancer (varIdxBase, 3));
+      clip_box.xMin = hb_saturate_add (clip_box.xMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 0))));
+      clip_box.yMin = hb_saturate_add (clip_box.yMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 1))));
+      clip_box.xMax = hb_saturate_add (clip_box.xMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 2))));
+      clip_box.yMax = hb_saturate_add (clip_box.yMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 3))));
     }
   }
 
