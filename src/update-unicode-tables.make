@@ -4,6 +4,7 @@ GENERATED = \
 	hb-ot-shaper-arabic-joining-list.hh \
 	hb-ot-shaper-arabic-pua.hh \
 	hb-ot-shaper-arabic-table.hh \
+	hb-ot-shaper-hebrew-pua.hh \
 	hb-unicode-emoji-table.hh \
 	hb-ot-shaper-indic-table.cc \
 	hb-ot-tag-table.hh \
@@ -26,6 +27,8 @@ hb-ot-shaper-arabic-pua.hh: gen-arabic-pua.py ArabicPUASimplified.txt ArabicPUAT
 	./$< > $@ || ($(RM) $@; false)
 hb-ot-shaper-arabic-table.hh: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	./$^ > $@ || ($(RM) $@; false)
+hb-ot-shaper-hebrew-pua.hh: gen-hebrew-pua.py HebrewPUA.txt
+	./$< > $@ || ($(RM) $@; false)
 hb-unicode-emoji-table.hh: gen-emoji-table.py emoji-data.txt emoji-test.txt
 	./$^ > $@ || ($(RM) $@; false)
 hb-ot-shaper-indic-table.cc: gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
