@@ -244,8 +244,6 @@ public:
 	       void *draw_data)
     : font (font), drawing ({draw_funcs, draw_data}) {}
 
-  virtual ~GeometrySink() {}
-
   HRESULT STDMETHODCALLTYPE Close() override { return S_OK; }
   void STDMETHODCALLTYPE SetFillMode(D2D1_FILL_MODE) override {}
   void STDMETHODCALLTYPE SetSegmentFlags(D2D1_PATH_SEGMENT) override {}
