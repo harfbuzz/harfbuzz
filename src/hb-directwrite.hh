@@ -69,7 +69,7 @@ hb_directwrite_object_destroy (Type *obj)
   hb_free (obj);
 }
 
-class DWriteFontFileLoader : public IDWriteFontFileLoader
+class DWriteFontFileLoader final : public IDWriteFontFileLoader
 {
 private:
   hb_reference_count_t mRefCount;
@@ -141,7 +141,7 @@ public:
   }
 };
 
-class DWriteFontFileStream : public IDWriteFontFileStream
+class DWriteFontFileStream final : public IDWriteFontFileStream
 {
 private:
   hb_reference_count_t mRefCount;
