@@ -221,10 +221,10 @@ struct SegmentMaps : Array16Of<AxisValueMap>
       if (value < map[i].fromCoord)
 	break;
 
-    if (i == 0)
+    if (i == start)
     {
       // Value before all segments; Shift.
-      return value - map[0].fromCoord + map[0].toCoord;
+      return value - map[start].fromCoord + map[start].toCoord;
     }
     if (i == end)
     {
