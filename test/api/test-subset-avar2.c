@@ -139,6 +139,64 @@ open_original (void)
   return face;
 }
 
+static unsigned
+read_uint16_be (const unsigned char *p)
+{
+  return ((unsigned) p[0] << 8) | p[1];
+}
+
+static unsigned
+read_uint32_be (const unsigned char *p)
+{
+  return ((unsigned) p[0] << 24) | ((unsigned) p[1] << 16) |
+	 ((unsigned) p[2] << 8) | p[3];
+}
+
+/* Replace the test font's avar2 VarIdxMap with the implicit map and empty
+ * its non-NULL VarStore. The resulting implicit delta-set indices are out
+ * of range and must contribute zero, matching runtime evaluation. */
+static hb_blob_t *
+reference_table_with_empty_avar2_store (hb_face_t *face HB_UNUSED,
+					hb_tag_t tag,
+					void *user_data)
+{
+  hb_blob_t *table = hb_face_reference_table ((hb_face_t *) user_data, tag);
+  if (tag != HB_TAG ('a','v','a','r'))
+    return table;
+
+  hb_blob_t *copy = hb_blob_copy_writable_or_fail (table);
+  hb_blob_destroy (table);
+  g_assert_nonnull (copy);
+
+  unsigned length;
+  unsigned char *data = (unsigned char *) hb_blob_get_data_writable (copy, &length);
+  g_assert_nonnull (data);
+  g_assert_cmpuint (length, >=, 8);
+  g_assert_cmpuint (read_uint16_be (data), ==, 2); /* major version */
+
+  unsigned offset = 8;
+  unsigned axis_count = read_uint16_be (data + 6);
+  for (unsigned i = 0; i < axis_count; i++)
+  {
+    g_assert_cmpuint (offset + 2, <=, length);
+    unsigned map_count = read_uint16_be (data + offset);
+    g_assert_cmpuint (map_count, <=, (length - offset - 2) / 4);
+    offset += 2 + map_count * 4;
+  }
+
+  g_assert_cmpuint (offset + 8, <=, length);
+  unsigned var_store_offset = read_uint32_be (data + offset + 4);
+  g_assert_cmpuint (var_store_offset, <=, length - 8);
+  g_assert_cmpuint (read_uint16_be (data + var_store_offset), ==, 1);
+  g_assert_cmpuint (read_uint16_be (data + var_store_offset + 6), >, 0);
+
+  data[offset + 0] = data[offset + 1] = 0;
+  data[offset + 2] = data[offset + 3] = 0; /* NULL VarIdxMap: implicit map */
+  data[var_store_offset + 6] = 0;
+  data[var_store_offset + 7] = 0; /* VarDataCount = 0 */
+  return copy;
+}
+
 static hb_face_t *
 instance_n (hb_face_t *face, hb_subset_input_t *input, unsigned expected_axes)
 {
@@ -528,6 +586,27 @@ test_avar2_culling (void)
   hb_face_destroy (face);
 }
 
+static void
+test_avar2_empty_varstore (void)
+{
+  hb_face_t *source = open_original ();
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_empty_avar2_store,
+					       source, NULL);
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 300.f, 500.f, 400.f));
+  hb_face_t *inst = instance (face, input);
+
+  for (unsigned i = 0; i < 9; i++)
+  {
+    hb_variation_t vars[1] = {{WGHT, lerp (300.f, 500.f, i, 9)}};
+    check_same_coords (face, inst, vars, 1, 2);
+  }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 /* Move opsz's default from near the axis minimum (14) far up the axis:
  * the retained negative-side avar v1 segment becomes very steep in the
  * new space and offset compensation is quantization-limited. The
@@ -569,6 +648,7 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_self_contained_plus_range);
   hb_test_add (test_avar2_restrict_both_shared);
   hb_test_add (test_avar2_culling);
+  hb_test_add (test_avar2_empty_varstore);
   hb_test_add (test_avar2_restrict_steep);
   hb_test_add (test_avar2_restrict_steep_no_varidx);
 
