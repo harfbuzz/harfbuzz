@@ -380,28 +380,30 @@ _avar2_eval_offset (const hb_vector_t<avar2_offset_knot_t> &knots, double z)
  * produced by SegmentMaps::subset (sorted, with -1/0/+1 anchors).
  * Matches SegmentMaps::map_float for such well-formed mappings. */
 static inline double
-_avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
+_avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v,
+			unsigned from_offset = 0, unsigned to_offset = 1)
 {
   unsigned len = mappings.length;
   if (!len) return v;
 
   for (unsigned i = 0; i < len; i++)
   {
-    double from = (double) mappings.arrayZ[i].coords[0].to_float ();
-    if (v == from) return (double) mappings.arrayZ[i].coords[1].to_float ();
+    double from = (double) mappings.arrayZ[i].coords[from_offset].to_float ();
+    if (v == from)
+      return (double) mappings.arrayZ[i].coords[to_offset].to_float ();
     if (v < from)
     {
-      double to = (double) mappings.arrayZ[i].coords[1].to_float ();
+      double to = (double) mappings.arrayZ[i].coords[to_offset].to_float ();
       if (!i) return v - from + to;
-      double prev_from = (double) mappings.arrayZ[i - 1].coords[0].to_float ();
-      double prev_to = (double) mappings.arrayZ[i - 1].coords[1].to_float ();
+      double prev_from = (double) mappings.arrayZ[i - 1].coords[from_offset].to_float ();
+      double prev_to = (double) mappings.arrayZ[i - 1].coords[to_offset].to_float ();
       double denom = from - prev_from;
       if (denom == 0.0) return prev_to;
       return prev_to + (to - prev_to) * (v - prev_from) / denom;
     }
   }
-  return v - (double) mappings.arrayZ[len - 1].coords[0].to_float ()
-           + (double) mappings.arrayZ[len - 1].coords[1].to_float ();
+  return v - (double) mappings.arrayZ[len - 1].coords[from_offset].to_float ()
+           + (double) mappings.arrayZ[len - 1].coords[to_offset].to_float ();
 }
 
 /* Inverse of _avar2_map_new_mapping: pull an output coordinate back to a
@@ -411,26 +413,7 @@ _avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
 static inline double
 _avar2_unmap_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
 {
-  unsigned len = mappings.length;
-  if (!len) return v;
-
-  for (unsigned i = 0; i < len; i++)
-  {
-    double to = (double) mappings.arrayZ[i].coords[1].to_float ();
-    if (v == to) return (double) mappings.arrayZ[i].coords[0].to_float ();
-    if (v < to)
-    {
-      double from = (double) mappings.arrayZ[i].coords[0].to_float ();
-      if (!i) return v - to + from;
-      double prev_to = (double) mappings.arrayZ[i - 1].coords[1].to_float ();
-      double prev_from = (double) mappings.arrayZ[i - 1].coords[0].to_float ();
-      double denom = to - prev_to;
-      if (denom == 0.0) return prev_from;
-      return prev_from + (from - prev_from) * (v - prev_to) / denom;
-    }
-  }
-  return v - (double) mappings.arrayZ[len - 1].coords[1].to_float ()
-	   + (double) mappings.arrayZ[len - 1].coords[0].to_float ();
+  return _avar2_map_new_mapping (mappings, v, 1, 0);
 }
 
 /* Plain (non-avar) fvar-style normalization of a user value against a

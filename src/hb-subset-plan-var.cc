@@ -130,8 +130,13 @@
    if (!var_store->get_region_list ().get_var_regions (plan->axes_old_index_tag_map, regions))
      return false;
 
+   hb_hashmap_t<hb_tag_t, unsigned> grid_pos;
+   hb_vector_t<hb_vector_t<double>> grid_points;
    for (unsigned i = 0; i < axes.length; i++)
    {
+     grid_pos.reset ();
+     grid_points.reset ();
+
      hb_tag_t tag = axes[i].get_axis_tag ();
      hb_pair_t<double, double> *identity;
      if (!box.has (tag, &identity)) return false;
@@ -180,24 +185,21 @@
 
      /* Grid axes: the target axis (identity term), plus every axis a valid
       * tent of an active region references. */
-     hb_vector_t<hb_tag_t> grid_tags;
-     hb_hashmap_t<hb_tag_t, unsigned> grid_pos;
-     hb_vector_t<hb_vector_t<double>> grid_points;
      auto add_grid_axis = [&] (hb_tag_t t) -> int
      {
        unsigned *pos;
        if (grid_pos.has (t, &pos)) return (int) *pos;
+       unsigned new_pos = grid_pos.get_population ();
        hb_pair_t<double, double> *input;
        double blo = -1.0, bhi = +1.0;
        if (box.has (t, &input)) { blo = input->first; bhi = input->second; }
-       grid_tags.push (t);
        grid_points.push (hb_vector_t<double> ());
-       if (grid_tags.in_error () || grid_points.in_error ()) return -1;
-       auto &points = grid_points[grid_points.length - 1];
+       if (grid_points.in_error ()) return -1;
+       auto &points = grid_points[new_pos];
        points.push (blo);
        points.push (bhi);
-       if (points.in_error () || !grid_pos.set (t, grid_tags.length - 1)) return -1;
-       return (int) (grid_tags.length - 1);
+       if (points.in_error () || !grid_pos.set (t, new_pos)) return -1;
+       return (int) new_pos;
      };
 
      if (add_grid_axis (tag) < 0) return false;
@@ -218,10 +220,8 @@
 	   continue;
 	 int pos = add_grid_axis (_.first);
 	 if (pos < 0) return false;
-	 hb_pair_t<double, double> *input;
-	 double blo = -1.0, bhi = +1.0;
-	 if (box.has (_.first, &input)) { blo = input->first; bhi = input->second; }
 	 auto &points = grid_points[pos];
+	 double blo = points[0], bhi = points[1];
 	 points.push (hb_clamp (tent.minimum, blo, bhi));
 	 points.push (hb_clamp (tent.middle, blo, bhi));
 	 points.push (hb_clamp (tent.maximum, blo, bhi));
@@ -240,17 +240,17 @@
 	 if (!n || points.arrayZ[j] != points.arrayZ[n - 1])
 	   points.arrayZ[n++] = points.arrayZ[j];
        points.shrink (n);
+       if (grid_size > MAX_GRID / points.length) { exact = false; break; }
        grid_size *= points.length;
-       if (grid_size > MAX_GRID) { exact = false; break; }
      }
 
      if (exact)
      {
        unsigned target_pos = 0; /* the target axis was added first */
        hb_vector_t<unsigned> odometer;
-       if (!odometer.resize (grid_tags.length)) return false;
+       if (!odometer.resize (grid_pos.get_population ())) return false;
        bool first = true;
-       for (;;)
+       while (true)
        {
 	 double delta_sum = 0.0;
 	 for (unsigned r = 0; r < active.length; r++)
