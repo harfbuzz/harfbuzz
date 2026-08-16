@@ -47,7 +47,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-base-table.hh"
-#include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-layout-jstf-table.hh"
 #include "hb-ot-name-table.hh"
 #include "hb-ot-os2-table.hh"
 
@@ -2101,13 +2101,12 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
   apply_string<GSUBProxy> (c, lookup, accel);
 }
 
-#ifndef HB_NO_BASE
-
+#if !defined(HB_NO_BASE) || !defined(HB_NO_LAYOUT_RARELY_USED)
 static void
-choose_base_tags (hb_script_t    script,
-		  hb_language_t  language,
-		  hb_tag_t      *script_tag,
-		  hb_tag_t      *language_tag)
+choose_layout_tags (hb_script_t    script,
+		    hb_language_t  language,
+		    hb_tag_t      *script_tag,
+		    hb_tag_t      *language_tag)
 {
   hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
   unsigned script_count = ARRAY_LENGTH (script_tags);
@@ -2122,6 +2121,9 @@ choose_base_tags (hb_script_t    script,
   *script_tag = script_count ? script_tags[script_count - 1] : HB_OT_TAG_DEFAULT_SCRIPT;
   *language_tag = language_count ? language_tags[language_count - 1] : HB_OT_TAG_DEFAULT_LANGUAGE;
 }
+#endif
+
+#ifndef HB_NO_BASE
 
 /**
  * hb_ot_layout_get_font_extents:
@@ -2200,7 +2202,7 @@ hb_ot_layout_get_font_extents2 (hb_font_t         *font,
 				hb_font_extents_t *extents)
 {
   hb_tag_t script_tag, language_tag;
-  choose_base_tags (script, language, &script_tag, &language_tag);
+  choose_layout_tags (script, language, &script_tag, &language_tag);
   return hb_ot_layout_get_font_extents (font,
 					direction,
 					script_tag,
@@ -2332,7 +2334,7 @@ hb_ot_layout_get_baseline2 (hb_font_t                   *font,
 			    hb_position_t               *coord        /* OUT.  May be NULL. */)
 {
   hb_tag_t script_tag, language_tag;
-  choose_base_tags (script, language, &script_tag, &language_tag);
+  choose_layout_tags (script, language, &script_tag, &language_tag);
   return hb_ot_layout_get_baseline (font,
 				    baseline_tag,
 				    direction,
@@ -2593,7 +2595,7 @@ hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,
 					  hb_position_t               *coord        /* OUT */)
 {
   hb_tag_t script_tag, language_tag;
-  choose_base_tags (script, language, &script_tag, &language_tag);
+  choose_layout_tags (script, language, &script_tag, &language_tag);
   hb_ot_layout_get_baseline_with_fallback (font,
 					   baseline_tag,
 					   direction,
@@ -2781,6 +2783,43 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
       break;
   }
   return ret;
+}
+
+/**
+ * hb_ot_layout_get_extender_glyphs:
+ * @face: The #hb_face_t to work on
+ * @script: a script tag to get extender glyphs for.
+ * @language: a language tag, currently unused.
+ * @start_offset: offset of the first extender glyph to retrieve
+ * @glyphs_count: (inout) (nullable): Input = the maximum number of extender glyphs to return;
+ *                Output = the actual number of extender glyphs returned (may be zero).
+ * @glyphs: (out caller-allocates) (array length=glyphs_count) (nullable): A glyphs buffer.
+ *          Extender glyphs associated with the script tag.
+ *
+ * Fetches extender glyphs for a given script and language. Extender glyphs
+ * are used in certain scripts to extend the length of a word for
+ * justification purposes, such as variants of tatweel (U+0640) for the
+ * Arabic script.
+ *
+ * Only glyphs listed in the JSTF table are returned; clients can handle the
+ * default tatweel glyph separately.
+ *
+ * Return value: Total number of extender glyphs for the given script tag.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN unsigned
+hb_ot_layout_get_extender_glyphs (hb_face_t      *face,
+				  hb_script_t     script,
+				  hb_language_t   language,
+				  unsigned        start_offset,
+				  unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
+				  hb_codepoint_t *glyphs       /* OUT.     May be NULL */)
+{
+  hb_tag_t script_tag, language_tag;
+  choose_layout_tags (script, language, &script_tag, &language_tag);
+  // Extender glyphs are per-script in the JSTF table.
+  return face->table.JSTF->get_extender_glyphs (script_tag, start_offset, glyphs_count, glyphs);
 }
 #endif
 
