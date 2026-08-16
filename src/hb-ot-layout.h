@@ -550,6 +550,17 @@ hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,
 					  hb_language_t                language,
 					  hb_position_t               *coord        /* OUT */);
 
+/*
+ * JSTF
+ */
+HB_EXTERN unsigned
+hb_ot_layout_get_extender_glyphs (hb_face_t      *face,
+				  hb_script_t     script,
+				  hb_language_t   language,
+				  unsigned        start_offset,
+				  unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
+				  hb_codepoint_t *glyphs       /* OUT.     May be NULL */);
+
 HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_H */

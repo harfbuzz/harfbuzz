@@ -47,7 +47,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-base-table.hh"
-#include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-layout-jstf-table.hh"
 #include "hb-ot-name-table.hh"
 #include "hb-ot-os2-table.hh"
 
@@ -2781,6 +2781,47 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
       break;
   }
   return ret;
+}
+
+/**
+ * hb_ot_layout_get_extender_glyphs:
+ * @face: The #hb_face_t to work on
+ * @script: a script tag, usually HB_SCRIPT_ARABIC for Arabic script.
+ * @language: a language tag, doesn't matter right now given how JSTF is formed.
+ * @start_offset: offset of the first extender glyph to retrieve
+ * @glyphs_count: (inout) (nullable): Input = the maximum number of extender glyphs to return;
+ *                Output = the actual number of extender glyphs returned (may be zero).
+ * @glyphs: (out caller-allocates) (array length=glyphs_count) (nullable): A glyphs buffer.
+ *          Extender glyphs associated with the script tag.
+ *
+ * Fetches extender glyphs for a given script and language. Extender glyphs
+ * are used in certain scripts to extend the length of a word for
+ * justification purposes, such as variants of tatweel (U+0640) for the
+ * Arabic script.
+ *
+ * The default tatweel glyph is not returned as a fallback; the client should
+ * handle it, which is the only extender glyph needed for most fonts.
+ *
+ * Return value: Total number of extender glyphs for the given script tag.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN unsigned
+hb_ot_layout_get_extender_glyphs (hb_face_t      *face,
+				  hb_script_t     script,
+				  hb_language_t   language,
+				  unsigned        start_offset,
+				  unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
+				  hb_codepoint_t *glyphs       /* OUT.     May be NULL */)
+{
+  hb_tag_t script_tag, language_tag;
+  choose_base_tags (script, language, &script_tag, &language_tag);
+  // Only script_tag is used. Extender glyphs live directly on JstfScript
+  // and do not vary by language per the OT spec; JstfLangSys carries
+  // per-language justification priorities, but exposing those is both
+  // harder and less common among fonts than the (already rare) JSTF table
+  // itself.
+  return face->table.JSTF->get_extender_glyphs (script_tag, start_offset, glyphs_count, glyphs);
 }
 #endif
 
