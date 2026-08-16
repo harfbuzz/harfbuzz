@@ -1704,10 +1704,10 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
     value.get_clip_box(clip_box, instancer);
     if (instancer)
     {
-      clip_box.xMin += roundf (instancer (varIdxBase, 0));
-      clip_box.yMin += roundf (instancer (varIdxBase, 1));
-      clip_box.xMax += roundf (instancer (varIdxBase, 2));
-      clip_box.yMax += roundf (instancer (varIdxBase, 3));
+      clip_box.xMin = hb_saturate_add (clip_box.xMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 0))));
+      clip_box.yMin = hb_saturate_add (clip_box.yMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 1))));
+      clip_box.xMax = hb_saturate_add (clip_box.xMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 2))));
+      clip_box.yMax = hb_saturate_add (clip_box.yMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 3))));
     }
   }
 
@@ -1767,8 +1767,8 @@ struct ClipBox
 
     extents->x_bearing = clip_box.xMin;
     extents->y_bearing = clip_box.yMax;
-    extents->width = clip_box.xMax - clip_box.xMin;
-    extents->height = clip_box.yMin - clip_box.yMax;
+    extents->width = hb_saturate_sub (clip_box.xMax, clip_box.xMin);
+    extents->height = hb_saturate_sub (clip_box.yMin, clip_box.yMax);
     return true;
   }
 
@@ -2881,10 +2881,10 @@ struct COLR
 
 	if (clip)
 	  c.funcs->push_clip_rectangle (c.data,
-					extents.x_bearing,
-					extents.y_bearing + extents.height,
-					extents.x_bearing + extents.width,
-					extents.y_bearing);
+					(float) extents.x_bearing,
+					(float) extents.y_bearing + extents.height,
+					(float) extents.x_bearing + extents.width,
+					(float) extents.y_bearing);
 
 	if (is_bounded)
 	  c.recurse (*paint);
@@ -3014,10 +3014,10 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 
   if (has_clip_box)
     c->funcs->push_clip_rectangle (c->data,
-				   extents.x_bearing,
-				   extents.y_bearing + extents.height,
-				   extents.x_bearing + extents.width,
-				   extents.y_bearing);
+				   (float) extents.x_bearing,
+				   (float) extents.y_bearing + extents.height,
+				   (float) extents.x_bearing + extents.width,
+				   (float) extents.y_bearing);
 
   if (paint)
     c->recurse (*paint);

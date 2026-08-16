@@ -818,7 +818,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   float ix = (float) extents->x_bearing;
   float iy = (float) extents->y_bearing + (float) extents->height;
   float iw = (float) extents->width;
-  float ih = (float) -extents->height; /* negative because image Y goes up but height is negative in extents */
+  float ih = -(float) extents->height; /* negative because image Y goes up but height is negative in extents */
 
   body.append_num (paint->sx (iw));
   body.append_str (" 0 0 ");

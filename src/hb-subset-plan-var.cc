@@ -572,21 +572,23 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
     if (has_bounds_info)
     {
       plan->head_maxp_info.xMin = hb_min (plan->head_maxp_info.xMin, extents.x_bearing);
-      plan->head_maxp_info.xMax = hb_max (plan->head_maxp_info.xMax, extents.x_bearing + extents.width);
+      plan->head_maxp_info.xMax = hb_max (plan->head_maxp_info.xMax,
+						 hb_saturate_add (extents.x_bearing, extents.width));
       plan->head_maxp_info.yMax = hb_max (plan->head_maxp_info.yMax, extents.y_bearing);
-      plan->head_maxp_info.yMin = hb_min (plan->head_maxp_info.yMin, extents.y_bearing + extents.height);
+      plan->head_maxp_info.yMin = hb_min (plan->head_maxp_info.yMin,
+						 hb_saturate_add (extents.y_bearing, extents.height));
     }
 
     if (_hmtx.has_data ())
     {
-      int hori_aw = _hmtx.get_advance_without_var_unscaled (old_gid);
+      double hori_aw = _hmtx.get_advance_without_var_unscaled (old_gid);
       if (_hmtx.var_table.get_length ())
-        hori_aw += (int) roundf (_hmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
-                                                                              hvar_store_cache));
+        hori_aw += (double) roundf (_hmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
+									 hvar_store_cache));
       /* Malicious deltas can take the advance out of the UFWORD range that
        * hmtx serialization stores.  Clamp, to keep downstream consumers
        * (e.g. CFF width optimizer) bounded and consistent with hmtx. */
-      hori_aw = hb_clamp (hori_aw, 0, 0xFFFF);
+      hori_aw = hb_clamp (hori_aw, 0., 65535.);
       int lsb = extents.x_bearing;
       if (!has_bounds_info)
       {
@@ -598,18 +600,18 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
 
     if (_vmtx.has_data ())
     {
-      int vert_aw = _vmtx.get_advance_without_var_unscaled (old_gid);
+      double vert_aw = _vmtx.get_advance_without_var_unscaled (old_gid);
       if (_vmtx.var_table.get_length ())
-        vert_aw += (int) roundf (_vmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
-                                                                              vvar_store_cache));
-      vert_aw = hb_clamp (vert_aw, 0, 0xFFFF);
+        vert_aw += (double) roundf (_vmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
+									 vvar_store_cache));
+      vert_aw = hb_clamp (vert_aw, 0., 65535.);
       hb_position_t vorg_x = 0;
       hb_position_t vorg_y = 0;
       int tsb = 0;
       if (has_bounds_info &&
            hb_font_get_glyph_v_origin (font, old_gid, &vorg_x, &vorg_y))
       {
-        tsb = vorg_y - extents.y_bearing;
+        tsb = hb_saturate_sub (vorg_y, extents.y_bearing);
       } else {
         _vmtx.get_leading_bearing_without_var_unscaled (old_gid, &tsb);
       }

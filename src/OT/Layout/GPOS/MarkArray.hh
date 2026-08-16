@@ -25,7 +25,8 @@ resolve_cross_offset (const hb_glyph_position_t *pos,
     if (unlikely (parent >= len))
       break;
     glyph_pos = parent;
-    offset += horizontal ? pos[glyph_pos].y_offset : pos[glyph_pos].x_offset;
+    offset = hb_saturate_add (offset,
+			      horizontal ? pos[glyph_pos].y_offset : pos[glyph_pos].x_offset);
   }
   return offset;
 }
@@ -82,9 +83,9 @@ struct MarkArray : Array16Of<MarkRecord>        /* Array of MarkRecords--in Cove
     mark.x_offset = roundf (base_x - mark_x);
     mark.y_offset = roundf (base_y - mark_y);
     if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-      mark.y_offset += base_offset;
+      mark.y_offset = hb_saturate_add (mark.y_offset, base_offset);
     else
-      mark.x_offset += base_offset;
+      mark.x_offset = hb_saturate_add (mark.x_offset, base_offset);
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())

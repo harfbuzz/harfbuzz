@@ -109,8 +109,8 @@ struct BaseCoordFormat3
     const Device &device = this+deviceTable;
 
     return HB_DIRECTION_IS_HORIZONTAL (direction)
-	 ? font->em_scale_y (coordinate) + device.get_y_delta (font, var_store)
-	 : font->em_scale_x (coordinate) + device.get_x_delta (font, var_store);
+	 ? hb_saturate_add (font->em_scale_y (coordinate), device.get_y_delta (font, var_store))
+	 : hb_saturate_add (font->em_scale_x (coordinate), device.get_x_delta (font, var_store));
   }
 
   void collect_variation_indices (hb_set_t& varidx_set /* OUT */) const

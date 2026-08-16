@@ -2389,7 +2389,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 	   hb_font_get_nominal_glyph (font, '-', &glyph)) &&
 	  hb_font_get_glyph_extents (font, glyph, &extents))
       {
-	*coord = extents.y_bearing + extents.height / 2;
+	*coord = hb_saturate_add (extents.y_bearing, extents.height / 2);
       }
       else
       {
@@ -2421,9 +2421,11 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 					       &embox_bottom);
 
       if (baseline_tag == HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_TOP_OR_RIGHT)
-	*coord = embox_top + (embox_bottom - embox_top) / 10;
+	*coord = hb_saturate_add (embox_top,
+				  hb_clamp_to<hb_position_t> (((int64_t) embox_bottom - embox_top) / 10));
       else
-	*coord = embox_bottom + (embox_top - embox_bottom) / 10;
+	*coord = hb_saturate_add (embox_bottom,
+				  hb_clamp_to<hb_position_t> (((int64_t) embox_top - embox_bottom) / 10));
     }
     break;
 
@@ -2434,7 +2436,8 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 				   script_tag,
 				   language_tag,
 				   coord))
-      *coord += HB_DIRECTION_IS_HORIZONTAL (direction) ? font->y_scale : font->x_scale;
+      *coord = hb_saturate_add (*coord,
+				HB_DIRECTION_IS_HORIZONTAL (direction) ? font->y_scale : font->x_scale);
     else
     {
       hb_font_extents_t font_extents;
@@ -2450,7 +2453,8 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 				   script_tag,
 				   language_tag,
 				   coord))
-      *coord -= HB_DIRECTION_IS_HORIZONTAL (direction) ? font->y_scale : font->x_scale;
+      *coord = hb_saturate_sub (*coord,
+				HB_DIRECTION_IS_HORIZONTAL (direction) ? font->y_scale : font->x_scale);
     else
     {
       hb_font_extents_t font_extents;
@@ -2510,10 +2514,10 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 	  hb_font_get_glyph_extents (font, glyph, &extents))
 	*coord = extents.y_bearing;
       else
-	*coord = font->y_scale * 6 / 10; // FIXME makes assumptions about origin
+	*coord = hb_clamp_to<hb_position_t> ((int64_t) font->y_scale * 6 / 10); // FIXME makes assumptions about origin
     }
     else
-      *coord = font->x_scale * 6 / 10; // FIXME makes assumptions about origin
+      *coord = hb_clamp_to<hb_position_t> ((int64_t) font->x_scale * 6 / 10); // FIXME makes assumptions about origin
     break;
 
   case HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_CENTRAL:
@@ -2531,7 +2535,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 					       script_tag,
 					       language_tag,
 					       &bottom);
-      *coord = (top + bottom) / 2;
+      *coord = hb_clamp_to<hb_position_t> (((int64_t) top + bottom) / 2);
 
     }
     break;
@@ -2551,7 +2555,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
 					       script_tag,
 					       language_tag,
 					       &bottom);
-      *coord = (top + bottom) / 2;
+      *coord = hb_clamp_to<hb_position_t> (((int64_t) top + bottom) / 2);
 
     }
     break;
@@ -2764,13 +2768,13 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
       ret = pos.x_offset;
       break;
     case HB_DIRECTION_RTL:
-      ret = pos.x_advance - pos.x_offset;
+      ret = hb_saturate_sub (pos.x_advance, pos.x_offset);
       break;
     case HB_DIRECTION_TTB:
       ret = pos.y_offset;
       break;
     case HB_DIRECTION_BTT:
-      ret = pos.y_advance - pos.y_offset;
+      ret = hb_saturate_sub (pos.y_advance, pos.y_offset);
       break;
     case HB_DIRECTION_INVALID:
     default:

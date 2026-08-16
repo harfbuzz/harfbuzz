@@ -158,12 +158,12 @@ struct hb_font_t
   /* Convert from font-space to user-space */
   int64_t dir_mult (hb_direction_t direction)
   { return HB_DIRECTION_IS_VERTICAL(direction) ? y_mult : x_mult; }
-  hb_position_t em_scale_x (int16_t v) { return em_mult (v, x_mult); }
-  hb_position_t em_scale_y (int16_t v) { return em_mult (v, y_mult); }
+  hb_position_t em_scale_x (int32_t v) { return em_mult (v, x_mult); }
+  hb_position_t em_scale_y (int32_t v) { return em_mult (v, y_mult); }
   hb_position_t em_scalef_x (float v) { return em_multf (v, x_multf); }
   hb_position_t em_scalef_y (float v) { return em_multf (v, y_multf); }
-  float em_fscale_x (int16_t v) { return em_fmult (v, x_multf); }
-  float em_fscale_y (int16_t v) { return em_fmult (v, y_multf); }
+  float em_fscale_x (int32_t v) { return em_fmult (v, x_multf); }
+  float em_fscale_y (int32_t v) { return em_fmult (v, y_multf); }
   float em_fscalef_x (float v) { return em_fmultf (v, x_multf); }
   float em_fscalef_y (float v) { return em_fmultf (v, y_multf); }
   hb_position_t em_scale_dir (int16_t v, hb_direction_t direction)
@@ -1144,10 +1144,8 @@ struct hb_font_t
 
     x_multf = x_scale / upem;
     y_multf = y_scale / upem;
-    bool x_neg = x_scale < 0;
-    x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) / upem;
-    bool y_neg = y_scale < 0;
-    y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
+    x_mult = (int64_t) x_scale * 0x10000 / upem;
+    y_mult = (int64_t) y_scale * 0x10000 / upem;
 
     is_synthetic =  x_embolden || y_embolden || slant;
 
@@ -1161,13 +1159,13 @@ struct hb_font_t
     serial++;
   }
 
-  hb_position_t em_mult (int16_t v, int64_t mult)
+  hb_position_t em_mult (int32_t v, int64_t mult)
   { return (hb_position_t) ((v * mult + 32768) >> 16); }
   hb_position_t em_multf (float v, float mult)
   { return (hb_position_t) roundf (em_fmultf (v, mult)); }
   float em_fmultf (float v, float mult)
   { return v * mult; }
-  float em_fmult (int16_t v, float mult)
+  float em_fmult (int32_t v, float mult)
   { return (float) v * mult; }
 };
 DECLARE_NULL_INSTANCE (hb_font_t);
