@@ -49,6 +49,14 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
 			     float x0, float y0,
 			     float x1, float y1);
 
+/* Points curve-flattening work charges at the caller's session budget
+ * (one unit per Bézier subdivision) instead of the standalone
+ * per-session HB_RASTER_MAX_DRAW_WORK budget.  Cleared by
+ * hb_raster_draw_clear() (and hence after every render). */
+HB_INTERNAL void
+hb_raster_draw_set_external_work (hb_raster_draw_t *draw,
+				  int64_t *work_left);
+
 /* Shared pixel helpers (used by paint and image compositing). */
 
 static HB_ALWAYS_INLINE uint8_t

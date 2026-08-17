@@ -77,6 +77,12 @@ struct hb_raster_draw_t
   bool  has_clip_box = false;
   float clip_x0 = 0.f, clip_y0 = 0.f, clip_x1 = 0.f, clip_y1 = 0.f;
 
+  /* Curve-flattening work, charged one unit per Bézier subdivision.
+     When external_work is set (by raster-paint), that session budget
+     is charged instead of the standalone per-session one. */
+  int64_t  flatten_work_left = HB_RASTER_MAX_DRAW_WORK;
+  int64_t *external_work = nullptr;
+
   /* Accumulated geometry */
   hb_vector_t<hb_raster_edge_t> edges;
 
@@ -429,6 +435,8 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
   draw->fixed_extents     = {};
   draw->has_extents = false;
   draw->has_clip_box = false;
+  draw->flatten_work_left = HB_RASTER_MAX_DRAW_WORK;
+  draw->external_work = nullptr;
   draw->edges.clear ();
   draw->active_edges.clear ();
 }
@@ -462,6 +470,13 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
   draw->clip_y0 = y0;
   draw->clip_x1 = x1;
   draw->clip_y1 = y1;
+}
+
+void
+hb_raster_draw_set_external_work (hb_raster_draw_t *draw,
+				  int64_t *work_left)
+{
+  draw->external_work = work_left;
 }
 
 int64_t
@@ -588,6 +603,7 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
   unsigned top = 0;
 
   hb_raster_flatten_clip_t clip = resolve_flatten_clip (draw);
+  int64_t *work = draw->external_work ? draw->external_work : &draw->flatten_work_left;
 
   while (true)
   {
@@ -630,6 +646,16 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
 	is_flat = dx <= flat_thresh && dy <= flat_thresh;
       }
       emit_chord = is_flat;
+    }
+
+    /* Charge one unit per subdivision; degrade to the chord when the
+       session work budget is spent. */
+    if (!emit_chord)
+    {
+      if (unlikely (*work <= 0))
+	emit_chord = true;
+      else
+	(*work)--;
     }
 
     if (emit_chord)
@@ -773,6 +799,7 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
   unsigned top = 0;
 
   hb_raster_flatten_clip_t clip = resolve_flatten_clip (draw);
+  int64_t *work = draw->external_work ? draw->external_work : &draw->flatten_work_left;
 
   while (true)
   {
@@ -820,6 +847,16 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 		  d20y <= flat_thresh;
       }
       emit_chord = is_flat;
+    }
+
+    /* Charge one unit per subdivision; degrade to the chord when the
+       session work budget is spent. */
+    if (!emit_chord)
+    {
+      if (unlikely (*work <= 0))
+	emit_chord = true;
+      else
+	(*work)--;
     }
 
     if (emit_chord)

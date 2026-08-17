@@ -204,10 +204,12 @@ hb_raster_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 typedef void (*hb_raster_paint_clip_mask_emit_t) (hb_raster_draw_t *rdr, void *user_data);
 
-/* Attach the surface box to @rdr before outlines are drawn into it,
- * so curves outside the surface collapse to their chord. */
+/* Attach the surface box and the session work budget to @rdr before
+ * outlines are drawn into it: curves outside the surface collapse to
+ * their chord, and flattening work is charged as it happens instead
+ * of only after the whole outline has been emitted. */
 static void
-hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c HB_UNUSED,
+hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c,
 				 hb_raster_draw_t *rdr,
 				 const hb_raster_image_t *surf)
 {
@@ -216,6 +218,7 @@ hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c HB_UNUSED,
 			       (float) surf->extents.y_origin,
 			       (float) surf->extents.x_origin + (float) surf->extents.width,
 			       (float) surf->extents.y_origin + (float) surf->extents.height);
+  hb_raster_draw_set_external_work (rdr, &c->work_left);
 }
 
 static void
