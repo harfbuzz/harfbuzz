@@ -77,6 +77,12 @@ struct hb_raster_draw_t
   bool  has_clip_box = false;
   float clip_x0 = 0.f, clip_y0 = 0.f, clip_x1 = 0.f, clip_y1 = 0.f;
 
+  /* Flattening clip resolved from the above (or from fixed extents),
+     expanded by one pixel; kept in sync by hb_raster_draw_update_flatten_clip(). */
+  bool  flatten_clip_active = false;
+  float flatten_clip_x0 = 0.f, flatten_clip_y0 = 0.f;
+  float flatten_clip_x1 = 0.f, flatten_clip_y1 = 0.f;
+
   /* Curve-flattening work, charged one unit per Bézier subdivision.
      When external_work is set (by raster-paint), that session budget
      is charged instead of the standalone per-session one. */
@@ -305,6 +311,38 @@ hb_raster_draw_get_transform (const hb_raster_draw_t *draw,
   if (dy) *dy = draw->transform.y0;
 }
 
+/* Recompute the resolved flattening clip box: the internal clip box
+   when set, otherwise the fixed output extents when known.  Expanded
+   by one pixel so fixed-point rounding at the boundary stays safe.
+   Called whenever the clip box or extents change.  A curve whose
+   control-point bounding box misses the clip box entirely is replaced
+   by its chord: coverage inside the box then depends only on the
+   curve's endpoints (intermediate scanline crossings cancel in pairs,
+   and crossings right of the box never reach visible pixels), so the
+   replacement is exact for rendering. */
+static void
+hb_raster_draw_update_flatten_clip (hb_raster_draw_t *draw)
+{
+  if (draw->has_clip_box)
+  {
+    draw->flatten_clip_active = true;
+    draw->flatten_clip_x0 = draw->clip_x0 - 1.f;
+    draw->flatten_clip_y0 = draw->clip_y0 - 1.f;
+    draw->flatten_clip_x1 = draw->clip_x1 + 1.f;
+    draw->flatten_clip_y1 = draw->clip_y1 + 1.f;
+  }
+  else if (draw->has_extents)
+  {
+    draw->flatten_clip_active = true;
+    draw->flatten_clip_x0 = (float) draw->fixed_extents.x_origin - 1.f;
+    draw->flatten_clip_y0 = (float) draw->fixed_extents.y_origin - 1.f;
+    draw->flatten_clip_x1 = (float) draw->fixed_extents.x_origin + (float) draw->fixed_extents.width + 1.f;
+    draw->flatten_clip_y1 = (float) draw->fixed_extents.y_origin + (float) draw->fixed_extents.height + 1.f;
+  }
+  else
+    draw->flatten_clip_active = false;
+}
+
 /**
  * hb_raster_draw_set_extents:
  * @draw: a rasterizer
@@ -322,6 +360,7 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 {
   draw->fixed_extents     = *extents;
   draw->has_extents = true;
+  hb_raster_draw_update_flatten_clip (draw);
 }
 
 /**
@@ -405,6 +444,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
   {
     draw->fixed_extents = {};
     draw->has_extents = false;
+    hb_raster_draw_update_flatten_clip (draw);
     return false;
   }
 
@@ -415,6 +455,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
     0
   };
   draw->has_extents = true;
+  hb_raster_draw_update_flatten_clip (draw);
   return true;
 }
 
@@ -435,6 +476,7 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
   draw->fixed_extents     = {};
   draw->has_extents = false;
   draw->has_clip_box = false;
+  draw->flatten_clip_active = false;
   draw->flatten_work_left = HB_RASTER_MAX_DRAW_WORK;
   draw->external_work = nullptr;
   draw->edges.clear ();
@@ -470,6 +512,7 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
   draw->clip_y0 = y0;
   draw->clip_x1 = x1;
   draw->clip_y1 = y1;
+  hb_raster_draw_update_flatten_clip (draw);
 }
 
 void
@@ -548,42 +591,6 @@ emit_segment (hb_raster_draw_t *draw,
   draw->edges.push (e);
 }
 
-/* Resolved flattening clip box: the internal clip box when set,
-   otherwise the fixed output extents when known.  Expanded by one
-   pixel so fixed-point rounding at the boundary stays safe.  A curve
-   whose control-point bounding box misses the clip box entirely is
-   replaced by its chord: coverage inside the box then depends only on
-   the curve's endpoints (intermediate scanline crossings cancel in
-   pairs, and crossings right of the box never reach visible pixels),
-   so the replacement is exact for rendering. */
-struct hb_raster_flatten_clip_t
-{
-  bool active;
-  float x0, y0, x1, y1;
-};
-
-static inline hb_raster_flatten_clip_t
-resolve_flatten_clip (const hb_raster_draw_t *draw)
-{
-  hb_raster_flatten_clip_t clip = {false, 0.f, 0.f, 0.f, 0.f};
-  if (draw->has_clip_box)
-  {
-    clip.active = true;
-    clip.x0 = draw->clip_x0 - 1.f;
-    clip.y0 = draw->clip_y0 - 1.f;
-    clip.x1 = draw->clip_x1 + 1.f;
-    clip.y1 = draw->clip_y1 + 1.f;
-  }
-  else if (draw->has_extents)
-  {
-    clip.active = true;
-    clip.x0 = (float) draw->fixed_extents.x_origin - 1.f;
-    clip.y0 = (float) draw->fixed_extents.y_origin - 1.f;
-    clip.x1 = (float) draw->fixed_extents.x_origin + (float) draw->fixed_extents.width + 1.f;
-    clip.y1 = (float) draw->fixed_extents.y_origin + (float) draw->fixed_extents.height + 1.f;
-  }
-  return clip;
-}
 
 /* Quadratic Bézier flattener — iterative de Casteljau at t=0.5. */
 static inline void
@@ -597,27 +604,36 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
   {
     float x0, y0, x1, y1, x2, y2;
     int depth;
+    bool check_clip;
   };
 
   quad_node_t stack[16];
   unsigned top = 0;
 
-  hb_raster_flatten_clip_t clip = resolve_flatten_clip (draw);
+  bool check_clip = draw->flatten_clip_active;
   int64_t *work = draw->external_work ? draw->external_work : &draw->flatten_work_left;
+  int64_t work_left = *work;
 
   while (true)
   {
     bool emit_chord = depth >= 16;
 
-    /* Entirely outside the clip box: the chord is exact for coverage. */
-    if (!emit_chord && clip.active)
+    /* Entirely outside the clip box: the chord is exact for coverage.
+       Subdivided control points are convex combinations of their
+       parent's, so once a node is entirely inside the box no
+       descendant can leave it and the test is skipped below. */
+    if (!emit_chord && check_clip)
     {
       float bx0 = hb_min (x0, hb_min (x1, x2));
       float bx1 = hb_max (x0, hb_max (x1, x2));
       float by0 = hb_min (y0, hb_min (y1, y2));
       float by1 = hb_max (y0, hb_max (y1, y2));
-      emit_chord = bx1 < clip.x0 || bx0 > clip.x1 ||
-		   by1 < clip.y0 || by0 > clip.y1;
+      if (bx1 < draw->flatten_clip_x0 || bx0 > draw->flatten_clip_x1 ||
+	  by1 < draw->flatten_clip_y0 || by0 > draw->flatten_clip_y1)
+	emit_chord = true;
+      else if (bx0 >= draw->flatten_clip_x0 && bx1 <= draw->flatten_clip_x1 &&
+	       by0 >= draw->flatten_clip_y0 && by1 <= draw->flatten_clip_y1)
+	check_clip = false;
     }
 
     if (!emit_chord)
@@ -652,21 +668,26 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
        session work budget is spent. */
     if (!emit_chord)
     {
-      if (unlikely (*work <= 0))
+      if (unlikely (work_left <= 0))
 	emit_chord = true;
       else
-	(*work)--;
+	work_left--;
     }
 
     if (emit_chord)
     {
       emit_segment (draw, x0, y0, x2, y2);
-      if (!top) return;
+      if (!top)
+      {
+	*work = work_left;
+	return;
+      }
       const quad_node_t &n = stack[--top];
       x0 = n.x0; y0 = n.y0;
       x1 = n.x1; y1 = n.y1;
       x2 = n.x2; y2 = n.y2;
       depth = n.depth;
+      check_clip = n.check_clip;
       continue;
     }
 
@@ -675,7 +696,7 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
     float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
 
     /* Depth is capped at 16, so stack capacity 16 is sufficient. */
-    stack[top++] = {xm, ym, x12, y12, x2, y2, depth + 1};
+    stack[top++] = {xm, ym, x12, y12, x2, y2, depth + 1, check_clip};
     x2 = xm; y2 = ym;
     x1 = x01; y1 = y01;
     depth++;
@@ -793,27 +814,36 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
   {
     float x0, y0, x1, y1, x2, y2, x3, y3;
     int depth;
+    bool check_clip;
   };
 
   cubic_node_t stack[16];
   unsigned top = 0;
 
-  hb_raster_flatten_clip_t clip = resolve_flatten_clip (draw);
+  bool check_clip = draw->flatten_clip_active;
   int64_t *work = draw->external_work ? draw->external_work : &draw->flatten_work_left;
+  int64_t work_left = *work;
 
   while (true)
   {
     bool emit_chord = depth >= 16;
 
-    /* Entirely outside the clip box: the chord is exact for coverage. */
-    if (!emit_chord && clip.active)
+    /* Entirely outside the clip box: the chord is exact for coverage.
+       Subdivided control points are convex combinations of their
+       parent's, so once a node is entirely inside the box no
+       descendant can leave it and the test is skipped below. */
+    if (!emit_chord && check_clip)
     {
       float bx0 = hb_min (hb_min (x0, x1), hb_min (x2, x3));
       float bx1 = hb_max (hb_max (x0, x1), hb_max (x2, x3));
       float by0 = hb_min (hb_min (y0, y1), hb_min (y2, y3));
       float by1 = hb_max (hb_max (y0, y1), hb_max (y2, y3));
-      emit_chord = bx1 < clip.x0 || bx0 > clip.x1 ||
-		   by1 < clip.y0 || by0 > clip.y1;
+      if (bx1 < draw->flatten_clip_x0 || bx0 > draw->flatten_clip_x1 ||
+	  by1 < draw->flatten_clip_y0 || by0 > draw->flatten_clip_y1)
+	emit_chord = true;
+      else if (bx0 >= draw->flatten_clip_x0 && bx1 <= draw->flatten_clip_x1 &&
+	       by0 >= draw->flatten_clip_y0 && by1 <= draw->flatten_clip_y1)
+	check_clip = false;
     }
 
     if (!emit_chord)
@@ -853,22 +883,27 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
        session work budget is spent. */
     if (!emit_chord)
     {
-      if (unlikely (*work <= 0))
+      if (unlikely (work_left <= 0))
 	emit_chord = true;
       else
-	(*work)--;
+	work_left--;
     }
 
     if (emit_chord)
     {
       emit_segment (draw, x0, y0, x3, y3);
-      if (!top) return;
+      if (!top)
+      {
+	*work = work_left;
+	return;
+      }
       const cubic_node_t &n = stack[--top];
       x0 = n.x0; y0 = n.y0;
       x1 = n.x1; y1 = n.y1;
       x2 = n.x2; y2 = n.y2;
       x3 = n.x3; y3 = n.y3;
       depth = n.depth;
+      check_clip = n.check_clip;
       continue;
     }
 
@@ -880,7 +915,7 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
     float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
 
     /* Depth is capped at 16, so stack capacity 16 is sufficient. */
-    stack[top++] = {xm, ym, x123, y123, x23, y23, x3, y3, depth + 1};
+    stack[top++] = {xm, ym, x123, y123, x23, y23, x3, y3, depth + 1, check_clip};
     x3 = xm; y3 = ym;
     x2 = x012; y2 = y012;
     x1 = x01; y1 = y01;
