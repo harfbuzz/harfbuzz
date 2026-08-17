@@ -2,6 +2,7 @@
 #define OT_LAYOUT_GPOS_CURSIVEPOSFORMAT1_HH
 
 #include "Anchor.hh"
+#include "../../../hb-limits.hh"
 
 namespace OT {
 namespace Layout {
@@ -55,8 +56,12 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos,
                               unsigned int len,
                               unsigned int i,
                               hb_direction_t direction,
-                              unsigned int new_parent)
+                              unsigned int new_parent,
+                              unsigned nesting_level = 0)
 {
+  if (nesting_level > HB_MAX_NESTING_LEVEL)
+    return;
+
   int chain = pos[i].attach_chain(), type = pos[i].attach_type();
   if (likely (!chain || 0 == (type & ATTACH_TYPE_CURSIVE)))
     return;
@@ -79,7 +84,7 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos,
   if (unlikely (reversed_chain != -chain))
     return;
 
-  reverse_cursive_minor_offset (pos, len, j, direction, new_parent);
+  reverse_cursive_minor_offset (pos, len, j, direction, new_parent, nesting_level + 1);
 
   if (HB_DIRECTION_IS_HORIZONTAL (direction))
     pos[j].y_offset = hb_saturate_neg (pos[i].y_offset);
