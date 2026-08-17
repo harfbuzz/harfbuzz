@@ -465,7 +465,7 @@ struct hb_depend_context_t :
   hb_vector_t<hb_set_t> active_glyphs_stack;
   hb_vector_t<context_info_t> context_stack;  /* Stack of context information */
   recurse_func_t recurse_func;
-  hb_codepoint_t lookup_index;
+  hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
   hb_set_t lookups_seen;
 
   hb_depend_context_t (hb_depend_data_builder_t *depend_data_,
