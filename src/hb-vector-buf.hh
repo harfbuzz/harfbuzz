@@ -36,6 +36,9 @@
 HB_INTERNAL const char *
 hb_vector_decimal_point_get (void);
 
+static const double _hb_vector_buf_pow10[13] = {1., 1e1, 1e2, 1e3, 1e4, 1e5, 1e6,
+						1e7, 1e8, 1e9, 1e10, 1e11, 1e12};
+
 struct hb_vector_buf_t : hb_vector_t<char>
 {
   unsigned precision = 2;
@@ -90,6 +93,48 @@ struct hb_vector_buf_t : hb_vector_t<char>
     if (!(v == v) || !std::isfinite (v))
     {
       append_c ('0');
+      return;
+    }
+
+    /* Fast path: fixed-point decimal via integer math.  @v has a
+     * 24-bit significand and 5^12 has 28 bits, so v*10^p is exact in
+     * a double for p <= 12; rounding it half-to-even therefore
+     * matches snprintf "%.pf" output digit-for-digit, while skipping
+     * the (much slower) printf floating-point formatting and any
+     * locale decimal-point fix-up. */
+    double scaled = (double) v * _hb_vector_buf_pow10[p];
+    if (likely (fabs (scaled) < 9.0e18))
+    {
+      double fl = floor (scaled);
+      double diff = scaled - fl;
+      int64_t n = (int64_t) fl;
+      if (diff > 0.5 || (diff == 0.5 && (n & 1)))
+	n++;
+
+      uint64_t u = (uint64_t) (n < 0 ? -n : n);
+      unsigned frac = p;
+      while (frac && !(u % 10))
+      {
+	u /= 10;
+	frac--;
+      }
+
+      char tmp[24];
+      char *end = tmp + sizeof (tmp);
+      char *s = end;
+      unsigned d = 0;
+      do
+      {
+	*--s = (char) ('0' + (char) (u % 10));
+	u /= 10;
+	if (++d == frac)
+	  *--s = '.';
+      }
+      while (u || d < frac + 1);
+      if (v < 0.f)
+	*--s = '-';
+
+      append_len (s, (unsigned) (end - s));
       return;
     }
 
