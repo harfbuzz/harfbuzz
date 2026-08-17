@@ -291,6 +291,7 @@ clamp_i16 (float v)
 {
   if (v <= -32768.f) return -32768;
   if (v >=  32767.f) return  32767;
+  if (unlikely (std::isnan (v))) return 0;
   return (int16_t) v;
 }
 
