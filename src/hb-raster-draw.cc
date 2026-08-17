@@ -71,6 +71,12 @@ struct hb_raster_draw_t
   hb_raster_extents_t fixed_extents     = {};
   bool                has_extents = false;
 
+  /* Visibility clip box for curve flattening (device pixels); set
+     internally by raster-paint so invisible curves collapse to their
+     chord.  See hb_raster_draw_set_clip_box(). */
+  bool  has_clip_box = false;
+  float clip_x0 = 0.f, clip_y0 = 0.f, clip_x1 = 0.f, clip_y1 = 0.f;
+
   /* Accumulated geometry */
   hb_vector_t<hb_raster_edge_t> edges;
 
@@ -422,6 +428,7 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
 {
   draw->fixed_extents     = {};
   draw->has_extents = false;
+  draw->has_clip_box = false;
   draw->edges.clear ();
   draw->active_edges.clear ();
 }
@@ -443,6 +450,18 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->x_scale_factor    = 1.f;
   draw->y_scale_factor    = 1.f;
   hb_raster_draw_clear (draw);
+}
+
+void
+hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
+			     float x0, float y0,
+			     float x1, float y1)
+{
+  draw->has_clip_box = true;
+  draw->clip_x0 = x0;
+  draw->clip_y0 = y0;
+  draw->clip_x1 = x1;
+  draw->clip_y1 = y1;
 }
 
 int64_t
@@ -514,6 +533,43 @@ emit_segment (hb_raster_draw_t *draw,
   draw->edges.push (e);
 }
 
+/* Resolved flattening clip box: the internal clip box when set,
+   otherwise the fixed output extents when known.  Expanded by one
+   pixel so fixed-point rounding at the boundary stays safe.  A curve
+   whose control-point bounding box misses the clip box entirely is
+   replaced by its chord: coverage inside the box then depends only on
+   the curve's endpoints (intermediate scanline crossings cancel in
+   pairs, and crossings right of the box never reach visible pixels),
+   so the replacement is exact for rendering. */
+struct hb_raster_flatten_clip_t
+{
+  bool active;
+  float x0, y0, x1, y1;
+};
+
+static inline hb_raster_flatten_clip_t
+resolve_flatten_clip (const hb_raster_draw_t *draw)
+{
+  hb_raster_flatten_clip_t clip = {false, 0.f, 0.f, 0.f, 0.f};
+  if (draw->has_clip_box)
+  {
+    clip.active = true;
+    clip.x0 = draw->clip_x0 - 1.f;
+    clip.y0 = draw->clip_y0 - 1.f;
+    clip.x1 = draw->clip_x1 + 1.f;
+    clip.y1 = draw->clip_y1 + 1.f;
+  }
+  else if (draw->has_extents)
+  {
+    clip.active = true;
+    clip.x0 = (float) draw->fixed_extents.x_origin - 1.f;
+    clip.y0 = (float) draw->fixed_extents.y_origin - 1.f;
+    clip.x1 = (float) draw->fixed_extents.x_origin + (float) draw->fixed_extents.width + 1.f;
+    clip.y1 = (float) draw->fixed_extents.y_origin + (float) draw->fixed_extents.height + 1.f;
+  }
+  return clip;
+}
+
 /* Quadratic Bézier flattener — iterative de Casteljau at t=0.5. */
 static inline void
 flatten_quadratic_recursive (hb_raster_draw_t *draw,
@@ -531,33 +587,52 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
   quad_node_t stack[16];
   unsigned top = 0;
 
+  hb_raster_flatten_clip_t clip = resolve_flatten_clip (draw);
+
   while (true)
   {
-    bool is_flat;
-    if (false)
+    bool emit_chord = depth >= 16;
+
+    /* Entirely outside the clip box: the chord is exact for coverage. */
+    if (!emit_chord && clip.active)
     {
-      /* Old behavior: midpoint deviation from chord midpoint. */
-      float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
-      float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
-      float chord_mx = (x0 + x2) * 0.5f;
-      float chord_my = (y0 + y2) * 0.5f;
-      float dx = mx - chord_mx;
-      float dy = my - chord_my;
-      static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
-      is_flat = (dx * dx + dy * dy) <= flat_thresh;
-    }
-    else
-    {
-      /* FreeType behavior: control-point deviation from chord center. */
-      const float flat_thresh = 0.25f;
-      float dx = x0 + x2 - 2.f * x1;
-      float dy = y0 + y2 - 2.f * y1;
-      if (dx < 0) dx = -dx;
-      if (dy < 0) dy = -dy;
-      is_flat = dx <= flat_thresh && dy <= flat_thresh;
+      float bx0 = hb_min (x0, hb_min (x1, x2));
+      float bx1 = hb_max (x0, hb_max (x1, x2));
+      float by0 = hb_min (y0, hb_min (y1, y2));
+      float by1 = hb_max (y0, hb_max (y1, y2));
+      emit_chord = bx1 < clip.x0 || bx0 > clip.x1 ||
+		   by1 < clip.y0 || by0 > clip.y1;
     }
 
-    if (depth >= 16 || is_flat)
+    if (!emit_chord)
+    {
+      bool is_flat;
+      if (false)
+      {
+	/* Old behavior: midpoint deviation from chord midpoint. */
+	float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
+	float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
+	float chord_mx = (x0 + x2) * 0.5f;
+	float chord_my = (y0 + y2) * 0.5f;
+	float dx = mx - chord_mx;
+	float dy = my - chord_my;
+	static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+	is_flat = (dx * dx + dy * dy) <= flat_thresh;
+      }
+      else
+      {
+	/* FreeType behavior: control-point deviation from chord center. */
+	const float flat_thresh = 0.25f;
+	float dx = x0 + x2 - 2.f * x1;
+	float dy = y0 + y2 - 2.f * y1;
+	if (dx < 0) dx = -dx;
+	if (dy < 0) dy = -dy;
+	is_flat = dx <= flat_thresh && dy <= flat_thresh;
+      }
+      emit_chord = is_flat;
+    }
+
+    if (emit_chord)
     {
       emit_segment (draw, x0, y0, x2, y2);
       if (!top) return;
@@ -697,38 +772,57 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
   cubic_node_t stack[16];
   unsigned top = 0;
 
+  hb_raster_flatten_clip_t clip = resolve_flatten_clip (draw);
+
   while (true)
   {
-    bool is_flat;
-    if (false)
+    bool emit_chord = depth >= 16;
+
+    /* Entirely outside the clip box: the chord is exact for coverage. */
+    if (!emit_chord && clip.active)
     {
-      /* Old behavior: curvature/chord-error bound. */
-      float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
-      static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
-      is_flat = err2 <= flat_thresh;
-    }
-    else
-    {
-      /* FreeType behavior: chord-trisection distance test. */
-      const float flat_thresh = 0.5f;
-
-      float d10x = 2.f * x0 - 3.f * x1 + x3;
-      float d10y = 2.f * y0 - 3.f * y1 + y3;
-      float d20x = x0 - 3.f * x2 + 2.f * x3;
-      float d20y = y0 - 3.f * y2 + 2.f * y3;
-
-      if (d10x < 0) d10x = -d10x;
-      if (d10y < 0) d10y = -d10y;
-      if (d20x < 0) d20x = -d20x;
-      if (d20y < 0) d20y = -d20y;
-
-      is_flat = d10x <= flat_thresh &&
-                d10y <= flat_thresh &&
-                d20x <= flat_thresh &&
-                d20y <= flat_thresh;
+      float bx0 = hb_min (hb_min (x0, x1), hb_min (x2, x3));
+      float bx1 = hb_max (hb_max (x0, x1), hb_max (x2, x3));
+      float by0 = hb_min (hb_min (y0, y1), hb_min (y2, y3));
+      float by1 = hb_max (hb_max (y0, y1), hb_max (y2, y3));
+      emit_chord = bx1 < clip.x0 || bx0 > clip.x1 ||
+		   by1 < clip.y0 || by0 > clip.y1;
     }
 
-    if (depth >= 16 || is_flat)
+    if (!emit_chord)
+    {
+      bool is_flat;
+      if (false)
+      {
+	/* Old behavior: curvature/chord-error bound. */
+	float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
+	static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+	is_flat = err2 <= flat_thresh;
+      }
+      else
+      {
+	/* FreeType behavior: chord-trisection distance test. */
+	const float flat_thresh = 0.5f;
+
+	float d10x = 2.f * x0 - 3.f * x1 + x3;
+	float d10y = 2.f * y0 - 3.f * y1 + y3;
+	float d20x = x0 - 3.f * x2 + 2.f * x3;
+	float d20y = y0 - 3.f * y2 + 2.f * y3;
+
+	if (d10x < 0) d10x = -d10x;
+	if (d10y < 0) d10y = -d10y;
+	if (d20x < 0) d20x = -d20x;
+	if (d20y < 0) d20y = -d20y;
+
+	is_flat = d10x <= flat_thresh &&
+		  d10y <= flat_thresh &&
+		  d20x <= flat_thresh &&
+		  d20y <= flat_thresh;
+      }
+      emit_chord = is_flat;
+    }
+
+    if (emit_chord)
     {
       emit_segment (draw, x0, y0, x3, y3);
       if (!top) return;

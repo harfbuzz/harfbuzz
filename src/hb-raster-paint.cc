@@ -204,6 +204,20 @@ hb_raster_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 typedef void (*hb_raster_paint_clip_mask_emit_t) (hb_raster_draw_t *rdr, void *user_data);
 
+/* Attach the surface box to @rdr before outlines are drawn into it,
+ * so curves outside the surface collapse to their chord. */
+static void
+hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c HB_UNUSED,
+				 hb_raster_draw_t *rdr,
+				 const hb_raster_image_t *surf)
+{
+  hb_raster_draw_set_clip_box (rdr,
+			       (float) surf->extents.x_origin,
+			       (float) surf->extents.y_origin,
+			       (float) surf->extents.x_origin + (float) surf->extents.width,
+			       (float) surf->extents.y_origin + (float) surf->extents.height);
+}
+
 static void
 hb_raster_paint_push_empty_clip (hb_raster_paint_t *c, unsigned w, unsigned h)
 {
@@ -408,6 +422,7 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
+  hb_raster_paint_attach_clip_rdr (c, rdr, surf);
   emit (rdr, emit_data);
 
   hb_raster_paint_finalize_path_clip (c, rdr, surf, w, h);
@@ -705,6 +720,9 @@ hb_raster_paint_push_clip_path_start (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
+  hb_raster_image_t *surf = c->current_surface ();
+  if (likely (surf))
+    hb_raster_paint_attach_clip_rdr (c, rdr, surf);
 
   *draw_data = rdr;
   return hb_raster_draw_get_funcs (rdr);
@@ -911,6 +929,7 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
+  hb_raster_paint_attach_clip_rdr (c, rdr, surf);
 
   hb_raster_paint_glyph_clip_data_t data = {glyph, font};
   hb_raster_paint_emit_clip_glyph_mask (rdr, &data);
