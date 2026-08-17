@@ -196,6 +196,14 @@
 #define HB_RASTER_MAX_PAINT_WORK_PASSES 4
 #endif
 
+/* One raster draw session (everything drawn between two render/clear
+ * calls) through the standalone hb-raster-draw API, in Bézier
+ * subdivision steps.  When driven by raster-paint, the paint session
+ * budget above is charged instead. */
+#ifndef HB_RASTER_MAX_DRAW_WORK
+#define HB_RASTER_MAX_DRAW_WORK ((int64_t) 1 << 24)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
