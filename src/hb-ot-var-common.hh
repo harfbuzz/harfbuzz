@@ -617,7 +617,7 @@ struct tuple_delta_t
     for (unsigned i = 0; i < point_indices.length; i++)
     {
       if (!point_indices[i]) continue;
-      rounded_deltas.arrayZ[j++] = (int) roundf (x_deltas.arrayZ[i]);
+      rounded_deltas.arrayZ[j++] = hb_clamp_to<int> (roundf ((double) x_deltas.arrayZ[i]));
     }
     rounded_deltas.resize (j);
 
@@ -642,7 +642,7 @@ struct tuple_delta_t
       for (unsigned idx = 0; idx < point_indices.length; idx++)
       {
         if (!point_indices[idx]) continue;
-        int rounded_delta = (int) roundf (y_deltas.arrayZ[idx]);
+        int rounded_delta = hb_clamp_to<int> (roundf ((double) y_deltas.arrayZ[idx]));
 
         if (j >= rounded_deltas.length) return false;
 
@@ -776,8 +776,8 @@ struct tuple_delta_t
 
     for (unsigned i = 0; i < count; i++)
     {
-      rounded_x_deltas.arrayZ[i] = (int) roundf (deltas_x.arrayZ[i]);
-      rounded_y_deltas.arrayZ[i] = (int) roundf (deltas_y.arrayZ[i]);
+      rounded_x_deltas.arrayZ[i] = hb_clamp_to<int> (roundf ((double) deltas_x.arrayZ[i]));
+      rounded_y_deltas.arrayZ[i] = hb_clamp_to<int> (roundf ((double) deltas_y.arrayZ[i]));
     }
 
     if (!iup_delta_optimize (contour_points, rounded_x_deltas, rounded_y_deltas, opt_indices, scratch.iup, tolerance))
@@ -1987,7 +1987,7 @@ struct item_variations_t
           bool all_zeros = true;
           for (float d : tuple.deltas_x)
           {
-            int delta = (int) roundf (d);
+            int delta = hb_clamp_to<int> (roundf ((double) d));
             if (delta != 0)
             {
               all_zeros = false;
@@ -2115,7 +2115,7 @@ struct item_variations_t
 
         for (unsigned i = 0; i < num_rows; i++)
         {
-          int rounded_delta = roundf (tuple.deltas_x[i]);
+          int rounded_delta = hb_clamp_to<int> (roundf ((double) tuple.deltas_x[i]));
           delta_rows[start_row + i][*col_idx] += rounded_delta;
           has_long |= rounded_delta < -65536 || rounded_delta > 65535;
         }
