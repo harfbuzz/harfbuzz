@@ -45,4 +45,9 @@
     remain valid for use with HarfBuzz and often with other open-source tools,
     including FreeType, FontTools, and Fontations.
   </para>
+
+  <para>
+    HarfType is released with each HarfBuzz release, using the same version
+    number.
+  </para>
 </chapter>
