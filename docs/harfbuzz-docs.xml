@@ -56,6 +56,7 @@
   <part id="harftype">
     <title>HarfType</title>
       <xi:include href="harftype-introduction.xml"/>
+      <xi:include href="harftype-tables.xml"/>
   </part>
 
   <part id="reference-manual">

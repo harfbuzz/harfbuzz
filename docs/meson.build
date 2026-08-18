@@ -28,6 +28,7 @@ content_files = [
   'usermanual-utilities.xml',
   'usermanual-integration.xml',
   'harftype-introduction.xml',
+  'harftype-tables.xml',
   version_xml,
 ]
 
