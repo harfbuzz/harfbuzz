@@ -27,6 +27,7 @@ content_files = [
   'usermanual-clusters.xml',
   'usermanual-utilities.xml',
   'usermanual-integration.xml',
+  'harftype-introduction.xml',
   version_xml,
 ]
 

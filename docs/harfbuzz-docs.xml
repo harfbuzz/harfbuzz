@@ -53,6 +53,11 @@
       <xi:include href="usermanual-integration.xml"/>
   </part>
 
+  <part id="harftype">
+    <title>HarfType</title>
+      <xi:include href="harftype-introduction.xml"/>
+  </part>
+
   <part id="reference-manual">
     <title>Reference manual</title>
       <chapter id="core-api">
