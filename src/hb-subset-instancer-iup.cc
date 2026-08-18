@@ -452,7 +452,8 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     hb_vector_t<bool> &rot_indices = scratch.rot_indices.reset ();
     const hb_array_t<const bool> opt_indices_array (opt_indices.arrayZ, opt_indices.length);
-    rotate_array (opt_indices_array, -k, rot_indices);
+    if (unlikely (!rotate_array (opt_indices_array, -k, rot_indices)))
+      return false;
 
     for (unsigned i = 0; i < n; i++)
       opt_indices.arrayZ[i] = rot_indices.arrayZ[i];
