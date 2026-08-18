@@ -936,10 +936,19 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
     param.process_blend ();
     k = param.region_count;
     n = env.argStack.pop_uint ();
+
+    unsigned count = env.argStack.get_count ();
+    unsigned int total;
+    if (unlikely (hb_unsigned_mul_overflows (k + 1, n, &total) || total > count))
+    {
+      env.set_error ();
+      return;
+    }
+
     /* copy the blend values into blend array of the default values */
-    unsigned int start = env.argStack.get_count () - ((k+1) * n);
+    unsigned int start = count - total;
     /* let an obvious error case fail, but note CFF2 spec doesn't forbid n==0 */
-    if (unlikely (start > env.argStack.get_count ()))
+    if (unlikely (start > count))
     {
       env.set_error ();
       return;
