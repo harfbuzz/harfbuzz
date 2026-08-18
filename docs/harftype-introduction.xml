@@ -10,6 +10,11 @@
   </para>
 
   <para>
+    HarfBuzz behavior is normative for HarfType. HarfRust aims to match that
+    behavior.
+  </para>
+
+  <para>
     HarfType does not duplicate the specifications it extends. Readers should
     consult the Microsoft OpenType, Apple TrueType, and ISO Open Font Format
     specifications for table-level definitions. HarfType documents the common
