@@ -645,7 +645,7 @@ retry_getglyphs:
     /* TODO vertical */
     pos->x_advance = hb_clamp_to<hb_position_t> (round (x_mult * (int32_t) info->mask));
     double x_offset = isRightToLeft ? -(double) info->var1.i32 : info->var1.i32;
-    pos->x_offset = hb_clamp_to<hb_position_t> (round (x_mult * x_offset));
+    pos->x_offset = hb_clamp_to<hb_position_t> (round ((double) x_mult * x_offset));
     pos->y_offset = hb_clamp_to<hb_position_t> (round (y_mult * info->var2.i32));
   }
 
