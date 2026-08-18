@@ -518,11 +518,18 @@ struct cff1_subset_plan
     glyph_to_sid_map_t *glyph_to_sid_map = acc.cff_accelerator ?
 					   acc.cff_accelerator->glyph_to_sid_map.get_acquire () :
 					   nullptr;
+
     bool created_map = false;
     if (!glyph_to_sid_map && acc.cff_accelerator)
     {
       created_map = true;
       glyph_to_sid_map = acc.create_glyph_to_sid_map ();
+    }
+
+    if (!glyph_to_sid_map || glyph_to_sid_map->in_error ())
+    {
+      glyph_to_sid_map = nullptr;
+      created_map = false;
     }
 
     auto it = hb_iter (plan->new_to_old_gid_list);
