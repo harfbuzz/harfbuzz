@@ -15,6 +15,12 @@
   </para>
 
   <para>
+    HarfType prioritizes robust consumption by supported platforms while
+    aiming for interoperability. It does not require acceptance by every font
+    validator or proprietary platform.
+  </para>
+
+  <para>
     HarfType does not duplicate the specifications it extends. Readers should
     consult the Microsoft OpenType, Apple TrueType, and ISO Open Font Format
     specifications for table-level definitions. HarfType documents the common
