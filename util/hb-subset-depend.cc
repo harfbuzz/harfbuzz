@@ -38,6 +38,7 @@ struct depend_t : option_parser_t, face_options_t
   gboolean flagged_only = false;
   gboolean no_context = false;
   gboolean no_glyph_names = false;
+  gboolean quiet = false;
   char *gids_str = nullptr;
 
   void
@@ -60,6 +61,8 @@ struct depend_t : option_parser_t, face_options_t
        "Suppress context set output", nullptr},
       {"no-glyph-names", 0, 0, G_OPTION_ARG_NONE, &this->no_glyph_names,
        "Use numeric glyph IDs instead of names", nullptr},
+      {"quiet",          'q', 0, G_OPTION_ARG_NONE, &this->quiet,
+       "Build the dependency graph without printing it", nullptr},
       {nullptr}
     };
     add_group (depend_entries,
@@ -207,6 +210,12 @@ struct depend_t : option_parser_t, face_options_t
     {
       fprintf (stderr, "Failed to build dependency graph\n");
       return 1;
+    }
+
+    if (quiet)
+    {
+      hb_subset_depend_destroy (depend);
+      return 0;
     }
 
     hb_font_t *font = no_glyph_names ? nullptr : hb_font_create (face);
