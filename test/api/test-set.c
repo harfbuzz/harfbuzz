@@ -1024,6 +1024,41 @@ test_set_inverted_equality (void)
   hb_set_destroy (b);
 }
 
+static void
+test_set_intersects (void)
+{
+  hb_set_t *a = hb_set_create ();
+  hb_set_t *b = hb_set_create ();
+  hb_set_t *c = hb_set_create ();
+
+  hb_set_add (a, 1);
+  hb_set_add (a, 2);
+  hb_set_add (b, 2);
+  hb_set_add (b, 3);
+  hb_set_add (c, 3);
+  hb_set_add (c, 4);
+
+  g_assert_true (hb_set_intersects (a, b));
+  g_assert_true (hb_set_intersects (b, a));
+  g_assert_true (!hb_set_intersects (a, c));
+
+  hb_set_invert (b);
+  g_assert_true (hb_set_intersects (a, b));
+  g_assert_true (hb_set_intersects (b, a));
+
+  hb_set_clear (a);
+  hb_set_add (a, 2);
+  g_assert_true (!hb_set_intersects (a, b));
+  g_assert_true (!hb_set_intersects (b, a));
+
+  hb_set_invert (c);
+  g_assert_true (hb_set_intersects (b, c));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+  hb_set_destroy (c);
+}
+
 typedef enum {
   UNION = 0,
   INTERSECT,
@@ -1300,6 +1335,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_iteration_next);
   hb_test_add (test_set_inverted_iteration_prev);
   hb_test_add (test_set_inverted_equality);
+  hb_test_add (test_set_intersects);
   hb_test_add (test_set_inverted_operations);
 
   hb_test_add (test_hb_set_add_sorted_array);
