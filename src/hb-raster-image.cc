@@ -618,7 +618,8 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob)
   }
 
   size_t rgba_size = (size_t) rowbytes * (size_t) h;
-  if (h && rgba_size / (size_t) h != (size_t) rowbytes)
+  if ((h && rgba_size / (size_t) h != (size_t) rowbytes) ||
+      rgba_size > HB_RASTER_MAX_BUFFER_SIZE)
   {
     png_destroy_read_struct (&png, &info, nullptr);
     hb_raster_png_read_blob_fini (reader);
