@@ -345,11 +345,11 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
   if (likely (paint->work_left > 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
-				 paint->x_scale_factor, paint->y_scale_factor};
+				 paint->x_scale_factor, paint->y_scale_factor,
+				 &paint->work_left};
     hb_font_draw_glyph (font, glyph,
 			hb_vector_pdf_path_draw_funcs_get (),
 			&sink);
-    paint->work_left -= paint->path.length;
   }
   buf->append_len (paint->path.arrayZ, paint->path.length);
   paint->path.clear ();
@@ -511,7 +511,8 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
    * scale_factor so they land in output space. */
   paint->clip_path_sink = {&body, paint->get_precision (),
 			   paint->x_scale_factor,
-			   paint->y_scale_factor};
+			   paint->y_scale_factor,
+			   &paint->work_left};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_pdf_path_draw_funcs_get ();
 }

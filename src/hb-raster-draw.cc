@@ -90,6 +90,7 @@ struct hb_raster_draw_t
   int64_t *external_work = nullptr;
 
   /* Accumulated geometry */
+  int64_t edges_left = HB_RASTER_MAX_DRAW_EDGES;
   hb_vector_t<hb_raster_edge_t> edges;
 
   /* Scratch — reused across render() calls */
@@ -479,6 +480,7 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
   draw->flatten_clip_active = false;
   draw->flatten_work_left = HB_RASTER_MAX_DRAW_WORK;
   draw->external_work = nullptr;
+  draw->edges_left = HB_RASTER_MAX_DRAW_EDGES;
   draw->edges.clear ();
   draw->active_edges.clear ();
 }
@@ -572,6 +574,9 @@ emit_segment (hb_raster_draw_t *draw,
 	      float x0, float y0,
 	      float x1, float y1)
 {
+  if (unlikely (draw->edges_left <= 0))
+    return;
+
   int32_t X0 = hb_clamp_to<int32_t> (roundf (x0 * HB_RASTER_ONE_PIXEL));
   int32_t Y0 = hb_clamp_to<int32_t> (roundf (y0 * HB_RASTER_ONE_PIXEL));
   int32_t X1 = hb_clamp_to<int32_t> (roundf (x1 * HB_RASTER_ONE_PIXEL));
@@ -588,7 +593,10 @@ emit_segment (hb_raster_draw_t *draw,
   e.slope = (((int64_t) e.xH - (int64_t) e.xL) * (int64_t) 65536) /
 	    ((int64_t) e.yH - (int64_t) e.yL);
 
-  draw->edges.push (e);
+  if (likely (draw->edges.push_or_fail (e)))
+    draw->edges_left--;
+  else
+    draw->edges_left = 0;
 }
 
 
@@ -1028,6 +1036,7 @@ hb_raster_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		   void *user_data HB_UNUSED)
 {
   hb_raster_draw_t *draw = (hb_raster_draw_t *) draw_data;
+  if (unlikely (draw->edges_left <= 0)) return;
 
   float tx0, ty0, tx1, ty1;
   transform_point (draw, st->current_x, st->current_y, tx0, ty0);
@@ -1044,6 +1053,7 @@ hb_raster_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 			void *user_data HB_UNUSED)
 {
   hb_raster_draw_t *draw = (hb_raster_draw_t *) draw_data;
+  if (unlikely (draw->edges_left <= 0)) return;
 
   float tx0, ty0, tx1, ty1, tx2, ty2;
   transform_point (draw, st->current_x, st->current_y, tx0, ty0);
@@ -1062,6 +1072,7 @@ hb_raster_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		    void *user_data HB_UNUSED)
 {
   hb_raster_draw_t *draw = (hb_raster_draw_t *) draw_data;
+  if (unlikely (draw->edges_left <= 0)) return;
 
   float tx0, ty0, tx1, ty1, tx2, ty2, tx3, ty3;
   transform_point (draw, st->current_x, st->current_y, tx0, ty0);

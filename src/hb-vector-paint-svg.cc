@@ -443,9 +443,9 @@ hb_vector_paint_fill_glyph (hb_paint_funcs_t *,
   if (likely (paint->work_left > 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
-				 paint->x_scale_factor, paint->y_scale_factor};
+				 paint->x_scale_factor, paint->y_scale_factor,
+				 &paint->work_left};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
-    paint->work_left -= paint->path.length;
   }
 
   auto &body = paint->current_body ();
@@ -476,9 +476,9 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   if (likely (paint->work_left > 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
-				 paint->x_scale_factor, paint->y_scale_factor};
+				 paint->x_scale_factor, paint->y_scale_factor,
+				 &paint->work_left};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
-    paint->work_left -= paint->path.length;
   }
 
   unsigned def_id = paint->path_def_count++;
@@ -557,7 +557,8 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   paint->path.clear ();
   paint->clip_path_sink = {&paint->path, paint->get_precision (),
 			   paint->x_scale_factor,
-			   paint->y_scale_factor};
+			   paint->y_scale_factor,
+			   &paint->work_left};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_svg_path_draw_funcs_get ();
 }

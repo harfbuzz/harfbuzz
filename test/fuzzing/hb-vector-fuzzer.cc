@@ -24,36 +24,37 @@ exercise_format (const _fuzzing_shape_input_t *input,
   unsigned glyph_count = hb_face_get_glyph_count (input->face);
   unsigned limit = glyph_count > 16 ? 16 : glyph_count;
 
-  for (unsigned gid = 0; gid < limit; gid++)
+  if (limit)
   {
+    unsigned gid = input->text.empty () ? 0 : input->text[0] % limit;
     float x = (float) ((gid % 4) * 40);
     float y = (float) ((gid / 4) * 40);
     hb_vector_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, x, y);
     hb_vector_draw_glyph  (draw,  input->font, gid, HB_VECTOR_EXTENTS_MODE_EXPAND);
     hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, x, y);
     hb_vector_paint_glyph (paint, input->font, gid, HB_VECTOR_EXTENTS_MODE_EXPAND);
-  }
 
-  hb_blob_t *draw_blob = hb_vector_draw_render (draw);
-  if (draw_blob)
-  {
-    unsigned length = 0;
-    const char *blob_data = hb_blob_get_data (draw_blob, &length);
-    *counter += length;
-    if (blob_data && length)
-      *counter += (unsigned char) blob_data[0];
-    hb_vector_draw_recycle_blob (draw, draw_blob);
-  }
+    hb_blob_t *draw_blob = hb_vector_draw_render (draw);
+    if (draw_blob)
+    {
+      unsigned length = 0;
+      const char *blob_data = hb_blob_get_data (draw_blob, &length);
+      *counter += length;
+      if (blob_data && length)
+	*counter += (unsigned char) blob_data[0];
+      hb_vector_draw_recycle_blob (draw, draw_blob);
+    }
 
-  hb_blob_t *paint_blob = hb_vector_paint_render (paint);
-  if (paint_blob)
-  {
-    unsigned length = 0;
-    const char *blob_data = hb_blob_get_data (paint_blob, &length);
-    *counter += length;
-    if (blob_data && length)
-      *counter += (unsigned char) blob_data[0];
-    hb_vector_paint_recycle_blob (paint, paint_blob);
+    hb_blob_t *paint_blob = hb_vector_paint_render (paint);
+    if (paint_blob)
+    {
+      unsigned length = 0;
+      const char *blob_data = hb_blob_get_data (paint_blob, &length);
+      *counter += length;
+      if (blob_data && length)
+	*counter += (unsigned char) blob_data[0];
+      hb_vector_paint_recycle_blob (paint, paint_blob);
+    }
   }
 
   hb_vector_draw_destroy (draw);

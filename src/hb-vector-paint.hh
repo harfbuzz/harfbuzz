@@ -72,7 +72,7 @@ struct hb_vector_paint_t
    * with the paint-graph traversal limits of the font tables driving
    * us (e.g. COLR). */
   int64_t work_left = HB_VECTOR_MAX_PAINT_WORK;
-  hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f};
+  hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f, nullptr};
   unsigned gradient_counter = 0;
   unsigned color_glyph_depth = 0;
   unsigned path_def_count = 0;
