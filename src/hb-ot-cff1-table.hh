@@ -773,13 +773,7 @@ struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
 {
   static void process_op (op_code_t op, cff1_top_dict_interp_env_t& env, cff1_top_dict_values_t& dictval)
   {
-    cff1_top_dict_val_t  val;
-
-    if (env.last_offset > dictval.opStart) {
-      val.last_arg_offset = (env.last_offset - dictval.opStart) - 1;  /* offset to the last argument */
-    } else {
-      val.last_arg_offset = 0;
-    }
+    cff1_top_dict_val_t  val {};
 
     switch (op) {
       case OpCode_version:
@@ -823,6 +817,9 @@ struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
 	dictval.nameSIDs[name_dict_values_t::ordering] = env.argStack.pop_uint ();
 	dictval.nameSIDs[name_dict_values_t::registry] = env.argStack.pop_uint ();
 	env.clear_args ();
+	if (unlikely (env.in_error ())) return;
+	assert (env.last_offset > dictval.opStart);
+	val.last_arg_offset = (env.last_offset - 1) - dictval.opStart;  /* offset to the last argument */
 	break;
 
       case OpCode_Encoding:
