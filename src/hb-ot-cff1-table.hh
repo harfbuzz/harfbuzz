@@ -774,7 +774,12 @@ struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
   static void process_op (op_code_t op, cff1_top_dict_interp_env_t& env, cff1_top_dict_values_t& dictval)
   {
     cff1_top_dict_val_t  val;
-    val.last_arg_offset = (env.last_offset-1) - dictval.opStart;  /* offset to the last argument */
+
+    if (env.last_offset > dictval.opStart) {
+      val.last_arg_offset = (env.last_offset - dictval.opStart) - 1;  /* offset to the last argument */
+    } else {
+      val.last_arg_offset = 0;
+    }
 
     switch (op) {
       case OpCode_version:
