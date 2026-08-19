@@ -382,6 +382,47 @@ struct hb_collect_glyphs_context_t :
 struct hb_depend_context_t :
        hb_dispatch_context_t<hb_depend_context_t>
 {
+  struct recurse_key_t
+  {
+    recurse_key_t () = default;
+    recurse_key_t (unsigned lookup_index_,
+                   hb_codepoint_t active_glyphs_,
+                   hb_codepoint_t lookups_seen_,
+                   hb_codepoint_t context_set_,
+                   hb_subset_depend_edge_flags_t flags_)
+      : lookup_index (lookup_index_),
+        active_glyphs (active_glyphs_),
+        lookups_seen (lookups_seen_),
+        context_set (context_set_),
+        flags (flags_) {}
+
+    bool operator == (const recurse_key_t &o) const
+    {
+      return lookup_index == o.lookup_index &&
+             active_glyphs == o.active_glyphs &&
+             lookups_seen == o.lookups_seen &&
+             context_set == o.context_set &&
+             flags == o.flags;
+    }
+
+    uint32_t hash () const
+    {
+      uint32_t current = 0x84222325;
+      current = (current ^ hb_hash (lookup_index)) * 16777619;
+      current = (current ^ hb_hash (active_glyphs)) * 16777619;
+      current = (current ^ hb_hash (lookups_seen)) * 16777619;
+      current = (current ^ hb_hash (context_set)) * 16777619;
+      current = (current ^ hb_hash ((unsigned) flags)) * 16777619;
+      return current;
+    }
+
+    unsigned lookup_index = 0;
+    hb_codepoint_t active_glyphs = 0;
+    hb_codepoint_t lookups_seen = 0;
+    hb_codepoint_t context_set = HB_CODEPOINT_INVALID;
+    hb_subset_depend_edge_flags_t flags = HB_SUBSET_DEPEND_EDGE_FLAG_NONE;
+  };
+
   typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index);
   /* return_t is hb_empty_t — dispatch is purely for side-effects, like hb_closure_context_t. */
   template <typename T>
@@ -443,30 +484,74 @@ struct hb_depend_context_t :
     hb_vector_t<hb_set_t> lookahead_sets;  /* Sets of glyphs in lookahead positions */
   };
 
-  bool push_context (context_info_t &&ctx)
+  bool get_recurse_key (unsigned lookup_idx, recurse_key_t *key)
   {
-    return depend_data->check_success (context_stack.push_or_fail (std::move (ctx)));
+    /* The active glyphs and in-progress lookup set are part of the state.
+     * Omitting the latter would make memoization incorrect for cyclic lookup
+     * graphs whose available recursive paths depend on their ancestry. */
+    hb_codepoint_t active_idx;
+    if (!find_or_create_recurse_set (parent_active_glyphs (), &active_idx))
+      return false;
+
+    hb_codepoint_t seen_idx;
+    if (!find_or_create_recurse_set (lookups_seen, &seen_idx))
+      return false;
+
+    *key = recurse_key_t (lookup_idx,
+                          active_idx,
+                          seen_idx,
+                          depend_data->current_context_set_index,
+                          depend_data->current_edge_flags);
+    return !completed_recursions.has (*key);
   }
 
-  void pop_context ()
+  void finish_recurse (const recurse_key_t &key)
+  { depend_data->check_success (completed_recursions.set (key, true)); }
+
+  void reset_recurse_cache ()
   {
-    if (context_stack.length > 0)
-      context_stack.resize (context_stack.length - 1);
+    completed_recursions.clear ();
+    recurse_set_to_index.clear ();
+    recurse_sets.clear ();
   }
 
-  const context_info_t* current_context () const
+  bool find_or_create_recurse_set (const hb_set_t &set, hb_codepoint_t *index)
   {
-    return context_stack.length > 0 ? &context_stack[context_stack.length - 1] : nullptr;
+    hb_codepoint_t *existing = nullptr;
+    if (recurse_set_to_index.has (&set, &existing))
+    {
+      *index = *existing;
+      return true;
+    }
+
+    hb_set_t *copy = hb_object_create<hb_set_t> ();
+    if (unlikely (!copy))
+      return depend_data->fail ();
+    copy->set (set);
+    if (unlikely (copy->in_error ()))
+    {
+      hb_set_destroy (copy);
+      return depend_data->fail ();
+    }
+
+    *index = recurse_sets.length;
+    if (unlikely (!recurse_sets.push_or_fail (hb::unique_ptr<hb_set_t> {copy})))
+      return depend_data->fail ();
+    if (unlikely (!recurse_set_to_index.set (recurse_sets[*index].get (), *index)))
+      return depend_data->fail ();
+    return true;
   }
 
   hb_depend_data_builder_t *depend_data;
   hb_face_t *face;
   hb_set_t *glyphs;
   hb_vector_t<hb_set_t> active_glyphs_stack;
-  hb_vector_t<context_info_t> context_stack;  /* Stack of context information */
   recurse_func_t recurse_func;
   hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
   hb_set_t lookups_seen;
+  hb_vector_t<hb::unique_ptr<hb_set_t>> recurse_sets;
+  hb_hashmap_t<const hb_set_t *, hb_codepoint_t> recurse_set_to_index;
+  hb_hashmap_t<recurse_key_t, bool> completed_recursions;
 
   hb_depend_context_t (hb_depend_data_builder_t *depend_data_,
                        hb_face_t *face_,
@@ -1972,17 +2057,8 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       const hb_set_t *original_set = c->depend_data->get_set_from_index (set_idx);
       if (unlikely (!original_set)) continue;
 
-      /* Make local copy and subtract direct requirements */
-      hb_set_t filtered;
-      filtered.set (*original_set);
-      filtered.subtract (position_context);
-      if (unlikely (filtered.in_error ()))
-      {
-        c->depend_data->fail ();
-        return;
-      }
-
-      if (filtered == *original_set) {
+      /* Dependency context sets are never inverted. */
+      if (!original_set->s.s.intersects (position_context.s.s)) {
         /* No overlap with position_context - add full requirement */
         filtered_disjunctive_indices.add (elem);
       }
@@ -1995,16 +2071,8 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     /* Process non-singleton input positions */
     for (unsigned j = 0; j < input_position_glyphs->length; j++) {
       if (j != seqIndex && (*input_position_glyphs)[j].get_population () > 1) {
-        hb_set_t filtered;
-        filtered.set ((*input_position_glyphs)[j]);
-        filtered.subtract (position_context);
-        if (unlikely (filtered.in_error ()))
-        {
-          c->depend_data->fail ();
-          return;
-        }
-
-        if (filtered == (*input_position_glyphs)[j]) {
+        /* Input-position sets are also never inverted. */
+        if (!(*input_position_glyphs)[j].s.s.intersects (position_context.s.s)) {
           /* No overlap with position_context - add full requirement */
           hb_codepoint_t idx = c->depend_data->find_or_create_context_set ((*input_position_glyphs)[j]);
           if (unlikely (idx == HB_CODEPOINT_INVALID))
@@ -2405,11 +2473,6 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
     }
   }
 
-  /* Push context before recursing (for backtrack/lookahead tracking - empty for ContextSubst) */
-  typename hb_depend_context_t::context_info_t ctx_info;
-  if (unlikely (!c->push_context (std::move (ctx_info))))
-    return;
-
   context_depend_recurse_lookups (c,
 				  inputCount, input,
 				  lookupCount, lookupRecord,
@@ -2420,10 +2483,6 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
 				  lookup_context.intersected_glyphs_cache,
 				  preliminary_context,
 				  &input_position_glyphs);
-
-  /* Pop context */
-  c->pop_context ();
-  /* preliminary_context is stack-allocated and will be destroyed automatically */
 }
 
 template <typename HBUINT>
@@ -3812,10 +3871,6 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
     }
   }
 
-  /* Push context before recursing (use move to avoid copy issues) */
-  if (unlikely (!c->push_context (std::move (ctx_info))))
-    return;
-
   context_depend_recurse_lookups (c,
 				  inputCount, input,
 				  lookupCount, lookupRecord,
@@ -3826,10 +3881,6 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 				  lookup_context.intersected_glyphs_cache,
 				  preliminary_context,
 				  &input_position_glyphs);
-
-  /* Pop context */
-  c->pop_context ();
-  /* preliminary_context is stack-allocated and will be destroyed automatically */
 }
 
 template <typename HBUINT>

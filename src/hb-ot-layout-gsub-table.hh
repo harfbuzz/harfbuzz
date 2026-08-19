@@ -66,7 +66,14 @@ template <typename context_t>
    * Mark sequence positions as covered so later lookups use the full glyph set. */
   if (l.may_have_non_1to1 ())
       hb_set_add_range (covered_seq_indices, seq_index, end_index);
-  return l.dispatch (c);
+
+  hb_depend_context_t::recurse_key_t key;
+  if (!c->get_recurse_key (lookup_index, &key))
+    return hb_empty_t ();
+
+  hb_depend_context_t::return_t ret = l.dispatch (c);
+  c->finish_recurse (key);
+  return ret;
 }
 
 template <>
@@ -181,6 +188,7 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
     DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
                      "Processing lookup %d with features:", i);
     c.lookup_index = i;
+    c.reset_recurse_cache ();
     c.lookups_seen.clear ();
     c.lookups_seen.add (i);  /* Seed for A→B→A cycle detection in recurse(). */
     this->table->get_lookup (i).depend (&c);

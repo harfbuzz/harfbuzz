@@ -125,14 +125,7 @@ fonts_glob = run_command(glob_cmd, meson.current_source_dir() / 'fonts', check:t
 subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts', check:true).stdout().strip().split('\n')
 graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
 
-depend_closure_parity_fonts_glob = []
-foreach font : subset_fonts_glob
-  # These fonts currently spend tens of seconds or more building the
-  # contextual GSUB dependency graph before the parity tests start.
-  if not font.contains('NotoNastaliqUrdu-Bold.ttf') and not font.contains('NotoNastaliqUrdu-Regular.ttf')
-    depend_closure_parity_fonts_glob += [font]
-  endif
-endforeach
+depend_closure_parity_fonts_glob = subset_fonts_glob
 
 # Chunk the glob lists to avoid command line length limits, and for parallelization
 chunk_size = 64
