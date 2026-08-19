@@ -163,7 +163,6 @@ foreach chunk : fonts_glob_chunks
     workdir: meson.current_build_dir() / '..' / '..',
     protocol: 'tap',
     suite: ['fuzzing'],
-    timeout: 120,
   )
   i += 1
 endforeach
@@ -177,7 +176,6 @@ if not get_option('raster').disabled()
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
-      timeout: 120,
     )
     i += 1
   endforeach
@@ -192,7 +190,6 @@ if not get_option('vector').disabled()
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
-      timeout: 120,
     )
     i += 1
   endforeach
@@ -207,7 +204,6 @@ if not get_option('gpu').disabled()
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
-      timeout: 120,
     )
     i += 1
   endforeach
@@ -222,7 +218,6 @@ if not get_option('subset').disabled()
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
-      timeout: 120,
     )
     i += 1
   endforeach
@@ -237,7 +232,6 @@ if not get_option('subset').disabled()
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
-      timeout: 120,
     )
     i += 1
   endforeach
@@ -253,7 +247,6 @@ if conf.get('HB_EXPERIMENTAL_API', 0) == 1
         workdir: meson.current_build_dir() / '..' / '..',
         protocol: 'tap',
         suite: ['fuzzing'],
-        timeout: 120,
       )
       i += 1
     endforeach
@@ -267,7 +260,6 @@ if conf.get('HB_EXPERIMENTAL_API', 0) == 1
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
-      timeout: 120,
     )
     i += 1
   endforeach
