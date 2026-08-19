@@ -275,7 +275,7 @@ struct hb_depend_data_t
  * Temporary state (freed on destruction):
  * - lookup_features: Lookup index to feature tag mapping
  * - seen_edges: Struct-based edge deduplication table
- * - set_to_index: Content-based context set deduplication map
+ * - set_to_index: Content-based dependency set deduplication map
  * - free_set_list: Indices of freed sets available for reuse
  * - current_context_set_index: Context requirements for current rule
  * - current_edge_flags: Flags to apply to edges being recorded
@@ -291,29 +291,21 @@ struct hb_depend_data_builder_t
   const hb_set_t *get_set_from_index (hb_codepoint_t index)
   { return data.get_set_from_index (index); }
 
-  /* Free an unused ligature set for reuse.
-   * Only called for ligature sets that were allocated but had no edges added. */
-  void free_ligature_set (hb_codepoint_t set_index)
+  /* Discard an unused set that was allocated but had no edges added. */
+  void discard_set (hb_codepoint_t set_index)
   {
     if (set_index >= data.sets.length)
     {
-      DEBUG_MSG (SUBSET, nullptr, "Attempting to free invalid set %u (max is %u)",
+      DEBUG_MSG (SUBSET, nullptr, "Attempting to discard invalid set %u (max is %u)",
                  set_index, data.sets.length - 1);
       return;
     }
+    set_to_index.del (data.sets[set_index].get ());
     data.sets[set_index]->clear ();
     check_success (free_set_list.push_or_fail (set_index));
   }
 
-  /* Allocate a new ligature set (no deduplication). */
-  hb_codepoint_t new_ligature_set (hb_codepoint_t cp)
-  {
-    hb_set_t temp_set;
-    temp_set.add (cp);
-    return new_ligature_set (temp_set);
-  }
-
-  hb_codepoint_t new_ligature_set (hb_set_t &set)
+  hb_codepoint_t new_set (const hb_set_t &set)
   {
     hb_codepoint_t set_index;
 
@@ -343,22 +335,28 @@ struct hb_depend_data_builder_t
     return set_index;
   }
 
-  /* Find existing context set with same contents, or create new one (with deduplication).
-   * Uses content-based deduplication via hb_hashmap_t with pointer keys. */
-  hb_codepoint_t find_or_create_context_set (const hb_set_t &set)
+  /* Find an existing dependency set with the same contents, or create one. */
+  hb_codepoint_t find_or_create_set (const hb_set_t &set, bool *created = nullptr)
   {
     hb_codepoint_t *existing_idx = nullptr;
     if (set_to_index.has (&set, &existing_idx))
+    {
+      if (created) *created = false;
       return *existing_idx;
+    }
 
-    hb_codepoint_t new_idx = new_ligature_set (const_cast<hb_set_t&>(set));
+    hb_codepoint_t new_idx = new_set (set);
     if (unlikely (new_idx == HB_CODEPOINT_INVALID))
       return HB_CODEPOINT_INVALID;
 
     if (unlikely (!set_to_index.set (data.sets[new_idx].get (), new_idx)))
       return fail_invalid ();
+    if (created) *created = true;
     return new_idx;
   }
+
+  hb_codepoint_t find_or_create_context_set (const hb_set_t &set)
+  { return find_or_create_set (set); }
 
   /* Build a context set from context information.
    * Encodes backtrack and lookahead requirements as a flattened set.
