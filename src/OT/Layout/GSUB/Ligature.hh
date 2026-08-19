@@ -50,27 +50,26 @@ struct Ligature
       return;
     }
 
-    hb_codepoint_t ligset_idx = c->depend_data->new_ligature_set(complete_ligset);
+    bool ligset_created;
+    hb_codepoint_t ligset_idx = c->depend_data->find_or_create_set (complete_ligset,
+                                                                    &ligset_created);
     if (unlikely (ligset_idx == HB_CODEPOINT_INVALID))
       return;
 
     // Track whether any edge using this ligset_idx was actually added
     bool any_added = false;
 
-    // Now add all edges with the complete, immutable set
-    if (c->depend_data->add_gsub_lookup (first, c->lookup_index, ligGlyph, ligset_idx))
-      any_added = true;
-
-    + hb_iter (component)
-    | hb_apply ([&] (const hb_codepoint_t &gid) {
+    // Now add one edge for each glyph in the complete, immutable set
+    + hb_iter (complete_ligset)
+    | hb_apply ([&] (hb_codepoint_t gid) {
         if (c->depend_data->add_gsub_lookup (gid, c->lookup_index, ligGlyph, ligset_idx))
           any_added = true;
       })
     ;
 
-    // If no edges were added, the ligset_idx is unused - free it for reuse
-    if (!any_added)
-      c->depend_data->free_ligature_set(ligset_idx);
+    // If no edges were added, a newly allocated set is unused - free it for reuse
+    if (!any_added && ligset_created)
+      c->depend_data->discard_set (ligset_idx);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
