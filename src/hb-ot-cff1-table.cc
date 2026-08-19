@@ -595,12 +595,41 @@ struct cff1_cs_opset_seac_t : cff1_cs_opset_t<cff1_cs_opset_seac_t, get_seac_par
   }
 };
 
+static bool
+_cff1_charstring_may_end_in_seac (const hb_ubytes_t &str)
+{
+  if (unlikely (!str.length || str[str.length - 1] != OpCode_endchar))
+    return false;
+
+  unsigned int end = str.length - 1;
+  if (!end) return false;
+
+  unsigned int last = str[end - 1];
+
+  /* Type 2 numbers are not self-synchronizing when read backwards.
+   * Keep interpreting if any number encoding could end at endchar. */
+  if (OpCode_OneByteIntFirst <= last && last <= OpCode_OneByteIntLast)
+    return true;
+  if (end >= 2 &&
+      OpCode_TwoBytePosInt0 <= str[end - 2] &&
+      str[end - 2] <= OpCode_TwoByteNegInt3)
+    return true;
+  if (end >= 3 && str[end - 3] == OpCode_shortint)
+    return true;
+  if (end >= 5 && str[end - 5] == OpCode_fixedcs)
+    return true;
+
+  /* A subroutine can leave the seac operands on the shared stack. */
+  return last == OpCode_callsubr || last == OpCode_callgsubr;
+}
+
 bool OT::cff1::accelerator_subset_t::get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const
 {
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int fd = fdSelect->get_fd (glyph);
   const hb_ubytes_t str = (*charStrings)[glyph];
+  if (unlikely (!_cff1_charstring_may_end_in_seac (str))) return false;
   cff1_cs_interp_env_t env (str, *this, fd);
   cff1_cs_interpreter_t<cff1_cs_opset_seac_t, get_seac_param_t> interp (env);
   get_seac_param_t  param (this);
