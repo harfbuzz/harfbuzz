@@ -143,6 +143,24 @@ struct hb_bit_set_invertible_t
   bool may_intersect (const hb_bit_set_invertible_t &other) const
   { return inverted || other.inverted || s.intersects (other.s); }
 
+  bool intersects (const hb_bit_set_invertible_t &other) const
+  {
+    if (likely (!inverted))
+      return unlikely (other.inverted) ? !s.is_subset (other.s)
+				       : s.intersects (other.s);
+    if (likely (!other.inverted))
+      return !other.s.is_subset (s);
+
+    unsigned population = s.get_population ();
+    unsigned other_population = other.s.get_population ();
+    if ((uint64_t) population + other_population < INVALID)
+      return true;
+
+    return population >= other_population
+	 ? !hb_all (iter (), other.s)
+	 : !hb_all (other.iter (), s);
+  }
+
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   {
     hb_codepoint_t c = first - 1;

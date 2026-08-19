@@ -137,6 +137,27 @@ main (int argc, char **argv)
     hb_always_assert (s.has (HB_SET_VALUE_INVALID));
   }
 
+  /* Test set intersection. */
+  {
+    hb_set_t a {1, 2};
+    hb_set_t b {2, 3};
+    hb_set_t c {3, 4};
+
+    hb_always_assert (a.intersects (b));
+    hb_always_assert (!a.intersects (c));
+
+    b.invert ();
+    hb_always_assert (a.intersects (b));
+    hb_always_assert (b.intersects (a));
+
+    hb_set_t singleton {2};
+    hb_always_assert (!singleton.intersects (b));
+    hb_always_assert (!b.intersects (singleton));
+
+    c.invert ();
+    hb_always_assert (b.intersects (c));
+  }
+
   /* Adding HB_SET_VALUE_INVALID */
   {
     hb_set_t s;

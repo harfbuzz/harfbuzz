@@ -125,6 +125,9 @@ struct hb_sparseset_t
   bool may_intersect (const hb_sparseset_t &other) const
   { return s.may_intersect (other.s); }
 
+  bool intersects (const hb_sparseset_t &other) const
+  { return s.intersects (other.s); }
+
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   { return s.intersects (first, last); }
 

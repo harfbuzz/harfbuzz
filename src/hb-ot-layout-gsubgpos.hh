@@ -2058,7 +2058,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       if (unlikely (!original_set)) continue;
 
       /* Dependency context sets are never inverted. */
-      if (!original_set->s.s.intersects (position_context.s.s)) {
+      if (!original_set->intersects (position_context)) {
         /* No overlap with position_context - add full requirement */
         filtered_disjunctive_indices.add (elem);
       }
@@ -2072,7 +2072,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     for (unsigned j = 0; j < input_position_glyphs->length; j++) {
       if (j != seqIndex && (*input_position_glyphs)[j].get_population () > 1) {
         /* Input-position sets are also never inverted. */
-        if (!(*input_position_glyphs)[j].s.s.intersects (position_context.s.s)) {
+        if (!(*input_position_glyphs)[j].intersects (position_context)) {
           /* No overlap with position_context - add full requirement */
           hb_codepoint_t idx = c->depend_data->find_or_create_context_set ((*input_position_glyphs)[j]);
           if (unlikely (idx == HB_CODEPOINT_INVALID))
