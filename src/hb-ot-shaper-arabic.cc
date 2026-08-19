@@ -586,7 +586,7 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	int64_t excess = (n_copies + 1) * w_repeating_signed - w_remaining_signed;
 	if (excess > 0)
 	{
-	  extra_repeat_overlap = hb_clamp_to<hb_position_t> (excess / (n_copies * n_repeating));
+	  extra_repeat_overlap = hb_clamp_to<hb_position_t> (excess / ((int64_t) n_copies * (int64_t) n_repeating));
 	  w_remaining = 0;
 	}
       }
