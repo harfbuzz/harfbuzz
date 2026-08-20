@@ -113,6 +113,8 @@ struct hb_bit_set_invertible_t
 
 
   void add (hb_codepoint_t g) { unlikely (inverted) ? s.del (g) : s.add (g); }
+  void add_bits (hb_codepoint_t g, uint64_t bits)
+  { unlikely (inverted) ? s.del_bits (g, bits) : s.add_bits (g, bits); }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   { return unlikely (inverted) ? ((void) s.del_range (a, b), true) : s.add_range (a, b); }
 

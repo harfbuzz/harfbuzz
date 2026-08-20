@@ -87,6 +87,7 @@ struct hb_sparseset_t
   uint32_t hash () const { return s.hash (); }
 
   void add (hb_codepoint_t g) { s.add (g); }
+  void add_bits (hb_codepoint_t g, uint64_t bits) { s.add_bits (g, bits); }
   bool add_range (hb_codepoint_t first, hb_codepoint_t last) { return s.add_range (first, last); }
 
   template <typename T>

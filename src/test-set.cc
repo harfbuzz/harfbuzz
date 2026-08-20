@@ -178,6 +178,20 @@ main (int argc, char **argv)
     hb_always_assert (!s.get_singleton (&singleton));
   }
 
+  /* Test word-at-a-time insertion. */
+  {
+    hb_set_t s;
+    s.add_bits (64, uint64_t (1) | (uint64_t (1) << 63));
+    hb_always_assert (s.get_population () == 2);
+    hb_always_assert (s.has (64));
+    hb_always_assert (s.has (127));
+
+    s.invert ();
+    s.add_bits (64, uint64_t (1) | (uint64_t (1) << 63));
+    hb_always_assert (s.has (64));
+    hb_always_assert (s.has (127));
+  }
+
   /* Adding HB_SET_VALUE_INVALID */
   {
     hb_set_t s;
