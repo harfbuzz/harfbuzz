@@ -484,25 +484,29 @@ struct hb_depend_context_t :
 
   const hb_set_t& parent_active_glyphs ()
   {
-    if (!active_glyphs_stack)
+    if (!active_glyphs_stack_depth)
       return *glyphs;
 
-    return active_glyphs_stack.tail ();
+    return active_glyphs_stack[active_glyphs_stack_depth - 1];
   }
 
   hb_set_t* push_cur_active_glyphs ()
   {
-    if (unlikely (!active_glyphs_stack.push_or_fail ()))
+    if (active_glyphs_stack_depth == active_glyphs_stack.length &&
+	unlikely (!active_glyphs_stack.push_or_fail ()))
       return nullptr;
-    return &active_glyphs_stack.tail ();
+
+    hb_set_t *set = &active_glyphs_stack[active_glyphs_stack_depth++];
+    set->clear ();
+    return set;
   }
 
   bool pop_cur_done_glyphs ()
   {
-    if (!active_glyphs_stack)
+    if (!active_glyphs_stack_depth)
       return false;
 
-    active_glyphs_stack.pop ();
+    active_glyphs_stack_depth--;
     return true;
   }
 
@@ -627,6 +631,7 @@ struct hb_depend_context_t :
   hb_face_t *face;
   hb_set_t *glyphs;
   hb_vector_t<hb_set_t> active_glyphs_stack;
+  unsigned active_glyphs_stack_depth = 0;
   recurse_func_t recurse_func;
   hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
   hb_set_t lookups_seen;
