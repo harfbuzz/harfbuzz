@@ -458,21 +458,18 @@ struct hb_depend_context_t :
     recurse_key_t (unsigned lookup_index_,
                    hb_codepoint_t active_glyphs_,
                    hb_codepoint_t recurse_path_,
-                   hb_codepoint_t context_set_,
-                   hb_subset_depend_edge_flags_t flags_)
+                   hb_codepoint_t context_set_)
       : lookup_index (lookup_index_),
         active_glyphs (active_glyphs_),
         recurse_path (recurse_path_),
-        context_set (context_set_),
-        flags (flags_) {}
+        context_set (context_set_) {}
 
     bool operator == (const recurse_key_t &o) const
     {
       return lookup_index == o.lookup_index &&
              active_glyphs == o.active_glyphs &&
              recurse_path == o.recurse_path &&
-             context_set == o.context_set &&
-             flags == o.flags;
+             context_set == o.context_set;
     }
 
     uint32_t hash () const
@@ -482,7 +479,6 @@ struct hb_depend_context_t :
       current = (current ^ hb_hash (active_glyphs)) * 16777619;
       current = (current ^ hb_hash (recurse_path)) * 16777619;
       current = (current ^ hb_hash (context_set)) * 16777619;
-      current = (current ^ hb_hash ((unsigned) flags)) * 16777619;
       return current;
     }
 
@@ -490,7 +486,6 @@ struct hb_depend_context_t :
     hb_codepoint_t active_glyphs = 0;
     hb_codepoint_t recurse_path = 0;
     hb_codepoint_t context_set = HB_CODEPOINT_INVALID;
-    hb_subset_depend_edge_flags_t flags = HB_SUBSET_DEPEND_EDGE_FLAG_NONE;
   };
 
   typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index, hb_bit_page_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
@@ -637,7 +632,10 @@ struct hb_depend_context_t :
   {
     /* The active glyphs and in-progress lookup set are part of the state.
      * Omitting the latter would make memoization incorrect for cyclic lookup
-     * graphs whose available recursive paths depend on their ancestry. */
+     * graphs whose available recursive paths depend on their ancestry.
+     * Edge flags are not part of the state: they affect neither traversal nor
+     * edge identity, so revisiting with different flags can only find edges
+     * that the deduplication table already contains. */
     hb_codepoint_t active_idx;
     if (!get_parent_active_glyphs_index (&active_idx))
       return false;
@@ -645,8 +643,7 @@ struct hb_depend_context_t :
     *key = recurse_key_t (lookup_idx,
                           active_idx,
                           recurse_path,
-                          depend_data->current_context_set_index,
-                          depend_data->current_edge_flags);
+                          depend_data->current_context_set_index);
     return !completed_recursions.has (*key);
   }
 
