@@ -182,5 +182,63 @@ main (int argc, char **argv)
     hb_always_assert(s.has(2));
   }
 
+  /* Test iteration across words and pages. */
+  {
+    hb_set_t s {0, 1, 63, 64, 65, 127, 511, 512, 513, 1024,
+		HB_SET_VALUE_INVALID - 1};
+    hb_codepoint_t expected[] = {0, 1, 63, 64, 65, 127, 511, 512, 513,
+				 1024, HB_SET_VALUE_INVALID - 1};
+    unsigned int i = 0;
+    for (hb_codepoint_t v : s)
+    {
+      hb_always_assert (i < ARRAY_LENGTH (expected));
+      hb_always_assert (v == expected[i++]);
+    }
+    hb_always_assert (i == ARRAY_LENGTH (expected));
+
+    auto it = s.iter ();
+    hb_always_assert (*it == 0);
+    ++it;
+    hb_always_assert (*it == 1);
+    --it;
+    hb_always_assert (*it == 0);
+    ++it;
+    hb_always_assert (*it == 1);
+    it += 3;
+    hb_always_assert (*it == 65);
+    --it;
+    hb_always_assert (*it == 64);
+    --it;
+    hb_always_assert (*it == 63);
+    ++it;
+    hb_always_assert (*it == 64);
+
+    it = it.end ();
+    --it;
+    hb_always_assert (*it == HB_SET_VALUE_INVALID - 1);
+    --it;
+    hb_always_assert (*it == 1024);
+    ++it;
+    hb_always_assert (*it == HB_SET_VALUE_INVALID - 1);
+  }
+
+  /* Test inverted-set iteration. */
+  {
+    hb_set_t s {0, 1, 63, 64};
+    s.invert ();
+    auto it = s.iter ();
+    hb_always_assert (*it == 2);
+    ++it;
+    hb_always_assert (*it == 3);
+    --it;
+    hb_always_assert (*it == 2);
+
+    it = it.end ();
+    --it;
+    hb_always_assert (*it == HB_SET_VALUE_INVALID - 1);
+    --it;
+    hb_always_assert (*it == HB_SET_VALUE_INVALID - 2);
+  }
+
   return 0;
 }

@@ -301,6 +301,47 @@ struct hb_bit_set_invertible_t
     *codepoint = v + 1;
     return *codepoint != INVALID;
   }
+  bool next_bits (hb_codepoint_t *codepoint, uint64_t *bits) const
+  {
+    if (likely (!inverted))
+      return s.next_bits (codepoint, bits);
+
+    hb_codepoint_t base;
+    if (unlikely (*codepoint == INVALID))
+      base = 0;
+    else
+    {
+      base = *codepoint & -hb_bit_page_t::ELT_BITS;
+      if (unlikely (base >= INVALID - hb_bit_page_t::ELT_BITS + 1))
+	goto done;
+      base += hb_bit_page_t::ELT_BITS;
+    }
+
+    while (true)
+    {
+      hb_codepoint_t cursor = base ? base - hb_bit_page_t::ELT_BITS : INVALID;
+      uint64_t excluded = 0;
+      if (!s.next_bits (&cursor, &excluded) || cursor != base)
+	excluded = 0;
+      *bits = ~excluded;
+      bool last = unlikely (base >= INVALID - hb_bit_page_t::ELT_BITS + 1);
+      if (last)
+	*bits &= UINT64_MAX >> 1;
+      if (*bits)
+      {
+	*codepoint = base;
+	return true;
+      }
+      if (unlikely (last))
+	break;
+      base += hb_bit_page_t::ELT_BITS;
+    }
+
+  done:
+    *codepoint = INVALID;
+    *bits = 0;
+    return false;
+  }
   bool previous (hb_codepoint_t *codepoint) const
   {
     if (likely (!inverted))
@@ -373,13 +414,15 @@ struct hb_bit_set_invertible_t
 
   /*
    * Iterator implementation.
+   * Mutating the set invalidates its iterators.
    */
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
     static constexpr bool has_fast_len = true;
     iter_t (const hb_bit_set_invertible_t &s_ = Null (hb_bit_set_invertible_t),
-	    bool init = true) : s (&s_), v (INVALID), l(0)
+	    bool init = true) : s (&s_), v (INVALID), l (0),
+				     base (INVALID), bits (0)
     {
       if (init)
       {
@@ -391,8 +434,33 @@ struct hb_bit_set_invertible_t
     typedef hb_codepoint_t __item_t__;
     hb_codepoint_t __item__ () const { return v; }
     bool __more__ () const { return v != INVALID; }
-    void __next__ () { s->next (&v); if (likely (l)) l--; }
-    void __prev__ () { s->previous (&v); l++; }
+    void __next__ ()
+    {
+      if (likely (bits))
+      {
+	v = base + hb_ctz (bits);
+	bits &= bits - 1;
+      }
+      else if (s->next_bits (&base, &bits))
+      {
+	v = base + hb_ctz (bits);
+	bits &= bits - 1;
+      }
+      else
+	v = INVALID;
+      if (likely (l)) l--;
+    }
+    void __prev__ ()
+    {
+      if (s->previous (&v))
+	sync ();
+      else
+      {
+	base = INVALID;
+	bits = 0;
+      }
+      l++;
+    }
     unsigned __len__ () const { return l; }
     iter_t end () const { return iter_t (*s, false); }
     bool operator != (const iter_t& o) const
@@ -402,6 +470,17 @@ struct hb_bit_set_invertible_t
     const hb_bit_set_invertible_t *s;
     hb_codepoint_t v;
     unsigned l;
+    hb_codepoint_t base;
+    uint64_t bits;
+
+    void sync ()
+    {
+      base = v & -hb_bit_page_t::ELT_BITS;
+      hb_codepoint_t cursor = base ? base - hb_bit_page_t::ELT_BITS : INVALID;
+      s->next_bits (&cursor, &bits);
+      unsigned int bit = v & (hb_bit_page_t::ELT_BITS - 1);
+      bits = bit == hb_bit_page_t::ELT_BITS - 1 ? 0 : bits >> (bit + 1) << (bit + 1);
+    }
   };
   iter_t iter () const { return iter_t (*this); }
   operator iter_t () const { return iter (); }

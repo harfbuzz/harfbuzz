@@ -723,6 +723,50 @@ struct hb_bit_set_t
     *codepoint = INVALID;
     return false;
   }
+  bool next_bits (hb_codepoint_t *codepoint, uint64_t *bits) const
+  {
+    static_assert (page_t::ELT_BITS == 64, "");
+
+    unsigned int i = 0;
+    unsigned int elt = 0;
+    if (likely (*codepoint != INVALID))
+    {
+      hb_codepoint_t base = *codepoint & -page_t::ELT_BITS;
+      if (unlikely (base >= INVALID - page_t::ELT_BITS + 1))
+        goto done;
+      base += page_t::ELT_BITS;
+
+      unsigned int major = get_major (base);
+      i = last_page_lookup;
+      if (unlikely (i >= page_map.length || page_map.arrayZ[i].major != major))
+      {
+	page_map.bfind (major, &i, HB_NOT_FOUND_STORE_CLOSEST);
+	if (i >= page_map.length)
+	  goto done;
+      }
+      if (page_map.arrayZ[i].major == major)
+	elt = page_remainder (base) / page_t::ELT_BITS;
+    }
+
+    for (; i < page_map.length; i++, elt = 0)
+    {
+      const page_map_t &map = page_map.arrayZ[i];
+      const page_t &page = pages.arrayZ[map.index];
+      for (; elt < page_t::len (); elt++)
+	if (page.v[elt])
+	{
+	  *codepoint = major_start (map.major) + elt * page_t::ELT_BITS;
+	  *bits = page.v[elt];
+	  last_page_lookup = i;
+	  return true;
+	}
+    }
+
+  done:
+    *codepoint = INVALID;
+    *bits = 0;
+    return false;
+  }
   bool previous (hb_codepoint_t *codepoint) const
   {
     if (unlikely (*codepoint == INVALID)) {
