@@ -58,15 +58,22 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
-/*static*/ hb_depend_context_t::return_t SubstLookup::depend_glyphs_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
+/*static*/ hb_depend_context_t::return_t SubstLookup::depend_glyphs_recurse_func (hb_depend_context_t *c, unsigned lookup_index, hb_bit_page_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
   /* After a non-1-to-1 lookup (expansion/contraction), subsequent lookups in the same
    * contextual rule see all glyphs, not position-specific ones. This matches closure behavior.
    * Mark sequence positions as covered so later lookups use the full glyph set. */
   if (l.may_have_non_1to1 ())
-      hb_set_add_range (covered_seq_indices, seq_index, end_index);
-  return l.dispatch (c);
+      covered_seq_indices->add_range (seq_index, end_index);
+
+  hb_depend_context_t::recurse_key_t key;
+  if (!c->get_recurse_key (lookup_index, &key))
+    return hb_empty_t ();
+
+  hb_depend_context_t::return_t ret = l.dispatch (c);
+  c->finish_recurse (key);
+  return ret;
 }
 
 template <>
@@ -121,7 +128,7 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
     return;
   this->table->get_feature_tags (0, &num_features, feature_tags.arrayZ);
 
-  if (!builder->check_success (builder->lookup_features.resize (num_lookups)))
+  if (!builder->init_lookup_features (num_lookups))
     return;
 
   hb_vector_t<hb_tag_t> feature_query_v;
@@ -144,7 +151,8 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
       this->table->get_feature (feature_index).add_lookup_indexes_to (&lookup_indexes);
 
     for (auto lookup_index : lookup_indexes)
-      builder->lookup_features[lookup_index].add (ft);
+      if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
+	return;
 
     auto &fv = this->table->get_feature_variations ();
     auto fi_count = fv.record_count ();
@@ -158,29 +166,32 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
           feature_ptr->add_lookup_indexes_to (&lookup_indexes);
       }
       for (auto lookup_index : lookup_indexes)
-        if (!builder->lookup_features[lookup_index].has (ft))
-          builder->lookup_features[lookup_index].add (ft);
+        if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
+	  return;
     }
   }
+
+  if (unlikely (!builder->finish_lookup_features ()))
+    return;
 
   hb_set_t all_glyphs;
   all_glyphs.add_range (0, face->get_num_glyphs () - 1);
 
   hb_depend_context_t c (builder, face, &all_glyphs);
 
-  int i = -1;
-  for (auto &feature_set : builder->lookup_features)
+  for (unsigned i = 0; i < num_lookups; i++)
   {
-    i++;
-    if (feature_set.is_empty ())
+    auto features = builder->get_lookup_features (i);
+    if (!features)
     {
       DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
-                       "Skipping lookup %d (no features)", i);
+                       "Skipping lookup %u (no features)", i);
       continue;
     }
     DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
-                     "Processing lookup %d with features:", i);
+                     "Processing lookup %u with features:", i);
     c.lookup_index = i;
+    c.reset_recurse_cache ();
     c.lookups_seen.clear ();
     c.lookups_seen.add (i);  /* Seed for A→B→A cycle detection in recurse(). */
     this->table->get_lookup (i).depend (&c);

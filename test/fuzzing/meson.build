@@ -126,10 +126,11 @@ subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 's
 graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
 
 depend_closure_parity_fonts_glob = []
+depend_closure_parity_noto_nastaliq_fonts = []
 foreach font : subset_fonts_glob
-  # These fonts currently spend tens of seconds or more building the
-  # contextual GSUB dependency graph before the parity tests start.
-  if not font.contains('NotoNastaliqUrdu-Bold.ttf') and not font.contains('NotoNastaliqUrdu-Regular.ttf')
+  if font.contains('NotoNastaliqUrdu-Bold.ttf') or font.contains('NotoNastaliqUrdu-Regular.ttf')
+    depend_closure_parity_noto_nastaliq_fonts += [font]
+  else
     depend_closure_parity_fonts_glob += [font]
   endif
 endforeach
@@ -249,6 +250,20 @@ if conf.get('HB_EXPERIMENTAL_API', 0) == 1
         suite: ['fuzzing'],
       )
       i += 1
+    endforeach
+
+    foreach font : depend_closure_parity_noto_nastaliq_fonts
+      font_name = 'regular'
+      if font.contains('NotoNastaliqUrdu-Bold.ttf')
+        font_name = 'bold'
+      endif
+      test('depend-closure-parity-noto-nastaliq-@0@'.format(font_name),
+        hb_depend_closure_parity_exe,
+        args: ['-s', '42', '-n', '16', font],
+        workdir: meson.current_build_dir() / '..' / '..',
+        protocol: 'tap',
+        suite: ['fuzzing'],
+      )
     endforeach
   endif
 

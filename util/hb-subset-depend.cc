@@ -38,6 +38,8 @@ struct depend_t : option_parser_t, face_options_t
   gboolean flagged_only = false;
   gboolean no_context = false;
   gboolean no_glyph_names = false;
+  gboolean compile_only = false;
+  gboolean quiet = false;
   char *gids_str = nullptr;
 
   void
@@ -60,6 +62,10 @@ struct depend_t : option_parser_t, face_options_t
        "Suppress context set output", nullptr},
       {"no-glyph-names", 0, 0, G_OPTION_ARG_NONE, &this->no_glyph_names,
        "Use numeric glyph IDs instead of names", nullptr},
+      {"compile",        0, 0, G_OPTION_ARG_NONE, &this->compile_only,
+       "Build the dependency graph without retrieving it", nullptr},
+      {"quiet",          'q', 0, G_OPTION_ARG_NONE, &this->quiet,
+       "Retrieve the dependency graph without printing it", nullptr},
       {nullptr}
     };
     add_group (depend_entries,
@@ -209,7 +215,13 @@ struct depend_t : option_parser_t, face_options_t
       return 1;
     }
 
-    hb_font_t *font = no_glyph_names ? nullptr : hb_font_create (face);
+    if (compile_only)
+    {
+      hb_subset_depend_destroy (depend);
+      return 0;
+    }
+
+    hb_font_t *font = no_glyph_names || quiet ? nullptr : hb_font_create (face);
 
     std::set<unsigned> gid_filter;
     bool filter_gids = gids_str != nullptr;
@@ -240,7 +252,7 @@ struct depend_t : option_parser_t, face_options_t
         entries.push_back (entry);
       }
 
-      if (entries.empty ()) continue;
+      if (entries.empty () || quiet) continue;
 
       if (printed_any) printf ("\n");
       printed_any = true;

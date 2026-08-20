@@ -273,8 +273,9 @@ struct hb_depend_data_t
  * construction is complete, leaving only hb_depend_data_t.
  *
  * Temporary state (freed on destruction):
- * - lookup_features: Lookup index to feature tag mapping
- * - seen_edges: Struct-based edge deduplication table
+ * - lookup_features: Packed lookup index to feature tag mapping
+ * - lookup_feature_offsets: Per-lookup offsets into lookup_features
+ * - edge_slots: Compact edge deduplication table
  * - set_to_index: Content-based dependency set deduplication map
  * - free_set_list: Indices of freed sets available for reuse
  * - current_context_set_index: Context requirements for current rule
@@ -455,6 +456,89 @@ struct hb_depend_data_builder_t
     return find_or_create_context_set (context_elements);
   }
 
+  static uint64_t encode_edge_ref (hb_codepoint_t source, unsigned int index)
+  { return (uint64_t (source) + 1) << 32 | index; }
+
+  static void decode_edge_ref (uint64_t ref,
+			       hb_codepoint_t *source,
+			       unsigned int *index)
+  {
+    *source = (ref >> 32) - 1;
+    *index = ref;
+  }
+
+  uint32_t edge_hash (hb_codepoint_t source, const hb_depend_edge_t &record) const
+  {
+    hb_depend_edge_key_t key (source, record.table_tag, record.layout_tag,
+			      record.dependent, record.ligature_set,
+			      record.context_set);
+    return key.hash ();
+  }
+
+  bool resize_edge_slots ()
+  {
+    unsigned int new_size = edge_slots.length ? edge_slots.length * 2 : 8;
+    if (unlikely (new_size < edge_slots.length))
+      return fail ();
+
+    hb_vector_t<uint64_t> new_slots;
+    if (unlikely (!new_slots.resize_exact (new_size)))
+      return fail ();
+
+    for (uint64_t ref : edge_slots)
+    {
+      if (!ref)
+	continue;
+
+      hb_codepoint_t source;
+      unsigned int index;
+      decode_edge_ref (ref, &source, &index);
+      const hb_depend_edge_t &record = data.glyph_dependencies[source].dependencies[index];
+      unsigned int slot = edge_hash (source, record) & (new_size - 1);
+      unsigned int step = 0;
+      while (new_slots[slot])
+	slot = (slot + ++step) & (new_size - 1);
+      new_slots[slot] = ref;
+    }
+
+    edge_slots = std::move (new_slots);
+    return true;
+  }
+
+  bool add_edge (hb_codepoint_t source, const hb_depend_edge_t &record)
+  {
+    /* Store only a source and per-glyph edge index in each bucket.  The edge
+     * itself already lives in the output vector, where it can be compared to
+     * resolve hash collisions exactly.  Adding one to the encoded source
+     * reserves zero as the empty-bucket value. */
+    if (unlikely (!edge_slots.length ||
+		  uint64_t (edge_population) * 3 / 2 >= edge_slots.length - 1))
+      if (unlikely (!resize_edge_slots ()))
+	return false;
+
+    unsigned int slot = edge_hash (source, record) & (edge_slots.length - 1);
+    unsigned int step = 0;
+    while (uint64_t ref = edge_slots[slot])
+    {
+      hb_codepoint_t existing_source;
+      unsigned int existing_index;
+      decode_edge_ref (ref, &existing_source, &existing_index);
+      if (existing_source == source &&
+	  data.glyph_dependencies[source].dependencies[existing_index] == record)
+	return false;
+      slot = (slot + ++step) & (edge_slots.length - 1);
+    }
+
+    auto &dependencies = data.glyph_dependencies[source].dependencies;
+    unsigned int index = dependencies.length;
+    if (unlikely (!dependencies.push_or_fail (record)))
+      return fail ();
+
+    edge_slots[slot] = encode_edge_ref (source, index);
+    edge_population++;
+    return true;
+  }
+
   bool add_depend_layout (hb_codepoint_t target, hb_tag_t table_tag,
                           hb_tag_t layout_tag,
                           hb_codepoint_t dependent,
@@ -468,18 +552,8 @@ struct hb_depend_data_builder_t
       return false;
     }
 
-    hb_depend_edge_key_t key (target, table_tag, layout_tag, dependent, lig_set, context_set);
-    if (seen_edges.has (key))
-      return false;
-
-    if (unlikely (!seen_edges.set (key, true)))
-      return fail ();
-
-    auto &gdr = data.glyph_dependencies[target];
-    if (unlikely (!gdr.dependencies.push_or_fail (table_tag, dependent, layout_tag,
-                                                  lig_set, context_set, flags)))
-      return fail ();
-    return true;
+    return add_edge (target, hb_depend_edge_t (table_tag, dependent, layout_tag,
+					      lig_set, context_set, flags));
   }
 
   bool add_gsub_lookup (hb_codepoint_t target, hb_codepoint_t lookup_index,
@@ -492,11 +566,66 @@ struct hb_depend_data_builder_t
     hb_subset_depend_edge_flags_t flags = current_edge_flags;
 
     bool any_added = false;
-    for (auto t : lookup_features[lookup_index]) {
+    for (uint64_t entry : get_lookup_features (lookup_index)) {
+      hb_tag_t t = (hb_tag_t) entry;
       if (add_depend_layout (target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set, flags))
         any_added = true;
     }
     return any_added;
+  }
+
+  bool init_lookup_features (unsigned lookup_count)
+  {
+    return check_success (lookup_feature_offsets.resize (lookup_count + 1));
+  }
+
+  bool add_lookup_feature (hb_codepoint_t lookup_index, hb_tag_t feature_tag)
+  {
+    if (feature_tag == HB_SET_VALUE_INVALID)
+      return true;
+
+    if (unlikely (!lookup_feature_offsets.length ||
+		  lookup_index >= lookup_feature_offsets.length - 1))
+      return fail ();
+
+    uint64_t entry = ((uint64_t) lookup_index << 32) | feature_tag;
+    return check_success (lookup_features.push_or_fail (entry));
+  }
+
+  bool finish_lookup_features ()
+  {
+    lookup_features.qsort ([] (uint64_t a, uint64_t b) {
+      return a < b ? -1 : a > b ? 1 : 0;
+    });
+
+    unsigned write = 0;
+    for (uint64_t entry : lookup_features)
+      if (!write || entry != lookup_features[write - 1])
+	lookup_features[write++] = entry;
+    lookup_features.shrink (write, false);
+
+    unsigned feature_index = 0;
+    unsigned lookup_count = lookup_feature_offsets.length - 1;
+    for (unsigned lookup_index = 0; lookup_index < lookup_count; lookup_index++)
+    {
+      lookup_feature_offsets[lookup_index] = feature_index;
+      while (feature_index < lookup_features.length &&
+	     lookup_features[feature_index] >> 32 == lookup_index)
+	feature_index++;
+    }
+    lookup_feature_offsets[lookup_count] = feature_index;
+    return true;
+  }
+
+  hb_array_t<const uint64_t> get_lookup_features (hb_codepoint_t lookup_index) const
+  {
+    if (unlikely (!lookup_feature_offsets.length ||
+		  lookup_index >= lookup_feature_offsets.length - 1))
+      return {};
+
+    unsigned start = lookup_feature_offsets[lookup_index];
+    unsigned end = lookup_feature_offsets[lookup_index + 1];
+    return lookup_features.as_array ().sub_array (start, end - start);
   }
 
   void add_depend (hb_codepoint_t target, hb_tag_t table_tag,
@@ -523,8 +652,10 @@ struct hb_depend_data_builder_t
   bool successful = true;
   hb_set_t unicodes;
   hb_map_t nominal_glyphs;
-  hb_vector_t<hb_set_t> lookup_features;
-  hb_hashmap_t<hb_depend_edge_key_t, bool> seen_edges;
+  hb_vector_t<uint64_t> lookup_features;
+  hb_vector_t<unsigned> lookup_feature_offsets;
+  hb_vector_t<uint64_t> edge_slots;
+  unsigned int edge_population = 0;
   hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
   hb_vector_t<hb_codepoint_t> free_set_list;
   hb_codepoint_t current_context_set_index;

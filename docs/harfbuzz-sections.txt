@@ -872,6 +872,7 @@ hb_set_symmetric_difference
 hb_set_invert
 hb_set_is_inverted
 hb_set_is_equal
+hb_set_intersects
 hb_set_is_subset
 hb_set_next
 hb_set_next_range
