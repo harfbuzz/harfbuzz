@@ -470,11 +470,8 @@ struct hb_depend_data_builder_t
     }
 
     hb_depend_edge_key_t key (target, table_tag, layout_tag, dependent, lig_set, context_set);
-    if (seen_edges.has (key))
-      return false;
-
-    if (unlikely (!seen_edges.set (key, true)))
-      return fail ();
+    if (!seen_edges.set (key, true, false))
+      return unlikely (seen_edges.in_error ()) ? fail () : false;
 
     auto &gdr = data.glyph_dependencies[target];
     if (unlikely (!gdr.dependencies.push_or_fail (table_tag, dependent, layout_tag,
