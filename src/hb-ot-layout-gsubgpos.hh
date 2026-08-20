@@ -415,12 +415,12 @@ struct hb_depend_context_t :
     recurse_key_t () = default;
     recurse_key_t (unsigned lookup_index_,
                    hb_codepoint_t active_glyphs_,
-                   hb_codepoint_t lookups_seen_,
+                   hb_codepoint_t recurse_path_,
                    hb_codepoint_t context_set_,
                    hb_subset_depend_edge_flags_t flags_)
       : lookup_index (lookup_index_),
         active_glyphs (active_glyphs_),
-        lookups_seen (lookups_seen_),
+        recurse_path (recurse_path_),
         context_set (context_set_),
         flags (flags_) {}
 
@@ -428,7 +428,7 @@ struct hb_depend_context_t :
     {
       return lookup_index == o.lookup_index &&
              active_glyphs == o.active_glyphs &&
-             lookups_seen == o.lookups_seen &&
+             recurse_path == o.recurse_path &&
              context_set == o.context_set &&
              flags == o.flags;
     }
@@ -438,7 +438,7 @@ struct hb_depend_context_t :
       uint32_t current = 0x84222325;
       current = (current ^ hb_hash (lookup_index)) * 16777619;
       current = (current ^ hb_hash (active_glyphs)) * 16777619;
-      current = (current ^ hb_hash (lookups_seen)) * 16777619;
+      current = (current ^ hb_hash (recurse_path)) * 16777619;
       current = (current ^ hb_hash (context_set)) * 16777619;
       current = (current ^ hb_hash ((unsigned) flags)) * 16777619;
       return current;
@@ -446,7 +446,7 @@ struct hb_depend_context_t :
 
     unsigned lookup_index = 0;
     hb_codepoint_t active_glyphs = 0;
-    hb_codepoint_t lookups_seen = 0;
+    hb_codepoint_t recurse_path = 0;
     hb_codepoint_t context_set = HB_CODEPOINT_INVALID;
     hb_subset_depend_edge_flags_t flags = HB_SUBSET_DEPEND_EDGE_FLAG_NONE;
   };
@@ -478,7 +478,29 @@ struct hb_depend_context_t :
      * that indirect cycles of the form A→B→A are also caught here. */
     if (lookups_seen.has (lookup_idx)) return;
     lookups_seen.add (lookup_idx);
+
+    /* Intern the ordered recursion path instead of copying and interning the
+     * lookups_seen set.  Path identity is more specific than set identity but
+     * never merges states with different cycle-detection behavior. */
+    hb_codepoint_t parent_path = recurse_path;
+    uint64_t path_key = (uint64_t) parent_path << 32 | lookup_idx;
+    hb_codepoint_t *path = nullptr;
+    hb_codepoint_t path_index;
+    if (!recurse_path_to_index.has (path_key, &path))
+    {
+      path_index = recurse_path_to_index.get_population () + 1;
+      if (unlikely (!recurse_path_to_index.set (path_key, path_index)))
+      {
+	depend_data->fail ();
+	lookups_seen.del (lookup_idx);
+	return;
+      }
+    }
+    else
+      path_index = *path;
+    recurse_path = path_index;
     recurse_func (this, lookup_idx, covered_seq_indices, seq_index, end_index);
+    recurse_path = parent_path;
     lookups_seen.del (lookup_idx);
   }
 
@@ -519,13 +541,9 @@ struct hb_depend_context_t :
     if (!find_or_create_recurse_set (parent_active_glyphs (), &active_idx))
       return false;
 
-    hb_codepoint_t seen_idx;
-    if (!find_or_create_recurse_set (lookups_seen, &seen_idx))
-      return false;
-
     *key = recurse_key_t (lookup_idx,
                           active_idx,
-                          seen_idx,
+                          recurse_path,
                           depend_data->current_context_set_index,
                           depend_data->current_edge_flags);
     return !completed_recursions.has (*key);
@@ -539,6 +557,8 @@ struct hb_depend_context_t :
     completed_recursions.clear ();
     recurse_set_to_index.clear ();
     recurse_sets.clear ();
+    recurse_path_to_index.clear ();
+    recurse_path = 0;
   }
 
   bool find_or_create_recurse_set (const hb_set_t &set, hb_codepoint_t *index)
@@ -636,9 +656,11 @@ struct hb_depend_context_t :
   unsigned active_glyphs_stack_depth = 0;
   recurse_func_t recurse_func;
   hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
-  hb_set_t lookups_seen;
+  hb_bit_set_t lookups_seen;
   hb_vector_t<hb::unique_ptr<hb_set_t>> recurse_sets;
   hb_hashmap_t<const hb_set_t *, hb_codepoint_t> recurse_set_to_index;
+  hb_hashmap_t<uint64_t, hb_codepoint_t> recurse_path_to_index;
+  hb_codepoint_t recurse_path = 0;
   hb_hashmap_t<recurse_key_t, bool> completed_recursions;
   hb_vector_t<hb::unique_ptr<hb_set_t>> glyph_sets;
   hb_hashmap_t<glyph_set_cache_key_t, hb_codepoint_t> glyph_set_to_index;
