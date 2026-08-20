@@ -2362,7 +2362,9 @@ context_depend_sets_are_cached (hb_depend_context_t *c,
     if (unlikely (!cached_context_sets->push_or_fail (*cached_context_set)))
       return c->depend_data->fail ();
   }
-  return true;
+  /* A rule with no valid records has no cache entries, and its preparation
+   * can still allocate dependency sets in an observable order. */
+  return have_active_idx;
 }
 
 template <typename HBUINT>
@@ -4172,9 +4174,26 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
     &scratch->cached_context_sets);
   if (unlikely (!c->depend_data->successful))
     return;
+  if (context_sets_cached)
+  {
+    context_depend_recurse_lookups (c,
+				    inputCount, input,
+				    lookupCount, lookupRecord,
+				    rule,
+				    value,
+				    lookup_context.context_format,
+				    lookup_context.intersects_data[1],
+				    lookup_context.funcs.intersected_glyphs,
+				    lookup_context.intersected_glyphs_cache,
+				    scratch->preliminary_context,
+				    nullptr,
+				    &scratch->cached_context_sets,
+				    scratch);
+    return;
+  }
 
-  /* Keep building backtrack and lookahead sets on a label-cache hit: their
-   * interning order determines the observable dependency-set indices. */
+  /* Cache misses and rules without valid records still perform the original
+   * dependency-set interning in its observable order. */
   hb_set_t &position_scratch = scratch->position_scratch;
   hb_vector_t<const hb_set_t *> &backtrack_sets = scratch->backtrack_sets;
   hb_vector_t<const hb_set_t *> &lookahead_sets = scratch->lookahead_sets;
