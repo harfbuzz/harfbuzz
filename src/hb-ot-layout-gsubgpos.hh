@@ -710,6 +710,7 @@ struct hb_depend_context_t :
       backtrack_sets.clear ();
       lookahead_sets.clear ();
       input_position_glyphs.clear ();
+      cached_context_sets.clear ();
       compact_workspace.clear ();
     }
 
@@ -722,6 +723,7 @@ struct hb_depend_context_t :
     hb_vector_t<const hb_set_t *> backtrack_sets;
     hb_vector_t<const hb_set_t *> lookahead_sets;
     hb_vector_t<const hb_set_t *> input_position_glyphs;
+    hb_vector_t<hb_codepoint_t> cached_context_sets;
     hb_vector_t<unsigned> compact_workspace;
     depend_scratch_t *next = nullptr;
   };
@@ -2335,7 +2337,8 @@ context_depend_sets_are_cached (hb_depend_context_t *c,
 				const void *rule,
 				unsigned value,
 				ContextFormat context_format,
-				const void *data)
+				const void *data,
+				hb_vector_t<hb_codepoint_t> *cached_context_sets)
 {
   hb_codepoint_t active_idx = HB_CODEPOINT_INVALID;
   bool have_active_idx = false;
@@ -2353,8 +2356,11 @@ context_depend_sets_are_cached (hb_depend_context_t *c,
 
     hb_depend_context_t::context_set_cache_key_t key (
       rule, &lookup_records[i], data, active_idx, value, context_format);
-    if (!c->context_set_cache.has (key))
+    hb_codepoint_t *cached_context_set = nullptr;
+    if (!c->context_set_cache.has (key, &cached_context_set))
       return false;
+    if (unlikely (!cached_context_sets->push_or_fail (*cached_context_set)))
+      return c->depend_data->fail ();
   }
   return true;
 }
@@ -2372,6 +2378,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
 					     void *cache,
 					     const hb_set_t &preliminary_context,
 					     const hb_vector_t<const hb_set_t *> *input_position_glyphs,
+					     const hb_vector_t<hb_codepoint_t> *cached_context_sets,
 					     hb_depend_context_t::depend_scratch_t *scratch)
 {
   /* For depend graph extraction, we filter active glyphs by InputCoverage constraints
@@ -2388,6 +2395,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
   hb_set_t &position_context = scratch->position_context;
   hb_set_t &disjunctive_indices = scratch->disjunctive_indices;
   hb_set_t &filtered_disjunctive_indices = scratch->filtered_disjunctive_indices;
+  unsigned cached_context_index = 0;
   for (unsigned int i = 0; i < lookupCount; i++)
   {
     unsigned seqIndex = lookupRecord[i].sequenceIndex;
@@ -2400,8 +2408,10 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       return;
 
     hb_codepoint_t context_set_idx;
-    hb_codepoint_t *cached_context_set_idx = nullptr;
-    if (c->context_set_cache.has (context_cache_key, &cached_context_set_idx))
+    hb_codepoint_t *cached_context_set_idx;
+    if (cached_context_sets)
+      context_set_idx = (*cached_context_sets)[cached_context_index++];
+    else if (c->context_set_cache.has (context_cache_key, &cached_context_set_idx))
       context_set_idx = *cached_context_set_idx;
     else
     {
@@ -2837,7 +2847,8 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
 
   bool context_sets_cached = context_depend_sets_are_cached (
     c, inputCount, lookupCount, lookupRecord, rule, value,
-    lookup_context.context_format, lookup_context.intersects_data);
+    lookup_context.context_format, lookup_context.intersects_data,
+    &scratch->cached_context_sets);
   if (unlikely (!c->depend_data->successful))
     return;
 
@@ -2890,6 +2901,7 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
 				  lookup_context.intersected_glyphs_cache,
 				  preliminary_context,
 				  context_sets_cached ? nullptr : &input_position_glyphs,
+				  context_sets_cached ? &scratch->cached_context_sets : nullptr,
 				  scratch);
 }
 
@@ -4156,7 +4168,8 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 
   bool context_sets_cached = context_depend_sets_are_cached (
     c, inputCount, lookupCount, lookupRecord, rule, value,
-    lookup_context.context_format, lookup_context.intersects_data[1]);
+    lookup_context.context_format, lookup_context.intersects_data[1],
+    &scratch->cached_context_sets);
   if (unlikely (!c->depend_data->successful))
     return;
 
@@ -4279,6 +4292,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 				  lookup_context.intersected_glyphs_cache,
 				  preliminary_context,
 				  context_sets_cached ? nullptr : &input_position_glyphs,
+				  context_sets_cached ? &scratch->cached_context_sets : nullptr,
 				  scratch);
 }
 
