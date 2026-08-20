@@ -205,8 +205,10 @@ struct hb_bit_set_invertible_t
 
   protected:
   template <typename Op>
-  void process (const Op& op, const hb_bit_set_invertible_t &other)
-  { s.process (op, other.s); }
+  void process (const Op& op,
+		const hb_bit_set_invertible_t &other,
+		hb_vector_t<unsigned> *workspace = nullptr)
+  { s.process (op, other.s, workspace); }
   public:
   void union_ (const hb_bit_set_invertible_t &other)
   {
@@ -228,20 +230,26 @@ struct hb_bit_set_invertible_t
       inverted = inverted || other.inverted;
   }
   void intersect (const hb_bit_set_invertible_t &other)
+  { intersect (other, nullptr); }
+  void intersect (const hb_bit_set_invertible_t &other,
+		  hb_vector_t<unsigned> &workspace)
+  { intersect (other, &workspace); }
+  void intersect (const hb_bit_set_invertible_t &other,
+		  hb_vector_t<unsigned> *workspace)
   {
     if (likely (inverted == other.inverted))
     {
       if (unlikely (inverted))
-	process (hb_bitwise_or, other);
+	process (hb_bitwise_or, other, workspace);
       else
-	process (hb_bitwise_and, other); /* Main branch. */
+	process (hb_bitwise_and, other, workspace); /* Main branch. */
     }
     else
     {
       if (unlikely (inverted))
-	process (hb_bitwise_lt, other);
+	process (hb_bitwise_lt, other, workspace);
       else
-	process (hb_bitwise_gt, other);
+	process (hb_bitwise_gt, other, workspace);
     }
     if (likely (s.successful))
       inverted = inverted && other.inverted;

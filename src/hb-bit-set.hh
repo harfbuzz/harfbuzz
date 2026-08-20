@@ -524,7 +524,8 @@ struct hb_bit_set_t
 
   void process_ (hb_bit_page_t::vector_t (*op) (const hb_bit_page_t::vector_t &, const hb_bit_page_t::vector_t &),
 		 bool passthru_left, bool passthru_right,
-		 const hb_bit_set_t &other)
+		 const hb_bit_set_t &other,
+		 hb_vector_t<unsigned> *workspace = nullptr)
   {
     if (unlikely (!successful)) return;
 
@@ -540,8 +541,18 @@ struct hb_bit_set_t
 
     // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
     // before attempting to rewrite the page map.
-    hb_vector_t<unsigned> compact_workspace;
-    if (!passthru_left && unlikely (!allocate_compact_workspace (compact_workspace))) return;
+    hb_vector_t<unsigned> local_workspace;
+    hb_vector_t<unsigned> &compact_workspace = workspace ? *workspace : local_workspace;
+    if (!passthru_left)
+    {
+      bool allocated = workspace ? compact_workspace.resize (pages.length)
+				 : allocate_compact_workspace (compact_workspace);
+      if (unlikely (!allocated))
+      {
+	successful = false;
+	return;
+      }
+    }
 
     for (; a < na && b < nb; )
     {
@@ -651,13 +662,17 @@ struct hb_bit_set_t
   op_ (const hb_bit_page_t::vector_t &a, const hb_bit_page_t::vector_t &b)
   { return Op{} (a, b); }
   template <typename Op>
-  void process (const Op& op, const hb_bit_set_t &other)
+  void process (const Op& op,
+		const hb_bit_set_t &other,
+		hb_vector_t<unsigned> *workspace = nullptr)
   {
-    process_ (op_<Op>, op (1, 0), op (0, 1), other);
+    process_ (op_<Op>, op (1, 0), op (0, 1), other, workspace);
   }
 
   void union_ (const hb_bit_set_t &other) { process (hb_bitwise_or, other); }
   void intersect (const hb_bit_set_t &other) { process (hb_bitwise_and, other); }
+  void intersect (const hb_bit_set_t &other, hb_vector_t<unsigned> &workspace)
+  { process (hb_bitwise_and, other, &workspace); }
   void subtract (const hb_bit_set_t &other) { process (hb_bitwise_gt, other); }
   void symmetric_difference (const hb_bit_set_t &other) { process (hb_bitwise_xor, other); }
 
