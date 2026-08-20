@@ -151,7 +151,8 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
       this->table->get_feature (feature_index).add_lookup_indexes_to (&lookup_indexes);
 
     for (auto lookup_index : lookup_indexes)
-      builder->lookup_features[lookup_index].add (ft);
+      if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
+	return;
 
     auto &fv = this->table->get_feature_variations ();
     auto fi_count = fv.record_count ();
@@ -165,9 +166,21 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
           feature_ptr->add_lookup_indexes_to (&lookup_indexes);
       }
       for (auto lookup_index : lookup_indexes)
-        if (!builder->lookup_features[lookup_index].has (ft))
-          builder->lookup_features[lookup_index].add (ft);
+        if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
+	  return;
     }
+  }
+
+  for (auto &features : builder->lookup_features)
+  {
+    features.qsort ([] (hb_tag_t a, hb_tag_t b) {
+      return a < b ? -1 : a > b ? 1 : 0;
+    });
+    unsigned write = 0;
+    for (hb_tag_t tag : features)
+      if (!write || tag != features[write - 1])
+	features[write++] = tag;
+    features.shrink (write, false);
   }
 
   hb_set_t all_glyphs;
@@ -176,10 +189,10 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
   hb_depend_context_t c (builder, face, &all_glyphs);
 
   int i = -1;
-  for (auto &feature_set : builder->lookup_features)
+  for (auto &features : builder->lookup_features)
   {
     i++;
-    if (feature_set.is_empty ())
+    if (!features)
     {
       DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
                        "Skipping lookup %d (no features)", i);

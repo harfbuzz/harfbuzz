@@ -499,6 +499,14 @@ struct hb_depend_data_builder_t
     return any_added;
   }
 
+  bool add_lookup_feature (hb_codepoint_t lookup_index, hb_tag_t feature_tag)
+  {
+    if (feature_tag == HB_SET_VALUE_INVALID)
+      return true;
+
+    return check_success (lookup_features[lookup_index].push_or_fail (feature_tag));
+  }
+
   void add_depend (hb_codepoint_t target, hb_tag_t table_tag,
                    hb_codepoint_t dependent,
                    hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
@@ -523,7 +531,7 @@ struct hb_depend_data_builder_t
   bool successful = true;
   hb_set_t unicodes;
   hb_map_t nominal_glyphs;
-  hb_vector_t<hb_set_t> lookup_features;
+  hb_vector_t<hb_vector_t<hb_tag_t>> lookup_features;
   hb_hashmap_t<hb_depend_edge_key_t, bool> seen_edges;
   hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
   hb_vector_t<hb_codepoint_t> free_set_list;
