@@ -430,20 +430,56 @@ struct hb_bit_set_invertible_t
     static constexpr bool is_sorted_iterator = true;
     static constexpr bool has_fast_len = true;
     iter_t (const hb_bit_set_invertible_t &s_ = Null (hb_bit_set_invertible_t),
-	    bool init = true) : s (&s_), v (INVALID), l (0),
-				     base (INVALID), bits (0)
+    bool init = true) : s (&s_), v (INVALID), remaining (0),
+				     have_len (!init), base (INVALID), bits (0)
     {
       if (init)
-      {
-	l = s->get_population () + 1;
-	__next__ ();
-      }
+	advance ();
     }
 
     typedef hb_codepoint_t __item_t__;
     hb_codepoint_t __item__ () const { return v; }
     bool __more__ () const { return v != INVALID; }
     void __next__ ()
+    {
+      remaining--;
+      advance ();
+    }
+    void __prev__ ()
+    {
+      if (s->previous (&v))
+      {
+	sync ();
+	remaining++;
+      }
+      else
+      {
+	base = INVALID;
+	bits = 0;
+      }
+    }
+    unsigned __len__ () const
+    {
+      if (unlikely (!have_len))
+      {
+	remaining += s->get_population ();
+	have_len = true;
+      }
+      return remaining;
+    }
+    iter_t end () const { return iter_t (*s, false); }
+    bool operator != (const iter_t& o) const
+    { return v != o.v; }
+
+    protected:
+    const hb_bit_set_invertible_t *s;
+    hb_codepoint_t v;
+    mutable unsigned remaining;
+    mutable bool have_len;
+    hb_codepoint_t base;
+    uint64_t bits;
+
+    void advance ()
     {
       if (likely (bits))
       {
@@ -457,30 +493,7 @@ struct hb_bit_set_invertible_t
       }
       else
 	v = INVALID;
-      if (likely (l)) l--;
     }
-    void __prev__ ()
-    {
-      if (s->previous (&v))
-	sync ();
-      else
-      {
-	base = INVALID;
-	bits = 0;
-      }
-      l++;
-    }
-    unsigned __len__ () const { return l; }
-    iter_t end () const { return iter_t (*s, false); }
-    bool operator != (const iter_t& o) const
-    { return v != o.v; }
-
-    protected:
-    const hb_bit_set_invertible_t *s;
-    hb_codepoint_t v;
-    unsigned l;
-    hb_codepoint_t base;
-    uint64_t bits;
 
     void sync ()
     {

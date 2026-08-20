@@ -218,8 +218,10 @@ main (int argc, char **argv)
 
     auto it = s.iter ();
     hb_always_assert (*it == 0);
+    hb_always_assert (it.len () == ARRAY_LENGTH (expected));
     ++it;
     hb_always_assert (*it == 1);
+    hb_always_assert (it.len () == ARRAY_LENGTH (expected) - 1);
     --it;
     hb_always_assert (*it == 0);
     ++it;
@@ -240,6 +242,10 @@ main (int argc, char **argv)
     hb_always_assert (*it == 1024);
     ++it;
     hb_always_assert (*it == HB_SET_VALUE_INVALID - 1);
+
+    it = s.iter ();
+    it += 2;
+    hb_always_assert (it.len () == ARRAY_LENGTH (expected) - 2);
   }
 
   /* Test inverted-set iteration. */
@@ -248,6 +254,7 @@ main (int argc, char **argv)
     s.invert ();
     auto it = s.iter ();
     hb_always_assert (*it == 2);
+    hb_always_assert (it.len () == HB_SET_VALUE_INVALID - 4);
     ++it;
     hb_always_assert (*it == 3);
     --it;
