@@ -451,13 +451,13 @@ struct hb_depend_context_t :
     hb_subset_depend_edge_flags_t flags = HB_SUBSET_DEPEND_EDGE_FLAG_NONE;
   };
 
-  typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index);
+  typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index, hb_bit_page_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
   /* return_t is hb_empty_t — dispatch is purely for side-effects, like hb_closure_context_t. */
   template <typename T>
   return_t dispatch (const T &obj) { obj.depend (this); return hb_empty_t (); }
   static return_t default_return_value () { return hb_empty_t (); }
 
-  void recurse (unsigned lookup_idx, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index)
+  void recurse (unsigned lookup_idx, hb_bit_page_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
   {
     /* Cycle detection using call-stack semantics: block re-entry of a
      * lookup that is currently on the execution stack, but allow it again
@@ -478,7 +478,7 @@ struct hb_depend_context_t :
      * that indirect cycles of the form A→B→A are also caught here. */
     if (lookups_seen.has (lookup_idx)) return;
     lookups_seen.add (lookup_idx);
-    recurse_func (this, lookup_idx, covered_seq_indicies, seq_index, end_index);
+    recurse_func (this, lookup_idx, covered_seq_indices, seq_index, end_index);
     lookups_seen.del (lookup_idx);
   }
 
@@ -2148,7 +2148,8 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
    * - Sequential accumulation: Not done. We want ALL possible edges, so we don't
    *   limit later lookups based on outputs from earlier lookups in the same rule. */
 
-  hb_set_t covered_seq_indicies;
+  /* HB_MAX_CONTEXT_LENGTH positions fit in one allocation-free bit page. */
+  hb_bit_page_t covered_seq_indices;
   hb_set_t pos_glyphs;
   for (unsigned int i = 0; i < lookupCount; i++)
   {
@@ -2267,7 +2268,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
 
     bool has_pos_glyphs = false;
 
-    if (!covered_seq_indicies.has (seqIndex))
+    if (!covered_seq_indices.has (seqIndex))
     {
       has_pos_glyphs = true;
       pos_glyphs.clear ();
@@ -2299,7 +2300,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       }
     }
 
-    covered_seq_indicies.add (seqIndex);
+    covered_seq_indices.add (seqIndex);
     hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
     {
@@ -2317,7 +2318,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     if (context_format == ContextFormat::CoverageBasedContext)
       endIndex += 1;
 
-    c->recurse (lookupRecord[i].lookupListIndex, &covered_seq_indicies, seqIndex, endIndex);
+    c->recurse (lookupRecord[i].lookupListIndex, &covered_seq_indices, seqIndex, endIndex);
     c->pop_cur_done_glyphs ();
 
     /* Restore outer context after this lookup, so subsequent lookups in this
