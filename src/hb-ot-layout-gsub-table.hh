@@ -128,7 +128,7 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
     return;
   this->table->get_feature_tags (0, &num_features, feature_tags.arrayZ);
 
-  if (!builder->check_success (builder->lookup_features.resize (num_lookups)))
+  if (!builder->init_lookup_features (num_lookups))
     return;
 
   hb_vector_t<hb_tag_t> feature_query_v;
@@ -171,35 +171,25 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
     }
   }
 
-  for (auto &features : builder->lookup_features)
-  {
-    features.qsort ([] (hb_tag_t a, hb_tag_t b) {
-      return a < b ? -1 : a > b ? 1 : 0;
-    });
-    unsigned write = 0;
-    for (hb_tag_t tag : features)
-      if (!write || tag != features[write - 1])
-	features[write++] = tag;
-    features.shrink (write, false);
-  }
+  if (unlikely (!builder->finish_lookup_features ()))
+    return;
 
   hb_set_t all_glyphs;
   all_glyphs.add_range (0, face->get_num_glyphs () - 1);
 
   hb_depend_context_t c (builder, face, &all_glyphs);
 
-  int i = -1;
-  for (auto &features : builder->lookup_features)
+  for (unsigned i = 0; i < num_lookups; i++)
   {
-    i++;
+    auto features = builder->get_lookup_features (i);
     if (!features)
     {
       DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
-                       "Skipping lookup %d (no features)", i);
+                       "Skipping lookup %u (no features)", i);
       continue;
     }
     DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
-                     "Processing lookup %d with features:", i);
+                     "Processing lookup %u with features:", i);
     c.lookup_index = i;
     c.reset_recurse_cache ();
     c.lookups_seen.clear ();
