@@ -670,9 +670,9 @@ struct hb_bit_set_t
   }
 
   void union_ (const hb_bit_set_t &other) { process (hb_bitwise_or, other); }
-  void intersect (const hb_bit_set_t &other) { process (hb_bitwise_and, other); }
-  void intersect (const hb_bit_set_t &other, hb_vector_t<unsigned> &workspace)
-  { process (hb_bitwise_and, other, &workspace); }
+  void intersect (const hb_bit_set_t &other,
+		  hb_vector_t<unsigned> *workspace = nullptr)
+  { process (hb_bitwise_and, other, workspace); }
   void subtract (const hb_bit_set_t &other) { process (hb_bitwise_gt, other); }
   void symmetric_difference (const hb_bit_set_t &other) { process (hb_bitwise_xor, other); }
 

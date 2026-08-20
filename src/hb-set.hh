@@ -140,8 +140,8 @@ struct hb_sparseset_t
   bool is_subset (const hb_sparseset_t &larger_set) const { return s.is_subset (larger_set.s); }
 
   void union_ (const hb_sparseset_t &other) { s.union_ (other.s); }
-  void intersect (const hb_sparseset_t &other) { s.intersect (other.s); }
-  void intersect (const hb_sparseset_t &other, hb_vector_t<unsigned> &workspace)
+  void intersect (const hb_sparseset_t &other,
+		  hb_vector_t<unsigned> *workspace = nullptr)
   { s.intersect (other.s, workspace); }
   void subtract (const hb_sparseset_t &other) { s.subtract (other.s); }
   void symmetric_difference (const hb_sparseset_t &other) { s.symmetric_difference (other.s); }

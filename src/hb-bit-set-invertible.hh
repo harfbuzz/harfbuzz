@@ -229,13 +229,8 @@ struct hb_bit_set_invertible_t
     if (likely (s.successful))
       inverted = inverted || other.inverted;
   }
-  void intersect (const hb_bit_set_invertible_t &other)
-  { intersect (other, nullptr); }
   void intersect (const hb_bit_set_invertible_t &other,
-		  hb_vector_t<unsigned> &workspace)
-  { intersect (other, &workspace); }
-  void intersect (const hb_bit_set_invertible_t &other,
-		  hb_vector_t<unsigned> *workspace)
+		  hb_vector_t<unsigned> *workspace = nullptr)
   {
     if (likely (inverted == other.inverted))
     {
