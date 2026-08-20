@@ -329,6 +329,14 @@
 #endif
 #endif
 
+#ifndef HB_NEVER_INLINE
+#if defined(_MSC_VER)
+#define HB_NEVER_INLINE __declspec(noinline)
+#else
+#define HB_NEVER_INLINE __attribute__((noinline))
+#endif
+#endif
+
 #ifndef HB_HOT
 #define HB_HOT __attribute__((hot))
 #endif
