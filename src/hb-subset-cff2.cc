@@ -714,12 +714,14 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
     switch (op) {
 
       case OpCode_return:
+	param.current_parsed_str->flush_coalesced (env.str_ref);
 	param.current_parsed_str->set_parsed ();
 	env.return_from_subr ();
 	param.set_current_str (env, false);
 	break;
 
       case OpCode_endchar:
+	param.current_parsed_str->flush_coalesced (env.str_ref);
 	param.current_parsed_str->set_parsed ();
 	SUPER::process_op (op, env, param);
 	break;

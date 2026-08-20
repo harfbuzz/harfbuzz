@@ -189,10 +189,13 @@ struct Coverage
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+    const hb_subset_plan_t *plan = c->plan;
     auto it =
     + iter ()
-    | hb_take (c->plan->source->get_num_glyphs ())
-    | hb_map_retains_sorting (c->plan->glyph_map_gsub)
+    | hb_take (plan->source->get_num_glyphs ())
+    | hb_map_retains_sorting ([plan] (hb_codepoint_t g) {
+	return plan->map_gsub_glyph (g);
+      })
     | hb_filter ([] (hb_codepoint_t glyph) { return glyph != HB_MAP_VALUE_INVALID; })
     ;
 

@@ -1551,7 +1551,6 @@ struct ClassDefFormat1_3
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_map_t &glyph_map = c->plan->glyph_map_gsub;
 
     hb_sorted_vector_t<hb_codepoint_pair_t> glyph_and_klass;
     hb_set_t orig_klasses;
@@ -1561,7 +1560,7 @@ struct ClassDefFormat1_3
 
     for (const hb_codepoint_t gid : + hb_range (start, end))
     {
-      hb_codepoint_t new_gid = glyph_map[gid];
+      hb_codepoint_t new_gid = c->plan->map_gsub_glyph (gid);
       if (new_gid == HB_MAP_VALUE_INVALID) continue;
       if (glyph_filter && !glyph_filter->has(gid)) continue;
 
@@ -1574,9 +1573,10 @@ struct ClassDefFormat1_3
 
     if (use_class_zero)
     {
+      const hb_set_t& glyphset = *c->plan->glyphset_gsub ();
       unsigned glyph_count = glyph_filter
-			     ? hb_len (hb_iter (glyph_map.keys()) | hb_filter (glyph_filter))
-			     : glyph_map.get_population ();
+			     ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
+			     : glyphset.get_population ();
       use_class_zero = glyph_count <= glyph_and_klass.length;
     }
     if (!ClassDef_remap_and_serialize (c->serializer,
@@ -1810,7 +1810,6 @@ struct ClassDefFormat2_4
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_map_t &glyph_map = c->plan->glyph_map_gsub;
     const hb_set_t &glyph_set = *c->plan->glyphset_gsub ();
 
     hb_sorted_vector_t<hb_codepoint_pair_t> glyph_and_klass;
@@ -1823,7 +1822,7 @@ struct ClassDefFormat2_4
       {
 	unsigned klass = get_class (g);
 	if (!klass) continue;
-	hb_codepoint_t new_gid = glyph_map[g];
+	hb_codepoint_t new_gid = c->plan->map_gsub_glyph (g);
 	if (new_gid == HB_MAP_VALUE_INVALID) continue;
 	if (glyph_filter && !glyph_filter->has (g)) continue;
 	glyph_and_klass.push (hb_pair (new_gid, klass));
@@ -1841,7 +1840,7 @@ struct ClassDefFormat2_4
 	hb_codepoint_t end   = hb_min (range.last + 1, num_source_glyphs);
 	for (hb_codepoint_t g = start; g < end; g++)
 	{
-	  hb_codepoint_t new_gid = glyph_map[g];
+	  hb_codepoint_t new_gid = c->plan->map_gsub_glyph (g);
 	  if (new_gid == HB_MAP_VALUE_INVALID) continue;
 	  if (glyph_filter && !glyph_filter->has (g)) continue;
 
@@ -1854,7 +1853,7 @@ struct ClassDefFormat2_4
     const hb_set_t& glyphset = *c->plan->glyphset_gsub ();
     unsigned glyph_count = glyph_filter
                            ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
-                           : glyph_map.get_population ();
+                           : glyphset.get_population ();
     use_class_zero = use_class_zero && glyph_count <= glyph_and_klass.length;
     if (!ClassDef_remap_and_serialize (c->serializer,
                                        orig_klasses,
