@@ -242,6 +242,18 @@ struct hb_subset_plan_t
   }
 
   /*
+   * Old-to-new glyph id mapping for GSUB glyphs, through the flat
+   * array; returns HB_MAP_VALUE_INVALID for glyphs not retained.
+   */
+  inline hb_codepoint_t
+  map_gsub_glyph (hb_codepoint_t old_gid) const
+  {
+    return old_gid < glyph_map_gsub_flat.length
+	 ? glyph_map_gsub_flat.arrayZ[old_gid]
+	 : HB_MAP_VALUE_INVALID;
+  }
+
+  /*
    * The total number of output glyphs in the final subset.
    */
   inline unsigned int
