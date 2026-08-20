@@ -147,6 +147,8 @@ struct hb_sparseset_t
   void symmetric_difference (const hb_sparseset_t &other) { s.symmetric_difference (other.s); }
 
   bool next (hb_codepoint_t *codepoint) const { return s.next (codepoint); }
+  bool next_bits (hb_codepoint_t *codepoint, uint64_t *bits) const
+  { return s.next_bits (codepoint, bits); }
   bool previous (hb_codepoint_t *codepoint) const { return s.previous (codepoint); }
   bool next_range (hb_codepoint_t *first, hb_codepoint_t *last) const
   { return s.next_range (first, last); }

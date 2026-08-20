@@ -151,9 +151,22 @@ struct CoverageFormat2_4
       if (unlikely (range.first < last))
         break;
       last = range.last;
-      for (hb_codepoint_t g = range.first - 1;
-	   glyphs.next (&g) && g <= last;)
-	intersect_glyphs << g;
+      hb_codepoint_t cursor = range.first & -hb_bit_page_t::ELT_BITS;
+      cursor = cursor ? cursor - 1 : HB_SET_VALUE_INVALID;
+      uint64_t bits;
+      while (glyphs.next_bits (&cursor, &bits) && cursor <= last)
+      {
+	if (range.first > cursor)
+	  bits &= UINT64_MAX << (range.first - cursor);
+	unsigned int end = last - cursor;
+	if (end < hb_bit_page_t::ELT_BITS - 1)
+	  bits &= (uint64_t (1) << (end + 1)) - 1;
+	while (bits)
+	{
+	  intersect_glyphs << cursor + hb_ctz (bits);
+	  bits &= bits - 1;
+	}
+      }
     }
   }
 
