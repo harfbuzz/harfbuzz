@@ -158,6 +158,26 @@ main (int argc, char **argv)
     hb_always_assert (b.intersects (c));
   }
 
+  /* Test singleton detection. */
+  {
+    hb_set_t s;
+    hb_codepoint_t singleton;
+    hb_always_assert (!s.get_singleton (&singleton));
+
+    s.add (63);
+    hb_always_assert (s.get_singleton (&singleton));
+    hb_always_assert (singleton == 63);
+
+    s.add (1024);
+    hb_always_assert (!s.get_singleton (&singleton));
+    s.del (63);
+    hb_always_assert (s.get_singleton (&singleton));
+    hb_always_assert (singleton == 1024);
+
+    s.invert ();
+    hb_always_assert (!s.get_singleton (&singleton));
+  }
+
   /* Adding HB_SET_VALUE_INVALID */
   {
     hb_set_t s;

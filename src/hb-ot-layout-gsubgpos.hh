@@ -389,6 +389,8 @@ struct hb_depend_context_t :
     GLYPH_SET_SINGLE
   };
 
+  static constexpr hb_codepoint_t SINGLE_GLYPH_ACTIVE_FLAG = 0x80000000u;
+
   struct glyph_set_cache_key_t
   {
     glyph_set_cache_key_t () = default;
@@ -504,23 +506,43 @@ struct hb_depend_context_t :
     lookups_seen.del (lookup_idx);
   }
 
+  struct active_glyphs_frame_t
+  {
+    hb_set_t glyphs;
+    hb_codepoint_t active_idx = HB_CODEPOINT_INVALID;
+    bool use_root = false;
+  };
+
   const hb_set_t& parent_active_glyphs ()
   {
     if (!active_glyphs_stack_depth)
       return *glyphs;
 
-    return active_glyphs_stack[active_glyphs_stack_depth - 1];
+    const active_glyphs_frame_t &frame = active_glyphs_stack[active_glyphs_stack_depth - 1];
+    return frame.use_root ? *glyphs : frame.glyphs;
   }
 
-  hb_set_t* push_cur_active_glyphs ()
+  hb_set_t* push_cur_active_glyphs (hb_codepoint_t active_idx = HB_CODEPOINT_INVALID)
   {
     if (active_glyphs_stack_depth == active_glyphs_stack.length &&
 	unlikely (!active_glyphs_stack.push_or_fail ()))
       return nullptr;
 
-    hb_set_t *set = &active_glyphs_stack[active_glyphs_stack_depth++];
-    set->clear ();
-    return set;
+    active_glyphs_frame_t &frame = active_glyphs_stack[active_glyphs_stack_depth++];
+    frame.glyphs.clear ();
+    frame.active_idx = active_idx;
+    frame.use_root = false;
+    return &frame.glyphs;
+  }
+
+  bool push_root_active_glyphs ()
+  {
+    if (active_glyphs_stack_depth == active_glyphs_stack.length &&
+	unlikely (!active_glyphs_stack.push_or_fail ()))
+      return false;
+
+    active_glyphs_stack[active_glyphs_stack_depth++].use_root = true;
+    return true;
   }
 
   bool pop_cur_done_glyphs ()
@@ -537,9 +559,23 @@ struct hb_depend_context_t :
     /* The active glyphs and in-progress lookup set are part of the state.
      * Omitting the latter would make memoization incorrect for cyclic lookup
      * graphs whose available recursive paths depend on their ancestry. */
-    hb_codepoint_t active_idx;
-    if (!find_or_create_recurse_set (parent_active_glyphs (), &active_idx))
-      return false;
+    bool uses_root = !active_glyphs_stack_depth ||
+		     active_glyphs_stack[active_glyphs_stack_depth - 1].use_root;
+    hb_codepoint_t active_idx = HB_CODEPOINT_INVALID;
+    if (!uses_root)
+    {
+      const active_glyphs_frame_t &frame = active_glyphs_stack[active_glyphs_stack_depth - 1];
+      active_idx = frame.active_idx;
+      if (active_idx == HB_CODEPOINT_INVALID)
+      {
+	hb_codepoint_t glyph;
+	if (frame.glyphs.get_singleton (&glyph) &&
+	    likely (glyph < SINGLE_GLYPH_ACTIVE_FLAG))
+	  active_idx = glyph | SINGLE_GLYPH_ACTIVE_FLAG;
+	else if (!find_or_create_recurse_set (frame.glyphs, &active_idx))
+	  return false;
+      }
+    }
 
     *key = recurse_key_t (lookup_idx,
                           active_idx,
@@ -581,6 +617,11 @@ struct hb_depend_context_t :
     }
 
     *index = recurse_sets.length;
+    if (unlikely (*index & SINGLE_GLYPH_ACTIVE_FLAG))
+    {
+      hb_set_destroy (copy);
+      return depend_data->fail ();
+    }
     if (unlikely (!recurse_sets.push_or_fail (hb::unique_ptr<hb_set_t> {copy})))
       return depend_data->fail ();
     if (unlikely (!recurse_set_to_index.set (recurse_sets[*index].get (), *index)))
@@ -652,7 +693,7 @@ struct hb_depend_context_t :
   hb_depend_data_builder_t *depend_data;
   hb_face_t *face;
   hb_set_t *glyphs;
-  hb_vector_t<hb_set_t> active_glyphs_stack;
+  hb_vector_t<active_glyphs_frame_t> active_glyphs_stack;
   unsigned active_glyphs_stack_depth = 0;
   recurse_func_t recurse_func;
   hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
@@ -2400,17 +2441,29 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     }
 
     covered_seq_indices.add (seqIndex);
-    hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
-    if (unlikely (!cur_active_glyphs))
+    if (has_pos_glyphs)
+    {
+      hb_codepoint_t active_idx = HB_CODEPOINT_INVALID;
+      if (context_format == ContextFormat::SimpleContext)
+      {
+	hb_codepoint_t glyph = seqIndex ? pos_glyphs.get_min () : value;
+	if (likely (glyph < hb_depend_context_t::SINGLE_GLYPH_ACTIVE_FLAG))
+	  active_idx = glyph | hb_depend_context_t::SINGLE_GLYPH_ACTIVE_FLAG;
+      }
+      hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs (active_idx);
+      if (unlikely (!cur_active_glyphs))
+      {
+	c->depend_data->current_context_set_index = saved_context_set_index;
+	c->depend_data->current_edge_flags = saved_edge_flags;
+	return;
+      }
+      *cur_active_glyphs = std::move (pos_glyphs);
+    }
+    else if (unlikely (!c->push_root_active_glyphs ()))
     {
       c->depend_data->current_context_set_index = saved_context_set_index;
       c->depend_data->current_edge_flags = saved_edge_flags;
       return;
-    }
-    if (has_pos_glyphs) {
-      *cur_active_glyphs = std::move (pos_glyphs);
-    } else {
-      *cur_active_glyphs = *c->glyphs;
     }
 
     unsigned endIndex = inputCount;

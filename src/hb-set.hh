@@ -156,6 +156,7 @@ struct hb_sparseset_t
   { return s.next_many (codepoint, out, size); }
 
   unsigned int get_population () const { return s.get_population (); }
+  bool get_singleton (hb_codepoint_t *codepoint) const { return s.get_singleton (codepoint); }
   hb_codepoint_t get_min () const { return s.get_min (); }
   hb_codepoint_t get_max () const { return s.get_max (); }
 

@@ -942,6 +942,39 @@ struct hb_bit_set_t
     population = pop;
     return pop;
   }
+  bool get_singleton (hb_codepoint_t *codepoint) const
+  {
+    if (has_population ())
+    {
+      if (population != 1) return false;
+      *codepoint = get_min ();
+      return true;
+    }
+
+    hb_codepoint_t singleton = INVALID;
+    for (const auto &map : page_map)
+    {
+      const auto &page = pages.arrayZ[map.index];
+      for (unsigned i = 0; i < page_t::len (); i++)
+      {
+	page_t::elt_t bits = page.v[i];
+	if (!bits) continue;
+	if (singleton != INVALID || (bits & (bits - 1)))
+	  return false;
+	singleton = map.major * page_t::PAGE_BITS +
+		    i * page_t::ELT_BITS + hb_ctz (bits);
+      }
+    }
+
+    if (singleton == INVALID)
+    {
+      population = 0;
+      return false;
+    }
+    population = 1;
+    *codepoint = singleton;
+    return true;
+  }
   hb_codepoint_t get_min () const
   {
     unsigned count = pages.length;

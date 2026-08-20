@@ -101,6 +101,15 @@ struct hb_bit_set_invertible_t
   }
   unsigned int get_population () const
   { return inverted ? INVALID - s.get_population () : s.get_population (); }
+  bool get_singleton (hb_codepoint_t *codepoint) const
+  {
+    if (likely (!inverted))
+      return s.get_singleton (codepoint);
+    if (s.get_population () != INVALID - 1)
+      return false;
+    *codepoint = get_min ();
+    return *codepoint != INVALID;
+  }
 
 
   void add (hb_codepoint_t g) { unlikely (inverted) ? s.del (g) : s.add (g); }
