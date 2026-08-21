@@ -922,7 +922,10 @@ hb_ot_substitute_plan (const hb_ot_shape_context_t *c)
   {
     hb_aat_layout_substitute (c->plan, c->font, c->buffer,
 			      c->user_features, c->num_user_features);
-    c->buffer->update_digest ();
+    /* The buffer digest is only used by the OT lookup-apply loop;
+     * without GPOS ahead, nothing consumes it. */
+    if (c->plan->apply_gpos)
+      c->buffer->update_digest ();
   }
   else
 #endif
