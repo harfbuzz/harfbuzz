@@ -217,6 +217,7 @@ hb_base_sources = files(
   'hb-ot-shaper-arabic.hh',
   'hb-ot-shaper-default.cc',
   'hb-ot-shaper-hangul.cc',
+  'hb-ot-shaper-hebrew-pua.hh',
   'hb-ot-shaper-hebrew.cc',
   'hb-ot-shaper-indic-table.cc',
   'hb-ot-shaper-indic.cc',
