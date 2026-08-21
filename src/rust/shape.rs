@@ -12,7 +12,7 @@ use std::sync::Arc;
 use harfrust::{
     font::{
         AdvanceWidthBatch, BuiltinFontFuncs, Font, FontBlob, FontFuncs, FontInstance,
-        FontTableFunction,
+        FontTableFunction, NominalGlyphBatch,
     },
     GlyphExtents, GlyphFlags as HRGlyphFlags, GlyphId, GlyphInfo as HRGlyphInfo,
     GlyphPosition as HRGlyphPosition, NormalizedCoord, ShapeOptions, Tag,
@@ -175,6 +175,24 @@ impl FontFuncs for HBHarfBuzzFontFuncs {
                 raw.advances,
                 raw.advance_stride as u32,
             );
+        }
+    }
+
+    fn populate_nominal_glyphs(
+        &mut self,
+        _: &BuiltinFontFuncs,
+        batch: NominalGlyphBatch<'_>,
+    ) -> usize {
+        let raw = batch.into_raw();
+        unsafe {
+            hb_font_get_nominal_glyphs(
+                self.font,
+                raw.len as u32,
+                raw.codepoints,
+                raw.codepoint_stride as u32,
+                raw.glyphs,
+                raw.glyph_stride as u32,
+            ) as usize
         }
     }
 
