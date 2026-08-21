@@ -357,8 +357,8 @@ struct glyf_accelerator_t
 	  return;
 	}
 	{
-	  double x_bearing = roundf (min_x);
-	  double y_bearing = roundf (max_y);
+	  double x_bearing = (double) roundf (min_x);
+	  double y_bearing = (double) roundf (max_y);
 	  extents->x_bearing = hb_clamp_to<hb_position_t> (x_bearing);
 	  extents->width = hb_clamp_to<hb_position_t> ((double) roundf (max_x) - x_bearing);
 	  extents->y_bearing = hb_clamp_to<hb_position_t> (y_bearing);

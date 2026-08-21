@@ -960,6 +960,15 @@ hb_clamp_to (double v)
 
 template <typename T>
 static HB_ALWAYS_INLINE T
+hb_clamp_to (float v)
+{
+  /* Widen explicitly: float cannot represent all integer bounds exactly,
+   * so the clamp itself is done in double. */
+  return hb_clamp_to<T> ((double) v);
+}
+
+template <typename T>
+static HB_ALWAYS_INLINE T
 hb_clamp_to (int64_t v)
 {
   static_assert (std::is_integral<T>::value && std::is_signed<T>::value, "");
