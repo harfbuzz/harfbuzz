@@ -484,6 +484,13 @@ hb_buffer_t::move_to (unsigned int i)
     unsigned int count = i - out_len;
     if (unlikely (!make_room_for (count, count))) return false;
 
+    max_ops -= count;
+    if (unlikely (max_ops < 0))
+    {
+      successful = false;
+      return false;
+    }
+
     memmove (out_info + out_len, info + idx, count * sizeof (out_info[0]));
     idx += count;
     out_len += count;
@@ -503,6 +510,13 @@ hb_buffer_t::move_to (unsigned int i)
     if (unlikely (idx < count && !shift_forward (count - idx))) return false;
 
     assert (idx >= count);
+
+    max_ops -= count;
+    if (unlikely (max_ops < 0))
+    {
+      successful = false;
+      return false;
+    }
 
     idx -= count;
     out_len -= count;
