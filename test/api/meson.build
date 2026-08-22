@@ -79,6 +79,10 @@ if conf.get('HAVE_FREETYPE', 0) == 1
   ]
 endif
 
+if conf.get('HAVE_GRAPHITE2', 0) == 1
+  tests += 'test-graphite2.c'
+endif
+
 if conf.get('HAVE_CORETEXT', 0) == 1
   tests += [
     'test-coretext.c',
