@@ -258,6 +258,7 @@ struct KerxSubTableFormat1
 	depth (0),
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
+    HB_AAT_TRANSITION_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -551,6 +552,7 @@ struct KerxSubTableFormat4
 	mark_set (false),
 	mark (0) {}
 
+    HB_AAT_TRANSITION_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
