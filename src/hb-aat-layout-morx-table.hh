@@ -84,6 +84,7 @@ struct RearrangementSubtable
 	table (table_),
 	start (0), end (0) {}
 
+    HB_AAT_TRANSITION_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -243,6 +244,7 @@ struct ContextualSubtable
 	mark (0),
 	subs (table+table->substitutionTables) {}
 
+    HB_AAT_TRANSITION_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -490,6 +492,7 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
+    HB_AAT_TRANSITION_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -787,6 +790,7 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
+    HB_AAT_TRANSITION_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)

@@ -49,6 +49,17 @@ struct ankr;
 
 using hb_aat_class_cache_t = hb_ot_layout_mapping_cache_t;
 
+/* The state-machine subtables' transition functions are called once per
+ * transition from the drive loop, but are big enough that the compiler
+ * declines to inline them, leaving a call in the hottest loop of AAT
+ * shaping.  Forcing them inline is worth 3-10% instructions on
+ * morx/kerx-heavy fonts, for about 16KB of code. */
+#ifndef HB_OPTIMIZE_SIZE
+#define HB_AAT_TRANSITION_INLINE HB_ALWAYS_INLINE
+#else
+#define HB_AAT_TRANSITION_INLINE
+#endif
+
 struct hb_aat_scratch_t
 {
   hb_aat_scratch_t () = default;
