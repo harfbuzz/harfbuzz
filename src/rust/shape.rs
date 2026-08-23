@@ -15,7 +15,7 @@ use harfrust::{
         FontTableFunction, NominalGlyphBatch,
     },
     GlyphExtents, GlyphFlags as HRGlyphFlags, GlyphId, GlyphInfo as HRGlyphInfo,
-    GlyphPosition as HRGlyphPosition, NormalizedCoord, ShapeOptions, Tag,
+    GlyphPosition as HRGlyphPosition, NormalizedCoord, ShapeOptions, Shaper, Tag,
 };
 use smallvec::SmallVec;
 
@@ -133,8 +133,29 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_destroy_rs(data: *mut c_v
     let _hr_face_data = Box::from_raw(data);
 }
 
+/// The per-shape-call `OtTables`/`AatTables` view, cached between
+/// calls. The heavy `ShaperData` is cached inside the font instance
+/// already; this keeps the constructed `Shaper` alive too, keyed on
+/// hb_font_t's variation-coords serial so a variations change rebuilds
+/// both the coords snapshot and the view.
+struct CachedShaper {
+    coords_serial: u32,
+    /// Borrows `instance` below with an erased lifetime. Declared
+    /// first so it drops first; `instance` is never touched while the
+    /// shaper is alive.
+    shaper: Option<Shaper<'static>>,
+    instance: Box<FontInstance>,
+}
+
 pub struct HBHarfRustFontData {
+    /// Create-time snapshot; used for shape-plan creation.
     instance: FontInstance,
+    /// The shaping view. Lock-free by hb_font_t's contract: font
+    /// parameters don't change while shaping calls are in flight, so
+    /// replacement on a serial change never races a reader. The only
+    /// true race is two threads building the first entry, resolved
+    /// with a compare-exchange (the loser drops its copy).
+    cached: std::sync::atomic::AtomicPtr<CachedShaper>,
 }
 
 struct HBHarfBuzzFontFuncs {
@@ -251,7 +272,10 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
     let face_data = face_data as *const HBHarfRustFaceData;
 
     let instance = font_to_instance(font, &(*face_data).font);
-    let hr_font_data = HBHarfRustFontData { instance };
+    let hr_font_data = HBHarfRustFontData {
+        instance,
+        cached: std::sync::atomic::AtomicPtr::new(std::ptr::null_mut()),
+    };
 
     let hr_font_data = Box::new(hr_font_data);
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
@@ -262,7 +286,13 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_destroy_rs(data: *mut c_void) {
     let data = data as *mut HBHarfRustFontData;
-    let _hr_font_data = Box::from_raw(data);
+    let hr_font_data = Box::from_raw(data);
+    let cached = hr_font_data
+        .cached
+        .load(std::sync::atomic::Ordering::Acquire);
+    if !cached.is_null() {
+        drop(Box::from_raw(cached));
+    }
 }
 
 fn hb_language_to_hr_language(language: hb_language_t) -> Option<harfrust::Language> {
@@ -354,6 +384,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     shape_plan: *const c_void,
     hr_buffer_box: *const c_void,
     font: *mut hb_font_t,
+    coords_serial: u32,
     buffer: *mut hb_buffer_t,
     pre_context: *const u32,
     pre_context_length: u32,
@@ -443,7 +474,48 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         .point_size(ptem)
         .features(&features)
         .font_funcs(Some(&mut font_funcs));
-    let glyphs = harfrust::shape(&(*font_data).instance, hr_buffer, options);
+    use std::sync::atomic::Ordering;
+    let slot = &(*font_data).cached;
+    let mut cached = slot.load(Ordering::Acquire);
+    if cached.is_null() || (*cached).coords_serial != coords_serial {
+        let mut new = Box::new(CachedShaper {
+            coords_serial,
+            shaper: None,
+            instance: Box::new(font_to_instance(font, (*font_data).instance.font())),
+        });
+        let shaper = Shaper::from_font_instance(&new.instance);
+        // Erase the lifetime; see CachedShaper.
+        new.shaper = shaper.map(|s| std::mem::transmute::<Shaper<'_>, Shaper<'static>>(s));
+        new.coords_serial = coords_serial;
+        let new = Box::into_raw(new);
+        if cached.is_null() {
+            match slot.compare_exchange(
+                std::ptr::null_mut(),
+                new,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                Ok(_) => cached = new,
+                Err(winner) => {
+                    // Another thread built it first; ours goes.
+                    drop(Box::from_raw(new));
+                    cached = winner;
+                }
+            }
+        } else {
+            // Serial changed: by hb_font_t's contract no shaping call
+            // is concurrently reading the old entry.
+            let old = slot.swap(new, Ordering::AcqRel);
+            drop(Box::from_raw(old));
+            cached = new;
+        }
+    }
+    let Some(shaper) = (*cached).shaper.as_ref() else {
+        *hr_buffer_box = hr_buffer; // Move the buffer back into the box
+        let _ = Box::into_raw(hr_buffer_box); // Prevent double free
+        return false as hb_bool_t;
+    };
+    let glyphs = shaper.shape(hr_buffer, options);
 
     hb_buffer_set_content_type(
         buffer,
