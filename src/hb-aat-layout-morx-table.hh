@@ -940,11 +940,13 @@ struct hb_accelerate_subtables_context_t :
     public:
     hb_bit_set_t glyph_set;
     mutable hb_aat_class_cache_t class_cache;
+    hb_aat_safe_to_break_accel_t safe_to_break;
 
     template <typename T>
     auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
     (
-      obj_.machine.collect_initial_glyphs (glyph_set, num_glyphs, obj_)
+      (obj_.machine.collect_initial_glyphs (glyph_set, num_glyphs, obj_),
+       obj_.machine.build_safe_to_break (obj_, safe_to_break))
     )
 
     template <typename T>
@@ -1195,6 +1197,7 @@ struct Chain
       c->subtable_flags = subtable_flags;
       c->first_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
+      c->safe_to_break = accel ? &accel->subtables[i].safe_to_break : nullptr;
 
       if (!c->buffer_intersects_machine ())
       {

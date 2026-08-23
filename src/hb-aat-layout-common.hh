@@ -49,6 +49,8 @@ struct ankr;
 
 using hb_aat_class_cache_t = hb_ot_layout_mapping_cache_t;
 
+struct hb_aat_safe_to_break_accel_t;
+
 struct hb_aat_scratch_t
 {
   hb_aat_scratch_t () = default;
@@ -134,6 +136,7 @@ struct hb_aat_apply_context_t :
   const hb_bit_set_t *first_set = nullptr;
   const hb_bit_set_t *second_set = nullptr;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
+  const hb_aat_safe_to_break_accel_t *safe_to_break = nullptr;
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
@@ -863,6 +866,83 @@ enum Class
   CLASS_END_OF_LINE = 3,
 };
 
+/* Per-machine acceleration for the drive loop's safe-to-break
+ * computation. The conditions factor by state and class: condition 2c's
+ * "wouldbe" probe (get_entry (STATE_START_OF_TEXT, klass)) depends only
+ * on the class, and condition 3's end-of-text probe only on the state --
+ * so instead of re-fetching those entries on every transition, look
+ * them up in two small per-machine tables built once with the
+ * accelerator, carried in a single allocation: wouldbe[num_classes]
+ * followed by the end-of-text bits. A missing table (allocation
+ * failure, or an over-sized machine) answers false, which is merely
+ * conservative. */
+struct hb_aat_safe_to_break_accel_t
+{
+  /* wouldbe[num_classes]: the start-row entry's new state (low 16 bits,
+   * as int16_t to cover the negative states of offset-addressed
+   * 'kern'/'mort' machines) and flags (middle 16 bits), valid bit on
+   * top; zero when the entry is actionable. Then eot_words words of
+   * one bit per state, offset by -min_state: no end-of-text action can
+   * fire out of this state. */
+  uint64_t *data = nullptr;
+  unsigned num_classes = 0;
+  unsigned eot_words = 0;
+  int min_state = 0;
+
+  hb_aat_safe_to_break_accel_t () = default;
+  hb_aat_safe_to_break_accel_t (const hb_aat_safe_to_break_accel_t &o) { *this = o; }
+  hb_aat_safe_to_break_accel_t &operator= (const hb_aat_safe_to_break_accel_t &o)
+  {
+    hb_free (data);
+    data = nullptr;
+    num_classes = o.num_classes;
+    eot_words = o.eot_words;
+    min_state = o.min_state;
+    if (o.data)
+    {
+      unsigned n = o.num_classes + o.eot_words;
+      data = (uint64_t *) hb_malloc (n * sizeof (uint64_t));
+      if (likely (data))
+	hb_memcpy (data, o.data, n * sizeof (uint64_t));
+      else
+	num_classes = eot_words = 0;
+    }
+    return *this;
+  }
+  ~hb_aat_safe_to_break_accel_t () { hb_free (data); }
+
+  static constexpr uint64_t WOULDBE_VALID = 1ull << 32;
+
+  static uint64_t pack_wouldbe (int next_state, unsigned flags)
+  { return (uint16_t) (int16_t) next_state | ((uint64_t) (uint16_t) flags << 16) | WOULDBE_VALID; }
+
+  bool alloc (unsigned num_classes_, unsigned n_states)
+  {
+    unsigned eot_words_ = (n_states + 63) / 64;
+    data = (uint64_t *) hb_calloc (num_classes_ + eot_words_, sizeof (uint64_t));
+    if (unlikely (!data)) return false;
+    num_classes = num_classes_;
+    eot_words = eot_words_;
+    return true;
+  }
+
+  template <unsigned dont_advance>
+  bool wouldbe_matches (unsigned klass, int next_state, unsigned entry_flags) const
+  {
+    if (unlikely (klass >= num_classes)) klass = CLASS_OUT_OF_BOUNDS;
+    uint64_t w = data[klass];
+    return (w & WOULDBE_VALID) &&
+	   (int) (int16_t) (w & 0xFFFF) == next_state &&
+	   ((((unsigned) (w >> 16)) ^ entry_flags) & dont_advance) == 0;
+  }
+
+  bool eot_is_safe (int state) const
+  {
+    unsigned ix = (unsigned) (state - min_state);
+    return ix < eot_words * 64 &&
+	   (data[num_classes + (ix >> 6)] >> (ix & 63)) & 1;
+  }
+};
 template <typename Types, typename Extra>
 struct StateTable
 {
@@ -910,6 +990,74 @@ struct StateTable
 
   int new_state (unsigned int newState) const
   { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / (int) nClasses; }
+
+  /* Fills the safe-to-break accelerator: per-class start-row "wouldbe"
+   * entries, and per-state end-of-text bits. State bounds are discovered
+   * with the same walk sanitize() performed, so every row read here was
+   * already range-checked. */
+  template <typename table_t>
+  void build_safe_to_break (const table_t &table, hb_aat_safe_to_break_accel_t &accel) const
+  {
+    unsigned num_classes = nClasses;
+    if (unlikely (num_classes > 0x1000u))
+      return;
+
+    /* Rediscover the state bounds the way sanitize() did. */
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
+    const Entry<Extra> *entries = (this+entryTable).arrayZ;
+    int min_state = 0;
+    int max_state = 0;
+    unsigned num_entries = 0;
+    int state_pos = 0;
+    int state_neg = 0;
+    unsigned entry = 0;
+    while (min_state < state_neg || state_pos <= max_state)
+    {
+      if (min_state < state_neg)
+      {
+	/* Negative states. */
+	const HBUSHORT *stop = &states[min_state * (int) num_classes];
+	for (const HBUSHORT *p = &states[state_neg * (int) num_classes]; stop < p; p--)
+	  num_entries = hb_max (num_entries, *(p - 1) + 1u);
+	state_neg = min_state;
+      }
+      if (state_pos <= max_state)
+      {
+	/* Positive states. */
+	const HBUSHORT *stop = &states[(max_state + 1) * (int) num_classes];
+	for (const HBUSHORT *p = &states[state_pos * (int) num_classes]; p < stop; p++)
+	  num_entries = hb_max (num_entries, *p + 1u);
+	state_pos = max_state + 1;
+      }
+      for (; entry < num_entries; entry++)
+      {
+	int newState = new_state (entries[entry].newState);
+	min_state = hb_min (min_state, newState);
+	max_state = hb_max (max_state, newState);
+      }
+    }
+
+    unsigned n_states = (unsigned) (max_state - min_state + 1);
+    if (unlikely (n_states > 0x10000u))
+      return;
+    if (unlikely (!accel.alloc (num_classes, n_states)))
+      return;
+    accel.min_state = min_state;
+
+    for (unsigned i = 0; i < num_classes; i++)
+    {
+      const auto &entry = get_entry (STATE_START_OF_TEXT, i);
+      if (!table.is_actionable (entry))
+	accel.data[i] = hb_aat_safe_to_break_accel_t::pack_wouldbe (new_state (entry.newState), entry.flags);
+    }
+
+    for (int state = min_state; state <= max_state; state++)
+      if (!table.is_actionable (get_entry (state, CLASS_END_OF_TEXT)))
+      {
+	unsigned ix = (unsigned) (state - min_state);
+	accel.data[num_classes + (ix >> 6)] |= 1ull << (ix & 63);
+      }
+  }
 
   unsigned int get_class (hb_codepoint_t glyph_id,
 			  unsigned int num_glyphs,
@@ -1337,33 +1485,23 @@ struct StateTableDriver
        *
        *   https://github.com/harfbuzz/harfbuzz/issues/2860
        */
-      const EntryT *wouldbe_entry;
+      const auto *stb = ac->safe_to_break;
       bool is_safe_to_break =
       (
           /* 1. */
           !c->table->is_actionable (entry) &&
 
-          /* 2. */
-          // This one is meh, I know...
+          /* 2. (2a, 2b; then 2c/2c'/2c" as one precomputed compare. A
+           * missing accelerator answers false, which is merely
+           * conservative: more unsafe-to-break flags, same shaping.) */
 	  (
                  state == StateTableT::STATE_START_OF_TEXT
               || ((entry.flags & Flags::DontAdvance) && next_state == StateTableT::STATE_START_OF_TEXT)
-              || (
-		    /* 2c. */
-		    wouldbe_entry = &machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass)
-		    ,
-		    /* 2c'. */
-		    !c->table->is_actionable (*wouldbe_entry) &&
-		    /* 2c". */
-		    (
-		      next_state == machine.new_state(wouldbe_entry->newState) &&
-		      (entry.flags & Flags::DontAdvance) == (wouldbe_entry->flags & Flags::DontAdvance)
-		    )
-		 )
+              || (stb && stb->template wouldbe_matches<Flags::DontAdvance> (klass, next_state, entry.flags))
 	  ) &&
 
           /* 3. */
-          !c->table->is_actionable (machine.get_entry (state, CLASS_END_OF_TEXT))
+          (stb && stb->eot_is_safe (state))
       );
 
       if (!is_safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)

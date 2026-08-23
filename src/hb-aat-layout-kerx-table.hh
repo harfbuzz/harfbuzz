@@ -403,6 +403,9 @@ struct KerxSubTableFormat1
     //machine.collect_glyphs (second_set, num_glyphs); // second_set is unused for machine kerning
   }
 
+  void build_safe_to_break (hb_aat_safe_to_break_accel_t &accel) const
+  { machine.build_safe_to_break (*this, accel); }
+
   protected:
   KernSubTableHeader				header;
   StateTable<Types, EntryData>			machine;
@@ -682,6 +685,9 @@ struct KerxSubTableFormat4
     //machine.collect_glyphs (second_set, num_glyphs); // second_set is unused for machine kerning
   }
 
+  void build_safe_to_break (hb_aat_safe_to_break_accel_t &accel) const
+  { machine.build_safe_to_break (*this, accel); }
+
   protected:
   KernSubTableHeader		header;
   StateTable<Types, EntryData>	machine;
@@ -896,6 +902,16 @@ struct KerxSubTable
     }
   }
 
+  void build_safe_to_break (hb_aat_safe_to_break_accel_t &accel) const
+  {
+    unsigned int subtable_type = get_type ();
+    switch (subtable_type) {
+    case 1:	hb_barrier (); u.format1.build_safe_to_break (accel); return;
+    case 4:	hb_barrier (); u.format4.build_safe_to_break (accel); return;
+    default:	return;
+    }
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -931,6 +947,7 @@ struct kern_subtable_accelerator_data_t
   hb_bit_set_t first_set;
   hb_bit_set_t second_set;
   mutable hb_aat_class_cache_t class_cache;
+  hb_aat_safe_to_break_accel_t safe_to_break;
 };
 
 struct kern_accelerator_data_t
@@ -1025,6 +1042,7 @@ struct KerxTable
       c->first_set = &subtable_accel.first_set;
       c->second_set = &subtable_accel.second_set;
       c->machine_class_cache = &subtable_accel.class_cache;
+      c->safe_to_break = &subtable_accel.safe_to_break;
 
       if (!c->buffer_intersects_machine ())
       {
@@ -1137,6 +1155,7 @@ struct KerxTable
 	  return accel_data;
 
       st->collect_glyphs (subtable_accel.first_set, subtable_accel.second_set, num_glyphs);
+      st->build_safe_to_break (subtable_accel.safe_to_break);
       subtable_accel.class_cache.clear ();
 
       st = &StructAfter<SubTable> (*st);

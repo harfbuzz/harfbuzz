@@ -173,6 +173,17 @@ struct KernSubTable
     }
   }
 
+  void build_safe_to_break (AAT::hb_aat_safe_to_break_accel_t &accel) const
+  {
+    unsigned int subtable_type = get_type ();
+    switch (subtable_type) {
+#ifndef HB_NO_AAT_SHAPE
+    case 1:	hb_barrier (); u.format1.build_safe_to_break (accel); return;
+#endif
+    default:	return;
+    }
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
