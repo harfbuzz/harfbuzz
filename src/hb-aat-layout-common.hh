@@ -939,6 +939,9 @@ struct hb_aat_safe_to_break_accel_t
   template <unsigned dont_advance>
   bool wouldbe_matches (unsigned klass, int next_state, unsigned entry_flags) const
   {
+    /* Not built (over-sized machine or allocation failure): the caller
+     * holds a pointer to the accel object, but there is no table. */
+    if (unlikely (!data)) return false;
     if (unlikely (klass >= num_classes)) klass = CLASS_OUT_OF_BOUNDS;
     uint64_t w = data[klass];
     return (w & WOULDBE_VALID) &&
