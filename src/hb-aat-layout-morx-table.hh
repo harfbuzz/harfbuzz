@@ -967,6 +967,7 @@ struct hb_accelerate_subtables_context_t :
     fini ()
     {
       glyph_set.fini ();
+      safe_to_break.fini ();
     }
   };
 

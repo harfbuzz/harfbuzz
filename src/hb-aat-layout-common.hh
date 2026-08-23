@@ -909,7 +909,17 @@ struct hb_aat_safe_to_break_accel_t
     }
     return *this;
   }
-  ~hb_aat_safe_to_break_accel_t () { hb_free (data); }
+  ~hb_aat_safe_to_break_accel_t () { fini (); }
+
+  /* For containers that manage lifetime manually (the morx chain
+   * accelerator's calloc'd subtable array never runs destructors). */
+  void fini ()
+  {
+    hb_free (data);
+    data = nullptr;
+    num_classes = eot_words = 0;
+    min_state = 0;
+  }
 
   static constexpr uint64_t WOULDBE_VALID = 1ull << 32;
 
