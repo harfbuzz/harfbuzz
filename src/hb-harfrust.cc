@@ -112,7 +112,7 @@ _hb_harfrust_shape_plan_destroy_rs (void *data);
 extern "C" hb_bool_t
 _hb_harfrust_shape_rs (const void         *font_data,
 		       const void         *rs_shape_plan,
-		       const void         *rs_buffer,
+		       void               *rs_buffer,
 		       hb_font_t          *font,
 		       hb_buffer_t        *buffer,
 		       const hb_codepoint_t *pre_context,

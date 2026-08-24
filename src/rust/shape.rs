@@ -366,7 +366,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_destroy_rs(data: *mut c_void) {
 pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     font_data: *const c_void,
     shape_plan: *const c_void,
-    hr_buffer_box: *const c_void,
+    hr_buffer: *mut c_void,
     font: *mut hb_font_t,
     buffer: *mut hb_buffer_t,
     pre_context: *const u32,
@@ -377,9 +377,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     num_features: u32,
 ) -> hb_bool_t {
     let font_data = font_data as *const HBHarfRustFontData;
-    let hr_buffer_box = hr_buffer_box as *mut harfrust::UnicodeBuffer;
-    let mut hr_buffer_box = Box::from_raw(hr_buffer_box);
-    let mut hr_buffer = *hr_buffer_box;
+    let hr_buffer = &mut *(hr_buffer as *mut harfrust::UnicodeBuffer);
     let shape_plan = (shape_plan as *const harfrust::ShapePlan).as_ref();
 
     // Set buffer properties
@@ -440,6 +438,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let infos = hb_buffer_get_glyph_infos(buffer, null_mut());
     let infos = std::slice::from_raw_parts(infos.cast(), count as usize);
     if !hr_buffer.push_glyph_infos(infos) {
+        hr_buffer.clear();
         return false as hb_bool_t;
     }
 
@@ -456,7 +455,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         .point_size((*font_data).ptem)
         .features(&features)
         .font_funcs(Some(&mut font_funcs));
-    let glyphs = harfrust::shape(&(*font_data).instance, hr_buffer, options);
+    let glyphs = harfrust::shape_in_place(&(*font_data).instance, hr_buffer, options);
 
     hb_buffer_set_content_type(
         buffer,
@@ -473,10 +472,6 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
 
     std::ptr::copy_nonoverlapping(glyphs.glyph_infos().as_ptr().cast(), infos, count);
     std::ptr::copy_nonoverlapping(glyphs.glyph_positions().as_ptr().cast(), positions, count);
-
-    let hr_buffer = glyphs.clear();
-    *hr_buffer_box = hr_buffer; // Move the buffer back into the box
-    let _ = Box::into_raw(hr_buffer_box); // Prevent double free
 
     true as hb_bool_t
 }
