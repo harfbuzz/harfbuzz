@@ -23,7 +23,7 @@ SOURCES = \
 hb-ot-shaper-arabic-joining-list.hh: gen-arabic-joining-list.py ArabicShaping.txt Scripts.txt
 	./$^ > $@ || ($(RM) $@; false)
 hb-ot-shaper-arabic-pua.hh: gen-arabic-pua.py ArabicPUASimplified.txt ArabicPUATraditional.txt
-	./$< > $@ || ($(RM) $@; false)
+	./$^ > $@ || ($(RM) $@; false)
 hb-ot-shaper-arabic-table.hh: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	./$^ > $@ || ($(RM) $@; false)
 hb-unicode-emoji-table.hh: gen-emoji-table.py emoji-data.txt emoji-test.txt
