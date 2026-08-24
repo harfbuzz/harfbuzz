@@ -2399,7 +2399,13 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
    * - Sequential accumulation: Not done. We want ALL possible edges, so we don't
    *   limit later lookups based on outputs from earlier lookups in the same rule. */
 
-  /* HB_MAX_CONTEXT_LENGTH positions fit in one allocation-free bit page. */
+  /* Sequence positions are tracked in one allocation-free bit page below.
+   * A rule longer than HB_MAX_CONTEXT_LENGTH never applies during shaping
+   * (the apply path rejects it), so skip it here instead of running past
+   * the fixed page in add_range(). */
+  if (unlikely (inputCount > HB_MAX_CONTEXT_LENGTH))
+    return;
+
   hb_bit_page_t covered_seq_indices;
   hb_set_t &pos_glyphs = scratch->pos_glyphs;
   hb_set_t &position_context = scratch->position_context;
