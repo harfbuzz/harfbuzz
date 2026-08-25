@@ -94,10 +94,8 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
 #ifndef HB_NO_CFF
   OT::cff1_subset_accelerator_t (face).depend (this);
 #endif
-#ifndef HB_NO_VAR
 #ifndef HB_NO_VAR_COMPOSITES
   face->table.VARC->depend (this);
-#endif
 #endif
   return successful;
 }

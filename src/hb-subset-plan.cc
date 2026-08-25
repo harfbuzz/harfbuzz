@@ -476,14 +476,12 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   plan->_glyphset_colred = cur_glyphset;
 
-#ifndef HB_NO_VAR
 #ifndef HB_NO_VAR_COMPOSITES
   if (!drop_tables->has (OT::VARC::tableTag))
   {
     plan->source->table.VARC->closure_glyphs (&cur_glyphset);
     _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
   }
-#endif
 #endif
 
   plan->_glyphset_varced = cur_glyphset;
@@ -712,6 +710,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 #ifndef HB_NO_VAR
   if (!check_success (normalize_axes_location (face, this)))
       return;
+#endif
 #ifndef HB_NO_VAR_COMPOSITES
   if (!user_axes_location.is_empty () &&
       !input->sets.drop_tables->has (OT::VARC::tableTag) &&
@@ -720,7 +719,6 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
     check_success (false);
     return;
   }
-#endif
 #endif
 
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, this);
