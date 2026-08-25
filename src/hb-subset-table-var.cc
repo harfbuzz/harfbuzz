@@ -6,7 +6,9 @@
 #include "hb-ot-var-avar-table.hh"
 #include "hb-ot-var-cvar-table.hh"
 #include "hb-ot-var-mvar-table.hh"
+#ifndef HB_NO_VAR_COMPOSITES
 #include "OT/Var/VARC/VARC-subset.hh"
+#endif
 
 bool _hb_subset_table_var		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_tag_t tag, bool *success)
 {
