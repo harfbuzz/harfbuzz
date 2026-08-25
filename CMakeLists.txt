@@ -177,6 +177,8 @@ set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 ## Define sources and headers of the project
 set (project_sources ${PROJECT_SOURCE_DIR}/src/harfbuzz.cc) # use amalgam source
 set (subset_project_sources
+     ${PROJECT_SOURCE_DIR}/src/OT/Var/VARC/VARC.cc
+     ${PROJECT_SOURCE_DIR}/src/OT/Var/VARC/VARC-subset.hh
      ${PROJECT_SOURCE_DIR}/src/hb-number.cc
      ${PROJECT_SOURCE_DIR}/src/hb-number.hh
      ${PROJECT_SOURCE_DIR}/src/hb-ot-cff1-table.cc

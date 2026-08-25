@@ -101,6 +101,7 @@ struct VarComponent
 
   HB_INTERNAL static bool decompile_record (const VARC &varc,
 					    hb_ubytes_t record,
+					    hb_vector_t<unsigned> *axis_indices,
 					    hb_vector_t<float> *axis_values,
 					    record_t *decoded /* OUT */);
 };
@@ -195,9 +196,7 @@ struct VARC
 		  varStore.sanitize (c, this) &&
 		  conditionList.sanitize (c, this) &&
 		  axisIndicesList.sanitize (c, this) &&
-		  glyphRecords.sanitize (c, this) &&
-		  hb_barrier () &&
-		  (this+coverage).get_population () == (this+glyphRecords).count);
+		  glyphRecords.sanitize (c, this));
   }
 
   struct accelerator_t
