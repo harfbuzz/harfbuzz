@@ -10,6 +10,8 @@
 
 #include "coord-setter.hh"
 
+struct hb_depend_data_builder_t;
+
 namespace OT {
 
 //namespace Var {
@@ -43,6 +45,8 @@ struct hb_varc_context_t
   hb_varc_scratch_t &scratch;
 };
 
+struct VARC;
+
 struct VarComponent
 {
   enum class flags_t : uint32_t
@@ -72,6 +76,14 @@ struct VarComponent
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
 	       hb_scalar_cache_t *cache = nullptr) const;
+
+  HB_INTERNAL static bool
+  get_record_info (const VARC &varc,
+		   hb_ubytes_t record,
+		   hb_codepoint_t *gid /* OUT */,
+		   unsigned *gid_offset /* OUT */,
+		   unsigned *gid_size /* OUT */,
+		   unsigned *record_size /* OUT */);
 };
 
 struct VarCompositeGlyph
@@ -111,6 +123,10 @@ struct VARC
 	       hb_transform_t<> transform = HB_TRANSFORM_IDENTITY,
 	       hb_codepoint_t parent_gid = HB_CODEPOINT_INVALID,
 	       hb_scalar_cache_t *parent_cache = nullptr) const;
+
+  HB_INTERNAL void closure_glyphs (hb_set_t *glyphset) const;
+  HB_INTERNAL void depend (hb_depend_data_builder_t *depend_data) const;
+  HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
   bool
   get_path (hb_font_t *font,
@@ -160,7 +176,9 @@ struct VARC
 		  varStore.sanitize (c, this) &&
 		  conditionList.sanitize (c, this) &&
 		  axisIndicesList.sanitize (c, this) &&
-		  glyphRecords.sanitize (c, this));
+		  glyphRecords.sanitize (c, this) &&
+		  hb_barrier () &&
+		  (this+coverage).get_population () == (this+glyphRecords).count);
   }
 
   struct accelerator_t
@@ -183,6 +201,8 @@ struct VARC
       table.destroy ();
     }
 
+    bool has_data () const { return table->has_data (); }
+
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
     {
@@ -193,6 +213,18 @@ struct VARC
       bool ret = table->get_path (font, gid, draw_session, *scratch);
       release_scratch (scratch);
       return ret;
+    }
+
+    void closure_glyphs (hb_set_t *glyphset) const
+    {
+      if (table->has_data ())
+	table->closure_glyphs (glyphset);
+    }
+
+    void depend (hb_depend_data_builder_t *depend_data) const
+    {
+      if (table->has_data ())
+	table->depend (depend_data);
     }
 
     bool

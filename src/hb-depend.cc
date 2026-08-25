@@ -34,6 +34,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-math-table.hh"
 #include "hb-ot-cff1-table.hh"
+#include "hb-ot-var-varc-table.hh"
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-depend.hh"
 
@@ -93,13 +94,11 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
 #ifndef HB_NO_CFF
   OT::cff1_subset_accelerator_t (face).depend (this);
 #endif
-  /* XXX TODO: add face->table.VARC->depend (this) here.
-   * VARC closure and subsetting are not yet implemented (see hb-subset-plan.cc),
-   * so the right traversal architecture for VarComponent records hasn't been
-   * established. Implement VARC depend() in the same commit that adds VARC
-   * closure, so both share the same traversal model. Component conditions should
-   * be treated as over-approximations (include all components regardless of
-   * condition), consistent with how FeatureVariations edges are handled. */
+#ifndef HB_NO_VAR
+#ifndef HB_NO_VAR_COMPOSITES
+  face->table.VARC->depend (this);
+#endif
+#endif
   return successful;
 }
 

@@ -3,12 +3,198 @@
 #ifndef HB_NO_VAR_COMPOSITES
 
 #include "../../../hb-draw.hh"
+#include "../../../hb-depend-data.hh"
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-layout-gdef-table.hh"
 
 namespace OT {
 
 //namespace Var {
+
+static bool
+skip_tuple_values (const unsigned char *&p,
+		   const unsigned char *end,
+		   unsigned count)
+{
+  unsigned seen = 0;
+  while (seen < count)
+  {
+    if (unlikely (p >= end)) return false;
+    unsigned control = *p++;
+    unsigned run_count = (control & TupleValues::VALUE_RUN_COUNT_MASK) + 1;
+    if (unlikely (run_count > count - seen)) return false;
+
+    unsigned width;
+    switch (control & TupleValues::VALUES_SIZE_MASK)
+    {
+      case TupleValues::VALUES_ARE_ZEROS: width = 0; break;
+      case TupleValues::VALUES_ARE_BYTES: width = HBINT8::static_size; break;
+      case TupleValues::VALUES_ARE_WORDS: width = HBINT16::static_size; break;
+      case TupleValues::VALUES_ARE_LONGS: width = HBINT32::static_size; break;
+      default: return false;
+    }
+    if (unlikely (unsigned (end - p) < run_count * width)) return false;
+    p += run_count * width;
+    seen += run_count;
+  }
+  return true;
+}
+
+bool
+VarComponent::get_record_info (const VARC &varc,
+			       hb_ubytes_t total_record,
+			       hb_codepoint_t *gid,
+			       unsigned *gid_offset,
+			       unsigned *gid_size,
+			       unsigned *record_size)
+{
+  const unsigned char *start = total_record.arrayZ;
+  const unsigned char *record = start;
+  const unsigned char *end = start + total_record.length;
+
+#define READ_UINT32VAR(name) \
+  HB_STMT_START { \
+    if (unlikely (unsigned (end - record) < HBUINT32VAR::min_size)) return false; \
+    hb_barrier (); \
+    auto &varint = * (const HBUINT32VAR *) record; \
+    unsigned size = varint.get_size (); \
+    if (unlikely (unsigned (end - record) < size)) return false; \
+    name = (uint32_t) varint; \
+    record += size; \
+  } HB_STMT_END
+
+  uint32_t flags;
+  READ_UINT32VAR (flags);
+
+  *gid_offset = record - start;
+  if (flags & (unsigned) flags_t::GID_IS_24BIT)
+  {
+    *gid_size = HBGlyphID24::static_size;
+    if (unlikely (unsigned (end - record) < HBGlyphID24::static_size)) return false;
+    hb_barrier ();
+    *gid = * (const HBGlyphID24 *) record;
+    record += HBGlyphID24::static_size;
+  }
+  else
+  {
+    *gid_size = HBGlyphID16::static_size;
+    if (unlikely (unsigned (end - record) < HBGlyphID16::static_size)) return false;
+    hb_barrier ();
+    *gid = * (const HBGlyphID16 *) record;
+    record += HBGlyphID16::static_size;
+  }
+
+  if (flags & (unsigned) flags_t::HAVE_CONDITION)
+  {
+    uint32_t condition_index HB_UNUSED;
+    READ_UINT32VAR (condition_index);
+  }
+
+  if (flags & (unsigned) flags_t::HAVE_AXES)
+  {
+    uint32_t axis_indices_index;
+    READ_UINT32VAR (axis_indices_index);
+    unsigned axis_count = hb_len ((&varc+varc.axisIndicesList)[axis_indices_index]);
+    if (unlikely (!skip_tuple_values (record, end, axis_count))) return false;
+  }
+
+  if (flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
+  {
+    uint32_t axis_values_var_idx HB_UNUSED;
+    READ_UINT32VAR (axis_values_var_idx);
+  }
+  if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
+  {
+    uint32_t transform_var_idx HB_UNUSED;
+    READ_UINT32VAR (transform_var_idx);
+  }
+
+  constexpr unsigned transform_flags =
+    (unsigned) flags_t::HAVE_TRANSLATE_X |
+    (unsigned) flags_t::HAVE_TRANSLATE_Y |
+    (unsigned) flags_t::HAVE_ROTATION |
+    (unsigned) flags_t::HAVE_SCALE_X |
+    (unsigned) flags_t::HAVE_SCALE_Y |
+    (unsigned) flags_t::HAVE_SKEW_X |
+    (unsigned) flags_t::HAVE_SKEW_Y |
+    (unsigned) flags_t::HAVE_TCENTER_X |
+    (unsigned) flags_t::HAVE_TCENTER_Y;
+  unsigned transform_size = hb_popcount (flags & transform_flags) * HBINT16::static_size;
+  if (unlikely (unsigned (end - record) < transform_size)) return false;
+  record += transform_size;
+
+  unsigned reserved = flags & (unsigned) flags_t::RESERVED_MASK;
+  while (reserved)
+  {
+    uint32_t discard HB_UNUSED;
+    READ_UINT32VAR (discard);
+    reserved &= reserved - 1;
+  }
+
+  *record_size = record - start;
+#undef READ_UINT32VAR
+  return true;
+}
+
+void
+VARC::closure_glyphs (hb_set_t *glyphset) const
+{
+  hb_set_t visited;
+  while (true)
+  {
+    hb_set_t pending = *glyphset;
+    pending.subtract (visited);
+    if (!pending) break;
+    visited.union_ (pending);
+
+    for (hb_codepoint_t gid : pending)
+    {
+      unsigned index = (this+coverage).get_coverage (gid);
+      if (index == NOT_COVERED) continue;
+
+      hb_ubytes_t record = (this+glyphRecords)[index];
+      while (record)
+      {
+        hb_codepoint_t component_gid;
+        unsigned gid_offset HB_UNUSED, gid_size HB_UNUSED, size;
+        if (unlikely (!VarComponent::get_record_info (*this, record,
+						      &component_gid,
+						      &gid_offset,
+						      &gid_size,
+						      &size)))
+	  break;
+        glyphset->add (component_gid);
+        record = record.sub_array (size);
+      }
+    }
+  }
+}
+
+void
+VARC::depend (hb_depend_data_builder_t *depend_data) const
+{
+  unsigned count = (this+glyphRecords).count;
+  unsigned index = 0;
+  for (hb_codepoint_t gid : (this+coverage).iter ())
+  {
+    if (index >= count) break;
+
+    hb_ubytes_t record = (this+glyphRecords)[index++];
+    while (record)
+    {
+      hb_codepoint_t component_gid;
+      unsigned gid_offset HB_UNUSED, gid_size HB_UNUSED, size;
+      if (unlikely (!VarComponent::get_record_info (*this, record,
+						    &component_gid,
+						    &gid_offset,
+						    &gid_size,
+						    &size)))
+	break;
+      depend_data->add_depend (gid, tableTag, component_gid);
+      record = record.sub_array (size);
+    }
+  }
+}
 
 
 #ifndef HB_NO_DRAW
