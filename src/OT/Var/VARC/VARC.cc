@@ -76,6 +76,12 @@ VarComponent::decompile_record (const VARC &varc,
     name = (uint32_t) varint; \
     record += size; \
   } HB_STMT_END
+#define READ_UINT32VAR_FIELD(name, field) \
+  HB_STMT_START { \
+    decoded->field##_offset = record - start; \
+    READ_UINT32VAR (name); \
+    decoded->field##_size = record - start - decoded->field##_offset; \
+  } HB_STMT_END
 
   READ_UINT32VAR (decoded->flags);
 
@@ -98,11 +104,11 @@ VarComponent::decompile_record (const VARC &varc,
   }
 
   if (decoded->flags & (unsigned) flags_t::HAVE_CONDITION)
-    READ_UINT32VAR (decoded->condition_index);
+    READ_UINT32VAR_FIELD (decoded->condition_index, condition);
 
   if (decoded->flags & (unsigned) flags_t::HAVE_AXES)
   {
-    READ_UINT32VAR (decoded->axis_indices_index);
+    READ_UINT32VAR_FIELD (decoded->axis_indices_index, axis_indices);
     unsigned axis_count = hb_len ((&varc+varc.axisIndicesList)[decoded->axis_indices_index]);
     if (axis_values)
     {
@@ -119,11 +125,11 @@ VarComponent::decompile_record (const VARC &varc,
 
   decoded->axis_values_var_idx = VarIdx::NO_VARIATION;
   if (decoded->flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
-    READ_UINT32VAR (decoded->axis_values_var_idx);
+    READ_UINT32VAR_FIELD (decoded->axis_values_var_idx, axis_values_var);
 
   decoded->transform_var_idx = VarIdx::NO_VARIATION;
   if (decoded->flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
-    READ_UINT32VAR (decoded->transform_var_idx);
+    READ_UINT32VAR_FIELD (decoded->transform_var_idx, transform_var);
 
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
   if (decoded->flags & (unsigned) flags_t::flag) \
@@ -146,6 +152,7 @@ VarComponent::decompile_record (const VARC &varc,
   }
 
   decoded->size = record - start;
+#undef READ_UINT32VAR_FIELD
 #undef READ_UINT32VAR
   return true;
 }

@@ -76,9 +76,17 @@ struct VarComponent
     unsigned gid_offset;
     unsigned gid_size;
     unsigned condition_index;
+    unsigned condition_offset;
+    unsigned condition_size;
     unsigned axis_indices_index;
+    unsigned axis_indices_offset;
+    unsigned axis_indices_size;
     uint32_t axis_values_var_idx;
+    unsigned axis_values_var_offset;
+    unsigned axis_values_var_size;
     uint32_t transform_var_idx;
+    unsigned transform_var_offset;
+    unsigned transform_var_size;
     hb_transform_decomposed_t<> transform;
     unsigned size;
   };

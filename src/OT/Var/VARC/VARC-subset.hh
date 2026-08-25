@@ -53,51 +53,80 @@ VARC::subset (hb_subset_context_t *c) const
   hb_vector_t<unsigned char> record_data;
   hb_vector_t<hb_ubytes_t> records;
   bool retain_gids = c->plan->flags & HB_SUBSET_FLAGS_RETAIN_GIDS;
-  if (unlikely ((!retain_gids && !record_data.resize_dirty (data_size)) ||
-		!records.alloc_exact (old_indices.length)))
+  if (unlikely (!records.alloc_exact (old_indices.length)))
     return_trace (fail ());
 
-  unsigned data_offset = 0;
-  for (unsigned old_index : old_indices)
+  if (retain_gids)
   {
-    hb_ubytes_t source_record = source_records[old_index];
-
     /* Retained glyph IDs need no component-record parsing or rewriting. */
-    if (retain_gids)
-    {
-      records.push (source_record);
-      continue;
-    }
+    for (unsigned old_index : old_indices)
+      records.push (source_records[old_index]);
+  }
+  else
+  {
+    hb_vector_t<unsigned> record_offsets;
+    record_data.alloc (data_size);
+    if (unlikely (!record_offsets.alloc_exact (old_indices.length + 1)))
+      return_trace (fail ());
 
-    unsigned char *record_start = record_data.arrayZ + data_offset;
-    hb_memcpy (record_start, source_record.arrayZ, source_record.length);
-
-    hb_ubytes_t remaining (record_start, source_record.length);
-    while (remaining)
+    for (unsigned old_index : old_indices)
     {
+      record_offsets.push (record_data.length);
+      hb_ubytes_t remaining = source_records[old_index];
+      while (remaining)
+      {
 	VarComponent::record_t component;
 	hb_codepoint_t new_gid;
 	if (unlikely (!VarComponent::decompile_record (*this, remaining,
 						       nullptr, &component) ||
-			    !c->plan->new_gid_for_old_gid (component.gid, &new_gid)))
-	return_trace (fail ());
+			    !c->plan->new_gid_for_old_gid (component.gid, &new_gid) ||
+			    new_gid > 0xFFFFFFu))
+	  return_trace (fail ());
 
-      unsigned char *gid = const_cast<unsigned char *> (remaining.arrayZ) + component.gid_offset;
-      if (component.gid_size == HBGlyphID16::static_size)
-      {
-        if (unlikely (new_gid > 0xFFFFu)) return_trace (fail ());
-        * (HBGlyphID16 *) gid = new_gid;
+	uint32_t flags = component.flags;
+	unsigned gid_size = component.gid_size;
+	if (new_gid > 0xFFFFu)
+	{
+	  flags |= (unsigned) VarComponent::flags_t::GID_IS_24BIT;
+	  gid_size = HBGlyphID24::static_size;
+	}
+
+	unsigned flags_size = HBUINT32VAR::get_size (flags);
+	unsigned tail_offset = component.gid_offset + component.gid_size;
+	unsigned tail_size = component.size - tail_offset;
+	unsigned component_offset = record_data.length;
+	unsigned component_size = flags_size + gid_size + tail_size;
+	unsigned new_length = hb_unsigned_add_saturate (component_offset,
+						       component_size);
+	if (unlikely (new_length == UINT_MAX ||
+		      !record_data.resize_dirty (new_length)))
+	  return_trace (fail ());
+
+	unsigned char *out = record_data.arrayZ + component_offset;
+	HBUINT32VAR::serialize_unsafe (out, flags);
+	out += flags_size;
+	if (gid_size == HBGlyphID16::static_size)
+	{
+	  * (HBGlyphID16 *) out = new_gid;
+	  out += HBGlyphID16::static_size;
+	}
+	else
+	{
+	  * (HBGlyphID24 *) out = new_gid;
+	  out += HBGlyphID24::static_size;
+	}
+	hb_memcpy (out, remaining.arrayZ + tail_offset, tail_size);
+	remaining = remaining.sub_array (component.size);
       }
-      else
-      {
-        if (unlikely (new_gid > 0xFFFFFFu)) return_trace (fail ());
-	* (HBGlyphID24 *) gid = new_gid;
-      }
-      remaining = remaining.sub_array (component.size);
     }
+    record_offsets.push (record_data.length);
 
-    records.push (hb_ubytes_t (record_start, source_record.length));
-    data_offset += source_record.length;
+    if (unlikely (record_data.in_error () || record_offsets.in_error ()))
+      return_trace (fail ());
+    for (unsigned i = 0; i < old_indices.length; i++)
+      records.push (hb_ubytes_t (record_data.arrayZ + record_offsets[i],
+				 record_offsets[i + 1] - record_offsets[i]));
+    data_size = record_data.length;
   }
   if (unlikely (records.in_error ()))
     return_trace (fail ());
