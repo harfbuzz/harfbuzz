@@ -152,7 +152,7 @@ struct hb_bit_page_t
     elt_t *lb = &elt (b);
     if (la == lb)
       *la |= (mask (b) << 1) - mask(a);
-    else
+    else if (likely (la < lb))
     {
       *la |= ~(mask (a) - 1llu);
       la++;
@@ -161,6 +161,8 @@ struct hb_bit_page_t
 
       *lb |= ((mask (b) << 1) - 1llu);
     }
+    else
+      return;
     dirty ();
   }
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
@@ -169,7 +171,7 @@ struct hb_bit_page_t
     elt_t *lb = &elt (b);
     if (la == lb)
       *la &= ~((mask (b) << 1llu) - mask(a));
-    else
+    else if (likely (la < lb))
     {
       *la &= mask (a) - 1;
       la++;
@@ -178,6 +180,8 @@ struct hb_bit_page_t
 
       *lb &= ~((mask (b) << 1) - 1llu);
     }
+    else
+      return;
     dirty ();
   }
   void set_range (hb_codepoint_t a, hb_codepoint_t b, bool v)
