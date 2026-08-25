@@ -75,18 +75,15 @@ VARC::subset (hb_subset_context_t *c) const
     hb_ubytes_t remaining (record_start, source_record.length);
     while (remaining)
     {
-      hb_codepoint_t old_gid, new_gid;
-      unsigned gid_offset, gid_size, record_size;
-      if (unlikely (!VarComponent::get_record_info (*this, remaining,
-						    &old_gid,
-						    &gid_offset,
-						    &gid_size,
-						    &record_size) ||
-			    !c->plan->new_gid_for_old_gid (old_gid, &new_gid)))
+	VarComponent::record_t component;
+	hb_codepoint_t new_gid;
+	if (unlikely (!VarComponent::decompile_record (*this, remaining,
+						       nullptr, &component) ||
+			    !c->plan->new_gid_for_old_gid (component.gid, &new_gid)))
 	return_trace (fail ());
 
-      unsigned char *gid = const_cast<unsigned char *> (remaining.arrayZ) + gid_offset;
-      if (gid_size == HBGlyphID16::static_size)
+      unsigned char *gid = const_cast<unsigned char *> (remaining.arrayZ) + component.gid_offset;
+      if (component.gid_size == HBGlyphID16::static_size)
       {
         if (unlikely (new_gid > 0xFFFFu)) return_trace (fail ());
         * (HBGlyphID16 *) gid = new_gid;
@@ -94,9 +91,9 @@ VARC::subset (hb_subset_context_t *c) const
       else
       {
         if (unlikely (new_gid > 0xFFFFFFu)) return_trace (fail ());
-        * (HBGlyphID24 *) gid = new_gid;
+	* (HBGlyphID24 *) gid = new_gid;
       }
-      remaining = remaining.sub_array (record_size);
+      remaining = remaining.sub_array (component.size);
     }
 
     records.push (hb_ubytes_t (record_start, source_record.length));

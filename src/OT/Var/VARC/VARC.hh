@@ -69,6 +69,20 @@ struct VarComponent
     RESERVED_MASK		= ~((1u << 15) - 1),
   };
 
+  struct record_t
+  {
+    uint32_t flags;
+    hb_codepoint_t gid;
+    unsigned gid_offset;
+    unsigned gid_size;
+    unsigned condition_index;
+    unsigned axis_indices_index;
+    uint32_t axis_values_var_idx;
+    uint32_t transform_var_idx;
+    hb_transform_decomposed_t<> transform;
+    unsigned size;
+  };
+
   HB_INTERNAL hb_ubytes_t
   get_path_at (const hb_varc_context_t &c,
 	       hb_codepoint_t parent_gid,
@@ -77,13 +91,10 @@ struct VarComponent
 	       hb_ubytes_t record,
 	       hb_scalar_cache_t *cache = nullptr) const;
 
-  HB_INTERNAL static bool
-  get_record_info (const VARC &varc,
-		   hb_ubytes_t record,
-		   hb_codepoint_t *gid /* OUT */,
-		   unsigned *gid_offset /* OUT */,
-		   unsigned *gid_size /* OUT */,
-		   unsigned *record_size /* OUT */);
+  HB_INTERNAL static bool decompile_record (const VARC &varc,
+					    hb_ubytes_t record,
+					    hb_vector_t<float> *axis_values,
+					    record_t *decoded /* OUT */);
 };
 
 struct VarCompositeGlyph

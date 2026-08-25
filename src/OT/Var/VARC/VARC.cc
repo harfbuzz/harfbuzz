@@ -11,6 +11,19 @@ namespace OT {
 
 //namespace Var {
 
+#define VARC_PROCESS_TRANSFORM_COMPONENTS \
+	HB_STMT_START { \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TRANSLATE_X, translateX); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TRANSLATE_Y, translateY); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HAVE_ROTATION, rotation); \
+	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, HAVE_SCALE_X, scaleX); \
+	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, HAVE_SCALE_Y, scaleY); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HAVE_SKEW_X, skewX); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HAVE_SKEW_Y, skewY); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TCENTER_X, tCenterX); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TCENTER_Y, tCenterY); \
+	} HB_STMT_END
+
 static bool
 skip_tuple_values (const unsigned char *&p,
 		   const unsigned char *end,
@@ -41,16 +54,17 @@ skip_tuple_values (const unsigned char *&p,
 }
 
 bool
-VarComponent::get_record_info (const VARC &varc,
-			       hb_ubytes_t total_record,
-			       hb_codepoint_t *gid,
-			       unsigned *gid_offset,
-			       unsigned *gid_size,
-			       unsigned *record_size)
+VarComponent::decompile_record (const VARC &varc,
+				hb_ubytes_t total_record,
+				hb_vector_t<float> *axis_values,
+				record_t *decoded)
 {
   const unsigned char *start = total_record.arrayZ;
   const unsigned char *record = start;
   const unsigned char *end = start + total_record.length;
+
+  if (axis_values)
+    axis_values->clear ();
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
@@ -63,67 +77,67 @@ VarComponent::get_record_info (const VARC &varc,
     record += size; \
   } HB_STMT_END
 
-  uint32_t flags;
-  READ_UINT32VAR (flags);
+  READ_UINT32VAR (decoded->flags);
 
-  *gid_offset = record - start;
-  if (flags & (unsigned) flags_t::GID_IS_24BIT)
+  decoded->gid_offset = record - start;
+  if (decoded->flags & (unsigned) flags_t::GID_IS_24BIT)
   {
-    *gid_size = HBGlyphID24::static_size;
+    decoded->gid_size = HBGlyphID24::static_size;
     if (unlikely (unsigned (end - record) < HBGlyphID24::static_size)) return false;
     hb_barrier ();
-    *gid = * (const HBGlyphID24 *) record;
+    decoded->gid = * (const HBGlyphID24 *) record;
     record += HBGlyphID24::static_size;
   }
   else
   {
-    *gid_size = HBGlyphID16::static_size;
+    decoded->gid_size = HBGlyphID16::static_size;
     if (unlikely (unsigned (end - record) < HBGlyphID16::static_size)) return false;
     hb_barrier ();
-    *gid = * (const HBGlyphID16 *) record;
+    decoded->gid = * (const HBGlyphID16 *) record;
     record += HBGlyphID16::static_size;
   }
 
-  if (flags & (unsigned) flags_t::HAVE_CONDITION)
+  if (decoded->flags & (unsigned) flags_t::HAVE_CONDITION)
+    READ_UINT32VAR (decoded->condition_index);
+
+  if (decoded->flags & (unsigned) flags_t::HAVE_AXES)
   {
-    uint32_t condition_index HB_UNUSED;
-    READ_UINT32VAR (condition_index);
+    READ_UINT32VAR (decoded->axis_indices_index);
+    unsigned axis_count = hb_len ((&varc+varc.axisIndicesList)[decoded->axis_indices_index]);
+    if (axis_values)
+    {
+      if (unlikely (!axis_values->resize (axis_count))) return false;
+      const HBUINT8 *p = (const HBUINT8 *) record;
+      if (unlikely (!TupleValues::decompile (p, *axis_values,
+					    (const HBUINT8 *) end)))
+	return false;
+      record = (const unsigned char *) p;
+    }
+    else if (unlikely (!skip_tuple_values (record, end, axis_count)))
+      return false;
   }
 
-  if (flags & (unsigned) flags_t::HAVE_AXES)
-  {
-    uint32_t axis_indices_index;
-    READ_UINT32VAR (axis_indices_index);
-    unsigned axis_count = hb_len ((&varc+varc.axisIndicesList)[axis_indices_index]);
-    if (unlikely (!skip_tuple_values (record, end, axis_count))) return false;
-  }
+  decoded->axis_values_var_idx = VarIdx::NO_VARIATION;
+  if (decoded->flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
+    READ_UINT32VAR (decoded->axis_values_var_idx);
 
-  if (flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
-  {
-    uint32_t axis_values_var_idx HB_UNUSED;
-    READ_UINT32VAR (axis_values_var_idx);
-  }
-  if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
-  {
-    uint32_t transform_var_idx HB_UNUSED;
-    READ_UINT32VAR (transform_var_idx);
-  }
+  decoded->transform_var_idx = VarIdx::NO_VARIATION;
+  if (decoded->flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
+    READ_UINT32VAR (decoded->transform_var_idx);
 
-  constexpr unsigned transform_flags =
-    (unsigned) flags_t::HAVE_TRANSLATE_X |
-    (unsigned) flags_t::HAVE_TRANSLATE_Y |
-    (unsigned) flags_t::HAVE_ROTATION |
-    (unsigned) flags_t::HAVE_SCALE_X |
-    (unsigned) flags_t::HAVE_SCALE_Y |
-    (unsigned) flags_t::HAVE_SKEW_X |
-    (unsigned) flags_t::HAVE_SKEW_Y |
-    (unsigned) flags_t::HAVE_TCENTER_X |
-    (unsigned) flags_t::HAVE_TCENTER_Y;
-  unsigned transform_size = hb_popcount (flags & transform_flags) * HBINT16::static_size;
-  if (unlikely (unsigned (end - record) < transform_size)) return false;
-  record += transform_size;
+#define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
+  if (decoded->flags & (unsigned) flags_t::flag) \
+  { \
+    static_assert (type::static_size == HBINT16::static_size, ""); \
+    if (unlikely (unsigned (end - record) < HBINT16::static_size)) return false; \
+    hb_barrier (); \
+    decoded->transform.name = * (const HBINT16 *) record; \
+    record += HBINT16::static_size; \
+  }
+  VARC_PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
 
-  unsigned reserved = flags & (unsigned) flags_t::RESERVED_MASK;
+  unsigned reserved = decoded->flags & (unsigned) flags_t::RESERVED_MASK;
   while (reserved)
   {
     uint32_t discard HB_UNUSED;
@@ -131,7 +145,7 @@ VarComponent::get_record_info (const VARC &varc,
     reserved &= reserved - 1;
   }
 
-  *record_size = record - start;
+  decoded->size = record - start;
 #undef READ_UINT32VAR
   return true;
 }
@@ -155,16 +169,12 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
       hb_ubytes_t record = (this+glyphRecords)[index];
       while (record)
       {
-        hb_codepoint_t component_gid;
-        unsigned gid_offset HB_UNUSED, gid_size HB_UNUSED, size;
-        if (unlikely (!VarComponent::get_record_info (*this, record,
-						      &component_gid,
-						      &gid_offset,
-						      &gid_size,
-						      &size)))
+	VarComponent::record_t component;
+	if (unlikely (!VarComponent::decompile_record (*this, record,
+						       nullptr, &component)))
 	  break;
-        glyphset->add (component_gid);
-        record = record.sub_array (size);
+        glyphset->add (component.gid);
+        record = record.sub_array (component.size);
       }
     }
   }
@@ -182,16 +192,12 @@ VARC::depend (hb_depend_data_builder_t *depend_data) const
     hb_ubytes_t record = (this+glyphRecords)[index++];
     while (record)
     {
-      hb_codepoint_t component_gid;
-      unsigned gid_offset HB_UNUSED, gid_size HB_UNUSED, size;
-      if (unlikely (!VarComponent::get_record_info (*this, record,
-						    &component_gid,
-						    &gid_offset,
-						    &gid_size,
-						    &size)))
+	VarComponent::record_t component;
+	if (unlikely (!VarComponent::decompile_record (*this, record,
+						       nullptr, &component)))
 	break;
-      depend_data->add_depend (gid, tableTag, component_gid);
-      record = record.sub_array (size);
+      depend_data->add_depend (gid, tableTag, component.gid);
+      record = record.sub_array (component.size);
     }
   }
 }
@@ -323,52 +329,24 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 			   hb_scalar_cache_t *cache) const
 {
   const unsigned char *end = total_record.arrayZ + total_record.length;
-  const unsigned char *record = total_record.arrayZ;
-
   auto &VARC = *c.font->face->table.VARC->table;
   auto &varStore = &VARC+VARC.varStore;
 
-#define READ_UINT32VAR(name) \
-  HB_STMT_START { \
-    if (unlikely (unsigned (end - record) < HBUINT32VAR::min_size)) return hb_ubytes_t (); \
-    hb_barrier (); \
-    auto &varint = * (const HBUINT32VAR *) record; \
-    unsigned size = varint.get_size (); \
-    if (unlikely (unsigned (end - record) < size)) return hb_ubytes_t (); \
-    name = (uint32_t) varint; \
-    record += size; \
-  } HB_STMT_END
+  auto &axisValues = c.scratch.axisValues;
+  record_t component;
+  if (unlikely (!decompile_record (VARC, total_record,
+				   &axisValues, &component)))
+    return hb_ubytes_t ();
 
-  uint32_t flags;
-  READ_UINT32VAR (flags);
-
-  // gid
-
-  hb_codepoint_t gid = 0;
-  if (flags & (unsigned) flags_t::GID_IS_24BIT)
-  {
-    if (unlikely (unsigned (end - record) < HBGlyphID24::static_size))
-      return hb_ubytes_t ();
-    hb_barrier ();
-    gid = * (const HBGlyphID24 *) record;
-    record += HBGlyphID24::static_size;
-  }
-  else
-  {
-    if (unlikely (unsigned (end - record) < HBGlyphID16::static_size))
-      return hb_ubytes_t ();
-    hb_barrier ();
-    gid = * (const HBGlyphID16 *) record;
-    record += HBGlyphID16::static_size;
-  }
+  uint32_t flags = component.flags;
+  hb_codepoint_t gid = component.gid;
+  const unsigned char *record = total_record.arrayZ + component.size;
 
   // Condition
   bool show = true;
   if (flags & (unsigned) flags_t::HAVE_CONDITION)
   {
-    unsigned conditionIndex;
-    READ_UINT32VAR (conditionIndex);
-    const auto &condition = (&VARC+VARC.conditionList)[conditionIndex];
+    const auto &condition = (&VARC+VARC.conditionList)[component.condition_index];
     auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache);
     show = condition.evaluate (coords.arrayZ, coords.length, &instancer);
   }
@@ -377,27 +355,14 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 
   auto &axisIndices = c.scratch.axisIndices;
   axisIndices.clear ();
-  auto &axisValues = c.scratch.axisValues;
-  axisValues.clear ();
   if (flags & (unsigned) flags_t::HAVE_AXES)
-  {
-    unsigned axisIndicesIndex;
-    READ_UINT32VAR (axisIndicesIndex);
-    axisIndices.extend ((&VARC+VARC.axisIndicesList)[axisIndicesIndex]);
-    axisValues.resize (axisIndices.length);
-    const HBUINT8 *p = (const HBUINT8 *) record;
-    TupleValues::decompile (p, axisValues, (const HBUINT8 *) end);
-    record = (const unsigned char *) p;
-  }
+    axisIndices.extend ((&VARC+VARC.axisIndicesList)[component.axis_indices_index]);
 
   // Apply variations if any
-  if (flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
-  {
-    uint32_t axisValuesVarIdx;
-    READ_UINT32VAR (axisValuesVarIdx);
-    if (show && coords && !axisValues.in_error ())
-      varStore.get_delta (axisValuesVarIdx, coords, axisValues.as_array (), cache);
-  }
+  if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
+      show && coords && !axisValues.in_error ())
+    varStore.get_delta (component.axis_values_var_idx, coords,
+			axisValues.as_array (), cache);
 
   auto component_coords = coords;
   /* Copying coords is expensive; so we have put an arbitrary
@@ -406,51 +371,8 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       coords.length > HB_VAR_COMPOSITE_MAX_AXES)
     component_coords = hb_array (c.font->coords, c.font->num_coords);
 
-  // Transform
-
-  uint32_t transformVarIdx = VarIdx::NO_VARIATION;
-  if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
-    READ_UINT32VAR (transformVarIdx);
-
-#define PROCESS_TRANSFORM_COMPONENTS \
-	HB_STMT_START { \
-	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TRANSLATE_X, translateX); \
-	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TRANSLATE_Y, translateY); \
-	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HAVE_ROTATION, rotation); \
-	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, HAVE_SCALE_X, scaleX); \
-	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, HAVE_SCALE_Y, scaleY); \
-	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HAVE_SKEW_X, skewX); \
-	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HAVE_SKEW_Y, skewY); \
-	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TCENTER_X, tCenterX); \
-	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TCENTER_Y, tCenterY); \
-	} HB_STMT_END
-
-  hb_transform_decomposed_t<> transform;
-
-  // Read transform components
-#define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
-	if (flags & (unsigned) flags_t::flag) \
-	{ \
-	  static_assert (type::static_size == HBINT16::static_size, ""); \
-	  if (unlikely (unsigned (end - record) < HBINT16::static_size)) \
-	    return hb_ubytes_t (); \
-	  hb_barrier (); \
-	  transform.name = * (const HBINT16 *) record; \
-	  record += HBINT16::static_size; \
-	}
-  PROCESS_TRANSFORM_COMPONENTS;
-#undef PROCESS_TRANSFORM_COMPONENT
-
-  // Read reserved records
-  unsigned i = flags & (unsigned) flags_t::RESERVED_MASK;
-  while (i)
-  {
-    HB_UNUSED uint32_t discard;
-    READ_UINT32VAR (discard);
-    i &= i - 1;
-  }
-
-  /* Parsing is over now. */
+  uint32_t transformVarIdx = component.transform_var_idx;
+  hb_transform_decomposed_t<> transform = component.transform;
 
   if (show)
   {
@@ -469,14 +391,14 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
 	    transformValues[numTransformValues++] = transform.name;
-      PROCESS_TRANSFORM_COMPONENTS;
+      VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
       varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
       numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
 	    transform.name = transformValues[numTransformValues++];
-      PROCESS_TRANSFORM_COMPONENTS;
+      VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
     }
 
@@ -484,7 +406,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (shift && (flags & (unsigned) flags_t::flag)) \
 	     transform.name *= 1.f / (1 << shift);
-    PROCESS_TRANSFORM_COMPONENTS;
+    VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
     if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
@@ -506,9 +428,6 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 		      same_coords ? cache : nullptr);
     c.depth_left++;
   }
-
-#undef PROCESS_TRANSFORM_COMPONENTS
-#undef READ_UINT32VAR
 
   return hb_ubytes_t (record, end - record);
 }
@@ -608,6 +527,8 @@ VARC::get_path_at (const hb_varc_context_t &c,
 }
 
 #endif
+
+#undef VARC_PROCESS_TRANSFORM_COMPONENTS
 
 //} // namespace Var
 } // namespace OT
