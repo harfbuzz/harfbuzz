@@ -33,6 +33,15 @@ assert_has_varc (hb_face_t *face, hb_bool_t expected)
   hb_blob_destroy (blob);
 }
 
+static unsigned
+varc_length (hb_face_t *face)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('V','A','R','C'));
+  unsigned length = hb_blob_get_length (blob);
+  hb_blob_destroy (blob);
+  return length;
+}
+
 static hb_face_t *
 subset_varc (hb_face_t *face, hb_codepoint_t unicode)
 {
@@ -52,10 +61,12 @@ test_subset_varc_closure_and_remap (void)
   hb_face_t *ac00 = subset_varc (face, 0xAC00);
   g_assert_cmpuint (hb_face_get_glyph_count (ac00), ==, 6);
   assert_has_varc (ac00, true);
+  g_assert_cmpuint (varc_length (ac00), <, varc_length (face));
 
   hb_face_t *ac01 = subset_varc (face, 0xAC01);
   g_assert_cmpuint (hb_face_get_glyph_count (ac01), ==, 8);
   assert_has_varc (ac01, true);
+  g_assert_cmpuint (varc_length (ac01), <, varc_length (face));
 
   hb_face_destroy (ac01);
   hb_face_destroy (ac00);
