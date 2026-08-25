@@ -3356,10 +3356,8 @@ struct MultiVarData
   unsigned get_item_count () const
   { return StructAfter<decltype (deltaSetsX)> (regionIndices).count; }
 
-  void collect_region_refs (hb_set_t &region_indices,
-			    const hb_inc_bimap_t &inner_map) const
+  void collect_region_refs (hb_set_t &region_indices) const
   {
-    if (!inner_map.get_population ()) return;
     for (unsigned region : regionIndices)
       region_indices.add (region);
   }
@@ -3841,8 +3839,7 @@ struct MultiItemVariationStore
     {
       if (!inner_maps[i].get_population ()) continue;
       set_count++;
-      (src+src->dataSets[i]).collect_region_refs (region_indices,
-						  inner_maps[i]);
+      (src+src->dataSets[i]).collect_region_refs (region_indices);
     }
     region_indices.del_range (src_regions.regions.len, hb_set_t::INVALID);
     hb_inc_bimap_t region_map;
@@ -4594,7 +4591,8 @@ Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth) const
     case 1:
       return true;
     case 2:
-      var_indices->add (u.format2.varIdx);
+      if (u.format2.varIdx != VarIdx::NO_VARIATION)
+	var_indices->add (u.format2.varIdx);
       return !var_indices->in_error ();
     case 3:
       for (const auto &offset : u.format3.conditions)
@@ -4629,9 +4627,12 @@ Condition::serialize (hb_serialize_context_t *c,
     case 2:
     {
       auto *out = c->embed (&src->u.format2);
-      if (unlikely (!out || !varidx_map.has (src->u.format2.varIdx)))
+      if (unlikely (!out ||
+		    (src->u.format2.varIdx != VarIdx::NO_VARIATION &&
+		     !varidx_map.has (src->u.format2.varIdx))))
 	return_trace (false);
-      out->varIdx = varidx_map.get (src->u.format2.varIdx);
+      out->varIdx = src->u.format2.varIdx == VarIdx::NO_VARIATION ?
+		    src->u.format2.varIdx : varidx_map.get (src->u.format2.varIdx);
       return_trace (true);
     }
     case 3:

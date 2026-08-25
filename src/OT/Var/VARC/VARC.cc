@@ -1,3 +1,7 @@
+#ifndef HB_OT_VAR_VARC_CC
+#define HB_OT_VAR_VARC_CC
+#ifdef HB_OT_VAR_VARC_CC /* Pacify -Wunused-macros. */
+
 #include "VARC.hh"
 
 #ifndef HB_NO_VAR_COMPOSITES
@@ -24,38 +28,10 @@ namespace OT {
 	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, HAVE_TCENTER_Y, tCenterY); \
 	} HB_STMT_END
 
-static bool
-skip_tuple_values (const unsigned char *&p,
-		   const unsigned char *end,
-		   unsigned count)
-{
-  unsigned seen = 0;
-  while (seen < count)
-  {
-    if (unlikely (p >= end)) return false;
-    unsigned control = *p++;
-    unsigned run_count = (control & TupleValues::VALUE_RUN_COUNT_MASK) + 1;
-    if (unlikely (run_count > count - seen)) return false;
-
-    unsigned width;
-    switch (control & TupleValues::VALUES_SIZE_MASK)
-    {
-      case TupleValues::VALUES_ARE_ZEROS: width = 0; break;
-      case TupleValues::VALUES_ARE_BYTES: width = HBINT8::static_size; break;
-      case TupleValues::VALUES_ARE_WORDS: width = HBINT16::static_size; break;
-      case TupleValues::VALUES_ARE_LONGS: width = HBINT32::static_size; break;
-      default: return false;
-    }
-    if (unlikely (unsigned (end - p) < run_count * width)) return false;
-    p += run_count * width;
-    seen += run_count;
-  }
-  return true;
-}
-
 bool
 VarComponent::decompile_record (const VARC &varc,
 				hb_ubytes_t total_record,
+				hb_vector_t<unsigned> *axis_indices,
 				hb_vector_t<float> *axis_values,
 				record_t *decoded)
 {
@@ -63,8 +39,8 @@ VarComponent::decompile_record (const VARC &varc,
   const unsigned char *record = start;
   const unsigned char *end = start + total_record.length;
 
-  if (axis_values)
-    axis_values->clear ();
+  if (axis_indices) axis_indices->clear ();
+  if (axis_values) axis_values->clear ();
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
@@ -109,7 +85,15 @@ VarComponent::decompile_record (const VARC &varc,
   if (decoded->flags & (unsigned) flags_t::HAVE_AXES)
   {
     READ_UINT32VAR_FIELD (decoded->axis_indices_index, axis_indices);
-    unsigned axis_count = hb_len ((&varc+varc.axisIndicesList)[decoded->axis_indices_index]);
+    unsigned axis_count;
+    if (axis_indices)
+    {
+      axis_indices->extend ((&varc+varc.axisIndicesList)[decoded->axis_indices_index]);
+      if (unlikely (axis_indices->in_error ())) return false;
+      axis_count = axis_indices->length;
+    }
+    else
+      axis_count = hb_len ((&varc+varc.axisIndicesList)[decoded->axis_indices_index]);
     if (axis_values)
     {
       if (unlikely (!axis_values->resize (axis_count))) return false;
@@ -119,7 +103,7 @@ VarComponent::decompile_record (const VARC &varc,
 	return false;
       record = (const unsigned char *) p;
     }
-    else if (unlikely (!skip_tuple_values (record, end, axis_count)))
+    else if (unlikely (!TupleValues::skip (record, end, axis_count)))
       return false;
   }
 
@@ -178,10 +162,10 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
       {
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (*this, record,
-						       nullptr, &component)))
+						       nullptr, nullptr, &component)))
 	  break;
-        glyphset->add (component.gid);
-        record = record.sub_array (component.size);
+	glyphset->add (component.gid);
+	record = record.sub_array (component.size);
       }
     }
   }
@@ -190,19 +174,18 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
 void
 VARC::depend (hb_depend_data_builder_t *depend_data) const
 {
-  unsigned count = (this+glyphRecords).count;
-  unsigned index = 0;
-  for (hb_codepoint_t gid : (this+coverage).iter ())
+  const CFF2Index &records = this+glyphRecords;
+  for (auto _ : + hb_zip (this+coverage,
+			  hb_range ((unsigned) records.count)))
   {
-    if (index >= count) break;
-
-    hb_ubytes_t record = (this+glyphRecords)[index++];
+    hb_codepoint_t gid = _.first;
+    hb_ubytes_t record = records[_.second];
     while (record)
     {
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (*this, record,
-						       nullptr, &component)))
-	break;
+						       nullptr, nullptr, &component)))
+	  break;
       depend_data->add_depend (gid, tableTag, component.gid);
       record = record.sub_array (component.size);
     }
@@ -339,10 +322,11 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   auto &VARC = *c.font->face->table.VARC->table;
   auto &varStore = &VARC+VARC.varStore;
 
+  auto &axisIndices = c.scratch.axisIndices;
   auto &axisValues = c.scratch.axisValues;
   record_t component;
   if (unlikely (!decompile_record (VARC, total_record,
-				   &axisValues, &component)))
+				   &axisIndices, &axisValues, &component)))
     return hb_ubytes_t ();
 
   uint32_t flags = component.flags;
@@ -359,11 +343,6 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   }
 
   // Axis values
-
-  auto &axisIndices = c.scratch.axisIndices;
-  axisIndices.clear ();
-  if (flags & (unsigned) flags_t::HAVE_AXES)
-    axisIndices.extend ((&VARC+VARC.axisIndicesList)[component.axis_indices_index]);
 
   // Apply variations if any
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
@@ -541,3 +520,6 @@ VARC::get_path_at (const hb_varc_context_t &c,
 } // namespace OT
 
 #endif
+
+#endif /* HB_OT_VAR_VARC_CC (pacify clang) */
+#endif /* HB_OT_VAR_VARC_CC */

@@ -1820,6 +1820,33 @@ struct TupleValues
     return true;
   }
 
+  static bool skip (const unsigned char *&p /* IN/OUT */,
+		    const unsigned char *end,
+		    unsigned count)
+  {
+    unsigned seen = 0;
+    while (seen < count)
+    {
+      if (unlikely (p >= end)) return false;
+      unsigned control = *p++;
+      unsigned run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
+      if (unlikely (run_count > count - seen)) return false;
+
+      unsigned width = 0;
+      switch (control & VALUES_SIZE_MASK)
+      {
+	case VALUES_ARE_ZEROS: break;
+	case VALUES_ARE_BYTES: width = HBINT8::static_size; break;
+	case VALUES_ARE_WORDS: width = HBINT16::static_size; break;
+	case VALUES_ARE_LONGS: width = HBINT32::static_size; break;
+      }
+      if (unlikely (unsigned (end - p) < run_count * width)) return false;
+      p += run_count * width;
+      seen += run_count;
+    }
+    return true;
+  }
+
   struct iter_t : hb_iter_with_fallback_t<iter_t, int>
   {
     iter_t (const unsigned char *p_, unsigned len_)

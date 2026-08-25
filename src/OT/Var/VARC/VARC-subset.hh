@@ -31,11 +31,12 @@ VARC::subset (hb_subset_context_t *c) const
 
   hb_vector_t<unsigned> old_indices;
   hb_sorted_vector_t<hb_codepoint_t> new_gids;
-  unsigned index = 0;
   unsigned data_size = 0;
-  for (hb_codepoint_t old_gid : source_coverage.iter ())
+  for (auto _ : + hb_zip (source_coverage,
+			  hb_range ((unsigned) source_records.count)))
   {
-    if (index >= source_records.count) break;
+    hb_codepoint_t old_gid = _.first;
+    unsigned index = _.second;
     if (glyphset.has (old_gid))
     {
       hb_codepoint_t new_gid;
@@ -46,7 +47,6 @@ VARC::subset (hb_subset_context_t *c) const
       data_size = hb_unsigned_add_saturate (data_size,
 					    source_records[index].length);
     }
-    index++;
   }
   if (unlikely (old_indices.in_error () || new_gids.in_error () ||
 		data_size == UINT_MAX))
@@ -64,7 +64,7 @@ VARC::subset (hb_subset_context_t *c) const
     {
       VarComponent::record_t component;
       if (unlikely (!VarComponent::decompile_record (*this, remaining,
-						     nullptr, &component)))
+						     nullptr, nullptr, &component)))
 	return_trace (fail ());
 
       if (component.flags & (unsigned) VarComponent::flags_t::HAVE_CONDITION)
@@ -79,9 +79,11 @@ VARC::subset (hb_subset_context_t *c) const
 	  return_trace (fail ());
 	axis_indices.add (component.axis_indices_index);
       }
-      if (component.flags & (unsigned) VarComponent::flags_t::AXIS_VALUES_HAVE_VARIATION)
+      if ((component.flags & (unsigned) VarComponent::flags_t::AXIS_VALUES_HAVE_VARIATION) &&
+	  component.axis_values_var_idx != VarIdx::NO_VARIATION)
 	var_indices.add (component.axis_values_var_idx);
-      if (component.flags & (unsigned) VarComponent::flags_t::TRANSFORM_HAS_VARIATION)
+      if ((component.flags & (unsigned) VarComponent::flags_t::TRANSFORM_HAS_VARIATION) &&
+	  component.transform_var_idx != VarIdx::NO_VARIATION)
 	var_indices.add (component.transform_var_idx);
 
       remaining = remaining.sub_array (component.size);
@@ -143,7 +145,7 @@ VARC::subset (hb_subset_context_t *c) const
       {
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (*this, remaining,
-						       nullptr, &component)))
+						       nullptr, nullptr, &component)))
 	  return_trace (fail ());
 	hb_codepoint_t new_gid = component.gid;
 	if (unlikely ((!retain_gids &&
@@ -214,17 +216,21 @@ VARC::subset (hb_subset_context_t *c) const
 	}
 	if (flags & (unsigned) VarComponent::flags_t::AXIS_VALUES_HAVE_VARIATION)
 	{
-	  if (unlikely (!varidx_map.has (component.axis_values_var_idx) ||
+	  uint32_t var_idx = component.axis_values_var_idx;
+	  if (unlikely ((var_idx != VarIdx::NO_VARIATION && !varidx_map.has (var_idx)) ||
 			!append_bytes (cursor, component.axis_values_var_offset) ||
-			!append_varint (varidx_map.get (component.axis_values_var_idx))))
+			!append_varint (var_idx == VarIdx::NO_VARIATION ?
+					var_idx : varidx_map.get (var_idx))))
 	    return_trace (fail ());
 	  cursor = component.axis_values_var_offset + component.axis_values_var_size;
 	}
 	if (flags & (unsigned) VarComponent::flags_t::TRANSFORM_HAS_VARIATION)
 	{
-	  if (unlikely (!varidx_map.has (component.transform_var_idx) ||
+	  uint32_t var_idx = component.transform_var_idx;
+	  if (unlikely ((var_idx != VarIdx::NO_VARIATION && !varidx_map.has (var_idx)) ||
 			!append_bytes (cursor, component.transform_var_offset) ||
-			!append_varint (varidx_map.get (component.transform_var_idx))))
+			!append_varint (var_idx == VarIdx::NO_VARIATION ?
+					var_idx : varidx_map.get (var_idx))))
 	    return_trace (fail ());
 	  cursor = component.transform_var_offset + component.transform_var_size;
 	}

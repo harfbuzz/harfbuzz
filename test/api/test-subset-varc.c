@@ -26,6 +26,62 @@
 #include "hb-subset-test.h"
 
 static void
+draw_move_to (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
+	      hb_draw_state_t *state HB_UNUSED, float x, float y,
+	      void *user_data HB_UNUSED)
+{ g_string_append_printf ((GString *) data, "M%.9g,%.9g", x, y); }
+
+static void
+draw_line_to (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
+	      hb_draw_state_t *state HB_UNUSED, float x, float y,
+	      void *user_data HB_UNUSED)
+{ g_string_append_printf ((GString *) data, "L%.9g,%.9g", x, y); }
+
+static void
+draw_quadratic_to (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
+		   hb_draw_state_t *state HB_UNUSED,
+		   float cx, float cy, float x, float y,
+		   void *user_data HB_UNUSED)
+{ g_string_append_printf ((GString *) data, "Q%.9g,%.9g %.9g,%.9g", cx, cy, x, y); }
+
+static void
+draw_cubic_to (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
+	       hb_draw_state_t *state HB_UNUSED,
+	       float c1x, float c1y, float c2x, float c2y, float x, float y,
+	       void *user_data HB_UNUSED)
+{
+  g_string_append_printf ((GString *) data, "C%.9g,%.9g %.9g,%.9g %.9g,%.9g",
+			  c1x, c1y, c2x, c2y, x, y);
+}
+
+static void
+draw_close_path (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
+		 hb_draw_state_t *state HB_UNUSED,
+		 void *user_data HB_UNUSED)
+{ g_string_append_c ((GString *) data, 'Z'); }
+
+static char *
+draw_unicode (hb_face_t *face, hb_codepoint_t unicode)
+{
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
+
+  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (funcs, draw_move_to, NULL, NULL);
+  hb_draw_funcs_set_line_to_func (funcs, draw_line_to, NULL, NULL);
+  hb_draw_funcs_set_quadratic_to_func (funcs, draw_quadratic_to, NULL, NULL);
+  hb_draw_funcs_set_cubic_to_func (funcs, draw_cubic_to, NULL, NULL);
+  hb_draw_funcs_set_close_path_func (funcs, draw_close_path, NULL, NULL);
+  GString *path = g_string_new (NULL);
+  hb_font_draw_glyph (font, gid, funcs, path);
+
+  hb_draw_funcs_destroy (funcs);
+  hb_font_destroy (font);
+  return g_string_free (path, false);
+}
+
+static void
 assert_has_varc (hb_face_t *face, hb_bool_t expected)
 {
   hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('V','A','R','C'));
@@ -74,6 +130,23 @@ test_subset_varc_closure_and_remap (void)
 }
 
 static void
+test_subset_varc_draw_equivalence (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-ac00-ac01.ttf");
+  hb_face_t *subset = subset_varc (face, 0xAC01);
+  char *source_path = draw_unicode (face, 0xAC01);
+  char *subset_path = draw_unicode (subset, 0xAC01);
+
+  g_assert_cmpstr (source_path, !=, "");
+  g_assert_cmpstr (subset_path, ==, source_path);
+
+  g_free (subset_path);
+  g_free (source_path);
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_varc_condition_closure (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/varc-ac01-conditional.ttf");
@@ -85,6 +158,54 @@ test_subset_varc_condition_closure (void)
 
   hb_face_destroy (subset);
   hb_face_destroy (face);
+}
+
+static void
+test_subset_varc_mismatched_coverage_and_records (void)
+{
+  const char *fonts[] = {
+    "fonts/varc-coverage-longer.ttf",
+    "fonts/varc-records-longer.ttf",
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (fonts); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[i]);
+    hb_face_t *subset = subset_varc (face, 0xAC00);
+
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 6);
+    assert_has_varc (subset, true);
+
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_subset_varc_no_variation_index (void)
+{
+  const struct {
+    const char *font;
+    hb_codepoint_t unicode;
+    unsigned glyph_count;
+  } tests[] = {
+    {"fonts/varc-no-variation-index.ttf", 0xAC00, 6},
+    {"fonts/varc-condition-no-variation-index.ttf", 0xAC01, 8},
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (tests[i].font);
+    hb_face_t *subset = subset_varc (face, tests[i].unicode);
+
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, tests[i].glyph_count);
+    assert_has_varc (subset, true);
+
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
 }
 
 static void
@@ -176,7 +297,10 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_subset_varc_closure_and_remap);
+  hb_test_add (test_subset_varc_draw_equivalence);
   hb_test_add (test_subset_varc_condition_closure);
+  hb_test_add (test_subset_varc_mismatched_coverage_and_records);
+  hb_test_add (test_subset_varc_no_variation_index);
   hb_test_add (test_subset_varc_retain_gids);
   hb_test_add (test_subset_varc_fails_when_instancing);
   hb_test_add (test_subset_varc_can_be_explicitly_dropped_when_instancing);
