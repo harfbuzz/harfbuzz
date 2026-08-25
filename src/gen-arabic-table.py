@@ -327,7 +327,6 @@ def print_shaping_table_rust(f):
 	min_u, max_u = min (shapes.keys ()), max (shapes.keys ())
 
 	print ()
-	print ('#[cfg(feature = "std")]')
 	print ("pub(crate) const SHAPING_TABLE: &[(u16, [u16; 4])] = &[")
 	for u in range (min_u, max_u + 1):
 		s = [shapes[u][shape] if u in shapes and shape in shapes[u] else 0
@@ -338,7 +337,6 @@ def print_shaping_table_rust(f):
 	print ("];")
 
 	print ()
-	print ('#[cfg(feature = "std")]')
 	print ("pub(crate) const LIGATURE_3_TABLE: &[([u16; 3], u16)] = &[")
 	for first in sorted (ligas_3.keys ()):
 		for liga in ligas_3[first]:
@@ -347,7 +345,6 @@ def print_shaping_table_rust(f):
 	print ("];")
 
 	print ()
-	print ('#[cfg(feature = "std")]')
 	print ("pub(crate) const LIGATURE_TABLE: &[([u16; 2], u16)] = &[")
 	for first in sorted (ligas_2.keys ()):
 		for liga in ligas_2[first]:
@@ -356,7 +353,6 @@ def print_shaping_table_rust(f):
 	print ("];")
 
 	print ()
-	print ('#[cfg(feature = "std")]')
 	print ("pub(crate) const LIGATURE_MARK_TABLE: &[([u16; 2], u16)] = &[")
 	for first in sorted (ligas_mark_2.keys ()):
 		for liga in ligas_mark_2[first]:
