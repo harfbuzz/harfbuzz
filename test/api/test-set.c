@@ -1312,12 +1312,85 @@ test_set_next_many_out_of_order_pages (void) {
   hb_set_destroy(set);
 }
 
+static void
+test_set_next_previous_range (void)
+{
+  hb_set_t *s = hb_set_create ();
+
+  /* Test with ranges covering:
+   * - 0..0 (single element at 0)
+   * - 2..3 (small range within word 0)
+   * - 60..70 (spans 64-bit word boundary 0 -> 1)
+   * - 127..127 (single element at word boundary)
+   * - 129..130 (starts after word boundary)
+   * - 500..525 (spans 512-bit page boundary 0 -> 1)
+   * - 1000..3000 (spans multiple full pages)
+   * - 50000..50000 (isolated high codepoint)
+   */
+  hb_set_add (s, 0);
+  /* gap: 1 */
+  hb_set_add_range (s, 2, 3);
+  /* gap: 4..59 */
+  hb_set_add_range (s, 60, 70);
+  /* gap: 71..126 */
+  hb_set_add (s, 127);
+  /* gap: 128 */
+  hb_set_add_range (s, 129, 130);
+  /* gap: 131..499 */
+  hb_set_add_range (s, 500, 525);
+  /* gap: 526..999 */
+  hb_set_add_range (s, 1000, 3000);
+  /* gap: 3001..49999 */
+  hb_set_add (s, 50000);
+
+  struct { hb_codepoint_t first, last; } expected[] = {
+    {0, 0},
+    {2, 3},
+    {60, 70},
+    {127, 127},
+    {129, 130},
+    {500, 525},
+    {1000, 3000},
+    {50000, 50000}
+  };
+  unsigned int num_expected = sizeof (expected) / sizeof (expected[0]);
+
+  /* Forward iteration */
+  hb_codepoint_t first = HB_SET_VALUE_INVALID;
+  hb_codepoint_t last = HB_SET_VALUE_INVALID;
+  for (unsigned int idx = 0; idx < num_expected; idx++)
+  {
+    g_assert_true (hb_set_next_range (s, &first, &last));
+    g_assert_cmpint (first, ==, expected[idx].first);
+    g_assert_cmpint (last, ==, expected[idx].last);
+  }
+  g_assert_true (!hb_set_next_range (s, &first, &last));
+  g_assert_cmpint (first, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (last, ==, HB_SET_VALUE_INVALID);
+
+  /* Backward iteration */
+  first = HB_SET_VALUE_INVALID;
+  last = HB_SET_VALUE_INVALID;
+  for (int idx = (int) num_expected - 1; idx >= 0; idx--)
+  {
+    g_assert_true (hb_set_previous_range (s, &first, &last));
+    g_assert_cmpint (first, ==, expected[idx].first);
+    g_assert_cmpint (last, ==, expected[idx].last);
+  }
+  g_assert_true (!hb_set_previous_range (s, &first, &last));
+  g_assert_cmpint (first, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (last, ==, HB_SET_VALUE_INVALID);
+
+  hb_set_destroy (s);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_set_basic);
+  hb_test_add (test_set_next_previous_range);
   hb_test_add (test_set_subsets);
   hb_test_add (test_set_subsets_empty_pages);
   hb_test_add (test_set_subsets_inverted);
