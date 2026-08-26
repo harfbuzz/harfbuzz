@@ -914,11 +914,14 @@ hb_ot_draw_glyph_or_fail (hb_font_t *font,
   if (font->face->table.VARC->get_path (font, glyph, draw_session)) return true;
 #endif
   // Keep the following in synch with VARC::get_path_at()
-  if (font->face->table.glyf->get_path (font, glyph, draw_session, gvar_cache)) return true;
+  if (font->face->table.glyf->get_path (font, glyph, draw_session, gvar_cache,
+				       &draw_session.get_budget ())) return true;
 
 #ifndef HB_NO_CFF
-  if (font->face->table.cff2->get_path (font, glyph, draw_session)) return true;
-  if (font->face->table.cff1->get_path (font, glyph, draw_session)) return true;
+  if (font->face->table.cff2->get_path (font, glyph, draw_session,
+				       &draw_session.get_budget ())) return true;
+  if (font->face->table.cff1->get_path (font, glyph, draw_session,
+				       &draw_session.get_budget ())) return true;
 #endif
 
   return false;

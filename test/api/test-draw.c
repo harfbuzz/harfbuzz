@@ -1075,6 +1075,86 @@ test_hb_draw_immutable (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
+typedef struct
+{
+  int64_t policy;
+  int64_t live;
+} draw_budget_data_t;
+
+static hb_bool_t
+draw_set_budget (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		 void *draw_data,
+		 int64_t budget,
+		 void *user_data HB_UNUSED)
+{
+  draw_budget_data_t *data = (draw_budget_data_t *) draw_data;
+  data->policy = budget;
+  data->live = budget == HB_BUDGET_DEFAULT ? 1234 : budget;
+  return TRUE;
+}
+
+static int64_t
+draw_get_budget (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		 void *draw_data,
+		 void *user_data HB_UNUSED)
+{
+  return ((draw_budget_data_t *) draw_data)->policy;
+}
+
+static int64_t *
+draw_get_budget_remaining (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			   void *draw_data,
+			   void *user_data HB_UNUSED)
+{
+  return &((draw_budget_data_t *) draw_data)->live;
+}
+
+static void
+test_hb_draw_budget (void)
+{
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 1234};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+
+  g_assert_false (hb_draw_set_budget (draw_funcs, &data, 100));
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, &data), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), ==, HB_BUDGET_UNLIMITED);
+
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_func (draw_funcs, draw_get_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, -42));
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, &data), ==, 0);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), ==, 0);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, HB_BUDGET_DEFAULT));
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, &data), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), ==, 1234);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, HB_BUDGET_UNLIMITED));
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, &data), ==, HB_BUDGET_UNLIMITED);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), ==, HB_BUDGET_UNLIMITED);
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 100000));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, &data), ==, 100000);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), <, 100000);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), >=, 0);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, HB_BUDGET_UNLIMITED));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, &data), ==, HB_BUDGET_UNLIMITED);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), <, HB_BUDGET_UNLIMITED);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), >, 0);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_draw_funcs_destroy (draw_funcs);
+}
+
 static void
 test_hb_draw_funcs (const void* user_data)
 {
@@ -1190,6 +1270,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_synthetic_slant);
   hb_test_add (test_hb_draw_subfont_scale);
   hb_test_add (test_hb_draw_immutable);
+  hb_test_add (test_hb_draw_budget);
 
   const char **font_funcs = hb_font_list_funcs ();
   for (const char **font_funcs_name = font_funcs; *font_funcs_name; font_funcs_name++)

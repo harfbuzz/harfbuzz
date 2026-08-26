@@ -126,6 +126,8 @@ hb_buffer_diff_flags_t
 
 <SECTION>
 <FILE>hb-common</FILE>
+HB_BUDGET_DEFAULT
+HB_BUDGET_UNLIMITED
 HB_TAG
 HB_UNTAG
 hb_tag_from_string
@@ -235,6 +237,15 @@ hb_draw_cubic_to_func_t
 hb_draw_funcs_set_cubic_to_func
 hb_draw_close_path_func_t
 hb_draw_funcs_set_close_path_func
+hb_draw_set_budget_func_t
+hb_draw_funcs_set_set_budget_func
+hb_draw_get_budget_func_t
+hb_draw_funcs_set_get_budget_func
+hb_draw_get_budget_remaining_func_t
+hb_draw_funcs_set_get_budget_remaining_func
+hb_draw_set_budget
+hb_draw_get_budget
+hb_draw_get_budget_remaining
 hb_draw_move_to
 hb_draw_line_to
 hb_draw_quadratic_to
@@ -260,6 +271,16 @@ hb_paint_funcs_set_user_data
 hb_paint_funcs_get_user_data
 hb_paint_funcs_make_immutable
 hb_paint_funcs_is_immutable
+
+hb_paint_set_budget_func_t
+hb_paint_funcs_set_set_budget_func
+hb_paint_get_budget_func_t
+hb_paint_funcs_set_get_budget_func
+hb_paint_get_budget_remaining_func_t
+hb_paint_funcs_set_get_budget_remaining_func
+hb_paint_set_budget
+hb_paint_get_budget
+hb_paint_get_budget_remaining
 
 hb_paint_push_transform_func_t
 hb_paint_funcs_set_push_transform_func
