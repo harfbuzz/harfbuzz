@@ -893,8 +893,8 @@ struct cs_interpreter_t : interpreter_t<ENV>
     unsigned max_ops = HB_CFF_MAX_OPS;
     for (;;) {
       op_code_t op = SUPER::env.fetch_op ();
-      int64_t cost = op == OpCode_callsubr || op == OpCode_callgsubr ?
-		     HB_BUDGET_8 : HB_BUDGET_1;
+      unsigned int cost = op == OpCode_callsubr || op == OpCode_callgsubr ?
+			  HB_BUDGET_8 : HB_BUDGET_1;
       if (unlikely (!SUPER::env.spend_budget (cost)))
       {
 	SUPER::env.set_error ();

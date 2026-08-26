@@ -1109,6 +1109,47 @@ draw_get_budget_remaining (hb_draw_funcs_t *dfuncs HB_UNUSED,
   return &((draw_budget_data_t *) draw_data)->live;
 }
 
+static int64_t
+draw_budget_consumption (const char *font_file,
+			 hb_codepoint_t glyph,
+			 const hb_variation_t *variation)
+{
+  const int64_t budget = 100000;
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 0};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_func (draw_funcs, draw_get_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, budget));
+
+  hb_face_t *face = hb_test_open_font_file (font_file);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  if (variation)
+    hb_font_set_variations (font, variation, 1);
+
+  g_assert_true (hb_font_draw_glyph_or_fail (font, glyph, draw_funcs, &data));
+  int64_t consumption = budget - data.live;
+
+  hb_font_destroy (font);
+  hb_draw_funcs_destroy (draw_funcs);
+
+  return consumption;
+}
+
+static void
+test_hb_draw_cff_budget (void)
+{
+  int64_t cff1_seac = draw_budget_consumption ("fonts/cff1_seac.otf", 3, NULL);
+  hb_variation_t variation = {HB_TAG ('w','g','h','t'), 800};
+  int64_t cff2_blend = draw_budget_consumption ("fonts/AdobeVFPrototype.abc.otf", 3, &variation);
+
+  /* These bounds exceed the parent charstring's flat operator cost, so they
+   * specifically cover the two seac children and the proportional blend. */
+  g_assert_cmpint (cff1_seac, >, 100);
+  g_assert_cmpint (cff2_blend, >, 512);
+}
+
 static void
 test_hb_draw_budget (void)
 {
@@ -1276,6 +1317,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_subfont_scale);
   hb_test_add (test_hb_draw_immutable);
   hb_test_add (test_hb_draw_budget);
+  hb_test_add (test_hb_draw_cff_budget);
 
   const char **font_funcs = hb_font_list_funcs ();
   for (const char **font_funcs_name = font_funcs; *font_funcs_name; font_funcs_name++)
