@@ -226,22 +226,22 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * render/clear calls), in pixel-op units; pixel loops charge their
  * area, consumed outline segments are charged with a fixed weight.
  * The session budget is the larger of this flat value and
- * HB_RASTER_MAX_PAINT_WORK_PASSES full-surface passes, so very large
+ * HB_BUDGET_RASTER_PAINT_PASSES full-surface passes, so very large
  * surfaces still get a few full-surface operations. */
-#ifndef HB_RASTER_MAX_PAINT_WORK
-#define HB_RASTER_MAX_PAINT_WORK ((int64_t) 1 << 26)
+#ifndef HB_BUDGET_RASTER_PAINT
+#define HB_BUDGET_RASTER_PAINT ((int64_t) 1 << 26)
 #endif
 
-#ifndef HB_RASTER_MAX_PAINT_WORK_PASSES
-#define HB_RASTER_MAX_PAINT_WORK_PASSES 4
+#ifndef HB_BUDGET_RASTER_PAINT_PASSES
+#define HB_BUDGET_RASTER_PAINT_PASSES 4
 #endif
 
 /* One raster draw session (everything drawn between two render/clear
  * calls) through the standalone hb-raster-draw API, in Bézier
  * subdivision steps.  When driven by raster-paint, the paint session
  * budget above is charged instead. */
-#ifndef HB_RASTER_MAX_DRAW_WORK
-#define HB_RASTER_MAX_DRAW_WORK ((int64_t) 1 << 24)
+#ifndef HB_BUDGET_RASTER_DRAW
+#define HB_BUDGET_RASTER_DRAW ((int64_t) 1 << 24)
 #endif
 
 /* One raster draw session, in accumulated non-horizontal edges. */

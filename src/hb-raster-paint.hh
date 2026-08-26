@@ -132,16 +132,32 @@ struct hb_raster_paint_t
    * hb_raster_paint_clear().  Bounds total pixel and outline work so
    * that per-node costs cannot multiply with the paint-graph traversal
    * limits of the font tables driving us (e.g. COLR). */
-  int64_t work_left = HB_RASTER_MAX_PAINT_WORK;
+  int64_t budget = HB_BUDGET_DEFAULT;
+  int64_t budget_remaining = HB_BUDGET_RASTER_PAINT;
 
   /* Helpers */
+
+  int64_t get_default_budget () const
+  {
+    return hb_max ((int64_t) HB_BUDGET_RASTER_PAINT,
+		   (int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
+		   fixed_extents.width * fixed_extents.height);
+  }
+
+  void recharge_budget ()
+  {
+    budget_remaining = budget == HB_BUDGET_DEFAULT ?
+		       (surface_stack.length ? get_default_budget () :
+					       HB_BUDGET_RASTER_PAINT) :
+		       budget;
+  }
 
   /* Returns whether the operation should proceed.  Allows a single
    * overshoot past zero; callers skip work once the budget is spent. */
   bool charge_work (int64_t work)
   {
-    if (unlikely (work_left <= 0)) return false;
-    work_left -= work;
+    if (unlikely (budget_remaining <= 0)) return false;
+    budget_remaining -= work;
     return true;
   }
 

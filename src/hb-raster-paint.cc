@@ -149,11 +149,10 @@ ensure_initialized (hb_raster_paint_t *c)
     return;
   }
 
-  /* Session work budget: flat floor, or a few passes over the (possibly
-   * client-sized) surface, whichever is larger. */
-  c->work_left = hb_max ((int64_t) HB_RASTER_MAX_PAINT_WORK,
-			 (int64_t) HB_RASTER_MAX_PAINT_WORK_PASSES *
-			 c->fixed_extents.width * c->fixed_extents.height);
+  /* Resolve the dynamic default only after the surface size is known.
+   * A concrete or unlimited client policy is never overwritten here. */
+  if (c->budget == HB_BUDGET_DEFAULT)
+    c->recharge_budget ();
 
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
@@ -218,7 +217,7 @@ hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c,
 			       (float) surf->extents.y_origin,
 			       (float) surf->extents.x_origin + (float) surf->extents.width,
 			       (float) surf->extents.y_origin + (float) surf->extents.height);
-  hb_raster_draw_set_external_work (rdr, &c->work_left);
+  hb_raster_draw_set_external_work (rdr, &c->budget_remaining);
 }
 
 static void
@@ -275,7 +274,7 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
 {
   /* Charge the scanline work of the accumulated outline before
    * rendering it. */
-  c->work_left -= hb_raster_draw_get_edge_work (rdr, h);
+  c->budget_remaining -= hb_raster_draw_get_edge_work (rdr, h);
 
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
 
@@ -416,7 +415,7 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   /* Out of budget: skip the glyph-outline extraction entirely, so
    * per-glyph outline limits cannot multiply with the caller's
    * paint-graph traversal limits. */
-  if (unlikely (c->work_left <= 0))
+  if (unlikely (c->budget_remaining <= 0))
   {
     hb_raster_paint_push_empty_clip (c, w, h);
     return;
@@ -744,7 +743,7 @@ hb_raster_paint_push_clip_path_end (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned w = surf->extents.width;
   unsigned h = surf->extents.height;
 
-  if (unlikely (c->work_left <= 0))
+  if (unlikely (c->budget_remaining <= 0))
   {
     hb_raster_draw_clear (c->clip_rdr);
     hb_raster_paint_push_empty_clip (c, w, h);
@@ -927,7 +926,7 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (unlikely (!surf)) return;
 
   /* Out of budget: skip the glyph-outline extraction entirely. */
-  if (unlikely (c->work_left <= 0)) return;
+  if (unlikely (c->budget_remaining <= 0)) return;
 
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
@@ -939,7 +938,7 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   /* Charge the scanline work of the accumulated outline before
    * rendering it. */
-  c->work_left -= hb_raster_draw_get_edge_work (rdr, surf->extents.height);
+  c->budget_remaining -= hb_raster_draw_get_edge_work (rdr, surf->extents.height);
 
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
   if (unlikely (!mask_img)) return;
@@ -968,7 +967,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   ensure_initialized (c);
 
   /* Out of budget: skip, including the image decode below. */
-  if (unlikely (c->work_left <= 0)) return false;
+  if (unlikely (c->budget_remaining <= 0)) return false;
 
   unsigned src_width = width;
   unsigned src_height = height;
@@ -1847,6 +1846,28 @@ hb_raster_paint_custom_palette_color (hb_paint_funcs_t *funcs HB_UNUSED,
   return false;
 }
 
+static hb_bool_t
+hb_raster_paint_set_budget (hb_paint_funcs_t *, void *paint_data,
+			    int64_t budget, void *)
+{
+  auto *paint = (hb_raster_paint_t *) paint_data;
+  paint->budget = budget;
+  paint->recharge_budget ();
+  return true;
+}
+
+static int64_t
+hb_raster_paint_get_budget (hb_paint_funcs_t *, void *paint_data, void *)
+{
+  return ((hb_raster_paint_t *) paint_data)->budget;
+}
+
+static int64_t *
+hb_raster_paint_get_budget_remaining (hb_paint_funcs_t *, void *paint_data, void *)
+{
+  return &((hb_raster_paint_t *) paint_data)->budget_remaining;
+}
+
 
 /*
  * Lazy-loader singleton for paint funcs
@@ -1877,6 +1898,9 @@ static struct hb_raster_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_radial_gradient_func (funcs, hb_raster_paint_radial_gradient, nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func (funcs, hb_raster_paint_sweep_gradient, nullptr, nullptr);
     hb_paint_funcs_set_custom_palette_color_func (funcs, hb_raster_paint_custom_palette_color, nullptr, nullptr);
+    hb_paint_funcs_set_set_budget_func (funcs, hb_raster_paint_set_budget, nullptr, nullptr);
+    hb_paint_funcs_set_get_budget_func (funcs, hb_raster_paint_get_budget, nullptr, nullptr);
+    hb_paint_funcs_set_get_budget_remaining_func (funcs, hb_raster_paint_get_budget_remaining, nullptr, nullptr);
 
     hb_paint_funcs_make_immutable (funcs);
 
@@ -2549,12 +2573,12 @@ hb_raster_paint_clear (hb_raster_paint_t *paint)
 {
   paint->fixed_extents = {};
   paint->has_extents = false;
-  paint->work_left = HB_RASTER_MAX_PAINT_WORK;
   paint->transform_stack.clear ();
   paint->release_all_clips ();
   for (auto *s : paint->surface_stack)
     paint->release_surface (s);
   paint->surface_stack.clear ();
+  paint->recharge_budget ();
   hb_raster_draw_reset (paint->clip_rdr);
 }
 
@@ -2574,6 +2598,7 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->x_scale_factor = 1.f;
   paint->y_scale_factor = 1.f;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
+  paint->budget = HB_BUDGET_DEFAULT;
   hb_raster_paint_clear_custom_palette_colors (paint);
   hb_raster_paint_clear (paint);
 }
