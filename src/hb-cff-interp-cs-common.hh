@@ -189,7 +189,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
 
   void set_budget (int64_t *budget_) { budget = budget_; }
   int64_t *get_budget () const { return budget; }
-  bool spend_budget (int64_t cost, int64_t mult = 1)
+  bool spend_budget (unsigned int cost, unsigned int mult = 1)
   { return !budget || hb_budget_spend (*budget, cost, mult); }
 
   const number_t &get_x () const { return pt.x; }

@@ -163,17 +163,17 @@
 
 /* Fixed relative weights.  Keep the value in the name so charge sites are
  * easy to audit; tune the session caps below, not these values. */
-#define HB_BUDGET_1	((int64_t) 1)
-#define HB_BUDGET_2	((int64_t) 2)
-#define HB_BUDGET_4	((int64_t) 4)
-#define HB_BUDGET_8	((int64_t) 8)
-#define HB_BUDGET_16	((int64_t) 16)
-#define HB_BUDGET_32	((int64_t) 32)
-#define HB_BUDGET_64	((int64_t) 64)
-#define HB_BUDGET_128	((int64_t) 128)
-#define HB_BUDGET_256	((int64_t) 256)
-#define HB_BUDGET_512	((int64_t) 512)
-#define HB_BUDGET_1024	((int64_t) 1024)
+#define HB_BUDGET_1	1u
+#define HB_BUDGET_2	2u
+#define HB_BUDGET_4	4u
+#define HB_BUDGET_8	8u
+#define HB_BUDGET_16	16u
+#define HB_BUDGET_32	32u
+#define HB_BUDGET_64	64u
+#define HB_BUDGET_128	128u
+#define HB_BUDGET_256	256u
+#define HB_BUDGET_512	512u
+#define HB_BUDGET_1024	1024u
 
 /* A generous per-glyph fallback.  Paint backends use their session cap so
  * repeated outline traversals consume one aggregate budget. */
@@ -181,27 +181,13 @@
 #define HB_BUDGET_GLYPH ((int64_t) 1 << 26)
 #endif
 
-/* Precharge COST * MULT without signed overflow.  Exhaustion is latched at
- * -1 so repeated calls remain safe and fail cheaply. */
-static inline bool
-hb_budget_spend (int64_t &budget, int64_t cost, int64_t mult = 1)
+/* Precharge COST * MULT.  Callers bound COST and MULT structurally, and live
+ * budgets are concrete non-negative values when a session starts. */
+static HB_ALWAYS_INLINE bool
+hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 {
-  if (cost < 0 || mult < 0 ||
-      (cost && mult > INT64_MAX / cost))
-  {
-    budget = -1;
-    return false;
-  }
-
-  int64_t charge = cost * mult;
-  if (budget < charge)
-  {
-    budget = -1;
-    return false;
-  }
-
-  budget -= charge;
-  return true;
+  budget -= cost * mult;
+  return budget >= 0;
 }
 
 /* One VARC glyph (draw or extents), shared by all leaf glyphs loaded

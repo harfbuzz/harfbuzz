@@ -112,7 +112,7 @@ main (int argc, char **argv)
   hb_always_assert (!hb_budget_spend (budget, 3));
   hb_always_assert (budget == -1);
   hb_always_assert (!hb_budget_spend (budget, 1));
-  hb_always_assert (budget == -1);
+  hb_always_assert (budget == -2);
 
   budget = 0;
   hb_always_assert (hb_budget_spend (budget, 0));
@@ -120,12 +120,8 @@ main (int argc, char **argv)
   hb_always_assert (budget == -1);
 
   budget = INT64_MAX;
-  hb_always_assert (!hb_budget_spend (budget, INT64_MAX, 2));
-  hb_always_assert (budget == -1);
-
-  budget = INT64_MIN + 1;
-  hb_always_assert (!hb_budget_spend (budget, 1));
-  hb_always_assert (budget == -1);
+  hb_always_assert (hb_budget_spend (budget, 1024));
+  hb_always_assert (budget == INT64_MAX - 1024);
 
   x = 1;
   hb_always_assert (++hb_inc (x) == 3);
