@@ -248,6 +248,12 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_RASTER_DRAW ((int64_t) 1 << 24)
 #endif
 
+/* One cairo glyph-rendering session, shared by nested color-glyph
+ * callbacks and outline traversal. */
+#ifndef HB_BUDGET_CAIRO_PAINT
+#define HB_BUDGET_CAIRO_PAINT ((int64_t) 16 << 20)
+#endif
+
 /* One raster draw session, in accumulated non-horizontal edges. */
 #ifndef HB_RASTER_MAX_DRAW_EDGES
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
