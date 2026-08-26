@@ -27,6 +27,8 @@
 
 #include "hb.hh"
 
+#include <stdint.h>
+
 
 #ifndef HB_BUFFER_MAX_LEN_FACTOR
 #define HB_BUFFER_MAX_LEN_FACTOR 256
@@ -159,10 +161,56 @@
  * is skipped best-effort.
  */
 
+/* Fixed relative weights.  Keep the value in the name so charge sites are
+ * easy to audit; tune the session caps below, not these values. */
+#define HB_BUDGET_1	((int64_t) 1)
+#define HB_BUDGET_2	((int64_t) 2)
+#define HB_BUDGET_4	((int64_t) 4)
+#define HB_BUDGET_8	((int64_t) 8)
+#define HB_BUDGET_16	((int64_t) 16)
+#define HB_BUDGET_32	((int64_t) 32)
+#define HB_BUDGET_64	((int64_t) 64)
+#define HB_BUDGET_128	((int64_t) 128)
+#define HB_BUDGET_256	((int64_t) 256)
+#define HB_BUDGET_512	((int64_t) 512)
+#define HB_BUDGET_1024	((int64_t) 1024)
+
+/* A generous per-glyph fallback.  Paint backends use their session cap so
+ * repeated outline traversals consume one aggregate budget. */
+#ifndef HB_BUDGET_GLYPH
+#define HB_BUDGET_GLYPH ((int64_t) 1 << 26)
+#endif
+
+/* Precharge COST * MULT without signed overflow.  Exhaustion is latched at
+ * -1 so repeated calls remain safe and fail cheaply. */
+static inline bool
+hb_budget_spend (int64_t &budget, int64_t cost, int64_t mult = 1)
+{
+  if (cost < 0 || mult < 0 ||
+      (cost && mult > INT64_MAX / cost))
+  {
+    budget = -1;
+    return false;
+  }
+
+  int64_t charge = cost * mult;
+  if (budget < charge)
+  {
+    budget = -1;
+    return false;
+  }
+
+  budget -= charge;
+  return true;
+}
+
 /* One VARC glyph (draw or extents), shared by all leaf glyphs loaded
  * from glyf/CFF/CFF2, in units of glyf points / CFF charstring ops. */
+#ifndef HB_BUDGET_VARC
+#define HB_BUDGET_VARC ((int64_t) 1 << 20)
+#endif
 #ifndef HB_VARC_MAX_WORK
-#define HB_VARC_MAX_WORK ((int64_t) 1 << 20)
+#define HB_VARC_MAX_WORK HB_BUDGET_VARC
 #endif
 
 /* One paint-extents session, in outline points consumed by

@@ -121,6 +121,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     hstem_count = 0;
     vstem_count = 0;
     hintmask_size = 0;
+    budget = nullptr;
     pt.set_int (0, 0);
     globalSubrs.init (globalSubrs_);
     localSubrs.init (localSubrs_);
@@ -186,6 +187,11 @@ struct cs_interp_env_t : interp_env_t<ARG>
   void set_endchar (bool endchar_flag_) { endchar_flag = endchar_flag_; }
   bool is_endchar () const { return endchar_flag; }
 
+  void set_budget (int64_t *budget_) { budget = budget_; }
+  int64_t *get_budget () const { return budget; }
+  bool spend_budget (int64_t cost, int64_t mult = 1)
+  { return !budget || hb_budget_spend (*budget, cost, mult); }
+
   const number_t &get_x () const { return pt.x; }
   const number_t &get_y () const { return pt.y; }
   const point_t &get_pt () const { return pt; }
@@ -201,6 +207,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
   unsigned int  hstem_count;
   unsigned int  vstem_count;
   unsigned int  hintmask_size;
+  int64_t	*budget;
   call_stack_t	callStack;
   biased_subrs_t<SUBRS>   globalSubrs;
   biased_subrs_t<SUBRS>   localSubrs;
@@ -880,11 +887,22 @@ struct cs_interpreter_t : interpreter_t<ENV>
   bool interpret (PARAM& param, int64_t *budget = nullptr)
   {
     SUPER::env.set_endchar (false);
+    SUPER::env.set_budget (budget);
 
     bool ret = true;
     unsigned max_ops = HB_CFF_MAX_OPS;
     for (;;) {
-      OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
+      op_code_t op = SUPER::env.fetch_op ();
+      int64_t cost = op == OpCode_callsubr || op == OpCode_callgsubr ?
+		     HB_BUDGET_8 : HB_BUDGET_1;
+      if (unlikely (!SUPER::env.spend_budget (cost)))
+      {
+	SUPER::env.set_error ();
+	ret = false;
+	break;
+      }
+
+      OPSET::process_op (op, SUPER::env, param);
       if (unlikely (SUPER::env.in_error () || !--max_ops))
       {
 	SUPER::env.set_error ();
@@ -895,7 +913,6 @@ struct cs_interpreter_t : interpreter_t<ENV>
 	break;
     }
 
-    if (budget) *budget -= (int64_t) (HB_CFF_MAX_OPS - max_ops);
     return ret;
   }
 

@@ -106,6 +106,27 @@ main (int argc, char **argv)
   hb_always_assert (hb_clamp_to<int> ((int64_t) INT_MAX + 1) == INT_MAX);
   hb_always_assert (hb_clamp_to<int> ((int64_t) INT_MIN - 1) == INT_MIN);
 
+  int64_t budget = 10;
+  hb_always_assert (hb_budget_spend (budget, 4, 2));
+  hb_always_assert (budget == 2);
+  hb_always_assert (!hb_budget_spend (budget, 3));
+  hb_always_assert (budget == -1);
+  hb_always_assert (!hb_budget_spend (budget, 1));
+  hb_always_assert (budget == -1);
+
+  budget = 0;
+  hb_always_assert (hb_budget_spend (budget, 0));
+  hb_always_assert (!hb_budget_spend (budget, 1));
+  hb_always_assert (budget == -1);
+
+  budget = INT64_MAX;
+  hb_always_assert (!hb_budget_spend (budget, INT64_MAX, 2));
+  hb_always_assert (budget == -1);
+
+  budget = INT64_MIN + 1;
+  hb_always_assert (!hb_budget_spend (budget, 1));
+  hb_always_assert (budget == -1);
+
   x = 1;
   hb_always_assert (++hb_inc (x) == 3);
   hb_always_assert (x == 3);

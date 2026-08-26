@@ -757,7 +757,8 @@ struct gvar_GVAR
 				 const hb_array_t<contour_point_t> points,
 				 hb_glyf_scratch_t &scratch,
 				 hb_scalar_cache_t *gvar_cache = nullptr,
-				 bool phantom_only = false) const
+				 bool phantom_only = false,
+				 int64_t *budget = nullptr) const
     {
       if (unlikely (glyph >= glyphCount)) return true;
       hb_scalar_cache_t *scalar_cache = gvar_cache ?
@@ -805,6 +806,11 @@ struct gvar_GVAR
 								 scalar_cache);
 
 	if (scalar == 0.f) continue;
+
+	if (budget &&
+	    unlikely (!hb_budget_spend (*budget, HB_BUDGET_1,
+					 phantom_only && count >= 4 ? 4 : count)))
+	  return false;
 
 	if (!private_points_checked)
 	{

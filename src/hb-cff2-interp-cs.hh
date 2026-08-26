@@ -305,6 +305,11 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
       env.set_error ();
       return;
     }
+    if (unlikely (!env.spend_budget (HB_BUDGET_1, total - n)))
+    {
+      env.set_error ();
+      return;
+    }
     unsigned int start = count - total;
     for (unsigned int i = 0; i < n; i++)
     {
