@@ -190,13 +190,10 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
-/* One VARC glyph (draw or extents), shared by all leaf glyphs loaded
- * from glyf/CFF/CFF2, in units of glyf points / CFF charstring ops. */
+/* One standalone VARC extents session, shared by all leaf glyphs loaded
+ * from glyf/CFF/CFF2.  Draw sessions use the renderer's live budget. */
 #ifndef HB_BUDGET_VARC
 #define HB_BUDGET_VARC ((int64_t) 1 << 20)
-#endif
-#ifndef HB_VARC_MAX_WORK
-#define HB_VARC_MAX_WORK HB_BUDGET_VARC
 #endif
 
 /* One paint-extents session, in outline points consumed by
