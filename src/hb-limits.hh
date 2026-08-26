@@ -201,8 +201,8 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 
 /* One paint-extents session, in outline points consumed by
  * clip-glyph draws. */
-#ifndef HB_PAINT_EXTENTS_MAX_WORK
-#define HB_PAINT_EXTENTS_MAX_WORK ((int64_t) 1 << 20)
+#ifndef HB_BUDGET_PAINT_EXTENTS
+#define HB_BUDGET_PAINT_EXTENTS ((int64_t) 16 << 20)
 #endif
 
 /* One GPU draw session, shared by outline traversal and generated
