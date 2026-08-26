@@ -1150,6 +1150,11 @@ test_hb_draw_budget (void)
   g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), <, HB_BUDGET_UNLIMITED);
   g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), >, 0);
 
+  hb_font_set_synthetic_slant (font, 0.2f);
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 1));
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, &data), <, 0);
+
   hb_font_destroy (font);
   hb_face_destroy (face);
   hb_draw_funcs_destroy (draw_funcs);

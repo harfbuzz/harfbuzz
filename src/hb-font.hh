@@ -710,6 +710,7 @@ struct hb_font_t
 #ifndef HB_NO_OUTLINE
 
     hb_outline_t outline;
+    outline.budget_remaining = draw_funcs->get_budget_remaining_ptr (draw_data);
     if (!klass->get.f.draw_glyph_or_fail (this, user_data,
 					  glyph,
 					  hb_outline_recording_pen_get_funcs (), &outline,
