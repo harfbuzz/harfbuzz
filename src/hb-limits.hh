@@ -205,9 +205,16 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_PAINT_EXTENTS_MAX_WORK ((int64_t) 1 << 20)
 #endif
 
-/* One GPU paint walk, in curves consumed by clip encodes. */
-#ifndef HB_GPU_PAINT_MAX_WORK
-#define HB_GPU_PAINT_MAX_WORK ((int64_t) 1 << 20)
+/* One GPU draw session, shared by outline traversal and generated
+ * quadratic curves. */
+#ifndef HB_BUDGET_GPU_DRAW
+#define HB_BUDGET_GPU_DRAW ((int64_t) 16 << 20)
+#endif
+
+/* One GPU paint session, shared by paint-driven outline traversal and
+ * generated quadratic curves. */
+#ifndef HB_BUDGET_GPU_PAINT
+#define HB_BUDGET_GPU_PAINT ((int64_t) 16 << 20)
 #endif
 
 /* One vector (SVG/PDF) draw session, shared by outline traversal and

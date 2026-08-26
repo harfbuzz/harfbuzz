@@ -177,6 +177,80 @@ test_reset (void)
 }
 
 static void
+test_budget (void)
+{
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, draw), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >, 0);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), <, HB_BUDGET_UNLIMITED);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, draw, 1));
+  hb_gpu_draw_glyph (draw, font, gid);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), <, 0);
+  hb_gpu_draw_clear (draw);
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, draw), ==, 1);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 1);
+
+  hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (draw_funcs, draw, &draw_state, 0.f, 0.f);
+  hb_draw_line_to (draw_funcs, draw, &draw_state, 1.f, 0.f);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 0);
+  hb_draw_line_to (draw_funcs, draw, &draw_state, 2.f, 0.f);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 0);
+
+  hb_gpu_draw_clear (draw);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 1);
+  hb_gpu_draw_reset (draw);
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, draw), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >, 0);
+
+  hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+  hb_paint_funcs_t *paint_funcs = hb_gpu_paint_get_funcs (paint);
+  g_assert_cmpint (hb_paint_get_budget (paint_funcs, paint), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), >, 0);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), <, HB_BUDGET_UNLIMITED);
+
+  /* Identity clip extraction must borrow the paint session counter. */
+  g_assert_true (hb_paint_set_budget (paint_funcs, paint, 1));
+  hb_paint_push_clip_glyph (paint_funcs, paint, gid, font);
+  hb_paint_color (paint_funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  hb_paint_pop_clip (paint_funcs, paint);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), <, 0);
+
+  hb_gpu_paint_clear (paint);
+  g_assert_cmpint (hb_paint_get_budget (paint_funcs, paint), ==, 1);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), ==, 1);
+
+  /* The transforming pen must expose that same live counter. */
+  hb_paint_push_transform (paint_funcs, paint, 2.f, 0.f, 0.f, 2.f, 0.f, 0.f);
+  hb_paint_push_clip_glyph (paint_funcs, paint, gid, font);
+  hb_paint_pop_transform (paint_funcs, paint);
+  hb_paint_color (paint_funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  hb_paint_pop_clip (paint_funcs, paint);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), <, 0);
+
+  hb_gpu_paint_reset (paint);
+  g_assert_cmpint (hb_paint_get_budget (paint_funcs, paint), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), >, 0);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, draw, HB_BUDGET_UNLIMITED));
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, HB_BUDGET_UNLIMITED);
+  g_assert_true (hb_paint_set_budget (paint_funcs, paint, HB_BUDGET_UNLIMITED));
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), ==, HB_BUDGET_UNLIMITED);
+
+  hb_gpu_paint_destroy (paint);
+  hb_gpu_draw_destroy (draw);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_draw_funcs (void)
 {
   hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (nullptr);
@@ -834,6 +908,7 @@ main (int argc, char **argv)
   hb_test_add (test_empty_encode);
   hb_test_add (test_encode_glyph);
   hb_test_add (test_reset);
+  hb_test_add (test_budget);
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
   hb_test_add (test_encode_quantizes_extents_outward);

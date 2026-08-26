@@ -51,6 +51,11 @@ acc_emit (hb_gpu_draw_t *g,
 	  double p2x, double p2y,
 	  double p3x, double p3y)
 {
+  int64_t *budget = g->get_budget_remaining ();
+  if (unlikely (*budget <= 0 ||
+		!hb_budget_spend (*budget, HB_BUDGET_1)))
+    return;
+
   if (unlikely (g->num_curves >= HB_GPU_DRAW_MAX_CURVES))
   {
     g->success = false;
@@ -235,6 +240,30 @@ hb_gpu_draw_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
   g->acc_close_path ();
 }
 
+static hb_bool_t
+hb_gpu_draw_set_budget (hb_draw_funcs_t *, void *draw_data,
+			int64_t budget, void *)
+{
+  auto *draw = (hb_gpu_draw_t *) draw_data;
+  draw->budget = budget;
+  draw->recharge_budget ();
+  if (draw->external_budget)
+    *draw->external_budget = draw->budget_remaining;
+  return true;
+}
+
+static int64_t
+hb_gpu_draw_get_budget (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_gpu_draw_t *) draw_data)->budget;
+}
+
+static int64_t *
+hb_gpu_draw_get_budget_remaining (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_gpu_draw_t *) draw_data)->get_budget_remaining ();
+}
+
 static inline void free_static_gpu_draw_funcs ();
 
 static struct hb_gpu_draw_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_gpu_draw_funcs_lazy_loader_t>
@@ -248,6 +277,9 @@ static struct hb_gpu_draw_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_g
     hb_draw_funcs_set_quadratic_to_func (funcs, hb_gpu_draw_quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func     (funcs, hb_gpu_draw_cubic_to,     nullptr, nullptr);
     hb_draw_funcs_set_close_path_func   (funcs, hb_gpu_draw_close_path,   nullptr, nullptr);
+    hb_draw_funcs_set_set_budget_func (funcs, hb_gpu_draw_set_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_func (funcs, hb_gpu_draw_get_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_gpu_draw_get_budget_remaining, nullptr, nullptr);
 
     hb_draw_funcs_make_immutable (funcs);
 
@@ -1098,6 +1130,9 @@ hb_gpu_draw_clear (hb_gpu_draw_t *draw)
   draw->ext_min_y =  HUGE_VAL;
   draw->ext_max_x = -HUGE_VAL;
   draw->ext_max_y = -HUGE_VAL;
+
+  draw->external_budget = nullptr;
+  draw->recharge_budget ();
 }
 
 /**
@@ -1114,6 +1149,7 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
 {
   draw->x_scale = 0;
   draw->y_scale = 0;
+  draw->budget = HB_BUDGET_DEFAULT;
   hb_gpu_draw_clear (draw);
 }
 
