@@ -744,7 +744,7 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->transform_group_overflow_depth = 0;
   paint->clip_rect_counter = 0;
   paint->clip_path_counter = 0;
-  paint->work_left = HB_VECTOR_MAX_PAINT_WORK;
+  paint->recharge_budget ();
   paint->gradient_counter = 0;
   paint->color_glyph_depth = 0;
   paint->path_def_count = 0;
@@ -797,6 +797,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->palette = 0;
   paint->set_precision (2);
+  paint->budget = HB_BUDGET_DEFAULT;
   hb_vector_paint_clear (paint);
 }
 

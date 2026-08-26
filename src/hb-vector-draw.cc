@@ -134,6 +134,28 @@ static void hb_vector_draw_pdf_close_path (hb_draw_funcs_t *, void *dd, hb_draw_
   d->end_path_command (before);
 }
 
+static hb_bool_t
+hb_vector_draw_set_budget (hb_draw_funcs_t *, void *draw_data,
+			   int64_t budget, void *)
+{
+  auto *draw = (hb_vector_draw_t *) draw_data;
+  draw->budget = budget;
+  draw->recharge_budget ();
+  return true;
+}
+
+static int64_t
+hb_vector_draw_get_budget (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_vector_draw_t *) draw_data)->budget;
+}
+
+static int64_t *
+hb_vector_draw_get_budget_remaining (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return &((hb_vector_draw_t *) draw_data)->budget_remaining;
+}
+
 
 /* ---- Lazy loaders ---- */
 
@@ -149,6 +171,9 @@ static struct hb_vector_draw_svg_funcs_lazy_loader_t
     hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_draw_svg_quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_svg_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_svg_close_path, nullptr, nullptr);
+    hb_draw_funcs_set_set_budget_func (funcs, hb_vector_draw_set_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_func (funcs, hb_vector_draw_get_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_vector_draw_get_budget_remaining, nullptr, nullptr);
     hb_draw_funcs_make_immutable (funcs);
     hb_atexit (free_static_vector_draw_svg_funcs);
     return funcs;
@@ -168,6 +193,9 @@ static struct hb_vector_draw_pdf_funcs_lazy_loader_t
     /* No quadratic_to: null fallback auto-promotes to cubic. */
     hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_pdf_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_pdf_close_path, nullptr, nullptr);
+    hb_draw_funcs_set_set_budget_func (funcs, hb_vector_draw_set_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_func (funcs, hb_vector_draw_get_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_vector_draw_get_budget_remaining, nullptr, nullptr);
     hb_draw_funcs_make_immutable (funcs);
     hb_atexit (free_static_vector_draw_pdf_funcs);
     return funcs;
@@ -949,7 +977,7 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
   draw->defs.clear ();
   draw->body.clear ();
   draw->path.clear ();
-  draw->work_left = HB_VECTOR_MAX_DRAW_WORK;
+  draw->recharge_budget ();
 }
 
 /**
@@ -967,6 +995,7 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
   draw->set_precision (2);
+  draw->budget = HB_BUDGET_DEFAULT;
   hb_vector_draw_clear (draw);
 }
 

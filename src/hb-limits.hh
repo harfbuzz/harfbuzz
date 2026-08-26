@@ -210,16 +210,16 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_GPU_PAINT_MAX_WORK ((int64_t) 1 << 20)
 #endif
 
-/* One vector (SVG/PDF) draw session, in bytes of generated outline
- * path data. */
-#ifndef HB_VECTOR_MAX_DRAW_WORK
-#define HB_VECTOR_MAX_DRAW_WORK ((int64_t) 16 << 20)
+/* One vector (SVG/PDF) draw session, shared by outline traversal and
+ * generated path data. */
+#ifndef HB_BUDGET_VECTOR_DRAW
+#define HB_BUDGET_VECTOR_DRAW ((int64_t) 16 << 20)
 #endif
 
-/* One vector (SVG/PDF) paint session, in bytes of generated outline
- * path and sweep-gradient patch data. */
-#ifndef HB_VECTOR_MAX_PAINT_WORK
-#define HB_VECTOR_MAX_PAINT_WORK ((int64_t) 16 << 20)
+/* One vector (SVG/PDF) paint session, shared by outline traversal,
+ * generated path data, and sweep-gradient patch data. */
+#ifndef HB_BUDGET_VECTOR_PAINT
+#define HB_BUDGET_VECTOR_PAINT ((int64_t) 16 << 20)
 #endif
 
 /* One raster paint session (everything painted between two

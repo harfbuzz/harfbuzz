@@ -44,12 +44,12 @@ struct hb_vector_path_sink_t
   unsigned precision;
   float x_scale;
   float y_scale;
-  int64_t *work_left;
+  int64_t *budget;
 
   bool begin_command (unsigned *before)
   {
     if (unlikely (path->in_error () ||
-		  (work_left && *work_left <= 0)))
+		  (budget && *budget <= 0)))
       return false;
     *before = path->length;
     return true;
@@ -57,11 +57,11 @@ struct hb_vector_path_sink_t
 
   void end_command (unsigned before)
   {
-    if (!work_left) return;
+    if (!budget) return;
     if (unlikely (path->in_error ()))
-      *work_left = 0;
+      *budget = 0;
     else
-      *work_left -= path->length - before;
+      *budget -= path->length - before;
   }
 };
 
