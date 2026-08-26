@@ -1,3 +1,25 @@
+Overview of changes leading to 14.4.0
+Wednesday, August 26, 2026
+=====================================
+- Glyph positions and extents now saturate instead of overflowing.
+- Arabic Windows-1256 fallback shaping is now enabled on all platforms.
+- Fix cluster values and a dropped glyph advance in the Graphite shaper.
+- Fix `avar` axis value mapping in fonts that repeat the boundary entries.
+- Fix `avar` version 2 partial instancing.
+- Fix `COLR` sweep gradient truncation and unbounded memory use.
+- Faster subsetting, especially for large `GSUB`/`GPOS` and `CFF` tables.
+- Faster extraction of the experimental glyph dependency graph.
+- Various shaping speedups.
+- Various fixes for crashes and hangs with malformed fonts.
+- Various fixes to the experimental raster, vector, and GPU libraries.
+- Various improvements to the HarfRust integration shaper.
+- The DirectWrite backend no longer uses the C++ runtime.
+- Various build, portability, and fuzzing fixes.
+
+- New API:
+  +hb_set_intersects()
+
+
 Overview of changes leading to 14.3.1
 Thursday, August 13, 2026
 =====================================
