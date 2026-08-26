@@ -2892,7 +2892,7 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
     }
 
     /* Positions 1+ (Input array) */
-    for (unsigned i = 0; i < inputCount - 1; i++)
+    for (unsigned i = 0; i + 1 < inputCount; i++)
     {
       const hb_set_t *pos_glyphs = depend_position_glyphs (
 	c, lookup_context.context_format, lookup_context.intersects_data,
@@ -4300,7 +4300,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
     }
 
     /* Positions 1+ (Input array) */
-    for (unsigned i = 0; i < inputCount - 1; i++)
+    for (unsigned i = 0; i + 1 < inputCount; i++)
     {
       const hb_set_t *pos_glyphs = depend_position_glyphs (
 	c, lookup_context.context_format, lookup_context.intersects_data[1],
