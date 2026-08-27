@@ -83,12 +83,12 @@ struct hb_raster_draw_t
   float flatten_clip_x0 = 0.f, flatten_clip_y0 = 0.f;
   float flatten_clip_x1 = 0.f, flatten_clip_y1 = 0.f;
 
-  /* Work budget shared by outline traversal and curve flattening.
-     When external_budget is set (by raster-paint), that session budget
-     is charged instead of the standalone per-session one. */
+  /* Work budget for outline traversal and curve flattening.  A paint
+     backend seeds this through the public draw-budget API before drawing
+     and reads the remainder back afterwards, so a whole paint session
+     shares one budget without reaching into this object. */
   int64_t  budget = HB_BUDGET_DEFAULT;
   int64_t  budget_remaining = HB_BUDGET_GLYPH;
-  int64_t *external_budget = nullptr;
 
   void recharge_budget ()
   {
@@ -97,7 +97,7 @@ struct hb_raster_draw_t
   }
 
   int64_t *get_budget_remaining ()
-  { return external_budget ? external_budget : &budget_remaining; }
+  { return &budget_remaining; }
 
   /* Accumulated geometry */
   int64_t edges_left = HB_RASTER_MAX_DRAW_EDGES;
@@ -488,7 +488,6 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
   draw->has_extents = false;
   draw->has_clip_box = false;
   draw->flatten_clip_active = false;
-  draw->external_budget = nullptr;
   draw->recharge_budget ();
   draw->edges_left = HB_RASTER_MAX_DRAW_EDGES;
   draw->edges.clear ();
@@ -526,23 +525,6 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
   draw->clip_x1 = x1;
   draw->clip_y1 = y1;
   hb_raster_draw_update_flatten_clip (draw);
-}
-
-void
-hb_raster_draw_set_external_work (hb_raster_draw_t *draw,
-				  int64_t *budget)
-{
-  draw->external_budget = budget;
-}
-
-int64_t
-hb_raster_draw_get_edge_work (hb_raster_draw_t *draw, unsigned max_rows)
-{
-  int64_t work = 0;
-  for (const auto &e : draw->edges)
-    work += 1 + hb_min (((int64_t) e.yH - (int64_t) e.yL) >> HB_RASTER_PIXEL_BITS,
-			(int64_t) max_rows);
-  return work;
 }
 
 /**
@@ -1109,8 +1091,6 @@ hb_raster_draw_set_budget (hb_draw_funcs_t *, void *draw_data,
   auto *draw = (hb_raster_draw_t *) draw_data;
   draw->budget = budget;
   draw->recharge_budget ();
-  if (draw->external_budget)
-    *draw->external_budget = draw->budget_remaining;
   return true;
 }
 
