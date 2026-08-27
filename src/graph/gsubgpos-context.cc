@@ -50,12 +50,12 @@ unsigned gsubgpos_graph_context_t::create_node (unsigned size)
 {
   char* buffer = (char*) hb_calloc (1, size);
   if (!buffer)
-    return -1;
+    return HB_GRAPH_INVALID;
 
   if (!add_buffer (buffer)) {
     // Allocation did not get stored for freeing later.
     hb_free (buffer);
-    return -1;
+    return HB_GRAPH_INVALID;
   }
 
   return graph.new_node (buffer, buffer + size);

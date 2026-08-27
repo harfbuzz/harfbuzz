@@ -304,8 +304,8 @@ struct Lookup : public OT::Lookup
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
 
     unsigned ext_index = c.create_node (extension_size);
-    if (ext_index == (unsigned) -1)
-      return -1;
+    if (ext_index == HB_GRAPH_INVALID)
+      return HB_GRAPH_INVALID;
 
     auto& ext_vertex = c.graph.vertices_[ext_index];
     ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
@@ -327,7 +327,7 @@ struct Lookup : public OT::Lookup
                                 unsigned subtable_index)
   {
     unsigned type = lookupType;
-    unsigned ext_index = -1;
+    unsigned ext_index = HB_GRAPH_INVALID;
     unsigned* existing_ext_index = nullptr;
     if (c.subtable_to_extension.has(subtable_index, &existing_ext_index)) {
       ext_index = *existing_ext_index;
@@ -336,7 +336,7 @@ struct Lookup : public OT::Lookup
       c.subtable_to_extension.set(subtable_index, ext_index);
     }
 
-    if (ext_index == (unsigned) -1)
+    if (ext_index == HB_GRAPH_INVALID)
       return false;
 
     auto& subtable_vertex = c.graph.vertices_[subtable_index];

@@ -46,7 +46,7 @@ hb_vector_t<unsigned> actuate_subtable_split (Context& split_context,
                    : split_context.original_count ();
     unsigned id = split_context.clone_range (start, end);
 
-    if (id == (unsigned) -1)
+    if (id == HB_GRAPH_INVALID)
     {
       new_objects.reset ();
       new_objects.ensure_error ();
