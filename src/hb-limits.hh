@@ -184,7 +184,7 @@
 static HB_ALWAYS_INLINE bool
 hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 {
-  budget -= cost * mult;
+  budget -= (int64_t) cost * mult;
   return budget >= 0;
 }
 
