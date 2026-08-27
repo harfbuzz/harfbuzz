@@ -845,6 +845,10 @@ struct graph_t
         break;
       }
       num_roots_for_space_.push (0);
+      if (unlikely (!check_success (!num_roots_for_space_.in_error()))) {
+        break;
+      }
+
       for (unsigned root : connected_roots)
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Subgraph %u gets space %u", root, next_space);
@@ -857,8 +861,6 @@ struct graph_t
       // TODO(grieger): special case for GSUB/GPOS use extension promotions to move 16 bit space
       //                into the 32 bit space as needed, instead of using isolation.
     }
-
-
 
     return true;
   }
@@ -1250,8 +1252,8 @@ struct graph_t
       vertices_[l.objidx].add_parent (clone_idx, true);
     }
 
-    check_success (!clone->obj.real_links.in_error ());
-    check_success (!clone->obj.virtual_links.in_error ());
+    if (unlikely (!check_success (!clone->obj.real_links.in_error ()))) return HB_GRAPH_INVALID;
+    if (unlikely (!check_success (!clone->obj.virtual_links.in_error ()))) return HB_GRAPH_INVALID;
 
     return clone_idx;
   }
@@ -1721,7 +1723,9 @@ struct graph_t
     queue.insert (0, root_idx ());
 
     hb_vector_t<bool> visited;
-    visited.resize (vertices_.length);
+    if (unlikely (!check_success (visited.resize (vertices_.length)))) {
+      return;
+    }
 
     while (!queue.in_error () && !queue.is_empty ())
     {

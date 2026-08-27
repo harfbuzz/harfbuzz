@@ -97,10 +97,16 @@ struct ClassDef : public OT::ClassDef
     }
 
     hb_bytes_t class_def_copy = serializer.copy_bytes ();
-    if (!class_def_copy.arrayZ) return false;
+    if (!class_def_copy.arrayZ)
+    {
+      hb_free (buffer);
+      return false;
+    }
+
     // Give ownership to the context, it will cleanup the buffer.
     if (!c.add_buffer ((char *) class_def_copy.arrayZ))
     {
+      hb_free (buffer);
       hb_free ((char *) class_def_copy.arrayZ);
       return false;
     }

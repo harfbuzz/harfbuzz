@@ -111,7 +111,7 @@ will_overflow (graph_t& graph,
   if (overflows) overflows->clear ();
   graph.update_positions ();
 
-  hb_hashmap_t<overflow_record_t*, bool> record_set;
+  hb_hashmap_t<overflow_record_t, bool> record_set;
   const auto& vertices = graph.vertices_;
   for (unsigned parent_idx : graph.ordering_)
   {
@@ -127,14 +127,14 @@ will_overflow (graph_t& graph,
       overflow_record_t r;
       r.parent = parent_idx;
       r.child = link.objidx;
-      if (record_set.has(&r)) continue; // don't keep duplicate overflows.
+      if (record_set.has(r)) continue; // don't keep duplicate overflows.
 
       overflows->push (r);
-      record_set.set(&r, true);
+      record_set.set (r, true);
     }
   }
 
-  if (!overflows) return false;
+  if (!overflows || overflows->in_error () || record_set.in_error ()) return false;
   return overflows->length;
 }
 
@@ -252,7 +252,11 @@ inline hb_blob_t* serialize (const graph_t& graph)
 
   // Maps from our obj id's to the id's used during this serialization.
   hb_vector_t<unsigned> id_map;
-  id_map.resize(graph.ordering_.length);
+  if (!id_map.resize(graph.ordering_.length)) {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Unable to allocate id_map buffer.");
+    return nullptr;
+  }
+
   for (int pos = graph.ordering_.length - 1; pos >= 0; pos--) {
     unsigned i = graph.ordering_[pos];
     c.push ();
