@@ -133,6 +133,16 @@
 #define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
 #endif
 
+/* Maximum size of one serialized vector document (SVG or PDF) produced by
+ * the vector backends.  Bounds output that is not outline-derived -- most
+ * of a path, but especially sweep-gradient meshes and embedded bitmaps --
+ * which the outline work budget cannot see.  vector is one glyph per
+ * context, so a flat cap suffices.  Unsigned (not size_t like the SVG-table
+ * limit above) to match hb_vector_buf_t's unsigned length arithmetic. */
+#ifndef HB_VECTOR_MAX_DOCUMENT_SIZE
+#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 16 << 20)
+#endif
+
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
 #define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 30)
 #endif

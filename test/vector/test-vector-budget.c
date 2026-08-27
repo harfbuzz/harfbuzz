@@ -26,6 +26,7 @@
 #undef NDEBUG
 #endif
 #include <assert.h>
+#include <stdlib.h>
 
 #include <hb.h>
 #include <hb-vector.h>
@@ -79,6 +80,55 @@ test_format (hb_vector_format_t format, hb_font_t *font)
   hb_vector_paint_destroy (paint);
 }
 
+/* Embedded bitmaps are not outline work, so their base64 output is bounded
+ * by the document-size cap, not the outline budget: painting an oversized
+ * image must keep the serialized document bounded instead of ballooning
+ * with the image.  Exercised through SVG, whose image path base64-embeds
+ * the raw blob directly; PDF assembles its whole document through the same
+ * capped buffer (hb_vector_buf_t), but validates the PNG, so a bogus blob
+ * cannot drive it here. */
+static void
+test_document_cap (void)
+{
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG);
+  hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
+
+  unsigned len = 40u << 20;           /* 40 MB, well past the 16 MB cap */
+  char *data = (char *) calloc (len, 1);
+  assert (data);
+  hb_blob_t *image = hb_blob_create (data, len, HB_MEMORY_MODE_READONLY, data, free);
+
+  hb_glyph_extents_t ext = {0, 100, 100, -100};
+  hb_vector_paint_set_glyph_extents (paint, &ext);
+  hb_paint_image (funcs, paint, image, 100, 100,
+		  HB_PAINT_IMAGE_FORMAT_PNG, 0.f, &ext);
+
+  hb_blob_t *out = hb_vector_paint_render (paint);
+  /* The cap either makes render refuse the over-budget document (null) or
+   * bounds its size; either way it must not balloon to the base64 of the
+   * whole 40 MB image (~53 MB), which is what an uncapped buffer produces. */
+  assert (!out || hb_blob_get_length (out) < (32u << 20));
+  hb_blob_destroy (out);
+  hb_blob_destroy (image);
+
+  /* Reusing the context after an over-cap glyph must recover: the sticky
+   * overflow flag has to be cleared, or every later render fails forever. */
+  hb_vector_paint_clear (paint);
+  hb_vector_paint_set_glyph_extents (paint, &ext);
+  unsigned small_len = 12;
+  char *small = (char *) calloc (small_len, 1);
+  assert (small);
+  hb_blob_t *small_image = hb_blob_create (small, small_len, HB_MEMORY_MODE_READONLY, small, free);
+  hb_paint_image (funcs, paint, small_image, 4, 3,
+		  HB_PAINT_IMAGE_FORMAT_PNG, 0.f, &ext);
+  hb_blob_t *out2 = hb_vector_paint_render (paint);
+  assert (out2);
+  hb_blob_destroy (out2);
+  hb_blob_destroy (small_image);
+
+  hb_vector_paint_destroy (paint);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -90,6 +140,7 @@ main (int argc, char **argv)
 
   test_format (HB_VECTOR_FORMAT_SVG, font);
   test_format (HB_VECTOR_FORMAT_PDF, font);
+  test_document_cap ();
 
   hb_font_destroy (font);
   hb_face_destroy (face);

@@ -246,7 +246,6 @@ hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
 struct hb_vector_svg_sweep_ctx_t
 {
-  hb_vector_paint_t *paint;
   hb_vector_buf_t *body;
   unsigned precision;
   float cx, cy, radius;
@@ -258,18 +257,16 @@ hb_vector_svg_sweep_emit_patch (float a0, hb_color_t c0,
 				void *user_data)
 {
   auto *ctx = (hb_vector_svg_sweep_ctx_t *) user_data;
-  auto *paint = ctx->paint;
-  /* Skip patch generation when the session work budget is spent, so
-   * per-gradient patch counts cannot multiply with the paint-graph
-   * traversal limits of the font tables driving us. */
-  if (unlikely (paint->budget_remaining < 0))
+  /* Sweep-gradient meshes are not outline-derived, so they are bounded by
+   * the output document-size cap, not the outline work budget: stop once
+   * the buffer trips its cap so per-gradient patch counts cannot multiply
+   * with the paint-graph traversal limits of the font tables driving us. */
+  if (unlikely (ctx->body->in_error ()))
     return;
-  unsigned before = ctx->body->length;
   hb_vector_svg_add_sweep_patch (ctx->body, ctx->precision,
 				 ctx->cx, ctx->cy, ctx->radius,
 				 a0, hb_vector_svg_rgba_from_hb_color (c0),
 				 a1, hb_vector_svg_rgba_from_hb_color (c1));
-  paint->budget_remaining -= ctx->body->length - before;
 }
 
 
@@ -832,7 +829,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
   hb_vector_svg_sweep_ctx_t ctx {
-    paint, &paint->current_body (), paint->get_precision (), paint->sx (cx), paint->sy (cy), 32767.f
+    &paint->current_body (), paint->get_precision (), paint->sx (cx), paint->sy (cy), 32767.f
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),

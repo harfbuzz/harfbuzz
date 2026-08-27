@@ -55,13 +55,14 @@ struct hb_vector_path_sink_t
     return true;
   }
 
-  void end_command (unsigned before)
+  void end_command (unsigned before HB_UNUSED)
   {
+    /* Serialized bytes are bounded by the output buffer's document-size
+     * cap (in_error), not the outline work budget; stop outline traversal
+     * once that cap or an allocation error trips. */
     if (!budget) return;
     if (unlikely (path->in_error ()))
       *budget = 0;
-    else
-      *budget -= path->length - before;
   }
 };
 

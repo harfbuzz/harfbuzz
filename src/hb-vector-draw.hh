@@ -74,12 +74,13 @@ struct hb_vector_draw_t
     return true;
   }
 
-  void end_path_command (unsigned before)
+  void end_path_command (unsigned before HB_UNUSED)
   {
+    /* The serialized bytes are bounded by the output buffer's document-size
+     * cap (in_error), not the outline work budget; stop outline traversal
+     * once that cap or an allocation error trips. */
     if (unlikely (path.in_error ()))
       budget_remaining = 0;
-    else
-      budget_remaining -= path.length - before;
   }
 
   void set_precision (unsigned p)
