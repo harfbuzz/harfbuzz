@@ -285,6 +285,12 @@ inline bool
 option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
 {
   setlocale (LC_ALL, "");
+  /* Parse numbers with a '.' radix regardless of the environment's
+   * LC_NUMERIC. Options like --font-size, --margin and --font-extents
+   * read floats with sscanf("%lf"), which otherwise mis-parses e.g.
+   * "10.5" as 10 under a comma-radix locale. This matches the ascii
+   * number handling already used for --width via g_ascii_strtod. */
+  setlocale (LC_NUMERIC, "C");
 
   add_exit_code (RETURN_VALUE_SUCCESS, "Success.");
   add_exit_code (RETURN_VALUE_OPTION_PARSING_FAILED, "Option parsing failed.");
