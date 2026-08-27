@@ -87,13 +87,13 @@ struct hb_raster_draw_t
      When external_budget is set (by raster-paint), that session budget
      is charged instead of the standalone per-session one. */
   int64_t  budget = HB_BUDGET_DEFAULT;
-  int64_t  budget_remaining = HB_BUDGET_RASTER_DRAW;
+  int64_t  budget_remaining = HB_BUDGET_GLYPH;
   int64_t *external_budget = nullptr;
 
   void recharge_budget ()
   {
     budget_remaining = budget == HB_BUDGET_DEFAULT ?
-		       HB_BUDGET_RASTER_DRAW : budget;
+		       HB_BUDGET_GLYPH : budget;
   }
 
   int64_t *get_budget_remaining ()

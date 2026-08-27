@@ -458,7 +458,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
   /* Out of budget: skip the glyph-outline extraction entirely, so
    * per-glyph outline limits cannot multiply with the caller's
    * paint-graph traversal limits. */
-  if (unlikely (c->budget_remaining <= 0))
+  if (unlikely (c->budget_remaining < 0))
   {
     c->unsupported = true;
     return -1;

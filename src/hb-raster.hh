@@ -51,7 +51,7 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
 
 /* Points curve-flattening work charges at the caller's session budget
  * (one unit per Bézier subdivision) instead of the standalone
- * per-session HB_BUDGET_RASTER_DRAW budget.  The rasterizer's local
+ * per-session HB_BUDGET_GLYPH budget.  The rasterizer's local
  * accumulated-edge limit still applies.  Cleared by hb_raster_draw_clear()
  * (and hence after every render). */
 HB_INTERNAL void

@@ -277,12 +277,12 @@ struct hb_gpu_paint_t
    * hb_gpu_paint_clear().  Outline traversal and generated curves
    * charge the same live counter. */
   int64_t budget = HB_BUDGET_DEFAULT;
-  int64_t budget_remaining = HB_BUDGET_GPU_PAINT;
+  int64_t budget_remaining = HB_BUDGET_GLYPH;
 
   void recharge_budget ()
   {
     budget_remaining = budget == HB_BUDGET_DEFAULT ?
-		       HB_BUDGET_GPU_PAINT : budget;
+		       HB_BUDGET_GLYPH : budget;
   }
 
   /* Stack of pending clips.  Each color/gradient op consumes the

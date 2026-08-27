@@ -75,7 +75,7 @@ main (int argc HB_UNUSED, char **argv HB_UNUSED)
   hb_always_assert (hb_paint_set_budget (paint_funcs, &context, 1));
   hb_paint_push_clip_glyph (paint_funcs, &context, 0, font);
   hb_always_assert (probe.observed == 1);
-  hb_always_assert (hb_paint_get_budget_remaining (paint_funcs, &context) == 0);
+  hb_always_assert (hb_paint_get_budget_remaining (paint_funcs, &context) < 0);
 
   context.clear ();
   hb_always_assert (hb_paint_get_budget (paint_funcs, &context) == 1);

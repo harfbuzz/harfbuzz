@@ -72,7 +72,7 @@ struct hb_vector_paint_t
    * multiply with the paint-graph traversal limits of the font tables
    * driving us (e.g. COLR). */
   int64_t budget = HB_BUDGET_DEFAULT;
-  int64_t budget_remaining = HB_BUDGET_VECTOR_PAINT;
+  int64_t budget_remaining = HB_BUDGET_GLYPH;
   hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f, nullptr};
   unsigned gradient_counter = 0;
   unsigned color_glyph_depth = 0;
@@ -87,7 +87,7 @@ struct hb_vector_paint_t
   void recharge_budget ()
   {
     budget_remaining = budget == HB_BUDGET_DEFAULT ?
-		       HB_BUDGET_VECTOR_PAINT : budget;
+		       HB_BUDGET_GLYPH : budget;
   }
 
   float sx (float v) const { return v / x_scale_factor; }

@@ -58,17 +58,17 @@ struct hb_vector_draw_t
    * hb_vector_draw_clear().  Outline traversal and complete path commands
    * charge the same live counter. */
   int64_t budget = HB_BUDGET_DEFAULT;
-  int64_t budget_remaining = HB_BUDGET_VECTOR_DRAW;
+  int64_t budget_remaining = HB_BUDGET_GLYPH;
 
   void recharge_budget ()
   {
     budget_remaining = budget == HB_BUDGET_DEFAULT ?
-		       HB_BUDGET_VECTOR_DRAW : budget;
+		       HB_BUDGET_GLYPH : budget;
   }
 
   bool begin_path_command (unsigned *before)
   {
-    if (unlikely (budget_remaining <= 0 || path.in_error ()))
+    if (unlikely (budget_remaining < 0 || path.in_error ()))
       return false;
     *before = path.length;
     return true;

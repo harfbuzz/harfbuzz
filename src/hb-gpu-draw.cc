@@ -52,8 +52,7 @@ acc_emit (hb_gpu_draw_t *g,
 	  double p3x, double p3y)
 {
   int64_t *budget = g->get_budget_remaining ();
-  if (unlikely (*budget <= 0 ||
-		!hb_budget_spend (*budget, HB_BUDGET_1)))
+  if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1)))
     return;
 
   if (unlikely (g->num_curves >= HB_GPU_DRAW_MAX_CURVES))

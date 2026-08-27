@@ -137,7 +137,7 @@ struct VARC
 	       hb_extents_t<> *extents,
 	       hb_varc_scratch_t &scratch) const
   {
-    int64_t budget = HB_BUDGET_VARC;
+    int64_t budget = HB_BUDGET_GLYPH;
     hb_varc_context_t c {font,
 			 nullptr,
 			 extents,

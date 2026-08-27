@@ -49,7 +49,7 @@ struct hb_vector_path_sink_t
   bool begin_command (unsigned *before)
   {
     if (unlikely (path->in_error () ||
-		  (budget && *budget <= 0)))
+		  (budget && *budget < 0)))
       return false;
     *before = path->length;
     return true;

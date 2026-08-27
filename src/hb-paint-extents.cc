@@ -71,8 +71,7 @@ struct hb_paint_extents_sink_t
 
   bool consume_segment ()
   {
-    return *budget_remaining > 0 &&
-	   hb_budget_spend (*budget_remaining, HB_BUDGET_1);
+    return hb_budget_spend (*budget_remaining, HB_BUDGET_1);
   }
 };
 
@@ -172,7 +171,7 @@ hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
   hb_paint_extents_sink_t sink {{}, &c->budget_remaining};
   /* Skip the outline extraction when the session work budget is
    * spent; an empty clip clips everything out. */
-  if (likely (c->budget_remaining > 0))
+  if (likely (c->budget_remaining >= 0))
     hb_font_draw_glyph (font, glyph, static_paint_extents_draw_funcs.get_unconst (), &sink);
   c->push_clip (sink.extents);
 }

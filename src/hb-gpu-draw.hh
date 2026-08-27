@@ -113,13 +113,13 @@ struct hb_gpu_draw_t
   /* Cumulative work budget for the current draw session.  Paint-owned
    * scratch draws borrow the paint session's live counter. */
   int64_t  budget = HB_BUDGET_DEFAULT;
-  int64_t  budget_remaining = HB_BUDGET_GPU_DRAW;
+  int64_t  budget_remaining = HB_BUDGET_GLYPH;
   int64_t *external_budget = nullptr;
 
   void recharge_budget ()
   {
     budget_remaining = budget == HB_BUDGET_DEFAULT ?
-		       HB_BUDGET_GPU_DRAW : budget;
+		       HB_BUDGET_GLYPH : budget;
   }
 
   int64_t *get_budget_remaining ()

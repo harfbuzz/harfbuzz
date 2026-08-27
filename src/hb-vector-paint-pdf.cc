@@ -342,7 +342,7 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
   paint->path.clear ();
   /* Skip the outline extraction when the session work budget is
    * spent; an empty path keeps the document structure intact. */
-  if (likely (paint->budget_remaining > 0))
+  if (likely (paint->budget_remaining >= 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
 				 paint->x_scale_factor, paint->y_scale_factor,
@@ -1392,7 +1392,7 @@ hb_pdf_sweep_emit_patch (float a0, hb_color_t c0,
   /* Skip patch generation when the session work budget is spent, so
    * per-gradient patch counts cannot multiply with the paint-graph
    * traversal limits of the font tables driving us. */
-  if (unlikely (paint->budget_remaining <= 0))
+  if (unlikely (paint->budget_remaining < 0))
     return;
   unsigned before = ctx->mesh->length +
 		    (ctx->alpha_mesh ? ctx->alpha_mesh->length : 0);

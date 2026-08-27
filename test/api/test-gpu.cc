@@ -202,7 +202,7 @@ test_budget (void)
   hb_draw_line_to (draw_funcs, draw, &draw_state, 1.f, 0.f);
   g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 0);
   hb_draw_line_to (draw_funcs, draw, &draw_state, 2.f, 0.f);
-  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 0);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), <, 0);
 
   hb_gpu_draw_clear (draw);
   g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 1);

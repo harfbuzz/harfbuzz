@@ -144,8 +144,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 			   hb_ubytes_t total_record,
 			   hb_scalar_cache_t *cache) const
 {
-  if (unlikely (c.budget <= 0 ||
-		!hb_budget_spend (c.budget, HB_BUDGET_4)))
+  if (unlikely (!hb_budget_spend (c.budget, HB_BUDGET_4)))
     return hb_ubytes_t ();
 
   const unsigned char *end = total_record.arrayZ + total_record.length;
@@ -211,9 +210,8 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
     READ_UINT32VAR (axisIndicesIndex);
     axisIndices.extend ((&VARC+VARC.axisIndicesList)[axisIndicesIndex]);
     if (unlikely (axisIndices.length &&
-		  (c.budget <= 0 ||
-		   !hb_budget_spend (c.budget, HB_BUDGET_1,
-				     axisIndices.length))))
+		  !hb_budget_spend (c.budget, HB_BUDGET_1,
+				    axisIndices.length)))
       return hb_ubytes_t ();
     axisValues.resize (axisIndices.length);
     const HBUINT8 *p = (const HBUINT8 *) record;
@@ -228,8 +226,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
     READ_UINT32VAR (axisValuesVarIdx);
     if (show && coords && !axisValues.in_error ())
     {
-      if (unlikely (c.budget <= 0 ||
-		    !hb_budget_spend (c.budget, axisValues.length,
+      if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
 				      coords.length)))
 	return hb_ubytes_t ();
       varStore.get_delta (axisValuesVarIdx, coords, axisValues.as_array (), cache);
@@ -293,9 +290,8 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   {
     // Only use coord_setter if there's actually any axis overrides.
     if (unlikely (axisIndices &&
-		  (c.budget <= 0 ||
-		   !hb_budget_spend (c.budget, HB_BUDGET_1,
-				     component_coords.length))))
+		  !hb_budget_spend (c.budget, HB_BUDGET_1,
+				    component_coords.length)))
       return hb_ubytes_t ();
     coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
     for (unsigned i = 0; i < axisIndices.length; i++)
@@ -313,8 +309,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 	    transformValues[numTransformValues++] = transform.name;
       PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
-      if (unlikely (c.budget <= 0 ||
-		    !hb_budget_spend (c.budget, numTransformValues,
+      if (unlikely (!hb_budget_spend (c.budget, numTransformValues,
 				      coords.length)))
 	return hb_ubytes_t ();
       varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
@@ -377,8 +372,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
     {
       /* Out of budget: draw nothing, but signal success so remaining
        * leaves are skipped instead of falling back per-glyph. */
-      if (unlikely (c.budget <= 0 ||
-		    !hb_budget_spend (c.budget, HB_BUDGET_1))) return true;
+      if (unlikely (!hb_budget_spend (c.budget, HB_BUDGET_1))) return true;
 
       hb_transform_t<> leaf_transform = transform;
       leaf_transform.x0 *= c.font->x_multf;
@@ -403,8 +397,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
     }
     else if (c.extents)
     {
-      if (unlikely (c.budget <= 0 ||
-		    !hb_budget_spend (c.budget, HB_BUDGET_1))) return true;
+      if (unlikely (!hb_budget_spend (c.budget, HB_BUDGET_1))) return true;
 
       hb_glyph_extents_t glyph_extents;
       if (!c.font->face->table.glyf->get_extents_at (c.font, glyph, &glyph_extents, coords, &c.budget))

@@ -415,7 +415,7 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   /* Out of budget: skip the glyph-outline extraction entirely, so
    * per-glyph outline limits cannot multiply with the caller's
    * paint-graph traversal limits. */
-  if (unlikely (c->budget_remaining <= 0))
+  if (unlikely (c->budget_remaining < 0))
   {
     hb_raster_paint_push_empty_clip (c, w, h);
     return;
@@ -743,7 +743,7 @@ hb_raster_paint_push_clip_path_end (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned w = surf->extents.width;
   unsigned h = surf->extents.height;
 
-  if (unlikely (c->budget_remaining <= 0))
+  if (unlikely (c->budget_remaining < 0))
   {
     hb_raster_draw_clear (c->clip_rdr);
     hb_raster_paint_push_empty_clip (c, w, h);
@@ -926,7 +926,7 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (unlikely (!surf)) return;
 
   /* Out of budget: skip the glyph-outline extraction entirely. */
-  if (unlikely (c->budget_remaining <= 0)) return;
+  if (unlikely (c->budget_remaining < 0)) return;
 
   hb_raster_draw_t *rdr = c->clip_rdr;
   hb_transform_t<> t = c->current_effective_transform ();
@@ -967,7 +967,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   ensure_initialized (c);
 
   /* Out of budget: skip, including the image decode below. */
-  if (unlikely (c->budget_remaining <= 0)) return false;
+  if (unlikely (c->budget_remaining < 0)) return false;
 
   unsigned src_width = width;
   unsigned src_height = height;

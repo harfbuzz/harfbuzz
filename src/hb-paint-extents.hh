@@ -145,12 +145,12 @@ struct hb_paint_extents_context_t
    * counter. */
   int64_t budget = HB_BUDGET_DEFAULT;
   bool budget_initialized = true;
-  int64_t budget_remaining = HB_BUDGET_PAINT_EXTENTS;
+  int64_t budget_remaining = HB_BUDGET_GLYPH;
 
   void recharge_budget ()
   {
     budget_remaining = budget == HB_BUDGET_DEFAULT ?
-		       HB_BUDGET_PAINT_EXTENTS : budget;
+		       HB_BUDGET_GLYPH : budget;
   }
 
   protected:
