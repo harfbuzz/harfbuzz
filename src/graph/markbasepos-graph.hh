@@ -217,6 +217,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     hb_set_t visited;
 
     const unsigned base_coverage_id = c.graph.index_for_offset (this_index, &baseCoverage);
+    if (base_coverage_id == (unsigned) -1) return hb_vector_t<unsigned> ();
     const unsigned base_size =
         OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::min_size +
         MarkArray::min_size +
@@ -261,6 +262,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
 
     const unsigned mark_array_id = c.graph.index_for_offset (this_index, &markArray);
+    if (mark_array_id == (unsigned) -1) return hb_vector_t<unsigned> ();
     split_context_t split_context {
       c,
       this,
@@ -346,6 +348,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     unsigned base_array_id =
         c.graph.index_for_offset (this_index, &baseArray);
+    if (base_array_id == (unsigned) -1) return hb_vector_t<class_info_t> ();
     auto& base_array_v = c.graph.vertices_[base_array_id];
 
     for (const auto& link : base_array_v.obj.real_links)
@@ -429,11 +432,12 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     unsigned base_coverage_id =
         graph.index_for_offset (sc.this_index, &baseCoverage);
+    if (base_coverage_id == (unsigned) -1) return -1;
     graph.add_link (&(prime->baseCoverage), prime_id, base_coverage_id);
 
     auto mark_coverage = sc.c.graph.as_table<Coverage> (this_index,
                                                         &markCoverage);
-    if (!mark_coverage) return false;
+    if (!mark_coverage) return -1;
     hb_set_t marks = sc.marks_for (start, end);
     auto new_coverage =
         + hb_enumerate (mark_coverage.table->iter ())
@@ -456,6 +460,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                  sc.mark_array_links,
                                  marks,
                                  start);
+    if (new_mark_array == (unsigned) -1) return -1;
     graph.add_link (&(prime->markArray), prime_id, new_mark_array);
 
     unsigned class_count = classCount;
@@ -466,6 +471,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
         base_array.table->clone (sc.c,
                                  base_array.index,
                                  start, end, this->classCount);
+    if (new_base_array == (unsigned) -1) return -1;
     graph.add_link (&(prime->baseArray), prime_id, new_base_array);
 
     return prime_id;

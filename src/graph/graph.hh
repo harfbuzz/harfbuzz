@@ -598,6 +598,8 @@ struct graph_t
                  unsigned parent_id,
                  unsigned child_id)
   {
+    if (unlikely (!check_success (parent_id < vertices_.length && child_id < vertices_.length)))
+      return;
     auto& v = vertices_[parent_id];
     auto* link = v.obj.real_links.push ();
     link->width = 2;
@@ -658,6 +660,8 @@ struct graph_t
       const vertex_t& next = vertices_[next_id];
 
       for (const auto& link : next.obj.all_links ()) {
+        if (unlikely (!check_success (link.objidx < vertices_.length)))
+          continue;
         removed_edges[link.objidx]++;
         const auto& v = vertices_[link.objidx];
         if (!(v.incoming_edges () - removed_edges[link.objidx]))
@@ -1095,11 +1099,17 @@ struct graph_t
     distance_invalid = true;
     positions_invalid = true;
 
+    if (unlikely (!check_success (old_parent_idx < vertices_.length &&
+                                  new_parent_idx < vertices_.length)))
+      return -1;
+
     auto& old_v = vertices_[old_parent_idx];
     auto& new_v = vertices_[new_parent_idx];
 
     unsigned child_id = index_for_offset (old_parent_idx,
                                           old_offset);
+    if (unlikely (!check_success (child_id < vertices_.length)))
+      return -1;
 
     auto* new_link = new_v.obj.real_links.push ();
     new_link->width = O::static_size;
@@ -1341,7 +1351,7 @@ struct graph_t
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u, ..., %u => %u", first_parent, last_parent, child_idx);
 
     unsigned clone_idx = duplicate (child_idx);
-    if (clone_idx == (unsigned) -1) return false;
+    if (clone_idx == (unsigned) -1) return -1;
 
     for (unsigned parent_idx : *parents) {
       // duplicate shifts the root node idx, so if parent_idx was root update it.
@@ -1642,10 +1652,16 @@ struct graph_t
     for (unsigned p = 0; p < count; p++)
     {
       for (auto& l : vertices_.arrayZ[p].obj.real_links)
+      {
+        if (unlikely (l.objidx >= count)) { check_success (false); continue; }
         vertices_[l.objidx].add_parent (p, false);
+      }
 
       for (auto& l : vertices_.arrayZ[p].obj.virtual_links)
+      {
+        if (unlikely (l.objidx >= count)) { check_success (false); continue; }
         vertices_[l.objidx].add_parent (p, true);
+      }
     }
 
     for (unsigned i = 0; i < count; i++)
@@ -1715,6 +1731,9 @@ struct graph_t
 
       for (const auto& link : next.obj.all_links ())
       {
+        if (unlikely (!check_success (link.objidx < vertices_.length)))
+          continue;
+
         if (visited[link.objidx]) continue;
 
         auto& child_v = vertices_.arrayZ[link.objidx];

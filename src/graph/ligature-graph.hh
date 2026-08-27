@@ -229,6 +229,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   }
 
   void add_virtual_link(gsubgpos_graph_context_t& c, unsigned from, unsigned to) const {
+    if (from >= c.graph.vertices_.length || to >= c.graph.vertices_.length) return;
     auto& from_obj = c.graph.vertices_[from].obj;
     c.graph.vertices_[to].add_parent(from, true);
     auto& link = *from_obj.virtual_links.push ();
@@ -295,7 +296,9 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     // Create a place holder coverage prime id since we need to add virtual links to it while
     // generating liga and liga sets. Afterwards it will be updated to have the correct coverage.
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    if (coverage_id == (unsigned) -1) return -1;
     unsigned coverage_prime_id = c.graph.duplicate(coverage_id);
+    if (coverage_prime_id == (unsigned) -1) return -1;
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
     auto* coverage_prime_link = c.graph.vertices_[liga_subst_prime_id].obj.real_links.push ();
     coverage_prime_link->width = SmallTypes::size;

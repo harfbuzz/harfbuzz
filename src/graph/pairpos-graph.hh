@@ -54,6 +54,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     hb_set_t visited;
 
     const unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    if (coverage_id == (unsigned) -1) return hb_vector_t<unsigned> ();
     const unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
 
@@ -173,6 +174,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     }
 
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    if (coverage_id == (unsigned) -1) return -1;
     if (!Coverage::clone_coverage (c,
                                    coverage_id,
                                    pair_pos_prime_id,
@@ -375,6 +377,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         graph.index_for_offset (split_context.this_index, &coverage);
     unsigned class_def_1_id =
         graph.index_for_offset (split_context.this_index, &classDef1);
+    if (coverage_id == (unsigned) -1 || class_def_1_id == (unsigned) -1)
+      return -1;
     auto& coverage_v = graph.vertices_[coverage_id];
     auto& class_def_1_v = graph.vertices_[class_def_1_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
@@ -417,6 +421,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     // classDef2
     unsigned class_def_2_id =
         graph.index_for_offset (split_context.this_index, &classDef2);
+    if (class_def_2_id == (unsigned) -1)
+      return -1;
     auto* class_def_link = graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
     class_def_link->width = SmallTypes::size;
     class_def_link->objidx = class_def_2_id;
@@ -554,6 +560,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                           unsigned this_index) const
   {
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    if (coverage_id == (unsigned) -1)
+      return &Null(Coverage);
     auto& coverage_v = c.graph.vertices_[coverage_id];
 
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
@@ -566,6 +574,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                    unsigned this_index) const
   {
     unsigned class_def_1_id = c.graph.index_for_offset (this_index, &classDef1);
+    if (class_def_1_id == (unsigned) -1)
+      return &Null(ClassDef);
     auto& class_def_1_v = c.graph.vertices_[class_def_1_id];
 
     ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
