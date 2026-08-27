@@ -264,11 +264,19 @@ struct cs_opset_t : opset_t<ARG>
 	break;
 
       case OpCode_callsubr:
-	env.call_subr (env.localSubrs, CSType_LocalSubr);
+	/* The interpret loop already charged one unit for this operator;
+	 * charge the remaining call weight before entering the subroutine. */
+	if (unlikely (!env.spend_budget (HB_BUDGET_8 - HB_BUDGET_1)))
+	  env.set_error ();
+	else
+	  env.call_subr (env.localSubrs, CSType_LocalSubr);
 	break;
 
       case OpCode_callgsubr:
-	env.call_subr (env.globalSubrs, CSType_GlobalSubr);
+	if (unlikely (!env.spend_budget (HB_BUDGET_8 - HB_BUDGET_1)))
+	  env.set_error ();
+	else
+	  env.call_subr (env.globalSubrs, CSType_GlobalSubr);
 	break;
 
       case OpCode_hstem:
@@ -893,9 +901,9 @@ struct cs_interpreter_t : interpreter_t<ENV>
     unsigned max_ops = HB_CFF_MAX_OPS;
     for (;;) {
       op_code_t op = SUPER::env.fetch_op ();
-      unsigned int cost = op == OpCode_callsubr || op == OpCode_callgsubr ?
-			  HB_BUDGET_8 : HB_BUDGET_1;
-      if (unlikely (!SUPER::env.spend_budget (cost)))
+      /* Charge one unit per operator here; call_subr charges the extra
+       * weight in its own handler so this hot loop stays branch-free. */
+      if (unlikely (!SUPER::env.spend_budget (HB_BUDGET_1)))
       {
 	SUPER::env.set_error ();
 	ret = false;
