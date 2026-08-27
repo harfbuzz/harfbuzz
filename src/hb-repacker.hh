@@ -238,7 +238,7 @@ bool _try_isolating_subgraphs (const hb_vector_t<graph::overflow_record_t>& over
              roots_to_isolate.get_population (),
              sorted_graph.next_space ());
 
-  sorted_graph.isolate_subgraph (roots_to_isolate);
+  if (!sorted_graph.isolate_subgraph (roots_to_isolate)) return false;
   sorted_graph.move_to_new_space (roots_to_isolate);
 
   return true;
@@ -420,6 +420,12 @@ hb_resolve_graph_overflows (hb_tag_t table_tag,
         DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
         break;
       }
+    }
+
+    if (sorted_graph.in_error ())
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Sorted graph in error state.");
+      return false;
     }
 
     sorted_graph.sort_shortest_distance ();

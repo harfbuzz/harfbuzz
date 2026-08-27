@@ -845,6 +845,10 @@ struct graph_t
         break;
       }
       num_roots_for_space_.push (0);
+      if (unlikely (!check_success (!num_roots_for_space_.in_error()))) {
+        break;
+      }
+
       for (unsigned root : connected_roots)
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Subgraph %u gets space %u", root, next_space);
@@ -857,8 +861,6 @@ struct graph_t
       // TODO(grieger): special case for GSUB/GPOS use extension promotions to move 16 bit space
       //                into the 32 bit space as needed, instead of using isolation.
     }
-
-
 
     return true;
   }
