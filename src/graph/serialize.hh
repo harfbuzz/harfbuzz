@@ -111,7 +111,7 @@ will_overflow (graph_t& graph,
   if (overflows) overflows->clear ();
   graph.update_positions ();
 
-  hb_hashmap_t<overflow_record_t*, bool> record_set;
+  hb_hashmap_t<overflow_record_t, bool> record_set;
   const auto& vertices = graph.vertices_;
   for (unsigned parent_idx : graph.ordering_)
   {
@@ -127,14 +127,14 @@ will_overflow (graph_t& graph,
       overflow_record_t r;
       r.parent = parent_idx;
       r.child = link.objidx;
-      if (record_set.has(&r)) continue; // don't keep duplicate overflows.
+      if (record_set.has(r)) continue; // don't keep duplicate overflows.
 
       overflows->push (r);
-      record_set.set(&r, true);
+      record_set.set (r, true);
     }
   }
 
-  if (!overflows) return false;
+  if (!overflows || overflows->in_error () || record_set.in_error ()) return false;
   return overflows->length;
 }
 
