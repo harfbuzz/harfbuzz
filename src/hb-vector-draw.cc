@@ -51,46 +51,41 @@ hb_vector_svg_buffer_contains (const hb_vector_buf_t &buf, const char *needle)
 static void hb_vector_draw_svg_move_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('M'); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_line_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('L'); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_quadratic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float cx, float cy, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('Q'); d->append_xy_svg (cx, cy); d->path.append_c (' '); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_cubic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float c1x, float c1y, float c2x, float c2y, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('C'); d->append_xy_svg (c1x, c1y); d->path.append_c (' '); d->append_xy_svg (c2x, c2y); d->path.append_c (' '); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_close_path (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('Z');
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 
@@ -99,19 +94,17 @@ static void hb_vector_draw_svg_close_path (hb_draw_funcs_t *, void *dd, hb_draw_
 static void hb_vector_draw_pdf_move_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->append_xy_pdf (x, y); d->path.append_str (" m\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_pdf_line_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->append_xy_pdf (x, y); d->path.append_str (" l\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 /* No quadratic_to — null fallback auto-promotes to cubic. */
@@ -119,19 +112,17 @@ static void hb_vector_draw_pdf_line_to (hb_draw_funcs_t *, void *dd, hb_draw_sta
 static void hb_vector_draw_pdf_cubic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float c1x, float c1y, float c2x, float c2y, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->append_xy_pdf (c1x, c1y); d->path.append_c (' '); d->append_xy_pdf (c2x, c2y); d->path.append_c (' '); d->append_xy_pdf (x, y); d->path.append_str (" c\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_pdf_close_path (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_str ("h\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static hb_bool_t

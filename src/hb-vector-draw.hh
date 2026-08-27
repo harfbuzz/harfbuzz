@@ -66,15 +66,12 @@ struct hb_vector_draw_t
 		       HB_BUDGET_GLYPH : budget;
   }
 
-  bool begin_path_command (unsigned *before)
+  bool begin_path_command ()
   {
-    if (unlikely (budget_remaining < 0 || path.in_error ()))
-      return false;
-    *before = path.length;
-    return true;
+    return likely (budget_remaining >= 0 && !path.in_error ());
   }
 
-  void end_path_command (unsigned before HB_UNUSED)
+  void end_path_command ()
   {
     /* The serialized bytes are bounded by the output buffer's document-size
      * cap (in_error), not the outline work budget; stop outline traversal
