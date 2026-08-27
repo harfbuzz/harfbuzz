@@ -1250,8 +1250,8 @@ struct graph_t
       vertices_[l.objidx].add_parent (clone_idx, true);
     }
 
-    check_success (!clone->obj.real_links.in_error ());
-    check_success (!clone->obj.virtual_links.in_error ());
+    if (unlikely (!check_success (!clone->obj.real_links.in_error ()))) return HB_GRAPH_INVALID;
+    if (unlikely (!check_success (!clone->obj.virtual_links.in_error ()))) return HB_GRAPH_INVALID;
 
     return clone_idx;
   }
@@ -1721,7 +1721,9 @@ struct graph_t
     queue.insert (0, root_idx ());
 
     hb_vector_t<bool> visited;
-    visited.resize (vertices_.length);
+    if (unlikely (!check_success (visited.resize (vertices_.length)))) {
+      return;
+    }
 
     while (!queue.in_error () && !queue.is_empty ())
     {
