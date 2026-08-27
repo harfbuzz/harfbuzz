@@ -303,8 +303,7 @@ bool _process_overflows (const hb_vector_t<graph::overflow_record_t>& overflows,
   for (int i = overflows.length - 1; i >= 0; i--)
   {
     const graph::overflow_record_t& r = overflows[i];
-    const auto& child = sorted_graph.vertices_[r.child];
-    if (child.is_shared ())
+    if (sorted_graph.vertices_[r.child].is_shared ())
     {
       // The child object is shared, we may be able to eliminate the overflow
       // by duplicating it.
@@ -315,7 +314,7 @@ bool _process_overflows (const hb_vector_t<graph::overflow_record_t>& overflows,
       // (eg. all links from the same parent) in this case continue on to other resolution options.
     }
 
-    if (child.is_leaf () && !priority_bumped_parents.has (r.parent))
+    if (sorted_graph.vertices_[r.child].is_leaf () && !priority_bumped_parents.has (r.parent))
     {
       // This object is too far from it's parent, attempt to move it closer.
       //

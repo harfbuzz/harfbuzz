@@ -2852,12 +2852,58 @@ test_32bit_roots_traversal ()
   free (buffer);
 }
 
+static void test_invalid_link_objidx ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_complex_2 (&c);
+
+  graph_t graph (c.object_graph ());
+  hb_always_assert (!graph.in_error ());
+
+  // Poison a link to point to (unsigned) -1
+  graph.vertices_[graph.root_idx ()].obj.real_links[0].objidx = (unsigned) -1;
+
+  // Running Dijkstra / shortest distance sorting must not crash or OOB access,
+  // and must mark the graph in error.
+  graph.sort_shortest_distance ();
+  hb_always_assert (graph.in_error ());
+
+  free (buffer);
+}
+
+static void test_invalid_link_add_and_move ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_complex_2 (&c);
+
+  graph_t graph (c.object_graph ());
+  hb_always_assert (!graph.in_error ());
+
+  // add_link with out-of-bounds child
+  OT::Offset16 dummy;
+  graph.add_link (&dummy, 0, (unsigned) -1);
+  hb_always_assert (graph.in_error ());
+
+  // move_child with non-existent offset
+  unsigned res = graph.move_child (0, &dummy, 1, &dummy);
+  hb_always_assert (res == (unsigned) -1);
+  hb_always_assert (graph.in_error ());
+
+  free (buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
 int
 main (int argc, char **argv)
 {
+  test_invalid_link_objidx ();
+  test_invalid_link_add_and_move ();
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
