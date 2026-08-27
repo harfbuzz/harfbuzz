@@ -246,8 +246,6 @@ hb_gpu_draw_set_budget (hb_draw_funcs_t *, void *draw_data,
   auto *draw = (hb_gpu_draw_t *) draw_data;
   draw->budget = budget;
   draw->recharge_budget ();
-  if (draw->external_budget)
-    *draw->external_budget = draw->budget_remaining;
   return true;
 }
 
@@ -1130,7 +1128,6 @@ hb_gpu_draw_clear (hb_gpu_draw_t *draw)
   draw->ext_max_x = -HUGE_VAL;
   draw->ext_max_y = -HUGE_VAL;
 
-  draw->external_budget = nullptr;
   draw->recharge_budget ();
 }
 

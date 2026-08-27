@@ -136,7 +136,10 @@ hb_gpu_paint_push_clip_path_start (hb_paint_funcs_t *funcs HB_UNUSED,
   }
 
   hb_gpu_draw_clear (c->scratch_draw);
-  c->scratch_draw->external_budget = &c->budget_remaining;
+  /* Seed the scratch encoder's budget from the session's remainder; it is
+   * read back in push_clip_path_end after the caller has drawn the path. */
+  hb_draw_set_budget (hb_gpu_draw_get_funcs (c->scratch_draw), c->scratch_draw,
+		      c->budget_remaining);
   hb_gpu_draw_set_scale (c->scratch_draw, c->x_scale, c->y_scale);
 
   c->pending_clip_path_transform = c->cur_transform;
@@ -156,6 +159,10 @@ hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
   if (unlikely (!c->pending_clip_path))
     return;
   c->pending_clip_path = false;
+
+  /* Pull back the outline budget the caller's path draw consumed. */
+  c->budget_remaining = hb_draw_get_budget_remaining (hb_gpu_draw_get_funcs (c->scratch_draw),
+						      c->scratch_draw);
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
@@ -474,7 +481,11 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
     }
   }
   hb_gpu_draw_clear (c->scratch_draw);
-  c->scratch_draw->external_budget = &c->budget_remaining;
+  /* Seed the scratch encoder's budget from the session's remainder and
+   * read it back after the glyph is drawn, so the whole paint walk shares
+   * one budget through the public draw-budget API. */
+  hb_draw_set_budget (hb_gpu_draw_get_funcs (c->scratch_draw), c->scratch_draw,
+		      c->budget_remaining);
 
   bool ok;
   if (clip.transform.is_identity ())
@@ -498,7 +509,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
     pen.dfuncs    = hb_gpu_draw_get_funcs (c->scratch_draw);
     pen.data      = c->scratch_draw;
     pen.down_st   = HB_DRAW_STATE_DEFAULT;
-    pen.budget_remaining = &c->budget_remaining;
+    pen.budget_remaining = &c->scratch_draw->budget_remaining;
     ok = hb_font_draw_glyph_or_fail (clip.font, clip.glyph,
 				     static_gpu_paint_pen_funcs.get_unconst (),
 				     &pen);
@@ -506,6 +517,8 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
      * hb_font_draw_glyph_or_fail only closes via our pen's state. */
     pen.dfuncs->close_path (pen.data, pen.down_st);
   }
+  c->budget_remaining = hb_draw_get_budget_remaining (hb_gpu_draw_get_funcs (c->scratch_draw),
+						      c->scratch_draw);
   if (!ok)
     return -1;  /* Clip glyph has no outline -- skip. */
 
