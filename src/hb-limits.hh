@@ -27,8 +27,6 @@
 
 #include "hb.hh"
 
-#include <stdint.h>
-
 
 #ifndef HB_BUFFER_MAX_LEN_FACTOR
 #define HB_BUFFER_MAX_LEN_FACTOR 256
