@@ -26,9 +26,27 @@
 
 #include <hb-cairo.h>
 
+#if defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+#define HB_TEST_CAIRO_TSAN 1
+#endif
+#endif
+#if defined(__SANITIZE_THREAD__)
+#define HB_TEST_CAIRO_TSAN 1
+#endif
+
 static void
 test_hb_cairo_budget (void)
 {
+#ifdef HB_TEST_CAIRO_TSAN
+  /* Cairo's user-font rendering takes two internal mutexes in both orders.
+   * The same workload reports this lock-order inversion against unmodified
+   * HarfBuzz; keep race detection enabled rather than suppressing Cairo
+   * deadlock reports process-wide. */
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+
   hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/clusterfuzz-testcase-minimized-hb-vector-fuzzer-4886959609413632");
   cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_face (face);
   cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
