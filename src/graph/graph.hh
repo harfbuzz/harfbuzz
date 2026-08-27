@@ -31,6 +31,8 @@
 #ifndef GRAPH_GRAPH_HH
 #define GRAPH_GRAPH_HH
 
+#define HB_GRAPH_INVALID ((unsigned) -1)
+
 namespace graph {
 
 /**
@@ -49,7 +51,7 @@ struct graph_t
     unsigned priority = 0;
     private:
     unsigned incoming_edges_ = 0;
-    unsigned single_parent = (unsigned) -1;
+    unsigned single_parent = HB_GRAPH_INVALID;
     bool has_incoming_virtual_edges_ = false;
     hb_hashmap_t<unsigned, unsigned> parents;
     hb_set_t virtual_parents;
@@ -58,7 +60,7 @@ struct graph_t
     auto parents_iter () const HB_AUTO_RETURN
     (
       hb_concat (
-	hb_iter (&single_parent, single_parent != (unsigned) -1),
+	hb_iter (&single_parent, single_parent != HB_GRAPH_INVALID),
 	parents.keys_ref ()
       )
     )
@@ -202,14 +204,14 @@ struct graph_t
     {
       if (HB_DEBUG_SUBSET_REPACK)
        {
-	assert (incoming_edges_ == (single_parent != (unsigned) -1) +
+	assert (incoming_edges_ == (single_parent != HB_GRAPH_INVALID) +
 		(parents.values_ref () | hb_reduce (hb_add, 0)));
        }
       return incoming_edges_;
     }
 
     unsigned incoming_edges_from_parent (unsigned parent_index) const {
-      if (single_parent != (unsigned) -1) {
+      if (single_parent != HB_GRAPH_INVALID) {
         return single_parent == parent_index ? 1 : 0;
       }
 
@@ -221,14 +223,14 @@ struct graph_t
     {
       incoming_edges_ = 0;
       has_incoming_virtual_edges_ = false;
-      single_parent = (unsigned) -1;
+      single_parent = HB_GRAPH_INVALID;
       parents.reset ();
       virtual_parents.reset ();
     }
 
     void add_parent (unsigned parent_index, bool is_virtual)
     {
-      assert (parent_index != (unsigned) -1);
+      assert (parent_index != HB_GRAPH_INVALID);
       has_incoming_virtual_edges_ |= is_virtual;
       if (is_virtual)
         virtual_parents.add (parent_index);
@@ -239,12 +241,12 @@ struct graph_t
 	incoming_edges_ = 1;
 	return;
       }
-      else if (single_parent != (unsigned) -1)
+      else if (single_parent != HB_GRAPH_INVALID)
       {
         assert (incoming_edges_ == 1);
 	if (!parents.set (single_parent, 1))
 	  return;
-	single_parent = (unsigned) -1;
+	single_parent = HB_GRAPH_INVALID;
       }
 
       unsigned *v;
@@ -261,7 +263,7 @@ struct graph_t
     {
       if (parent_index == single_parent)
       {
-	single_parent = (unsigned) -1;
+	single_parent = HB_GRAPH_INVALID;
 	incoming_edges_--;
 	virtual_parents.reset ();
 	return;
@@ -306,7 +308,7 @@ struct graph_t
 
     void remap_parent (unsigned old_index, unsigned new_index)
     {
-      if (single_parent != (unsigned) -1)
+      if (single_parent != HB_GRAPH_INVALID)
       {
         if (single_parent == old_index)
         {
@@ -767,7 +769,7 @@ struct graph_t
   unsigned index_for_offset (unsigned node_idx, const void* offset) const
   {
     const auto& node = object (node_idx);
-    if (offset < node.head || offset >= node.tail) return -1;
+    if (offset < node.head || offset >= node.tail) return HB_GRAPH_INVALID;
 
     unsigned count = node.real_links.length;
     for (unsigned i = 0; i < count; i++)
@@ -779,7 +781,7 @@ struct graph_t
       return link.objidx;
     }
 
-    return -1;
+    return HB_GRAPH_INVALID;
   }
 
   // Finds the object id of the object pointed to by the offset at 'offset'
@@ -1034,7 +1036,7 @@ struct graph_t
     });
   }
 
-  size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph, unsigned max_depth = -1)
+  size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph, unsigned max_depth = HB_GRAPH_INVALID)
   {
     size_t size = 0;
     traverse_directed_bfs (node_idx, [&] (
@@ -1101,7 +1103,7 @@ struct graph_t
 
     if (unlikely (!check_success (old_parent_idx < vertices_.length &&
                                   new_parent_idx < vertices_.length)))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     auto& old_v = vertices_[old_parent_idx];
     auto& new_v = vertices_[new_parent_idx];
@@ -1109,7 +1111,7 @@ struct graph_t
     unsigned child_id = index_for_offset (old_parent_idx,
                                           old_offset);
     if (unlikely (!check_success (child_id < vertices_.length)))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     auto* new_link = new_v.obj.real_links.push ();
     new_link->width = O::static_size;
@@ -1183,7 +1185,7 @@ struct graph_t
       unsigned _) {
       if (index_map.has (child)) return false;
       unsigned clone_idx = duplicate (child);
-      if (!check_success (clone_idx != (unsigned) -1)) return false;
+      if (!check_success (clone_idx != HB_GRAPH_INVALID)) return false;
       index_map.set (child, clone_idx);
       return true;
     });
@@ -1200,7 +1202,7 @@ struct graph_t
                  "duplicating node: num of vertices %u exceeds HB_REPACKER_MAX_VERTICES.",
                  vertices_.length);
       check_success (false);
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     positions_invalid = true;
@@ -1212,7 +1214,7 @@ struct graph_t
 
     auto& child = vertices_[node_idx];
     if (vertices_.in_error () || ordering_.in_error()) {
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     unsigned table_size = child.obj.tail - child.obj.head;
@@ -1222,7 +1224,7 @@ struct graph_t
       if (!check_success (buffer && add_buffer (buffer)))
       {
         hb_free (buffer);
-        return -1;
+        return HB_GRAPH_INVALID;
       }
       hb_memcpy (buffer, child.obj.head, table_size);
       clone->obj.head = buffer;
@@ -1282,14 +1284,14 @@ struct graph_t
       // to by virtual edges).
       DEBUG_MSG (SUBSET_REPACK, nullptr, "  Not duplicating %u => %u",
                  parent_idx, child_idx);
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u => %u",
                parent_idx, child_idx);
 
     unsigned clone_idx = duplicate (child_idx, copy_table);
-    if (clone_idx == (unsigned) -1) return -1;
+    if (clone_idx == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
     if (parent_idx == clone_idx) parent_idx++;
 
@@ -1322,7 +1324,7 @@ struct graph_t
   unsigned duplicate (const hb_set_t* parents, unsigned child_idx)
   {
     if (parents->is_empty()) {
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     update_parents ();
@@ -1345,13 +1347,13 @@ struct graph_t
       // with virtual edges may end up orphaned by duplication (ie. where one copy is only pointed
       // to by virtual edges).
       DEBUG_MSG (SUBSET_REPACK, nullptr, "  Not duplicating %u, ..., %u => %u", first_parent, last_parent, child_idx);
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u, ..., %u => %u", first_parent, last_parent, child_idx);
 
     unsigned clone_idx = duplicate (child_idx);
-    if (clone_idx == (unsigned) -1) return -1;
+    if (clone_idx == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
 
     for (unsigned parent_idx : *parents) {
       // duplicate shifts the root node idx, so if parent_idx was root update it.
@@ -1384,7 +1386,7 @@ struct graph_t
                  "creating new node: num of vertices %u exceeds HB_REPACKER_MAX_VERTICES.",
                  vertices_.length);
       check_success (false);
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     positions_invalid = true;
@@ -1395,7 +1397,7 @@ struct graph_t
     ordering_.push(clone_idx);
 
     if (vertices_.in_error () || ordering_.in_error()) {
-      return -1;
+      return HB_GRAPH_INVALID;
     }
 
     clone->obj.head = head;
@@ -1415,7 +1417,7 @@ struct graph_t
   unsigned remap_child (unsigned parent_idx, unsigned old_child_idx)
   {
     unsigned new_child_idx = duplicate (old_child_idx);
-    if (new_child_idx == (unsigned) -1) return -1;
+    if (new_child_idx == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
 
     auto& parent = vertices_[parent_idx];
     for (auto& l : parent.obj.real_links)

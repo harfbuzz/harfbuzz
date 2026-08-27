@@ -88,7 +88,7 @@ struct Coverage : public OT::Layout::Common::Coverage
                                  unsigned max_size)
   {
     unsigned coverage_prime_id = c.graph.new_node (nullptr, nullptr);
-    if (coverage_prime_id == (unsigned) -1)
+    if (coverage_prime_id == HB_GRAPH_INVALID)
       return nullptr;
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
     if (!make_coverage (c, glyphs, coverage_prime_id, max_size))

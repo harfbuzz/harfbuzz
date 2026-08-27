@@ -54,7 +54,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     hb_set_t visited;
 
     const unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
-    if (coverage_id == (unsigned) -1) return hb_vector_t<unsigned> ();
+    if (coverage_id == HB_GRAPH_INVALID) return hb_vector_t<unsigned> ();
     const unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
 
@@ -157,7 +157,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
                           + num_pair_sets * SmallTypes::size;
 
     unsigned pair_pos_prime_id = c.create_node (prime_size);
-    if (pair_pos_prime_id == (unsigned) -1) return -1;
+    if (pair_pos_prime_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
 
     PairPosFormat1* pair_pos_prime = (PairPosFormat1*) c.graph.object (pair_pos_prime_id).head;
     pair_pos_prime->format = this->format;
@@ -174,13 +174,13 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     }
 
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
-    if (coverage_id == (unsigned) -1) return -1;
+    if (coverage_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     if (!Coverage::clone_coverage (c,
                                    coverage_id,
                                    pair_pos_prime_id,
                                    2,
                                    start, end))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     return pair_pos_prime_id;
   }
@@ -359,7 +359,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                           + num_records * split_context.class1_record_size;
 
     unsigned pair_pos_prime_id = split_context.c.create_node (prime_size);
-    if (pair_pos_prime_id == (unsigned) -1) return -1;
+    if (pair_pos_prime_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
 
     PairPosFormat2* pair_pos_prime =
         (PairPosFormat2*) graph.object (pair_pos_prime_id).head;
@@ -377,8 +377,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         graph.index_for_offset (split_context.this_index, &coverage);
     unsigned class_def_1_id =
         graph.index_for_offset (split_context.this_index, &classDef1);
-    if (coverage_id == (unsigned) -1 || class_def_1_id == (unsigned) -1)
-      return -1;
+    if (coverage_id == HB_GRAPH_INVALID || class_def_1_id == HB_GRAPH_INVALID)
+      return HB_GRAPH_INVALID;
     auto& coverage_v = graph.vertices_[coverage_id];
     auto& class_def_1_v = graph.vertices_[class_def_1_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
@@ -387,7 +387,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         || !coverage_table->sanitize (coverage_v)
         || !class_def_1_table
         || !class_def_1_table->sanitize (class_def_1_v))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     auto klass_map =
     + coverage_table->iter ()
@@ -408,7 +408,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                  2,
                                  + klass_map | hb_map_retains_sorting (hb_first),
                                  split_context.max_coverage_size))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     // classDef1
     if (!ClassDef::add_class_def (split_context.c,
@@ -416,13 +416,13 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                   8,
                                   + klass_map,
                                   split_context.max_class_def_size))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     // classDef2
     unsigned class_def_2_id =
         graph.index_for_offset (split_context.this_index, &classDef2);
-    if (class_def_2_id == (unsigned) -1)
-      return -1;
+    if (class_def_2_id == HB_GRAPH_INVALID)
+      return HB_GRAPH_INVALID;
     auto* class_def_link = graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
     class_def_link->width = SmallTypes::size;
     class_def_link->objidx = class_def_2_id;
@@ -560,7 +560,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                           unsigned this_index) const
   {
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
-    if (coverage_id == (unsigned) -1)
+    if (coverage_id == HB_GRAPH_INVALID)
       return &Null(Coverage);
     auto& coverage_v = c.graph.vertices_[coverage_id];
 
@@ -574,7 +574,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                    unsigned this_index) const
   {
     unsigned class_def_1_id = c.graph.index_for_offset (this_index, &classDef1);
-    if (class_def_1_id == (unsigned) -1)
+    if (class_def_1_id == HB_GRAPH_INVALID)
       return &Null(ClassDef);
     auto& class_def_1_v = c.graph.vertices_[class_def_1_id];
 

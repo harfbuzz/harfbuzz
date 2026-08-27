@@ -87,7 +87,7 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
     unsigned size = AnchorMatrix::min_size +
                     OT::Offset16::static_size * new_class_count * rows;
     unsigned prime_id = c.create_node (size);
-    if (prime_id == (unsigned) -1) return -1;
+    if (prime_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     AnchorMatrix* prime = (AnchorMatrix*) c.graph.object (prime_id).head;
     prime->rows = base_count;
 
@@ -179,7 +179,7 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
                     OT::Layout::GPOS_impl::MarkRecord::static_size *
                     marks.get_population ();
     unsigned prime_id = c.create_node (size);
-    if (prime_id == (unsigned) -1) return -1;
+    if (prime_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     MarkArray* prime = (MarkArray*) c.graph.object (prime_id).head;
     prime->len = marks.get_population ();
 
@@ -217,7 +217,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     hb_set_t visited;
 
     const unsigned base_coverage_id = c.graph.index_for_offset (this_index, &baseCoverage);
-    if (base_coverage_id == (unsigned) -1) return hb_vector_t<unsigned> ();
+    if (base_coverage_id == HB_GRAPH_INVALID) return hb_vector_t<unsigned> ();
     const unsigned base_size =
         OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::min_size +
         MarkArray::min_size +
@@ -262,7 +262,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
 
     const unsigned mark_array_id = c.graph.index_for_offset (this_index, &markArray);
-    if (mark_array_id == (unsigned) -1) return hb_vector_t<unsigned> ();
+    if (mark_array_id == HB_GRAPH_INVALID) return hb_vector_t<unsigned> ();
     split_context_t split_context {
       c,
       this,
@@ -348,7 +348,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     unsigned base_array_id =
         c.graph.index_for_offset (this_index, &baseArray);
-    if (base_array_id == (unsigned) -1) return hb_vector_t<class_info_t> ();
+    if (base_array_id == HB_GRAPH_INVALID) return hb_vector_t<class_info_t> ();
     auto& base_array_v = c.graph.vertices_[base_array_id];
 
     for (const auto& link : base_array_v.obj.real_links)
@@ -423,7 +423,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     unsigned prime_size = OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::static_size;
 
     unsigned prime_id = sc.c.create_node (prime_size);
-    if (prime_id == (unsigned) -1) return -1;
+    if (prime_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
 
     MarkBasePosFormat1* prime = (MarkBasePosFormat1*) graph.object (prime_id).head;
     prime->format = this->format;
@@ -432,12 +432,12 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     unsigned base_coverage_id =
         graph.index_for_offset (sc.this_index, &baseCoverage);
-    if (base_coverage_id == (unsigned) -1) return -1;
+    if (base_coverage_id == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     graph.add_link (&(prime->baseCoverage), prime_id, base_coverage_id);
 
     auto mark_coverage = sc.c.graph.as_table<Coverage> (this_index,
                                                         &markCoverage);
-    if (!mark_coverage) return -1;
+    if (!mark_coverage) return HB_GRAPH_INVALID;
     hb_set_t marks = sc.marks_for (start, end);
     auto new_coverage =
         + hb_enumerate (mark_coverage.table->iter ())
@@ -449,29 +449,29 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                  2,
                                  + new_coverage,
                                  marks.get_population () * 2 + 4))
-      return -1;
+      return HB_GRAPH_INVALID;
 
     auto mark_array =
         graph.as_mutable_table <MarkArray> (sc.this_index, &markArray);
-    if (!mark_array) return -1;
+    if (!mark_array) return HB_GRAPH_INVALID;
     unsigned new_mark_array =
         mark_array.table->clone (sc.c,
                                  mark_array.index,
                                  sc.mark_array_links,
                                  marks,
                                  start);
-    if (new_mark_array == (unsigned) -1) return -1;
+    if (new_mark_array == (unsigned) HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     graph.add_link (&(prime->markArray), prime_id, new_mark_array);
 
     unsigned class_count = classCount;
     auto base_array =
         graph.as_mutable_table<AnchorMatrix> (sc.this_index, &baseArray, class_count);
-    if (!base_array) return -1;
+    if (!base_array) return HB_GRAPH_INVALID;
     unsigned new_base_array =
         base_array.table->clone (sc.c,
                                  base_array.index,
                                  start, end, this->classCount);
-    if (new_base_array == (unsigned) -1) return -1;
+    if (new_base_array == HB_GRAPH_INVALID) return HB_GRAPH_INVALID;
     graph.add_link (&(prime->baseArray), prime_id, new_base_array);
 
     return prime_id;
