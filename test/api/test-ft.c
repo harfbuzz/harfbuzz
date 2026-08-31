@@ -206,6 +206,51 @@ found:
   cleanup_freetype ();
 }
 
+static gpointer
+create_static_ft_faces (gpointer data)
+{
+  hb_blob_t *blob = (hb_blob_t *) data;
+
+  for (unsigned int i = 0; i < 100; i++)
+  {
+    hb_face_t *face = hb_ft_face_create_from_blob_or_fail (blob, 0);
+    g_assert_nonnull (face);
+
+    hb_font_t *font = hb_font_create (face);
+    hb_ft_font_set_funcs (font);
+
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+
+  return NULL;
+}
+
+static void
+test_static_ft_library_multithreaded (void)
+{
+  hb_blob_t *blob;
+  GThread *threads[8];
+
+#if GLIB_CHECK_VERSION(2,37,2)
+  char *path = g_test_build_filename (G_TEST_DIST, "fonts/adwaita.ttf", NULL);
+#else
+  char *path = g_strdup ("fonts/adwaita.ttf");
+#endif
+
+  blob = hb_blob_create_from_file_or_fail (path);
+  g_assert_nonnull (blob);
+  g_free (path);
+
+  for (unsigned int i = 0; i < G_N_ELEMENTS (threads); i++)
+    threads[i] = g_thread_new (NULL, create_static_ft_faces, blob);
+
+  for (unsigned int i = 0; i < G_N_ELEMENTS (threads); i++)
+    g_thread_join (threads[i]);
+
+  hb_blob_destroy (blob);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -214,6 +259,7 @@ main (int argc, char **argv)
   hb_test_add (test_native_ft_basic);
   hb_test_add (test_native_ft_set_funcs_preserves_load_flags);
   hb_test_add (test_native_ft_glyph_name_zero_size_probe);
+  hb_test_add (test_static_ft_library_multithreaded);
 
   return hb_test_run ();
 }
