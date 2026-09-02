@@ -196,22 +196,22 @@ struct HB_NODISCARD hb_result_t
     new (std::addressof (err_)) E (e.error);
   }
 
-  // Construct directly from error E (when T and E are not convertible into each other)
+  // Construct directly from error E (when neither T or E are convertible into each other)
   template <typename F = E,
             hb_enable_if ((hb_is_same (F, E) &&
-                           !(hb_is_convertible (T, E) && hb_is_convertible (E, T))))>
+                           !(hb_is_convertible (T, E) || hb_is_convertible (E, T))))>
   hb_result_t (F e) : is_ok_ (false)
   {
     new (std::addressof (err_)) E (std::move (e));
   }
 
-  // Construct directly from value T (when T and E are not convertible into each other)
+  // Construct directly from value T (when neither T or E are convertible into each other)
   template <typename U = T,
             hb_enable_if ((std::is_constructible<T, U>::value &&
                            !hb_is_same (hb_decay<U>, E) &&
                            !hb_is_same (hb_decay<U>, hb_result_t) &&
                            !_hb_is_result_tag<hb_decay<U>>::value &&
-                           !(hb_is_convertible (T, E) && hb_is_convertible (E, T))))>
+                           !(hb_is_convertible (T, E) || hb_is_convertible (E, T))))>
   hb_result_t (U&& v) : is_ok_ (true)
   {
     new (std::addressof (val_)) T (std::forward<U> (v));
