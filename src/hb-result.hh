@@ -92,6 +92,7 @@ struct HB_NODISCARD hb_result_t
   }
 
   void init(const hb_result_t& o) {
+    is_ok_ = o.is_ok_;
     if (is_ok_)
       new (std::addressof (val_)) T (o.val_);
     else
@@ -99,6 +100,7 @@ struct HB_NODISCARD hb_result_t
   }
 
   void init(hb_result_t&& o) {
+    is_ok_ = o.is_ok_;
     if (is_ok_)
       new (std::addressof (val_)) T (std::move (o.val_));
     else
@@ -113,14 +115,14 @@ struct HB_NODISCARD hb_result_t
 
   hb_result_t () = delete;
 
-  hb_result_t (const hb_result_t& o) : is_ok_ (o.is_ok_)
+  hb_result_t (const hb_result_t& o) : is_ok_ (false)
   {
     init (o);
   }
 
   hb_result_t (hb_result_t&& o) noexcept (std::is_nothrow_move_constructible<T>::value &&
                                      std::is_nothrow_move_constructible<E>::value)
-      : is_ok_ (o.is_ok_)
+      : is_ok_ (false)
   {
     init (std::move (o));
   }
@@ -139,7 +141,6 @@ struct HB_NODISCARD hb_result_t
     else
     {
       destroy ();
-      is_ok_ = o.is_ok_;
       init (o);
     }
     return *this;
@@ -160,7 +161,6 @@ struct HB_NODISCARD hb_result_t
     else
     {
       destroy ();
-      is_ok_ = o.is_ok_;
       init (std::move (o));
     }
     return *this;
