@@ -246,6 +246,18 @@ struct HB_NODISCARD hb_result_t
     return std::forward<U> (default_value);
   }
 
+  T value_or_default () const &
+  {
+    if (is_ok_) return val_;
+    return T ();
+  }
+
+  T value_or_default () &&
+  {
+    if (is_ok_) return std::move (val_);
+    return T ();
+  }
+
   const E& error () const & { assert (!is_ok_); return err_; }
   E& error () & { assert (!is_ok_); return err_; }
   E error () && { assert (!is_ok_); return std::move (err_); }
