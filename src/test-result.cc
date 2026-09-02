@@ -113,6 +113,7 @@ static void test_ok_basic ()
   hb_always_assert (r.value () == 42);
   hb_always_assert (*r == 42);
   hb_always_assert (r.value_or (0) == 42);
+  hb_always_assert (r.value_or_default () == 42);
   hb_always_assert (r == Ok (42));
   hb_always_assert (Ok (42) == r);
 }
@@ -125,6 +126,7 @@ static void test_err_basic ()
   hb_always_assert (!r);
   hb_always_assert (r.error () == ERR_A);
   hb_always_assert (r.value_or (99) == 99);
+  hb_always_assert (r.value_or_default () == 0);
   hb_always_assert (r == Err (ERR_A));
   hb_always_assert (Err (ERR_A) == r);
   hb_always_assert (r != Err (ERR_B));
@@ -521,6 +523,78 @@ static void test_from () {
   hb_always_assert(!r.is_err());
 }
 
+struct default_constructible_t
+{
+  int val;
+
+  default_constructible_t () : val (123) {}
+  default_constructible_t (int v) : val (v) {}
+};
+
+struct move_only_default_t
+{
+  int val;
+  move_only_default_t () : val (77) {}
+  move_only_default_t (int v) : val (v) {}
+  move_only_default_t (const move_only_default_t&) = delete;
+  move_only_default_t (move_only_default_t&& o) : val (o.val) { o.val = -1; }
+  move_only_default_t& operator = (const move_only_default_t&) = delete;
+  move_only_default_t& operator = (move_only_default_t&& o) { val = o.val; o.val = -1; return *this; }
+  ~move_only_default_t () = default;
+};
+
+static void test_value_or_default ()
+{
+  // Test const &
+  {
+    const result<int> r_ok = 42;
+    hb_always_assert (r_ok.value_or_default () == 42);
+
+    const result<int> r_err = ERR_A;
+    hb_always_assert (r_err.value_or_default () == 0);
+  }
+
+  // Test && (rvalues and move)
+  {
+    result<int> r_ok = 42;
+    hb_always_assert (std::move (r_ok).value_or_default () == 42);
+
+    result<int> r_err = ERR_A;
+    hb_always_assert (std::move (r_err).value_or_default () == 0);
+  }
+
+  // Test custom struct with default constructor
+  {
+    result<default_constructible_t> r_ok = default_constructible_t (456);
+    hb_always_assert (r_ok.value_or_default ().val == 456);
+
+    result<default_constructible_t> r_err = ERR_A;
+    hb_always_assert (r_err.value_or_default ().val == 123);
+
+    hb_always_assert (std::move (r_ok).value_or_default ().val == 456);
+    hb_always_assert (std::move (r_err).value_or_default ().val == 123);
+  }
+
+  // Test pointers
+  {
+    int x = 10;
+    result<int*> r_ok = &x;
+    hb_always_assert (r_ok.value_or_default () == &x);
+
+    result<int*> r_err = ERR_A;
+    hb_always_assert (r_err.value_or_default () == nullptr);
+  }
+
+  // Test move-only types
+  {
+    result<move_only_default_t> r_mo_ok = move_only_default_t (88);
+    hb_always_assert (std::move (r_mo_ok).value_or_default ().val == 88);
+
+    result<move_only_default_t> r_mo_err = ERR_A;
+    hb_always_assert (std::move (r_mo_err).value_or_default ().val == 77);
+  }
+}
+
 int main ()
 {
   test_ok_basic ();
@@ -535,6 +609,7 @@ int main ()
   test_move_only_types ();
   test_return_moves_from_local ();
   test_from();
+  test_value_or_default ();
 
   return 0;
 }
