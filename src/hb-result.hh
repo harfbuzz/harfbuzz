@@ -73,7 +73,7 @@ static inline constexpr hb_result_err_t<E&&> Err (E&& e)
 }
 
 template <typename T, typename E>
-struct HB_NODISCARD hb_result_t
+struct HB_NODISCARD_STRUCT hb_result_t
 {
   private:
   union
@@ -307,7 +307,7 @@ struct HB_NODISCARD hb_result_t
 
 // Partial specialization for void
 template <typename E>
-struct HB_NODISCARD hb_result_t<void, E>
+struct HB_NODISCARD_STRUCT hb_result_t<void, E>
 {
   private:
   union
