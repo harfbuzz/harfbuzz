@@ -43,7 +43,7 @@ struct resource_t
 {
   int id;
 
-  resource_t (int id_) : id (id_) { live_instances++; }
+  explicit resource_t (int id_) : id (id_) { live_instances++; }
   resource_t (const resource_t& o) : id (o.id) { live_instances++; }
   resource_t (resource_t&& o) : id (o.id) { o.id = -1; live_instances++; }
   ~resource_t () { live_instances--; }
@@ -65,18 +65,18 @@ struct resource_t
 
 static result<int> returns_ok (int v)
 {
-  return v;
+  return Ok(v);
 }
 
 static result<int> returns_err (error_code_t e)
 {
-  return e;
+  return Err(e);
 }
 
 static result<int> try_callee (bool fail, int v, error_code_t e = ERR_A)
 {
-  if (fail) return e;
-  return v;
+  if (fail) return Err(e);
+  return Ok(v);
 }
 
 static result<void> try_callee_void (bool fail,  error_code_t e)
@@ -89,7 +89,7 @@ static result<int> try_caller (bool fail1, bool fail2)
 {
   int index = TRY (try_callee (fail1, 10, ERR_A));
   int index2 = TRY (try_callee (fail2, 20, ERR_B));
-  return index + index2;
+  return Ok(index + index2);
 }
 
 static result<void> try_caller_void (bool fail)
@@ -101,7 +101,7 @@ static result<void> try_caller_void (bool fail)
 static result<float> try_caller_type_change (bool fail)
 {
   int index = TRY (try_callee (fail, 100, ERR_A));
-  return (float) index * 1.5f;
+  return Ok((float) index * 1.5f);
 }
 
 static void test_ok_basic ()
@@ -276,9 +276,13 @@ static void test_same_or_convertible_types ()
   static_assert (std::is_constructible<hb_result_t<int, int>, hb_result_ok_t<int>>::value, "");
   static_assert (std::is_constructible<hb_result_t<int, int>, hb_result_err_t<int>>::value, "");
 
+  // Types convertible into each other cannot be directly constructed
+  static_assert (!std::is_constructible<hb_result_t<int, error_code_t>, int>::value, "");
+  static_assert (!std::is_constructible<hb_result_t<int, error_code_t>, error_code_t>::value, "");
+
   // Types not convertible into each other can be directly constructed
-  static_assert (std::is_constructible<hb_result_t<int, error_code_t>, int>::value, "");
-  static_assert (std::is_constructible<hb_result_t<int, error_code_t>, error_code_t>::value, "");
+  static_assert (std::is_constructible<hb_result_t<resource_t, error_code_t>, resource_t>::value, "");
+  static_assert (std::is_constructible<hb_result_t<resource_t, error_code_t>, error_code_t>::value, "");
 
   hb_result_t<int64_t, int32_t> r_ok = Ok (1);
   hb_always_assert (r_ok.is_ok ());
@@ -295,21 +299,6 @@ static void test_same_or_convertible_types ()
   hb_result_t<int, int> same_err = Err (99);
   hb_always_assert (same_err.is_err ());
   hb_always_assert (same_err.error () == 99);
-
-  // Check that enum, int type works as expected
-  {
-    hb_result_t<int, error_code_t> r = 1;
-    hb_always_assert (r == Ok (1));
-    r = ERR_A;
-    hb_always_assert (r == Err (ERR_A));
-  }
-
-  {
-    hb_result_t<error_code_t, int> r = 1;
-    hb_always_assert (r == Err (1));
-    r = ERR_A;
-    hb_always_assert (r == Ok (ERR_A));
-  }
 }
 
 struct any_value_t
@@ -333,7 +322,7 @@ struct move_only_err_t
 {
   int code;
 
-  move_only_err_t (int c) : code (c) {}
+  explicit move_only_err_t (int c) : code (c) {}
   move_only_err_t (const move_only_err_t&) = delete;
   move_only_err_t (move_only_err_t&& o) : code (o.code) { o.code = -1; }
   move_only_err_t& operator = (const move_only_err_t&) = delete;
@@ -347,7 +336,7 @@ struct move_only_val_t
 {
   int val;
 
-  move_only_val_t (int v) : val (v) {}
+  explicit move_only_val_t (int v) : val (v) {}
   move_only_val_t (const move_only_val_t&) = delete;
   move_only_val_t (move_only_val_t&& o) : val (o.val) { o.val = -1; }
   move_only_val_t& operator = (const move_only_val_t&) = delete;
@@ -412,7 +401,7 @@ struct copy_move_counter_t
 
   int val;
 
-  copy_move_counter_t (int v) : val (v) {}
+  explicit copy_move_counter_t (int v) : val (v) {}
   copy_move_counter_t (const copy_move_counter_t& o) : val (o.val) { copy_count++; }
   copy_move_counter_t (copy_move_counter_t&& o) : val (o.val) { o.val = -1; move_count++; }
   ~copy_move_counter_t () = default;
@@ -528,14 +517,14 @@ struct default_constructible_t
   int val;
 
   default_constructible_t () : val (123) {}
-  default_constructible_t (int v) : val (v) {}
+  explicit default_constructible_t (int v) : val (v) {}
 };
 
 struct move_only_default_t
 {
   int val;
   move_only_default_t () : val (77) {}
-  move_only_default_t (int v) : val (v) {}
+  explicit move_only_default_t (int v) : val (v) {}
   move_only_default_t (const move_only_default_t&) = delete;
   move_only_default_t (move_only_default_t&& o) : val (o.val) { o.val = -1; }
   move_only_default_t& operator = (const move_only_default_t&) = delete;
@@ -547,19 +536,19 @@ static void test_value_or_default ()
 {
   // Test const &
   {
-    const result<int> r_ok = 42;
+    const result<int> r_ok = Ok(42);
     hb_always_assert (r_ok.value_or_default () == 42);
 
-    const result<int> r_err = ERR_A;
+    const result<int> r_err = Err(ERR_A);
     hb_always_assert (r_err.value_or_default () == 0);
   }
 
   // Test && (rvalues and move)
   {
-    result<int> r_ok = 42;
+    result<int> r_ok = Ok(42);
     hb_always_assert (std::move (r_ok).value_or_default () == 42);
 
-    result<int> r_err = ERR_A;
+    result<int> r_err = Err(ERR_A);
     hb_always_assert (std::move (r_err).value_or_default () == 0);
   }
 
