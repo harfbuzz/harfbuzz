@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022  Google, Inc.
+ * Copyright © 2026  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,38 +24,44 @@
  * Google Author(s): Garret Rieger
  */
 
-#ifndef GRAPH_SPLIT_HELPERS_HH
-#define GRAPH_SPLIT_HELPERS_HH
+#ifndef GRAPH_GRAPH_RESULT_HH
+#define GRAPH_GRAPH_RESULT_HH
 
-#include "graph-result.hh"
+#include "../hb-result.hh"
 
 namespace graph {
 
-template<typename Context>
-HB_INTERNAL
-graph_result_t<hb_vector_t<unsigned>> actuate_subtable_split (Context& split_context,
-                                                              const hb_vector_t<unsigned>& split_points)
-{
-  hb_vector_t<unsigned> new_objects;
-  if (!split_points)
-    return Ok(new_objects);
+enum graph_error_t {
+  ALLOCATION_FAILURE,
+  LIMIT_EXCEEDED,
+  INVALID_ARGUMENT,
+  CYCLE_DETECTED,
+  SANITIZE_FAILURE,
+  OUT_OF_BOUNDS,
+  ORPHANED_NODES,
+  OVERFLOW_RESOLUTION_FAILED,
+  UNKNOWN,
+};
 
-  for (unsigned i = 0; i < split_points.length; i++)
-  {
-    unsigned start = split_points[i];
-    unsigned end = (i < split_points.length - 1)
-                   ? split_points[i + 1]
-                   : split_context.original_count ();
-    unsigned id = TRY (split_context.clone_range (start, end));
-    new_objects.push (id);
-    TRY (graph_result_t<void>::from (new_objects, ALLOCATION_FAILURE));
+static inline const char* to_string(graph_error_t e) {
+  switch (e) {
+    case ALLOCATION_FAILURE: return "Memory Allocation Failed";
+    case LIMIT_EXCEEDED: return "Limit Exceeded";
+    case INVALID_ARGUMENT: return "Invalid Argument";
+    case CYCLE_DETECTED: return "Cycle in Graph";
+    case SANITIZE_FAILURE: return "Failed Sanitization";
+    case OUT_OF_BOUNDS: return "Out of Bounds";
+    case ORPHANED_NODES: return "Graph is not fully connected";
+    case OVERFLOW_RESOLUTION_FAILED: return "Overflows are not able to be resolved";
+    case UNKNOWN:
+    default:
+      return "Unknown Error";
   }
-
-  TRY (split_context.shrink (split_points[0]));
-
-  return Ok(new_objects);
 }
 
-}
+template<typename T>
+using graph_result_t = hb_result_t<T, graph_error_t>;
 
-#endif  // GRAPH_SPLIT_HELPERS_HH
+} // namespace graph
+
+#endif /* GRAPH_GRAPH_RESULT_HH */

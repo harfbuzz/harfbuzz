@@ -26,6 +26,7 @@
 
 #include "graph.hh"
 #include "../hb-ot-layout-common.hh"
+#include "graph-result.hh"
 
 #ifndef GRAPH_CLASSDEF_GRAPH_HH
 #define GRAPH_CLASSDEF_GRAPH_HH
@@ -34,95 +35,99 @@ namespace graph {
 
 struct ClassDefFormat1 : public OT::ClassDefFormat1_3<SmallTypes>
 {
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  graph_result_t<void> sanitize (const graph_t::vertex_t& vertex) const
   {
-    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.table_size();
     constexpr unsigned min_size = OT::ClassDefFormat1_3<SmallTypes>::min_size;
-    if (vertex_len < min_size) return false;
+    if (unlikely (vertex_len < min_size)) return Err(SANITIZE_FAILURE);
     hb_barrier ();
-    return vertex_len >= min_size + classValue.get_size () - classValue.len.get_size ();
+    if (unlikely (vertex_len < min_size + classValue.get_size () - classValue.len.get_size ()))
+      return Err(SANITIZE_FAILURE);
+    return Ok();
   }
 };
 
 struct ClassDefFormat2 : public OT::ClassDefFormat2_4<SmallTypes>
 {
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  graph_result_t<void> sanitize (const graph_t::vertex_t& vertex) const
   {
-    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    size_t vertex_len = vertex.table_size();
     constexpr unsigned min_size = OT::ClassDefFormat2_4<SmallTypes>::min_size;
-    if (vertex_len < min_size) return false;
+    if (unlikely (vertex_len < min_size)) return Err(SANITIZE_FAILURE);
     hb_barrier ();
-    return vertex_len >= min_size + rangeRecord.get_size () - rangeRecord.len.get_size ();
+    if (unlikely (vertex_len < min_size + rangeRecord.get_size () - rangeRecord.len.get_size ()))
+      return Err(SANITIZE_FAILURE);
+    return Ok();
   }
 };
 
 struct ClassDef : public OT::ClassDef
 {
   template<typename It>
-  static bool add_class_def (gsubgpos_graph_context_t& c,
-                             unsigned parent_id,
-                             unsigned link_position,
-                             It glyph_and_class,
-                             unsigned max_size)
+  static graph_result_t<void> add_class_def (gsubgpos_graph_context_t& c,
+                                             unsigned parent_id,
+                                             unsigned link_position,
+                                             It glyph_and_class,
+                                             unsigned max_size)
   {
-    unsigned class_def_prime_id = c.graph.new_node (nullptr, nullptr);
-    if (class_def_prime_id == HB_GRAPH_INVALID) return false;
+    unsigned class_def_prime_id = TRY (c.graph.new_node (nullptr, nullptr));
     auto& class_def_prime_vertex = c.graph.vertices_[class_def_prime_id];
-    if (!make_class_def (c, glyph_and_class, class_def_prime_id, max_size))
-      return false;
+    TRY (make_class_def (c, glyph_and_class, class_def_prime_id, max_size));
 
-    auto* class_def_link = c.graph.vertices_[parent_id].obj.real_links.push ();
-    class_def_link->width = SmallTypes::size;
-    class_def_link->objidx = class_def_prime_id;
-    class_def_link->position = link_position;
-    class_def_prime_vertex.add_parent (parent_id, false);
+    TRY(c.graph.vertices_[parent_id].add_real_link (SmallTypes::size, class_def_prime_id, link_position));
+    TRY(class_def_prime_vertex.add_parent (parent_id, false));
 
-    return true;
+    return Ok();
   }
 
   template<typename It>
-  static bool make_class_def (gsubgpos_graph_context_t& c,
-                              It glyph_and_class,
-                              unsigned dest_obj,
-                              unsigned max_size)
+  static graph_result_t<void> make_class_def (gsubgpos_graph_context_t& c,
+                                              It glyph_and_class,
+                                              unsigned dest_obj,
+                                              unsigned max_size)
   {
     char* buffer = (char*) hb_calloc (1, max_size);
+    if (unlikely (!buffer))
+      return Err(ALLOCATION_FAILURE);
+
     hb_serialize_context_t serializer (buffer, max_size);
     OT::ClassDef_serialize (&serializer, glyph_and_class);
     serializer.end_serialize ();
-    if (serializer.in_error ())
+    if (unlikely (serializer.in_error ()))
     {
       hb_free (buffer);
-      return false;
+      return Err(ALLOCATION_FAILURE);
     }
 
     hb_bytes_t class_def_copy = serializer.copy_bytes ();
-    if (!class_def_copy.arrayZ)
+    if (unlikely (!class_def_copy.arrayZ))
     {
       hb_free (buffer);
-      return false;
+      return Err(ALLOCATION_FAILURE);
     }
 
     // Give ownership to the context, it will cleanup the buffer.
-    if (!c.add_buffer ((char *) class_def_copy.arrayZ))
+    auto res = c.add_buffer ((char *) class_def_copy.arrayZ);
+    if (unlikely (!res.is_ok ()))
     {
       hb_free (buffer);
       hb_free ((char *) class_def_copy.arrayZ);
-      return false;
+      return res;
     }
 
-    auto& obj = c.graph.vertices_[dest_obj].obj;
-    obj.head = (char *) class_def_copy.arrayZ;
-    obj.tail = obj.head + class_def_copy.length;
+
+    auto& v = c.graph.vertices_[dest_obj];
+    char* head = (char *) class_def_copy.arrayZ;
+    v.set_buffer (head, head + class_def_copy.length);
 
     hb_free (buffer);
-    return true;
+    return Ok();
   }
 
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  graph_result_t<void> sanitize (const graph_t::vertex_t& vertex) const
   {
-    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
-    if (vertex_len < OT::ClassDef::min_size) return false;
+    size_t vertex_len = vertex.table_size();
+    if (unlikely (vertex_len < OT::ClassDef::min_size)) return Err(SANITIZE_FAILURE);
     hb_barrier ();
     switch (u.format.v)
     {
@@ -133,7 +138,7 @@ struct ClassDef : public OT::ClassDef
     case 3:
     case 4:
 #endif
-    default: return false;
+    default: return Err(SANITIZE_FAILURE);
     }
   }
 };
@@ -149,33 +154,33 @@ struct class_def_size_estimator_t
   constexpr static unsigned bytes_per_glyph = 2;
 
   template<typename It>
-  class_def_size_estimator_t (It glyph_and_class)
-      : num_ranges_per_class (), glyphs_per_class ()
+  static graph_result_t<class_def_size_estimator_t> create (It glyph_and_class)
   {
-    reset();
+    class_def_size_estimator_t estimator;
+    estimator.reset();
     for (auto p : + glyph_and_class)
     {
       unsigned gid = p.first;
       unsigned klass = p.second;
 
       hb_set_t* glyphs;
-      if (glyphs_per_class.has (klass, &glyphs) && glyphs) {
+      if (estimator.glyphs_per_class.has (klass, &glyphs) && glyphs) {
         glyphs->add (gid);
         continue;
       }
 
       hb_set_t new_glyphs;
       new_glyphs.add (gid);
-      glyphs_per_class.set (klass, std::move (new_glyphs));
+      estimator.glyphs_per_class.set (klass, std::move (new_glyphs));
     }
 
-    if (in_error ()) return;
+    TRY(estimator.to_result ());
 
-    for (unsigned klass : glyphs_per_class.keys ())
+    for (unsigned klass : estimator.glyphs_per_class.keys ())
     {
       if (!klass) continue; // class 0 doesn't get encoded.
 
-      const hb_set_t& glyphs = glyphs_per_class.get (klass);
+      const hb_set_t& glyphs = estimator.glyphs_per_class.get (klass);
       hb_codepoint_t start = HB_SET_VALUE_INVALID;
       hb_codepoint_t end = HB_SET_VALUE_INVALID;
 
@@ -183,8 +188,11 @@ struct class_def_size_estimator_t
       while (glyphs.next_range (&start, &end))
         count++;
 
-      num_ranges_per_class.set (klass, count);
+      estimator.num_ranges_per_class.set (klass, count);
     }
+
+    TRY(estimator.to_result ());
+    return estimator;
   }
 
   void reset() {
@@ -239,19 +247,22 @@ struct class_def_size_estimator_t
     return count;
   }
 
-  bool in_error ()
+ private:
+  graph_result_t<void> to_result() const
   {
-    if (num_ranges_per_class.in_error ()) return true;
-    if (glyphs_per_class.in_error ()) return true;
+    TRY (graph_result_t<void>::from (num_ranges_per_class, ALLOCATION_FAILURE));
+    TRY (graph_result_t<void>::from (glyphs_per_class, ALLOCATION_FAILURE));
 
     for (const hb_set_t& s : glyphs_per_class.values ())
     {
-      if (s.in_error ()) return true;
+          TRY (graph_result_t<void>::from (s, ALLOCATION_FAILURE));
     }
-    return false;
+    return Ok();
   }
 
- private:
+  class_def_size_estimator_t ()
+      : num_ranges_per_class (), glyphs_per_class () {}
+
   unsigned compute_coverage_size () const
   {
     unsigned format1_size = coverage_base_size + bytes_per_glyph * included_glyphs.get_population();

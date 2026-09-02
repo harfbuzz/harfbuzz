@@ -483,30 +483,33 @@ static void run_resolve_overflow_test (const char* name,
   printf (">>> Testing overflowing resolution for %s\n",
           name);
 
-  graph_t graph (overflowing.object_graph ());
+  graph_t graph = graph_t::create (overflowing.object_graph ()).value ();
 
-  graph_t expected_graph (expected.object_graph ());
-  if (graph::will_overflow (expected_graph))
+  graph_t expected_graph = graph_t::create (expected.object_graph ()).value ();
+  if (graph::will_overflow (expected_graph).value ())
   {
     if (check_binary_equivalence) {
       printf("when binary equivalence checking is enabled, the expected graph cannot overflow.");
       hb_always_assert(!check_binary_equivalence);
     }
-    expected_graph.assign_spaces ();
-    expected_graph.sort_shortest_distance ();
+    hb_always_assert (expected_graph.assign_spaces ().is_ok ());
+    hb_always_assert (expected_graph.sort_shortest_distance ().is_ok ());
   }
 
   // Check that overflow resolution succeeds
   hb_always_assert (overflowing.offset_overflow ());
-  hb_always_assert (hb_resolve_graph_overflows (tag,
+  auto r = hb_resolve_graph_overflows (tag,
                                       num_iterations,
                                       recalculate_extensions,
-                                      graph));
+                                      graph);
+  if (r.is_err())
+    printf("run_resolve_overflow_test: overflow resolution failed, cause: %s\n", graph::to_string(r.error()));
+  hb_always_assert (r.is_ok());
 
   // Check the graphs can be serialized.
-  hb_blob_t* out1 = graph::serialize (graph);
+  hb_blob_t* out1 = graph::serialize (graph).value ();
   hb_always_assert (out1);
-  hb_blob_t* out2 = graph::serialize (expected_graph);
+  hb_blob_t* out2 = graph::serialize (expected_graph).value ();
   hb_always_assert (out2);
   if (check_binary_equivalence) {
     unsigned l1, l2;
@@ -1894,10 +1897,9 @@ static void test_sort_shortest ()
   hb_serialize_context_t e (buffer_e, buffer_size);
   populate_serializer_complex_2 (&a);
 
-  graph_t graph (a.object_graph ());
-  graph.sort_shortest_distance ();
+  graph_t graph = graph_t::create (a.object_graph ()).value ();
+  hb_always_assert (graph.sort_shortest_distance ().is_ok());
   graph.normalize();
-  hb_always_assert (!graph.in_error ());
 
   // Expected graph
   e.start_serialize();
@@ -1920,7 +1922,7 @@ static void test_sort_shortest ()
   e.pop_pack (false);
   e.end_serialize();
 
-  graph_t expected(e.object_graph());
+  graph_t expected = graph_t::create (e.object_graph ()).value ();
   expected.normalize();
 
   assert(expected == graph);
@@ -1938,8 +1940,8 @@ static void test_duplicate_leaf ()
   hb_serialize_context_t e (buffer_e, buffer_size);
   populate_serializer_complex_2 (&a);
 
-  graph_t graph (a.object_graph ());
-  graph.duplicate (4, 1, false);
+  graph_t graph = graph_t::create (a.object_graph ()).value ();
+  hb_always_assert (graph.duplicate (4, 1, false).is_ok ());
   graph.normalize();
 
   e.start_serialize();
@@ -1962,7 +1964,7 @@ static void test_duplicate_leaf ()
   add_offset(mn, &e);
   e.pop_pack(false);
 
-  graph_t expected(e.object_graph());
+  graph_t expected = graph_t::create (e.object_graph ()).value ();
   expected.normalize();
 
   assert(expected == graph);
@@ -1978,8 +1980,8 @@ static void test_duplicate_interior ()
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_complex_3 (&c);
 
-  graph_t graph (c.object_graph ());
-  graph.duplicate (3, 2, false);
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  hb_always_assert (graph.duplicate (3, 2, false).is_ok ());
 
   hb_always_assert(strncmp (graph.object (6).head, "jkl", 3) == 0);
   hb_always_assert(graph.object (6).real_links.length == 1);
@@ -2021,8 +2023,8 @@ test_serialize ()
   populate_serializer_simple (&c1);
   hb_bytes_t expected = c1.copy_bytes ();
 
-  graph_t graph (c1.object_graph ());
-  hb_blob_t* out = graph::serialize (graph);
+  graph_t graph = graph_t::create (c1.object_graph ()).value ();
+  hb_blob_t* out = graph::serialize (graph).value ();
   free (buffer_1);
 
   hb_bytes_t actual = out->as_bytes ();
@@ -2038,9 +2040,9 @@ static void test_will_overflow_1 ()
   hb_serialize_context_t c (buffer, buffer_size);
 
   populate_serializer_complex_2 (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
-  hb_always_assert (!graph::will_overflow (graph, nullptr));
+  hb_always_assert (!graph::will_overflow (graph, nullptr).value ());
 
   free (buffer);
 }
@@ -2051,9 +2053,9 @@ static void test_will_overflow_2 ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_overflow (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
-  hb_always_assert (graph::will_overflow (graph, nullptr));
+  hb_always_assert (graph::will_overflow (graph, nullptr).value ());
 
   free (buffer);
 }
@@ -2064,9 +2066,9 @@ static void test_will_overflow_3 ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_dedup_overflow (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
-  hb_always_assert (graph::will_overflow (graph, nullptr));
+  hb_always_assert (graph::will_overflow (graph, nullptr).value ());
 
   free (buffer);
 }
@@ -2077,7 +2079,7 @@ static void test_resolve_overflows_via_sort ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_overflow (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
   hb_always_assert (out);
@@ -2094,7 +2096,7 @@ static void test_resolve_overflows_via_duplication ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_dedup_overflow (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
   hb_always_assert (out);
@@ -2111,7 +2113,7 @@ static void test_resolve_overflows_via_multiple_duplications ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_multiple_dedup_overflow (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, 5);
   hb_always_assert (out);
@@ -2145,7 +2147,7 @@ static void test_resolve_overflows_via_isolation ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_isolation_overflow (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_always_assert (c.offset_overflow ());
   hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), 0);
@@ -2220,7 +2222,7 @@ static void test_resolve_overflows_via_isolation_spaces ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_isolation_overflow_spaces (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_always_assert (c.offset_overflow ());
   hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), 0);
@@ -2241,7 +2243,7 @@ static void test_resolve_mixed_overflows_via_isolation_spaces ()
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_with_24_and_32_bit_offsets (&c);
-  graph_t graph (c.object_graph ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_always_assert (c.offset_overflow ());
   hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), 0);
@@ -2749,32 +2751,30 @@ test_deep_graph_traversal ()
   }
   c.end_serialize ();
 
-  graph_t graph (c.object_graph ());
-  hb_always_assert (!graph.in_error ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   // Test find_subgraph (set)
   hb_set_t visited_set;
-  graph.find_subgraph (graph.root_idx (), visited_set);
+  hb_always_assert (graph.find_subgraph (graph.root_idx (), visited_set).is_ok ());
   hb_always_assert (visited_set.get_population () == 2001);
 
   // Test find_subgraph_size
   hb_set_t size_set;
-  size_t sz = graph.find_subgraph_size (graph.root_idx (), size_set);
+  size_t sz = graph.find_subgraph_size (graph.root_idx (), size_set).value ();
   hb_always_assert (sz == 4 + 2000 * 6);
 
   // Test find_subgraph (map)
   hb_map_t map;
   map.set (graph.root_idx (), 1);
-  graph.find_subgraph (graph.root_idx (), map);
+  hb_always_assert (graph.find_subgraph (graph.root_idx (), map).is_ok ());
   hb_always_assert (map.get_population () == 2001);
 
   // Test assign_spaces (which exercises find_connected_nodes and find_space_roots)
-  graph.assign_spaces ();
-  hb_always_assert (!graph.in_error ());
+  hb_always_assert (graph.assign_spaces ().is_ok ());
 
   // Test duplicate_subgraph
   hb_map_t index_map;
-  graph.duplicate_subgraph (graph.root_idx (), index_map);
+  hb_always_assert (graph.duplicate_subgraph (graph.root_idx (), index_map).is_ok ());
   hb_always_assert (index_map.get_population () == 2001);
 
   free (buffer);
@@ -2801,11 +2801,10 @@ test_32bit_roots_traversal ()
   c.pop_pack (false);
   c.end_serialize ();
 
-  graph_t graph (c.object_graph ());
-  hb_always_assert (!graph.in_error ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   hb_set_t roots;
-  graph.find_32bit_roots (graph.root_idx (), roots);
+  hb_always_assert (graph.find_32bit_roots (graph.root_idx (), roots).is_ok ());
   hb_always_assert (roots.has (leaf1 - 1));
   hb_always_assert (roots.has (leaf2 - 1));
   hb_always_assert (!roots.has (mid - 1));
@@ -2840,11 +2839,10 @@ test_32bit_roots_traversal ()
 
   c2.end_serialize ();
 
-  graph_t graph2 (c2.object_graph ());
-  hb_always_assert (!graph2.in_error ());
+  graph_t graph2 = graph_t::create (c2.object_graph ()).value ();
 
   hb_set_t roots2;
-  graph2.find_32bit_roots (graph2.root_idx (), roots2);
+  hb_always_assert (graph2.find_32bit_roots (graph2.root_idx (), roots2).is_ok ());
   hb_always_assert (roots2.get_population () == 1);
   hb_always_assert (roots2.has (a - 1));
   hb_always_assert (!roots2.has (b - 1));
@@ -2859,16 +2857,15 @@ static void test_invalid_link_objidx ()
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_complex_2 (&c);
 
-  graph_t graph (c.object_graph ());
-  hb_always_assert (!graph.in_error ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   // Poison a link to point to (unsigned) -1
-  graph.vertices_[graph.root_idx ()].obj.real_links[0].objidx = (unsigned) -1;
+  auto links = graph.vertices_[graph.root_idx ()].real_links_writer();
+  links->objidx = (unsigned) -1;
 
   // Running Dijkstra / shortest distance sorting must not crash or OOB access,
-  // and must mark the graph in error.
-  graph.sort_shortest_distance ();
-  hb_always_assert (graph.in_error ());
+  // and must return an error.
+  hb_always_assert (!graph.sort_shortest_distance ().is_ok ());
 
   free (buffer);
 }
@@ -2880,18 +2877,15 @@ static void test_invalid_link_add_and_move ()
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_complex_2 (&c);
 
-  graph_t graph (c.object_graph ());
-  hb_always_assert (!graph.in_error ());
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
 
   // add_link with out-of-bounds child
   OT::Offset16 dummy;
-  graph.add_link (&dummy, 0, (unsigned) -1);
-  hb_always_assert (graph.in_error ());
+  hb_always_assert (!graph.add_link (&dummy, 0, (unsigned) -1).is_ok ());
 
   // move_child with non-existent offset
-  unsigned res = graph.move_child (0, &dummy, 1, &dummy);
-  hb_always_assert (res == (unsigned) -1);
-  hb_always_assert (graph.in_error ());
+  auto res = graph.move_child (0, &dummy, 1, &dummy);
+  hb_always_assert (!res.is_ok ());
 
   free (buffer);
 }
