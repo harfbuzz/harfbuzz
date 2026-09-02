@@ -30,6 +30,7 @@
 
 #include "hb-ot-shape-fallback.hh"
 #include "hb-kern.hh"
+#include "OT/Layout/GPOS/Common.hh"
 
 static unsigned int
 recategorize_combining_class (hb_codepoint_t u,
@@ -195,6 +196,9 @@ zero_mark_advances (hb_buffer_t *buffer,
   for (unsigned int i = start; i < end; i++)
     if (_hb_glyph_info_get_general_category (&info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     {
+      if (buffer->pos[i].attach_type())
+	continue;
+
       if (adjust_offsets_when_zeroing)
       {
 	buffer->pos[i].x_offset = hb_saturate_sub (buffer->pos[i].x_offset,
@@ -368,6 +372,9 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   for (unsigned int i = base + 1; i < end; i++)
     if (_hb_glyph_info_get_modified_combining_class (&info[i]))
     {
+      if (buffer->pos[i].attach_type())
+	continue;
+
       if (num_lig_components > 1) {
 	unsigned int this_lig_id = _hb_glyph_info_get_lig_id (&info[i]);
 	int this_lig_component = _hb_glyph_info_get_lig_comp (&info[i]) - 1;

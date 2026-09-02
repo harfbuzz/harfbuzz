@@ -203,8 +203,10 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 #endif
 					      );
 
-  plan.fallback_mark_positioning = plan.adjust_mark_positioning_when_zeroing &&
-				   script_fallback_position;
+  /* Fallback mark positioning should run for any unattached marks (Unicode
+   * Section 3.6 / 5.13), even if GPOS is present. Marks attached by GPOS
+   * will be skipped during fallback positioning. */
+  plan.fallback_mark_positioning = script_fallback_position;
 
 #ifndef HB_NO_AAT_SHAPE
   /* If we're using morx shaping, we cancel mark position adjustment because
@@ -899,7 +901,7 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
   hb_ot_shape_setup_masks (c);
 
   /* This is unfortunate to go here, but necessary... */
-  if (c->plan->fallback_mark_positioning)
+  if (c->plan->fallback_mark_positioning && c->plan->adjust_mark_positioning_when_zeroing)
     _hb_ot_shape_fallback_mark_position_recategorize_marks (c->plan, c->font, buffer);
 
   hb_ot_map_glyphs_fast (buffer);
