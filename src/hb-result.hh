@@ -472,11 +472,11 @@ static inline bool operator != (const hb_result_err_t<F>& e, const hb_result_t<T
 }
 
 #ifndef TRY
-#define TRY(...)                                          \
-  ({                                                      \
-    auto res = (__VA_ARGS__);                             \
-    if (!res.is_ok()) return Err(std::move(res).error()); \
-    *std::move(res);                                      \
+#define TRY(...)                                                     \
+  ({                                                                 \
+    auto res = (__VA_ARGS__);                                        \
+    if (unlikely (!res.is_ok())) return Err(std::move(res).error()); \
+    *std::move(res);                                                 \
   })
 #endif
 
