@@ -501,6 +501,26 @@ static void test_return_moves_from_local ()
   }
 }
 
+struct in_error_t {
+  bool successful;
+
+  in_error_t(bool s) : successful(s) {}
+
+  bool in_error() const {
+    return !successful;
+  }
+};
+
+static void test_from () {
+  in_error_t has_error(false);
+  in_error_t no_error(true);
+  result<void> r = result<void>::from(has_error, ERR_B);
+  hb_always_assert(r.is_err());
+  hb_always_assert(r.error() == ERR_B);
+  r = result<void>::from(no_error, ERR_B);
+  hb_always_assert(!r.is_err());
+}
+
 int main ()
 {
   test_ok_basic ();
@@ -514,6 +534,7 @@ int main ()
   test_error_interception ();
   test_move_only_types ();
   test_return_moves_from_local ();
+  test_from();
 
   return 0;
 }

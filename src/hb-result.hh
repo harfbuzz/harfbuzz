@@ -73,7 +73,7 @@ static inline constexpr hb_result_err_t<E&&> Err (E&& e)
 }
 
 template <typename T, typename E>
-struct hb_result_t
+struct HB_NODISCARD hb_result_t
 {
   private:
   union
@@ -295,7 +295,7 @@ struct hb_result_t
 
 // Partial specialization for void
 template <typename E>
-struct hb_result_t<void, E>
+struct HB_NODISCARD hb_result_t<void, E>
 {
   private:
   union
@@ -387,6 +387,16 @@ struct hb_result_t<void, E>
   hb_result_t (E e) : is_ok_ (false)
   {
     new (std::addressof (err_)) E (std::move(e));
+  }
+
+  // V is any class which has an in_error() method. This checks the result
+  // of in_error() and returns either Ok() or Err(error_value).
+  template<typename V>
+  static hb_result_t<void, E> from(const V& fallible, E error_value) {
+    if (fallible.in_error()) {
+      return Err(error_value);
+    }
+    return Ok();
   }
 
   bool is_ok () const { return is_ok_; }
