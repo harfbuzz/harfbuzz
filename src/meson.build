@@ -418,6 +418,7 @@ hb_subset_sources = files(
   'hb-subset-table-cff.cc',
   'hb-subset-table-color.cc',
   'hb-subset-table-other.cc',
+  'graph/graph-result.hh',
   'graph/gsubgpos-context.cc',
   'graph/gsubgpos-context.hh',
   'graph/gsubgpos-graph.hh',

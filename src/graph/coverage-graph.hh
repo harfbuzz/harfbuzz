@@ -32,42 +32,47 @@
 
 namespace graph {
 
-static bool sanitize (
+static graph_result_t<void> sanitize (
   const OT::Layout::Common::CoverageFormat1_3<OT::Layout::SmallTypes>* thiz,
   const graph_t::vertex_t& vertex
 ) {
-  size_t vertex_len = vertex.obj.tail - vertex.obj.head;
+  size_t vertex_len = vertex.table_size();
   constexpr unsigned min_size = OT::Layout::Common::CoverageFormat1_3<OT::Layout::SmallTypes>::min_size;
-  if (vertex_len < min_size) return false;
+  if (unlikely (vertex_len < min_size)) return Err(SANITIZE_FAILURE);
   hb_barrier ();
-  return vertex_len >= min_size + thiz->glyphArray.get_size () - thiz->glyphArray.len.get_size ();
+  if (unlikely (vertex_len < min_size + thiz->glyphArray.get_size () - thiz->glyphArray.len.get_size ()))
+    return Err(SANITIZE_FAILURE);
+  return Ok();
 }
 
-static bool sanitize (
+static graph_result_t<void> sanitize (
   const OT::Layout::Common::CoverageFormat2_4<OT::Layout::SmallTypes>* thiz,
   const graph_t::vertex_t& vertex
 ) {
-  size_t vertex_len = vertex.obj.tail - vertex.obj.head;
+  size_t vertex_len = vertex.table_size();
   constexpr unsigned min_size = OT::Layout::Common::CoverageFormat2_4<OT::Layout::SmallTypes>::min_size;
-  if (vertex_len < min_size) return false;
+  if (unlikely (vertex_len < min_size)) return Err(SANITIZE_FAILURE);
   hb_barrier ();
-  return vertex_len >= min_size + thiz->rangeRecord.get_size () - thiz->rangeRecord.len.get_size ();
+  if (unlikely (vertex_len < min_size + thiz->rangeRecord.get_size () - thiz->rangeRecord.len.get_size ()))
+    return Err(SANITIZE_FAILURE);
+  return Ok();
 }
 
 struct Coverage : public OT::Layout::Common::Coverage
 {
-  static Coverage* clone_coverage (gsubgpos_graph_context_t& c,
-                                   unsigned coverage_id,
-                                   unsigned new_parent_id,
-                                   unsigned link_position,
-                                   unsigned start, unsigned end)
+  static graph_result_t<void> clone_coverage (gsubgpos_graph_context_t& c,
+                                              unsigned coverage_id,
+                                              unsigned new_parent_id,
+                                              unsigned link_position,
+                                              unsigned start, unsigned end)
 
   {
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     auto& coverage_v = c.graph.vertices_[coverage_id];
-    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table || !coverage_table->sanitize (coverage_v))
-      return nullptr;
+    const Coverage* coverage_table = (const Coverage*) coverage_v.obj().head;
+    if (unlikely (!coverage_table))
+      return Err(INVALID_ARGUMENT);
+    TRY (coverage_table->sanitize (coverage_v));
 
     auto new_coverage =
         + hb_zip (coverage_table->iter (), hb_range ())
@@ -81,37 +86,32 @@ struct Coverage : public OT::Layout::Common::Coverage
   }
 
   template<typename It>
-  static Coverage* add_coverage (gsubgpos_graph_context_t& c,
-                                 unsigned parent_id,
-                                 unsigned link_position,
-                                 It glyphs,
-                                 unsigned max_size)
+  static graph_result_t<void> add_coverage (gsubgpos_graph_context_t& c,
+                                            unsigned parent_id,
+                                            unsigned link_position,
+                                            It glyphs,
+                                            unsigned max_size)
   {
-    unsigned coverage_prime_id = c.graph.new_node (nullptr, nullptr);
-    if (coverage_prime_id == HB_GRAPH_INVALID)
-      return nullptr;
+    unsigned coverage_prime_id = TRY (c.graph.new_node (nullptr, nullptr));
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
-    if (!make_coverage (c, glyphs, coverage_prime_id, max_size))
-      return nullptr;
+    TRY (make_coverage (c, glyphs, coverage_prime_id, max_size));
 
-    auto* coverage_link = c.graph.vertices_[parent_id].obj.real_links.push ();
-    coverage_link->width = SmallTypes::size;
-    coverage_link->objidx = coverage_prime_id;
-    coverage_link->position = link_position;
-    coverage_prime_vertex.add_parent (parent_id, false);
+    TRY(c.graph.vertices_[parent_id].add_real_link (SmallTypes::size, coverage_prime_id, link_position));
+    TRY(coverage_prime_vertex.add_parent (parent_id, false));
 
-    return (Coverage*) coverage_prime_vertex.obj.head;
+    return Ok();
   }
 
   // Filter an existing coverage table to glyphs at indices [start, end) and replace it with the filtered version.
-  static bool filter_coverage (gsubgpos_graph_context_t& c,
-                               unsigned existing_coverage,
-                               unsigned start, unsigned end) {
+  static graph_result_t<void> filter_coverage (gsubgpos_graph_context_t& c,
+                                                unsigned existing_coverage,
+                                                unsigned start, unsigned end) {
     unsigned coverage_size = c.graph.vertices_[existing_coverage].table_size ();
     auto& coverage_v = c.graph.vertices_[existing_coverage];
-    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table || !coverage_table->sanitize (coverage_v))
-      return false;
+    const Coverage* coverage_table = (const Coverage*) coverage_v.obj().head;
+    if (unlikely (!coverage_table))
+      return Err(INVALID_ARGUMENT);
+    TRY (coverage_table->sanitize (coverage_v));
 
     auto new_coverage =
         + hb_zip (coverage_table->iter (), hb_range ())
@@ -126,47 +126,51 @@ struct Coverage : public OT::Layout::Common::Coverage
 
   // Replace the coverage table at dest obj with one covering 'glyphs'.
   template<typename It>
-  static bool make_coverage (gsubgpos_graph_context_t& c,
-                             It glyphs,
-                             unsigned dest_obj,
-                             unsigned max_size)
+  static graph_result_t<void> make_coverage (gsubgpos_graph_context_t& c,
+                                             It glyphs,
+                                             unsigned dest_obj,
+                                             unsigned max_size)
   {
     char* buffer = (char*) hb_calloc (1, max_size);
+    if (unlikely (!buffer))
+      return Err(ALLOCATION_FAILURE);
+
     hb_serialize_context_t serializer (buffer, max_size);
     OT::Layout::Common::Coverage_serialize (&serializer, glyphs);
     serializer.end_serialize ();
-    if (serializer.in_error ())
+    if (unlikely (serializer.in_error ()))
     {
       hb_free (buffer);
-      return false;
+      return Err(ALLOCATION_FAILURE);
     }
 
     hb_bytes_t coverage_copy = serializer.copy_bytes ();
-    if (!coverage_copy.arrayZ) {
+    if (unlikely (!coverage_copy.arrayZ)) {
       hb_free (buffer);
-      return false;
+      return Err(ALLOCATION_FAILURE);
     }
 
     // Give ownership to the context, it will cleanup the buffer.
-    if (!c.add_buffer ((char *) coverage_copy.arrayZ))
+    auto res = c.add_buffer ((char *) coverage_copy.arrayZ);
+    if (unlikely (!res.is_ok ()))
     {
       hb_free (buffer);
       hb_free ((char *) coverage_copy.arrayZ);
-      return false;
+      return res;
     }
 
-    auto& obj = c.graph.vertices_[dest_obj].obj;
-    obj.head = (char *) coverage_copy.arrayZ;
-    obj.tail = obj.head + coverage_copy.length;
+    auto& v = c.graph.vertices_[dest_obj];
+    char* head = (char *) coverage_copy.arrayZ;
+    v.set_buffer (head, head + coverage_copy.length);
 
     hb_free (buffer);
-    return true;
+    return Ok();
   }
 
-  bool sanitize (const graph_t::vertex_t& vertex) const
+  graph_result_t<void> sanitize (const graph_t::vertex_t& vertex) const
   {
-    size_t vertex_len = vertex.obj.tail - vertex.obj.head;
-    if (vertex_len < OT::Layout::Common::Coverage::min_size) return false;
+    size_t vertex_len = vertex.table_size ();
+    if (unlikely (vertex_len < OT::Layout::Common::Coverage::min_size)) return Err(SANITIZE_FAILURE);
     hb_barrier ();
     switch (u.format.v)
     {
@@ -177,7 +181,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     case 3:
     case 4:
 #endif
-    default: return false;
+    default: return Err(SANITIZE_FAILURE);
     }
   }
 };

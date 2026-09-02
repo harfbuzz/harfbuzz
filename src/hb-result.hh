@@ -196,6 +196,7 @@ struct HB_NODISCARD_STRUCT hb_result_t
     new (std::addressof (err_)) E (e.error);
   }
 
+  // TODO XXXX disable direct construction completely.
   // Construct directly from error E (when neither T or E are convertible into each other)
   template <typename F = E,
             hb_enable_if ((hb_is_same (F, E) &&
@@ -215,6 +216,15 @@ struct HB_NODISCARD_STRUCT hb_result_t
   hb_result_t (U&& v) : is_ok_ (true)
   {
     new (std::addressof (val_)) T (std::forward<U> (v));
+  }
+
+  // Move fallible into a result if it's in_error() method returns false.
+  // TODO XXXX add test
+  static hb_result_t from (T&& fallible, E error_value) {
+    if (fallible.in_error()) {
+      return Err(error_value);
+    }
+    return Ok(fallible);
   }
 
   bool is_ok () const { return is_ok_; }
@@ -404,7 +414,7 @@ struct HB_NODISCARD_STRUCT hb_result_t<void, E>
   // V is any class which has an in_error() method. This checks the result
   // of in_error() and returns either Ok() or Err(error_value).
   template<typename V>
-  static hb_result_t<void, E> from(const V& fallible, E error_value) {
+  static hb_result_t<void, E> from (const V& fallible, E error_value) {
     if (fallible.in_error()) {
       return Err(error_value);
     }

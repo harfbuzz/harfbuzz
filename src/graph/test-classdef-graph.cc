@@ -117,7 +117,7 @@ static HB_UNUSED bool check_add_class_def_size(graph::class_def_size_estimator_t
 
 static HB_UNUSED bool check_add_class_def_size (const gid_and_class_list_t& list, unsigned klass)
 {
-  graph::class_def_size_estimator_t estimator (list.iter ());
+  graph::class_def_size_estimator_t estimator = *graph::class_def_size_estimator_t::create (list.iter ());
 
   unsigned result = estimator.add_class_def_size (klass);
   auto filtered_it =
@@ -228,7 +228,7 @@ static void test_running_class_and_coverage_size_estimates () {
     {12, 3},
   };
 
-  graph::class_def_size_estimator_t estimator1(consecutive_map.iter());
+  graph::class_def_size_estimator_t estimator1 = *graph::class_def_size_estimator_t::create (consecutive_map.iter());
   hb_always_assert(check_add_class_def_size(estimator1, consecutive_map, 1, {1}));
   hb_always_assert(check_add_class_def_size(estimator1, consecutive_map, 2, {1, 2}));
   hb_always_assert(check_add_class_def_size(estimator1, consecutive_map, 2, {1, 2})); // check that adding the same class again works
@@ -260,7 +260,7 @@ static void test_running_class_and_coverage_size_estimates () {
     {15, 3},
   };
 
-  graph::class_def_size_estimator_t estimator2(non_consecutive_map.iter());
+  graph::class_def_size_estimator_t estimator2 = *graph::class_def_size_estimator_t::create (non_consecutive_map.iter());
   hb_always_assert(check_add_class_def_size(estimator2, non_consecutive_map, 1, {1}));
   hb_always_assert(check_add_class_def_size(estimator2, non_consecutive_map, 2, {1, 2}));
   hb_always_assert(check_add_class_def_size(estimator2, non_consecutive_map, 3, {1, 2, 3}));
@@ -277,7 +277,7 @@ static void test_running_class_size_estimates_with_locally_consecutive_glyphs ()
     {7, 3},
   };
 
-  graph::class_def_size_estimator_t estimator(map.iter());
+  graph::class_def_size_estimator_t estimator = *graph::class_def_size_estimator_t::create (map.iter());
   hb_always_assert(check_add_class_def_size(estimator, map, 1, {1}));
   hb_always_assert(check_add_class_def_size(estimator, map, 2, {1, 2}));
   hb_always_assert(check_add_class_def_size(estimator, map, 3, {1, 2, 3}));
