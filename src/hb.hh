@@ -385,6 +385,13 @@
 #  define HB_NODISCARD
 #endif
 
+/* Like HB_NODISCARD but can be used on structs */
+#if __cplusplus >= 201703L
+#  define HB_NODISCARD_STRUCT [[nodiscard]]
+#else
+#  define HB_NODISCARD_STRUCT
+#endif
+
 #ifdef _WIN32
    /* We need Windows Vista for both Uniscribe backend and for
     * MemoryBarrier.  We don't support compiling on Windows XP,
