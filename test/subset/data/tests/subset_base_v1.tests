@@ -1,0 +1,15 @@
+FONTS:
+NotoSansJP_subset.ttf
+
+PROFILES:
+retain-base-table.txt
+retain-base-table-filter-scripts.txt
+
+SUBSETS:
+*
+
+# diff with fonttools
+# BASE table(fonttools doesn't support BASE table)
+OPTIONS:
+no_fonttools
+
