@@ -1924,13 +1924,12 @@ struct GPOSProxy
 };
 
 
-static inline bool
-apply_forward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
+template <OT::hb_ot_layout_lookup_accelerator_t::apply_func_t Apply>
+HB_NEVER_INLINE
+static bool
+apply_forward_impl (OT::hb_ot_apply_context_t *c,
+		    const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
-  bool use_hot_subtable_cache = accel.cache_enter (c);
-  auto apply_func = accel.get_apply_func (use_hot_subtable_cache);
-
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   while (buffer->successful)
@@ -1947,11 +1946,44 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     if (buffer->idx >= buffer->len)
       break;
 
-    if (apply_func (&accel, c))
+    if (Apply (&accel, c))
       ret = true;
     else
       (void) buffer->next_glyph ();
   }
+
+  return ret;
+}
+
+static inline bool
+apply_forward (OT::hb_ot_apply_context_t *c,
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
+{
+  using accelerator_t = OT::hb_ot_layout_lookup_accelerator_t;
+
+  bool use_hot_subtable_cache = accel.cache_enter (c);
+  auto apply_func = accel.get_apply_func (use_hot_subtable_cache);
+
+  bool ret;
+  if (apply_func == accelerator_t::apply_one)
+    ret = apply_forward_impl<accelerator_t::apply_one> (c, accel);
+#ifdef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+  else
+  {
+    assert (apply_func == accelerator_t::apply_many);
+    ret = apply_forward_impl<accelerator_t::apply_many> (c, accel);
+  }
+#else
+  else if (apply_func == accelerator_t::apply_many)
+    ret = apply_forward_impl<accelerator_t::apply_many> (c, accel);
+  else if (apply_func == accelerator_t::apply_cached_one)
+    ret = apply_forward_impl<accelerator_t::apply_cached_one> (c, accel);
+  else
+  {
+    assert (apply_func == accelerator_t::apply_cached_many);
+    ret = apply_forward_impl<accelerator_t::apply_cached_many> (c, accel);
+  }
+#endif
 
   if (use_hot_subtable_cache)
     accel.cache_leave (c);
@@ -1959,12 +1991,12 @@ apply_forward (OT::hb_ot_apply_context_t *c,
   return ret;
 }
 
-static inline bool
-apply_backward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
+template <OT::hb_ot_layout_lookup_accelerator_t::apply_func_t Apply>
+HB_NEVER_INLINE
+static bool
+apply_backward_impl (OT::hb_ot_apply_context_t *c,
+		     const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
-  auto apply_func = accel.get_apply_func (false);
-
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   do
@@ -1973,13 +2005,27 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.digest.may_have (cur.codepoint) &&
 	(cur.mask & c->lookup_mask) &&
 	c->check_glyph_property (&cur, c->lookup_props))
-      ret |= apply_func (&accel, c);
+      ret |= Apply (&accel, c);
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
   }
   while ((int) buffer->idx >= 0);
   return ret;
+}
+
+static inline bool
+apply_backward (OT::hb_ot_apply_context_t *c,
+		const OT::hb_ot_layout_lookup_accelerator_t &accel)
+{
+  using accelerator_t = OT::hb_ot_layout_lookup_accelerator_t;
+
+  auto apply_func = accel.get_apply_func (false);
+  if (apply_func == accelerator_t::apply_one)
+    return apply_backward_impl<accelerator_t::apply_one> (c, accel);
+
+  assert (apply_func == accelerator_t::apply_many);
+  return apply_backward_impl<accelerator_t::apply_many> (c, accel);
 }
 
 template <typename Proxy>
