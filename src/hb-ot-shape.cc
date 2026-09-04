@@ -905,14 +905,14 @@ hb_ot_substitute_plan (const hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
-  hb_ot_layout_substitute_start (c->font, buffer);
-
-  if (c->plan->fallback_glyph_classes)
-    hb_synthesize_glyph_classes (c->buffer);
-
 #ifndef HB_NO_AAT_SHAPE
   if (unlikely (c->plan->apply_morx))
   {
+    hb_ot_layout_substitute_start (c->font, buffer);
+
+    if (c->plan->fallback_glyph_classes)
+      hb_synthesize_glyph_classes (buffer);
+
     hb_aat_layout_substitute (c->plan, c->font, c->buffer,
 			      c->user_features, c->num_user_features);
     /* The buffer digest is only used by the OT lookup-apply loop;
@@ -923,7 +923,11 @@ hb_ot_substitute_plan (const hb_ot_shape_context_t *c)
   else
 #endif
   {
-    c->buffer->update_digest ();
+    hb_ot_layout_substitute_start_with_digest (c->font, buffer);
+
+    if (c->plan->fallback_glyph_classes)
+      hb_synthesize_glyph_classes (buffer);
+
     c->plan->substitute (c->font, buffer);
   }
 }
