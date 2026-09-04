@@ -1129,7 +1129,6 @@ struct hb_ot_apply_context_t :
   recurse_func_t recurse_func = nullptr;
   const GDEF &gdef;
   const GDEF::accelerator_t &gdef_accel;
-  const hb_ot_layout_lookup_accelerator_t *lookup_accel = nullptr;
   const ItemVariationStore &var_store;
   hb_scalar_cache_t *var_store_cache;
 
@@ -5876,7 +5875,6 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
   bool apply (hb_ot_apply_context_t *c, bool use_cache) const
   {
-    c->lookup_accel = this;
     if (count == 1)
     {
       /* The accelerator digest is the union of the subtable digests, so
