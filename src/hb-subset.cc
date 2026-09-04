@@ -117,6 +117,7 @@ static hb_tag_t known_tables[] {
   HB_TAG('v','h','e','a'),
   HB_TAG('v','m','t','x'),
   HB_TAG('V','O','R','G'),
+  HB_TAG('V','A','R','C'),
   HB_TAG('V','V','A','R'),
   HB_TAG('n','a','m','e'),
   HB_TAG('O','S','/','2')

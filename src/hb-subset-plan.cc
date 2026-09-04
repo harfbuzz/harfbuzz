@@ -41,6 +41,7 @@
 #include "OT/Color/COLR/colrv1-closure.hh"
 #include "OT/Color/CPAL/CPAL.hh"
 #include "hb-ot-var-fvar-table.hh"
+#include "hb-ot-var-varc-table.hh"
 #include "hb-ot-stat-table.hh"
 #include "hb-ot-math-table.hh"
 
@@ -475,7 +476,15 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   plan->_glyphset_colred = cur_glyphset;
 
-  // XXX TODO VARC closure / subset
+#ifndef HB_NO_VAR_COMPOSITES
+  if (!drop_tables->has (OT::VARC::tableTag))
+  {
+    plan->source->table.VARC->closure_glyphs (&cur_glyphset);
+    _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
+  }
+#endif
+
+  plan->_glyphset_varced = cur_glyphset;
 
   _nameid_closure (plan, drop_tables);
   /* Populate a full set of glyphs to retain by adding all referenced
@@ -687,9 +696,29 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   if (unlikely (in_error ()))
     return;
 
+#ifndef HB_NO_VAR_COMPOSITES
+  if (!input->sets.drop_tables->has (OT::VARC::tableTag) &&
+      input->sets.no_subset_tables->has (OT::VARC::tableTag) &&
+      !(input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS) &&
+      face->table.VARC->has_data ())
+  {
+    check_success (false);
+    return;
+  }
+#endif
+
 #ifndef HB_NO_VAR
   if (!check_success (normalize_axes_location (face, this)))
       return;
+#endif
+#ifndef HB_NO_VAR_COMPOSITES
+  if (!user_axes_location.is_empty () &&
+      !input->sets.drop_tables->has (OT::VARC::tableTag) &&
+      face->table.VARC->has_data ())
+  {
+    check_success (false);
+    return;
+  }
 #endif
 
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, this);

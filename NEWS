@@ -25,6 +25,8 @@ Thursday, August 13, 2026
 =====================================
 - Various fuzzing and build fixes.
 - Various subsetting fixes.
+- Support subsetting `VARC` tables. Subsetting with variation instancing is not
+  supported yet and fails instead of producing an incompatible font.
 - Fix AAT insertion at the end of the text.
 - Fix various rendering bugs in the experimental GPU library.
 - WASM shaper code can now read the user features.
@@ -4611,5 +4613,4 @@ Summary of API changes follows.
     hb_version()
     hb_version_string()
     hb_version_check()
-
 

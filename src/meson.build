@@ -388,6 +388,8 @@ hb_icu_headers = files('hb-icu.h')
 
 # Sources for libharfbuzz-subset
 hb_subset_sources = files(
+  'OT/Var/VARC/VARC.cc',
+  'OT/Var/VARC/VARC-subset.hh',
   'hb-number.cc',
   'hb-number.hh',
   'hb-ot-cff1-table.cc',

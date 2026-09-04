@@ -64,6 +64,7 @@ tests = [
   'test-subset-gvar.c',
   'test-subset-hvar.c',
   'test-subset-vvar.c',
+  'test-subset-varc.c',
   'test-subset-sbix.c',
   'test-subset-gpos.c',
   'test-subset-colr.c',

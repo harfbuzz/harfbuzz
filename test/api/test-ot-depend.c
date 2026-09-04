@@ -587,6 +587,23 @@ test_depend_gsub_formats (void)
   hb_face_destroy (face_source);
 }
 
+static void
+test_depend_varc (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-ac00-ac01.ttf");
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_nonnull (depend);
+
+  /* uniAC00 (1) has two direct VARC components (3 and 5). */
+  g_assert_true (find_dependency (depend, 1, 3, HB_TAG ('V','A','R','C'),
+				  NULL, NULL));
+  g_assert_true (find_dependency (depend, 1, 5, HB_TAG ('V','A','R','C'),
+				  NULL, NULL));
+
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -596,6 +613,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_cff);
   hb_test_add (test_depend_colr);
   hb_test_add (test_depend_math);
+  hb_test_add (test_depend_varc);
   hb_test_add (test_depend_gsub_formats);
 
   return hb_test_run ();

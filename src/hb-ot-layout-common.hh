@@ -2855,6 +2855,10 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
     }
     return v;
   }
+
+  bool serialize (hb_serialize_context_t *c,
+		  const SparseVariationRegion *src)
+  { return bool (src->copy (c)); }
 };
 
 struct SparseVarRegionList
@@ -2884,6 +2888,26 @@ struct SparseVarRegionList
   {
     TRACE_SANITIZE (this);
     return_trace (regions.sanitize (c, this));
+  }
+
+  bool serialize (hb_serialize_context_t *c,
+		  const SparseVarRegionList *src,
+		  const hb_inc_bimap_t &region_map)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
+    regions.len = region_map.get_population ();
+    if (unlikely (!c->extend (regions))) return_trace (false);
+
+    for (unsigned i = 0; i < regions.len; i++)
+    {
+      unsigned old_index = region_map.backward (i);
+      if (unlikely (old_index >= src->regions.len ||
+		    !regions[i].serialize_serialize (c,
+					     &(src+src->regions[old_index]))))
+	return_trace (false);
+    }
+    return_trace (true);
   }
 
   public:
@@ -3329,6 +3353,57 @@ struct MultiVarData
 		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c));
   }
 
+  unsigned get_item_count () const
+  { return StructAfter<decltype (deltaSetsX)> (regionIndices).count; }
+
+  void collect_region_refs (hb_set_t &region_indices) const
+  {
+    for (unsigned region : regionIndices)
+      region_indices.add (region);
+  }
+
+  bool serialize (hb_serialize_context_t *c,
+		  const MultiVarData *src,
+		  const hb_inc_bimap_t &inner_map,
+		  const hb_inc_bimap_t &region_map)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned region_count = src->regionIndices.len;
+    unsigned header_size = HBUINT8::static_size +
+			   Array16Of<HBUINT16>::min_size +
+			   region_count * HBUINT16::static_size;
+    if (unlikely (!c->extend_size (this, header_size, false)))
+      return_trace (false);
+    format = 1;
+    regionIndices.len = region_count;
+    for (unsigned i = 0; i < regionIndices.len; i++)
+    {
+      unsigned old_region = src->regionIndices[i];
+      if (unlikely (!region_map.has (old_region)))
+	return_trace (false);
+      regionIndices[i] = region_map.get (old_region);
+    }
+
+    const auto &src_delta_sets = StructAfter<decltype (deltaSetsX)> (src->regionIndices);
+    hb_vector_t<hb_ubytes_t> delta_sets;
+    unsigned data_size = 0;
+    if (unlikely (!delta_sets.alloc_exact (inner_map.get_population ())))
+      return_trace (false);
+    for (unsigned i = 0; i < inner_map.get_population (); i++)
+    {
+      unsigned old_inner = inner_map.backward (i);
+      if (unlikely (old_inner >= src_delta_sets.count)) return_trace (false);
+      hb_ubytes_t bytes = static_cast<const CFF2Index &> (src_delta_sets)[old_inner];
+      data_size = hb_unsigned_add_saturate (data_size, bytes.length);
+      delta_sets.push (bytes);
+    }
+    if (unlikely (data_size == UINT_MAX || delta_sets.in_error ()))
+      return_trace (false);
+
+    auto &out_delta_sets = StructAfter<decltype (deltaSetsX)> (regionIndices);
+    return_trace (out_delta_sets.serialize (c, delta_sets.iter (), &data_size));
+  }
+
   protected:
   HBUINT8	      format; // 1
   Array16Of<HBUINT16> regionIndices;
@@ -3711,6 +3786,79 @@ struct MultiItemVariationStore
 		  format == 1 &&
 		  regions.sanitize (c, this) &&
 		  dataSets.sanitize (c, this));
+  }
+
+  bool create_subset_plan (const hb_set_t &var_indices,
+			   hb_vector_t<hb_inc_bimap_t> *inner_maps,
+			   hb_map_t *varidx_map) const
+  {
+    if (unlikely (!inner_maps->resize (dataSets.len))) return false;
+    for (hb_codepoint_t var_idx : var_indices)
+    {
+      unsigned outer = var_idx >> 16;
+      unsigned inner = var_idx & 0xFFFFu;
+      if (unlikely (outer >= dataSets.len ||
+		    inner >= (this+dataSets[outer]).get_item_count ()))
+	return false;
+      (*inner_maps)[outer].add (inner);
+    }
+
+    unsigned new_outer = 0;
+    for (unsigned outer = 0; outer < inner_maps->length; outer++)
+    {
+      const hb_inc_bimap_t &inner_map = (*inner_maps)[outer];
+      if (!inner_map.get_population ()) continue;
+      if (unlikely (inner_map.in_error ())) return false;
+      for (unsigned new_inner = 0;
+	   new_inner < inner_map.get_population ();
+	   new_inner++)
+      {
+	unsigned old_inner = inner_map.backward (new_inner);
+	varidx_map->set ((outer << 16) | old_inner,
+			(new_outer << 16) | new_inner);
+      }
+      new_outer++;
+    }
+    return !inner_maps->in_error () && !varidx_map->in_error ();
+  }
+
+  bool serialize (hb_serialize_context_t *c,
+		  const MultiItemVariationStore *src,
+		  const hb_array_t<const hb_inc_bimap_t> &inner_maps)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (this) ||
+		  inner_maps.length < src->dataSets.len))
+      return_trace (false);
+    format = 1;
+
+    const auto &src_regions = src+src->regions;
+    hb_set_t region_indices;
+    unsigned set_count = 0;
+    for (unsigned i = 0; i < src->dataSets.len; i++)
+    {
+      if (!inner_maps[i].get_population ()) continue;
+      set_count++;
+      (src+src->dataSets[i]).collect_region_refs (region_indices);
+    }
+    region_indices.del_range (src_regions.regions.len, hb_set_t::INVALID);
+    hb_inc_bimap_t region_map;
+    region_map.add_set (&region_indices);
+    if (unlikely (region_indices.in_error () || region_map.in_error () ||
+		  !regions.serialize_serialize (c, &src_regions, region_map)))
+      return_trace (false);
+
+    dataSets.len = set_count;
+    if (unlikely (!c->extend (dataSets))) return_trace (false);
+    unsigned set_index = 0;
+    for (unsigned i = 0; i < src->dataSets.len; i++)
+    {
+      if (!inner_maps[i].get_population ()) continue;
+      if (unlikely (!dataSets[set_index++].serialize_serialize (
+			    c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
+	return_trace (false);
+    }
+    return_trace (true);
   }
 
   protected:
@@ -4365,6 +4513,13 @@ struct Condition
     return_trace (c->end_recursion (this->dispatch (c)));
   }
 
+  bool collect_var_indices (hb_set_t *var_indices,
+			    unsigned depth = HB_MAX_NESTING_LEVEL) const;
+
+  bool serialize (hb_serialize_context_t *c,
+		  const Condition *src,
+		  const hb_map_t &varidx_map);
+
   protected:
   union {
   struct { HBUINT16 v; }	format;		/* Format identifier */
@@ -4393,6 +4548,28 @@ struct ConditionList
   const Condition& operator[] (unsigned i) const
   { return this+conditions[i]; }
 
+  unsigned get_count () const { return conditions.len; }
+
+  bool serialize (hb_serialize_context_t *c,
+		  const ConditionList *src,
+		  const hb_inc_bimap_t &condition_map,
+		  const hb_map_t &varidx_map)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
+    conditions.len = condition_map.get_population ();
+    if (unlikely (!c->extend (conditions))) return_trace (false);
+    for (unsigned i = 0; i < conditions.len; i++)
+    {
+      unsigned old_index = condition_map.backward (i);
+      if (unlikely (old_index >= src->conditions.len ||
+		    !conditions[i].serialize_serialize (
+			c, &(src+src->conditions[old_index]), varidx_map)))
+	return_trace (false);
+    }
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -4404,6 +4581,102 @@ struct ConditionList
   public:
   DEFINE_SIZE_ARRAY (4, conditions);
 };
+
+inline bool
+Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth) const
+{
+  if (unlikely (!depth)) return false;
+  switch (u.format.v)
+  {
+    case 1:
+      return true;
+    case 2:
+      if (u.format2.varIdx != VarIdx::NO_VARIATION)
+	var_indices->add (u.format2.varIdx);
+      return !var_indices->in_error ();
+    case 3:
+      for (const auto &offset : u.format3.conditions)
+	if (unlikely (!(&u.format3+offset).collect_var_indices (var_indices,
+							     depth - 1)))
+	  return false;
+      return true;
+    case 4:
+      for (const auto &offset : u.format4.conditions)
+	if (unlikely (!(&u.format4+offset).collect_var_indices (var_indices,
+							     depth - 1)))
+	  return false;
+      return true;
+    case 5:
+      return (&u.format5+u.format5.condition).collect_var_indices (var_indices,
+								  depth - 1);
+    default:
+      return false;
+  }
+}
+
+inline bool
+Condition::serialize (hb_serialize_context_t *c,
+		      const Condition *src,
+		      const hb_map_t &varidx_map)
+{
+  TRACE_SERIALIZE (this);
+  switch (src->u.format.v)
+  {
+    case 1:
+      return_trace (bool (c->embed (&src->u.format1)));
+    case 2:
+    {
+      auto *out = c->embed (&src->u.format2);
+      if (unlikely (!out ||
+		    (src->u.format2.varIdx != VarIdx::NO_VARIATION &&
+		     !varidx_map.has (src->u.format2.varIdx))))
+	return_trace (false);
+      out->varIdx = src->u.format2.varIdx == VarIdx::NO_VARIATION ?
+		    src->u.format2.varIdx : varidx_map.get (src->u.format2.varIdx);
+      return_trace (true);
+    }
+    case 3:
+    {
+      auto *out = c->start_embed<ConditionAnd> ();
+      if (unlikely (!c->extend_min (out))) return_trace (false);
+      out->format = 3;
+      out->conditions.len = src->u.format3.conditions.len;
+      if (unlikely (!c->extend (out->conditions))) return_trace (false);
+      for (unsigned i = 0; i < out->conditions.len; i++)
+	if (unlikely (!out->conditions[i].serialize_serialize (
+			c, &(&src->u.format3+src->u.format3.conditions[i]),
+			varidx_map)))
+	  return_trace (false);
+      return_trace (true);
+    }
+    case 4:
+    {
+      auto *out = c->start_embed<ConditionOr> ();
+      if (unlikely (!c->extend_min (out))) return_trace (false);
+      out->format = 4;
+      out->conditions.len = src->u.format4.conditions.len;
+      if (unlikely (!c->extend (out->conditions))) return_trace (false);
+      for (unsigned i = 0; i < out->conditions.len; i++)
+	if (unlikely (!out->conditions[i].serialize_serialize (
+			c, &(&src->u.format4+src->u.format4.conditions[i]),
+			varidx_map)))
+	  return_trace (false);
+      return_trace (true);
+    }
+    case 5:
+    {
+      auto *out = c->embed (&src->u.format5);
+      if (unlikely (!out ||
+		    !out->condition.serialize_serialize (
+			c, &(&src->u.format5+src->u.format5.condition),
+			varidx_map)))
+	return_trace (false);
+      return_trace (true);
+    }
+    default:
+      return_trace (false);
+  }
+}
 
 struct ConditionSet
 {
