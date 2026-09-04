@@ -135,9 +135,6 @@ static void test_shaper (const char *shaper,
    ->Unit(benchmark::kMillisecond);
 }
 
-static const char *font_file = nullptr;
-static const char *text_file = nullptr;
-
 static bool
 parse_variations ()
 {
@@ -172,8 +169,6 @@ parse_variations ()
 
 static GOptionEntry entries[] =
 {
-  {"font-file", 0, 0, G_OPTION_ARG_STRING, &font_file, "Font file-path to benchmark", "FONTFILE"},
-  {"text-file", 0, 0, G_OPTION_ARG_STRING, &text_file, "Text file-path to benchmark", "TEXTFILE"},
   {"variations", 0, 0, G_OPTION_ARG_STRING, &variations_string, "Comma-separated font variations to apply during shaping", "VARIATIONS"},
   {"direction", 0, 0, G_OPTION_ARG_STRING, &direction, "Direction to apply during shaping", "DIRECTION"},
   {nullptr}
@@ -181,7 +176,7 @@ static GOptionEntry entries[] =
 
 static void print_usage (const char *prgname)
 {
-  g_print ("Usage: %s [OPTIONS] [FONTFILE]\n", prgname);
+  g_print ("Usage: %s [OPTIONS] [FONTFILE TEXTFILE]...\n", prgname);
 }
 
 int main(int argc, char** argv)
@@ -219,47 +214,43 @@ int main(int argc, char** argv)
   g_option_context_parse (context, &argc, &argv, nullptr);
   g_option_context_free (context);
 
-  if (!parse_variations ())
-  {
-    g_printerr ("Failed to allocate font variations.\n");
-    return 1;
-  }
-
   argc--;
   argv++;
-  if (!font_file && argc)
+  if (argc % 2)
   {
-    font_file = *argv;
-    argv++;
-    argc--;
-  }
-  if (!text_file && argc)
-  {
-    text_file = *argv;
-    argv++;
-    argc--;
-  }
-
-  if (argc)
-  {
-    g_printerr ("Unexpected arguments: ");
-    for (int i = 0; i < argc; i++)
-      g_printerr ("%s ", argv[i]);
-    g_printerr ("\n\n");
+    g_printerr ("Font and text files must be provided in pairs.\n\n");
     print_usage (prgname);
     return 1;
   }
 
-  test_input_t static_test = {};
-  if (font_file && text_file)
+  unsigned custom_num_tests = argc / 2;
+  if (custom_num_tests)
   {
-    if (font_file && text_file)
+    tests = (test_input_t *) calloc (custom_num_tests, sizeof (*tests));
+    if (!tests)
     {
-      static_test.font_path = font_file;
-      static_test.text_path = text_file;
-      tests = &static_test;
-      num_tests = 1;
+      g_printerr ("Failed to allocate test inputs.\n");
+      return 1;
     }
+
+    unsigned i = 0;
+    while (argc)
+    {
+      tests[i].font_path = argv[0];
+      tests[i].text_path = argv[1];
+      i++;
+      argc -= 2;
+      argv += 2;
+    }
+    num_tests = custom_num_tests;
+  }
+
+  if (!parse_variations ())
+  {
+    g_printerr ("Failed to allocate font variations.\n");
+    if (tests != default_tests)
+      free (tests);
+    return 1;
   }
 
   for (unsigned i = 0; i < num_tests; i++)
@@ -274,4 +265,6 @@ int main(int argc, char** argv)
   benchmark::Shutdown();
 
   free (variations);
+  if (tests != default_tests)
+    free (tests);
 }
