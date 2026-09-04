@@ -5873,9 +5873,6 @@ struct hb_ot_layout_lookup_accelerator_t
   typedef bool (*apply_func_t) (const hb_ot_layout_lookup_accelerator_t *accel,
 				hb_ot_apply_context_t                   *c);
 
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   static bool apply_one (const hb_ot_layout_lookup_accelerator_t *accel,
 			 hb_ot_apply_context_t                   *c)
   {
@@ -5887,9 +5884,6 @@ struct hb_ot_layout_lookup_accelerator_t
     return accel->subtables[0].apply_no_digest (c);
   }
 
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   static bool apply_many (const hb_ot_layout_lookup_accelerator_t *accel,
 			  hb_ot_apply_context_t                   *c)
   {
@@ -5901,16 +5895,10 @@ struct hb_ot_layout_lookup_accelerator_t
   }
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   static bool apply_cached_one (const hb_ot_layout_lookup_accelerator_t *accel,
 				hb_ot_apply_context_t                   *c)
   { return accel->subtables[0].apply_cached_no_digest (c); }
 
-#ifndef HB_OPTIMIZE_SIZE
-  HB_ALWAYS_INLINE
-#endif
   static bool apply_cached_many (const hb_ot_layout_lookup_accelerator_t *accel,
 				 hb_ot_apply_context_t                   *c)
   {
