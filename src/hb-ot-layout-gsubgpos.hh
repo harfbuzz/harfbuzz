@@ -5849,14 +5849,6 @@ struct hb_ot_layout_lookup_accelerator_t
     thiz->count = count;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    if (count > 4)
-    {
-      thiz->subtable_index_cache = (hb_ot_layout_subtable_index_cache_t *)
-				   hb_malloc (sizeof (hb_ot_layout_subtable_index_cache_t));
-      if (likely (thiz->subtable_index_cache))
-	new (thiz->subtable_index_cache) hb_ot_layout_subtable_index_cache_t ();
-    }
-
     thiz->subtable_cache_user_idx = c_accelerate_subtables.subtable_cache_user_idx;
 
     for (unsigned i = 0; i < count; i++)
@@ -5870,7 +5862,6 @@ struct hb_ot_layout_lookup_accelerator_t
   void fini ()
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    hb_free (subtable_index_cache);
     for (unsigned i = 0; i < count; i++)
       hb_free (subtables[i].external_cache);
 #endif
@@ -5897,49 +5888,6 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
       return subtables[0].apply_no_digest (c);
     }
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    if (subtable_index_cache)
-    {
-      hb_codepoint_t glyph = c->buffer->cur().codepoint;
-      unsigned cached_index;
-      if (subtable_index_cache->get (glyph, &cached_index) &&
-	  cached_index < count)
-      {
-	if (use_cache ? subtables[cached_index].apply_cached_no_digest (c) :
-			subtables[cached_index].apply_no_digest (c))
-	  return true;
-
-	/* The cached subtable was the first whose digest admitted this glyph,
-	 * so no earlier subtable can apply. */
-	for (unsigned i = cached_index + 1; i < count; i++)
-	  if (use_cache ? subtables[i].apply_cached (c) : subtables[i].apply (c))
-	    return true;
-	return false;
-      }
-
-      /* Only cache a successful subtable if all earlier subtable digests
-	 * reject the glyph.  This preserves lookup order when contextual
-	 * subtables have overlapping first-glyph coverages. */
-      unsigned i = 0;
-      while (i < count && !subtables[i].digest.may_have (glyph))
-	i++;
-      if (i < count)
-      {
-	if (use_cache ? subtables[i].apply_cached_no_digest (c) :
-			subtables[i].apply_no_digest (c))
-	{
-	  subtable_index_cache->set (glyph, i);
-	  return true;
-	}
-	i++;
-      }
-      for (; i < count; i++)
-	if (use_cache ? subtables[i].apply_cached (c) : subtables[i].apply (c))
-	  return true;
-      return false;
-    }
-#endif
-
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
@@ -5982,7 +5930,6 @@ struct hb_ot_layout_lookup_accelerator_t
   private:
   unsigned count = 0; /* Number of subtables in the array. */
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-  hb_ot_layout_subtable_index_cache_t *subtable_index_cache = nullptr;
   unsigned subtable_cache_user_idx = (unsigned) -1;
 #endif
   hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];

@@ -35,9 +35,6 @@ static_assert (sizeof (hb_ot_layout_mapping_cache_t) == 512, "");
 using hb_ot_layout_binary_cache_t = hb_cache_t<14, 1, 8>;
 static_assert (sizeof (hb_ot_layout_binary_cache_t) == 256, "");
 
-using hb_ot_layout_subtable_index_cache_t = hb_cache_t<12, 3, 7>;
-static_assert (sizeof (hb_ot_layout_subtable_index_cache_t) == 128, "");
-
 namespace OT {
 namespace Layout {
 
