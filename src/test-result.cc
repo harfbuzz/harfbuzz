@@ -87,8 +87,8 @@ static result<void> try_callee_void (bool fail,  error_code_t e)
 
 static result<int> try_caller (bool fail1, bool fail2)
 {
-  int index = TRY (try_callee (fail1, 10, ERR_A));
-  int index2 = TRY (try_callee (fail2, 20, ERR_B));
+  TRY_ASSIGN (int index, try_callee (fail1, 10, ERR_A));
+  TRY_ASSIGN (int index2, try_callee (fail2, 20, ERR_B));
   return Ok(index + index2);
 }
 
@@ -100,8 +100,15 @@ static result<void> try_caller_void (bool fail)
 
 static result<float> try_caller_type_change (bool fail)
 {
-  int index = TRY (try_callee (fail, 100, ERR_A));
+  TRY_ASSIGN (int index, try_callee (fail, 100, ERR_A));
   return Ok((float) index * 1.5f);
+}
+
+static result<int> try_assign_existing (bool fail)
+{
+  int val = 1;
+  TRY_ASSIGN (val, try_callee (fail, 42, ERR_A));
+  return Ok(val);
 }
 
 static void test_ok_basic ()
@@ -243,6 +250,15 @@ static void test_try_macro ()
   result<float> f_err = try_caller_type_change (true);
   hb_always_assert (f_err.is_err ());
   hb_always_assert (f_err.error () == ERR_A);
+
+  // Test TRY_ASSIGN into existing variable
+  result<int> a_ok = try_assign_existing (false);
+  hb_always_assert (a_ok.is_ok ());
+  hb_always_assert (a_ok.value () == 42);
+
+  result<int> a_err = try_assign_existing (true);
+  hb_always_assert (a_err.is_err ());
+  hb_always_assert (a_err.error () == ERR_A);
 }
 
 template <typename T, typename U, typename = void>

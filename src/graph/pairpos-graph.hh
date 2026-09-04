@@ -54,7 +54,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
   {
     hb_set_t visited;
 
-    const unsigned coverage_id = TRY(c.graph.index_for_offset (this_index, &coverage));
+    TRY_ASSIGN (const unsigned coverage_id, c.graph.index_for_offset (this_index, &coverage));
     const unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
 
@@ -63,7 +63,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     hb_vector_t<unsigned> split_points;
     for (unsigned i = 0; i < pairSet.len; i++)
     {
-      unsigned pair_set_index = TRY(pair_set_graph_index (c, this_index, i));
+      TRY_ASSIGN (unsigned pair_set_index, pair_set_graph_index (c, this_index, i));
       unsigned accumulated_delta =
           c.graph.find_subgraph_size (pair_set_index, visited).value_or (0) +
           SmallTypes::size; // for PairSet offset.
@@ -129,7 +129,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     pairSet.len = count;
     c.graph.vertices_[this_index].shrink_buffer ((old_count - count) * SmallTypes::size);
 
-    auto coverage = TRY(c.graph.as_mutable_table<Coverage> (this_index, &this->coverage));
+    TRY_ASSIGN (auto coverage, c.graph.as_mutable_table<Coverage> (this_index, &this->coverage));
 
     unsigned coverage_size = coverage.vertex->table_size ();
     auto new_coverage =
@@ -156,7 +156,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     unsigned prime_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size
                           + num_pair_sets * SmallTypes::size;
 
-    unsigned pair_pos_prime_id = TRY (c.create_node (prime_size));
+    TRY_ASSIGN (unsigned pair_pos_prime_id, c.create_node (prime_size));
 
     PairPosFormat1* pair_pos_prime = (PairPosFormat1*) c.graph.object (pair_pos_prime_id).head;
     pair_pos_prime->format = this->format;
@@ -175,7 +175,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     // Restore correct ordering of the vertex links which are disturbed by move_child.
     c.graph.vertices_[this_index].sort_real_links ();
 
-    unsigned coverage_id = TRY(c.graph.index_for_offset (this_index, &coverage));
+    TRY_ASSIGN (unsigned coverage_id, c.graph.index_for_offset (this_index, &coverage));
     TRY (Coverage::clone_coverage (c,
                                    coverage_id,
                                    pair_pos_prime_id,
@@ -212,16 +212,16 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                                          unsigned this_index)
   {
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size;
-    const unsigned class_def_2_size = TRY(size_of (c, this_index, &classDef2));
-    const Coverage* coverage = TRY(get_coverage (c, this_index));
-    const ClassDef* class_def_1 = TRY(get_class_def_1 (c, this_index));
+    TRY_ASSIGN (const unsigned class_def_2_size, size_of (c, this_index, &classDef2));
+    TRY_ASSIGN (const Coverage* coverage, get_coverage (c, this_index));
+    TRY_ASSIGN (const ClassDef* class_def_1, get_class_def_1 (c, this_index));
     auto gid_and_class =
         + coverage->iter ()
         | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
           return hb_codepoint_pair_t (gid, class_def_1->get_class (gid));
         })
         ;
-    class_def_size_estimator_t estimator = TRY (class_def_size_estimator_t::create (gid_and_class));
+    TRY_ASSIGN (class_def_size_estimator_t estimator, class_def_size_estimator_t::create (gid_and_class));
 
     const unsigned class1_count = class1Count;
     const unsigned class2_count = class2Count;
@@ -239,7 +239,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     hb_vector_t<unsigned> split_points;
 
-    hb_hashmap_t<unsigned, unsigned> device_tables = TRY(get_all_device_tables (c, this_index));
+    TRY_ASSIGN (auto device_tables, get_all_device_tables (c, this_index));
     hb_vector_t<unsigned> format1_device_table_indices = valueFormat1.get_device_table_indices ();
     hb_vector_t<unsigned> format2_device_table_indices = valueFormat2.get_device_table_indices ();
     bool has_device_tables = bool(format1_device_table_indices) || bool(format2_device_table_indices);
@@ -360,7 +360,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     unsigned prime_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
                           + num_records * split_context.class1_record_size;
 
-    unsigned pair_pos_prime_id = TRY (split_context.c.create_node (prime_size));
+    TRY_ASSIGN (unsigned pair_pos_prime_id, split_context.c.create_node (prime_size));
 
     PairPosFormat2* pair_pos_prime =
         (PairPosFormat2*) graph.object (pair_pos_prime_id).head;
@@ -374,10 +374,10 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                start,
                                end));
 
-    unsigned coverage_id =
-        TRY(graph.index_for_offset (split_context.this_index, &coverage));
-    unsigned class_def_1_id =
-        TRY(graph.index_for_offset (split_context.this_index, &classDef1));
+    TRY_ASSIGN (unsigned coverage_id,
+         graph.index_for_offset (split_context.this_index, &coverage));
+    TRY_ASSIGN (unsigned class_def_1_id,
+         graph.index_for_offset (split_context.this_index, &classDef1));
 
     auto& coverage_v = graph.vertices_[coverage_id];
     auto& class_def_1_v = graph.vertices_[class_def_1_id];
@@ -416,8 +416,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                   split_context.max_class_def_size));
 
     // classDef2
-    unsigned class_def_2_id =
-        TRY(graph.index_for_offset (split_context.this_index, &classDef2));
+    TRY_ASSIGN (unsigned class_def_2_id,
+         graph.index_for_offset (split_context.this_index, &classDef2));
 
     TRY(graph.vertices_[pair_pos_prime_id].add_real_link (SmallTypes::size, class_def_2_id, 10));
     TRY(graph.vertices_[class_def_2_id].add_parent (pair_pos_prime_id, false));
@@ -514,11 +514,11 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     graph.vertices_[split_context.this_index].shrink_buffer(
         (old_count - count) * split_context.class1_record_size);
 
-    auto coverage =
-        TRY(graph.as_mutable_table<Coverage> (split_context.this_index, &this->coverage));
+    TRY_ASSIGN (auto coverage,
+         graph.as_mutable_table<Coverage> (split_context.this_index, &this->coverage));
 
-    auto class_def_1 =
-        TRY(graph.as_mutable_table<ClassDef> (split_context.this_index, &classDef1));
+    TRY_ASSIGN (auto class_def_1,
+         graph.as_mutable_table<ClassDef> (split_context.this_index, &classDef1));
 
     auto klass_map =
     + coverage.table->iter ()
@@ -555,7 +555,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   graph_result_t<const Coverage*> get_coverage (gsubgpos_graph_context_t& c,
                                                 unsigned this_index) const
   {
-    unsigned coverage_id = TRY(c.graph.index_for_offset (this_index, &coverage));
+    TRY_ASSIGN (unsigned coverage_id, c.graph.index_for_offset (this_index, &coverage));
     auto& coverage_v = c.graph.vertices_[coverage_id];
 
     const Coverage* coverage_table = (const Coverage*) coverage_v.obj().head;
@@ -568,7 +568,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   graph_result_t<const ClassDef*> get_class_def_1 (gsubgpos_graph_context_t& c,
                                                    unsigned this_index) const
   {
-    unsigned class_def_1_id = TRY(c.graph.index_for_offset (this_index, &classDef1));
+    TRY_ASSIGN (unsigned class_def_1_id, c.graph.index_for_offset (this_index, &classDef1));
     auto& class_def_1_v = c.graph.vertices_[class_def_1_id];
 
     const ClassDef* class_def_1_table = (const ClassDef*) class_def_1_v.obj().head;
@@ -599,7 +599,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                     unsigned this_index,
                                     const void* offset) const
   {
-    const unsigned id = TRY(c.graph.index_for_offset (this_index, offset));
+    TRY_ASSIGN (const unsigned id, c.graph.index_for_offset (this_index, offset));
     return Ok(c.graph.vertices_[id].table_size ());
   }
 };

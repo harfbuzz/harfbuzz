@@ -46,7 +46,7 @@ graph_result_t<hb_vector_t<unsigned>> actuate_subtable_split (Context& split_con
     unsigned end = (i < split_points.length - 1)
                    ? split_points[i + 1]
                    : split_context.original_count ();
-    unsigned id = TRY (split_context.clone_range (start, end));
+    TRY_ASSIGN (unsigned id, split_context.clone_range (start, end));
     new_objects.push (id);
     TRY (graph_result_t<void>::from (new_objects, ALLOCATION_FAILURE));
   }

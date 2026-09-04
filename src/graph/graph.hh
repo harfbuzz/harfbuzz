@@ -152,7 +152,7 @@ struct graph_t
     const hb_serialize_context_t::object_t& obj() const { return obj_; }
 
     template<typename T>
-    T as ()
+    T as () const
     {
       return reinterpret_cast<T> (obj_.head);
     }
@@ -858,13 +858,14 @@ public:
   template <typename T, typename ...Ts>
   graph_result_t<vertex_and_table_t<T, Immutable>> as_table (unsigned parent, const void* offset, Ts... ds)
   {
-    return TRY(as_table_from_index<T> (TRY(index_for_offset (parent, offset)), std::forward<Ts>(ds)...));
+    TRY_ASSIGN (unsigned idx, index_for_offset (parent, offset));
+    return as_table_from_index<T, Immutable> (idx, std::forward<Ts>(ds)...);
   }
 
   template <typename T, typename ...Ts>
   graph_result_t<vertex_and_table_t<T, Mutable>> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
   {
-    auto idx = TRY(mutable_index_for_offset (parent, offset));
+    TRY_ASSIGN (auto idx, mutable_index_for_offset (parent, offset));
     return as_table_from_index<T, Mutable> (idx, std::forward<Ts>(ds)...);
   }
 
@@ -912,7 +913,7 @@ public:
   // it will be duplicated and the duplicate will be returned instead.
   graph_result_t<unsigned> mutable_index_for_offset (unsigned node_idx, const void* offset)
   {
-    unsigned child_idx = TRY(index_for_offset (node_idx, offset));
+    TRY_ASSIGN (unsigned child_idx, index_for_offset (node_idx, offset));
     if (unlikely (child_idx >= vertices_.length))
       return Err(OUT_OF_BOUNDS);
 
@@ -1233,8 +1234,8 @@ public:
     auto& old_v = vertices_[old_parent_idx];
     auto& new_v = vertices_[new_parent_idx];
 
-    unsigned child_id = TRY(index_for_offset (old_parent_idx,
-                                              old_offset));
+    TRY_ASSIGN (unsigned child_id, index_for_offset (old_parent_idx,
+                                                     old_offset));
     if (unlikely (child_id >= vertices_.length))
       return Err(OUT_OF_BOUNDS);
 
@@ -1428,7 +1429,7 @@ public:
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u => %u",
                parent_idx, child_idx);
 
-    unsigned clone_idx = TRY (duplicate (child_idx, copy_table));
+    TRY_ASSIGN (unsigned clone_idx, duplicate (child_idx, copy_table));
     // duplicate shifts the root node idx, so if parent_idx was root update it.
     if (parent_idx == clone_idx) parent_idx++;
 
@@ -1493,7 +1494,7 @@ public:
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %u, ..., %u => %u", first_parent, last_parent, child_idx);
 
-    unsigned clone_idx = TRY (duplicate (child_idx));
+    TRY_ASSIGN (unsigned clone_idx, duplicate (child_idx));
 
     for (unsigned parent_idx : *parents) {
       // duplicate shifts the root node idx, so if parent_idx was root update it.
@@ -1556,7 +1557,7 @@ public:
     if (unlikely (parent_idx >= vertices_.length || old_child_idx >= vertices_.length))
       return Err(OUT_OF_BOUNDS);
 
-    unsigned new_child_idx = TRY (duplicate (old_child_idx));
+    TRY_ASSIGN (unsigned new_child_idx, duplicate (old_child_idx));
 
     auto& parent = vertices_[parent_idx];
     for (auto& l : parent.real_links_writer ())

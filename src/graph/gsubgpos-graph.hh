@@ -114,7 +114,7 @@ struct Lookup : public OT::Lookup
 
     for (unsigned i = 0; i < subTable.len; i++)
     {
-      unsigned subtable_index = TRY(c.graph.index_for_offset (this_index, &subTable[i]));
+      TRY_ASSIGN (unsigned subtable_index, c.graph.index_for_offset (this_index, &subTable[i]));
       TRY (make_subtable_extension (c,
                                     this_index,
                                     subtable_index));
@@ -150,7 +150,7 @@ struct Lookup : public OT::Lookup
         if (!extension || !extension->sanitize (c.graph.vertices_[ext_subtable_index]).is_ok ())
           continue;
 
-        subtable_index = TRY(extension->get_subtable_index (c.graph, ext_subtable_index));
+        TRY_ASSIGN (subtable_index, extension->get_subtable_index (c.graph, ext_subtable_index));
         type = extension->get_lookup_type ();
         if (!is_supported_gpos_type(type, c) && !is_supported_gsub_type(type, c))
           continue;
@@ -172,9 +172,15 @@ struct Lookup : public OT::Lookup
           switch (type)
           {
           case 2:
-            new_sub_tables = TRY (split_subtable<PairPos> (c, subtable_index)); break;
+            {
+              TRY_ASSIGN (new_sub_tables, split_subtable<PairPos> (c, subtable_index));
+              break;
+            }
           case 4:
-            new_sub_tables = TRY (split_subtable<MarkBasePos> (c, subtable_index)); break;
+            {
+              TRY_ASSIGN (new_sub_tables, split_subtable<MarkBasePos> (c, subtable_index));
+              break;
+            }
           default:
             break;
           }
@@ -182,7 +188,10 @@ struct Lookup : public OT::Lookup
           switch (type)
           {
           case 4:
-            new_sub_tables = TRY (split_subtable<graph::LigatureSubst> (c, subtable_index)); break;
+            {
+              TRY_ASSIGN (new_sub_tables, split_subtable<graph::LigatureSubst> (c, subtable_index));
+              break;
+            }
           default:
             break;
           }
@@ -258,7 +267,7 @@ struct Lookup : public OT::Lookup
       {
         if (is_ext)
         {
-          unsigned ext_id = TRY (create_extension_subtable (c, subtable_id, type));
+          TRY_ASSIGN (unsigned ext_id, create_extension_subtable (c, subtable_id, type));
           TRY(c.graph.vertices_[subtable_id].add_parent (ext_id, false));
           subtable_id = ext_id;
           // the reference to v may have changed on adding a node, so reassign it.
@@ -307,7 +316,7 @@ struct Lookup : public OT::Lookup
   {
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
 
-    unsigned ext_index = TRY (c.create_node (extension_size));
+    TRY_ASSIGN (unsigned ext_index, c.create_node (extension_size));
 
     auto& ext_vertex = c.graph.vertices_[ext_index];
     ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
@@ -330,7 +339,7 @@ struct Lookup : public OT::Lookup
     if (c.subtable_to_extension.has(subtable_index, &existing_ext_index)) {
       ext_index = *existing_ext_index;
     } else {
-      ext_index = TRY (create_extension_subtable(c, subtable_index, type));
+      TRY_ASSIGN (ext_index, create_extension_subtable(c, subtable_index, type));
       c.subtable_to_extension.set(subtable_index, ext_index);
       TRY (graph_result_t<void>::from (c.subtable_to_extension, ALLOCATION_FAILURE));
     }
@@ -458,7 +467,7 @@ struct GSTAR : public OT::GSUBGPOS
   graph_result_t<void> find_lookups (graph_t& graph,
                                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */) const
   {
-    unsigned lookup_list_idx = TRY(get_lookup_list_index (graph));
+    TRY_ASSIGN (unsigned lookup_list_idx, get_lookup_list_index (graph));
     const LookupList<Types>* lookupList =
         (const LookupList<Types>*) graph.object (lookup_list_idx).head;
     if (unlikely (!lookupList)) return Err(INVALID_ARGUMENT);
@@ -466,7 +475,7 @@ struct GSTAR : public OT::GSUBGPOS
 
     for (unsigned i = 0; i < lookupList->len; i++)
     {
-      unsigned lookup_idx = TRY(graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i])));
+      TRY_ASSIGN (unsigned lookup_idx, graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i])));
       Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
       if (!lookup || !lookup->sanitize (graph.vertices_[lookup_idx]).is_ok ()) continue;
       lookups.set (lookup_idx, lookup);
