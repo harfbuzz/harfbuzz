@@ -1929,6 +1929,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool use_hot_subtable_cache = accel.cache_enter (c);
+  auto apply_func = accel.get_apply_func (use_hot_subtable_cache);
 
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
@@ -1946,7 +1947,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     if (buffer->idx >= buffer->len)
       break;
 
-    if (accel.apply (c, use_hot_subtable_cache))
+    if (apply_func (&accel, c))
       ret = true;
     else
       (void) buffer->next_glyph ();
@@ -1962,6 +1963,8 @@ static inline bool
 apply_backward (OT::hb_ot_apply_context_t *c,
 	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
+  auto apply_func = accel.get_apply_func (false);
+
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   do
@@ -1970,7 +1973,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.digest.may_have (cur.codepoint) &&
 	(cur.mask & c->lookup_mask) &&
 	c->check_glyph_property (&cur, c->lookup_props))
-      ret |= accel.apply (c, false);
+      ret |= apply_func (&accel, c);
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
