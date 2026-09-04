@@ -113,13 +113,23 @@ struct PairPosFormat1_3
   struct external_cache_t
   {
     hb_ot_layout_mapping_cache_t coverage;
+    hb_set_digest_t pair_sets[HB_VAR_ARRAY];
   };
   void *external_cache_create () const
   {
-    external_cache_t *cache = (external_cache_t *) hb_malloc (sizeof (external_cache_t));
+    unsigned count = pairSet.len;
+    unsigned size = sizeof (external_cache_t) -
+		    HB_VAR_ARRAY * sizeof (hb_set_digest_t) +
+		    count * sizeof (hb_set_digest_t);
+    external_cache_t *cache = (external_cache_t *) hb_malloc (size);
     if (likely (cache))
     {
       cache->coverage.clear ();
+      for (unsigned i = 0; i < count; i++)
+      {
+	cache->pair_sets[i].init ();
+	(this+pairSet[i]).collect_second_glyphs (&cache->pair_sets[i], valueFormat);
+      }
     }
     return cache;
   }
@@ -146,6 +156,16 @@ struct PairPosFormat1_3
       buffer->unsafe_to_concat (buffer->idx, unsafe_to);
       return_trace (false);
     }
+
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    if (cache &&
+	index < pairSet.len &&
+	!cache->pair_sets[index].may_have (buffer->info[skippy_iter.idx].codepoint))
+    {
+      buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
+      return_trace (false);
+    }
+#endif
 
     return_trace ((this+pairSet[index]).apply (c, valueFormat, skippy_iter.idx));
   }
