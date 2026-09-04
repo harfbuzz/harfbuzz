@@ -731,6 +731,31 @@ hb_draw_close_path_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
   adaptor->draw_funcs->emit_close_path (adaptor->draw_data, *st);
 }
 
+static hb_bool_t
+hb_draw_set_budget_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+			    int64_t budget,
+			    void *user_data HB_UNUSED)
+{
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
+  return adaptor->draw_funcs->set_budget (adaptor->draw_data, budget);
+}
+
+static int64_t
+hb_draw_get_budget_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+			    void *user_data HB_UNUSED)
+{
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
+  return adaptor->draw_funcs->get_budget (adaptor->draw_data);
+}
+
+static int64_t *
+hb_draw_get_budget_remaining_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+				      void *user_data HB_UNUSED)
+{
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
+  return adaptor->draw_funcs->get_budget_remaining_ptr (adaptor->draw_data);
+}
+
 static const hb_draw_funcs_t _hb_draw_funcs_default = {
   HB_OBJECT_HEADER_STATIC,
 

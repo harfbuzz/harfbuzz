@@ -160,7 +160,6 @@
 
 
 #include "hb-config.hh"
-#include "hb-limits.hh"
 
 
 /*
@@ -564,6 +563,7 @@ extern "C" void  hb_free_impl(void *ptr);
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
  * They express dependency amongst themselves, but no other file should include
  * them directly.*/
+#include "hb-limits.hh"
 #include "hb-cplusplus.hh"
 #include "hb-meta.hh"
 #include "hb-mutex.hh"

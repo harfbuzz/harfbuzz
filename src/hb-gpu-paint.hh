@@ -273,12 +273,20 @@ struct hb_gpu_paint_t
    * which matches HB_GPU_PAINT_GROUP_DEPTH in the fragment shader. */
   unsigned group_depth = 0;
 
-  /* Cumulative work budget for the current paint walk; reset by
-   * hb_gpu_paint_clear().  Charged with the curves consumed by each
-   * clip-glyph encode, so per-glyph outline limits cannot multiply
-   * with the paint-graph traversal limits of the font tables
-   * driving us (e.g. COLR). */
-  int64_t work_left = HB_GPU_PAINT_MAX_WORK;
+  /* Work budget for the current paint session; reset by
+   * hb_gpu_paint_clear().  All the session's work is outline-derived
+   * (outline traversal and the curves generated from it -- the GPU
+   * backend never rasterizes), so a single counter suffices.  It is the
+   * public draw/paint budget: seeded into the scratch encoder through the
+   * public draw-budget API before each glyph and read back afterwards. */
+  int64_t budget = HB_BUDGET_DEFAULT;
+  int64_t budget_remaining = HB_BUDGET_GLYPH;
+
+  void recharge_budget ()
+  {
+    budget_remaining = budget == HB_BUDGET_DEFAULT ?
+		       HB_BUDGET_GLYPH : budget;
+  }
 
   /* Stack of pending clips.  Each color/gradient op consumes the
    * current state of this stack: the layer is rendered where ALL

@@ -51,46 +51,41 @@ hb_vector_svg_buffer_contains (const hb_vector_buf_t &buf, const char *needle)
 static void hb_vector_draw_svg_move_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('M'); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_line_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('L'); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_quadratic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float cx, float cy, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('Q'); d->append_xy_svg (cx, cy); d->path.append_c (' '); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_cubic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float c1x, float c1y, float c2x, float c2y, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('C'); d->append_xy_svg (c1x, c1y); d->path.append_c (' '); d->append_xy_svg (c2x, c2y); d->path.append_c (' '); d->append_xy_svg (x, y);
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_svg_close_path (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_c ('Z');
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 
@@ -99,19 +94,17 @@ static void hb_vector_draw_svg_close_path (hb_draw_funcs_t *, void *dd, hb_draw_
 static void hb_vector_draw_pdf_move_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->append_xy_pdf (x, y); d->path.append_str (" m\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_pdf_line_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->append_xy_pdf (x, y); d->path.append_str (" l\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 /* No quadratic_to — null fallback auto-promotes to cubic. */
@@ -119,19 +112,39 @@ static void hb_vector_draw_pdf_line_to (hb_draw_funcs_t *, void *dd, hb_draw_sta
 static void hb_vector_draw_pdf_cubic_to (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, float c1x, float c1y, float c2x, float c2y, float x, float y, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->append_xy_pdf (c1x, c1y); d->path.append_c (' '); d->append_xy_pdf (c2x, c2y); d->path.append_c (' '); d->append_xy_pdf (x, y); d->path.append_str (" c\n");
-  d->end_path_command (before);
+  d->end_path_command ();
 }
 
 static void hb_vector_draw_pdf_close_path (hb_draw_funcs_t *, void *dd, hb_draw_state_t *, void *)
 {
   auto *d = (hb_vector_draw_t *) dd;
-  unsigned before;
-  if (unlikely (!d->begin_path_command (&before))) return;
+  if (unlikely (!d->begin_path_command ())) return;
   d->path.append_str ("h\n");
-  d->end_path_command (before);
+  d->end_path_command ();
+}
+
+static hb_bool_t
+hb_vector_draw_set_budget (hb_draw_funcs_t *, void *draw_data,
+			   int64_t budget, void *)
+{
+  auto *draw = (hb_vector_draw_t *) draw_data;
+  draw->budget = budget;
+  draw->recharge_budget ();
+  return true;
+}
+
+static int64_t
+hb_vector_draw_get_budget (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_vector_draw_t *) draw_data)->budget;
+}
+
+static int64_t *
+hb_vector_draw_get_budget_remaining (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return &((hb_vector_draw_t *) draw_data)->budget_remaining;
 }
 
 
@@ -149,6 +162,9 @@ static struct hb_vector_draw_svg_funcs_lazy_loader_t
     hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_draw_svg_quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_svg_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_svg_close_path, nullptr, nullptr);
+    hb_draw_funcs_set_set_budget_func (funcs, hb_vector_draw_set_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_func (funcs, hb_vector_draw_get_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_vector_draw_get_budget_remaining, nullptr, nullptr);
     hb_draw_funcs_make_immutable (funcs);
     hb_atexit (free_static_vector_draw_svg_funcs);
     return funcs;
@@ -168,6 +184,9 @@ static struct hb_vector_draw_pdf_funcs_lazy_loader_t
     /* No quadratic_to: null fallback auto-promotes to cubic. */
     hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_pdf_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_pdf_close_path, nullptr, nullptr);
+    hb_draw_funcs_set_set_budget_func (funcs, hb_vector_draw_set_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_func (funcs, hb_vector_draw_get_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_vector_draw_get_budget_remaining, nullptr, nullptr);
     hb_draw_funcs_make_immutable (funcs);
     hb_atexit (free_static_vector_draw_pdf_funcs);
     return funcs;
@@ -949,7 +968,7 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
   draw->defs.clear ();
   draw->body.clear ();
   draw->path.clear ();
-  draw->work_left = HB_VECTOR_MAX_DRAW_WORK;
+  draw->recharge_budget ();
 }
 
 /**
@@ -967,6 +986,7 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
   draw->set_precision (2);
+  draw->budget = HB_BUDGET_DEFAULT;
   hb_vector_draw_clear (draw);
 }
 

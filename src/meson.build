@@ -1001,6 +1001,7 @@ if get_option('tests').enabled()
     'test-multimap': ['test-multimap.cc', 'hb-static.cc'],
     'test-number': ['test-number.cc', 'hb-number.cc'],
     'test-ot-tag': ['hb-ot-tag.cc'],
+    'test-paint-extents': ['test-paint-extents.cc', 'hb-paint-extents.cc', 'hb-static.cc'],
     'test-set': ['test-set.cc', 'hb-static.cc'],
     'test-serialize': ['test-serialize.cc', 'hb-static.cc'],
     'test-vector': ['test-vector.cc', 'hb-static.cc'],
