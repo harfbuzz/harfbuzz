@@ -43,7 +43,9 @@ struct test_input_t
 
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
-const char *variation = nullptr;
+static const char *variations_string = nullptr;
+static hb_variation_t *variations = nullptr;
+static unsigned num_variations = 0;
 const char *direction = nullptr;
 
 static bool shape (hb_buffer_t *buf,
@@ -83,12 +85,8 @@ static void BM_Shape (benchmark::State &state,
     hb_face_destroy (face);
   }
 
-  if (variation)
-  {
-    hb_variation_t var;
-    hb_variation_from_string (variation, -1, &var);
-    hb_font_set_variations (font, &var, 1);
-  }
+  if (variations)
+    hb_font_set_variations (font, variations, num_variations);
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
   assert (text_blob);
@@ -140,11 +138,43 @@ static void test_shaper (const char *shaper,
 static const char *font_file = nullptr;
 static const char *text_file = nullptr;
 
+static bool
+parse_variations ()
+{
+  if (!variations_string || !*variations_string)
+    return true;
+
+  const char *p = variations_string;
+  while (p)
+  {
+    num_variations++;
+    p = strchr (p, ',');
+    if (p) p++;
+  }
+
+  variations = (hb_variation_t *) calloc (num_variations, sizeof (*variations));
+  if (!variations)
+    return false;
+
+  p = variations_string;
+  num_variations = 0;
+  while (p)
+  {
+    const char *end = strchr (p, ',');
+    if (hb_variation_from_string (p, end ? end - p : -1,
+				  &variations[num_variations]))
+      num_variations++;
+    p = end ? end + 1 : nullptr;
+  }
+
+  return true;
+}
+
 static GOptionEntry entries[] =
 {
   {"font-file", 0, 0, G_OPTION_ARG_STRING, &font_file, "Font file-path to benchmark", "FONTFILE"},
   {"text-file", 0, 0, G_OPTION_ARG_STRING, &text_file, "Text file-path to benchmark", "TEXTFILE"},
-  {"variations", 0, 0, G_OPTION_ARG_STRING, &variation, "Variations to apply during shaping", "VARIATIONS"},
+  {"variations", 0, 0, G_OPTION_ARG_STRING, &variations_string, "Comma-separated font variations to apply during shaping", "VARIATIONS"},
   {"direction", 0, 0, G_OPTION_ARG_STRING, &direction, "Direction to apply during shaping", "DIRECTION"},
   {nullptr}
 };
@@ -188,6 +218,12 @@ int main(int argc, char** argv)
   benchmark::Initialize(&argc, argv);
   g_option_context_parse (context, &argc, &argv, nullptr);
   g_option_context_free (context);
+
+  if (!parse_variations ())
+  {
+    g_printerr ("Failed to allocate font variations.\n");
+    return 1;
+  }
 
   argc--;
   argv++;
@@ -236,4 +272,6 @@ int main(int argc, char** argv)
 
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
+
+  free (variations);
 }
