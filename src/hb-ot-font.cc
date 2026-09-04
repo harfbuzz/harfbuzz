@@ -782,7 +782,8 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       {
 	hb_glyph_extents_t extents = {0};
 	if (likely (font->get_glyph_extents (*first_glyph, &extents)))
-	  origin = extents.y_bearing + ((font_advance - -extents.height) >> 1);
+	  origin = hb_clamp_to<hb_position_t> ((int64_t) extents.y_bearing +
+					 (((int64_t) font_advance + extents.height) >> 1));
 	else
 	  origin = font_extents.ascender;
 
