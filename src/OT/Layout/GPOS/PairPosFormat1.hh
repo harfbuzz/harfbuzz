@@ -101,6 +101,13 @@ struct PairPosFormat1_3
       (this+pairSet[i]).collect_glyphs (c, valueFormat);
   }
 
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  {
+    unsigned count = pairSet.len;
+    for (unsigned i = 0; i < count; i++)
+      (this+pairSet[i]).collect_second_glyphs (digest, valueFormat);
+  }
+
   const Coverage &get_coverage () const { return this+coverage; }
 
   struct external_cache_t

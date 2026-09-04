@@ -90,6 +90,9 @@ struct MarkMarkPosFormat1_2
     if (unlikely (!(this+mark2Coverage).collect_coverage (c->input))) return;
   }
 
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  { (this+mark2Coverage).collect_coverage (digest); }
+
   const Coverage &get_coverage () const { return this+mark1Coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
