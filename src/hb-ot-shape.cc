@@ -468,7 +468,8 @@ struct hb_ot_shape_context_t
 /* Prepare */
 
 static void
-hb_set_unicode_props (hb_buffer_t *buffer)
+hb_set_unicode_props (hb_buffer_t *buffer,
+		      hb_mask_t    global_mask)
 {
   /* Implement enough of Unicode Graphemes here that shaping
    * in reverse-direction wouldn't break graphemes.  Namely,
@@ -482,6 +483,7 @@ hb_set_unicode_props (hb_buffer_t *buffer)
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
   {
+    info[i].mask = global_mask;
     _hb_glyph_info_set_unicode_props (&info[i], buffer);
 
     if (info[i].codepoint < 0x80)
@@ -519,6 +521,7 @@ hb_set_unicode_props (hb_buffer_t *buffer)
 	  _hb_unicode_is_emoji_Extended_Pictographic (info[i + 1].codepoint))
       {
 	i++;
+	info[i].mask = global_mask;
 	_hb_glyph_info_set_unicode_props (&info[i], buffer);
 	_hb_glyph_info_set_continuation (&info[i], buffer);
       }
@@ -741,16 +744,6 @@ hb_ot_shape_setup_masks_fraction (const hb_ot_shape_context_t *c)
       i = end - 1;
     }
   }
-}
-
-static inline void
-hb_ot_shape_initialize_masks (const hb_ot_shape_context_t *c)
-{
-  hb_ot_map_t *map = &c->plan->map;
-  hb_buffer_t *buffer = c->buffer;
-
-  hb_mask_t global_mask = map->get_global_mask ();
-  buffer->reset_masks (global_mask);
 }
 
 static inline void
@@ -1178,8 +1171,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   _hb_buffer_allocate_unicode_vars (c->buffer);
 
-  hb_ot_shape_initialize_masks (c);
-  hb_set_unicode_props (c->buffer);
+  hb_set_unicode_props (c->buffer, c->plan->map.get_global_mask ());
   hb_insert_dotted_circle (c->buffer, c->font);
 
   hb_form_clusters (c->buffer);
