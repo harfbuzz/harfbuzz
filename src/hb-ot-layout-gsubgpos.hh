@@ -1782,6 +1782,16 @@ static inline bool match_class (hb_glyph_info_t &info, unsigned value, const voi
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.get_class (info.codepoint) == value;
 }
+struct match_class_cache_data_t
+{
+  const ClassDef *class_def;
+  hb_ot_layout_mapping_cache_t *cache;
+};
+static inline bool match_class_cache (hb_glyph_info_t &info, unsigned value, const void *data)
+{
+  const auto &cache_data = *reinterpret_cast<const match_class_cache_data_t *> (data);
+  return cache_data.class_def->get_class (info.codepoint, cache_data.cache) == value;
+}
 static inline unsigned get_class_cached (const ClassDef &class_def, hb_glyph_info_t &info)
 {
   unsigned klass = info.syllable();
@@ -5401,6 +5411,8 @@ struct ChainContextFormat2_5
   struct external_cache_t
   {
     hb_ot_layout_binary_cache_t coverage;
+    hb_ot_layout_mapping_cache_t input_class;
+    hb_ot_layout_mapping_cache_t lookahead_class;
   };
   void *external_cache_create () const
   {
@@ -5408,6 +5420,8 @@ struct ChainContextFormat2_5
     if (likely (cache))
     {
       cache->coverage.clear ();
+      cache->input_class.clear ();
+      cache->lookahead_class.clear ();
     }
     return cache;
   }
@@ -5428,20 +5442,58 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    match_class_cache_data_t input_cache_data = {
+      &input_class_def,
+      cache ? &cache->input_class : nullptr
+    };
+    match_class_cache_data_t lookahead_cache_data = {
+      &lookahead_class_def,
+      cache ? &cache->lookahead_class : nullptr
+    };
+    const void *input_match_data = cached
+      ? static_cast<const void *> (&input_class_def)
+      : static_cast<const void *> (&input_cache_data);
+    const void *lookahead_match_data = cached
+      ? static_cast<const void *> (&lookahead_class_def)
+      : static_cast<const void *> (&lookahead_cache_data);
+    bool backtrack_uses_lookahead_cache =
+      !cached && &backtrack_class_def == &lookahead_class_def;
+    const void *backtrack_match_data = backtrack_uses_lookahead_cache
+      ? static_cast<const void *> (&lookahead_cache_data)
+      : static_cast<const void *> (&backtrack_class_def);
+#endif
+
     /* match_class_caches1 is slightly faster. Use it for lookahead,
      * which is typically longer. */
     struct ChainContextApplyLookupContext lookup_context = {
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+      {{cached && &backtrack_class_def == &lookahead_class_def ? match_class_cached1 :
+        backtrack_uses_lookahead_cache ? match_class_cache : match_class,
+        cached ? match_class_cached2 : match_class_cache,
+        cached ? match_class_cached1 : match_class_cache}},
+      {backtrack_match_data,
+       input_match_data,
+       lookahead_match_data}
+#else
       {{cached && &backtrack_class_def == &lookahead_class_def ? match_class_cached1 : match_class,
         cached ? match_class_cached2 : match_class,
         cached ? match_class_cached1 : match_class}},
       {&backtrack_class_def,
        &input_class_def,
        &lookahead_class_def}
+#endif
     };
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    index = cached
+         ? get_class_cached2 (input_class_def, c->buffer->cur())
+         : input_class_def.get_class (c->buffer->cur().codepoint, input_cache_data.cache);
+#else
     index = cached
          ? get_class_cached2 (input_class_def, c->buffer->cur())
           : input_class_def.get_class (c->buffer->cur().codepoint);
+#endif
     const ChainRuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
