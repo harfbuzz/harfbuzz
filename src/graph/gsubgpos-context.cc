@@ -37,9 +37,9 @@ graph_result_t<gsubgpos_graph_context_t> gsubgpos_graph_context_t::create (hb_ta
                 && table_tag_ != HB_OT_TAG_GSUB))
     return Err(INVALID_ARGUMENT);
 
-  const GSTAR* gstar = TRY(graph::GSTAR::graph_to_gstar (context.graph));
+  TRY_ASSIGN (const GSTAR* gstar, graph::GSTAR::graph_to_gstar (context.graph));
   TRY(gstar->find_lookups (context.graph, context.lookups));
-  context.lookup_list_index = TRY(gstar->get_lookup_list_index (context.graph));
+  TRY_ASSIGN (context.lookup_list_index, gstar->get_lookup_list_index (context.graph));
 
   return context;
 }

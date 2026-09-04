@@ -494,12 +494,18 @@ static inline bool operator != (const hb_result_err_t<F>& e, const hb_result_t<T
 }
 
 #ifndef TRY
-#define TRY(...)                                                     \
-  ({                                                                 \
-    auto res = (__VA_ARGS__);                                        \
-    if (unlikely (!res.is_ok())) return Err(std::move(res).error()); \
-    *std::move(res);                                                 \
-  })
+#define TRY(expr)                                                             \
+  do {                                                                        \
+    auto _res = (expr);                                                       \
+    if (unlikely (!_res.is_ok())) return Err(std::move(_res).error());        \
+  } while (0)
+#endif
+
+#ifndef TRY_ASSIGN
+#define TRY_ASSIGN(var, ...)                                                  \
+  auto HB_PASTE(_res_, __LINE__) = (__VA_ARGS__);                             \
+  if (unlikely (!HB_PASTE(_res_, __LINE__).is_ok())) return Err(std::move(HB_PASTE(_res_, __LINE__)).error()); \
+  var = *std::move(HB_PASTE(_res_, __LINE__))
 #endif
 
 #endif /* HB_RESULT_HH */

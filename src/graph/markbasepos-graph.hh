@@ -90,7 +90,7 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
     unsigned new_class_count = end - start;
     unsigned size = AnchorMatrix::min_size +
                     OT::Offset16::static_size * new_class_count * rows;
-    unsigned prime_id = TRY (c.create_node (size));
+    TRY_ASSIGN (unsigned prime_id, c.create_node (size));
     AnchorMatrix* prime = (AnchorMatrix*) c.graph.object (prime_id).head;
     prime->rows = base_count;
 
@@ -189,7 +189,7 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
     unsigned size = MarkArray::min_size +
                     OT::Layout::GPOS_impl::MarkRecord::static_size *
                     marks.get_population ();
-    unsigned prime_id = TRY (c.create_node (size));
+    TRY_ASSIGN (unsigned prime_id, c.create_node (size));
     MarkArray* prime = (MarkArray*) c.graph.object (prime_id).head;
     prime->len = marks.get_population ();
 
@@ -231,7 +231,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
   {
     hb_set_t visited;
 
-    const unsigned base_coverage_id = TRY(c.graph.index_for_offset (this_index, &baseCoverage));
+    TRY_ASSIGN (const unsigned base_coverage_id, c.graph.index_for_offset (this_index, &baseCoverage));
 
     const unsigned base_size =
         OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::min_size +
@@ -239,10 +239,10 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
         AnchorMatrix::min_size +
         c.graph.vertices_[base_coverage_id].table_size ();
 
-    hb_vector_t<class_info_t> class_to_info = TRY(get_class_info (c, this_index));
+    TRY_ASSIGN (hb_vector_t<class_info_t> class_to_info, get_class_info (c, this_index));
 
     unsigned class_count = classCount;
-    auto base_array = TRY(c.graph.as_table<AnchorMatrix> (this_index,
+    TRY_ASSIGN (auto base_array, c.graph.as_table<AnchorMatrix> (this_index,
                                                           &baseArray,
                                                           class_count));
     unsigned base_count = base_array.table->rows;
@@ -276,14 +276,15 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     }
 
 
-    const unsigned mark_array_id = TRY(c.graph.index_for_offset (this_index, &markArray));
+    TRY_ASSIGN (const unsigned mark_array_id, c.graph.index_for_offset (this_index, &markArray));
+    TRY_ASSIGN (auto mark_array_links, c.graph.vertices_[mark_array_id].position_to_index_map ());
 
     split_context_t split_context {
       c,
       this,
       this_index,
       std::move (class_to_info),
-      TRY(c.graph.vertices_[mark_array_id].position_to_index_map ()),
+      std::move (mark_array_links),
     };
 
     return actuate_subtable_split<split_context_t> (split_context, split_points);
@@ -342,7 +343,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     if (unlikely (!class_to_info.resize (class_count)))
       return Err(ALLOCATION_FAILURE);
 
-    auto mark_array = TRY(c.graph.as_table<MarkArray> (this_index, &markArray));
+    TRY_ASSIGN (auto mark_array, c.graph.as_table<MarkArray> (this_index, &markArray));
 
     unsigned mark_count = mark_array.table->len;
     for (unsigned mark = 0; mark < mark_count; mark++)
@@ -361,8 +362,8 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
       class_to_info[klass].child_indices.push (link.objidx);
     }
 
-    unsigned base_array_id =
-        TRY(c.graph.index_for_offset (this_index, &baseArray));
+    TRY_ASSIGN (unsigned base_array_id,
+         c.graph.index_for_offset (this_index, &baseArray));
 
     auto& base_array_v = c.graph.vertices_[base_array_id];
 
@@ -391,7 +392,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     classCount = count;
 
-    auto mark_coverage = TRY(sc.c.graph.as_mutable_table<Coverage> (this_index,
+    TRY_ASSIGN (auto mark_coverage, sc.c.graph.as_mutable_table<Coverage> (this_index,
                                                                     &markCoverage));
 
     hb_set_t marks = sc.marks_for (0, count);
@@ -405,7 +406,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                   4 + 2 * marks.get_population ()));
 
 
-    auto base_array = TRY(sc.c.graph.as_mutable_table<AnchorMatrix> (this_index,
+    TRY_ASSIGN (auto base_array, sc.c.graph.as_mutable_table<AnchorMatrix> (this_index,
                                                                      &baseArray,
                                                                      old_count));
 
@@ -414,7 +415,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                    old_count,
                                    count));
 
-    auto mark_array = TRY(sc.c.graph.as_mutable_table<MarkArray> (this_index,
+    TRY_ASSIGN (auto mark_array, sc.c.graph.as_mutable_table<MarkArray> (this_index,
                                                                   &markArray));
 
     TRY (mark_array.table->shrink (sc.c,
@@ -436,19 +437,19 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     graph_t& graph = sc.c.graph;
     unsigned prime_size = OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::static_size;
 
-    unsigned prime_id = TRY (sc.c.create_node (prime_size));
+    TRY_ASSIGN (unsigned prime_id, sc.c.create_node (prime_size));
 
     MarkBasePosFormat1* prime = (MarkBasePosFormat1*) graph.object (prime_id).head;
     prime->format = this->format;
     unsigned new_class_count = end - start;
     prime->classCount = new_class_count;
 
-    unsigned base_coverage_id =
-        TRY(graph.index_for_offset (sc.this_index, &baseCoverage));
+    TRY_ASSIGN (unsigned base_coverage_id,
+         graph.index_for_offset (sc.this_index, &baseCoverage));
 
     TRY (graph.add_link (&(prime->baseCoverage), prime_id, base_coverage_id));
 
-    auto mark_coverage = TRY(sc.c.graph.as_table<Coverage> (this_index,
+    TRY_ASSIGN (auto mark_coverage, sc.c.graph.as_table<Coverage> (this_index,
                                                             &markCoverage));
 
     hb_set_t marks = sc.marks_for (start, end);
@@ -463,25 +464,25 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                  + new_coverage,
                                  marks.get_population () * 2 + 4));
 
-    auto mark_array =
-        TRY(graph.as_mutable_table <MarkArray> (sc.this_index, &markArray));
+    TRY_ASSIGN (auto mark_array,
+         graph.as_mutable_table <MarkArray> (sc.this_index, &markArray));
 
-    unsigned new_mark_array =
-        TRY (mark_array.table->clone (sc.c,
-                                      mark_array.index,
-                                      sc.mark_array_links,
-                                      marks,
-                                      start));
+    TRY_ASSIGN (unsigned new_mark_array,
+         mark_array.table->clone (sc.c,
+                                  mark_array.index,
+                                  sc.mark_array_links,
+                                  marks,
+                                  start));
     TRY (graph.add_link (&(prime->markArray), prime_id, new_mark_array));
 
     unsigned class_count = classCount;
-    auto base_array =
-        TRY(graph.as_mutable_table<AnchorMatrix> (sc.this_index, &baseArray, class_count));
+    TRY_ASSIGN (auto base_array,
+         graph.as_mutable_table<AnchorMatrix> (sc.this_index, &baseArray, class_count));
 
-    unsigned new_base_array =
-        TRY (base_array.table->clone (sc.c,
-                                      base_array.index,
-                                      start, end, this->classCount));
+    TRY_ASSIGN (unsigned new_base_array,
+         base_array.table->clone (sc.c,
+                                  base_array.index,
+                                  start, end, this->classCount));
     TRY (graph.add_link (&(prime->baseArray), prime_id, new_base_array));
 
     return Ok(prime_id);

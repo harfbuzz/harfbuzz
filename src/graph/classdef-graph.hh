@@ -70,7 +70,7 @@ struct ClassDef : public OT::ClassDef
                                              It glyph_and_class,
                                              unsigned max_size)
   {
-    unsigned class_def_prime_id = TRY (c.graph.new_node (nullptr, nullptr));
+    TRY_ASSIGN (unsigned class_def_prime_id, c.graph.new_node (nullptr, nullptr));
     auto& class_def_prime_vertex = c.graph.vertices_[class_def_prime_id];
     TRY (make_class_def (c, glyph_and_class, class_def_prime_id, max_size));
 

@@ -92,7 +92,7 @@ struct Coverage : public OT::Layout::Common::Coverage
                                             It glyphs,
                                             unsigned max_size)
   {
-    unsigned coverage_prime_id = TRY (c.graph.new_node (nullptr, nullptr));
+    TRY_ASSIGN (unsigned coverage_prime_id, c.graph.new_node (nullptr, nullptr));
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
     TRY (make_coverage (c, glyphs, coverage_prime_id, max_size));
 

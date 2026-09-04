@@ -71,16 +71,18 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   graph_result_t<hb_vector_t<unsigned>> split_subtables (gsubgpos_graph_context_t& c,
                                                          unsigned this_index)
   {
-    auto split_points = TRY(compute_split_points(c, this_index));
+    TRY_ASSIGN (auto split_points, compute_split_points(c, this_index));
     if (!split_points)
       return Ok(hb_vector_t<unsigned> ());
 
+    TRY_ASSIGN (unsigned total_ligas, total_number_ligas(c, this_index));
+    TRY_ASSIGN (hb_vector_t<unsigned> counts, liga_counts(c, this_index));
     split_context_t split_context {
       c,
       this,
       this_index,
-      TRY(total_number_ligas(c, this_index)),
-      TRY(liga_counts(c, this_index)),
+      total_ligas,
+      std::move (counts),
     };
     return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
@@ -90,7 +92,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned total = 0;
     for (unsigned i = 0; i < ligatureSet.len; i++)
     {
-      auto liga_set = TRY(c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]));
       total += liga_set.table->ligature.len;
     }
     return Ok(total);
@@ -100,7 +102,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     hb_vector_t<unsigned> result;
     for (unsigned i = 0; i < ligatureSet.len; i++)
     {
-      auto liga_set = TRY(c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]));
       result.push(!liga_set.table ? 0 : liga_set.table->ligature.len);
     }
     return graph_result_t<hb_vector_t<unsigned>>::from(std::move(result), ALLOCATION_FAILURE);
@@ -140,12 +142,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       accumulated += OT::HBUINT16::static_size; // for ligature set offset
       accumulated += OT::Layout::GSUB_impl::LigatureSet<SmallTypes>::min_size; // for ligature set table
 
-      auto liga_set = TRY(c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]));
 
       // Finding the object id associated with an array index is O(n)
       // so to avoid O(n^2), precompute the mapping by scanning through
       // all links
-      auto index_to_id = TRY(ligature_index_to_object_id (liga_set));
+      TRY_ASSIGN (auto index_to_id, ligature_index_to_object_id (liga_set));
 
       for (unsigned j = 0; j < liga_set.table->ligature.len; j++)
       {
@@ -202,7 +204,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned prime_size = OT::Layout::GSUB_impl::LigatureSet<SmallTypes>::min_size
                           + count * SmallTypes::size;
 
-    unsigned prime_id = TRY (c.create_node (prime_size));
+    TRY_ASSIGN (unsigned prime_id, c.create_node (prime_size));
 
     LigatureSet* prime = (LigatureSet*) c.graph.object (prime_id).head;
     prime->ligature.len = count;
@@ -278,7 +280,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned prime_size = OT::Layout::GSUB_impl::LigatureSubstFormat1_2<SmallTypes>::min_size
                           + ligatureSet.get_size() - ligatureSet.len.get_size();
 
-    unsigned liga_subst_prime_id = TRY (c.create_node (prime_size));
+    TRY_ASSIGN (unsigned liga_subst_prime_id, c.create_node (prime_size));
 
     LigatureSubstFormat1* liga_subst_prime = (LigatureSubstFormat1*) c.graph.object (liga_subst_prime_id).head;
     liga_subst_prime->format = this->format;
@@ -286,8 +288,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     // Create a place holder coverage prime id since we need to add virtual links to it while
     // generating liga and liga sets. Afterwards it will be updated to have the correct coverage.
-    unsigned coverage_id = TRY(c.graph.index_for_offset (this_index, &coverage));
-    unsigned coverage_prime_id = TRY (c.graph.duplicate(coverage_id));
+    TRY_ASSIGN (unsigned coverage_id, c.graph.index_for_offset (this_index, &coverage));
+    TRY_ASSIGN (unsigned coverage_prime_id, c.graph.duplicate(coverage_id));
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
 
     TRY(c.graph.vertices_[liga_subst_prime_id].add_real_link (SmallTypes::size, coverage_prime_id, 2));
@@ -312,7 +314,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         continue;
       }
 
-      auto liga_set = TRY(c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]));
 
       unsigned liga_set_index = liga_set.index;
       // Bounds may need to be adjusted if some ligas have been previously removed.
@@ -326,7 +328,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         // We can move the entire ligaset to the new liga subset object.
         liga_set_end = i;
         if (i < liga_set_start) liga_set_start = i;
-        liga_set_prime_id = TRY (c.graph.move_child<> (this_index,
+        TRY_ASSIGN (liga_set_prime_id, c.graph.move_child<> (this_index,
                               &ligatureSet[i],
                               liga_subst_prime_id,
                               &liga_subst_prime->ligatureSet[liga_set_count++]));
@@ -339,7 +341,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         unsigned start_index = hb_max(start, current_start) - count;
         unsigned end_index = hb_min(end, current_end) - count;
         unsigned liga_count = end_index - start_index;
-        auto result = TRY (new_liga_set(c, liga_count));
+        TRY_ASSIGN (auto result, new_liga_set(c, liga_count));
         liga_set_prime_id = result.first;
 
         TRY (c.graph.move_children<OT::Offset16>(
@@ -393,7 +395,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned new_liga_set_count = 0;
     for (unsigned i = 0; i < liga_counts.length; i++)
     {
-      auto liga_set = TRY(c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]));
 
       // We need the virtual links to coverage removed from all descendants on this liga subst.
       // If any are left when we try to mutate the coverage table later it will be unnessecarily
@@ -401,7 +403,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       clear_virtual_links(c, liga_set.index);
       retained_indices.add(liga_set.index);
 
-      auto index_to_id = TRY(ligature_index_to_object_id (liga_set));
+      TRY_ASSIGN (auto index_to_id, ligature_index_to_object_id (liga_set));
 
       for (unsigned i = 0; i < liga_set.table->ligature.len; i++) {
         unsigned liga_index = index_to_id[i];
@@ -430,7 +432,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     ligatureSet.len = new_liga_set_count;
 
     // Coverage matches the number of liga sets so rebuild as needed
-    unsigned coverage_idx = TRY(c.graph.index_for_offset (this_index, &this->coverage));
+    TRY_ASSIGN (unsigned coverage_idx, c.graph.index_for_offset (this_index, &this->coverage));
 
     auto& coverage_v = c.graph.vertices_[coverage_idx];
     unsigned coverage_size = coverage_v.table_size ();
@@ -438,7 +440,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     if (coverage_v.is_shared ())
     {
-      coverage_idx = TRY (c.graph.remap_child (this_index, coverage_idx));
+      TRY_ASSIGN (coverage_idx, c.graph.remap_child (this_index, coverage_idx));
     }
 
     for (unsigned i : retained_indices.iter())
