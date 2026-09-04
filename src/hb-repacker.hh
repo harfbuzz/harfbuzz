@@ -99,7 +99,7 @@ graph_result_t<void> _presplit_subtables_if_needed (graph::gsubgpos_graph_contex
  * to extension lookups.
  */
 static inline
-graph_result_t<bool> _promote_extensions_if_needed (graph::gsubgpos_graph_context_t& ext_context)
+graph_result_t<void> _promote_extensions_if_needed (graph::gsubgpos_graph_context_t& ext_context)
 {
   // Simple Algorithm (v1, current):
   // 1. Calculate how many bytes each non-extension lookup consumes.
@@ -117,7 +117,7 @@ graph_result_t<bool> _promote_extensions_if_needed (graph::gsubgpos_graph_contex
   // TODO(garretrieger): also support extension promotion during iterative resolution phase, then
   //                     we can use a less conservative threshold here.
   // TODO(grieger): skip this for the 24 bit case.
-  if (!ext_context.lookups) return Ok(true);
+  if (!ext_context.lookups) return Ok();
 
   unsigned total_lookup_table_sizes = 0;
   hb_vector_t<lookup_size_t> lookup_sizes;
@@ -184,7 +184,7 @@ graph_result_t<bool> _promote_extensions_if_needed (graph::gsubgpos_graph_contex
     TRY (ext_context.lookups.get(p.lookup_index)->make_extension (ext_context, p.lookup_index));
   }
 
-  return Ok(true);
+  return Ok();
 }
 
 static inline

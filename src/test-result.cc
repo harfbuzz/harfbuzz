@@ -417,6 +417,10 @@ struct copy_move_counter_t
 
   int val;
 
+  bool in_error() const {
+    return val == -1;
+  }
+
   explicit copy_move_counter_t (int v) : val (v) {}
   copy_move_counter_t (const copy_move_counter_t& o) : val (o.val) { copy_count++; }
   copy_move_counter_t (copy_move_counter_t&& o) : val (o.val) { o.val = -1; move_count++; }
@@ -600,6 +604,29 @@ static void test_value_or_default ()
   }
 }
 
+static void test_from_move()
+{
+  {
+    copy_move_counter_t::reset();
+    copy_move_counter_t ok (24);
+    result<copy_move_counter_t> r_ok = result<copy_move_counter_t>::from(std::move(ok), ERR_B);
+    hb_always_assert (r_ok.is_ok());
+    hb_always_assert (r_ok->val == 24);
+    hb_always_assert (copy_move_counter_t::copy_count == 0);
+    hb_always_assert (copy_move_counter_t::move_count == 1);
+  }
+
+  {
+    copy_move_counter_t::reset();
+    copy_move_counter_t fail (-1);
+    result<copy_move_counter_t> r_fail = result<copy_move_counter_t>::from(std::move(fail), ERR_B);
+    hb_always_assert (r_fail.is_err());
+    hb_always_assert (r_fail.error() == ERR_B);
+    hb_always_assert (copy_move_counter_t::copy_count == 0);
+    hb_always_assert (copy_move_counter_t::move_count == 0);
+  }
+}
+
 int main ()
 {
   test_ok_basic ();
@@ -615,6 +642,7 @@ int main ()
   test_return_moves_from_local ();
   test_from();
   test_value_or_default ();
+  test_from_move ();
 
   return 0;
 }

@@ -139,6 +139,8 @@ struct Lookup : public OT::Lookup
     hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>> all_new_subtables;
     for (unsigned i = 0; i < subTable.len; i++)
     {
+      // This assumes we are working with something like a GSUB/GPOS table, if
+      // sanitization fails we ignore and skip splitting for the particular sub table.
       auto idx_res = c.graph.index_for_offset (this_index, &subTable[i]);
       if (!idx_res.is_ok ()) continue;
       unsigned subtable_index = *idx_res;

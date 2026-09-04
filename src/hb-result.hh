@@ -196,7 +196,6 @@ struct HB_NODISCARD_STRUCT hb_result_t
     new (std::addressof (err_)) E (e.error);
   }
 
-  // TODO XXXX disable direct construction completely.
   // Construct directly from error E (when neither T or E are convertible into each other)
   template <typename F = E,
             hb_enable_if ((hb_is_same (F, E) &&
@@ -219,7 +218,6 @@ struct HB_NODISCARD_STRUCT hb_result_t
   }
 
   // Move fallible into a result if it's in_error() method returns false.
-  // TODO XXXX add test
   static hb_result_t from (T&& fallible, E error_value) {
     if (fallible.in_error()) {
       return Err(error_value);
