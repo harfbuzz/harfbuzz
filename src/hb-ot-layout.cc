@@ -265,6 +265,7 @@ OT::GDEF::is_blocklisted (hb_blob_t *blob,
   return false;
 }
 
+template <bool SetDigest>
 static void
 _hb_ot_layout_set_glyph_props (hb_font_t *font,
 			       hb_buffer_t *buffer)
@@ -276,6 +277,8 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
   {
+    if (SetDigest)
+      buffer->digest.add (info[i].codepoint);
     _hb_glyph_info_set_glyph_props (&info[i], gdef.get_glyph_props (info[i].codepoint));
     _hb_glyph_info_clear_lig_props (&info[i]);
   }
@@ -1573,7 +1576,15 @@ void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer)
 {
-  _hb_ot_layout_set_glyph_props (font, buffer);
+  _hb_ot_layout_set_glyph_props<false> (font, buffer);
+}
+
+void
+hb_ot_layout_substitute_start_with_digest (hb_font_t    *font,
+					   hb_buffer_t  *buffer)
+{
+  buffer->digest = hb_set_digest_t ();
+  _hb_ot_layout_set_glyph_props<true> (font, buffer);
 }
 
 /**
