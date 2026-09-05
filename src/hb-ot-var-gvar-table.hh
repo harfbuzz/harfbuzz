@@ -379,7 +379,8 @@ struct gvar_GVAR
     bool long_offset = glyph_var_data_size > 0x1FFFEu || force_long_offsets;
     out->flags = long_offset ? 1 : 0;
 
-    HBUINT8 *glyph_var_data_offsets = c->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1), false);
+    unsigned glyph_var_data_offsets_size = (long_offset ? 4 : 2) * (num_glyphs + 1);
+    HBUINT8 *glyph_var_data_offsets = c->allocate_size<HBUINT8> (glyph_var_data_offsets_size, false);
     if (!glyph_var_data_offsets) return_trace (false);
 
     /* shared tuples */
@@ -387,7 +388,7 @@ struct gvar_GVAR
     out->sharedTupleCount = shared_tuple_count;
 
     if (!shared_tuple_count)
-      out->sharedTuples = 0;
+      out->sharedTuples = (char *) glyph_var_data_offsets + glyph_var_data_offsets_size - (char *) out;
     else
     {
       hb_array_t<const F2DOT14> shared_tuples = glyph_vars.compiled_shared_tuples.as_array ().copy (c);
@@ -507,12 +508,13 @@ struct gvar_GVAR
 #endif
     out->flags = long_offset ? 1 : 0;
 
-    HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1), false);
+    unsigned subset_offsets_size = (long_offset ? 4 : 2) * (num_glyphs + 1);
+    HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> (subset_offsets_size, false);
     if (!subset_offsets) return_trace (false);
 
     /* shared tuples */
     if (!sharedTupleCount || !sharedTuples)
-      out->sharedTuples = 0;
+      out->sharedTuples = (char *) subset_offsets + subset_offsets_size - (char *) out;
     else
     {
       unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
