@@ -3351,7 +3351,7 @@ struct RuleSet
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1, unsafe_to2 = 0;
     hb_glyph_info_t *first = nullptr, *second = nullptr;
-    bool matched = skippy_iter.next ();
+    bool matched = skippy_iter.next (&unsafe_to1);
     if (likely (matched))
     {
       if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
@@ -3373,16 +3373,22 @@ struct RuleSet
     }
     else
     {
-      /* Failed to match a next glyph. Only try applying rules that have
-       * no further input. */
-      return_trace (
+      bool unsafe_to_concat = false;
+      bool ret =
       + hb_iter (rule)
       | hb_map (hb_add (this))
-      | hb_filter ([&] (const Rule &_) { return _.inputCount <= 1; })
+      | hb_filter ([&] (const Rule &_)
+		   {
+		     if (_.inputCount <= 1) return true;
+		     unsafe_to_concat = true;
+		     return false;
+		   })
       | hb_map ([&] (const Rule &_) { return _.apply (c, lookup_context); })
       | hb_any
-      )
       ;
+      if (unsafe_to_concat)
+	c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to1);
+      return_trace (ret);
     }
     matched = skippy_iter.next ();
     if (likely (matched))
@@ -4939,7 +4945,7 @@ struct ChainRuleSet
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1, unsafe_to2 = 0;
     hb_glyph_info_t *first = nullptr, *second = nullptr;
-    bool matched = skippy_iter.next ();
+    bool matched = skippy_iter.next (&unsafe_to1);
     if (likely (matched))
     {
       if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
@@ -4961,21 +4967,24 @@ struct ChainRuleSet
     }
     else
     {
-      /* Failed to match a next glyph. Only try applying rules that have
-       * no further input and lookahead. */
-      return_trace (
+      bool unsafe_to_concat = false;
+      bool ret =
       + hb_iter (rule)
       | hb_map (hb_add (this))
       | hb_filter ([&] (const ChainRule &_)
 		   {
 		     const auto &input = StructAfter<decltype (_.inputX)> (_.backtrack);
 		     const auto &lookahead = StructAfter<decltype (_.lookaheadX)> (input);
-		     return input.lenP1 <= 1 && lookahead.len == 0;
+		     if (input.lenP1 <= 1 && lookahead.len == 0) return true;
+		     unsafe_to_concat = true;
+		     return false;
 		   })
       | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
       | hb_any
-      )
       ;
+      if (unsafe_to_concat)
+	c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to1);
+      return_trace (ret);
     }
     matched = skippy_iter.next ();
     if (likely (matched))
