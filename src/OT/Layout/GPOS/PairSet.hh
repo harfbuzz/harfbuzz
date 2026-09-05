@@ -152,6 +152,9 @@ struct PairSet : ValueBase
 
       if (applied_first || applied_second)
         buffer->unsafe_to_break (buffer->idx, pos + 1);
+      else
+        /* Even a zero-valued pair record is a concat hazard. */
+        buffer->unsafe_to_concat (buffer->idx, pos + 1);
 
       if (len2)
       {
