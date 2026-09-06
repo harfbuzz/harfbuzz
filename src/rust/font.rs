@@ -7,6 +7,7 @@ use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::Mutex;
 
+use skrifa::bitmap::{BitmapFormat, BitmapGlyph, BitmapStrikes, Origin};
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::{UseDefault, Variant};
 use skrifa::color::ColorGlyphCollection;
@@ -25,6 +26,7 @@ use skrifa::outline::{pen::OutlinePen, DrawSettings};
 
 #[cfg(feature = "paint")]
 use skrifa::{
+    bitmap::BitmapData,
     color::{Brush, ColorPainter, ColorStop, CompositeMode, Extend, Transform},
     metrics::BoundingBox,
     raw::tables::cpal::ColorRecord,
@@ -39,6 +41,8 @@ struct FontationsData<'a> {
     char_map: Charmap<'a>,
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
+    cbdt_strikes: Option<BitmapStrikes<'a>>,
+    sbix_strikes: Option<BitmapStrikes<'a>>,
     glyph_names: GlyphNames<'a>,
     size: Size,
     vert_metrics: Option<Vmtx<'a>>,
@@ -77,6 +81,9 @@ impl FontationsData<'_> {
 
         let color_glyphs = font_ref.color_glyphs();
 
+        let cbdt_strikes = BitmapStrikes::with_format(&font_ref, BitmapFormat::Cbdt);
+        let sbix_strikes = BitmapStrikes::with_format(&font_ref, BitmapFormat::Sbix);
+
         let glyph_names = font_ref.glyph_names();
 
         let upem = hb_face_get_upem(hb_font_get_face(font));
@@ -92,6 +99,8 @@ impl FontationsData<'_> {
             char_map,
             outline_glyphs,
             color_glyphs,
+            cbdt_strikes,
+            sbix_strikes,
             glyph_names,
             size: Size::new(upem as f32),
             vert_metrics,
@@ -174,6 +183,60 @@ fn struct_at_offset<T: Copy>(first: *const T, index: u32, stride: u32) -> T {
 
 fn struct_at_offset_mut<T: Copy>(first: *mut T, index: u32, stride: u32) -> &'static mut T {
     unsafe { &mut *((first as *mut u8).offset((index * stride) as isize) as *mut T) }
+}
+
+fn bitmap_size(font: *mut hb_font_t) -> Size {
+    let mut x_ppem = 0;
+    let mut y_ppem = 0;
+    unsafe { hb_font_get_ppem(font, &mut x_ppem, &mut y_ppem) };
+    let ppem = x_ppem.max(y_ppem);
+    if ppem == 0 {
+        Size::unscaled()
+    } else {
+        Size::new(ppem as f32)
+    }
+}
+
+fn bitmap_glyph_extents(
+    data: &FontationsData,
+    bitmap_glyph: &BitmapGlyph,
+) -> Option<hb_glyph_extents_t> {
+    if !bitmap_glyph.ppem_x.is_finite()
+        || !bitmap_glyph.ppem_y.is_finite()
+        || bitmap_glyph.ppem_x <= 0.0
+        || bitmap_glyph.ppem_y <= 0.0
+        || bitmap_glyph.width >= 65536
+        || bitmap_glyph.height >= 65536
+    {
+        return None;
+    }
+
+    let upem = data.size.ppem()?;
+    let x_scale = upem / bitmap_glyph.ppem_x;
+    let y_scale = upem / bitmap_glyph.ppem_y;
+
+    let x_bearing = (bitmap_glyph.bearing_x + bitmap_glyph.inner_bearing_x * x_scale).round();
+    let inner_y = bitmap_glyph.inner_bearing_y
+        + if bitmap_glyph.placement_origin == Origin::BottomLeft {
+            bitmap_glyph.height as f32
+        } else {
+            0.0
+        };
+    let y_bearing = (bitmap_glyph.bearing_y + inner_y * y_scale).round();
+    let width = (bitmap_glyph.width as f32 * x_scale).round();
+    let height = -(bitmap_glyph.height as f32 * y_scale).round();
+
+    let scaled_x_bearing = (x_bearing * data.x_mult).floor() as hb_position_t;
+    let scaled_y_bearing = (y_bearing * data.y_mult).floor() as hb_position_t;
+    let scaled_x_end = ((x_bearing + width) * data.x_mult).ceil() as hb_position_t;
+    let scaled_y_end = ((y_bearing + height) * data.y_mult).ceil() as hb_position_t;
+
+    Some(hb_glyph_extents_t {
+        x_bearing: scaled_x_bearing,
+        y_bearing: scaled_y_bearing,
+        width: scaled_x_end.saturating_sub(scaled_x_bearing),
+        height: scaled_y_end.saturating_sub(scaled_y_bearing),
+    })
 }
 
 extern "C" fn _hb_fontations_get_nominal_glyphs(
@@ -393,7 +456,7 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
 }
 
 extern "C" fn _hb_fontations_get_glyph_extents(
-    _font: *mut hb_font_t,
+    font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
     extents: *mut hb_glyph_extents_t,
@@ -403,6 +466,24 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     data.check_for_updates();
 
     let glyph_id = GlyphId::new(glyph);
+
+    let size = bitmap_size(font);
+    let bitmap_glyph = data
+        .sbix_strikes
+        .as_ref()
+        .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+        .or_else(|| {
+            data.cbdt_strikes
+                .as_ref()
+                .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+        });
+    if let Some(bitmap_glyph) = bitmap_glyph {
+        let Some(bitmap_extents) = bitmap_glyph_extents(data, &bitmap_glyph) else {
+            return false as hb_bool_t;
+        };
+        unsafe { *extents = bitmap_extents };
+        return true as hb_bool_t;
+    }
 
     let color_glyphs = &data.color_glyphs;
     let glyph_extents = if let Some(color_glyph) = color_glyphs.get(glyph_id) {
@@ -939,6 +1020,77 @@ impl ColorPainter for HbColorPainter<'_> {
 }
 
 #[cfg(feature = "paint")]
+unsafe extern "C" fn destroy_bitmap_blob(user_data: *mut c_void) {
+    hb_blob_destroy(user_data.cast());
+}
+
+#[cfg(feature = "paint")]
+fn paint_bitmap_glyph(
+    font: *mut hb_font_t,
+    data: &FontationsData,
+    glyph_id: GlyphId,
+    paint_funcs: *mut hb_paint_funcs_t,
+    paint_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let size = bitmap_size(font);
+    let bitmap_glyph = data
+        .cbdt_strikes
+        .as_ref()
+        .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+        .or_else(|| {
+            data.sbix_strikes
+                .as_ref()
+                .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+        });
+    let Some(bitmap_glyph) = bitmap_glyph else {
+        return false as hb_bool_t;
+    };
+    let Some(mut extents) = bitmap_glyph_extents(data, &bitmap_glyph) else {
+        return false as hb_bool_t;
+    };
+
+    let (image, format) = match &bitmap_glyph.data {
+        BitmapData::Png(image) => (*image, u32::from_be_bytes(*b"png ")),
+        BitmapData::Bgra(image) => (*image, u32::from_be_bytes(*b"BGRA")),
+        BitmapData::Mask(_) => return false as hb_bool_t,
+    };
+    if image.is_empty() {
+        return false as hb_bool_t;
+    }
+    let Ok(image_length) = image.len().try_into() else {
+        return false as hb_bool_t;
+    };
+    let face_blob = unsafe { hb_blob_reference(data.face_blob) };
+    let blob = unsafe {
+        hb_blob_create_or_fail(
+            image.as_ptr().cast(),
+            image_length,
+            hb_memory_mode_t_HB_MEMORY_MODE_READONLY,
+            face_blob.cast(),
+            Some(destroy_bitmap_blob),
+        )
+    };
+    if blob.is_null() {
+        return false as hb_bool_t;
+    }
+
+    unsafe {
+        hb_paint_image(
+            paint_funcs,
+            paint_data,
+            blob,
+            bitmap_glyph.width,
+            bitmap_glyph.height,
+            format,
+            0.0,
+            &mut extents,
+        );
+        hb_blob_destroy(blob);
+    }
+    true as hb_bool_t
+}
+
+#[cfg(feature = "paint")]
 extern "C" fn _hb_fontations_paint_glyph_or_fail(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -958,7 +1110,7 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
 
     let glyph_id = GlyphId::new(glyph);
     let Some(color_glyph) = color_glyphs.get(glyph_id) else {
-        return false as hb_bool_t;
+        return paint_bitmap_glyph(font, data, glyph_id, paint_funcs, paint_data);
     };
 
     let cpal = font_ref.cpal();
