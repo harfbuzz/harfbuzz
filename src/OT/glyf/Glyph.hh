@@ -314,13 +314,18 @@ struct Glyph
 		   hb_array_t<const int> coords = hb_array_t<const int> (),
 		   hb_scalar_cache_t *gvar_cache = nullptr,
 		   unsigned int depth = 0,
-		   unsigned *edge_count = nullptr) const
+		   unsigned *edge_count = nullptr,
+		   int64_t *budget = nullptr) const
   {
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
     unsigned stack_edge_count = 0;
     if (!edge_count) edge_count = &stack_edge_count;
     if (unlikely (*edge_count > HB_MAX_GRAPH_EDGE_COUNT)) return false;
     (*edge_count)++;
+
+    int64_t stack_budget = HB_BUDGET_GLYPH;
+    if (!budget) budget = &stack_budget;
+    if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_16))) return false;
 
     if (head_maxp_info)
     {
@@ -390,7 +395,8 @@ struct Glyph
 							    points.as_array ().sub_array (old_length),
 							    scratch,
 							    gvar_cache,
-							    phantom_only && type == SIMPLE))
+							    phantom_only && type == SIMPLE,
+							    budget))
 	  return false;
       }
       else
@@ -400,7 +406,8 @@ struct Glyph
 							  points.as_array ().sub_array (old_length),
 							  scratch,
 							  gvar_cache,
-							  phantom_only && type == SIMPLE))
+							  phantom_only && type == SIMPLE,
+							  budget))
         return false;
     }
 #endif
@@ -452,7 +459,8 @@ struct Glyph
 						    coords,
 						    gvar_cache,
 						    depth + 1,
-						    edge_count)))
+						    edge_count,
+						    budget)))
 	{
 	  points.resize (old_length);
 	  return false;

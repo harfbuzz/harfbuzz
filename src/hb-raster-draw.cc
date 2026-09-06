@@ -83,11 +83,21 @@ struct hb_raster_draw_t
   float flatten_clip_x0 = 0.f, flatten_clip_y0 = 0.f;
   float flatten_clip_x1 = 0.f, flatten_clip_y1 = 0.f;
 
-  /* Curve-flattening work, charged one unit per Bézier subdivision.
-     When external_work is set (by raster-paint), that session budget
-     is charged instead of the standalone per-session one. */
-  int64_t  flatten_work_left = HB_RASTER_MAX_DRAW_WORK;
-  int64_t *external_work = nullptr;
+  /* Work budget for outline traversal and curve flattening.  A paint
+     backend seeds this through the public draw-budget API before drawing
+     and reads the remainder back afterwards, so a whole paint session
+     shares one budget without reaching into this object. */
+  int64_t  budget = HB_BUDGET_DEFAULT;
+  int64_t  budget_remaining = HB_BUDGET_GLYPH;
+
+  void recharge_budget ()
+  {
+    budget_remaining = budget == HB_BUDGET_DEFAULT ?
+		       HB_BUDGET_GLYPH : budget;
+  }
+
+  int64_t *get_budget_remaining ()
+  { return &budget_remaining; }
 
   /* Accumulated geometry */
   int64_t edges_left = HB_RASTER_MAX_DRAW_EDGES;
@@ -478,8 +488,7 @@ hb_raster_draw_clear (hb_raster_draw_t *draw)
   draw->has_extents = false;
   draw->has_clip_box = false;
   draw->flatten_clip_active = false;
-  draw->flatten_work_left = HB_RASTER_MAX_DRAW_WORK;
-  draw->external_work = nullptr;
+  draw->recharge_budget ();
   draw->edges_left = HB_RASTER_MAX_DRAW_EDGES;
   draw->edges.clear ();
   draw->active_edges.clear ();
@@ -501,6 +510,7 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->transform         = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor    = 1.f;
   draw->y_scale_factor    = 1.f;
+  draw->budget            = HB_BUDGET_DEFAULT;
   hb_raster_draw_clear (draw);
 }
 
@@ -515,23 +525,6 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
   draw->clip_x1 = x1;
   draw->clip_y1 = y1;
   hb_raster_draw_update_flatten_clip (draw);
-}
-
-void
-hb_raster_draw_set_external_work (hb_raster_draw_t *draw,
-				  int64_t *work_left)
-{
-  draw->external_work = work_left;
-}
-
-int64_t
-hb_raster_draw_get_edge_work (hb_raster_draw_t *draw, unsigned max_rows)
-{
-  int64_t work = 0;
-  for (const auto &e : draw->edges)
-    work += 1 + hb_min (((int64_t) e.yH - (int64_t) e.yL) >> HB_RASTER_PIXEL_BITS,
-			(int64_t) max_rows);
-  return work;
 }
 
 /**
@@ -619,7 +612,7 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
   unsigned top = 0;
 
   bool check_clip = draw->flatten_clip_active;
-  int64_t *work = draw->external_work ? draw->external_work : &draw->flatten_work_left;
+  int64_t *work = draw->get_budget_remaining ();
   int64_t work_left = *work;
 
   while (true)
@@ -829,7 +822,7 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
   unsigned top = 0;
 
   bool check_clip = draw->flatten_clip_active;
-  int64_t *work = draw->external_work ? draw->external_work : &draw->flatten_work_left;
+  int64_t *work = draw->get_budget_remaining ();
   int64_t work_left = *work;
 
   while (true)
@@ -1091,6 +1084,28 @@ hb_raster_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
   /* no-op: hb_draw_funcs_t already emits closing line_to before us */
 }
 
+static hb_bool_t
+hb_raster_draw_set_budget (hb_draw_funcs_t *, void *draw_data,
+			   int64_t budget, void *)
+{
+  auto *draw = (hb_raster_draw_t *) draw_data;
+  draw->budget = budget;
+  draw->recharge_budget ();
+  return true;
+}
+
+static int64_t
+hb_raster_draw_get_budget (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_raster_draw_t *) draw_data)->budget;
+}
+
+static int64_t *
+hb_raster_draw_get_budget_remaining (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_raster_draw_t *) draw_data)->get_budget_remaining ();
+}
+
 
 /* Lazy-loader singleton for draw funcs */
 
@@ -1107,6 +1122,9 @@ static struct hb_raster_draw_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<h
     hb_draw_funcs_set_quadratic_to_func (funcs, hb_raster_quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func     (funcs, hb_raster_cubic_to,     nullptr, nullptr);
     hb_draw_funcs_set_close_path_func   (funcs, hb_raster_close_path,   nullptr, nullptr);
+    hb_draw_funcs_set_set_budget_func (funcs, hb_raster_draw_set_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_func (funcs, hb_raster_draw_get_budget, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_raster_draw_get_budget_remaining, nullptr, nullptr);
 
     hb_draw_funcs_make_immutable (funcs);
 

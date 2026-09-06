@@ -95,6 +95,10 @@ if conf.get('HAVE_DIRECTWRITE', 0) == 1
   ]
 endif
 
+if conf.get('HAVE_CAIRO', 0) == 1
+  tests += 'test-cairo.c'
+endif
+
 if conf.get('HAVE_PTHREAD', 0) == 1
   tests += 'test-multithread.c'
 endif
