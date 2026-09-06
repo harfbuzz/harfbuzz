@@ -19,6 +19,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -S . -B build \
+            -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_TOOLCHAIN_FILE=${DEVKITPRO}/cmake/3DS.cmake
       - name: Build
         run: make CXX_FLAGS="-w -DHB_NO_MT"
