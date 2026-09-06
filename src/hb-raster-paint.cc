@@ -284,6 +284,13 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
 				    hb_raster_image_t *surf,
 				    unsigned w, unsigned h)
 {
+  if (unlikely (!c->precharge_work (hb_raster_draw_get_pixel_work (rdr, h))))
+  {
+    hb_raster_draw_clear (rdr);
+    hb_raster_paint_push_empty_clip (c, w, h);
+    return;
+  }
+
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
 
   if (unlikely (!mask_img))
@@ -946,6 +953,13 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_glyph_clip_data_t data = {glyph, font};
   hb_raster_paint_emit_clip_glyph_mask (rdr, &data);
   hb_raster_paint_readback_budget (c, rdr);
+
+  if (unlikely (!c->precharge_work (hb_raster_draw_get_pixel_work (rdr,
+							  surf->extents.height))))
+  {
+    hb_raster_draw_clear (rdr);
+    return;
+  }
 
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
   if (unlikely (!mask_img)) return;

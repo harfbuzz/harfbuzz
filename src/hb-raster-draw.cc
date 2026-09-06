@@ -527,6 +527,17 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
   hb_raster_draw_update_flatten_clip (draw);
 }
 
+int64_t
+hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw,
+			       unsigned int max_rows)
+{
+  int64_t work = 0;
+  for (const auto &edge : draw->edges)
+    work += 1 + hb_min (((int64_t) edge.yH - edge.yL) >> HB_RASTER_PIXEL_BITS,
+		       (int64_t) max_rows);
+  return work;
+}
+
 /**
  * hb_raster_draw_recycle_image:
  * @draw: a rasterizer

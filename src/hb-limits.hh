@@ -186,7 +186,7 @@
 /* The common finite default for one top-level glyph rendering session.
  * Nested outline and paint work shares the same live counter. */
 #ifndef HB_BUDGET_GLYPH
-#define HB_BUDGET_GLYPH ((int64_t) 1 << 26)
+#define HB_BUDGET_GLYPH ((int64_t) 1 << 24)
 #endif
 
 /* Precharge COST * MULT.  Callers bound COST and MULT structurally, and live
@@ -198,11 +198,14 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
-/* One raster paint session (everything painted between two
- * render/clear calls), in pixel-op units; pixel loops charge their
- * area, consumed outline segments are charged with a fixed weight.  Its
- * default is the larger of HB_BUDGET_GLYPH and this many full-surface
- * passes, so very large surfaces still get a few full-surface operations. */
+/* The flat pixel-work floor for one raster paint session.  Pixel and
+ * outline work use separate live counters, so keep this independent of
+ * the common outline budget above. */
+#ifndef HB_BUDGET_RASTER_PIXELS
+#define HB_BUDGET_RASTER_PIXELS ((int64_t) 1 << 26)
+#endif
+
+/* Very large raster surfaces still get a few full-surface operations. */
 #ifndef HB_BUDGET_RASTER_PAINT_PASSES
 #define HB_BUDGET_RASTER_PAINT_PASSES 4
 #endif

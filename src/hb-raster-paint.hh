@@ -144,13 +144,13 @@ struct hb_raster_paint_t
    *    an unlimited outline policy disables it too. */
   int64_t budget = HB_BUDGET_DEFAULT;
   int64_t budget_remaining = HB_BUDGET_GLYPH;
-  int64_t pixel_remaining = HB_BUDGET_GLYPH;
+  int64_t pixel_remaining = HB_BUDGET_RASTER_PIXELS;
 
   /* Helpers */
 
   int64_t get_default_pixel_budget () const
   {
-    return hb_max ((int64_t) HB_BUDGET_GLYPH,
+    return hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
 		   (int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
 		   fixed_extents.width * fixed_extents.height);
   }
@@ -161,7 +161,7 @@ struct hb_raster_paint_t
 		       (int64_t) HB_BUDGET_GLYPH : budget;
     pixel_remaining = budget == HB_BUDGET_UNLIMITED ? budget :
 		      (surface_stack.length ? get_default_pixel_budget () :
-					      (int64_t) HB_BUDGET_GLYPH);
+					      (int64_t) HB_BUDGET_RASTER_PIXELS);
   }
 
   /* Returns whether the pixel operation should proceed.  Allows a single
@@ -169,6 +169,18 @@ struct hb_raster_paint_t
   bool charge_work (int64_t work)
   {
     if (unlikely (pixel_remaining < 0)) return false;
+    pixel_remaining -= work;
+    return true;
+  }
+
+  /* Reject work that would exceed the remaining budget before it starts. */
+  bool precharge_work (int64_t work)
+  {
+    if (unlikely (pixel_remaining < work))
+    {
+      pixel_remaining = -1;
+      return false;
+    }
     pixel_remaining -= work;
     return true;
   }
