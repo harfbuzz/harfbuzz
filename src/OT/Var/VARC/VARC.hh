@@ -38,10 +38,9 @@ struct hb_varc_context_t
   mutable hb_decycler_t decycler;
   mutable signed edges_left;
   mutable signed depth_left;
-  /* Work budget shared by all leaf glyphs loaded from glyf/CFF/CFF2,
-   * so their per-glyph work limits cannot multiply with our own
-   * composite-graph limits. */
-  mutable int64_t budget_left;
+  /* Renderer-owned live budget, shared by VARC record processing and
+   * every leaf loaded from glyf/CFF/CFF2. */
+  int64_t &budget;
   hb_varc_scratch_t &scratch;
 };
 
@@ -103,7 +102,8 @@ struct VarComponent
 					    hb_ubytes_t record,
 					    hb_vector_t<unsigned> *axis_indices,
 					    hb_vector_t<float> *axis_values,
-					    record_t *decoded /* OUT */);
+					    record_t *decoded /* OUT */,
+					    int64_t *budget = nullptr);
 };
 
 struct VarCompositeGlyph
@@ -154,13 +154,14 @@ struct VARC
 	    hb_draw_session_t &draw_session,
 	    hb_varc_scratch_t &scratch) const
   {
+    int64_t &budget = draw_session.get_budget ();
     hb_varc_context_t c {font,
 			 &draw_session,
 			 nullptr,
 			 hb_decycler_t {},
 			 HB_MAX_GRAPH_EDGE_COUNT,
 			 HB_MAX_NESTING_LEVEL,
-			 HB_VARC_MAX_WORK,
+			 budget,
 			 scratch};
 
     return get_path_at (c, gid,
@@ -173,13 +174,14 @@ struct VARC
 	       hb_extents_t<> *extents,
 	       hb_varc_scratch_t &scratch) const
   {
+    int64_t budget = HB_BUDGET_GLYPH;
     hb_varc_context_t c {font,
 			 nullptr,
 			 extents,
 			 hb_decycler_t {},
 			 HB_MAX_GRAPH_EDGE_COUNT,
 			 HB_MAX_NESTING_LEVEL,
-			 HB_VARC_MAX_WORK,
+			 budget,
 			 scratch};
 
     return get_path_at (c, gid,

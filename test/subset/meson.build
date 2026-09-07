@@ -46,6 +46,7 @@ tests = [
   'math',
   'math_coverage_offset',
   'subset_base',
+  'subset_base_v1',
   # TODO: re-enable once colrv1 subsetting is stabilized.
   # 'colrv1.notoemoji',
   'colrv1',

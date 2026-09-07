@@ -175,7 +175,17 @@ set (HB_VERSION_MINOR ${CMAKE_MATCH_3})
 set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 ## Define sources and headers of the project
-set (project_sources ${PROJECT_SOURCE_DIR}/src/harfbuzz.cc) # use amalgam source
+# Keep sources in separate archive members so duplicate internal sources in
+# dependent static libraries do not result in multiple definitions.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+             ${PROJECT_SOURCE_DIR}/src/harfbuzz.cc)
+file(STRINGS ${PROJECT_SOURCE_DIR}/src/harfbuzz.cc project_source_includes
+     REGEX "^#include \".*\\.cc\"$")
+foreach (project_source_include IN LISTS project_source_includes)
+  string(REGEX REPLACE "^#include \"(.*\\.cc)\"$" "\\1"
+         project_source ${project_source_include})
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/${project_source})
+endforeach ()
 set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/OT/Var/VARC/VARC.cc
      ${PROJECT_SOURCE_DIR}/src/OT/Var/VARC/VARC-subset.hh
@@ -210,6 +220,7 @@ set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-subset.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.hh
      ${PROJECT_SOURCE_DIR}/src/hb-repacker.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-result.hh
      ${PROJECT_SOURCE_DIR}/src/graph/graph.hh
      ${PROJECT_SOURCE_DIR}/src/graph/gsubgpos-graph.hh
      ${PROJECT_SOURCE_DIR}/src/graph/gsubgpos-context.hh
@@ -639,7 +650,7 @@ if (HB_BUILD_SUBSET)
   if (MINGW)
     target_compile_options(harfbuzz-subset PRIVATE "-Wa,-mbig-obj")
   endif()
-  
+
   if (BUILD_SHARED_LIBS)
     if (BUILD_FRAMEWORK)
       set_target_properties(harfbuzz harfbuzz-subset PROPERTIES
@@ -1256,7 +1267,7 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR} 
+      FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
       COMPONENT runtime OPTIONAL
     )
     make_pkgconfig_pc_file("harfbuzz-gobject")

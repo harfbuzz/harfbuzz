@@ -79,6 +79,14 @@ struct LigatureSubstFormat1_2
     ;
   }
 
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  {
+    + hb_iter (ligatureSet)
+    | hb_map (hb_add (this))
+    | hb_apply ([digest] (const LigatureSet<Types> &_) { _.collect_seconds (*digest); })
+    ;
+  }
+
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const

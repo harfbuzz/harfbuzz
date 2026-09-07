@@ -136,7 +136,10 @@ struct LigatureSet
       goto slow;
 
     if (seconds && !seconds->may_have (second))
+    {
+      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
       return_trace (false);
+    }
     bool unsafe_to_concat = false;
     for (unsigned int i = 0; i < num_ligs; i++)
     {

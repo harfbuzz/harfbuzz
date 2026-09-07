@@ -138,6 +138,9 @@ struct CursivePosFormat1
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { if (unlikely (!(this+coverage).collect_coverage (c->input))) return; }
 
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  { (this+coverage).collect_coverage (digest); }
+
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const

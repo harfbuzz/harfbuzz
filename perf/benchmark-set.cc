@@ -118,6 +118,28 @@ BENCHMARK(BM_SetIteration)
         {{1 << 10, 1 << 16}, // Set Size
          {2, 512}});          // Density
 
+/* Range iteration of sets of varying sizes. */
+static void BM_SetNextRange(benchmark::State& state) {
+  unsigned set_size = state.range(0);
+  unsigned max_value = state.range(0) * state.range(1);
+
+  hb_set_t* original = hb_set_create ();
+  RandomSet(set_size, max_value, original);
+  assert(hb_set_get_population(original) == set_size);
+
+  hb_codepoint_t first = HB_SET_VALUE_INVALID;
+  hb_codepoint_t last = HB_SET_VALUE_INVALID;
+  for (auto _ : state) {
+    hb_set_next_range (original, &first, &last);
+  }
+
+  hb_set_destroy(original);
+}
+BENCHMARK(BM_SetNextRange)
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
+
 /* Set copy. */
 static void BM_SetCopy(benchmark::State& state) {
   unsigned set_size = state.range(0);

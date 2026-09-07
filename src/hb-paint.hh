@@ -49,6 +49,9 @@
   HB_PAINT_FUNC_IMPLEMENT (pop_group) \
   HB_PAINT_FUNC_IMPLEMENT (custom_palette_color) \
   HB_PAINT_FUNC_IMPLEMENT (fill_glyph) \
+  HB_PAINT_FUNC_IMPLEMENT (set_budget) \
+  HB_PAINT_FUNC_IMPLEMENT (get_budget) \
+  HB_PAINT_FUNC_IMPLEMENT (get_budget_remaining) \
   /* ^--- Add new callbacks here */
 
 struct hb_paint_funcs_t
@@ -183,6 +186,19 @@ struct hb_paint_funcs_t
                                       color_index,
                                       color,
                                       !user_data ? nullptr : user_data->custom_palette_color); }
+  bool set_budget (void *paint_data, int64_t budget)
+  {
+    if (budget < 0 && budget != HB_BUDGET_DEFAULT)
+      budget = 0;
+    return func.set_budget (this, paint_data, budget,
+			    !user_data ? nullptr : user_data->set_budget);
+  }
+  int64_t get_budget (void *paint_data)
+  { return func.get_budget (this, paint_data,
+			    !user_data ? nullptr : user_data->get_budget); }
+  int64_t *get_budget_remaining_ptr (void *paint_data)
+  { return func.get_budget_remaining (this, paint_data,
+				      !user_data ? nullptr : user_data->get_budget_remaining); }
 
 
   /* Internal specializations. */

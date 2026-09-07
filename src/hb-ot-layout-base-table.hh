@@ -790,10 +790,10 @@ struct BASE
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
     out->version = version;
-    if (has_var_store () && !subset_varstore (c, out))
-        return_trace (false);
+    bool ret = false;
+    if (version.to_int () >= 0x00010001u) ret |= subset_varstore (c, out);
 
-    bool ret = out->hAxis.serialize_subset (c, hAxis, this);
+    ret |= out->hAxis.serialize_subset (c, hAxis, this);
     ret |= out->vAxis.serialize_subset (c, vAxis, this);
 
     return_trace (ret);

@@ -110,6 +110,22 @@ struct hb_gpu_draw_t
   int x_scale = 0;
   int y_scale = 0;
 
+  /* Work budget for outline traversal and generated curves.  A paint
+   * backend seeds this through the public draw-budget API before drawing
+   * and reads the remainder back afterwards, so a whole paint session
+   * shares one budget without reaching into this object. */
+  int64_t  budget = HB_BUDGET_DEFAULT;
+  int64_t  budget_remaining = HB_BUDGET_GLYPH;
+
+  void recharge_budget ()
+  {
+    budget_remaining = budget == HB_BUDGET_DEFAULT ?
+		       HB_BUDGET_GLYPH : budget;
+  }
+
+  int64_t *get_budget_remaining ()
+  { return &budget_remaining; }
+
   /* Encode scratch (reused across calls) */
   hb_gpu_encode_scratch_t scratch;
 

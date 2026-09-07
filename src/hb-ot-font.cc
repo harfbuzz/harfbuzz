@@ -782,7 +782,8 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       {
 	hb_glyph_extents_t extents = {0};
 	if (likely (font->get_glyph_extents (*first_glyph, &extents)))
-	  origin = extents.y_bearing + ((font_advance - -extents.height) >> 1);
+	  origin = hb_clamp_to<hb_position_t> ((int64_t) extents.y_bearing +
+					 (((int64_t) font_advance + extents.height) >> 1));
 	else
 	  origin = font_extents.ascender;
 
@@ -914,11 +915,14 @@ hb_ot_draw_glyph_or_fail (hb_font_t *font,
   if (font->face->table.VARC->get_path (font, glyph, draw_session)) return true;
 #endif
   // Keep the following in synch with VARC::get_path_at()
-  if (font->face->table.glyf->get_path (font, glyph, draw_session, gvar_cache)) return true;
+  if (font->face->table.glyf->get_path (font, glyph, draw_session, gvar_cache,
+				       &draw_session.get_budget ())) return true;
 
 #ifndef HB_NO_CFF
-  if (font->face->table.cff2->get_path (font, glyph, draw_session)) return true;
-  if (font->face->table.cff1->get_path (font, glyph, draw_session)) return true;
+  if (font->face->table.cff2->get_path (font, glyph, draw_session,
+				       &draw_session.get_budget ())) return true;
+  if (font->face->table.cff1->get_path (font, glyph, draw_session,
+				       &draw_session.get_budget ())) return true;
 #endif
 
   return false;

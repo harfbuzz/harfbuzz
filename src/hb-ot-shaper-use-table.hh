@@ -28,6 +28,8 @@
  * # Updated for Unicode 15.0 by Andrew Glass 2022-09-16
  * # Updated for Unicode 15.1 by Andrew Glass 2023-09-14
  * # Updated for Unicode 16.0 by Andrew Glass 2024-09-11
+ * # Updated for Unicode 17.0 by Andrew Glass 2025-09-15
+ * # Updated for Unicode 18.0 by Andrew Glass 2026-09-04
  * # Override values For Indic_Positional_Category
  * # Not derivable
  * # Initial version based on Unicode 7.0 by Andrew Glass 2014-03-17
@@ -40,6 +42,8 @@
  * # Updated for Unicode 15.0 by Andrew Glass 2022-09-16
  * # Updated for Unicode 15.1 by Andrew Glass 2023-09-14
  * # Updated for Unicode 16.0 by Andrew Glass 2024-09-11
+ * # Updated for Unicode 17.0 by Andrew Glass 2025-09-15
+ * # Updated for Unicode 18.0 by Andrew Glass 2026-09-04
  * UnicodeData.txt does not have a header.
  */
 

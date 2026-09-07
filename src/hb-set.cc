@@ -366,7 +366,7 @@ hb_set_is_equal (const hb_set_t *set,
  *
  * Return value: `true` if the two sets intersect, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 14.4.0
  **/
 hb_bool_t
 hb_set_intersects (const hb_set_t *set,

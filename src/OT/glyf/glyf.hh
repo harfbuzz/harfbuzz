@@ -238,15 +238,22 @@ struct glyf_accelerator_t
   bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer,
 		   hb_array_t<const int> coords,
 		   hb_glyf_scratch_t &scratch,
-		   hb_scalar_cache_t *gvar_cache = nullptr) const
+		   hb_scalar_cache_t *gvar_cache = nullptr,
+		   int64_t *budget = nullptr) const
   {
     if (gid >= num_glyphs) return false;
+
+    int64_t stack_budget = HB_BUDGET_GLYPH;
+    if (!budget) budget = &stack_budget;
 
     auto &all_points = scratch.all_points;
     all_points.clear ();
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
-    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache)))
+    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache, 0, nullptr, budget)))
+      return false;
+
+    if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, all_points.length)))
       return false;
 
     unsigned count = all_points.length;
@@ -470,8 +477,9 @@ struct glyf_accelerator_t
 			     gid,
 			     points_aggregator_t (font, extents, nullptr, true),
 			     coords,
-			     *scratch);
-      if (budget) *budget -= scratch->all_points.length;
+			     *scratch,
+			     nullptr,
+			     budget);
       release_scratch (scratch);
       return ret;
     }
@@ -508,7 +516,9 @@ struct glyf_accelerator_t
   }
 
   bool
-  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session, hb_scalar_cache_t *gvar_cache = nullptr) const
+  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
+	    hb_scalar_cache_t *gvar_cache = nullptr,
+	    int64_t *budget = nullptr) const
   {
     if (!has_data ()) return false;
 
@@ -519,7 +529,8 @@ struct glyf_accelerator_t
 			   hb_array (font->coords,
 				     font->has_nonzero_coords ? font->num_coords : 0),
 			   *scratch,
-			    gvar_cache);
+			   gvar_cache,
+			   budget);
 
     release_scratch (scratch);
 
@@ -537,8 +548,8 @@ struct glyf_accelerator_t
     bool ret = get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
 			   coords,
 			   scratch,
-			   gvar_cache);
-    if (budget) *budget -= scratch.all_points.length;
+			   gvar_cache,
+			   budget);
     return ret;
   }
 

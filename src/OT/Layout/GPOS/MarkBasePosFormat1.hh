@@ -88,6 +88,9 @@ struct MarkBasePosFormat1_2
     if (unlikely (!(this+baseCoverage).collect_coverage (c->input))) return;
   }
 
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  { (this+baseCoverage).collect_coverage (digest); }
+
   const Coverage &get_coverage () const { return this+markCoverage; }
 
   static inline bool accept (hb_buffer_t *buffer, unsigned idx)

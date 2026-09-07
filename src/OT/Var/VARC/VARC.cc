@@ -33,7 +33,8 @@ VarComponent::decompile_record (const VARC &varc,
 				hb_ubytes_t total_record,
 				hb_vector_t<unsigned> *axis_indices,
 				hb_vector_t<float> *axis_values,
-				record_t *decoded)
+				record_t *decoded,
+				int64_t *budget)
 {
   const unsigned char *start = total_record.arrayZ;
   const unsigned char *record = start;
@@ -94,6 +95,9 @@ VarComponent::decompile_record (const VARC &varc,
     }
     else
       axis_count = hb_len ((&varc+varc.axisIndicesList)[decoded->axis_indices_index]);
+    if (unlikely (budget && axis_count &&
+		  !hb_budget_spend (*budget, HB_BUDGET_1, axis_count)))
+      return false;
     if (axis_values)
     {
       if (unlikely (!axis_values->resize (axis_count))) return false;
@@ -201,6 +205,7 @@ struct hb_transforming_pen_context_t
   hb_draw_funcs_t *dfuncs;
   void *data;
   hb_draw_state_t *st;
+  int64_t *budget_remaining;
 };
 
 static void
@@ -276,6 +281,12 @@ hb_transforming_pen_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
   c->dfuncs->close_path (c->data, *c->st);
 }
 
+static int64_t *
+hb_transforming_pen_get_budget_remaining (hb_draw_funcs_t *, void *draw_data, void *)
+{
+  return ((hb_transforming_pen_context_t *) draw_data)->budget_remaining;
+}
+
 static inline void free_static_transforming_pen_funcs ();
 
 static struct hb_transforming_pen_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_transforming_pen_funcs_lazy_loader_t>
@@ -289,6 +300,7 @@ static struct hb_transforming_pen_funcs_lazy_loader_t : hb_draw_funcs_lazy_loade
     hb_draw_funcs_set_quadratic_to_func (funcs, hb_transforming_pen_quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func (funcs, hb_transforming_pen_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (funcs, hb_transforming_pen_close_path, nullptr, nullptr);
+    hb_draw_funcs_set_get_budget_remaining_func (funcs, hb_transforming_pen_get_budget_remaining, nullptr, nullptr);
 
     hb_draw_funcs_make_immutable (funcs);
 
@@ -318,6 +330,9 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 			   hb_ubytes_t total_record,
 			   hb_scalar_cache_t *cache) const
 {
+  if (unlikely (!hb_budget_spend (c.budget, HB_BUDGET_4)))
+    return hb_ubytes_t ();
+
   const unsigned char *end = total_record.arrayZ + total_record.length;
   auto &VARC = *c.font->face->table.VARC->table;
   auto &varStore = &VARC+VARC.varStore;
@@ -326,7 +341,8 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   auto &axisValues = c.scratch.axisValues;
   record_t component;
   if (unlikely (!decompile_record (VARC, total_record,
-				   &axisIndices, &axisValues, &component)))
+				   &axisIndices, &axisValues, &component,
+				   &c.budget)))
     return hb_ubytes_t ();
 
   uint32_t flags = component.flags;
@@ -347,8 +363,13 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   // Apply variations if any
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
       show && coords && !axisValues.in_error ())
+  {
+    if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
+				    coords.length)))
+      return hb_ubytes_t ();
     varStore.get_delta (component.axis_values_var_idx, coords,
 			axisValues.as_array (), cache);
+  }
 
   auto component_coords = coords;
   /* Copying coords is expensive; so we have put an arbitrary
@@ -363,6 +384,10 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   if (show)
   {
     // Only use coord_setter if there's actually any axis overrides.
+    if (unlikely (axisIndices &&
+		  !hb_budget_spend (c.budget, HB_BUDGET_1,
+				    component_coords.length)))
+      return hb_ubytes_t ();
     coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
     for (unsigned i = 0; i < axisIndices.length; i++)
       coord_setter[axisIndices[i]] = roundf (axisValues[i]);
@@ -379,6 +404,9 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 	    transformValues[numTransformValues++] = transform.name;
       VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
+      if (unlikely (!hb_budget_spend (c.budget, numTransformValues,
+				      coords.length)))
+	return hb_ubytes_t ();
       varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
       numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
@@ -436,8 +464,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
     {
       /* Out of budget: draw nothing, but signal success so remaining
        * leaves are skipped instead of falling back per-glyph. */
-      if (unlikely (c.budget_left <= 0)) return true;
-      c.budget_left--;
+      if (unlikely (!hb_budget_spend (c.budget, HB_BUDGET_1))) return true;
 
       hb_transform_t<> leaf_transform = transform;
       leaf_transform.x0 *= c.font->x_multf;
@@ -448,27 +475,27 @@ VARC::get_path_at (const hb_varc_context_t &c,
       hb_transforming_pen_context_t context {leaf_transform,
 					     c.draw_session->funcs,
 					     c.draw_session->draw_data,
-					     &c.draw_session->st};
+					     &c.draw_session->st,
+					     &c.budget};
       hb_draw_session_t transformer_session {transformer_funcs, &context};
       hb_draw_session_t &shape_draw_session = leaf_transform.is_identity () ? *c.draw_session : transformer_session;
 
-      if (c.font->face->table.glyf->get_path_at (c.font, glyph, shape_draw_session, coords, c.scratch.glyf_scratch, nullptr, &c.budget_left)) return true;
+      if (c.font->face->table.glyf->get_path_at (c.font, glyph, shape_draw_session, coords, c.scratch.glyf_scratch, nullptr, &shape_draw_session.get_budget ())) return true;
 #ifndef HB_NO_CFF
-      if (c.font->face->table.cff2->get_path_at (c.font, glyph, shape_draw_session, coords, &c.budget_left)) return true;
-      if (c.font->face->table.cff1->get_path (c.font, glyph, shape_draw_session, &c.budget_left)) return true; // Doesn't have variations
+      if (c.font->face->table.cff2->get_path_at (c.font, glyph, shape_draw_session, coords, &shape_draw_session.get_budget ())) return true;
+      if (c.font->face->table.cff1->get_path (c.font, glyph, shape_draw_session, &shape_draw_session.get_budget ())) return true; // Doesn't have variations
 #endif
       return false;
     }
     else if (c.extents)
     {
-      if (unlikely (c.budget_left <= 0)) return true;
-      c.budget_left--;
+      if (unlikely (!hb_budget_spend (c.budget, HB_BUDGET_1))) return true;
 
       hb_glyph_extents_t glyph_extents;
-      if (!c.font->face->table.glyf->get_extents_at (c.font, glyph, &glyph_extents, coords, &c.budget_left))
+      if (!c.font->face->table.glyf->get_extents_at (c.font, glyph, &glyph_extents, coords, &c.budget))
 #ifndef HB_NO_CFF
-      if (!c.font->face->table.cff2->get_extents_at (c.font, glyph, &glyph_extents, coords, &c.budget_left))
-      if (!c.font->face->table.cff1->get_extents (c.font, glyph, &glyph_extents, &c.budget_left)) // Doesn't have variations
+      if (!c.font->face->table.cff2->get_extents_at (c.font, glyph, &glyph_extents, coords, &c.budget))
+      if (!c.font->face->table.cff1->get_extents (c.font, glyph, &glyph_extents, &c.budget)) // Doesn't have variations
 #endif
 	return false;
 
