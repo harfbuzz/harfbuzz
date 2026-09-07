@@ -40,6 +40,12 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
 			     float x0, float y0,
 			     float x1, float y1);
 
+/* Estimated scanline work for the accumulated edges.  Raster paint uses
+ * this to precharge its separate pixel budget before rendering a mask. */
+HB_INTERNAL int64_t
+hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw,
+			       unsigned int max_rows);
+
 /* Shared pixel helpers (used by paint and image compositing). */
 
 static HB_ALWAYS_INLINE uint8_t
