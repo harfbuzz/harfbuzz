@@ -33,6 +33,8 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo dpkg --add-architecture i386
+        sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo apt-get update
         sudo apt install -y \
           zip \
