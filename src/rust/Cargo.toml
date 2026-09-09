@@ -7,7 +7,7 @@ rust-version = "1.87.0"
 harfrust = { version = "0.13.3", features = ["experimental_font_api"], optional = true }
 # harfrust = { git = "https://github.com/harfbuzz/harfrust", optional = true }
 read-fonts = "0.43.*"
-skrifa = { version = "0.*", optional = true }
+skrifa = { version = "0.46.*", optional = true }
 smallvec = "1.*"
 
 [lib]
