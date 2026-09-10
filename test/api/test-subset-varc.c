@@ -61,9 +61,11 @@ draw_close_path (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
 { g_string_append_c ((GString *) data, 'Z'); }
 
 static char *
-draw_unicode (hb_face_t *face, hb_codepoint_t unicode)
+draw_unicode_at (hb_face_t *face, hb_codepoint_t unicode,
+		 const hb_variation_t *variations, unsigned variation_count)
 {
   hb_font_t *font = hb_font_create (face);
+  hb_font_set_variations (font, variations, variation_count);
   hb_codepoint_t gid;
   g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
 
@@ -80,6 +82,10 @@ draw_unicode (hb_face_t *face, hb_codepoint_t unicode)
   hb_font_destroy (font);
   return g_string_free (path, false);
 }
+
+static char *
+draw_unicode (hb_face_t *face, hb_codepoint_t unicode)
+{ return draw_unicode_at (face, unicode, NULL, 0); }
 
 static void
 assert_has_varc (hb_face_t *face, hb_bool_t expected)
@@ -136,10 +142,24 @@ test_subset_varc_draw_equivalence (void)
   hb_face_t *subset = subset_varc (face, 0xAC01);
   char *source_path = draw_unicode (face, 0xAC01);
   char *subset_path = draw_unicode (subset, 0xAC01);
+  hb_variation_t variations[] = {
+    {HB_TAG ('w','g','h','t'), 840.3f},
+    {HB_TAG ('o','p','s','z'), 1.f},
+  };
+  char *varied_source_path = draw_unicode_at (face, 0xAC01,
+					      variations,
+					      G_N_ELEMENTS (variations));
+  char *varied_subset_path = draw_unicode_at (subset, 0xAC01,
+					      variations,
+					      G_N_ELEMENTS (variations));
 
   g_assert_cmpstr (source_path, !=, "");
   g_assert_cmpstr (subset_path, ==, source_path);
+  g_assert_cmpstr (varied_source_path, !=, source_path);
+  g_assert_cmpstr (varied_subset_path, ==, varied_source_path);
 
+  g_free (varied_subset_path);
+  g_free (varied_source_path);
   g_free (subset_path);
   g_free (source_path);
   hb_face_destroy (subset);

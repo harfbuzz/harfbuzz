@@ -45,7 +45,7 @@ function demonstrates proper handling of:
 - Feature filtering (only following edges for active GSUB features)
 - Ligature sets (only adding ligature outputs when all components present)
 - Context sets (only following edges when positional requirements satisfied)
-- Non-GSUB dependencies (glyf, CFF, COLR, MATH)
+- Non-GSUB dependencies (glyf, CFF, COLR, MATH, VARC)
 - UVS handling (via `hb_font_get_variation_glyph()`, separate from depend graph)
 
 Key aspects of the implementation:

@@ -108,8 +108,8 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
  * @face: font face to collect dependencies from
  *
  * Calculates the dependencies between glyphs in the supplied face.
- * Extracts dependency information from GSUB, glyf, CFF, COLR,
- * and MATH tables. UVS (Unicode Variation Sequence) dependencies
+ * Extracts dependency information from GSUB, glyf, CFF, COLR, MATH,
+ * and VARC tables. UVS (Unicode Variation Sequence) dependencies
  * are not included; handle those via hb_font_get_variation_glyph().
  *
  * Example:

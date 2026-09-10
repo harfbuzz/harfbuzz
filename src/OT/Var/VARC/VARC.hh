@@ -144,7 +144,7 @@ struct VARC
 	       hb_codepoint_t parent_gid = HB_CODEPOINT_INVALID,
 	       hb_scalar_cache_t *parent_cache = nullptr) const;
 
-  HB_INTERNAL void closure_glyphs (hb_set_t *glyphset) const;
+  HB_INTERNAL bool closure_glyphs (hb_set_t *glyphset) const;
   HB_INTERNAL void depend (hb_depend_data_builder_t *depend_data) const;
   HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
@@ -235,10 +235,11 @@ struct VARC
       return ret;
     }
 
-    void closure_glyphs (hb_set_t *glyphset) const
+    bool closure_glyphs (hb_set_t *glyphset) const
     {
       if (table->has_data ())
-	table->closure_glyphs (glyphset);
+	return table->closure_glyphs (glyphset);
+      return true;
     }
 
     void depend (hb_depend_data_builder_t *depend_data) const

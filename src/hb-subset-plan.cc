@@ -479,7 +479,11 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #ifndef HB_NO_VAR_COMPOSITES
   if (!drop_tables->has (OT::VARC::tableTag))
   {
-    plan->source->table.VARC->closure_glyphs (&cur_glyphset);
+    if (unlikely (!plan->source->table.VARC->closure_glyphs (&cur_glyphset)))
+    {
+      plan->check_success (false);
+      return;
+    }
     _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
   }
 #endif

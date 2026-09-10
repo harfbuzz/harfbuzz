@@ -145,16 +145,23 @@ VarComponent::decompile_record (const VARC &varc,
   return true;
 }
 
-void
+bool
 VARC::closure_glyphs (hb_set_t *glyphset) const
 {
+  if (unlikely (glyphset->in_error ()))
+    return false;
+
   hb_set_t visited;
   while (true)
   {
     hb_set_t pending = *glyphset;
     pending.subtract (visited);
+    if (unlikely (pending.in_error ()))
+      return false;
     if (!pending) break;
     visited.union_ (pending);
+    if (unlikely (visited.in_error ()))
+      return false;
 
     for (hb_codepoint_t gid : pending)
     {
@@ -167,12 +174,15 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (*this, record,
 						       nullptr, nullptr, &component)))
-	  break;
+	  return false;
 	glyphset->add (component.gid);
+	if (unlikely (glyphset->in_error ()))
+	  return false;
 	record = record.sub_array (component.size);
       }
     }
   }
+  return true;
 }
 
 void
@@ -189,7 +199,10 @@ VARC::depend (hb_depend_data_builder_t *depend_data) const
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (*this, record,
 						       nullptr, nullptr, &component)))
-	  break;
+	{
+	  depend_data->fail ();
+	  return;
+	}
       depend_data->add_depend (gid, tableTag, component.gid);
       record = record.sub_array (component.size);
     }
