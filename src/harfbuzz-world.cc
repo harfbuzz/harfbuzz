@@ -142,6 +142,7 @@
 #endif
 
 #ifdef HB_HAS_SUBSET
+#include "OT/Var/VARC/VARC.cc"
 #include "graph/gsubgpos-context.cc"
 #include "hb-depend.cc"
 #include "hb-number.cc"

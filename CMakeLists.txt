@@ -187,6 +187,8 @@ foreach (project_source_include IN LISTS project_source_includes)
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/${project_source})
 endforeach ()
 set (subset_project_sources
+     ${PROJECT_SOURCE_DIR}/src/OT/Var/VARC/VARC.cc
+     ${PROJECT_SOURCE_DIR}/src/OT/Var/VARC/VARC-subset.hh
      ${PROJECT_SOURCE_DIR}/src/hb-number.cc
      ${PROJECT_SOURCE_DIR}/src/hb-number.hh
      ${PROJECT_SOURCE_DIR}/src/hb-ot-cff1-table.cc

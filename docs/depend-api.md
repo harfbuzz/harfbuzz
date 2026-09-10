@@ -126,7 +126,7 @@ for (unsigned int i = 0; i < total; i++) {
         printf("GID %u -> %u via GSUB feature '%c%c%c%c'\n",
                gid, entry.dependent, HB_UNTAG(entry.layout_tag));
     } else {
-        // Other dependencies (glyf, CFF, COLR, MATH)
+        // Other dependencies (glyf, CFF, COLR, MATH, VARC)
         printf("GID %u -> %u via %c%c%c%c\n",
                gid, entry.dependent, HB_UNTAG(entry.table_tag));
     }
@@ -319,7 +319,7 @@ Each `hb_subset_depend_entry_t` filled by `hb_subset_depend_lookup_glyph()` cont
 
 - **table_tag**: Source table (e.g., `HB_OT_TAG_GSUB`,
   `HB_TAG('g','l','y','f')`, `HB_TAG('C','F','F',' ')`, `HB_TAG('C','O','L','R')`,
-  `HB_TAG('M','A','T','H')`)
+  `HB_TAG('M','A','T','H')`, `HB_TAG('V','A','R','C')`)
 - **dependent**: The dependent glyph ID
 - **layout_tag**:
   - For GSUB: the feature tag (e.g., `HB_TAG('l','i','g','a')`)
