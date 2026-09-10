@@ -28,6 +28,8 @@ jobs:
           rustfmt \
           clippy \
           --toolchain nightly-x86_64-unknown-linux-gnu
+        sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo apt-get update
         sudo apt-get install \
           gcc \

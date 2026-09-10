@@ -23,6 +23,8 @@ jobs:
         key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
     - name: Install Dependencies
       run: |
+        sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo apt-get update
         sudo apt-get install \
           gcc \
