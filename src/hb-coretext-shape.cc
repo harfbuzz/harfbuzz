@@ -52,7 +52,8 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
 void
 _hb_coretext_shaper_face_data_destroy (hb_coretext_face_data_t *data)
 {
-  CFRelease ((CGFontRef) data);
+  if (data)
+    CFRelease ((CGFontRef) data);
 }
 
 
@@ -106,12 +107,17 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 			  &kCFTypeDictionaryValueCallBacks);
 
     CTFontDescriptorRef varDesc = CTFontDescriptorCreateWithAttributes (attributes);
-    CTFontRef new_ct_font = CTFontCreateCopyWithAttributes (ct_font, 0, nullptr, varDesc);
+    CTFontRef new_ct_font = varDesc ? CTFontCreateCopyWithAttributes (ct_font, 0, nullptr, varDesc) : nullptr;
+    if (varDesc)
+      CFRelease (varDesc);
 
-    CFRelease (ct_font);
     CFRelease (attributes);
     CFRelease (variations);
-    ct_font = new_ct_font;
+    if (new_ct_font)
+    {
+      CFRelease (ct_font);
+      ct_font = new_ct_font;
+    }
   }
 
   return (hb_coretext_font_data_t *) ct_font;
@@ -120,7 +126,8 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 void
 _hb_coretext_shaper_font_data_destroy (hb_coretext_font_data_t *data)
 {
-  CFRelease ((CTFontRef) data);
+  if (data)
+    CFRelease ((CTFontRef) data);
 }
 
 /*
@@ -640,11 +647,15 @@ resize_and_retry:
 	{
 	  CFStringRef font_ps_name = CTFontCopyName (ct_font, kCTFontPostScriptNameKey);
 	  CFStringRef run_ps_name = CTFontCopyName (run_ct_font, kCTFontPostScriptNameKey);
-	  CFComparisonResult result = CFStringCompare (run_ps_name, font_ps_name, 0);
-	  CFRelease (run_ps_name);
-	  CFRelease (font_ps_name);
-	  if (result == kCFCompareEqualTo)
-	    matched = true;
+	  if (font_ps_name && run_ps_name)
+	  {
+	    if (CFStringCompare (run_ps_name, font_ps_name, 0) == kCFCompareEqualTo)
+	      matched = true;
+	  }
+	  if (run_ps_name)
+	    CFRelease (run_ps_name);
+	  if (font_ps_name)
+	    CFRelease (font_ps_name);
 	}
 	if (!matched)
 	{

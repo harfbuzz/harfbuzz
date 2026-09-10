@@ -192,6 +192,14 @@ test_get_table_tags_ft_stream (void)
 static void
 test_get_table_tags_ct (void)
 {
+  hb_face_t *null_face = hb_coretext_face_create (NULL);
+  g_assert_true (null_face == hb_face_get_empty ());
+  hb_face_destroy (null_face);
+
+  hb_font_t *null_font = hb_coretext_font_create (NULL);
+  g_assert_true (null_font == hb_font_get_empty ());
+  hb_font_destroy (null_font);
+
   hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
   hb_blob_t *blob = hb_face_reference_blob (source);
   hb_face_destroy (source);
