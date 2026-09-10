@@ -189,14 +189,16 @@ struct varc_subset_plan_t
   private:
   bool auxiliary_indices_unchanged () const
   {
-    bool unchanged = true;
     for (hb_codepoint_t old_index : condition_indices)
-      unchanged &= condition_map.get (old_index) == old_index;
+      if (condition_map.get (old_index) != old_index)
+	return false;
     for (hb_codepoint_t old_index : axis_indices)
-      unchanged &= axis_indices_map.get (old_index) == old_index;
+      if (axis_indices_map.get (old_index) != old_index)
+	return false;
     for (hb_codepoint_t old_index : var_indices)
-      unchanged &= varidx_map.get (old_index) == old_index;
-    return unchanged;
+      if (varidx_map.get (old_index) != old_index)
+	return false;
+    return true;
   }
 
   bool append_varint (uint32_t value)

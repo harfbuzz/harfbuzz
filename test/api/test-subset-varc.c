@@ -61,14 +61,8 @@ draw_close_path (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
 { g_string_append_c ((GString *) data, 'Z'); }
 
 static char *
-draw_unicode_at (hb_face_t *face, hb_codepoint_t unicode,
-		 const hb_variation_t *variations, unsigned variation_count)
+draw_glyph (hb_font_t *font, hb_codepoint_t gid)
 {
-  hb_font_t *font = hb_font_create (face);
-  hb_font_set_variations (font, variations, variation_count);
-  hb_codepoint_t gid;
-  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
-
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
   hb_draw_funcs_set_move_to_func (funcs, draw_move_to, NULL, NULL);
   hb_draw_funcs_set_line_to_func (funcs, draw_line_to, NULL, NULL);
@@ -79,8 +73,21 @@ draw_unicode_at (hb_face_t *face, hb_codepoint_t unicode,
   hb_font_draw_glyph (font, gid, funcs, path);
 
   hb_draw_funcs_destroy (funcs);
-  hb_font_destroy (font);
   return g_string_free (path, false);
+}
+
+static char *
+draw_unicode_at (hb_face_t *face, hb_codepoint_t unicode,
+		 const hb_variation_t *variations, unsigned variation_count)
+{
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_variations (font, variations, variation_count);
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
+  char *path = draw_glyph (font, gid);
+  hb_font_destroy (font);
+
+  return path;
 }
 
 static char *
@@ -240,6 +247,23 @@ test_subset_varc_retain_gids (void)
   g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 7);
   assert_has_varc (subset, true);
 
+  hb_font_t *source_font = hb_font_create (face);
+  hb_font_t *subset_font = hb_font_create (subset);
+  hb_codepoint_t old_gid;
+  hb_codepoint_t subset_gid;
+  g_assert_true (hb_font_get_nominal_glyph (source_font, 0xAC00, &old_gid));
+  g_assert_true (hb_font_get_nominal_glyph (subset_font, 0xAC00, &subset_gid));
+  g_assert_cmpuint (subset_gid, ==, old_gid);
+
+  char *source_path = draw_glyph (source_font, old_gid);
+  char *subset_path = draw_glyph (subset_font, old_gid);
+  g_assert_cmpstr (source_path, !=, "");
+  g_assert_cmpstr (subset_path, ==, source_path);
+
+  g_free (subset_path);
+  g_free (source_path);
+  hb_font_destroy (subset_font);
+  hb_font_destroy (source_font);
   hb_face_destroy (subset);
   hb_face_destroy (face);
 }

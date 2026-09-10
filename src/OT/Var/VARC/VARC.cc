@@ -151,35 +151,35 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
   if (unlikely (glyphset->in_error ()))
     return false;
 
-  hb_set_t visited;
-  while (true)
+  hb_set_t pending = *glyphset;
+  if (unlikely (pending.in_error ()))
+    return false;
+
+  while (pending)
   {
-    hb_set_t pending = *glyphset;
-    pending.subtract (visited);
-    if (unlikely (pending.in_error ()))
-      return false;
-    if (!pending) break;
-    visited.union_ (pending);
-    if (unlikely (visited.in_error ()))
-      return false;
+    hb_codepoint_t gid = pending.get_min ();
+    pending.del (gid);
 
-    for (hb_codepoint_t gid : pending)
+    unsigned index = (this+coverage).get_coverage (gid);
+    if (index == NOT_COVERED) continue;
+
+    hb_ubytes_t record = (this+glyphRecords)[index];
+    while (record)
     {
-      unsigned index = (this+coverage).get_coverage (gid);
-      if (index == NOT_COVERED) continue;
-
-      hb_ubytes_t record = (this+glyphRecords)[index];
-      while (record)
+      VarComponent::record_t component;
+      if (unlikely (!VarComponent::decompile_record (*this, record,
+						     nullptr, nullptr, &component)))
+	return false;
+      if (!glyphset->has (component.gid))
       {
-	VarComponent::record_t component;
-	if (unlikely (!VarComponent::decompile_record (*this, record,
-						       nullptr, nullptr, &component)))
-	  return false;
 	glyphset->add (component.gid);
 	if (unlikely (glyphset->in_error ()))
 	  return false;
-	record = record.sub_array (component.size);
+	pending.add (component.gid);
+	if (unlikely (pending.in_error ()))
+	  return false;
       }
+      record = record.sub_array (component.size);
     }
   }
   return true;
