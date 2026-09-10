@@ -50,8 +50,6 @@ HB_INTERNAL CTFontRef
 create_ct_font (CGFontRef cg_font, CGFloat font_size);
 
 
-#ifdef HAVE_CORETEXT
-
 template <typename T>
 struct hb_cf_releaser_t
 {
@@ -160,8 +158,5 @@ struct hb_cf_ptr_t
   private:
   T p;
 };
-
-#endif /* HAVE_CORETEXT */
-
 
 #endif /* HB_CORETEXT_HH */
