@@ -1316,18 +1316,38 @@ edge_sweep_row (int32_t                *area,
   /* fy increment per pixel column (constant since x_b advances by ONE_PIXEL). */
   int32_t delta_fy = (int32_t) ((int64_t) HB_RASTER_ONE_PIXEL * total_dy / total_dx);
 
-  /* Visible column window.  Columns left of it only contribute their
-   * total cover to column 0 (see cell_add) and that total telescopes,
-   * while columns right of it contribute nothing; so neither side is
-   * walked cell by cell.  Skipping ahead in the fy accumulation is
-   * exact: the increment is constant and the running sums are bounded,
-   * so k steps equal one k·delta_fy jump. */
-  int64_t col_min = (int64_t) x_org;
-  int64_t col_max = (int64_t) x_org + (int64_t) width - 1;
-
   if (total_dx > 0)
   {
     /* Left-to-right edge. */
+    if (likely ((unsigned) (cx0 - x_org) < width && (unsigned) (cx1 - x_org) < width))
+    {
+      /* Entirely inside the surface: unclipped walk. */
+      int32_t x_b = (int32_t) hb_clamp (((int64_t) cx0 + 1) * HB_RASTER_ONE_PIXEL,
+					(int64_t) INT32_MIN, (int64_t) INT32_MAX);
+      int32_t fy_b = fy0 + (int32_t) ((((int64_t) x_b - (int64_t) x0) * total_dy) / total_dx);
+      cell_add (area, cover, width, cx0 - x_org, fx0, fy0, HB_RASTER_ONE_PIXEL, fy_b, wind, x_min, x_max);
+
+      int32_t fy_prev = fy_b;
+      for (int32_t cx = cx0 + 1; cx < cx1; cx++)
+      {
+	fy_b = fy_prev + delta_fy;
+	cell_add (area, cover, width, cx - x_org, 0, fy_prev, HB_RASTER_ONE_PIXEL, fy_b, wind, x_min, x_max);
+	fy_prev = fy_b;
+      }
+
+      cell_add (area, cover, width, cx1 - x_org, 0, fy_prev, fx1, fy1, wind, x_min, x_max);
+      return;
+    }
+
+    /* Visible column window.  Columns left of it only contribute their
+     * total cover to column 0 (see cell_add) and that total telescopes,
+     * while columns right of it contribute nothing; so neither side is
+     * walked cell by cell.  Skipping ahead in the fy accumulation is
+     * exact: the increment is constant and the running sums are bounded,
+     * so k steps equal one k·delta_fy jump. */
+    int64_t col_min = (int64_t) x_org;
+    int64_t col_max = (int64_t) x_org + (int64_t) width - 1;
+
     if (unlikely (cx1 < col_min))
     {
       /* Entirely left of the surface. */
@@ -1369,6 +1389,29 @@ edge_sweep_row (int32_t                *area,
   else
   {
     /* Right-to-left edge. */
+    if (likely ((unsigned) (cx0 - x_org) < width && (unsigned) (cx1 - x_org) < width))
+    {
+      /* Entirely inside the surface: unclipped walk. */
+      int32_t x_b = (int32_t) hb_clamp ((int64_t) cx0 * HB_RASTER_ONE_PIXEL,
+					(int64_t) INT32_MIN, (int64_t) INT32_MAX);
+      int32_t fy_b = fy0 + (int32_t) ((((int64_t) x_b - (int64_t) x0) * total_dy) / total_dx);
+      cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind, x_min, x_max);
+
+      int32_t fy_prev = fy_b;
+      for (int32_t cx = cx0 - 1; cx > cx1; cx--)
+      {
+	fy_b = fy_prev - delta_fy;
+	cell_add (area, cover, width, cx - x_org, HB_RASTER_ONE_PIXEL, fy_prev, 0, fy_b, wind, x_min, x_max);
+	fy_prev = fy_b;
+      }
+
+      cell_add (area, cover, width, cx1 - x_org, HB_RASTER_ONE_PIXEL, fy_prev, fx1, fy1, wind, x_min, x_max);
+      return;
+    }
+
+    int64_t col_min = (int64_t) x_org;
+    int64_t col_max = (int64_t) x_org + (int64_t) width - 1;
+
     if (unlikely (cx0 < col_min))
     {
       /* Entirely left of the surface. */
