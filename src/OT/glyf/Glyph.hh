@@ -344,7 +344,7 @@ struct Glyph
         head_maxp_info->maxContours = hb_max (head_maxp_info->maxContours, (unsigned) header->numberOfContours);
       if (depth > 0 && composite_contours)
         *composite_contours += (unsigned) header->numberOfContours;
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, phantom_only)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, phantom_only, budget)))
 	return false;
       break;
     case COMPOSITE:
@@ -475,6 +475,15 @@ struct Glyph
 	if (use_my_metrics && item.is_use_my_metrics ())
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+
+	/* Each composite level transforms the whole subtree below it;
+	 * charge that work here so deep nesting is bounded by the budget
+	 * rather than by the per-draw point cap alone. */
+	if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, comp_points.length)))
+	{
+	  points.resize (old_length);
+	  return false;
+	}
 
 	if (comp_points) // Empty in case of phantom_only
 	{
