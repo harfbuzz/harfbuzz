@@ -256,6 +256,26 @@ test_ot_layout_language_get_feature_tags (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_layout_get_extender_glyphs (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/jstf.ttf");
+
+  g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+
+  hb_codepoint_t buffer[2];
+  unsigned offset = 0;
+  unsigned buffer_size = 2;
+  while (buffer_size == 2)
+  {
+    hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, offset, &buffer_size, buffer);
+    offset += buffer_size;
+  }
+  g_assert_cmpuint (buffer[0], ==, 6);
+
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -268,5 +288,6 @@ main (int argc, char **argv)
   hb_test_add (test_ot_layout_script_get_language_tags);
   hb_test_add (test_ot_layout_table_get_feature_tags);
   hb_test_add (test_ot_layout_language_get_feature_tags);
+  hb_test_add (test_ot_layout_get_extender_glyphs);
   return hb_test_run ();
 }
