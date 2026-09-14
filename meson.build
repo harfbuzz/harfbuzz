@@ -66,12 +66,15 @@ add_project_link_arguments(cpp.get_supported_link_arguments([
   '-Bsymbolic-functions'
 ]), language: 'c')
 
+visibility_inlines_hidden_argument = ['-fvisibility-inlines-hidden']
+if host_machine.system() in ['os400', 'aix']
+  visibility_inlines_hidden_argument = []
+endif
 add_project_arguments(cpp.get_supported_arguments([
   '-fno-exceptions',
   '-fno-rtti',
   '-fno-threadsafe-statics',
-  '-fvisibility-inlines-hidden',
-]), language: 'cpp')
+] + visibility_inlines_hidden_argument), language: 'cpp')
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
   if cpp.has_argument('-mstructure-size-boundary=8')
@@ -348,13 +351,22 @@ if host_machine.system() == 'darwin' and not get_option('coretext').disabled()
 endif
 
 # threads
-thread_dep = null_dep
+_thread_dep = null_dep
 if host_machine.system() != 'windows'
-  thread_dep = dependency('threads', required: false)
+  _thread_dep = dependency('threads', required: false)
 
-  if thread_dep.found()
+  if _thread_dep.found()
     conf.set('HAVE_PTHREAD', 1)
   endif
+endif
+
+if host_machine.system() == 'os400'
+  thread_dep = declare_dependency(
+    dependencies: _thread_dep,
+    link_args: ['-lpthread']
+  )
+else
+  thread_dep = _thread_dep
 endif
 
 foreach check : check_headers
