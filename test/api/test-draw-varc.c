@@ -26,6 +26,7 @@
 #include <math.h>
 
 #include <hb.h>
+#include <hb-ot.h>
 
 typedef struct draw_data_t
 {
@@ -34,6 +35,7 @@ typedef struct draw_data_t
   unsigned quad_to_count;
   unsigned cubic_to_count;
   unsigned close_path_count;
+  float first_move_x;
 } draw_data_t;
 
 typedef struct budget_draw_data_t
@@ -107,10 +109,12 @@ test_itoa (void)
 static void
 move_to (HB_UNUSED hb_draw_funcs_t *dfuncs, void *draw_data_,
 	 HB_UNUSED hb_draw_state_t *st,
-	 HB_UNUSED float to_x, HB_UNUSED float to_y,
+	 float to_x, HB_UNUSED float to_y,
 	 HB_UNUSED void *user_data)
 {
   draw_data_t *draw_data = (draw_data_t *) draw_data_;
+  if (!draw_data->move_to_count)
+    draw_data->first_move_x = to_x;
   draw_data->move_to_count++;
 }
 
@@ -281,6 +285,26 @@ test_hb_draw_varc_conditional (void)
 }
 
 static void
+test_hb_draw_varc_static_gvar (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-static-gvar.ttf");
+  g_assert_cmpuint (hb_ot_var_get_axis_count (face), ==, 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  hb_codepoint_t gid = 0;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+
+  draw_data_t draw_data = {0};
+  hb_font_draw_glyph (font, gid, funcs, &draw_data);
+  g_assert_cmpuint (draw_data.move_to_count, ==, 1);
+  g_assert_cmpuint (draw_data.line_to_count, ==, 3);
+  g_assert_cmpfloat (draw_data.first_move_x, ==, 50.f);
+
+  hb_font_destroy (font);
+}
+
+static void
 test_hb_draw_varc_budget (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/varc-6868.ttf");
@@ -336,6 +360,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_varc_simple_hangul);
   hb_test_add (test_hb_draw_varc_simple_hanzi);
   hb_test_add (test_hb_draw_varc_conditional);
+  hb_test_add (test_hb_draw_varc_static_gvar);
   hb_test_add (test_hb_draw_varc_budget);
 #endif
   unsigned result = hb_test_run ();
