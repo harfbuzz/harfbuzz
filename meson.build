@@ -351,22 +351,13 @@ if host_machine.system() == 'darwin' and not get_option('coretext').disabled()
 endif
 
 # threads
-_thread_dep = null_dep
+thread_dep = null_dep
 if host_machine.system() != 'windows'
-  _thread_dep = dependency('threads', required: false)
+  thread_dep = dependency('threads', required: false)
 
-  if _thread_dep.found()
+  if thread_dep.found()
     conf.set('HAVE_PTHREAD', 1)
   endif
-endif
-
-if host_machine.system() == 'os400'
-  thread_dep = declare_dependency(
-    dependencies: _thread_dep,
-    link_args: ['-lpthread']
-  )
-else
-  thread_dep = _thread_dep
 endif
 
 foreach check : check_headers
