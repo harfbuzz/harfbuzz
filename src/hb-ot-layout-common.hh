@@ -1695,6 +1695,17 @@ struct ClassDefFormat1_3
   void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
   {
     if (glyphs->is_empty ()) return;
+
+    /* An empty ClassDef assigns class zero to every glyph, so every glyph in
+     * `glyphs` intersects class zero.  Handle it up front: `end_glyph` below
+     * underflows when startGlyph is zero, and neither comparison can then be
+     * true. */
+    if (!classValue.len)
+    {
+      intersect_classes->add (0);
+      return;
+    }
+
     hb_codepoint_t end_glyph = startGlyph + classValue.len - 1;
     if (glyphs->get_min () < startGlyph ||
         glyphs->get_max () > end_glyph)
