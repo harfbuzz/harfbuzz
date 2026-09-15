@@ -1,0 +1,11 @@
+FONTS:
+gsub_chaining2_empty_input_classdef.otf
+
+PROFILES:
+layout-test.txt
+layout-test-retain-gids.txt
+
+SUBSETS:
+(0123456789
+0123456789
+*
