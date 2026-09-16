@@ -2285,6 +2285,9 @@ hb_ot_layout_get_horizontal_baseline_tag_for_script (hb_script_t script)
     case HB_SCRIPT_NUSHU:
     /* Unicode-13.0 additions */
     case HB_SCRIPT_KHITAN_SMALL_SCRIPT:
+    /* Unicode-18.0 additions */
+    case HB_SCRIPT_JURCHEN:
+    case HB_SCRIPT_SEAL:
       return HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT;
 
     default:

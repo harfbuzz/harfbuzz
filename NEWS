@@ -1,3 +1,15 @@
+Overview of changes leading to REPLACEME
+======================================
+- Add script values for Unicode 18.0: Jurchen, Proto-Cuneiform, and Seal.
+- Use the Universal Shaping Engine for the new scripts and ideographic
+  baselines for Jurchen and Seal.
+
+- New API:
+  +HB_SCRIPT_JURCHEN
+  +HB_SCRIPT_PROTO_CUNEIFORM
+  +HB_SCRIPT_SEAL
+
+
 Overview of changes leading to 14.4.0
 Wednesday, August 26, 2026
 =====================================
