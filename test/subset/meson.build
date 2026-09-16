@@ -25,6 +25,7 @@ tests = [
   'layout.gsub5',
   'layout.gsub5_format2',
   'layout.gsub6',
+  'layout.gsub6.empty_input_classdef',
   'layout.gsub8',
   'layout.gdef',
   'layout.gdef.glyphset',

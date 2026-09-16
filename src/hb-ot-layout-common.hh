@@ -1695,6 +1695,17 @@ struct ClassDefFormat1_3
   void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
   {
     if (glyphs->is_empty ()) return;
+
+    /* An empty ClassDef assigns class zero to every glyph, so every glyph in
+     * `glyphs` intersects class zero.  Handle it up front: `end_glyph` below
+     * underflows when startGlyph is zero, and neither comparison can then be
+     * true. */
+    if (!classValue.len)
+    {
+      intersect_classes->add (0);
+      return;
+    }
+
     hb_codepoint_t end_glyph = startGlyph + classValue.len - 1;
     if (glyphs->get_min () < startGlyph ||
         glyphs->get_max () > end_glyph)
@@ -1911,6 +1922,13 @@ struct ClassDefFormat2_4
   {
     if (klass == 0)
     {
+      /* An empty ClassDef assigns class zero to every glyph, so it intersects
+       * class zero as long as there is any glyph at all.  The loop below is a
+       * no-op when there are no ranges, and the `g != HB_SET_VALUE_INVALID`
+       * guard after it would then wrongly report no intersection. */
+      if (!rangeRecord.len)
+        return !glyphs->is_empty ();
+
       /* Match if there's any glyph that is not listed! */
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
       hb_codepoint_t last = HB_SET_VALUE_INVALID;
@@ -1991,6 +2009,16 @@ struct ClassDefFormat2_4
   void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
   {
     if (glyphs->is_empty ()) return;
+
+    /* An empty ClassDef assigns class zero to every glyph, so every glyph in
+     * `glyphs` intersects class zero.  Handle it up front: the loops below are
+     * no-ops when there are no ranges, and the `g != HB_SET_VALUE_INVALID`
+     * guard would then wrongly skip adding class zero. */
+    if (!rangeRecord.len)
+    {
+      intersect_classes->add (0);
+      return;
+    }
 
     hb_codepoint_t g = HB_SET_VALUE_INVALID;
     for (auto &range : rangeRecord)
