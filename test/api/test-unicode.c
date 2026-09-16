@@ -558,11 +558,17 @@ static const test_pair_t script_tests_more[] =
   {  0x16D40, HB_SCRIPT_KIRAT_RAI },
   {  0x1E5D0, HB_SCRIPT_OL_ONAL },
 
-  /* Unicode-16.0 additions */
+  /* Unicode-17.0 additions */
   {  0x10940, HB_SCRIPT_SIDETIC },
   {  0x11DB0, HB_SCRIPT_TOLONG_SIKI },
   {  0x16EA0, HB_SCRIPT_BERIA_ERFE },
   {  0x1E6C0, HB_SCRIPT_TAI_YO },
+
+  /* Unicode-18.0 additions */
+  {  0x125A8, HB_SCRIPT_PROTO_CUNEIFORM },
+  {  0x18E00, HB_SCRIPT_JURCHEN },
+  {  0x191A0, HB_SCRIPT_JURCHEN },
+  {  0x3D000, HB_SCRIPT_SEAL },
 
   { 0x111111, HB_SCRIPT_UNKNOWN }
 };

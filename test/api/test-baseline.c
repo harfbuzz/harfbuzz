@@ -29,6 +29,17 @@
 /* Unit tests for hb-ot-layout.h baseline */
 
 static void
+test_ot_layout_horizontal_baseline_tag (void)
+{
+  g_assert_cmphex (hb_ot_layout_get_horizontal_baseline_tag_for_script (HB_SCRIPT_JURCHEN), ==,
+		   HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT);
+  g_assert_cmphex (hb_ot_layout_get_horizontal_baseline_tag_for_script (HB_SCRIPT_SEAL), ==,
+		   HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT);
+  g_assert_cmphex (hb_ot_layout_get_horizontal_baseline_tag_for_script (HB_SCRIPT_PROTO_CUNEIFORM), ==,
+		   HB_OT_LAYOUT_BASELINE_TAG_ROMAN);
+}
+
+static void
 test_ot_layout_base (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/base.ttf");
@@ -114,6 +125,7 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+  hb_test_add (test_ot_layout_horizontal_baseline_tag);
   hb_test_add (test_ot_layout_base);
   hb_test_add (test_ot_layout_base_with_fallback);
 

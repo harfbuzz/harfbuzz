@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * <meta name="updated_at" content="2024-12-06T06:35:00Z" />
- * File-Date: 2026-06-14
+ * File-Date: 2026-08-08
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -516,7 +516,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('c','c','q',' '),	HB_TAG('A','R','K',' ')},	/* Chaungtha (retired code) -> Rakhine */
   {HB_TAG('c','d','o',' '),	HB_TAG('Z','H','S',' ')},	/* Min Dong Chinese -> Chinese, Simplified */
   {HB_TAG('c','e','k',' '),	HB_TAG('Q','I','N',' ')},	/* Eastern Khumi Chin -> Chin */
-  {HB_TAG('c','e','y',' '),	HB_TAG('Q','I','N',' ')},	/* Ekai Chin -> Chin */
+  {HB_TAG('c','e','y',' '),	HB_TAG('Q','I','N',' ')},	/* Laoktu Chin -> Chin */
   {HB_TAG('c','h','f',' '),	HB_TAG('M','Y','N',' ')},	/* Tabasco Chontal -> Mayan */
   {HB_TAG('c','h','j',' '),	HB_TAG('C','C','H','N')},	/* Ojitlán Chinantec -> Chinantec */
   {HB_TAG('c','h','k',' '),	HB_TAG('C','H','K','0')},	/* Chuukese */
@@ -854,7 +854,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('m','o','p',' '),	HB_TAG('M','Y','N',' ')},	/* Mopán Maya -> Mayan */
   {HB_TAG('m','p','e',' '),	HB_TAG('M','A','J',' ')},	/* Majang */
   {HB_TAG('m','q','g',' '),	HB_TAG('M','L','Y',' ')},	/* Kota Bangun Kutai Malay -> Malay */
-  {HB_TAG('m','r','h',' '),	HB_TAG('Q','I','N',' ')},	/* Mara Chin -> Chin */
+  {HB_TAG('m','r','h',' '),	HB_TAG('Q','I','N',' ')},	/* Mara -> Chin */
   {HB_TAG('m','r','j',' '),	HB_TAG('H','M','A',' ')},	/* Western Mari -> High Mari */
   {HB_TAG('m','s','c',' '),	HB_TAG('M','N','K',' ')},	/* Sankaran Maninka -> Maninka */
   {HB_TAG('m','s','h',' '),	HB_TAG('M','L','G',' ')},	/* Masikoro Malagasy -> Malagasy */
@@ -1016,7 +1016,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('s','e','z',' '),	HB_TAG('Q','I','N',' ')},	/* Senthang Chin -> Chin */
   {HB_TAG('s','g','c',' '),	HB_TAG('K','A','L',' ')},	/* Kipsigis -> Kalenjin */
   {HB_TAG('s','g','w',' '),	HB_TAG('C','H','G',' ')},	/* Sebat Bet Gurage -> Chaha Gurage */
-  {HB_TAG('s','h','l',' '),	HB_TAG('Q','I','N',' ')},	/* Shendu -> Chin */
+  {HB_TAG('s','h','l',' '),	HB_TAG('Q','I','N',' ')},	/* Shendu (retired code) -> Chin */
   {HB_TAG('s','h','u',' '),	HB_TAG('A','R','A',' ')},	/* Chadian Arabic -> Arabic */
   {HB_TAG('s','h','y',' '),	HB_TAG('B','B','R',' ')},	/* Tachawit -> Berber */
   {HB_TAG('s','i','z',' '),	HB_TAG('B','B','R',' ')},	/* Siwi -> Berber */
