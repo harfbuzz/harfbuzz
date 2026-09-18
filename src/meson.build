@@ -751,6 +751,11 @@ hb_vector_headers = [
   'hb-vector.h',
 ]
 
+link_args = []
+if host_machine.system() == 'os400'
+  link_args = ['-lpthread']
+endif
+
 libharfbuzz_raster_dep = null_dep
 if not get_option('raster').disabled()
   raster_deps = [m_dep]
@@ -762,6 +767,7 @@ if not get_option('raster').disabled()
     include_directories: incconfig,
     dependencies: raster_deps,
     link_with: [libharfbuzz],
+    link_args: link_args,
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
@@ -803,6 +809,7 @@ if not get_option('vector').disabled()
     include_directories: incconfig,
     dependencies: vector_deps,
     link_with: [libharfbuzz],
+    link_args: link_args,
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
@@ -882,6 +889,7 @@ if not get_option('gpu').disabled()
     include_directories: incconfig,
     dependencies: gpu_deps,
     link_with: [libharfbuzz],
+    link_args: link_args,
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
@@ -932,6 +940,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
     include_directories: incconfig,
     dependencies: [m_dep, cairo_dep],
     link_with: [libharfbuzz],
+    link_args: link_args,
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
@@ -1056,6 +1065,7 @@ if have_icu and not have_icu_builtin
     include_directories: incconfig,
     dependencies: icu_dep,
     link_with: [libharfbuzz],
+    link_args: link_args,
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
@@ -1250,6 +1260,7 @@ if have_gobject
     include_directories: incconfig,
     dependencies: [glib_dep, gobject_dep],
     link_with: [libharfbuzz],
+    link_args: link_args,
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
