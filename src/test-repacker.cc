@@ -2788,10 +2788,10 @@ test_32bit_roots_traversal ()
   hb_serialize_context_t c (buffer, buffer_size);
 
   c.start_serialize ();
-  unsigned leaf1 = add_object ("l1", 4, &c);
-  unsigned leaf2 = add_object ("l2", 4, &c);
+  unsigned leaf1 = add_object ("l1", 2, &c);
+  unsigned leaf2 = add_object ("l2", 2, &c);
 
-  start_object ("mid", 4, &c);
+  start_object ("mid", 3, &c);
   add_wide_offset (leaf1, &c);
   unsigned mid = c.pop_pack (false);
 
