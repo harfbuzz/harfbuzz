@@ -207,7 +207,7 @@ typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_d
  *
  * Return value: `true` if the budget was set, `false` if unsupported
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 typedef hb_bool_t (*hb_draw_set_budget_func_t) (hb_draw_funcs_t *dfuncs,
 						 void *draw_data,
@@ -224,7 +224,7 @@ typedef hb_bool_t (*hb_draw_set_budget_func_t) (hb_draw_funcs_t *dfuncs,
  *
  * Return value: the configured work-budget policy
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 typedef int64_t (*hb_draw_get_budget_func_t) (hb_draw_funcs_t *dfuncs,
 					      void *draw_data,
@@ -244,7 +244,7 @@ typedef int64_t (*hb_draw_get_budget_func_t) (hb_draw_funcs_t *dfuncs,
  * Return value: (nullable) (transfer none): the live work budget, or `NULL` if
  *   live budget accounting is unsupported
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 typedef int64_t *(*hb_draw_get_budget_remaining_func_t) (hb_draw_funcs_t *dfuncs,
 							 void *draw_data,
@@ -339,7 +339,7 @@ hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *dfuncs,
  *
  * Sets the budget setter callback.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_set_budget_func (hb_draw_funcs_t         *dfuncs,
@@ -355,7 +355,7 @@ hb_draw_funcs_set_set_budget_func (hb_draw_funcs_t         *dfuncs,
  *
  * Sets the budget-policy getter callback.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_get_budget_func (hb_draw_funcs_t         *dfuncs,
@@ -371,7 +371,7 @@ hb_draw_funcs_set_get_budget_func (hb_draw_funcs_t         *dfuncs,
  *
  * Sets the live-budget getter callback.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_get_budget_remaining_func (hb_draw_funcs_t                   *dfuncs,

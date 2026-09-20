@@ -227,9 +227,9 @@ HB_END_DECLS
  * @HB_SCRIPT_SIDETIC: `Sidt`, Since: 11.5.0
  * @HB_SCRIPT_TAI_YO: `Tayo`, Since: 11.5.0
  * @HB_SCRIPT_TOLONG_SIKI: `Tols`, Since: 11.5.0
- * @HB_SCRIPT_JURCHEN: `Jurc`, XSince: REPLACEME
- * @HB_SCRIPT_PROTO_CUNEIFORM: `Pcun`, XSince: REPLACEME
- * @HB_SCRIPT_SEAL: `Seal`, XSince: REPLACEME
+ * @HB_SCRIPT_JURCHEN: `Jurc`, Since: 14.5.0
+ * @HB_SCRIPT_PROTO_CUNEIFORM: `Pcun`, Since: 14.5.0
+ * @HB_SCRIPT_SEAL: `Seal`, Since: 14.5.0
  * @HB_SCRIPT_INVALID: No script set
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
@@ -477,7 +477,7 @@ typedef enum
   HB_SCRIPT_TOLONG_SIKI			= HB_TAG ('T','o','l','s'), /*17.0*/
 
   /*
-   * XSince: REPLACEME
+   * Since: 14.5.0
    */
   HB_SCRIPT_JURCHEN			= HB_TAG ('J','u','r','c'), /*18.0*/
   HB_SCRIPT_PROTO_CUNEIFORM		= HB_TAG ('P','c','u','n'), /*18.0*/

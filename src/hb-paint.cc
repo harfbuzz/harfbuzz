@@ -444,7 +444,7 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
  *
  * Return value: `true` if the paint functions support work budgets
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 hb_bool_t
 hb_paint_set_budget (hb_paint_funcs_t *funcs, void *paint_data, int64_t budget)
@@ -461,7 +461,7 @@ hb_paint_set_budget (hb_paint_funcs_t *funcs, void *paint_data, int64_t budget)
  *
  * Return value: the configured policy, or #HB_BUDGET_DEFAULT if unsupported
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 int64_t
 hb_paint_get_budget (hb_paint_funcs_t *funcs, void *paint_data)
@@ -481,7 +481,7 @@ hb_paint_get_budget (hb_paint_funcs_t *funcs, void *paint_data)
  * Return value: the live work budget; if it is not tracked, the concrete
  *   configured policy or #HB_BUDGET_UNLIMITED
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 int64_t
 hb_paint_get_budget_remaining (hb_paint_funcs_t *funcs, void *paint_data)

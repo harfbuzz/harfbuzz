@@ -1,13 +1,47 @@
-Overview of changes leading to REPLACEME
-======================================
-- Add script values for Unicode 18.0: Jurchen, Proto-Cuneiform, and Seal.
-- Use the Universal Shaping Engine for the new scripts and ideographic
-  baselines for Jurchen and Seal.
+Overview of changes leading to 14.5.0
+Monday, September 21, 2026
+=====================================
+- Update Unicode 18.0 data and script support, including script values for
+  Jurchen, Proto-Cuneiform, and Seal, and the corresponding shaping support.
+- Add support for VARC table subsetting, including pruning auxiliary data,
+  remapping glyph IDs, and guarding the feature in lean builds.
+- Add rendering work budgets to the draw and paint APIs and share them across
+  the raster, vector, GPU, and Cairo renderers so nested outline work remains
+  bounded.
+- Improve performance in set iteration, lookup traversal, and the repacker, and
+  add coverage for new benchmarks and fuzzing seeds.
+- Fix various correctness and robustness issues across the CFF, Graphite,
+  DirectWrite, and repacker code paths, including memory leaks, overflow checks,
+  bounds issues, and malformed-font handling.
+- Various build, portability, and CI fixes.
 
 - New API:
-  +HB_SCRIPT_JURCHEN
-  +HB_SCRIPT_PROTO_CUNEIFORM
-  +HB_SCRIPT_SEAL
+  * Common:
+    +HB_BUDGET_DEFAULT
+    +HB_BUDGET_UNLIMITED
+    +HB_SCRIPT_JURCHEN
+    +HB_SCRIPT_PROTO_CUNEIFORM
+    +HB_SCRIPT_SEAL
+  * Draw:
+    +hb_draw_set_budget_func_t
+    +hb_draw_get_budget_func_t
+    +hb_draw_get_budget_remaining_func_t
+    +hb_draw_funcs_set_set_budget_func()
+    +hb_draw_funcs_set_get_budget_func()
+    +hb_draw_funcs_set_get_budget_remaining_func()
+    +hb_draw_set_budget()
+    +hb_draw_get_budget()
+    +hb_draw_get_budget_remaining()
+  * Paint:
+    +hb_paint_set_budget_func_t
+    +hb_paint_get_budget_func_t
+    +hb_paint_get_budget_remaining_func_t
+    +hb_paint_funcs_set_set_budget_func()
+    +hb_paint_funcs_set_get_budget_func()
+    +hb_paint_funcs_set_get_budget_remaining_func()
+    +hb_paint_set_budget()
+    +hb_paint_get_budget()
+    +hb_paint_get_budget_remaining()
 
 
 Overview of changes leading to 14.4.0
@@ -36,38 +70,10 @@ Overview of changes leading to 14.3.1
 Thursday, August 13, 2026
 =====================================
 - Various fuzzing and build fixes.
-- Add public draw and paint work-budget APIs. Rendering backends can expose a
-  persistent policy and a live counter so nested outline traversal consumes the
-  same finite budget as emitted output.
 - Various subsetting fixes.
 - Fix AAT insertion at the end of the text.
 - Fix various rendering bugs in the experimental GPU library.
 - WASM shaper code can now read the user features.
-
-- New API:
-  * Common:
-    +HB_BUDGET_DEFAULT
-    +HB_BUDGET_UNLIMITED
-  * Draw:
-    +hb_draw_set_budget_func_t
-    +hb_draw_get_budget_func_t
-    +hb_draw_get_budget_remaining_func_t
-    +hb_draw_funcs_set_set_budget_func()
-    +hb_draw_funcs_set_get_budget_func()
-    +hb_draw_funcs_set_get_budget_remaining_func()
-    +hb_draw_set_budget()
-    +hb_draw_get_budget()
-    +hb_draw_get_budget_remaining()
-  * Paint:
-    +hb_paint_set_budget_func_t
-    +hb_paint_get_budget_func_t
-    +hb_paint_get_budget_remaining_func_t
-    +hb_paint_funcs_set_set_budget_func()
-    +hb_paint_funcs_set_get_budget_func()
-    +hb_paint_funcs_set_get_budget_remaining_func()
-    +hb_paint_set_budget()
-    +hb_paint_get_budget()
-    +hb_paint_get_budget_remaining()
 
 
 Overview of changes leading to 14.3.0

@@ -99,7 +99,7 @@ typedef int hb_bool_t;
  *
  * Use the implementation's finite default work budget.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 #define HB_BUDGET_DEFAULT ((int64_t) (-0x7FFFFFFFFFFFFFFF - 1))
 
@@ -109,7 +109,7 @@ typedef int hb_bool_t;
  * Use an effectively unlimited work budget. Structural safety limits remain
  * active.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 #define HB_BUDGET_UNLIMITED ((int64_t) 0x7FFFFFFFFFFFFFFF)
 

@@ -75,7 +75,7 @@ typedef struct hb_paint_funcs_t hb_paint_funcs_t;
  *
  * Return value: `true` if the budget was set, `false` if unsupported
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 typedef hb_bool_t (*hb_paint_set_budget_func_t) (hb_paint_funcs_t *funcs,
 						  void *paint_data,
@@ -92,7 +92,7 @@ typedef hb_bool_t (*hb_paint_set_budget_func_t) (hb_paint_funcs_t *funcs,
  *
  * Return value: the configured work-budget policy
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 typedef int64_t (*hb_paint_get_budget_func_t) (hb_paint_funcs_t *funcs,
 					       void *paint_data,
@@ -112,7 +112,7 @@ typedef int64_t (*hb_paint_get_budget_func_t) (hb_paint_funcs_t *funcs,
  * Return value: (nullable) (transfer none): the live work budget, or `NULL` if
  *   live budget accounting is unsupported
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 typedef int64_t *(*hb_paint_get_budget_remaining_func_t) (hb_paint_funcs_t *funcs,
 							  void *paint_data,
@@ -127,7 +127,7 @@ typedef int64_t *(*hb_paint_get_budget_remaining_func_t) (hb_paint_funcs_t *func
  *
  * Sets the budget setter callback.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 HB_EXTERN void
 hb_paint_funcs_set_set_budget_func (hb_paint_funcs_t         *funcs,
@@ -143,7 +143,7 @@ hb_paint_funcs_set_set_budget_func (hb_paint_funcs_t         *funcs,
  *
  * Sets the budget-policy getter callback.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 HB_EXTERN void
 hb_paint_funcs_set_get_budget_func (hb_paint_funcs_t         *funcs,
@@ -159,7 +159,7 @@ hb_paint_funcs_set_get_budget_func (hb_paint_funcs_t         *funcs,
  *
  * Sets the live-budget getter callback.
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 HB_EXTERN void
 hb_paint_funcs_set_get_budget_remaining_func (hb_paint_funcs_t                   *funcs,

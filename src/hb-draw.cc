@@ -379,7 +379,7 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *dfuncs)
  *
  * Return value: `true` if the draw functions support work budgets
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 hb_bool_t
 hb_draw_set_budget (hb_draw_funcs_t *dfuncs, void *draw_data, int64_t budget)
@@ -396,7 +396,7 @@ hb_draw_set_budget (hb_draw_funcs_t *dfuncs, void *draw_data, int64_t budget)
  *
  * Return value: the configured policy, or #HB_BUDGET_DEFAULT if unsupported
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 int64_t
 hb_draw_get_budget (hb_draw_funcs_t *dfuncs, void *draw_data)
@@ -416,7 +416,7 @@ hb_draw_get_budget (hb_draw_funcs_t *dfuncs, void *draw_data)
  * Return value: the live work budget; if it is not tracked, the concrete
  *   configured policy or #HB_BUDGET_UNLIMITED
  *
- * XSince: REPLACEME
+ * Since: 14.5.0
  **/
 int64_t
 hb_draw_get_budget_remaining (hb_draw_funcs_t *dfuncs, void *draw_data)
