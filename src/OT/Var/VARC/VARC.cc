@@ -403,7 +403,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       return hb_ubytes_t ();
     coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
     for (unsigned i = 0; i < axisIndices.length; i++)
-      coord_setter[axisIndices[i]] = roundf (axisValues[i]);
+      coord_setter[axisIndices[i]] = hb_clamp_to<int> (roundf (axisValues[i]));
     if (axisIndices)
       component_coords = coord_setter.get_coords ();
 
