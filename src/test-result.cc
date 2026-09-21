@@ -433,7 +433,7 @@ int copy_move_counter_t::move_count = 0;
 static result<copy_move_counter_t> return_tracked_from_local ()
 {
   copy_move_counter_t out (42);
-  return out;
+  return Ok (std::move (out));
 }
 
 static result<copy_move_counter_t> return_tracked_from_local_with_tag ()
@@ -445,7 +445,7 @@ static result<copy_move_counter_t> return_tracked_from_local_with_tag ()
 static hb_result_t<int, copy_move_counter_t> return_tracked_error_from_local ()
 {
   copy_move_counter_t out (42);
-  return out;
+  return Err (std::move (out));
 }
 
 static hb_result_t<int, copy_move_counter_t> return_tracked_error_from_local_with_tag ()
@@ -457,7 +457,7 @@ static hb_result_t<int, copy_move_counter_t> return_tracked_error_from_local_wit
 static result<move_only_val_t> return_move_only_from_local ()
 {
   move_only_val_t out (42);
-  return out;
+  return Ok (std::move (out));
 }
 
 static void test_return_moves_from_local ()
