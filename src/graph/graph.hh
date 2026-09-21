@@ -635,7 +635,7 @@ struct graph_t
     }
     TRY(r);
 
-    return g;
+    return Ok (std::move (g));
   }
 
   graph_t (const graph_t&) = delete;
