@@ -164,7 +164,36 @@ test_subpixel_edge (void)
 }
 
 
-/* ── Test 4: transform ───────────────────────────────────────────── */
+/* ── Test 4: wide scanline accumulators ─────────────────────────── */
+
+static void
+test_many_coincident_edges (void)
+{
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
+
+  /* A vertical edge at x=255/256 contributes 510*256 to one area cell.
+   * 16,449 such edges exceed INT32_MAX. */
+  for (unsigned i = 0; i < 16449; i++)
+    draw_rect (rdr, 0.f, 0.f, 255.f / 256.f, 1.f);
+
+  hb_raster_image_t *img = hb_raster_draw_render (rdr);
+  g_assert_nonnull (img);
+  g_assert_cmpint (pixel_at (img, 0, 0), ==, 255);
+  hb_raster_image_destroy (img);
+
+  /* 256 coincident unit boxes overflow the narrow cover accumulator. */
+  for (unsigned i = 0; i < 256; i++)
+    draw_rect (rdr, 0.f, 0.f, 1.f, 1.f);
+
+  img = hb_raster_draw_render (rdr);
+  g_assert_nonnull (img);
+  g_assert_cmpint (pixel_at (img, 0, 0), ==, 255);
+
+  hb_raster_image_destroy (img);
+  hb_raster_draw_destroy (rdr);
+}
+
+/* ── Test 5: transform ───────────────────────────────────────────── */
 
 static void
 test_transform (void)
@@ -188,7 +217,7 @@ test_transform (void)
   hb_raster_draw_destroy (rdr);
 }
 
-/* ── Test 5: transformed glyph extents helper ───────────────────── */
+/* ── Test 6: transformed glyph extents helper ───────────────────── */
 
 static void
 test_set_glyph_extents_with_transform (void)
@@ -225,7 +254,7 @@ test_set_glyph_extents_with_transform (void)
   hb_raster_draw_destroy (rdr);
 }
 
-/* ── Test 6: image paint under an overflowing transform ──────────── */
+/* ── Test 7: image paint under an overflowing transform ──────────── */
 
 /* Nested scales, each representable, whose product overflows to infinity.
  * The inverse transform then carries NaN into the image sampler's texel
@@ -262,7 +291,7 @@ test_image_nonfinite_transform (void)
   hb_raster_paint_destroy (paint);
 }
 
-/* ── Test 7: glyph extents that overflow the int grid ────────────── */
+/* ── Test 8: glyph extents that overflow the int grid ────────────── */
 
 /* Glyph extents are int32, so a transform that scales them up puts the
  * corner coordinates far outside the int range before they are floored
@@ -286,7 +315,7 @@ test_set_glyph_extents_overflow (void)
   hb_raster_paint_destroy (paint);
 }
 
-/* ── Test 8: shared work-budget lifecycle ───────────────────────── */
+/* ── Test 9: shared work-budget lifecycle ───────────────────────── */
 
 static void
 test_budget (void)
@@ -339,7 +368,7 @@ test_budget (void)
   hb_face_destroy (face);
 }
 
-/* ── Test 9: outline budget bounds a real COLR walk, apart from pixels ─ */
+/* ── Test 10: outline budget bounds a real COLR walk, apart from pixels ─ */
 
 /* The paint session's outline and pixel budgets are separate.  A 1x1
  * surface makes the pixel budget effectively unbounded, so only the
@@ -391,6 +420,7 @@ main (int argc, char **argv)
   hb_test_add (test_rectangle);
   hb_test_add (test_accumulate);
   hb_test_add (test_subpixel_edge);
+  hb_test_add (test_many_coincident_edges);
   hb_test_add (test_transform);
   hb_test_add (test_set_glyph_extents_with_transform);
   hb_test_add (test_image_nonfinite_transform);

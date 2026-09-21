@@ -106,6 +106,8 @@ struct hb_raster_draw_t
   /* Scratch — reused across render() calls */
   hb_vector_t<int32_t> row_area;
   hb_vector_t<int16_t> row_cover;
+  hb_vector_t<int64_t> row_area_wide;
+  hb_vector_t<int64_t> row_cover_wide;
   hb_vector_t<hb_vector_t<unsigned>> edge_buckets;
   hb_vector_t<unsigned> active_edges;
 
@@ -1239,12 +1241,19 @@ hb_raster_draw_glyph (hb_raster_draw_t *draw,
  *
  * Sweep:
  *   cover_accum += cover[x]
- *   α = min(|cover_accum·128 − area[x]|, 8192) · 255 / 8192
+ *   α = min(|cover_accum·(2·ONE_PIXEL) − area[x]|, FULL_COVERAGE)
+ *       · 255 / FULL_COVERAGE
  */
 
+/* Each edge contributes at most ONE_PIXEL to a cell's cover, so the
+ * compact accumulators are exact up to this many active edges. */
+static constexpr unsigned HB_RASTER_NARROW_MAX_ACTIVE_EDGES =
+  INT16_MAX / HB_RASTER_ONE_PIXEL;
+
 /* Add one edge piece's area/cover into a single cell. */
+template <typename Area, typename Cover>
 static HB_ALWAYS_INLINE void
-cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
+cell_add (Area *area, Cover *cover, unsigned width, int col,
 	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind,
 	  unsigned &x_min, unsigned &x_max)
 {
@@ -1257,24 +1266,25 @@ cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
        * to column 0.  Area is not added since the edge doesn't cross
        * column 0's cell. */
       int32_t dy = fy1 - fy0;
-      cover[0] += (int16_t) (dy * wind);
+      cover[0] += (Cover) (dy * wind);
       x_min = hb_min (x_min, 0u);
       x_max = hb_max (x_max, 0u);
     }
     return;
   }
   int32_t dy = fy1 - fy0;
-  area[col]  += (fx0 + fx1) * dy * wind;
-  cover[col] += (int16_t) (dy * wind);
+  area[col]  += (Area) (fx0 + fx1) * dy * wind;
+  cover[col] += (Cover) (dy * wind);
   x_min = hb_min (x_min, (unsigned) col);
   x_max = hb_max (x_max, (unsigned) col);
 }
 
 /* Walk one edge through the pixel cells of a single pixel row,
    accumulating area/cover.  py is the integer pixel-row index. */
+template <typename Area, typename Cover>
 static HB_ALWAYS_INLINE void
-edge_sweep_row (int32_t                *area,
-		int16_t                *cover,
+edge_sweep_row (Area                   *area,
+		Cover                  *cover,
 		unsigned                width,
 		int                     x_org,
 		int32_t                 y_top,
@@ -1569,6 +1579,30 @@ sweep_row_to_alpha (uint8_t *__restrict row_buf,
   return cover_accum;
 }
 
+static int64_t
+sweep_row_to_alpha_wide (uint8_t *__restrict row_buf,
+			 int64_t *__restrict area,
+			 int64_t *__restrict cover,
+			 unsigned x_min,
+			 unsigned x_max)
+{
+  const int32_t cover_scale = 2 * HB_RASTER_ONE_PIXEL;
+  int64_t cover_accum = 0;
+
+  for (unsigned x = x_min; x <= x_max; x++)
+  {
+    cover_accum += cover[x];
+    int64_t val = cover_accum * cover_scale - area[x];
+    int64_t alpha = val < 0 ? -val : val;
+    if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
+    row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
+    area[x] = 0;
+    cover[x] = 0;
+  }
+
+  return cover_accum;
+}
+
 
 /**
  * hb_raster_draw_render:
@@ -1687,6 +1721,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
     /* Scanline loop with active edge list. */
     draw->active_edges.clear ();
+    bool wide_initialized = false;
 
     for (unsigned row = 0; row < ext.height; row++)
     {
@@ -1700,6 +1735,16 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       unsigned x_min = ext.width, x_max = 0;
       unsigned write = 0;
       unsigned active_len = draw->active_edges.length;
+      bool use_wide = active_len > HB_RASTER_NARROW_MAX_ACTIVE_EDGES;
+      if (unlikely (use_wide && !wide_initialized))
+      {
+	if (unlikely (!draw->row_area_wide.resize_dirty (ext.width) ||
+		      !draw->row_cover_wide.resize_dirty (ext.width)))
+	  return nullptr;
+	hb_memset (draw->row_area_wide.arrayZ,  0, ext.width * sizeof (int64_t));
+	hb_memset (draw->row_cover_wide.arrayZ, 0, ext.width * sizeof (int64_t));
+	wide_initialized = true;
+      }
       for (unsigned j = 0; j < active_len; j++)
       {
 	unsigned edge_idx = draw->active_edges.arrayZ[j];
@@ -1707,22 +1752,30 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	if (e.yH <= y_top)
 	  continue;
 
-	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			ext.width, ext.x_origin, y_top, e, x_min, x_max);
+	if (unlikely (use_wide))
+	  edge_sweep_row (draw->row_area_wide.arrayZ, draw->row_cover_wide.arrayZ,
+			  ext.width, ext.x_origin, y_top, e, x_min, x_max);
+	else
+	  edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			  ext.width, ext.x_origin, y_top, e, x_min, x_max);
 	draw->active_edges.arrayZ[write++] = edge_idx;
       }
       draw->active_edges.resize (write);
 
       if (x_min <= x_max)
       {
-	int32_t cover_accum = sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
-						   draw->row_area.arrayZ, draw->row_cover.arrayZ,
-						   x_min, x_max);
+	int64_t cover_accum = use_wide ?
+	  sweep_row_to_alpha_wide (image->buffer.arrayZ + row * ext.stride,
+				   draw->row_area_wide.arrayZ, draw->row_cover_wide.arrayZ,
+				   x_min, x_max) :
+	  sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
+			      draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			      x_min, x_max);
 
 	/* If cover doesn't cancel, memset the constant-alpha tail. */
 	if (cover_accum != 0)
 	{
-	  int32_t alpha = cover_accum * (2 * HB_RASTER_ONE_PIXEL);
+	  int64_t alpha = cover_accum * (2 * HB_RASTER_ONE_PIXEL);
 	  alpha = alpha < 0 ? -alpha : alpha;
 	  if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
 	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
