@@ -202,8 +202,8 @@ struct hb_font_t
   {
     float x1 = em_fscale_x (extents->x_bearing);
     float y1 = em_fscale_y (extents->y_bearing);
-    float x2 = em_fscale_x (extents->x_bearing + extents->width);
-    float y2 = em_fscale_y (extents->y_bearing + extents->height);
+    float x2 = x1 + em_fscale_x (extents->width);
+    float y2 = y1 + em_fscale_y (extents->height);
 
     extents->x_bearing = floorf (x1);
     extents->y_bearing = floorf (y1);
