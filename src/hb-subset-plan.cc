@@ -718,6 +718,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 #ifndef HB_NO_VAR_COMPOSITES
   if (!user_axes_location.is_empty () &&
       !input->sets.drop_tables->has (OT::VARC::tableTag) &&
+      input->sets.no_subset_tables->has (OT::VARC::tableTag) &&
       face->table.VARC->has_data ())
   {
     check_success (false);

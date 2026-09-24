@@ -52,6 +52,7 @@ Wednesday, August 26, 2026
 - Fix cluster values and a dropped glyph advance in the Graphite shaper.
 - Fix `avar` axis value mapping in fonts that repeat the boundary entries.
 - Fix `avar` version 2 partial instancing.
+- Support instancing axes not referenced by retained `VARC` data.
 - Fix `COLR` sweep gradient truncation and unbounded memory use.
 - Faster subsetting, especially for large `GSUB`/`GPOS` and `CFF` tables.
 - Faster extraction of the experimental glyph dependency graph.
