@@ -27,6 +27,7 @@ meson setup \
 	-Dcairo:dwrite=disabled \
 	-Dcairo:tests=disabled \
 	-Dglib=enabled \
+	-Dglib:tests=false \
 	-Dlibffi:tests=false \
 	-Dfreetype=disabled \
 	-Dicu=disabled \
