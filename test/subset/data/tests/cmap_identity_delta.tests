@@ -1,0 +1,12 @@
+# Identity runs in cmap format 4 (glyph id == codepoint) must be
+# written as idDelta ranges, not glyphIdArray ranges.
+FONTS:
+cmap_identity_glyf.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+U+0001,U+0002,U+0003,U+0004,U+0005,U+0006,U+0007
+U+0001,U+0002,U+0003,U+0004,U+0006,U+0007
+U+0005
