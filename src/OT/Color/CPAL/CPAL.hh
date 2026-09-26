@@ -301,24 +301,45 @@ struct CPAL
     hb_vector_t<unsigned> first_color_index_for_layer;
     hb_map_t first_color_to_layer_index;
 
+    const hb_array_t<const BGRAColor> all_color_records = (this+colorRecordsZ).as_array (numColorRecords);
+    /* Two palettes that retain exactly the same color records can share the
+     * same block of color records. This commonly happens after subsetting
+     * when the colors that distinguished the palettes are dropped. */
+    auto retained_colors_equal = [&] (unsigned a, unsigned b)
+    {
+      for (hb_codepoint_t color_index : retained_color_indices)
+	if (all_color_records[a + color_index] != all_color_records[b + color_index])
+	  return false;
+      return true;
+    };
+
     const hb_array_t<const HBUINT16> colorRecordIndices = colorRecordIndicesZ.as_array (numPalettes);
     for (const auto first_color_record_idx : colorRecordIndices)
     {
       if (first_color_to_layer_index.has (first_color_record_idx)) continue;
 
-      first_color_index_for_layer.push (first_color_record_idx);
-      if (unlikely (!c->serializer->propagate_error (first_color_index_for_layer))) return_trace (false);
-      first_color_to_layer_index.set (first_color_record_idx,
-                                      first_color_index_for_layer.length - 1);
+      unsigned layer_index = first_color_index_for_layer.length;
+      for (unsigned i = 0; i < first_color_index_for_layer.length; i++)
+	if (retained_colors_equal (first_color_index_for_layer[i], first_color_record_idx))
+	{
+	  layer_index = i;
+	  break;
+	}
+
+      if (layer_index == first_color_index_for_layer.length)
+      {
+	first_color_index_for_layer.push (first_color_record_idx);
+	if (unlikely (!c->serializer->propagate_error (first_color_index_for_layer))) return_trace (false);
+      }
+      first_color_to_layer_index.set (first_color_record_idx, layer_index);
     }
 
     out->numColorRecords = first_color_index_for_layer.length
                            * retained_color_indices.get_population ();
 
-    const hb_array_t<const BGRAColor> color_records = (this+colorRecordsZ).as_array (numColorRecords);
     if (!out->serialize (c->serializer,
                          colorRecordIndices,
-                         color_records,
+                         all_color_records,
                          first_color_index_for_layer,
                          first_color_to_layer_index,
                          retained_color_indices))
