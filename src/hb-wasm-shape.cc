@@ -410,7 +410,7 @@ retry:
 				  ARRAY_LENGTH (arguments), arguments);
 
   if (num_features)
-    wasm_runtime_module_free (module_inst, arguments[2].of.i32);
+    wasm_runtime_module_free (module_inst, arguments[3].of.i32);
 
   if (unlikely (!ret || !results[0].of.i32))
   {
