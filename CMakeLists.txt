@@ -271,6 +271,7 @@ set (project_headers
 )
 set (subset_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-subset.h
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-depend.h
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h
 )
 set (raster_project_sources
@@ -642,7 +643,7 @@ endif ()
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
-  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h)
+  list(APPEND project_headers ${subset_project_headers})
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
   set_target_properties(harfbuzz-subset PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
