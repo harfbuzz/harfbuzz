@@ -4,6 +4,7 @@ tests = [
   'cmap',
   'cmap14',
   'cmap4_overflow',
+  'cmap_identity_delta',
   'preprocess',
   'full-font',
   'cff-full-font',

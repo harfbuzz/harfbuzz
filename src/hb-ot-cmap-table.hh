@@ -349,7 +349,9 @@ struct CmapSubtableFormat4
       }
     }
 
-    // TODO(grieger): handle case where delta is legitimately 0, mark range offset array instead?
+    // A zero delta is also the marker for ranges that need a
+    // glyphIdArray; serialize_rangeoffset_glyid() tells the two cases
+    // apart by re-checking the mapping.
     if (should_split) {
       if (start == prev_run_start)
         range_writer (start, run_start - 1, previous_run_delta);
@@ -443,9 +445,29 @@ struct CmapSubtableFormat4
     if (unlikely (!c->check_success (idRangeOffset))) return nullptr;
     if (unlikely ((char *)idRangeOffset - (char *)idDelta != (int) segcount * (int) HBINT16::static_size)) return nullptr;
 
-    for (unsigned i : + hb_range (segcount)
-		      | hb_filter ([&] (const unsigned _) { return idDelta[_] == 0; }))
+    for (unsigned i : hb_range (segcount))
     {
+      /* A non-zero delta is always a real run. A zero delta is
+       * ambiguous: identity mapping, or the marker for a range that
+       * needs a glyphIdArray. Only zero deltas need a check. */
+      int delta = idDelta[i];
+      if (delta)
+	continue;
+      bool use_delta = true;
+      for (hb_codepoint_t cp = startCode[i]; cp <= endCode[i]; cp++)
+      {
+	hb_codepoint_t gid = cp_to_gid.get (cp);
+	if (gid == HB_MAP_VALUE_INVALID)
+	  gid = 0;
+	if (gid != cp)
+	{
+	  use_delta = false;
+	  break;
+	}
+      }
+      if (use_delta)
+	continue;
+
       idRangeOffset[i] = 2 * (c->start_embed<HBUINT16> () - idRangeOffset - i);
       for (hb_codepoint_t cp = startCode[i]; cp <= endCode[i]; cp++)
       {
