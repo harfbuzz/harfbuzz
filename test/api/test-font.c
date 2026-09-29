@@ -672,6 +672,46 @@ test_font_properties (void)
   hb_font_destroy (subfont);
 }
 
+static hb_bool_t
+_extreme_glyph_extents_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+			     hb_codepoint_t glyph HB_UNUSED,
+			     hb_glyph_extents_t *extents,
+			     void *user_data HB_UNUSED)
+{
+  /* Mimic extents that the glyf/sbix producers can legitimately emit after
+   * clamping each field independently to the full hb_position_t range. */
+  extents->x_bearing = G_MAXINT;
+  extents->y_bearing = G_MAXINT;
+  extents->width = 100;
+  extents->height = 100;
+  return TRUE;
+}
+
+static void
+test_synthetic_glyph_extents_overflow (void)
+{
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_extents_func (ffuncs, _extreme_glyph_extents_func, NULL, NULL);
+
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_set_scale (font, 2048, 2048);
+
+  /* Both synthetic transforms operate on the extreme extents above; without
+   * saturating arithmetic the int32 sums/differences overflow (UBSan
+   * signed-integer-overflow in synthetic_glyph_extents). */
+  hb_font_set_synthetic_slant (font, 0.25f);
+  hb_font_set_synthetic_bold (font, 0.05f, 0.05f, TRUE);
+
+  hb_glyph_extents_t extents;
+  g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -689,6 +729,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
+  hb_test_add (test_synthetic_glyph_extents_overflow);
 
   return hb_test_run();
 }
