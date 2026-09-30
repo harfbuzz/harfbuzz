@@ -138,7 +138,19 @@ _hb_ft_font_destroy (void *data)
   if (ft_font->unref)
   {
     if (ft_font->static_library)
+    {
+      /* ft_font->ft_face->generic.data is the blob that hb_ft_font_set_funcs()
+       * hooked up as this internal FT_Face's finalizer target (_release_blob).
+       * FT_Done_Face() below runs that finalizer while static_ft_library_mutex
+       * is held; if dropping its reference were to free the blob right there,
+       * the blob's attached destroy_ft_library() user-data callback would try
+       * to re-lock the same non-recursive mutex and self-deadlock. Hold an
+       * extra reference across the locked call so the blob (and thus that
+       * callback) can only be freed after the lock is released. */
+      hb_blob_t *blob = hb_blob_reference ((hb_blob_t *) ft_font->ft_face->generic.data);
       _hb_ft_face_destroy_static (ft_font->ft_face);
+      hb_blob_destroy (blob);
+    }
     else
       _hb_ft_face_destroy (ft_font->ft_face);
   }
