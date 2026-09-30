@@ -13,3 +13,8 @@ wght=300
 IUP_OPTIONS:
 Yes
 No
+
+# fonttools keeps variation devices whose instantiated delta row is all zeros
+# as devices with an out-of-range varidx (0xFFFFFFFF); HarfBuzz drops them.
+OPTIONS:
+no_fonttools

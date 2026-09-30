@@ -5291,6 +5291,11 @@ struct VariationDevice
     hb_pair_t<unsigned, int> *v;
     if (!layout_variation_idx_delta_map->has (varIdx, &v))
       return_trace (nullptr);
+    /* The varidx was mapped to "no variations" during instancing (e.g. the
+     * instantiated row is all zeros). Drop the device instead of emitting one
+     * with an out-of-range varidx. */
+    if (hb_first (*v) == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      return_trace (nullptr);
 
     c->start_zerocopy (this->static_size);
     auto *out = c->embed (this);
