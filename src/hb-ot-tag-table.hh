@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * <meta name="updated_at" content="2024-12-06T06:35:00Z" />
- * File-Date: 2026-08-08
+ * File-Date: 2026-09-17
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -1659,6 +1659,13 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
       *count = 1;
       return true;
     }
+    if (subtag_matches (p, limit, "-fonupa", 7))
+    {
+      /* Undetermined; Uralic Phonetic Alphabet */
+      tags[0] = HB_TAG('U','P','P','H');  /* Uralic Phonetic Alphabet */
+      *count = 1;
+      return true;
+    }
     if (subtag_matches (p, limit, "-geok", 5))
     {
       /* Undetermined; Khutsuri (Asomtavruli and Nuskhuri) */
@@ -3110,6 +3117,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("tmh", -1);  /* Tamashek [macrolanguage] */
   case HB_TAG('T','O','D',' '):  /* Todo */
     return hb_language_from_string ("xwo", -1);  /* Written Oirat */
+  case HB_TAG('U','P','P','H'):  /* Uralic Phonetic Alphabet */
+    return hb_language_from_string ("und-fonupa", -1);  /* Undetermined; Uralic Phonetic Alphabet */
   case HB_TAG('W','D','T',' '):  /* Wendat */
     return hb_language_from_string ("wdt", -1);  /* Wendat */
   case HB_TAG('W','Y','N',' '):  /* Wyandot */
