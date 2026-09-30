@@ -775,6 +775,8 @@ ot.add_language ('und-fonipa', 'IPPH')
 
 ot.add_language ('und-fonnapa', 'APPH')
 
+ot.add_language ('und-fonupa', 'UPPH')
+
 ot.add_language ('ga-Latg', 'IRT')
 
 ot.add_language ('hy-arevmda', 'HYE')
