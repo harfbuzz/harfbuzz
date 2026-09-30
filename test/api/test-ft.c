@@ -206,6 +206,96 @@ found:
   cleanup_freetype ();
 }
 
+/* A minimal custom FT_Stream, so that FT_Open_Face() takes the
+ * hb_face_create_for_tables() path in hb_ft_face_create() (ie.
+ * ft_face->stream->read != NULL), instead of wrapping FT_Face's
+ * mmap'd bytes directly in a shared blob. */
+typedef struct
+{
+  const FT_Byte *data;
+  FT_ULong       length;
+} memory_stream_data_t;
+
+static unsigned long
+memory_stream_read (FT_Stream      stream,
+		    unsigned long  offset,
+		    unsigned char *buffer,
+		    unsigned long  count)
+{
+  memory_stream_data_t *sd = (memory_stream_data_t *) stream->descriptor.pointer;
+
+  if (offset > sd->length || count > sd->length - offset)
+    return count ? 0 : 1;
+
+  if (count)
+    memcpy (buffer, sd->data + offset, count);
+
+  return count;
+}
+
+static void
+memory_stream_close (FT_Stream stream HB_UNUSED)
+{
+}
+
+static void
+test_native_ft_set_funcs_stream_face_no_deadlock (void)
+{
+  init_freetype ();
+
+#if GLIB_CHECK_VERSION(2,37,2)
+  char *path = g_test_build_filename (G_TEST_DIST, "fonts/adwaita.ttf", NULL);
+#else
+  char *path = g_strdup ("fonts/adwaita.ttf");
+#endif
+
+  gchar *contents;
+  gsize length;
+  GError *error = NULL;
+  g_assert_true (g_file_get_contents (path, &contents, &length, &error));
+  g_free (path);
+
+  memory_stream_data_t stream_data = { (const FT_Byte *) contents, (FT_ULong) length };
+
+  FT_StreamRec stream_rec;
+  memset (&stream_rec, 0, sizeof (stream_rec));
+  stream_rec.size = (unsigned long) length;
+  stream_rec.descriptor.pointer = &stream_data;
+  stream_rec.read = memory_stream_read;
+  stream_rec.close = memory_stream_close;
+
+  FT_Open_Args args;
+  memset (&args, 0, sizeof (args));
+  args.flags = FT_OPEN_STREAM;
+  args.stream = &stream_rec;
+
+  FT_Face ft_face;
+  FT_Error ft_error = FT_Open_Face (ft_library, &args, 0, &ft_face);
+  g_assert_cmpint (ft_error, ==, 0);
+
+  g_assert_cmpint (FT_Set_Char_Size (ft_face, 2000, 1000, 0, 0), ==, 0);
+
+  /* hb_ft_font_create() followed by hb_ft_font_set_funcs() on a face
+   * opened from a custom stream used to self-deadlock in
+   * hb_font_destroy(); https://github.com/harfbuzz/harfbuzz/issues/6276 */
+  hb_font_t *font = hb_ft_font_create (ft_face, NULL);
+  g_assert_nonnull (font);
+  hb_ft_font_set_funcs (font);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "Hello", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, NULL, 0);
+  hb_buffer_destroy (buffer);
+
+  hb_font_destroy (font);
+
+  FT_Done_Face (ft_face);
+  g_free (contents);
+
+  cleanup_freetype ();
+}
+
 static gpointer
 create_static_ft_faces (gpointer data)
 {
@@ -258,6 +348,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_native_ft_basic);
   hb_test_add (test_native_ft_set_funcs_preserves_load_flags);
+  hb_test_add (test_native_ft_set_funcs_stream_face_no_deadlock);
   hb_test_add (test_native_ft_glyph_name_zero_size_probe);
   hb_test_add (test_static_ft_library_multithreaded);
 
