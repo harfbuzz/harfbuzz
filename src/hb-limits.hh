@@ -120,6 +120,12 @@
 #define HB_GPU_DRAW_MAX_CURVES 65536
 #endif
 
+/* Total bytes of sub-blobs (gradient color stops, clip outlines) in one
+ * hb_gpu_paint_t walk; exceeding it makes the paint unsupported. */
+#ifndef HB_GPU_PAINT_MAX_SUB_BYTES
+#define HB_GPU_PAINT_MAX_SUB_BYTES ((unsigned) 64 << 20)
+#endif
+
 /* Tiles emitted by one hb_paint_sweep_gradient_tiles() call.  Also
  * sets the angular resolution (2π over this) below which a repeating
  * color line is filled with its average color instead of tiled;
