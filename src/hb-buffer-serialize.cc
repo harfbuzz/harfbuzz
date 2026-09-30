@@ -494,15 +494,18 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
                             hb_buffer_serialize_format_t format,
                             hb_buffer_serialize_flags_t flags)
 {
-  end = hb_clamp (end, start, buffer->len);
-  start = hb_min (start, end);
-
   unsigned int sconsumed;
   if (!buf_consumed)
     buf_consumed = &sconsumed;
   *buf_consumed = 0;
-  if (buf_size)
+  if (buf && buf_size)
     *buf = '\0';
+
+  if (unlikely (!buffer || (!buf && buf_size)))
+    return 0;
+
+  end = hb_clamp (end, start, buffer->len);
+  start = hb_min (start, end);
 
   buffer->assert_glyphs ();
 
@@ -595,15 +598,18 @@ hb_buffer_serialize_unicode (hb_buffer_t *buffer,
                              hb_buffer_serialize_format_t format,
                              hb_buffer_serialize_flags_t flags)
 {
-  end = hb_clamp (end, start, buffer->len);
-  start = hb_min (start, end);
-
   unsigned int sconsumed;
   if (!buf_consumed)
     buf_consumed = &sconsumed;
   *buf_consumed = 0;
-  if (buf_size)
+  if (buf && buf_size)
     *buf = '\0';
+
+  if (unlikely (!buffer || (!buf && buf_size)))
+    return 0;
+
+  end = hb_clamp (end, start, buffer->len);
+  start = hb_min (start, end);
 
   buffer->assert_unicode ();
 
@@ -694,6 +700,15 @@ hb_buffer_serialize (hb_buffer_t *buffer,
                      hb_buffer_serialize_format_t format,
                      hb_buffer_serialize_flags_t flags)
 {
+  if (unlikely (!buffer))
+  {
+    if (buf_consumed)
+      *buf_consumed = 0;
+    if (buf && buf_size)
+      *buf = '\0';
+    return 0;
+  }
+
   switch (buffer->content_type)
   {
 
@@ -782,6 +797,9 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
     end_ptr = &end;
   *end_ptr = buf;
 
+  if (unlikely (!buffer || !buf))
+    return false;
+
   buffer->assert_glyphs ();
 
   if (unlikely (hb_object_is_immutable (buffer)))
@@ -852,6 +870,9 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
   if (!end_ptr)
     end_ptr = &end;
   *end_ptr = buf;
+
+  if (unlikely (!buffer || !buf))
+    return false;
 
   buffer->assert_unicode ();
 

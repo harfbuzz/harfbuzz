@@ -519,6 +519,12 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
                                unsigned int *count,
                                hb_color_stop_t *color_stops)
 {
+  if (unlikely (!color_line))
+  {
+    if (count)
+      *count = 0;
+    return 0;
+  }
   return color_line->get_color_stops (color_line,
 				      color_line->data,
 				      start, count,
@@ -539,6 +545,8 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
 hb_paint_extend_t
 hb_color_line_get_extend (hb_color_line_t *color_line)
 {
+  if (unlikely (!color_line))
+    return HB_PAINT_EXTEND_PAD;
   return color_line->get_extend (color_line,
 				 color_line->data,
 				 color_line->get_extend_user_data);
@@ -566,6 +574,8 @@ hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
                          float xy, float yy,
                          float dx, float dy)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->push_transform (paint_data, xx, yx, xy, yy, dx, dy);
 }
 
@@ -584,6 +594,8 @@ void
 hb_paint_push_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
                               const hb_font_t *font)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->push_font_transform (paint_data, font);
 }
 
@@ -602,6 +614,8 @@ void
 hb_paint_push_inverse_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
                                       const hb_font_t *font)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->push_inverse_font_transform (paint_data, font);
 }
 
@@ -617,6 +631,8 @@ hb_paint_push_inverse_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
 void
 hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->pop_transform (paint_data);
 }
 
@@ -636,6 +652,8 @@ hb_paint_color_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                       hb_codepoint_t glyph,
                       hb_font_t *font)
 {
+  if (unlikely (!funcs))
+    return false;
   return funcs->color_glyph (paint_data, glyph, font);
 }
 
@@ -660,6 +678,8 @@ hb_paint_fill_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                      hb_bool_t is_foreground,
                      hb_color_t color)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->fill_glyph (paint_data, glyph, font, is_foreground, color);
 }
 
@@ -679,6 +699,8 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_codepoint_t glyph,
                           hb_font_t *font)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->push_clip_glyph (paint_data, glyph, font);
 }
 
@@ -699,6 +721,8 @@ void
 hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
                               float xmin, float ymin, float xmax, float ymax)
 {
+  if (unlikely (!funcs))
+    return;
   funcs->push_clip_rectangle (paint_data, xmin, ymin, xmax, ymax);
 }
 

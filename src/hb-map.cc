@@ -165,6 +165,8 @@ hb_map_get_user_data (const hb_map_t     *map,
 hb_bool_t
 hb_map_allocation_successful (const hb_map_t  *map)
 {
+  if (unlikely (!map))
+    return false;
   return map->successful;
 }
 
@@ -185,7 +187,8 @@ hb_map_copy (const hb_map_t *map)
   if (unlikely (copy->in_error ()))
     return hb_map_get_empty ();
 
-  *copy = *map;
+  if (likely (map))
+    *copy = *map;
   return copy;
 }
 
@@ -287,6 +290,8 @@ hb_map_clear (hb_map_t *map)
 hb_bool_t
 hb_map_is_empty (const hb_map_t *map)
 {
+  if (unlikely (!map))
+    return true;
   return map->is_empty ();
 }
 
@@ -303,6 +308,8 @@ hb_map_is_empty (const hb_map_t *map)
 unsigned int
 hb_map_get_population (const hb_map_t *map)
 {
+  if (unlikely (!map))
+    return 0;
   return map->get_population ();
 }
 
@@ -322,6 +329,10 @@ hb_bool_t
 hb_map_is_equal (const hb_map_t *map,
 		 const hb_map_t *other)
 {
+  if (map == other)
+    return true;
+  if (!map || !other)
+    return false;
   return map->is_equal (*other);
 }
 
@@ -339,6 +350,8 @@ hb_map_is_equal (const hb_map_t *map,
 unsigned int
 hb_map_hash (const hb_map_t *map)
 {
+  if (unlikely (!map))
+    return 0;
   return map->hash ();
 }
 
@@ -355,6 +368,8 @@ HB_EXTERN void
 hb_map_update (hb_map_t *map,
 	       const hb_map_t *other)
 {
+  if (unlikely (!map || !other))
+    return;
   map->update (*other);
 }
 
@@ -383,6 +398,8 @@ hb_map_next (const hb_map_t *map,
 	     hb_codepoint_t *key,
 	     hb_codepoint_t *value)
 {
+  if (unlikely (!map || !idx))
+    return false;
   return map->next (idx, key, value);
 }
 
@@ -399,6 +416,8 @@ void
 hb_map_keys (const hb_map_t *map,
 	     hb_set_t *keys)
 {
+  if (unlikely (!map || !keys))
+    return;
   hb_copy (map->keys() , *keys);
 }
 
@@ -415,5 +434,7 @@ void
 hb_map_values (const hb_map_t *map,
 	       hb_set_t *values)
 {
+  if (unlikely (!map || !values))
+    return;
   hb_copy (map->values() , *values);
 }

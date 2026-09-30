@@ -61,6 +61,8 @@ _hb_ot_metrics_get_position_common (hb_font_t           *font,
 				    hb_ot_metrics_tag_t  metrics_tag,
 				    hb_position_t       *position     /* OUT.  May be NULL. */)
 {
+  if (unlikely (!font || !font->face))
+    return false;
   hb_face_t *face = font->face;
   switch ((unsigned) metrics_tag)
   {
@@ -138,6 +140,8 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 			    hb_ot_metrics_tag_t  metrics_tag,
 			    hb_position_t       *position     /* OUT.  May be NULL. */)
 {
+  if (unlikely (!font || !font->face))
+    return false;
   hb_face_t *face = font->face;
   switch ((unsigned) metrics_tag)
   {
@@ -255,6 +259,15 @@ hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,
 					  hb_ot_metrics_tag_t  metrics_tag,
 					  hb_position_t       *position     /* OUT */)
 {
+  if (unlikely (!position))
+    return;
+
+  if (unlikely (!font))
+  {
+    *position = 0;
+    return;
+  }
+
   hb_font_extents_t font_extents;
   hb_codepoint_t glyph;
   hb_glyph_extents_t extents;
@@ -395,6 +408,8 @@ hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,
 float
 hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 {
+  if (unlikely (!font || !font->face))
+    return 0.f;
   return font->face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords);
 }
 
@@ -413,6 +428,8 @@ hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 hb_position_t
 hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 {
+  if (unlikely (!font))
+    return 0;
   return font->em_scalef_x (hb_ot_metrics_get_variation (font, metrics_tag));
 }
 
@@ -431,6 +448,8 @@ hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 hb_position_t
 hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 {
+  if (unlikely (!font))
+    return 0;
   return font->em_scalef_y (hb_ot_metrics_get_variation (font, metrics_tag));
 }
 #endif

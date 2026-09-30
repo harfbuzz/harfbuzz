@@ -185,7 +185,8 @@ hb_set_copy (const hb_set_t *set)
   if (unlikely (copy->in_error ()))
     return hb_set_get_empty ();
 
-  copy->set (*set);
+  if (likely (set))
+    copy->set (*set);
   return copy;
 }
 
@@ -201,6 +202,8 @@ void
 hb_set_clear (hb_set_t *set)
 {
   /* Immutable-safe. */
+  if (unlikely (!set))
+    return;
   set->clear ();
 }
 
@@ -217,6 +220,8 @@ hb_set_clear (hb_set_t *set)
 hb_bool_t
 hb_set_is_empty (const hb_set_t *set)
 {
+  if (unlikely (!set))
+    return true;
   return set->is_empty ();
 }
 
@@ -235,6 +240,8 @@ hb_bool_t
 hb_set_has (const hb_set_t *set,
 	    hb_codepoint_t  codepoint)
 {
+  if (unlikely (!set))
+    return false;
   return set->has (codepoint);
 }
 
@@ -354,6 +361,10 @@ hb_bool_t
 hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other)
 {
+  if (set == other)
+    return true;
+  if (!set || !other)
+    return false;
   return set->is_equal (*other);
 }
 
@@ -372,6 +383,8 @@ hb_bool_t
 hb_set_intersects (const hb_set_t *set,
 		   const hb_set_t *other)
 {
+  if (!set || !other)
+    return false;
   return set->intersects (*other);
 }
 
@@ -389,6 +402,8 @@ hb_set_intersects (const hb_set_t *set,
 HB_EXTERN unsigned int
 hb_set_hash (const hb_set_t *set)
 {
+  if (unlikely (!set))
+    return 0;
   return set->hash ();
 }
 
@@ -407,6 +422,10 @@ hb_bool_t
 hb_set_is_subset (const hb_set_t *set,
 		  const hb_set_t *larger_set)
 {
+  if (set == larger_set)
+    return true;
+  if (!set || !larger_set)
+    return false;
   return set->is_subset (*larger_set);
 }
 
@@ -424,6 +443,13 @@ hb_set_set (hb_set_t       *set,
 	    const hb_set_t *other)
 {
   /* Immutable-safe. */
+  if (unlikely (!set))
+    return;
+  if (unlikely (!other))
+  {
+    set->clear ();
+    return;
+  }
   set->set (*other);
 }
 
@@ -441,6 +467,8 @@ hb_set_union (hb_set_t       *set,
 	      const hb_set_t *other)
 {
   /* Immutable-safe. */
+  if (unlikely (!set || !other))
+    return;
   set->union_ (*other);
 }
 
@@ -458,6 +486,13 @@ hb_set_intersect (hb_set_t       *set,
 		  const hb_set_t *other)
 {
   /* Immutable-safe. */
+  if (unlikely (!set))
+    return;
+  if (unlikely (!other))
+  {
+    set->clear ();
+    return;
+  }
   set->intersect (*other);
 }
 
@@ -475,6 +510,8 @@ hb_set_subtract (hb_set_t       *set,
 		 const hb_set_t *other)
 {
   /* Immutable-safe. */
+  if (unlikely (!set || !other))
+    return;
   set->subtract (*other);
 }
 
@@ -493,6 +530,8 @@ hb_set_symmetric_difference (hb_set_t       *set,
 			     const hb_set_t *other)
 {
   /* Immutable-safe. */
+  if (unlikely (!set || !other))
+    return;
   set->symmetric_difference (*other);
 }
 
@@ -540,6 +579,8 @@ hb_set_is_inverted (const hb_set_t *set)
 unsigned int
 hb_set_get_population (const hb_set_t *set)
 {
+  if (unlikely (!set))
+    return 0;
   return set->get_population ();
 }
 
@@ -556,6 +597,8 @@ hb_set_get_population (const hb_set_t *set)
 hb_codepoint_t
 hb_set_get_min (const hb_set_t *set)
 {
+  if (unlikely (!set))
+    return HB_SET_VALUE_INVALID;
   return set->get_min ();
 }
 
@@ -572,6 +615,8 @@ hb_set_get_min (const hb_set_t *set)
 hb_codepoint_t
 hb_set_get_max (const hb_set_t *set)
 {
+  if (unlikely (!set))
+    return HB_SET_VALUE_INVALID;
   return set->get_max ();
 }
 
@@ -593,6 +638,8 @@ hb_bool_t
 hb_set_next (const hb_set_t *set,
 	     hb_codepoint_t *codepoint)
 {
+  if (unlikely (!set || !codepoint))
+    return false;
   return set->next (codepoint);
 }
 
@@ -614,6 +661,8 @@ hb_bool_t
 hb_set_previous (const hb_set_t *set,
 		 hb_codepoint_t *codepoint)
 {
+  if (unlikely (!set || !codepoint))
+    return false;
   return set->previous (codepoint);
 }
 
@@ -638,6 +687,8 @@ hb_set_next_range (const hb_set_t *set,
 		   hb_codepoint_t *first,
 		   hb_codepoint_t *last)
 {
+  if (unlikely (!set || !first || !last))
+    return false;
   return set->next_range (first, last);
 }
 
@@ -662,6 +713,8 @@ hb_set_previous_range (const hb_set_t *set,
 		       hb_codepoint_t *first,
 		       hb_codepoint_t *last)
 {
+  if (unlikely (!set || !first || !last))
+    return false;
   return set->previous_range (first, last);
 }
 
@@ -687,5 +740,7 @@ hb_set_next_many (const hb_set_t *set,
 		  hb_codepoint_t *out,
 		  unsigned int    size)
 {
+  if (unlikely (!set || !out || !size))
+    return 0;
   return set->next_many (codepoint, out, size);
 }

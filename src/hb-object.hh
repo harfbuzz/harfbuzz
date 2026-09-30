@@ -259,16 +259,18 @@ static inline void hb_object_init (Type *obj)
 template <typename Type>
 static inline bool hb_object_is_valid (const Type *obj)
 {
-  return likely (obj->header.ref_count.is_valid ());
+  return likely (obj && obj->header.ref_count.is_valid ());
 }
 template <typename Type>
 static inline bool hb_object_is_immutable (const Type *obj)
 {
-  return !obj->header.writable;
+  return !obj || !obj->header.writable;
 }
 template <typename Type>
 static inline void hb_object_make_immutable (const Type *obj)
 {
+  if (unlikely (!obj))
+    return;
   obj->header.writable = false;
 }
 template <typename Type>

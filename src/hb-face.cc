@@ -694,7 +694,7 @@ hb_blob_t *
 hb_face_reference_table (const hb_face_t *face,
 			 hb_tag_t tag)
 {
-  if (unlikely (tag == HB_TAG_NONE))
+  if (unlikely (!face || tag == HB_TAG_NONE))
     return hb_blob_get_empty ();
 
   return face->reference_table (tag);
@@ -716,6 +716,9 @@ hb_face_reference_table (const hb_face_t *face,
 hb_blob_t *
 hb_face_reference_blob (hb_face_t *face)
 {
+  if (unlikely (!face))
+    return hb_blob_get_empty ();
+
   hb_blob_t *blob = face->reference_table (HB_TAG_NONE);
 
   if (blob == hb_blob_get_empty ())
@@ -791,6 +794,8 @@ hb_face_set_index (hb_face_t    *face,
 unsigned int
 hb_face_get_index (const hb_face_t *face)
 {
+  if (unlikely (!face))
+    return 0;
   return face->index;
 }
 
@@ -831,6 +836,8 @@ hb_face_set_upem (hb_face_t    *face,
 unsigned int
 hb_face_get_upem (const hb_face_t *face)
 {
+  if (unlikely (!face))
+    return 0;
   return face->get_upem ();
 }
 
@@ -868,6 +875,8 @@ hb_face_set_glyph_count (hb_face_t    *face,
 unsigned int
 hb_face_get_glyph_count (const hb_face_t *face)
 {
+  if (unlikely (!face))
+    return 0;
   return face->get_num_glyphs ();
 }
 
@@ -888,6 +897,13 @@ hb_face_set_get_table_tags_func (hb_face_t *face,
 				 void                    *user_data,
 				 hb_destroy_func_t        destroy)
 {
+  if (unlikely (!face))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+
   if (hb_object_is_immutable (face))
   {
     if (destroy)
@@ -924,7 +940,7 @@ hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */)
 {
-  if (!face->get_table_tags_func)
+  if (!face || !face->get_table_tags_func)
   {
     if (table_count)
       *table_count = 0;

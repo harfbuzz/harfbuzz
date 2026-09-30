@@ -130,8 +130,17 @@ hb_shape_full (hb_font_t          *font,
 	       unsigned int        num_features,
 	       const char * const *shaper_list)
 {
+  if (unlikely (!buffer))
+    return false;
+
   if (unlikely (!buffer->len))
     return true;
+
+  if (unlikely (!font))
+    font = hb_font_get_empty ();
+
+  if (unlikely (!features && num_features))
+    num_features = 0;
 
   buffer->enter ();
 

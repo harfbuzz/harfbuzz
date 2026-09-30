@@ -384,6 +384,8 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *dfuncs)
 hb_bool_t
 hb_draw_set_budget (hb_draw_funcs_t *dfuncs, void *draw_data, int64_t budget)
 {
+  if (unlikely (!dfuncs))
+    return false;
   return dfuncs->set_budget (draw_data, budget);
 }
 
@@ -401,6 +403,8 @@ hb_draw_set_budget (hb_draw_funcs_t *dfuncs, void *draw_data, int64_t budget)
 int64_t
 hb_draw_get_budget (hb_draw_funcs_t *dfuncs, void *draw_data)
 {
+  if (unlikely (!dfuncs))
+    return HB_BUDGET_DEFAULT;
   return dfuncs->get_budget (draw_data);
 }
 
@@ -421,6 +425,8 @@ hb_draw_get_budget (hb_draw_funcs_t *dfuncs, void *draw_data)
 int64_t
 hb_draw_get_budget_remaining (hb_draw_funcs_t *dfuncs, void *draw_data)
 {
+  if (unlikely (!dfuncs))
+    return HB_BUDGET_UNLIMITED;
   int64_t *remaining = dfuncs->get_budget_remaining_ptr (draw_data);
   if (remaining)
     return *remaining;
@@ -447,6 +453,8 @@ hb_draw_move_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		 hb_draw_state_t *st,
 		 float to_x, float to_y)
 {
+  if (unlikely (!dfuncs || !st))
+    return;
   dfuncs->move_to (draw_data, *st,
 		   to_x, to_y);
 }
@@ -468,6 +476,8 @@ hb_draw_line_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		 hb_draw_state_t *st,
 		 float to_x, float to_y)
 {
+  if (unlikely (!dfuncs || !st))
+    return;
   dfuncs->line_to (draw_data, *st,
 		   to_x, to_y);
 }
@@ -492,6 +502,8 @@ hb_draw_quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		      float control_x, float control_y,
 		      float to_x, float to_y)
 {
+  if (unlikely (!dfuncs || !st))
+    return;
   dfuncs->quadratic_to (draw_data, *st,
 			control_x, control_y,
 			to_x, to_y);
@@ -520,6 +532,8 @@ hb_draw_cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		  float control2_x, float control2_y,
 		  float to_x, float to_y)
 {
+  if (unlikely (!dfuncs || !st))
+    return;
   dfuncs->cubic_to (draw_data, *st,
 		    control1_x, control1_y,
 		    control2_x, control2_y,
@@ -540,6 +554,8 @@ void
 hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
 		    hb_draw_state_t *st)
 {
+  if (unlikely (!dfuncs || !st))
+    return;
   dfuncs->close_path (draw_data, *st);
 }
 

@@ -113,6 +113,7 @@ hb_blob_create_or_fail (const char        *data,
   hb_blob_t *blob;
 
   if (length >= 1u << 31 ||
+      (length > 0 && !data) ||
       !(blob = hb_object_create<hb_blob_t> ()))
   {
     if (destroy)
@@ -199,6 +200,9 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 hb_blob_t *
 hb_blob_copy_writable_or_fail (hb_blob_t *blob)
 {
+  if (unlikely (!blob))
+    return nullptr;
+
   blob = hb_blob_create (blob->data,
 			 blob->length,
 			 HB_MEMORY_MODE_DUPLICATE,
@@ -357,6 +361,9 @@ hb_blob_is_immutable (hb_blob_t *blob)
 unsigned int
 hb_blob_get_length (hb_blob_t *blob)
 {
+  if (unlikely (!blob))
+    return 0;
+
   return blob->length;
 }
 
@@ -374,6 +381,13 @@ hb_blob_get_length (hb_blob_t *blob)
 const char *
 hb_blob_get_data (hb_blob_t *blob, unsigned int *length)
 {
+  if (unlikely (!blob))
+  {
+    if (length)
+      *length = 0;
+    return nullptr;
+  }
+
   if (length)
     *length = blob->length;
 

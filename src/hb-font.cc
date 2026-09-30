@@ -2466,6 +2466,8 @@ hb_font_set_parent (hb_font_t *font,
 hb_font_t *
 hb_font_get_parent (hb_font_t *font)
 {
+  if (unlikely (!font))
+    return hb_font_get_empty ();
   return font->parent;
 }
 
@@ -2516,6 +2518,8 @@ hb_font_set_face (hb_font_t *font,
 hb_face_t *
 hb_font_get_face (hb_font_t *font)
 {
+  if (unlikely (!font))
+    return hb_face_get_empty ();
   return font->face;
 }
 
@@ -2800,6 +2804,12 @@ hb_font_get_scale (hb_font_t *font,
 		   int       *x_scale,
 		   int       *y_scale)
 {
+  if (unlikely (!font))
+  {
+    if (x_scale) *x_scale = 0;
+    if (y_scale) *y_scale = 0;
+    return;
+  }
   if (x_scale) *x_scale = font->x_scale;
   if (y_scale) *y_scale = font->y_scale;
 }
@@ -2850,6 +2860,12 @@ hb_font_get_ppem (hb_font_t    *font,
 		  unsigned int *x_ppem,
 		  unsigned int *y_ppem)
 {
+  if (unlikely (!font))
+  {
+    if (x_ppem) *x_ppem = 0;
+    if (y_ppem) *y_ppem = 0;
+    return;
+  }
   if (x_ppem) *x_ppem = font->x_ppem;
   if (y_ppem) *y_ppem = font->y_ppem;
 }
@@ -2895,6 +2911,8 @@ hb_font_set_ptem (hb_font_t *font,
 float
 hb_font_get_ptem (hb_font_t *font)
 {
+  if (unlikely (!font))
+    return 0.f;
   return font->ptem;
 }
 
@@ -2912,6 +2930,8 @@ hb_font_get_ptem (hb_font_t *font)
 hb_bool_t
 hb_font_is_synthetic (hb_font_t *font)
 {
+  if (unlikely (!font))
+    return false;
   return font->is_synthetic;
 }
 
@@ -2951,8 +2971,8 @@ hb_font_set_synthetic_bold (hb_font_t *font,
     return;
 
   if (font->x_embolden == x_embolden &&
-      font->y_embolden == y_embolden &&
-      font->embolden_in_place == (bool) in_place)
+       font->y_embolden == y_embolden &&
+       font->embolden_in_place == (bool) in_place)
     return;
 
   font->x_embolden = x_embolden;
@@ -2979,6 +2999,13 @@ hb_font_get_synthetic_bold (hb_font_t *font,
 			    float *y_embolden,
 			    hb_bool_t *in_place)
 {
+  if (unlikely (!font))
+  {
+    if (x_embolden) *x_embolden = 0.f;
+    if (y_embolden) *y_embolden = 0.f;
+    if (in_place) *in_place = false;
+    return;
+  }
   if (x_embolden) *x_embolden = font->x_embolden;
   if (y_embolden) *y_embolden = font->y_embolden;
   if (in_place) *in_place = font->embolden_in_place;
@@ -3031,6 +3058,8 @@ hb_font_set_synthetic_slant (hb_font_t *font, float slant)
 HB_EXTERN float
 hb_font_get_synthetic_slant (hb_font_t *font)
 {
+  if (unlikely (!font))
+    return 0.f;
   return font->slant;
 }
 
@@ -3253,6 +3282,8 @@ hb_font_set_var_named_instance (hb_font_t *font,
 unsigned int
 hb_font_get_var_named_instance (hb_font_t *font)
 {
+  if (unlikely (!font))
+    return HB_FONT_NO_VAR_NAMED_INSTANCE;
   return font->instance_index;
 }
 
@@ -3327,6 +3358,13 @@ const int *
 hb_font_get_var_coords_normalized (hb_font_t    *font,
 				   unsigned int *length)
 {
+  if (unlikely (!font))
+  {
+    if (length)
+      *length = 0;
+    return nullptr;
+  }
+
   if (length)
     *length = font->num_coords;
 
@@ -3359,6 +3397,13 @@ const float *
 hb_font_get_var_coords_design (hb_font_t *font,
 			       unsigned int *length)
 {
+  if (unlikely (!font))
+  {
+    if (length)
+      *length = 0;
+    return nullptr;
+  }
+
   if (length)
     *length = font->num_coords;
 
