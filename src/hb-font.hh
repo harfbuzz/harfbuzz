@@ -216,16 +216,17 @@ struct hb_font_t
     /* Slant. */
     if (slant_xy)
     {
-      hb_position_t x1 = extents->x_bearing;
-      hb_position_t y1 = extents->y_bearing;
-      hb_position_t x2 = extents->x_bearing + extents->width;
-      hb_position_t y2 = extents->y_bearing + extents->height;
+      /* x_bearing/width and y_bearing/height are each clamped to the full
+       * hb_position_t range independently by the extent producers, so their
+       * sums and differences can overflow int32.  Accumulate in int64. */
+      int64_t y1 = extents->y_bearing;
+      int64_t y2 = (int64_t) extents->y_bearing + extents->height;
 
-      x1 += floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
-      x2 += ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
+      int64_t x1 = (int64_t) extents->x_bearing + (int64_t) floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
+      int64_t x2 = (int64_t) extents->x_bearing + extents->width + (int64_t) ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
 
-      extents->x_bearing = x1;
-      extents->width = x2 - extents->x_bearing;
+      extents->x_bearing = hb_clamp_to<hb_position_t> (x1);
+      extents->width = hb_clamp_to<hb_position_t> (x2 - x1);
     }
 
     /* Embolden. */
@@ -234,15 +235,15 @@ struct hb_font_t
       /* Y */
       int y_shift = y_strength;
       if (y_scale < 0) y_shift = -y_shift;
-      extents->y_bearing += y_shift;
-      extents->height -= y_shift;
+      extents->y_bearing = hb_clamp_to<hb_position_t> ((int64_t) extents->y_bearing + y_shift);
+      extents->height = hb_clamp_to<hb_position_t> ((int64_t) extents->height - y_shift);
 
       /* X */
       int x_shift = x_strength;
       if (x_scale < 0) x_shift = -x_shift;
       if (embolden_in_place)
-	extents->x_bearing -= x_shift / 2;
-      extents->width += x_shift;
+	extents->x_bearing = hb_clamp_to<hb_position_t> ((int64_t) extents->x_bearing - x_shift / 2);
+      extents->width = hb_clamp_to<hb_position_t> ((int64_t) extents->width + x_shift);
     }
   }
 
