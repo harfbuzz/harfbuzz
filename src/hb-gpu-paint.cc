@@ -166,7 +166,7 @@ hb_gpu_paint_push_clip_path_end (hb_paint_funcs_t *funcs HB_UNUSED,
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
-  if (unlikely (!blob || !c->sub_blobs.push_or_fail (blob)))
+  if (unlikely (!blob || !c->push_sub_blob (blob)))
   {
     hb_blob_destroy (blob);
     c->unsupported = true;
@@ -524,7 +524,7 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
 
   hb_glyph_extents_t ext;
   hb_blob_t *blob = hb_gpu_draw_encode (c->scratch_draw, &ext);
-  if (unlikely (!blob || !c->sub_blobs.push_or_fail (blob)))
+  if (unlikely (!blob || !c->push_sub_blob (blob)))
   {
     hb_blob_destroy (blob);
     c->unsupported = true;
@@ -748,7 +748,7 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
 					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
 					 nullptr, nullptr);
-  if (unlikely (!grad_blob || !c->sub_blobs.push_or_fail (grad_blob)))
+  if (unlikely (!grad_blob || !c->push_sub_blob (grad_blob)))
   {
     hb_blob_destroy (grad_blob);
     c->unsupported = true;
@@ -836,7 +836,7 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
 					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
 					 nullptr, nullptr);
-  if (unlikely (!grad_blob || !c->sub_blobs.push_or_fail (grad_blob)))
+  if (unlikely (!grad_blob || !c->push_sub_blob (grad_blob)))
   {
     hb_blob_destroy (grad_blob);
     c->unsupported = true;
@@ -972,7 +972,7 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
   hb_blob_t *grad_blob = hb_blob_create ((const char *) grad_data.arrayZ,
 					 grad_bytes, HB_MEMORY_MODE_DUPLICATE,
 					 nullptr, nullptr);
-  if (unlikely (!grad_blob || !c->sub_blobs.push_or_fail (grad_blob)))
+  if (unlikely (!grad_blob || !c->push_sub_blob (grad_blob)))
   {
     hb_blob_destroy (grad_blob);
     c->unsupported = true;
@@ -1611,6 +1611,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
   for (hb_blob_t *b : paint->sub_blobs)
     hb_blob_destroy (b);
   paint->sub_blobs.reset ();
+  paint->sub_bytes = 0;
   paint->clip_depth = 0;
   paint->pending_clip_path = false;
   paint->unsupported = false;

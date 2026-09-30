@@ -267,6 +267,18 @@ struct hb_gpu_paint_t
    * hb_gpu_paint_encode() concatenates them after the op stream and
    * patches the recorded indices into texel offsets. */
   hb_vector_t<hb_blob_t *> sub_blobs;
+  /* Total bytes held in sub_blobs; bounded by HB_GPU_PAINT_MAX_SUB_BYTES. */
+  unsigned sub_bytes = 0;
+
+  bool push_sub_blob (hb_blob_t *blob)
+  {
+    unsigned len = hb_blob_get_length (blob);
+    if (unlikely (len > HB_GPU_PAINT_MAX_SUB_BYTES - sub_bytes ||
+		  !sub_blobs.push_or_fail (blob)))
+      return false;
+    sub_bytes += len;
+    return true;
+  }
 
   /* Nesting depth of push_group / pop_group.  We bail (set
    * `unsupported`) if it exceeds HB_GPU_PAINT_MAX_GROUP_DEPTH,
