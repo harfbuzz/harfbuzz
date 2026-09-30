@@ -1461,15 +1461,20 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
   unsigned ops_texels = paint->ops.length / 4;
   unsigned sub_bytes = 0;
   for (hb_blob_t *b : paint->sub_blobs)
-    sub_bytes += hb_blob_get_length (b);
+    if (unlikely (hb_unsigned_add_overflows (sub_bytes,
+					     hb_blob_get_length (b),
+					     &sub_bytes)))
+      return nullptr;
   /* Sub-blobs come from the draw encoder which produces 8-byte
    * aligned blobs; assert so we notice if that ever changes. */
   if (unlikely (sub_bytes % texel_bytes))
     return nullptr;
 
   unsigned total_bytes = header_texels * texel_bytes
-			+ paint->ops.length * 2
-			+ sub_bytes;
+			+ paint->ops.length * 2;
+  if (unlikely (hb_unsigned_add_overflows (total_bytes, sub_bytes,
+					   &total_bytes)))
+    return nullptr;
 
   unsigned buf_capacity = 0;
   char *replaced_recycled_buf = nullptr;
