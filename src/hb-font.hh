@@ -218,12 +218,12 @@ struct hb_font_t
     {
       /* x_bearing/width and y_bearing/height are each clamped to the full
        * hb_position_t range independently by the extent producers, so their
-       * sums and differences can overflow int32.  Accumulate in double. */
-      double y1 = extents->y_bearing;
-      double y2 = (double) extents->y_bearing + extents->height;
+       * sums and differences can overflow int32.  Accumulate in int64. */
+      int64_t y1 = extents->y_bearing;
+      int64_t y2 = (int64_t) extents->y_bearing + extents->height;
 
-      double x1 = (double) extents->x_bearing + floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
-      double x2 = (double) extents->x_bearing + extents->width + ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
+      int64_t x1 = (int64_t) extents->x_bearing + (int64_t) floorf (hb_min (y1 * slant_xy, y2 * slant_xy));
+      int64_t x2 = (int64_t) extents->x_bearing + extents->width + (int64_t) ceilf (hb_max (y1 * slant_xy, y2 * slant_xy));
 
       extents->x_bearing = hb_clamp_to<hb_position_t> (x1);
       extents->width = hb_clamp_to<hb_position_t> (x2 - x1);
