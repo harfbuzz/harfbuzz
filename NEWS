@@ -1,3 +1,25 @@
+Overview of changes leading to 14.5.1
+Thursday, October 1, 2026
+=====================================
+- Map the `fonupa` (Uralic Phonetic Alphabet) BCP 47 variant to the `UPPH`
+  OpenType language system tag.
+- Produce smaller `cmap` subtables and drop no-op variation device tables when
+  subsetting.
+- Fix possible deadlock in `hb_font_destroy()` after `hb_ft_font_set_funcs()`,
+  a regression from 14.5.0.
+- Fix signed integer overflows when scaling glyph extents and applying
+  synthetic slant and emboldening.
+- Fix float-to-int overflow in `VARC` component axis coordinates with
+  malformed fonts.
+- Fix a memory leak in the experimental WebAssembly shaper when shaping with
+  features.
+- Fix accumulator overflows in the experimental raster library when rendering
+  glyphs with very many overlapping edges.
+- Fix heap buffer overflow in the experimental GPU library with malicious
+  `COLR` fonts.
+- Various build and CI fixes.
+
+
 Overview of changes leading to 14.5.0
 Monday, September 21, 2026
 =====================================
