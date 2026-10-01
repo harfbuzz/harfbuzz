@@ -294,7 +294,12 @@ hb_color_lerp (hb_color_t c0, hb_color_t c1, float t)
   auto lerp = [&] (unsigned shift) -> unsigned {
     unsigned v0 = (c0 >> shift) & 0xFF;
     unsigned v1 = (c1 >> shift) & 0xFF;
-    return (unsigned) (v0 + t * ((float) v1 - (float) v0) + 0.5f);
+    float v = v0 + t * ((float) v1 - (float) v0) + 0.5f;
+    /* t may be outside [0,1] (or NaN) for malformed gradients;
+     * keep the float-to-unsigned conversion defined. */
+    if (!(v > 0.f)) return 0;
+    if (v > 255.f) return 255;
+    return (unsigned) v;
   };
   return HB_COLOR (lerp (0), lerp (8), lerp (16), lerp (24));
 }
