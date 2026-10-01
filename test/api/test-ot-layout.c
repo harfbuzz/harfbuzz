@@ -70,6 +70,43 @@ test_ot_layout_gdef_unsupported_version (void)
 }
 #endif
 
+#ifndef HB_NO_BEYOND_64K
+static void
+test_ot_layout_gdef_1_4_offset2 (void)
+{
+  const char gdef[] = {
+    0x00, 0x01, 0x00, 0x04, /* version 1.4 */
+    0x00, 0x26,             /* glyphClassDefOffset */
+    0x00, 0x00,             /* attachListOffset */
+    0x00, 0x00,             /* ligCaretListOffset */
+    0x00, 0x00,             /* markAttachClassDefOffset */
+    0x00, 0x00,             /* markGlyphSetsDefOffset */
+    0x00, 0x00, 0x00, 0x00, /* itemVarStoreOffset */
+    0x00, 0x00, 0x00, 0x2E, /* glyphClassDefOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* attachListOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* ligCaretListOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* markAttachClassDefOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* markGlyphSetsDefOffset2 */
+    0x00, 0x01, 0x00, 0x05, /* legacy ClassDef format 1, glyph 5 */
+    0x00, 0x01, 0x00, 0x01, /* one glyph in class 1 */
+    0x00, 0x01, 0x00, 0x05, /* ClassDef2 format 1, glyph 5 */
+    0x00, 0x01, 0x00, 0x03, /* one glyph in class 3 */
+  };
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gdef, sizeof (gdef),
+				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GDEF, blob));
+  hb_blob_destroy (blob);
+
+  g_assert_true (hb_ot_layout_has_glyph_classes (face));
+  g_assert_cmpuint (hb_ot_layout_get_glyph_class (face, 5), ==,
+		    HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+
+  hb_face_destroy (face);
+}
+#endif
+
 static void
 test_ot_layout_table_get_script_tags (void)
 {
@@ -262,6 +299,9 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT) && defined(HAVE_MMAP)
   hb_test_add (test_ot_layout_gdef_unsupported_version);
+#endif
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_ot_layout_gdef_1_4_offset2);
 #endif
   hb_test_add (test_ot_layout_table_get_script_tags);
   hb_test_add (test_ot_layout_table_find_script);
