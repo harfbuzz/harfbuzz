@@ -410,6 +410,94 @@ test_budget_colr_outline (void)
   hb_face_destroy (face);
 }
 
+/* ── Test 11: background color is premultiplied before filling ─────── */
+
+/* hb_raster_paint_set_background() must store the premultiplied BGRA32
+ * pixel in the buffer, matching the format every other paint op in this
+ * file assumes (see hb-raster.hh's SRC_OVER: "premultiplied src over
+ * premultiplied dst"), not the raw unpremultiplied channel bytes. */
+static void
+test_background_premultiplied (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+
+  const unsigned width = 2, height = 2;
+  hb_raster_extents_t ext = {0, 0, width, height, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+
+  /* Half-alpha opaque red: blue=0, green=0, red=255, alpha=128.
+   * Premultiplied: r = div255(255*128) = 128, a stays 128. */
+  hb_raster_paint_set_background (paint, HB_COLOR (0, 0, 255, 128));
+
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_push_clip_rectangle (funcs, paint, 0.f, 0.f, (float) width, (float) height);
+  hb_paint_pop_clip (funcs, paint);
+
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+
+  hb_raster_extents_t out_ext;
+  hb_raster_image_get_extents (img, &out_ext);
+  const uint8_t *buf = hb_raster_image_get_buffer (img);
+
+  for (unsigned y = 0; y < out_ext.height; y++)
+  {
+    const uint32_t *row = (const uint32_t *) (buf + (size_t) y * out_ext.stride);
+    for (unsigned x = 0; x < out_ext.width; x++)
+      /* 0x80800000: alpha=0x80, premultiplied red=0x80, in BGRA memory
+       * order. The old HB_COLOR()-based reconstruction produces
+       * 0x0000ff80 instead (wrong byte layout, not premultiplied). */
+      g_assert_cmphex (row[x], ==, 0x80800000);
+  }
+
+  hb_raster_image_destroy (img);
+  hb_raster_paint_destroy (paint);
+}
+
+/* ── Test 12: background pre-fill honors a stride wider than width*4 ── */
+
+/* hb_raster_paint_set_background() must pre-fill every pixel of the
+ * output image with the premultiplied BGRA32 background color, honoring
+ * a caller-supplied stride wider than width * 4 bytes. */
+static void
+test_background_stride (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+
+  const unsigned width = 2, height = 4;
+  const unsigned stride = 64; /* far wider than width * 4 = 8 bytes */
+  hb_raster_extents_t ext = {0, 0, width, height, stride};
+  hb_raster_paint_set_extents (paint, &ext);
+
+  /* Opaque red: blue=0, green=0, red=255, alpha=255. */
+  hb_raster_paint_set_background (paint, HB_COLOR (0, 0, 255, 255));
+
+  /* Trigger initialization without painting any pixels directly, so the
+   * only thing that can have colored a pixel is the background fill. */
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_push_clip_rectangle (funcs, paint, 0.f, 0.f, (float) width, (float) height);
+  hb_paint_pop_clip (funcs, paint);
+
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+
+  hb_raster_extents_t out_ext;
+  hb_raster_image_get_extents (img, &out_ext);
+  const uint8_t *buf = hb_raster_image_get_buffer (img);
+
+  for (unsigned y = 0; y < out_ext.height; y++)
+  {
+    const uint32_t *row = (const uint32_t *) (buf + (size_t) y * out_ext.stride);
+    for (unsigned x = 0; x < out_ext.width; x++)
+      /* 0xffff0000 == premultiplied opaque red in BGRA32 memory order
+       * (alpha in the top byte, blue in the bottom byte). */
+      g_assert_cmphex (row[x], ==, 0xffff0000);
+  }
+
+  hb_raster_image_destroy (img);
+  hb_raster_paint_destroy (paint);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -427,6 +515,8 @@ main (int argc, char **argv)
   hb_test_add (test_set_glyph_extents_overflow);
   hb_test_add (test_budget);
   hb_test_add (test_budget_colr_outline);
+  hb_test_add (test_background_premultiplied);
+  hb_test_add (test_background_stride);
 
   return hb_test_run ();
 }
