@@ -5125,7 +5125,10 @@ struct ChainRuleSetOf
 };
 
 template <typename Types>
-struct ChainRuleSet : ChainRuleSetOf<SmallTypes, ChainRule<Types>> {};
+struct ChainRuleSet : ChainRuleSetOf<Types, ChainRule<Types>> {};
+
+static_assert (sizeof (ChainRuleSet<MediumTypes>) ==
+	       HBUINT16::static_size + Offset24::static_size, "");
 
 template <typename Types>
 struct ChainClassRuleSet : ChainRuleSetOf<Types, ChainRule<SmallTypes>> {};
