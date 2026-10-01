@@ -6769,11 +6769,7 @@ struct GSUBGPOS
 		featureList2;	/* 32-bit offset to FeatureList table.
 				 * Introduced in version 0x00010002. */
   Offset32To<LookupList2T>
-		lookupList2;	/* 32-bit offset to LookupList table with
-				 * 32-bit lookup offsets.
-				 * The June 2026 proposed spec points this to
-				 * a LookupList instead; that was not suitable
-				 * for beyond-64k fonts.
+		lookupList2;	/* 32-bit offset to LookupList2 table.
 				 * Introduced in version 0x00010002. */
 #endif
   public:

@@ -1203,9 +1203,7 @@ struct UVSMapping
 
   HBUINT24	unicodeValue;	/* Base Unicode value of the UVS */
   GlyphID
-		glyphID;	/* Glyph ID of the UVS. The format 15 field
-				 * table incorrectly says uint16; the normative
-				 * text requires a 24-bit glyph index. */
+		glyphID;	/* Glyph ID of the UVS. */
   public:
   DEFINE_SIZE_STATIC (3 + GlyphID::static_size);
 };
