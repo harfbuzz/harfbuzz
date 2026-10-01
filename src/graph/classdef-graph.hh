@@ -194,6 +194,7 @@ struct class_def_size_estimator_t
     included_class_def_glyphs.clear();
     included_classes.clear();
     class_def_range_count = 0;
+    class_max = 0;
     coverage_size_val = compute_coverage_size ();
   }
 
@@ -218,11 +219,15 @@ struct class_def_size_estimator_t
       }
 
       if (klass)
+      {
         class_def_range_count += num_ranges_per_class.get (klass);
+        if (glyphs && klass > class_max)
+          class_max = klass;
+      }
       included_classes.add(klass);
     }
 
-    return class_def_uses_format1 () ? class_def_format1_size () : class_def_format2_size ();
+    return class_def_size ();
   }
 
   unsigned num_glyph_ranges (const hb_set_t &glyphs) const {
@@ -274,30 +279,26 @@ struct class_def_size_estimator_t
     return OT::Layout::SmallTypes::size;
   }
 
-  unsigned class_def_format1_size () const
+  unsigned class_def_size () const
   {
-    unsigned glyph_size = glyph_id_size (included_class_def_glyphs);
-    unsigned size = OT::HBUINT16::static_size + glyph_size + glyph_size;
-    if (!included_class_def_glyphs.is_empty ())
-      size += OT::HBUINT16::static_size * (included_class_def_glyphs.get_max () -
-					   included_class_def_glyphs.get_min () + 1);
-    return size;
-  }
-
-  unsigned class_def_format2_size () const
-  {
-    unsigned glyph_size = glyph_id_size (included_class_def_glyphs);
-    unsigned range_size = 2 * glyph_size + OT::HBUINT16::static_size;
-    unsigned size = OT::HBUINT16::static_size + glyph_size;
     if (included_class_def_glyphs.is_empty ())
       return OT::HBUINT16::static_size + OT::Layout::SmallTypes::size;
-    return size + range_size * class_def_range_count;
-  }
 
-  bool class_def_uses_format1 () const
-  {
-    if (included_class_def_glyphs.is_empty ()) return false;
-    return class_def_format1_size () <= class_def_format2_size ();
+    unsigned best_size = UINT_MAX;
+    hb_codepoint_t glyph_max = included_class_def_glyphs.get_max ();
+    unsigned glyph_span = glyph_max - included_class_def_glyphs.get_min () + 1;
+
+    if (glyph_max <= 0xFFFFu && glyph_span <= 0xFFFFu && class_max <= 0xFFFFu)
+      best_size = hb_min (best_size, 6 + 2 * glyph_span);
+    if (glyph_max <= 0xFFFFu && class_def_range_count <= 0xFFFFu && class_max <= 0xFFFFu)
+      best_size = hb_min (best_size, 4 + 6 * class_def_range_count);
+#ifndef HB_NO_BEYOND_64K
+    if (glyph_max <= 0xFFFFFFu && glyph_span <= 0xFFFFFFu && class_max <= 0xFFFFFFu)
+      best_size = hb_min (best_size, 8 + 3 * glyph_span);
+    if (glyph_max <= 0xFFFFFFu && class_def_range_count <= 0xFFFFFFu && class_max <= 0xFFFFu)
+      best_size = hb_min (best_size, 5 + 8 * class_def_range_count);
+#endif
+    return best_size;
   }
 
   hb_hashmap_t<unsigned, unsigned> num_ranges_per_class;
@@ -306,6 +307,7 @@ struct class_def_size_estimator_t
   hb_set_t included_glyphs;
   hb_set_t included_class_def_glyphs;
   unsigned class_def_range_count;
+  unsigned class_max;
   unsigned coverage_size_val;
 };
 
