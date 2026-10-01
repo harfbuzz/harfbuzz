@@ -296,6 +296,25 @@ test_native_ft_set_funcs_stream_face_no_deadlock (void)
   cleanup_freetype ();
 }
 
+static void
+test_native_ft_create_invalid_blob_no_leak (void)
+{
+  /* The error path of hb_ft_face_create_from_blob_or_fail() must release the
+   * FT_Library reference it took from reference_ft_library(); otherwise the
+   * static library is pinned and leaks. Drive the failing path repeatedly so
+   * LeakSanitizer flags any unbalanced reference. */
+  static const char junk[] = "this is not a valid font blob at all";
+
+  for (unsigned int i = 0; i < 16; i++)
+  {
+    hb_blob_t *blob = hb_blob_create (junk, sizeof (junk),
+				      HB_MEMORY_MODE_READONLY, NULL, NULL);
+    hb_face_t *face = hb_ft_face_create_from_blob_or_fail (blob, 0);
+    g_assert_null (face);
+    hb_blob_destroy (blob);
+  }
+}
+
 static gpointer
 create_static_ft_faces (gpointer data)
 {
@@ -350,6 +369,7 @@ main (int argc, char **argv)
   hb_test_add (test_native_ft_set_funcs_preserves_load_flags);
   hb_test_add (test_native_ft_set_funcs_stream_face_no_deadlock);
   hb_test_add (test_native_ft_glyph_name_zero_size_probe);
+  hb_test_add (test_native_ft_create_invalid_blob_no_leak);
   hb_test_add (test_static_ft_library_multithreaded);
 
   return hb_test_run ();
