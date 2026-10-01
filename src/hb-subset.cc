@@ -287,6 +287,9 @@ _dependencies_satisfied (hb_subset_plan_t *plan, hb_tag_t tag,
     return plan->all_axes_pinned || !pending_subset_tags.has (HB_TAG('G','D','E','F'));
   /* For avar2, variation tables must wait for avar to be subsetted first. */
   case HB_TAG('g','v','a','r'):
+#ifndef HB_NO_BEYOND_64K
+  case HB_TAG('G','V','A','R'):
+#endif
   case HB_TAG('c','v','a','r'):
   case HB_TAG('H','V','A','R'):
   case HB_TAG('V','V','A','R'):
