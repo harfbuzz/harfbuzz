@@ -132,7 +132,7 @@ static hb_face_t *
 create_vorg_face (void)
 {
   static const char VORG_data[] = {
-    0, 2, 0, 1,			/* version 2.1 */
+    0, 2, 0, 0,			/* version 2.0 */
     0, 123,				/* defaultVertOriginY */
     0, 0, 1,				/* numVertOriginYMetrics */
     1, 0, 1, 1, 65,			/* glyph 0x10001, origin 321 */
@@ -144,7 +144,7 @@ static void
 test_vorg_versions (void)
 {
   static const char VORG1_data[] = {
-    0, 1, 0, 1,			/* version 1.1 */
+    0, 1, 0, 0,			/* version 1.0 */
     0, 123,				/* defaultVertOriginY */
     0, 1,				/* numVertOriginYMetrics */
     0, 1, 1, 65,			/* glyph 1, origin 321 */
