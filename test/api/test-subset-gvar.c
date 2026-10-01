@@ -91,8 +91,8 @@ test_subset_gvar_retaingids (void)
 }
 
 #ifndef HB_NO_BEYOND_64K
-static void
-test_subset_GVAR_all_axes_pinned (void)
+static hb_face_t *
+create_GVAR_face (const char *GVAR_data, unsigned GVAR_length)
 {
   hb_face_t *source = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.abc.ttf");
   hb_face_t *face = hb_face_builder_create ();
@@ -110,8 +110,54 @@ test_subset_GVAR_all_axes_pinned (void)
   g_free (tags);
   hb_face_destroy (source);
 
+  hb_blob_t *blob = hb_blob_create_or_fail (GVAR_data, GVAR_length,
+					     HB_MEMORY_MODE_READONLY,
+					     NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','V','A','R'), blob));
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+static void
+test_subset_GVAR_header (void)
+{
+  static const char GVAR_data[] = {
+    0, 1, 0, 0,                 /* version 1.0 */
+    0, 2,                       /* axisCount */
+    0, 0,                       /* sharedTupleCount */
+    0, 0, 0, 31,                /* sharedTuplesOffset */
+    0, 0, 4,                    /* glyphCount */
+    0, 0,                       /* flags */
+    0, 0, 0, 31,                /* glyphVariationDataArrayOffset */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* glyphVariationDataOffsets */
+  };
+  hb_face_t *face = create_GVAR_face (GVAR_data, sizeof (GVAR_data));
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'b');
+  hb_set_add (codepoints, 'c');
+  hb_face_t *subset = hb_subset_test_create_subset (
+      face, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('G','V','A','R'));
+  unsigned length;
+  const char *data = hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, ==, sizeof (GVAR_data));
+  g_assert_cmpmem (data, length, GVAR_data, sizeof (GVAR_data));
+  hb_blob_destroy (blob);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
+static void
+test_subset_GVAR_all_axes_pinned (void)
+{
   static const char GVAR_data[] = "\0";
-  HB_FACE_ADD_TABLE (face, "GVAR", GVAR_data);
+  hb_face_t *face = create_GVAR_face (GVAR_data, sizeof (GVAR_data));
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   g_assert_true (hb_subset_input_pin_all_axes_to_default (input, face));
@@ -137,6 +183,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_gvar);
   hb_test_add (test_subset_gvar_retaingids);
 #ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_subset_GVAR_header);
   hb_test_add (test_subset_GVAR_all_axes_pinned);
 #endif
 

@@ -1059,7 +1059,7 @@ struct gvar_GVAR
 		offsetZ;	/* Offsets from the start of the GlyphVariationData array
 				 * to each GlyphVariationData table. */
   public:
-  DEFINE_SIZE_ARRAY (20, offsetZ);
+  DEFINE_SIZE_ARRAY (18 + GlyphCountType::static_size, offsetZ);
 };
 
 struct gvar : gvar_GVAR<gvar, SmallTypes>
