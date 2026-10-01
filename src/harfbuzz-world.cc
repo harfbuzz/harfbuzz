@@ -49,6 +49,7 @@
 #include "hb-ot-cff2-table.cc"
 #include "hb-ot-color.cc"
 #include "hb-ot-face.cc"
+#include "hb-ot-fetch.cc"
 #include "hb-ot-font.cc"
 #include "hb-ot-layout.cc"
 #include "hb-ot-map.cc"
@@ -141,7 +142,9 @@
 #endif
 
 #ifdef HB_HAS_SUBSET
+#include "OT/Var/VARC/VARC.cc"
 #include "graph/gsubgpos-context.cc"
+#include "hb-depend.cc"
 #include "hb-number.cc"
 #include "hb-ot-cff1-table.cc"
 #include "hb-ot-cff2-table.cc"

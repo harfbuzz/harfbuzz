@@ -163,7 +163,7 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
   FT_ColorLine *cl = (FT_ColorLine *) color_line_data;
   hb_ft_paint_context_t *c = (hb_ft_paint_context_t *) user_data;
 
-  if (count)
+  if (count && color_stops)
   {
     FT_ColorStop stop;
     unsigned wrote = 0;
@@ -176,11 +176,22 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
     }
 
     while (cl->color_stop_iterator.current_color_stop < start)
-      FT_Get_Colorline_Stops(c->ft_font->ft_face,
+    {
+      if (!FT_Get_Colorline_Stops(c->ft_font->ft_face,
 			     &stop,
-			     &cl->color_stop_iterator);
+			     &cl->color_stop_iterator))
+      {
+         // FT_Get_Colorline_Stops can in some cases return 0, and
+         // does not advance the iterator. So stop iteration to prevent
+         // infinite loop here.
+         //
+         // reset the iterator for next time
+        cl->color_stop_iterator = iter;
+        return cl->color_stop_iterator.num_color_stops;
+      }
+    }
 
-    while (count && *count &&
+    while (wrote < *count &&
 	   FT_Get_Colorline_Stops(c->ft_font->ft_face,
 				  &stop,
 				  &cl->color_stop_iterator))
@@ -227,7 +238,6 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
     }
 
     *count = wrote;
-
     // reset the iterator for next time
     cl->color_stop_iterator = iter;
   }

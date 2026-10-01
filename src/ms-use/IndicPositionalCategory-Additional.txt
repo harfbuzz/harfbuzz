@@ -10,6 +10,8 @@
 # Updated for Unicode 15.0 by Andrew Glass 2022-09-16
 # Updated for Unicode 15.1 by Andrew Glass 2023-09-14
 # Updated for Unicode 16.0 by Andrew Glass 2024-09-11
+# Updated for Unicode 17.0 by Andrew Glass 2025-09-15
+# Updated for Unicode 18.0 by Andrew Glass 2026-09-04
 
 # ================================================
 # ================================================
@@ -54,7 +56,7 @@ AA35          ; Top     # Mn       CHAM CONSONANT SIGN
 AAB4          ; Top     # Mn       TAI VIET VOWEL U # Override: ccc controls order, USE issue #58
 1112A..1112B  ; Top     # Mn   [2] CHAKMA VOWEL SIGN U..CHAKMA VOWEL SIGN UU  # see USE issue #25
 11131..11132  ; Top     # Mn   [2] CHAKMA O MARK..CHAKMA AU MARK  # see USE issue #25
-1E4EC..1E4EF  ; Top     # Mn   [4] NAG MUNDARI SIGN MUHOR..NAG MUNDARI SIGN SUTUH # 1E4EE is below, but made to for ccc 
+1E4EC..1E4EF  ; Top     # Mn   [4] NAG MUNDARI SIGN MUHOR..NAG MUNDARI SIGN SUTUH # 1E4EE is below, but made to for ccc
 
 # ================================================
 
@@ -100,7 +102,7 @@ AAB4          ; Top     # Mn       TAI VIET VOWEL U # Override: ccc controls ord
 07EB..07F3    ; Top   # Mn   [9] NKO COMBINING SHORT HIGH TONE..NKO COMBINING DOUBLE DOT ABOVE
 07FD          ; Top   # Mn       NKO DANTAYALAN # Not really top, but assigned here to allow ccc to control mark order
 1885..1886    ; Top   # Mn   [2] MONGOLIAN LETTER ALI GALI BALUDA..MONGOLIAN LETTER ALI GALI THREE BALUDA
-1B6C          ; Top   # Mn       BALINESE MUSICAL SYMBOL COMBINING ENDEP 
+1B6C          ; Top   # Mn       BALINESE MUSICAL SYMBOL COMBINING ENDEP
 1CF8..1CF9    ; Top   # Mn   [2] VEDIC TONE RING ABOVE..VEDIC TONE DOUBLE RING ABOVE
 10D24..10D27  ; Top   # Mn   [4] HANIFI ROHINGYA SIGN HARBAHAY..HANIFI ROHINGYA SIGN TASSI
 10EAB..10EAC  ; Top   # Mn   [2] YEZIDI COMBINING HAMZA MARK..YEZIDI COMBINING MADDA MARK

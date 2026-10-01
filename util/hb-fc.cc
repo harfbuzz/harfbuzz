@@ -135,13 +135,16 @@ hb_fc_can_render (hb_font_t *font, const char *text)
 
   unsigned int len;
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &len);
+  hb_bool_t can_render = true;
   for (unsigned int i = 0; i < len; i++)
    {
     if (!info[i].codepoint)
      {
-      return false;
+      can_render = false;
+      break;
      }
    }
 
-  return true;
+  hb_buffer_destroy (buffer);
+  return can_render;
 }

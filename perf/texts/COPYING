@@ -1,0 +1,31 @@
+ja-runs.txt
+===========
+
+Derived from the copyright-expired Japanese novel "Wagahai wa Neko de
+Aru" (吾輩は猫である) by Natsume Soseki (夏目漱石), first published in
+1905 and 1906.  The source text was prepared and distributed by Aozora
+Bunko, which permits free reproduction, redistribution, sharing, and
+adaptation of its copyright-expired files:
+
+  https://www.aozora.gr.jp/guide/kijyunn.html
+
+Work and source-file information:
+
+  https://www.aozora.gr.jp/cards/000148/card789.html
+  https://www.aozora.gr.jp/cards/000148/files/789_ruby_5639.zip
+
+Downloaded source ZIP SHA-256:
+
+  6545750b89ee2c57f215a65079eeab56ee7c997373b7b86e5b00ae74fe69208f
+
+Source edition: "Natsume Soseki Zenshu 1", Chikuma Bunko, Chikuma
+Shobo, first printing dated September 29, 1987.  Text entered by
+柴田卓治.  Proofread by 渡部峰子, おのしげひこ, 田尻幹二,
+高橋真也, しず, and 瀬戸さえ子.
+
+For this performance corpus, the Shift-JIS source was converted to
+UTF-8; its header, footer, ruby readings, and Aozora annotations were
+removed; and a 100,000-character sample of Han, Hiragana, Katakana, or
+Inherited characters was retained from the beginning of the work.  Each
+line is one Unicode-script run.  Common and other scripts are omitted
+and act as run boundaries.

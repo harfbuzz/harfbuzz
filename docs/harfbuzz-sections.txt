@@ -126,6 +126,8 @@ hb_buffer_diff_flags_t
 
 <SECTION>
 <FILE>hb-common</FILE>
+HB_BUDGET_DEFAULT
+HB_BUDGET_UNLIMITED
 HB_TAG
 HB_UNTAG
 hb_tag_from_string
@@ -193,6 +195,7 @@ hb_free
 HB_H_IN
 HB_OT_H_IN
 HB_AAT_H_IN
+HB_SUBSET_H_IN
 </SECTION>
 
 <SECTION>
@@ -234,6 +237,15 @@ hb_draw_cubic_to_func_t
 hb_draw_funcs_set_cubic_to_func
 hb_draw_close_path_func_t
 hb_draw_funcs_set_close_path_func
+hb_draw_set_budget_func_t
+hb_draw_funcs_set_set_budget_func
+hb_draw_get_budget_func_t
+hb_draw_funcs_set_get_budget_func
+hb_draw_get_budget_remaining_func_t
+hb_draw_funcs_set_get_budget_remaining_func
+hb_draw_set_budget
+hb_draw_get_budget
+hb_draw_get_budget_remaining
 hb_draw_move_to
 hb_draw_line_to
 hb_draw_quadratic_to
@@ -259,6 +271,16 @@ hb_paint_funcs_set_user_data
 hb_paint_funcs_get_user_data
 hb_paint_funcs_make_immutable
 hb_paint_funcs_is_immutable
+
+hb_paint_set_budget_func_t
+hb_paint_funcs_set_set_budget_func
+hb_paint_get_budget_func_t
+hb_paint_funcs_set_get_budget_func
+hb_paint_get_budget_remaining_func_t
+hb_paint_funcs_set_get_budget_remaining_func
+hb_paint_set_budget
+hb_paint_get_budget
+hb_paint_get_budget_remaining
 
 hb_paint_push_transform_func_t
 hb_paint_funcs_set_push_transform_func
@@ -834,6 +856,14 @@ hb_ot_var_axis_info_t
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-fetch</FILE>
+hb_ot_bits_tag_t
+hb_ot_fetch_bits
+hb_ot_number_tag_t
+hb_ot_fetch_number
+</SECTION>
+
+<SECTION>
 <FILE>hb-set</FILE>
 hb_set_create
 hb_set_allocation_successful
@@ -863,6 +893,7 @@ hb_set_symmetric_difference
 hb_set_invert
 hb_set_is_inverted
 hb_set_is_equal
+hb_set_intersects
 hb_set_is_subset
 hb_set_next
 hb_set_next_range
@@ -1005,6 +1036,19 @@ hb_subset_cff_get_charstring_data
 hb_subset_cff_get_charstrings_index
 hb_subset_cff2_get_charstring_data
 hb_subset_cff2_get_charstrings_index
+</SECTION>
+
+<SECTION>
+<FILE>hb-subset-depend</FILE>
+hb_subset_depend_t
+hb_subset_depend_entry_t
+hb_subset_depend_edge_flags_t
+hb_subset_depend_from_face_or_fail
+hb_subset_depend_lookup_glyph
+hb_subset_depend_lookup_set
+hb_subset_depend_destroy
+<SUBSECTION Private>
+HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
 </SECTION>
 
 <SECTION>

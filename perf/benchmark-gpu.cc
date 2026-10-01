@@ -146,13 +146,13 @@ int main (int argc, char **argv)
     const char *base = strrchr (test_input.font_path, '/');
     base = base ? base + 1 : test_input.font_path;
 
-    char draw_name[1024] = "BM_GpuDrawEncode/";
-    strcat (draw_name, base);
+    char draw_name[1024];
+    snprintf (draw_name, sizeof (draw_name), "BM_GpuDrawEncode/%s", base);
     benchmark::RegisterBenchmark (draw_name, BM_GpuDrawEncode, test_input)
       ->Unit (benchmark::kMillisecond);
 
-    char paint_name[1024] = "BM_GpuPaintEncode/";
-    strcat (paint_name, base);
+    char paint_name[1024];
+    snprintf (paint_name, sizeof (paint_name), "BM_GpuPaintEncode/%s", base);
     benchmark::RegisterBenchmark (paint_name, BM_GpuPaintEncode, test_input)
       ->Unit (benchmark::kMillisecond);
   }

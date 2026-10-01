@@ -90,7 +90,21 @@ struct MarkLigPosFormat1_2
     if (unlikely (!(this+ligatureCoverage).collect_coverage (c->input))) return;
   }
 
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  { (this+ligatureCoverage).collect_coverage (digest); }
+
   const Coverage &get_coverage () const { return this+markCoverage; }
+
+  static inline bool accept (hb_buffer_t *buffer, unsigned idx)
+  {
+    /* We only want to attach to the first of a MultipleSubst sequence,
+     * which might have been ligated into a preceding ligature, and in that
+     * case the mark should attach to that ligature.
+     * https://github.com/harfbuzz/harfbuzz/issues/4969
+     * Reject others... */
+    return !_hb_glyph_info_multiplied (&buffer->info[idx]) ||
+	   0 == _hb_glyph_info_get_lig_comp (&buffer->info[idx]);
+  }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -113,6 +127,13 @@ struct MarkLigPosFormat1_2
     for (j = buffer->idx; j > c->last_base_until; j--)
     {
       auto match = skippy_iter.match (buffer->info[j - 1]);
+      if (match == skippy_iter.MATCH)
+      {
+        // https://github.com/harfbuzz/harfbuzz/issues/4124
+	if (!accept (buffer, j - 1) &&
+	    NOT_COVERED == (this+ligatureCoverage).get_coverage  (buffer->info[j - 1].codepoint))
+	  match = skippy_iter.SKIP;
+      }
       if (match == skippy_iter.MATCH)
       {
 	c->last_base = (signed) j - 1;

@@ -33,7 +33,12 @@ jobs:
         #include "src/harfbuzz.cc"
         int main() { return 0; }
         EOF
+        cat <<EOF > subset.cc
+        #include "src/harfbuzz-subset.cc"
+        EOF
     - name: install dependencies
       run: sudo apt-get install gcc
     - name: Build with ${{ matrix.config }}
       run: g++ -std=c++11 main.cc -D${{ matrix.config }}
+    - name: Build subset library with ${{ matrix.config }}
+      run: g++ -std=c++11 -c subset.cc -D${{ matrix.config }}

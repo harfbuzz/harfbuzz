@@ -80,8 +80,12 @@ struct BaseCoordFormat2_4
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
+    hb_codepoint_t *new_gid;
+    if (!c->plan->glyph_map->has (referenceGlyph, &new_gid))
+      return_trace (false);
+
     return_trace (c->serializer->check_assign (out->referenceGlyph,
-                                               c->plan->glyph_map->get (referenceGlyph),
+                                               *new_gid,
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
 
@@ -111,8 +115,8 @@ struct BaseCoordFormat3
     const Device &device = this+deviceTable;
 
     return HB_DIRECTION_IS_HORIZONTAL (direction)
-	 ? font->em_scale_y (coordinate) + device.get_y_delta (font, var_store)
-	 : font->em_scale_x (coordinate) + device.get_x_delta (font, var_store);
+	 ? hb_saturate_add (font->em_scale_y (coordinate), device.get_y_delta (font, var_store))
+	 : hb_saturate_add (font->em_scale_x (coordinate), device.get_x_delta (font, var_store));
   }
 
   void collect_variation_indices (hb_set_t& varidx_set /* OUT */) const
@@ -141,10 +145,12 @@ struct BaseCoordFormat3
           return_trace (false);
       }
     }
-    return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable,
-                                                   this, 0,
-                                                   hb_serialize_context_t::Head,
-                                                   &c->plan->base_variation_idx_map));
+    
+    out->deviceTable.serialize_copy (c->serializer, deviceTable,
+                                     this, 0,
+                                     hb_serialize_context_t::Head,
+                                     &c->plan->base_variation_idx_map);
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -271,10 +277,10 @@ struct FeatMinMaxRecord
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    if (!(out->minCoord.serialize_subset (c, minCoord, base)))
-      return_trace (false);
 
-    return_trace (out->maxCoord.serialize_subset (c, maxCoord, base));
+    bool ret = out->minCoord.serialize_subset (c, minCoord, base);
+    ret |= out->maxCoord.serialize_subset (c, maxCoord, base);
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -331,9 +337,8 @@ struct MinMax
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    if (!(out->minCoord.serialize_subset (c, minCoord, this)) ||
-        !(out->maxCoord.serialize_subset (c, maxCoord, this)))
-      return_trace (false);
+    bool ret = out->minCoord.serialize_subset (c, minCoord, this);
+    ret |= out->maxCoord.serialize_subset (c, maxCoord, this);
 
     unsigned len = 0;
     for (const FeatMinMaxRecord& _ : featMinMaxRecords)
@@ -342,9 +347,13 @@ struct MinMax
       if (!c->plan->layout_features.has (feature_tag))
         continue;
 
-      if (!_.subset (c, this)) return false;
-      len++;
+      auto snap = c->serializer->snapshot ();
+      if (!_.subset (c, this)) c->serializer->revert (snap);
+      else len++;
     }
+
+    if (len > 0) ret = true;
+    if (!ret) return_trace (false);
     return_trace (c->serializer->check_assign (out->featMinMaxRecords.len, len,
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
@@ -396,11 +405,15 @@ struct BaseValues
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
     out->defaultIndex = defaultIndex;
 
+    bool ret = false;
     for (const auto& _ : baseCoords)
-      if (!subset_offset_array (c, out->baseCoords, this) (_))
-        return_trace (false);
+    {
+      auto *o = out->baseCoords.serialize_append (c->serializer);
+      if (unlikely (!o)) return_trace (false);
+       ret |= o->serialize_subset (c, _, this);
+    }
 
-    return_trace (bool (out->baseCoords));
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -494,16 +507,22 @@ struct BaseScript
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    if (baseValues && !out->baseValues.serialize_subset (c, baseValues, this))
-      return_trace (false);
+    bool ret = out->baseValues.serialize_subset (c, baseValues, this);
+    ret |= out->defaultMinMax.serialize_subset (c, defaultMinMax, this);
 
-    if (defaultMinMax && !out->defaultMinMax.serialize_subset (c, defaultMinMax, this))
-      return_trace (false);
-
+    unsigned len = 0;
     for (const auto& _ : baseLangSysRecords)
-      if (!_.subset (c, this)) return_trace (false);
+    {
+      auto snap = c->serializer->snapshot ();
+      if (_.subset (c, this)) {
+        ret = true;
+        len++;
+      }
+      else c->serializer->revert (snap);
+    }
 
-    return_trace (c->serializer->check_assign (out->baseLangSysRecords.len, baseLangSysRecords.len,
+    if (!ret) return_trace (false);
+    return_trace (c->serializer->check_assign (out->baseLangSysRecords.len, len,
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
 
@@ -610,9 +629,12 @@ struct BaseScriptList
       if (!c->plan->layout_scripts.has (script_tag))
         continue;
 
-      if (!_.subset (c, this)) return false;
-      len++;
+      auto snap = c->serializer->snapshot ();
+      if (!_.subset (c, this)) c->serializer->revert (snap);
+      else len++;
     }
+
+    if (!len) return_trace (false);
     return_trace (c->serializer->check_assign (out->baseScriptRecords.len, len,
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
@@ -688,8 +710,9 @@ struct Axis
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    out->baseTagList.serialize_copy (c->serializer, baseTagList, this);
-    return_trace (out->baseScriptList.serialize_subset (c, baseScriptList, this));
+    bool ret = out->baseTagList.serialize_copy (c->serializer, baseTagList, this);
+    ret |= out->baseScriptList.serialize_subset (c, baseScriptList, this);
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -783,16 +806,13 @@ struct BASE
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
     out->version = version;
-    if (has_var_store () && !subset_varstore (c, out))
-        return_trace (false);
+    bool ret = false;
+    if (version.to_int () >= 0x00010001u) ret |= subset_varstore (c, out);
 
-    if (hAxis && !out->hAxis.serialize_subset (c, hAxis, this))
-      return_trace (false);
+    ret |= out->hAxis.serialize_subset (c, hAxis, this);
+    ret |= out->vAxis.serialize_subset (c, vAxis, this);
 
-    if (vAxis && !out->vAxis.serialize_subset (c, vAxis, this))
-      return_trace (false);
-
-    return_trace (true);
+    return_trace (ret);
   }
 
   bool get_baseline (hb_font_t      *font,

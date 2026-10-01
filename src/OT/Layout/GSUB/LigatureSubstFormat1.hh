@@ -43,6 +43,18 @@ struct LigatureSubstFormat1_2
   bool may_have_non_1to1 () const
   { return true; }
 
+  void depend (hb_depend_context_t *c) const
+  {
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const typename Types::template OffsetTo<LigatureSet<Types>>&> &_)
+                {
+                  const LigatureSet<Types>& ls = this+_.second;
+                  ls.depend (c, _.first);
+                })
+    ;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     + hb_zip (this+coverage, ligatureSet)
@@ -64,6 +76,14 @@ struct LigatureSubstFormat1_2
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const LigatureSet<Types> &_) { _.collect_glyphs (c); })
+    ;
+  }
+
+  void collect_second_glyphs (hb_set_digest_t *digest) const
+  {
+    + hb_iter (ligatureSet)
+    | hb_map (hb_add (this))
+    | hb_apply ([digest] (const LigatureSet<Types> &_) { _.collect_seconds (*digest); })
     ;
   }
 

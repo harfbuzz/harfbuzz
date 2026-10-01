@@ -177,6 +177,80 @@ test_reset (void)
 }
 
 static void
+test_budget (void)
+{
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, draw), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >, 0);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), <, HB_BUDGET_UNLIMITED);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, draw, 1));
+  hb_gpu_draw_glyph (draw, font, gid);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), <, 0);
+  hb_gpu_draw_clear (draw);
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, draw), ==, 1);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 1);
+
+  hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (draw_funcs, draw, &draw_state, 0.f, 0.f);
+  hb_draw_line_to (draw_funcs, draw, &draw_state, 1.f, 0.f);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 0);
+  hb_draw_line_to (draw_funcs, draw, &draw_state, 2.f, 0.f);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), <, 0);
+
+  hb_gpu_draw_clear (draw);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, 1);
+  hb_gpu_draw_reset (draw);
+  g_assert_cmpint (hb_draw_get_budget (draw_funcs, draw), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >, 0);
+
+  hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+  hb_paint_funcs_t *paint_funcs = hb_gpu_paint_get_funcs (paint);
+  g_assert_cmpint (hb_paint_get_budget (paint_funcs, paint), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), >, 0);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), <, HB_BUDGET_UNLIMITED);
+
+  /* Identity clip extraction must borrow the paint session counter. */
+  g_assert_true (hb_paint_set_budget (paint_funcs, paint, 1));
+  hb_paint_push_clip_glyph (paint_funcs, paint, gid, font);
+  hb_paint_color (paint_funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  hb_paint_pop_clip (paint_funcs, paint);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), <, 0);
+
+  hb_gpu_paint_clear (paint);
+  g_assert_cmpint (hb_paint_get_budget (paint_funcs, paint), ==, 1);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), ==, 1);
+
+  /* The transforming pen must expose that same live counter. */
+  hb_paint_push_transform (paint_funcs, paint, 2.f, 0.f, 0.f, 2.f, 0.f, 0.f);
+  hb_paint_push_clip_glyph (paint_funcs, paint, gid, font);
+  hb_paint_pop_transform (paint_funcs, paint);
+  hb_paint_color (paint_funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  hb_paint_pop_clip (paint_funcs, paint);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), <, 0);
+
+  hb_gpu_paint_reset (paint);
+  g_assert_cmpint (hb_paint_get_budget (paint_funcs, paint), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), >, 0);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, draw, HB_BUDGET_UNLIMITED));
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, HB_BUDGET_UNLIMITED);
+  g_assert_true (hb_paint_set_budget (paint_funcs, paint, HB_BUDGET_UNLIMITED));
+  g_assert_cmpint (hb_paint_get_budget_remaining (paint_funcs, paint), ==, HB_BUDGET_UNLIMITED);
+
+  hb_gpu_paint_destroy (paint);
+  hb_gpu_draw_destroy (draw);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_draw_funcs (void)
 {
   hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (nullptr);
@@ -289,6 +363,115 @@ test_recycle_blob (void)
 
   hb_blob_destroy (blob2);
   hb_gpu_draw_destroy (draw);
+}
+
+/* The fragment shader picks a single horizontal and a single vertical
+ * band from the fragment position and only walks that band's curve
+ * list.  So every curve must be listed in every band that its
+ * *quantized* bounding box reaches into; a curve missing from a band
+ * gives fragments in that band the wrong winding number, which shows
+ * up as a thin black line through the glyph.
+ *
+ * https://github.com/harfbuzz/harfbuzz/issues/6131 */
+static void
+assert_band_membership (hb_blob_t *blob)
+{
+  unsigned texel_count;
+  const hb_gpu_test_texel_t *t = blob_as_texels (blob, &texel_count);
+  if (texel_count < 2)
+    return;
+
+  /* Coordinates are stored as quarters of a font unit. */
+  double min_x = t[0].r / 4., min_y = t[0].g / 4.;
+  double max_x = t[0].b / 4., max_y = t[0].a / 4.;
+  unsigned num_hbands = (unsigned) t[1].r;
+  unsigned num_vbands = (unsigned) t[1].g;
+  g_assert_cmpuint (num_hbands, >, 0);
+  g_assert_cmpuint (num_vbands, >, 0);
+  g_assert_cmpuint (2 + num_hbands + num_vbands, <=, texel_count);
+
+  double hband_size = (max_y - min_y) / num_hbands;
+  double vband_size = (max_x - min_x) / num_vbands;
+
+  for (unsigned b = 0; b < num_hbands + num_vbands; b++)
+  {
+    hb_bool_t horizontal = b < num_hbands;
+    unsigned count = (unsigned) (uint16_t) t[2 + b].r;
+    unsigned list = (unsigned) ((int) t[2 + b].g + 32768);
+    g_assert_cmpuint (list + count, <=, texel_count);
+
+    for (unsigned ci = 0; ci < count; ci++)
+    {
+      unsigned c = (unsigned) ((int) t[list + ci].r + 32768);
+      g_assert_cmpuint (c + 1, <, texel_count);
+
+      /* Every band the curve reaches into, in the axis of this band. */
+      int lo, hi;
+      if (horizontal)
+      {
+	int q1 = t[c].g, q2 = t[c].a, q3 = t[c + 1].g;
+	if (q1 == q2 && q2 == q3) continue; /* horizontal: skipped by design */
+	if (!(hband_size > 0)) continue;
+	lo = (int) floor ((MIN (MIN (q1, q2), q3) / 4. - min_y) / hband_size);
+	hi = (int) floor ((MAX (MAX (q1, q2), q3) / 4. - min_y) / hband_size);
+	lo = MAX (lo, 0);
+	hi = MIN (hi, (int) num_hbands - 1);
+      }
+      else
+      {
+	int q1 = t[c].r, q2 = t[c].b, q3 = t[c + 1].r;
+	if (q1 == q2 && q2 == q3) continue; /* vertical: skipped by design */
+	if (!(vband_size > 0)) continue;
+	lo = (int) floor ((MIN (MIN (q1, q2), q3) / 4. - min_x) / vband_size);
+	hi = (int) floor ((MAX (MAX (q1, q2), q3) / 4. - min_x) / vband_size);
+	lo = MAX (lo, 0);
+	hi = MIN (hi, (int) num_vbands - 1);
+      }
+
+      for (int ob = lo; ob <= hi; ob++)
+      {
+	unsigned obb = horizontal ? (unsigned) ob : num_hbands + (unsigned) ob;
+	unsigned ocount = (unsigned) (uint16_t) t[2 + obb].r;
+	unsigned olist = (unsigned) ((int) t[2 + obb].g + 32768);
+	g_assert_cmpuint (olist + ocount, <=, texel_count);
+
+	hb_bool_t found = false;
+	for (unsigned oi = 0; oi < ocount && !found; oi++)
+	  found = (unsigned) ((int) t[olist + oi].r + 32768) == c;
+	g_assert_true (found);
+      }
+    }
+  }
+}
+
+static void
+test_encode_band_membership (void)
+{
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  g_assert_nonnull (face);
+  hb_font_t *font = hb_font_create (face);
+  /* A scale other than the font's upem makes the glyph coordinates
+   * fractional, so quantizing them rounds.  Band membership derived
+   * from the unquantized coordinates then misses bands. */
+  hb_font_set_scale (font, 128, 128);
+
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  for (hb_codepoint_t gid = 0; gid < glyph_count; gid++)
+  {
+    hb_gpu_draw_clear (draw);
+    hb_gpu_draw_glyph (draw, font, gid);
+    hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
+    g_assert_nonnull (blob);
+    assert_band_membership (blob);
+    hb_blob_destroy (blob);
+  }
+
+  hb_gpu_draw_destroy (draw);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
 }
 
 static void
@@ -558,6 +741,75 @@ test_paint_clip_path_depth_overflow (void)
   hb_gpu_paint_destroy (p);
 }
 
+static unsigned
+repro_color_stops (hb_color_line_t *cl HB_UNUSED, void *cl_data HB_UNUSED,
+		   unsigned start, unsigned *count,
+		   hb_color_stop_t *stops, void *user_data HB_UNUSED)
+{
+  static const hb_color_stop_t all[2] = {
+    { 0.f, 0, HB_COLOR (255, 0, 0, 255) },
+    { 1.f, 0, HB_COLOR (0, 0, 255, 255) },
+  };
+  if (count)
+  {
+    unsigned n = 0;
+    for (unsigned i = start; i < 2 && n < *count; i++)
+      stops[n++] = all[i];
+    *count = n;
+  }
+  return 2;
+}
+
+static hb_paint_extend_t
+repro_color_extend (hb_color_line_t *cl HB_UNUSED, void *cl_data HB_UNUSED,
+		    void *user_data HB_UNUSED)
+{
+  return HB_PAINT_EXTEND_PAD;
+}
+
+static void
+test_paint_gradient_overflow_transform (void)
+{
+  /* A COLRv1 paint tree can nest PaintScale/PaintTransform, which the
+   * GPU paint encoder composes multiplicatively into cur_transform.
+   * Deep enough nesting overflows the matrix entries to +inf.  When a
+   * gradient encoder inverts that transform (linv_q10), a 1/inf
+   * determinant gives inv==0 and inf*0==NaN, which clamp_i16 then cast
+   * straight to int16 -- float-cast-overflow UB that aborts the
+   * asan-ubsan CI job (halt_on_error). */
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+  hb_gpu_paint_set_scale (p, 1000, 1000);
+
+  hb_paint_funcs_t *pf = hb_gpu_paint_get_funcs (p);
+
+  /* A clip must be on the stack before a gradient is emitted. */
+  void *draw_data = nullptr;
+  hb_draw_funcs_t *df = hb_paint_push_clip_path_start (pf, p, &draw_data);
+  g_assert_nonnull (df);
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (df, draw_data, &st, 0.f, 0.f);
+  hb_draw_line_to (df, draw_data, &st, 100.f, 0.f);
+  hb_draw_line_to (df, draw_data, &st, 100.f, 100.f);
+  hb_draw_close_path (df, draw_data, &st);
+  hb_paint_push_clip_path_end (pf, p);
+
+  /* Compose large scales until the transform overflows to inf. */
+  for (unsigned i = 0; i < 4; i++)
+    hb_paint_push_transform (pf, p, 1e19f, 0.f, 0.f, 1e19f, 0.f, 0.f);
+
+  hb_color_line_t cl = {};
+  cl.get_color_stops = repro_color_stops;
+  cl.get_extend = repro_color_extend;
+
+  hb_paint_linear_gradient (pf, p, &cl, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f);
+
+  hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+  hb_blob_destroy (blob);
+
+  hb_gpu_paint_destroy (p);
+}
+
 
 static void
 test_shapes (void)
@@ -656,11 +908,13 @@ main (int argc, char **argv)
   hb_test_add (test_empty_encode);
   hb_test_add (test_encode_glyph);
   hb_test_add (test_reset);
+  hb_test_add (test_budget);
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
   hb_test_add (test_encode_quantizes_extents_outward);
   hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
+  hb_test_add (test_encode_band_membership);
   hb_test_add (test_extents_saturate_overflow);
   hb_test_add (test_shapes);
 
@@ -674,6 +928,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_reset);
   hb_test_add (test_paint_recycle_blob);
   hb_test_add (test_paint_clip_path_depth_overflow);
+  hb_test_add (test_paint_gradient_overflow_transform);
 
   return hb_test_run ();
 }

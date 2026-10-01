@@ -54,6 +54,14 @@ struct LigatureSet
     ;
   }
 
+  void depend (hb_depend_context_t *c, hb_codepoint_t first) const
+  {
+    + hb_iter (ligature)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const Ligature<Types> &_) { _.depend (c, first); })
+    ;
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     + hb_iter (ligature)
@@ -128,7 +136,10 @@ struct LigatureSet
       goto slow;
 
     if (seconds && !seconds->may_have (second))
+    {
+      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
       return_trace (false);
+    }
     bool unsafe_to_concat = false;
     for (unsigned int i = 0; i < num_ligs; i++)
     {

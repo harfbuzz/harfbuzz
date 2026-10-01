@@ -1,3 +1,173 @@
+Overview of changes leading to 14.5.1
+Thursday, October 1, 2026
+=====================================
+- Map the `fonupa` (Uralic Phonetic Alphabet) BCP 47 variant to the `UPPH`
+  OpenType language system tag.
+- Produce smaller `cmap` subtables and drop no-op variation device tables when
+  subsetting.
+- Fix possible deadlock in `hb_font_destroy()` after `hb_ft_font_set_funcs()`,
+  a regression from 14.5.0.
+- Fix signed integer overflows when scaling glyph extents and applying
+  synthetic slant and emboldening.
+- Fix float-to-int overflow in `VARC` component axis coordinates with
+  malformed fonts.
+- Fix a memory leak in the experimental WebAssembly shaper when shaping with
+  features.
+- Fix accumulator overflows in the experimental raster library when rendering
+  glyphs with very many overlapping edges.
+- Fix heap buffer overflow in the experimental GPU library with malicious
+  `COLR` fonts.
+- Various build and CI fixes.
+
+
+Overview of changes leading to 14.5.0
+Monday, September 21, 2026
+=====================================
+- Update Unicode 18.0 data and script support, including script values for
+  Jurchen, Proto-Cuneiform, and Seal, and the corresponding shaping support.
+- Add support for VARC table subsetting, including pruning auxiliary data,
+  remapping glyph IDs, and guarding the feature in lean builds.
+- Add rendering work budgets to the draw and paint APIs and share them across
+  the raster, vector, GPU, and Cairo renderers so nested outline work remains
+  bounded.
+- Improve performance in set iteration, lookup traversal, and the repacker, and
+  add coverage for new benchmarks and fuzzing seeds.
+- Fix various correctness and robustness issues across the CFF, Graphite,
+  DirectWrite, and repacker code paths, including memory leaks, overflow checks,
+  bounds issues, and malformed-font handling.
+- Various build, portability, and CI fixes.
+
+- New API:
+  * Common:
+    +HB_BUDGET_DEFAULT
+    +HB_BUDGET_UNLIMITED
+    +HB_SCRIPT_JURCHEN
+    +HB_SCRIPT_PROTO_CUNEIFORM
+    +HB_SCRIPT_SEAL
+  * Draw:
+    +hb_draw_set_budget_func_t
+    +hb_draw_get_budget_func_t
+    +hb_draw_get_budget_remaining_func_t
+    +hb_draw_funcs_set_set_budget_func()
+    +hb_draw_funcs_set_get_budget_func()
+    +hb_draw_funcs_set_get_budget_remaining_func()
+    +hb_draw_set_budget()
+    +hb_draw_get_budget()
+    +hb_draw_get_budget_remaining()
+  * Paint:
+    +hb_paint_set_budget_func_t
+    +hb_paint_get_budget_func_t
+    +hb_paint_get_budget_remaining_func_t
+    +hb_paint_funcs_set_set_budget_func()
+    +hb_paint_funcs_set_get_budget_func()
+    +hb_paint_funcs_set_get_budget_remaining_func()
+    +hb_paint_set_budget()
+    +hb_paint_get_budget()
+    +hb_paint_get_budget_remaining()
+
+
+Overview of changes leading to 14.4.0
+Wednesday, August 26, 2026
+=====================================
+- Glyph positions and extents now saturate instead of overflowing.
+- Arabic Windows-1256 fallback shaping is now enabled on all platforms.
+- Fix cluster values and a dropped glyph advance in the Graphite shaper.
+- Fix `avar` axis value mapping in fonts that repeat the boundary entries.
+- Fix `avar` version 2 partial instancing.
+- Fix `COLR` sweep gradient truncation and unbounded memory use.
+- Faster subsetting, especially for large `GSUB`/`GPOS` and `CFF` tables.
+- Faster extraction of the experimental glyph dependency graph.
+- Various shaping speedups.
+- Various fixes for crashes and hangs with malformed fonts.
+- Various fixes to the experimental raster, vector, and GPU libraries.
+- Various improvements to the HarfRust integration shaper.
+- The DirectWrite backend no longer uses the C++ runtime.
+- Various build, portability, and fuzzing fixes.
+
+- New API:
+  +hb_set_intersects()
+
+
+Overview of changes leading to 14.3.1
+Thursday, August 13, 2026
+=====================================
+- Various fuzzing and build fixes.
+- Various subsetting fixes.
+- Fix AAT insertion at the end of the text.
+- Fix various rendering bugs in the experimental GPU library.
+- WASM shaper code can now read the user features.
+
+
+Overview of changes leading to 14.3.0
+Friday, July 31, 2026
+=====================================
+- Changes affecting shaping output:
+  * Lookup order is now respected for mark positioning in the cross-direction
+    (y in horizontal text, x in vertical text): marks no longer follow a
+    cross-direction shift that a later lookup applies to the base. This
+    improves compatibility with DirectWrite and Core Text.
+  * Fix mark attachment to ligatures formed from decomposed glyphs.
+  * The `calt` feature in Hangul text is now disabled only for the Jamos,
+    not the whole buffer.
+
+- Support for partially instancing version of `avar` table, as well as `CFF2`
+  table.
+
+- New fill-glyph paint operation and APIs for the common case of filling a
+  glyph with a solid color.
+
+- New API to fetch assorted raw values from the `OS/2`, `head`, and `post`
+  tables.
+
+- New experimental API to extract a font’s glyph dependency graph, that
+  applications can use to compute glyph closures themselves without running the
+  subsetter.
+
+- New subset flag to convert the charset of a subsetted CID-keyed `CFF` fonts
+  into identity charset, and a matching `hb-subset` option. Useful for
+  embedding fonts in PDF.
+
+- Command-line utilities now handle non-ASCII arguments correctly on Windows.
+
+- Various instancing and subsetting fixes.
+
+- Various fixes to the experimental `harfbuzz-vector`, `harfbuzz-raster` and
+  `harfbuzz-gpu` libraries.
+
+- Various improvements to the HarfRust integration shaper.
+
+- Various build, CI, portability, and fuzzing fixes.
+
+- New API:
+  * OpenType:
+    +HB_OT_BITS_TAG_FS_TYPE
+    +HB_OT_BITS_TAG_FS_SELECTION
+    +HB_OT_BITS_TAG_MAC_STYLE
+    +HB_OT_BITS_TAG_IS_FIXED_PITCH
+    +HB_OT_BITS_TAG_UNICODE_RANGE_1
+    +HB_OT_BITS_TAG_UNICODE_RANGE_2
+    +HB_OT_BITS_TAG_UNICODE_RANGE_3
+    +HB_OT_BITS_TAG_UNICODE_RANGE_4
+    +HB_OT_BITS_TAG_CODE_PAGE_RANGE_1
+    +HB_OT_BITS_TAG_CODE_PAGE_RANGE_2
+    +HB_OT_NUMBER_TAG_FONT_X_MIN
+    +HB_OT_NUMBER_TAG_FONT_Y_MIN
+    +HB_OT_NUMBER_TAG_FONT_X_MAX
+    +HB_OT_NUMBER_TAG_FONT_Y_MAX
+    +hb_ot_bits_tag_t
+    +hb_ot_fetch_bits()
+    +hb_ot_number_tag_t
+    +hb_ot_fetch_number()
+
+  * Paint:
+    +hb_paint_fill_glyph_func_t
+    +hb_paint_fill_glyph()
+    +hb_paint_funcs_set_fill_glyph_func()
+
+  * Subset library:
+    +HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET
+
+
 Overview of changes leading to 14.2.1
 Tuesday, June 2, 2026
 =====================================
@@ -4509,5 +4679,4 @@ Summary of API changes follows.
     hb_version()
     hb_version_string()
     hb_version_check()
-
 

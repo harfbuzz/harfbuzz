@@ -1,0 +1,21 @@
+# An avar version 2 table with a NULL VarStore offset is legal and maps
+# like plain avar v1 — but it is never downgraded: partial instancing
+# takes the avar2 path and creates offset-compensation rows on demand.
+# This used to fail outright (the planner errored on the missing store).
+FONTS:
+RobotoDelta-NullVarStore-VF.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=300:400:600
+
+IUP_OPTIONS:
+Yes
+
+OPTIONS:
+no_fonttools

@@ -32,38 +32,39 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 
   volatile unsigned counter = !glyph_count;
 
-  for (unsigned gid = 0; gid < limit; gid++)
+  if (limit)
   {
+    unsigned gid = input.text.empty () ? 0 : input.text[0] % limit;
     float x = (float) ((gid % 4) * 40);
     float y = (float) ((gid / 4) * 40);
     hb_raster_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, x, y);
     hb_raster_draw_glyph (draw, input.font, gid);
     hb_raster_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, x, y);
     hb_raster_paint_glyph (paint, input.font, gid);
-  }
 
-  hb_raster_image_t *draw_image = hb_raster_draw_render (draw);
-  if (draw_image)
-  {
-    hb_raster_extents_t ext;
-    hb_raster_image_get_extents (draw_image, &ext);
-    counter += ext.width + ext.height + (unsigned) (ext.x_origin != 0) + (unsigned) (ext.y_origin != 0);
-    const uint8_t *buf = hb_raster_image_get_buffer (draw_image);
-    if (buf && ext.height && ext.stride)
-      counter += buf[0];
-    hb_raster_draw_recycle_image (draw, draw_image);
-  }
+    hb_raster_image_t *draw_image = hb_raster_draw_render (draw);
+    if (draw_image)
+    {
+      hb_raster_extents_t ext;
+      hb_raster_image_get_extents (draw_image, &ext);
+      counter += ext.width + ext.height + (unsigned) (ext.x_origin != 0) + (unsigned) (ext.y_origin != 0);
+      const uint8_t *buf = hb_raster_image_get_buffer (draw_image);
+      if (buf && ext.height && ext.stride)
+	counter += buf[0];
+      hb_raster_draw_recycle_image (draw, draw_image);
+    }
 
-  hb_raster_image_t *paint_image = hb_raster_paint_render (paint);
-  if (paint_image)
-  {
-    hb_raster_extents_t ext;
-    hb_raster_image_get_extents (paint_image, &ext);
-    counter += ext.width + ext.height + (unsigned) (ext.x_origin != 0) + (unsigned) (ext.y_origin != 0);
-    const uint8_t *buf = hb_raster_image_get_buffer (paint_image);
-    if (buf && ext.height && ext.stride)
-      counter += buf[0];
-    hb_raster_paint_recycle_image (paint, paint_image);
+    hb_raster_image_t *paint_image = hb_raster_paint_render (paint);
+    if (paint_image)
+    {
+      hb_raster_extents_t ext;
+      hb_raster_image_get_extents (paint_image, &ext);
+      counter += ext.width + ext.height + (unsigned) (ext.x_origin != 0) + (unsigned) (ext.y_origin != 0);
+      const uint8_t *buf = hb_raster_image_get_buffer (paint_image);
+      if (buf && ext.height && ext.stride)
+	counter += buf[0];
+      hb_raster_paint_recycle_image (paint, paint_image);
+    }
   }
 
   hb_raster_draw_destroy (draw);

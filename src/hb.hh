@@ -160,7 +160,6 @@
 
 
 #include "hb-config.hh"
-#include "hb-limits.hh"
 
 
 /*
@@ -204,6 +203,7 @@
 #define HB_OT_H_IN
 #include "hb-aat.h"
 #define HB_AAT_H_IN
+#define HB_SUBSET_H_IN
 
 #include <cassert>
 #include <cfloat>
@@ -328,6 +328,14 @@
 #endif
 #endif
 
+#ifndef HB_NEVER_INLINE
+#if defined(_MSC_VER)
+#define HB_NEVER_INLINE __declspec(noinline)
+#else
+#define HB_NEVER_INLINE __attribute__((noinline))
+#endif
+#endif
+
 #ifndef HB_HOT
 #define HB_HOT __attribute__((hot))
 #endif
@@ -376,15 +384,12 @@
 #  define HB_NODISCARD
 #endif
 
-/* https://github.com/harfbuzz/harfbuzz/issues/1852 */
-#if defined(__clang__) && !(defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__)))
-/* Disable certain sanitizer errors. */
-/* https://github.com/harfbuzz/harfbuzz/issues/1247 */
-#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
+/* Like HB_NODISCARD but can be used on structs */
+#if __cplusplus >= 201703L
+#  define HB_NODISCARD_STRUCT [[nodiscard]]
 #else
-#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+#  define HB_NODISCARD_STRUCT
 #endif
-
 
 #ifdef _WIN32
    /* We need Windows Vista for both Uniscribe backend and for
@@ -558,6 +563,7 @@ extern "C" void  hb_free_impl(void *ptr);
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
  * They express dependency amongst themselves, but no other file should include
  * them directly.*/
+#include "hb-limits.hh"
 #include "hb-cplusplus.hh"
 #include "hb-meta.hh"
 #include "hb-mutex.hh"

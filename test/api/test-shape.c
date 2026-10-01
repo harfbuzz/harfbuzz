@@ -179,6 +179,33 @@ test_shape_clusters (void)
   hb_font_destroy (font);
 }
 
+static void
+test_shape_overlong_mark_cluster (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+
+  hb_font_set_scale (font, 12 * 65536, 12 * 65536);
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_add (buffer, 'e', 0);
+  for (unsigned i = 0; i < 35000; i++)
+    hb_buffer_add (buffer, 0x0301, i + 1);
+  hb_buffer_add (buffer, 'X', 35001);
+  hb_buffer_guess_segment_properties (buffer);
+
+  hb_shape (font, buffer, NULL, 0);
+
+  unsigned len;
+  hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, &len);
+  g_assert_cmpuint (len, ==, 35001);
+  g_assert_cmpint (positions[len - 2].y_offset, ==, INT32_MAX);
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 
 static void
 test_shape_list (void)
@@ -200,6 +227,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_shape);
   hb_test_add (test_shape_clusters);
+  hb_test_add (test_shape_overlong_mark_cluster);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);

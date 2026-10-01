@@ -30,14 +30,24 @@ jobs:
             SANITIZE: thread
           - name: msan
             SANITIZE: memory
+            MESON_ARGS: >-
+              -Dglib=disabled
+              -Dgobject=disabled
+              -Dcairo=disabled
+              -Dfreetype=disabled
+              -Dicu=disabled
+              -Dzlib=disabled
+              -Dpng=disabled
 
     steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
+      uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
     - name: Install Dependencies
       run: |
+        sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo apt-get update
         sudo apt install -y \
           clang \
@@ -63,8 +73,9 @@ jobs:
           --buildtype=debugoptimized \
           --wrap-mode=nodownload \
           -Db_sanitize=${{ matrix.SANITIZE }} \
-          -Dexperimental_api=true
+          -Dexperimental_api=true \
+          ${{ matrix.MESON_ARGS }}
     - name: Build
       run: meson compile -Cbuild
     - name: Test
-      run: meson test -Cbuild -t 10 --print-errorlogs | asan_symbolize | c++filt
+      run: meson test -Cbuild -t 10 --print-errorlogs

@@ -221,6 +221,11 @@ fn _hb_gpu_slug_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
     }
   }
 
+  /* Crossings over a closed contour sum to zero, so a leftward ray
+   * returns the negative of what a rightward ray would; flip it back
+   * so that xcov and ycov keep a common sign convention. */
+  if (hLeftRay) { xcov = -xcov; }
+
   var ycov: f32 = 0.0;
   var ywgt: f32 = 0.0;
 
@@ -274,6 +279,9 @@ fn _hb_gpu_slug_single (renderCoord: vec2f, pixelsPerEm: vec2f, glyphLoc_: u32,
       }
     }
   }
+
+  /* Ditto, for the vertical ray. */
+  if (vLeftRay) { ycov = -ycov; }
 
   return _hb_gpu_calc_coverage (xcov, ycov, xwgt, ywgt);
 }

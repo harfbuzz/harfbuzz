@@ -41,6 +41,7 @@
 #include "OT/Color/COLR/colrv1-closure.hh"
 #include "OT/Color/CPAL/CPAL.hh"
 #include "hb-ot-var-fvar-table.hh"
+#include "hb-ot-var-varc-table.hh"
 #include "hb-ot-stat-table.hh"
 #include "hb-ot-math-table.hh"
 
@@ -475,7 +476,19 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   plan->_glyphset_colred = cur_glyphset;
 
-  // XXX TODO VARC closure / subset
+#ifndef HB_NO_VAR_COMPOSITES
+  if (!drop_tables->has (OT::VARC::tableTag))
+  {
+    if (unlikely (!plan->source->table.VARC->closure_glyphs (&cur_glyphset)))
+    {
+      plan->check_success (false);
+      return;
+    }
+    _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
+  }
+#endif
+
+  plan->_glyphset_varced = cur_glyphset;
 
   _nameid_closure (plan, drop_tables);
   /* Populate a full set of glyphs to retain by adding all referenced
@@ -508,18 +521,27 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #endif
 }
 
-static void
+static bool
 _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
                         const hb_map_t* glyph_map,
-                        hb_map_t* out)
+                        hb_map_t* out,
+                        hb_vector_t<hb_codepoint_t>* out_flat)
 {
+  hb_codepoint_t max_gid = HB_SET_VALUE_INVALID;
+  hb_set_previous (glyph_set_gsub, &max_gid);
+  unsigned flat_size = max_gid == HB_SET_VALUE_INVALID ? 0 : max_gid + 1;
+  if (unlikely (!out_flat->resize_dirty (flat_size)))
+    return false;
+  hb_memset (out_flat->arrayZ, 0xFF, flat_size * sizeof (hb_codepoint_t));
+
   out->alloc (glyph_set_gsub->get_population ());
-  + hb_iter (glyph_set_gsub)
-  | hb_map ([&] (hb_codepoint_t gid) {
-    return hb_codepoint_pair_t (gid, glyph_map->get (gid));
-  })
-  | hb_sink (out)
-  ;
+  for (auto gid : *glyph_set_gsub)
+  {
+    hb_codepoint_t new_gid = glyph_map->get (gid);
+    out->set (gid, new_gid);
+    out_flat->arrayZ[gid] = new_gid;
+  }
+  return !out->in_error ();
 }
 
 static bool
@@ -648,6 +670,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   all_axes_pinned = false;
   pinned_at_default = true;
   has_gdef_varstore = false;
+  has_avar2 = false;
 
 #ifdef HB_EXPERIMENTAL_API
   for (auto _ : input->name_table_overrides)
@@ -677,9 +700,29 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   if (unlikely (in_error ()))
     return;
 
+#ifndef HB_NO_VAR_COMPOSITES
+  if (!input->sets.drop_tables->has (OT::VARC::tableTag) &&
+      input->sets.no_subset_tables->has (OT::VARC::tableTag) &&
+      !(input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS) &&
+      face->table.VARC->has_data ())
+  {
+    check_success (false);
+    return;
+  }
+#endif
+
 #ifndef HB_NO_VAR
   if (!check_success (normalize_axes_location (face, this)))
       return;
+#endif
+#ifndef HB_NO_VAR_COMPOSITES
+  if (!user_axes_location.is_empty () &&
+      !input->sets.drop_tables->has (OT::VARC::tableTag) &&
+      face->table.VARC->has_data ())
+  {
+    check_success (false);
+    return;
+  }
 #endif
 
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, this);
@@ -709,10 +752,12 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   }
 #endif
 
-  _create_glyph_map_gsub (
+  if (!check_success (_create_glyph_map_gsub (
       &_glyphset_gsub,
       glyph_map,
-      &glyph_map_gsub);
+      &glyph_map_gsub,
+      &glyph_map_gsub_flat)))
+    return;
 
   // Now that we have old to new gid map update the unicode to new gid list.
   for (unsigned i = 0; i < unicode_to_new_gid_list.length; i++)

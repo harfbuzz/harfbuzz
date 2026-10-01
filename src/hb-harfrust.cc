@@ -100,7 +100,6 @@ _hb_harfrust_shape_plan_create_rs (const void *font_data,
 				   const hb_feature_t *features,
 				   unsigned int        num_features);
 
-
 extern "C" void
 _hb_harfrust_shape_plan_destroy_rs (void *data);
 
@@ -122,7 +121,7 @@ _hb_harfrust_shape_rs (const void         *font_data,
 		       const hb_feature_t *features,
 		       unsigned int        num_features);
 
-static hb_user_data_key_t hb_object_key = {0};
+static hb_user_data_key_t hb_buffer_key = {0};
 
 hb_bool_t
 _hb_harfrust_shape (hb_shape_plan_t    *shape_plan,
@@ -134,7 +133,7 @@ _hb_harfrust_shape (hb_shape_plan_t    *shape_plan,
   const hb_harfrust_font_data_t *font_data = font->data.harfrust;
 
 retry_buffer:
-  void *hr_buffer = hb_buffer_get_user_data (buffer, &hb_object_key);
+  void *hr_buffer = hb_buffer_get_user_data (buffer, &hb_buffer_key);
   if (unlikely (!hr_buffer))
   {
     hr_buffer = _hb_harfrust_buffer_create_rs ();
@@ -142,7 +141,7 @@ retry_buffer:
       return false;
 
     if (!hb_buffer_set_user_data (buffer,
-				  &hb_object_key,
+				  &hb_buffer_key,
 				  hr_buffer,
 				  _hb_harfrust_buffer_destroy_rs,
 				  false))
@@ -155,7 +154,7 @@ retry_buffer:
   void *hr_shape_plan = nullptr;
 
 retry_shape_plan:
-  hr_shape_plan = hb_shape_plan_get_user_data (shape_plan, &hb_object_key);
+  hr_shape_plan = shape_plan->harfrust_data.get_acquire ();
   if (unlikely (!hr_shape_plan))
   {
     hr_shape_plan = _hb_harfrust_shape_plan_create_rs (font_data,
@@ -164,11 +163,7 @@ retry_shape_plan:
 						       shape_plan->key.props.direction,
 						       features, num_features);
     if (hr_shape_plan &&
-	!hb_shape_plan_set_user_data (shape_plan,
-				     &hb_object_key,
-				     hr_shape_plan,
-				     _hb_harfrust_shape_plan_destroy_rs,
-				     false))
+	!shape_plan->harfrust_data.cmpexch (nullptr, hr_shape_plan))
     {
       _hb_harfrust_shape_plan_destroy_rs (hr_shape_plan);
       goto retry_shape_plan;

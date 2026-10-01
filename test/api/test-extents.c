@@ -114,9 +114,9 @@ test_glyph_extents_color_v0 (void)
   ret = hb_font_get_glyph_extents (font, 13, &extents);
   g_assert_true (ret);
   g_assert_true (extents.x_bearing == 192 &&
-                 extents.y_bearing == 573 &&
+                 extents.y_bearing == 574 &&
                  extents.width     == 731 &&
-                 extents.height    == -758);
+                 extents.height    == -759);
 
   hb_font_destroy (font);
   hb_face_destroy (face);

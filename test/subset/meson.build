@@ -4,6 +4,7 @@ tests = [
   'cmap',
   'cmap14',
   'cmap4_overflow',
+  'cmap_identity_delta',
   'preprocess',
   'full-font',
   'cff-full-font',
@@ -25,6 +26,7 @@ tests = [
   'layout.gsub5',
   'layout.gsub5_format2',
   'layout.gsub6',
+  'layout.gsub6.empty_input_classdef',
   'layout.gsub8',
   'layout.gdef',
   'layout.gdef.glyphset',
@@ -46,6 +48,7 @@ tests = [
   'math',
   'math_coverage_offset',
   'subset_base',
+  'subset_base_v1',
   # TODO: re-enable once colrv1 subsetting is stabilized.
   # 'colrv1.notoemoji',
   'colrv1',
@@ -88,6 +91,7 @@ tests = [
   'colrv1_partial_instance',
   'instantiate_gvar_padding',
   'avar2_full_instance',
+  'avar2_null_varstore_partial_instance',
   'subset_gvar_padding',
 ]
 

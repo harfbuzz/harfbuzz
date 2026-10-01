@@ -88,6 +88,41 @@ main (int argc, char **argv)
   hb_always_assert (hb_add (2) (5) == 7);
   hb_always_assert (hb_add (5) (2) == 7);
 
+  hb_always_assert (hb_saturate_add (1, 2) == 3);
+  hb_always_assert (hb_saturate_add (INT_MAX, 1) == INT_MAX);
+  hb_always_assert (hb_saturate_add (INT_MIN, -1) == INT_MIN);
+  hb_always_assert (hb_saturate_add (INT_MAX, INT_MIN) == -1);
+  hb_always_assert (hb_saturate_sub (3, 2) == 1);
+  hb_always_assert (hb_saturate_sub (INT_MAX, -1) == INT_MAX);
+  hb_always_assert (hb_saturate_sub (INT_MIN, 1) == INT_MIN);
+  hb_always_assert (hb_saturate_sub (INT_MIN, INT_MIN) == 0);
+  hb_always_assert (hb_saturate_neg (2) == -2);
+  hb_always_assert (hb_saturate_neg (-2) == 2);
+  hb_always_assert (hb_saturate_neg (INT_MIN) == INT_MAX);
+  hb_always_assert (hb_clamp_to<int> (1.) == 1);
+  hb_always_assert (hb_clamp_to<int> ((double) INT_MAX + 1.) == INT_MAX);
+  hb_always_assert (hb_clamp_to<int> ((double) INT_MIN - 1.) == INT_MIN);
+  hb_always_assert (hb_clamp_to<int> ((int64_t) 1) == 1);
+  hb_always_assert (hb_clamp_to<int> ((int64_t) INT_MAX + 1) == INT_MAX);
+  hb_always_assert (hb_clamp_to<int> ((int64_t) INT_MIN - 1) == INT_MIN);
+
+  int64_t budget = 10;
+  hb_always_assert (hb_budget_spend (budget, 4, 2));
+  hb_always_assert (budget == 2);
+  hb_always_assert (!hb_budget_spend (budget, 3));
+  hb_always_assert (budget == -1);
+  hb_always_assert (!hb_budget_spend (budget, 1));
+  hb_always_assert (budget == -2);
+
+  budget = 0;
+  hb_always_assert (hb_budget_spend (budget, 0));
+  hb_always_assert (!hb_budget_spend (budget, 1));
+  hb_always_assert (budget == -1);
+
+  budget = INT64_MAX;
+  hb_always_assert (hb_budget_spend (budget, 1024));
+  hb_always_assert (budget == INT64_MAX - 1024);
+
   x = 1;
   hb_always_assert (++hb_inc (x) == 3);
   hb_always_assert (x == 3);

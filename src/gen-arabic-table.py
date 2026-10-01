@@ -108,7 +108,7 @@ def print_joining_table(f):
 		print ("#![allow(unused_parens)]")
 		print ("#![allow(clippy::unnecessary_cast, clippy::unreadable_literal, clippy::double_parens)]")
 		print ()
-		print ("use crate::hb::unicode::Codepoint;")
+		print ("use crate::unicode::Codepoint;")
 		print ()
 		print (
 			"use super::ot_shaper_arabic::hb_arabic_joining_type_t::{"
@@ -147,7 +147,7 @@ LIGATURES = (
 	0xFEFC, 0xF201, 0xF211, 0xF2EE,
 )
 
-def print_shaping_table(f):
+def read_shaping_table(f):
 
 	shapes = {}
 	ligatures = {}
@@ -196,24 +196,6 @@ def print_shaping_table(f):
 				shapes[items[0]] = {}
 			shapes[items[0]][shape] = c
 
-	print ()
-	print ("static const uint16_t shaping_table[][4] =")
-	print ("{")
-
-	keys = shapes.keys ()
-	min_u, max_u = min (keys), max (keys)
-	for u in range (min_u, max_u + 1):
-		s = [shapes[u][shape] if u in shapes and shape in shapes[u] else 0
-		     for shape in  ['initial', 'medial', 'final', 'isolated']]
-		value = ', '.join ("0x%04Xu" % c for c in s)
-		print ("  {%s}, /* U+%04X %s */" % (value, u, names[u] if u in names else ""))
-
-	print ("};")
-	print ()
-	print ("#define SHAPING_TABLE_FIRST	0x%04Xu" % min_u)
-	print ("#define SHAPING_TABLE_LAST	0x%04Xu" % max_u)
-	print ()
-
 	ligas_2 = {}
 	ligas_3 = {}
 	ligas_mark_2 = {}
@@ -252,6 +234,32 @@ def print_shaping_table(f):
 				ligas_2[liga[0]].append ((liga[1], c))
 			else:
 				raise Exception ("Unexpected number of ligature components", key)
+
+	return shapes, names, ligas_2, ligas_mark_2, ligas_3
+
+
+def print_shaping_table(f):
+
+	shapes, names, ligas_2, ligas_mark_2, ligas_3 = read_shaping_table (f)
+
+	print ()
+	print ("static const uint16_t shaping_table[][4] =")
+	print ("{")
+
+	keys = shapes.keys ()
+	min_u, max_u = min (keys), max (keys)
+	for u in range (min_u, max_u + 1):
+		s = [shapes[u][shape] if u in shapes and shape in shapes[u] else 0
+		     for shape in  ['initial', 'medial', 'final', 'isolated']]
+		value = ', '.join ("0x%04Xu" % c for c in s)
+		print ("  {%s}, /* U+%04X %s */" % (value, u, names[u] if u in names else ""))
+
+	print ("};")
+	print ()
+	print ("#define SHAPING_TABLE_FIRST	0x%04Xu" % min_u)
+	print ("#define SHAPING_TABLE_LAST	0x%04Xu" % max_u)
+	print ()
+
 	max_i = max (len (ligas_2[l]) for l in ligas_2)
 	print ()
 	print ("static const struct ligature_set_t {")
@@ -313,6 +321,46 @@ def print_shaping_table(f):
 	print ()
 
 
+def print_shaping_table_rust(f):
+
+	shapes, _, ligas_2, ligas_mark_2, ligas_3 = read_shaping_table (f)
+	min_u, max_u = min (shapes.keys ()), max (shapes.keys ())
+
+	print ()
+	print ("pub(crate) const SHAPING_TABLE: &[(u16, [u16; 4])] = &[")
+	for u in range (min_u, max_u + 1):
+		s = [shapes[u][shape] if u in shapes and shape in shapes[u] else 0
+		     for shape in ['initial', 'medial', 'final', 'isolated']]
+		if any (s):
+			value = ", ".join ("0x%04X" % c for c in s)
+			print ("    (0x%04X, [%s])," % (u, value))
+	print ("];")
+
+	print ()
+	print ("pub(crate) const LIGATURE_3_TABLE: &[([u16; 3], u16)] = &[")
+	for first in sorted (ligas_3.keys ()):
+		for liga in ligas_3[first]:
+			print ("    ([0x%04X, 0x%04X, 0x%04X], 0x%04X)," %
+			       (first, liga[0], liga[1], liga[2]))
+	print ("];")
+
+	print ()
+	print ("pub(crate) const LIGATURE_TABLE: &[([u16; 2], u16)] = &[")
+	for first in sorted (ligas_2.keys ()):
+		for liga in ligas_2[first]:
+			print ("    ([0x%04X, 0x%04X], 0x%04X)," %
+			       (first, liga[0], liga[1]))
+	print ("];")
+
+	print ()
+	print ("pub(crate) const LIGATURE_MARK_TABLE: &[([u16; 2], u16)] = &[")
+	for first in sorted (ligas_mark_2.keys ()):
+		for liga in ligas_mark_2[first]:
+			print ("    ([0x%04X, 0x%04X], 0x%04X)," %
+			       (first, liga[0], liga[1]))
+	print ("];")
+
+
 
 print ("/* == Start of generated table == */")
 print ("/*")
@@ -341,6 +389,7 @@ if language.name == "c":
 	print ("#endif /* HB_OT_SHAPER_ARABIC_TABLE_HH */")
 elif language.name == "rust":
 	print_joining_table (files[0])
+	print_shaping_table_rust (files[1])
 else:
 	assert False, "Unknown language: %s" % language.name
 print ()

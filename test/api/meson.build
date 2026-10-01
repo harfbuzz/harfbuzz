@@ -31,6 +31,7 @@ tests = [
   'test-ot-collect-glyphs.c',
   'test-ot-color.c',
   'test-ot-face.c',
+  'test-ot-fetch.c',
   'test-ot-glyphname.c',
   'test-ot-layout.c',
   'test-ot-ligature-carets.c',
@@ -49,6 +50,7 @@ tests = [
   'test-shape-plan.c',
   'test-style.c',
   'test-subset.c',
+  'test-subset-avar2.c',
   'test-subset-cmap.c',
   'test-subset-drop-tables.c',
   'test-subset-glyf.c',
@@ -63,6 +65,7 @@ tests = [
   'test-subset-gvar.c',
   'test-subset-hvar.c',
   'test-subset-vvar.c',
+  'test-subset-varc.c',
   'test-subset-sbix.c',
   'test-subset-gpos.c',
   'test-subset-colr.c',
@@ -78,6 +81,10 @@ if conf.get('HAVE_FREETYPE', 0) == 1
   ]
 endif
 
+if conf.get('HAVE_GRAPHITE2', 0) == 1
+  tests += 'test-graphite2.c'
+endif
+
 if conf.get('HAVE_CORETEXT', 0) == 1
   tests += [
     'test-coretext.c',
@@ -90,8 +97,16 @@ if conf.get('HAVE_DIRECTWRITE', 0) == 1
   ]
 endif
 
+if conf.get('HAVE_CAIRO', 0) == 1
+  tests += 'test-cairo.c'
+endif
+
 if conf.get('HAVE_PTHREAD', 0) == 1
   tests += 'test-multithread.c'
+endif
+
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1
+  tests += 'test-ot-depend.c'
 endif
 
 # Default test running environment
@@ -109,7 +124,7 @@ foreach source : tests
           libharfbuzz_cairo_dep,
           libharfbuzz_icu_dep]
   suite = ['api']
-  if test_name.contains('-subset') or test_name.contains('-instance')
+  if test_name.contains('-subset') or test_name.contains('-instance') or test_name.contains('-depend')
     if get_option('subset').disabled()
       continue
     endif

@@ -7,6 +7,22 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int32_t
+clamp_position (double value)
+{
+  if (value <= INT32_MIN) return INT32_MIN;
+  if (value >= INT32_MAX) return INT32_MAX;
+  return (int32_t) value;
+}
+
+static int32_t
+saturate_add (int32_t a, int32_t b)
+{ return clamp_position ((int64_t) a + b); }
+
+static int32_t
+saturate_sub (int32_t a, int32_t b)
+{ return clamp_position ((int64_t) a - b); }
+
 void debugprint1 (char *s, int32_t);
 void debugprint2 (char *s, int32_t, int32_t);
 
@@ -75,7 +91,7 @@ shape (void *shape_plan,
   gr_segment *seg = nullptr;
   const gr_slot *is;
   unsigned int ci = 0, ic = 0;
-  unsigned int curradvx = 0, curradvy = 0;
+  int32_t curradvx = 0, curradvy = 0;
   unsigned length = contents.length;
 
   uint32_t *chars = (uint32_t *) malloc (length * sizeof (uint32_t));
@@ -103,7 +119,7 @@ shape (void *shape_plan,
     unsigned int base_glyph;
     unsigned int num_glyphs;
     unsigned int cluster;
-    int advance;
+    int32_t advance;
   };
 
   length = glyph_count;
@@ -127,11 +143,11 @@ shape (void *shape_plan,
   float xscale = (float) font_x_scale / upem;
   float yscale = (float) font_y_scale / upem;
   yscale *= yscale / xscale;
-  unsigned int curradv = 0;
+  int32_t curradv = 0;
   if (DIRECTION_IS_BACKWARD (direction))
   {
-    curradv = gr_slot_origin_X(gr_seg_first_slot(seg)) * xscale;
-    clusters[0].advance = gr_seg_advance_X(seg) * xscale - curradv;
+    curradv = clamp_position (gr_slot_origin_X(gr_seg_first_slot(seg)) * xscale);
+    clusters[0].advance = clamp_position ((double) (gr_seg_advance_X(seg) * xscale) - curradv);
   }
   else
     clusters[0].advance = 0;
@@ -145,7 +161,7 @@ shape (void *shape_plan,
     {
       clusters[ci-1].num_chars += clusters[ci].num_chars;
       clusters[ci-1].num_glyphs += clusters[ci].num_glyphs;
-      clusters[ci-1].advance += clusters[ci].advance;
+      clusters[ci-1].advance = saturate_add (clusters[ci-1].advance, clusters[ci].advance);
       ci--;
     }
 
@@ -159,14 +175,15 @@ shape (void *shape_plan,
       c->num_glyphs = 0;
       if (DIRECTION_IS_BACKWARD (direction))
       {
-	c->advance = curradv - gr_slot_origin_X(is) * xscale;
-	curradv -= c->advance;
+	c->advance = clamp_position ((double) curradv - (double) (gr_slot_origin_X(is) * xscale));
+	curradv = saturate_sub (curradv, c->advance);
       }
       else
       {
-	auto origin_X = gr_slot_origin_X (is) * xscale;
+	int32_t origin_X = clamp_position (gr_slot_origin_X (is) * xscale);
 	c->advance = 0;
-	clusters[ci].advance += origin_X - curradv;
+	clusters[ci].advance = saturate_add (clusters[ci].advance,
+					     saturate_sub (origin_X, curradv));
 	curradv = origin_X;
       }
       ci++;
@@ -178,9 +195,10 @@ shape (void *shape_plan,
   }
 
   if (DIRECTION_IS_BACKWARD (direction))
-    clusters[ci].advance += curradv;
+    clusters[ci].advance = saturate_add (clusters[ci].advance, curradv);
   else
-    clusters[ci].advance += gr_seg_advance_X(seg) * xscale - curradv;
+    clusters[ci].advance = clamp_position ((double) clusters[ci].advance +
+					   (double) (gr_seg_advance_X(seg) * xscale) - curradv);
   ci++;
 
   for (unsigned int i = 0; i < ci; ++i)
@@ -204,37 +222,38 @@ shape (void *shape_plan,
     curradvx = 0;
     for (is = gr_seg_first_slot (seg); is; pPos++, ++info, is = gr_slot_next_in_segment (is))
     {
-      pPos->x_offset = gr_slot_origin_X (is) * xscale - curradvx;
-      pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
+      pPos->x_offset = clamp_position ((double) (gr_slot_origin_X (is) * xscale) - curradvx);
+      pPos->y_offset = clamp_position ((double) (gr_slot_origin_Y (is) * yscale) - curradvy);
       if (info->cluster != currclus) {
 	pPos->x_advance = (int) info->var1;
-	curradvx += pPos->x_advance;
+	curradvx = saturate_add (curradvx, pPos->x_advance);
 	currclus = info->cluster;
       } else
 	pPos->x_advance = 0.;
 
-      pPos->y_advance = gr_slot_advance_Y (is, grface, nullptr) * yscale;
-      curradvy += pPos->y_advance;
+      pPos->y_advance = clamp_position (gr_slot_advance_Y (is, grface, nullptr) * yscale);
+      curradvy = saturate_add (curradvy, pPos->y_advance);
     }
     buffer_set_contents (buffer, &contents);
   }
   else
   {
-    curradvx = gr_seg_advance_X(seg) * xscale;
+    curradvx = clamp_position (gr_seg_advance_X(seg) * xscale);
     for (is = gr_seg_first_slot (seg); is; pPos++, info++, is = gr_slot_next_in_segment (is))
     {
       if (info->cluster != currclus)
       {
 	pPos->x_advance = (int) info->var1;
-	curradvx -= pPos->x_advance;
+	curradvx = saturate_sub (curradvx, pPos->x_advance);
 	currclus = info->cluster;
       } else
 	pPos->x_advance = 0.;
 
-      pPos->y_advance = gr_slot_advance_Y (is, grface, nullptr) * yscale;
-      curradvy -= pPos->y_advance;
-      pPos->x_offset = gr_slot_origin_X (is) * xscale - (int) info->var1 - curradvx + pPos->x_advance;
-      pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
+      pPos->y_advance = clamp_position (gr_slot_advance_Y (is, grface, nullptr) * yscale);
+      curradvy = saturate_sub (curradvy, pPos->y_advance);
+      pPos->x_offset = clamp_position ((double) (gr_slot_origin_X (is) * xscale) -
+					      (int) info->var1 - curradvx + pPos->x_advance);
+      pPos->y_offset = clamp_position ((double) (gr_slot_origin_Y (is) * yscale) - curradvy);
     }
     buffer_set_contents (buffer, &contents);
     buffer_reverse_clusters (buffer);

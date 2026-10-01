@@ -314,13 +314,18 @@ struct Glyph
 		   hb_array_t<const int> coords = hb_array_t<const int> (),
 		   hb_scalar_cache_t *gvar_cache = nullptr,
 		   unsigned int depth = 0,
-		   unsigned *edge_count = nullptr) const
+		   unsigned *edge_count = nullptr,
+		   int64_t *budget = nullptr) const
   {
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
     unsigned stack_edge_count = 0;
     if (!edge_count) edge_count = &stack_edge_count;
     if (unlikely (*edge_count > HB_MAX_GRAPH_EDGE_COUNT)) return false;
     (*edge_count)++;
+
+    int64_t stack_budget = HB_BUDGET_GLYPH;
+    if (!budget) budget = &stack_budget;
+    if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_16))) return false;
 
     if (head_maxp_info)
     {
@@ -339,7 +344,7 @@ struct Glyph
         head_maxp_info->maxContours = hb_max (head_maxp_info->maxContours, (unsigned) header->numberOfContours);
       if (depth > 0 && composite_contours)
         *composite_contours += (unsigned) header->numberOfContours;
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, extended, phantom_only)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points, extended, phantom_only, budget)))
 	return false;
       break;
     case COMPOSITE:
@@ -387,7 +392,8 @@ struct Glyph
 							  points.as_array ().sub_array (old_length),
 							  scratch,
 							  gvar_cache,
-							  phantom_only && type == SIMPLE))
+							  phantom_only && type == SIMPLE,
+							  budget))
         return false;
     }
 #endif
@@ -439,7 +445,8 @@ struct Glyph
 						    coords,
 						    gvar_cache,
 						    depth + 1,
-						    edge_count)))
+						    edge_count,
+						    budget)))
 	{
 	  points.resize (old_length);
 	  return false;
@@ -454,6 +461,15 @@ struct Glyph
 	if (use_my_metrics && item.is_use_my_metrics ())
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+
+	/* Each composite level transforms the whole subtree below it;
+	 * charge that work here so deep nesting is bounded by the budget
+	 * rather than by the per-draw point cap alone. */
+	if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, comp_points.length)))
+	{
+	  points.resize (old_length);
+	  return false;
+	}
 
 	if (comp_points) // Empty in case of phantom_only
 	{

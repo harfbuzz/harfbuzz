@@ -23,15 +23,15 @@ struct test_input_t
 {
 
   {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
-   "perf/texts/fa-thelittleprince.txt",
+   "perf/texts/fa-paragraph.txt",
    false},
 
   {"perf/fonts/Roboto-Regular.ttf",
-   "perf/texts/en-words.txt",
+   "perf/texts/en-paragraph.txt",
    false},
 
   {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
-   "perf/texts/en-thelittleprince.txt",
+   "perf/texts/en-paragraph.txt",
    true},
 };
 
@@ -128,6 +128,11 @@ static void test_backend (const char *backend,
   bool ret = hb_font_set_funcs_using (font, backend);
   if (!ret)
     abort ();
+
+  {
+    std::unique_lock<std::mutex> lk (cv_m);
+    ready = false;
+  }
 
   std::vector<std::thread> threads;
   for (unsigned i = 0; i < num_threads; i++)

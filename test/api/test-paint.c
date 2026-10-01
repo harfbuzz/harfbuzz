@@ -911,6 +911,73 @@ test_color_glyph_user_data (void)
   hb_paint_funcs_destroy (funcs);
 }
 
+typedef struct
+{
+  int64_t policy;
+  int64_t live;
+} paint_budget_data_t;
+
+static hb_bool_t
+paint_set_budget (hb_paint_funcs_t *funcs HB_UNUSED,
+		  void *paint_data,
+		  int64_t budget,
+		  void *user_data HB_UNUSED)
+{
+  paint_budget_data_t *data = (paint_budget_data_t *) paint_data;
+  data->policy = budget;
+  data->live = budget == HB_BUDGET_DEFAULT ? 4321 : budget;
+  return TRUE;
+}
+
+static int64_t
+paint_get_budget (hb_paint_funcs_t *funcs HB_UNUSED,
+		  void *paint_data,
+		  void *user_data HB_UNUSED)
+{
+  return ((paint_budget_data_t *) paint_data)->policy;
+}
+
+static int64_t *
+paint_get_budget_remaining (hb_paint_funcs_t *funcs HB_UNUSED,
+			    void *paint_data,
+			    void *user_data HB_UNUSED)
+{
+  return &((paint_budget_data_t *) paint_data)->live;
+}
+
+static void
+test_hb_paint_budget (void)
+{
+  paint_budget_data_t data = {HB_BUDGET_DEFAULT, 4321};
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+
+  g_assert_false (hb_paint_set_budget (funcs, &data, 100));
+  g_assert_cmpint (hb_paint_get_budget (funcs, &data), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_paint_get_budget_remaining (funcs, &data), ==, HB_BUDGET_UNLIMITED);
+
+  hb_paint_funcs_set_set_budget_func (funcs, paint_set_budget, NULL, NULL);
+  hb_paint_funcs_set_get_budget_func (funcs, paint_get_budget, NULL, NULL);
+  hb_paint_funcs_set_get_budget_remaining_func (funcs, paint_get_budget_remaining, NULL, NULL);
+
+  g_assert_true (hb_paint_set_budget (funcs, &data, -7));
+  g_assert_cmpint (hb_paint_get_budget (funcs, &data), ==, 0);
+  g_assert_cmpint (hb_paint_get_budget_remaining (funcs, &data), ==, 0);
+
+  g_assert_true (hb_paint_set_budget (funcs, &data, HB_BUDGET_DEFAULT));
+  g_assert_cmpint (hb_paint_get_budget (funcs, &data), ==, HB_BUDGET_DEFAULT);
+  g_assert_cmpint (hb_paint_get_budget_remaining (funcs, &data), ==, 4321);
+
+  g_assert_true (hb_paint_set_budget (funcs, &data, 9876));
+  g_assert_cmpint (hb_paint_get_budget (funcs, &data), ==, 9876);
+  g_assert_cmpint (hb_paint_get_budget_remaining (funcs, &data), ==, 9876);
+
+  g_assert_true (hb_paint_set_budget (funcs, &data, HB_BUDGET_UNLIMITED));
+  g_assert_cmpint (hb_paint_get_budget (funcs, &data), ==, HB_BUDGET_UNLIMITED);
+  g_assert_cmpint (hb_paint_get_budget_remaining (funcs, &data), ==, HB_BUDGET_UNLIMITED);
+
+  hb_paint_funcs_destroy (funcs);
+}
+
 
 int
 main (int argc, char **argv)
@@ -925,6 +992,7 @@ main (int argc, char **argv)
   hb_test_add (test_push_clip_path_round_trip);
   hb_test_add (test_fill_glyph_nil_decomposes);
   hb_test_add (test_color_glyph_user_data);
+  hb_test_add (test_hb_paint_budget);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {

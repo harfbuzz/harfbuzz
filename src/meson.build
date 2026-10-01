@@ -93,6 +93,7 @@ hb_base_sources = files(
   'hb-ot-face-table-list.hh',
   'hb-ot-face.cc',
   'hb-ot-face.hh',
+  'hb-ot-fetch.cc',
   'hb-ot-font.cc',
   'hb-ot-gasp-table.hh',
   'hb-ot-glyf-table.hh',
@@ -313,6 +314,7 @@ hb_base_headers = files(
   'hb-map.h',
   'hb-ot-color.h',
   'hb-ot-deprecated.h',
+  'hb-ot-fetch.h',
   'hb-ot-font.h',
   'hb-ot-layout.h',
   'hb-ot-math.h',
@@ -386,10 +388,13 @@ hb_icu_headers = files('hb-icu.h')
 
 # Sources for libharfbuzz-subset
 hb_subset_sources = files(
+  'OT/Var/VARC/VARC.cc',
+  'OT/Var/VARC/VARC-subset.hh',
   'hb-number.cc',
   'hb-number.hh',
   'hb-ot-cff1-table.cc',
   'hb-ot-cff2-table.cc',
+  'hb-result.hh',
   'hb-static.cc',
   'hb-subset-accelerator.hh',
   'hb-subset-cff-common.cc',
@@ -415,6 +420,7 @@ hb_subset_sources = files(
   'hb-subset-table-cff.cc',
   'hb-subset-table-color.cc',
   'hb-subset-table-other.cc',
+  'graph/graph-result.hh',
   'graph/gsubgpos-context.cc',
   'graph/gsubgpos-context.hh',
   'graph/gsubgpos-graph.hh',
@@ -425,11 +431,15 @@ hb_subset_sources = files(
   'graph/split-helpers.hh',
   'hb-subset.cc',
   'hb-subset.hh',
+  'hb-depend.cc',
+  'hb-depend.hh',
+  'hb-depend-data.hh',
 )
 
 hb_subset_headers = files(
   'hb-subset.h',
-  'hb-subset-serialize.h'
+  'hb-subset-serialize.h',
+  'hb-subset-depend.h',
 )
 
 hb_gobject_sources = files(
@@ -538,8 +548,6 @@ if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += hb_directwrite_sources
   hb_headers += hb_directwrite_headers
   harfbuzz_deps += directwrite_dep
-  # hb-directwrite needs a C++ linker
-  libharfbuzz_link_language = 'cpp'
 endif
 
 if conf.get('HAVE_CORETEXT', 0) == 1
@@ -625,7 +633,6 @@ gen_def_cmd = [gen_def, '@OUTPUT@', '@INPUT@']
 if get_option('experimental_api')
   gen_def_cmd += '--experimental-api'
 endif
-
 # harfbuzz
 harfbuzz_def = custom_target('harfbuzz.def',
     command: gen_def_cmd,
@@ -643,6 +650,10 @@ if cpp_is_microsoft_compiler
   hb_so_version = ''
 else
   hb_so_version = '0'
+endif
+
+if host_machine.system() == 'aix'
+  version = '0'
 endif
 
 if get_option('fuzzer_ldflags') != ''
@@ -984,6 +995,7 @@ if get_option('tests').enabled()
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
     'test-cff': ['test-cff.cc', 'hb-static.cc'],
     'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
+    'test-result': ['test-result.cc', 'hb-static.cc'],
     'test-decycler': ['test-decycler.cc', 'hb-static.cc'],
     'test-iter': ['test-iter.cc', 'hb-static.cc'],
     'test-geometry': ['test-geometry.cc', 'hb-static.cc'],
@@ -992,6 +1004,7 @@ if get_option('tests').enabled()
     'test-multimap': ['test-multimap.cc', 'hb-static.cc'],
     'test-number': ['test-number.cc', 'hb-number.cc'],
     'test-ot-tag': ['hb-ot-tag.cc'],
+    'test-paint-extents': ['test-paint-extents.cc', 'hb-paint-extents.cc', 'hb-static.cc'],
     'test-set': ['test-set.cc', 'hb-static.cc'],
     'test-serialize': ['test-serialize.cc', 'hb-static.cc'],
     'test-vector': ['test-vector.cc', 'hb-static.cc'],

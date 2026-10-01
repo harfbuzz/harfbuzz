@@ -806,9 +806,8 @@ _format_tag (hb_tag_t tag, hb_vector_t<char> &out)
 static void
 _format_tag_set (const hb_set_t *set, hb_vector_t<char> &out)
 {
-  hb_codepoint_t tag = HB_SET_VALUE_INVALID;
   bool first_tag = true;
-  while (hb_set_next (set, &tag))
+  for (hb_codepoint_t tag : *set)
   {
     if (!first_tag)
       out.push (',');
@@ -916,9 +915,8 @@ _format_glyph_map_arg (const hb_map_t &glyph_map,
   hb_set_t keys;
   hb_map_keys (&glyph_map, &keys);
   hb_vector_t<char> pairs;
-  hb_codepoint_t key = HB_SET_VALUE_INVALID;
   bool first = true;
-  while (hb_set_next (&keys, &key))
+  for (hb_codepoint_t key : keys)
   {
     if (!first)
       pairs.push (',');

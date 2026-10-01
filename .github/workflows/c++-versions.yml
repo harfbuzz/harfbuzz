@@ -39,6 +39,8 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Install Dependencies
       run: |
+        sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo apt-get update
         sudo apt install -y ${{ matrix.PACKAGES }}
     - name: Build

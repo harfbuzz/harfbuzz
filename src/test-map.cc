@@ -353,6 +353,20 @@ main (int argc, char **argv)
     hb_always_assert (keys.is_equal (hb_set_t (m.keys ())));
     hb_always_assert (values.is_equal (hb_set_t (m.values ())));
   }
+  /* Test allocation bounds and overflow protection. */
+  {
+    hb_map_t m1;
+    hb_always_assert (!m1.alloc ((unsigned) -1));
+    hb_always_assert (m1.in_error ());
+
+    hb_map_t m2;
+    hb_always_assert (!m2.alloc (0x40000000u));
+    hb_always_assert (m2.in_error ());
+
+    /* Test copy of map in error state. */
+    hb_map_t m3 (m1);
+    hb_always_assert (m3.in_error ());
+  }
 
   return 0;
 }
