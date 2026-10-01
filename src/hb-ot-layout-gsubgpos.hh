@@ -3174,7 +3174,7 @@ struct Rule
     const auto input = inputZ.as_array (inputCount - 1);
     for (const auto org : input)
     {
-      HBUINT16 d;
+      typename Types::HBUINT d;
       d = input_mapping->get (org);
       c->copy (d);
     }
