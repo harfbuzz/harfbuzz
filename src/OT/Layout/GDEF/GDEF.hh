@@ -439,8 +439,13 @@ struct LigCaretList
 		ligGlyph;		/* Array of LigGlyph tables
 					 * in Coverage Index order */
   public:
-  DEFINE_SIZE_ARRAY (Types::size + Types::size, ligGlyph);
+  DEFINE_SIZE_ARRAY (Types::LOffset::static_size + Types::HBUINT::static_size, ligGlyph);
 };
+
+#ifndef HB_NO_BEYOND_64K
+static_assert (LigCaretList<MediumTypes>::min_size ==
+	       Offset32::static_size + HBUINT24::static_size, "");
+#endif
 
 
 struct MarkGlyphSetsFormat1
