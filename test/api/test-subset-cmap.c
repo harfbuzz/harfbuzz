@@ -177,6 +177,121 @@ test_subset_cmap_noto_color_emoji_non_consecutive_glyphs (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_DMAP (void)
+{
+  const char maxp_data[] = {
+    0, 0, 0x50, 0, 0, 7,
+  };
+  const char cmap_data[] = {
+    0, 0, 0, 2,                              /* cmap header */
+    0, 3, 0, 10, 0, 0, 0, 20,               /* encoding records */
+    0, 0, 0, 5, 0, 0, 0, 48,
+    0, 12, 0, 0, 0, 0, 0, 28,               /* format 12 header */
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 'A', 0, 0, 0, 'B', 0, 0, 0, 1, /* format 12 group */
+    0, 14, 0, 0, 0, 40, 0, 0, 0, 1,         /* format 14 header */
+    0, 0xFE, 0x0F, 0, 0, 0, 0, 0, 0, 0, 21, /* variation selector */
+    0, 0, 0, 3,                               /* non-default UVS count */
+    0, 0, 'A', 0, 3,
+    0, 0, 'B', 0, 3,
+    0, 0, 'C', 0, 3,
+  };
+  const char dmap_data[] = {
+    0, 0, 0, 2,                              /* DMAP header */
+    0, 3, 0, 10, 0, 0, 0, 20,               /* encoding records */
+    0, 0, 0, 5, 0, 0, 0, 60,
+    0, 12, 0, 0, 0, 0, 0, 40,               /* format 12 header */
+    0, 0, 0, 0, 0, 0, 0, 2,
+    0, 0, 0, 'A', 0, 0, 0, 'A', 0, 0, 0, 4, /* format 12 groups */
+    0, 0, 0, 'C', 0, 0, 0, 'C', 0, 0, 0, 5,
+    0, 14, 0, 0, 0, 38, 0, 0, 0, 1,         /* format 14 header */
+    0, 0xFE, 0x0F, 0, 0, 0, 21, 0, 0, 0, 29, /* variation selector */
+    0, 0, 0, 1, 0, 0, 'B', 0,               /* default UVS */
+    0, 0, 0, 1, 0, 0, 'A', 0, 6,            /* non-default UVS */
+  };
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+  HB_FACE_ADD_TABLE (face, "DMAP", dmap_data);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'A', &glyph));
+  g_assert_cmpuint (glyph, ==, 4);
+  g_assert_true (hb_font_get_nominal_glyph (font, 'B', &glyph));
+  g_assert_cmpuint (glyph, ==, 2);
+  g_assert_true (hb_font_get_nominal_glyph (font, 'C', &glyph));
+  g_assert_cmpuint (glyph, ==, 5);
+  const hb_codepoint_t unicodes[] = {'A', 'B', 'C'};
+  hb_codepoint_t glyphs[3];
+  g_assert_cmpuint (hb_font_get_nominal_glyphs (font, 3,
+						unicodes, sizeof (unicodes[0]),
+						glyphs, sizeof (glyphs[0])), ==, 3);
+  g_assert_cmpuint (glyphs[0], ==, 4);
+  g_assert_cmpuint (glyphs[1], ==, 2);
+  g_assert_cmpuint (glyphs[2], ==, 5);
+  g_assert_true (hb_font_get_variation_glyph (font, 'A', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 6);
+  g_assert_true (hb_font_get_variation_glyph (font, 'B', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 2);
+  g_assert_true (hb_font_get_variation_glyph (font, 'C', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 3);
+  hb_font_destroy (font);
+
+  hb_set_t *set = hb_set_create ();
+  hb_map_t *mapping = hb_map_create ();
+  hb_face_collect_nominal_glyph_mapping (face, mapping, set);
+  g_assert_cmpuint (hb_set_get_population (set), ==, 3);
+  g_assert_cmpuint (hb_map_get (mapping, 'A'), ==, 4);
+  g_assert_cmpuint (hb_map_get (mapping, 'B'), ==, 2);
+  g_assert_cmpuint (hb_map_get (mapping, 'C'), ==, 5);
+  hb_map_destroy (mapping);
+
+  hb_set_clear (set);
+  hb_face_collect_variation_selectors (face, set);
+  g_assert_true (hb_set_has (set, 0xFE0F));
+  hb_set_clear (set);
+  hb_face_collect_variation_unicodes (face, 0xFE0F, set);
+  g_assert_cmpuint (hb_set_get_population (set), ==, 3);
+  g_assert_true (hb_set_has (set, 'A'));
+  g_assert_true (hb_set_has (set, 'B'));
+  g_assert_true (hb_set_has (set, 'C'));
+  hb_set_destroy (set);
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'A');
+  hb_set_add (codepoints, 'B');
+  hb_set_add (codepoints, 'C');
+  hb_set_add (codepoints, 0xFE0F);
+  hb_face_t *subset = hb_subset_test_create_subset (face,
+					    hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_blob_t *dmap = hb_face_reference_table (subset, HB_TAG ('D','M','A','P'));
+  g_assert_cmpuint (hb_blob_get_length (dmap), >, 0);
+  hb_blob_destroy (dmap);
+
+  font = hb_font_create (subset);
+  g_assert_true (hb_font_get_nominal_glyph (font, 'A', &glyph));
+  g_assert_cmpuint (glyph, ==, 3);
+  g_assert_true (hb_font_get_nominal_glyph (font, 'B', &glyph));
+  g_assert_cmpuint (glyph, ==, 1);
+  g_assert_true (hb_font_get_nominal_glyph (font, 'C', &glyph));
+  g_assert_cmpuint (glyph, ==, 4);
+  g_assert_true (hb_font_get_variation_glyph (font, 'A', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 5);
+  g_assert_true (hb_font_get_variation_glyph (font, 'B', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 1);
+  g_assert_true (hb_font_get_variation_glyph (font, 'C', 0xFE0F, &glyph));
+  g_assert_cmpuint (glyph, ==, 2);
+  hb_font_destroy (font);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
 #ifndef HB_NO_BEYOND_64K
 static void
 test_subset_cmap_format15 (void)
@@ -247,6 +362,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cmap_empty_tables);
   hb_test_add (test_subset_cmap_noto_color_emoji_noop);
   hb_test_add (test_subset_cmap_noto_color_emoji_non_consecutive_glyphs);
+  hb_test_add (test_subset_DMAP);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_cmap_format15);
 #endif

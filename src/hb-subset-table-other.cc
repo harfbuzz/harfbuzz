@@ -35,6 +35,7 @@ bool _hb_subset_table_other		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb
   case HB_TAG('L','O','C','A'): *success = true; return true; /* skip LOCA, handled by GLYF */
 #endif
   case HB_TAG('c','m','a','p'): *success = _hb_subset_table<const OT::cmap> (plan, buf); return true;
+  case HB_TAG('D','M','A','P'): *success = _hb_subset_table<const OT::DMAP> (plan, buf); return true;
   case HB_TAG('O','S','/','2'): *success = _hb_subset_table<const OT::OS2 > (plan, buf); return true;
   case HB_TAG('p','o','s','t'): *success = _hb_subset_table<const OT::post> (plan, buf); return true;
   }

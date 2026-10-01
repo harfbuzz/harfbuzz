@@ -105,8 +105,8 @@ _cmap_closure (hb_face_t	   *face,
 	       const hb_set_t	   *unicodes,
 	       hb_set_t		   *glyphset)
 {
-  OT::cmap::accelerator_t cmap (face);
-  cmap.table->closure_glyphs (unicodes, glyphset);
+  OT::cmap_accelerator_t cmap (face);
+  cmap.closure_glyphs (unicodes, glyphset);
 }
 
 static void _colr_closure (hb_subset_plan_t* plan,
@@ -248,7 +248,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes_in,
   hb_set_t unicodes = _unicode_closure(unicodes_in,
     !(plan->flags & HB_SUBSET_FLAGS_NO_BIDI_CLOSURE));
 
-  OT::cmap::accelerator_t cmap (plan->source);
+  OT::cmap_accelerator_t cmap (plan->source);
   unsigned size_threshold = plan->source->get_num_glyphs ();
 
   if (glyphs->is_empty () && unicodes.get_population () < size_threshold)

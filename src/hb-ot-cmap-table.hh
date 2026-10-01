@@ -39,6 +39,7 @@
  * https://docs.microsoft.com/en-us/typography/opentype/spec/cmap
  */
 #define HB_OT_TAG_cmap HB_TAG('c','m','a','p')
+#define HB_OT_TAG_DMAP HB_TAG('D','M','A','P')
 
 namespace OT {
 
@@ -2069,6 +2070,9 @@ struct cmap
   }
 
   bool subset (hb_subset_context_t *c) const
+  { return subset (c, false); }
+
+  bool subset (hb_subset_context_t *c, bool is_dmap) const
   {
     TRACE_SUBSET (this);
 
@@ -2098,8 +2102,8 @@ struct cmap
       else if (_.platformID == 3 && _.encodingID == 10) ms_ucs4 = table;
     }
 
-    if (unlikely (!has_format12 && !unicode_bmp && !ms_bmp)) return_trace (false);
-    if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
+    if (unlikely (!is_dmap && !has_format12 && !unicode_bmp && !ms_bmp)) return_trace (false);
+    if (unlikely (!is_dmap && has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
 
     auto it =
     + c->plan->unicode_to_new_gid_list.iter ()
@@ -2170,9 +2174,12 @@ struct cmap
     using cache_t = hb_cache_t<21, 19>;
     static_assert (sizeof (cache_t) == 1024, "");
 
-    accelerator_t (hb_face_t *face)
+    accelerator_t (hb_face_t *face, hb_tag_t table_tag = cmap::tableTag)
     {
-      this->table = hb_sanitize_context_t ().reference_table<cmap> (face);
+      this->table = hb_sanitize_context_t ().reference_table<cmap> (face, table_tag);
+      if (!this->table.get_length ())
+	return;
+
       bool symbol, mac, macroman;
       this->subtable = table->find_best_subtable (&symbol, &mac, &macroman);
       this->subtable_uvs = &Null (CmapSubtable);
@@ -2330,9 +2337,7 @@ struct cmap
 			      hb_codepoint_t  variation_selector,
 			      hb_codepoint_t *glyph) const
     {
-      switch (this->subtable_uvs->get_glyph_variant (unicode,
-						     variation_selector,
-						     glyph))
+      switch (get_glyph_variant (unicode, variation_selector, glyph))
       {
 	case GLYPH_VARIANT_NOT_FOUND:	return false;
 	case GLYPH_VARIANT_FOUND:	return true;
@@ -2341,6 +2346,17 @@ struct cmap
 
       return get_nominal_glyph (unicode, glyph);
     }
+
+    glyph_variant_t get_glyph_variant (hb_codepoint_t  unicode,
+				       hb_codepoint_t  variation_selector,
+				       hb_codepoint_t *glyph) const
+    {
+      return this->subtable_uvs->get_glyph_variant (unicode,
+						    variation_selector,
+						    glyph);
+    }
+
+    bool has_data () const { return table.get_length (); }
 
     void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
     { subtable->collect_unicodes (out, num_glyphs, get_subtable_data_size (subtable)); }
@@ -2504,8 +2520,128 @@ struct cmap
   DEFINE_SIZE_ARRAY (4, encodingRecord);
 };
 
-struct cmap_accelerator_t : cmap::accelerator_t {
-  cmap_accelerator_t (hb_face_t *face) : cmap::accelerator_t (face) {}
+struct DMAP : cmap
+{
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_DMAP;
+
+  bool subset (hb_subset_context_t *c) const
+  { return cmap::subset (c, true); }
+};
+
+struct cmap_accelerator_t
+{
+  cmap_accelerator_t (hb_face_t *face) :
+    dmap (face, HB_OT_TAG_DMAP),
+    base (face)
+  {}
+
+  bool get_nominal_glyph (hb_codepoint_t  unicode,
+			  hb_codepoint_t *glyph) const
+  {
+    return dmap.get_nominal_glyph (unicode, glyph) ||
+	   base.get_nominal_glyph (unicode, glyph);
+  }
+
+  unsigned int get_nominal_glyphs (unsigned int count,
+				   const hb_codepoint_t *first_unicode,
+				   unsigned int unicode_stride,
+				   hb_codepoint_t *first_glyph,
+				   unsigned int glyph_stride) const
+  {
+    if (likely (!dmap.has_data ()))
+      return base.get_nominal_glyphs (count,
+				      first_unicode, unicode_stride,
+				      first_glyph, glyph_stride);
+
+    unsigned int done;
+    for (done = 0;
+	 done < count && get_nominal_glyph (*first_unicode, first_glyph);
+	 done++)
+    {
+      first_unicode = &StructAtOffsetUnaligned<hb_codepoint_t> (first_unicode, unicode_stride);
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+    }
+    return done;
+  }
+
+  bool get_variation_glyph (hb_codepoint_t  unicode,
+			    hb_codepoint_t  variation_selector,
+			    hb_codepoint_t *glyph) const
+  {
+    glyph_variant_t result = dmap.get_glyph_variant (unicode,
+						     variation_selector,
+						     glyph);
+    if (result == GLYPH_VARIANT_NOT_FOUND)
+      result = base.get_glyph_variant (unicode, variation_selector, glyph);
+
+    switch (result)
+    {
+      case GLYPH_VARIANT_NOT_FOUND: return false;
+      case GLYPH_VARIANT_FOUND: return true;
+      case GLYPH_VARIANT_USE_DEFAULT: break;
+    }
+
+    return get_nominal_glyph (unicode, glyph);
+  }
+
+  void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
+  {
+    base.collect_unicodes (out, num_glyphs);
+    dmap.collect_unicodes (out, num_glyphs);
+  }
+
+  void collect_mapping (hb_set_t *unicodes, hb_map_t *mapping,
+			unsigned num_glyphs = UINT_MAX) const
+  {
+    base.collect_mapping (unicodes, mapping, num_glyphs);
+    dmap.collect_mapping (unicodes, mapping, num_glyphs);
+  }
+
+  void collect_variation_selectors (hb_set_t *out) const
+  {
+    base.collect_variation_selectors (out);
+    dmap.collect_variation_selectors (out);
+  }
+
+  void collect_variation_unicodes (hb_codepoint_t variation_selector,
+				   hb_set_t *out) const
+  {
+    base.collect_variation_unicodes (variation_selector, out);
+    dmap.collect_variation_unicodes (variation_selector, out);
+  }
+
+  void closure_glyphs (const hb_set_t *unicodes,
+		       hb_set_t       *glyphset) const
+  {
+    if (likely (!dmap.has_data ()))
+    {
+      base.table->closure_glyphs (unicodes, glyphset);
+      return;
+    }
+
+    hb_set_t variation_selectors;
+    collect_variation_selectors (&variation_selectors);
+    for (hb_codepoint_t variation_selector : variation_selectors)
+    {
+      if (!unicodes->has (variation_selector))
+	continue;
+
+      hb_set_t variation_unicodes;
+      collect_variation_unicodes (variation_selector, &variation_unicodes);
+      for (hb_codepoint_t unicode : variation_unicodes)
+      {
+	if (!unicodes->has (unicode))
+	  continue;
+
+	hb_codepoint_t glyph;
+	if (get_variation_glyph (unicode, variation_selector, &glyph))
+	  glyphset->add (glyph);
+      }
+    }
+  }
+
+  cmap::accelerator_t dmap;
+  cmap::accelerator_t base;
 };
 
 } /* namespace OT */
