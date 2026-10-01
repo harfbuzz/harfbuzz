@@ -4729,7 +4729,11 @@ struct ChainRule
   {
     c->copy (len);
     for (const auto g : it)
-      c->copy ((HBUINT16) g);
+    {
+      typename Types::HBUINT d;
+      d = g;
+      c->copy (d);
+    }
   }
 
   bool serialize (hb_serialize_context_t *c,

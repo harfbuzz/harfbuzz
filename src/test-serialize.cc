@@ -62,10 +62,47 @@ test_medium_rule ()
   bytes.fini ();
 }
 
+static void
+test_medium_chain_rule ()
+{
+  static const char data[] = {
+    0, 1, 0, 0, 5,             /* backtrack */
+    0, 2, 0, 0, 6,             /* input */
+    0, 1, 0, 0, 7,             /* lookahead */
+    0, 1, 0, 0, 0, 2,          /* LookupRecord */
+  };
+  static const char expected[] = {
+    0, 1, 1, 0, 1,             /* backtrack */
+    0, 2, 1, 0, 2,             /* input */
+    0, 1, 1, 0, 3,             /* lookahead */
+    0, 1, 0, 0, 0, 3,          /* LookupRecord */
+  };
+  const auto &rule = *reinterpret_cast<const OT::ChainRule<OT::Layout::MediumTypes> *> (data);
+
+  hb_map_t glyph_map;
+  glyph_map.set (5, 0x10001);
+  glyph_map.set (6, 0x10002);
+  glyph_map.set (7, 0x10003);
+  hb_map_t lookup_map;
+  lookup_map.set (2, 3);
+
+  char buf[32];
+  hb_serialize_context_t s (buf, sizeof (buf));
+  s.start_serialize ();
+  hb_always_assert (rule.serialize (&s, &lookup_map, &glyph_map));
+  s.end_serialize ();
+
+  hb_bytes_t bytes = s.copy_bytes ();
+  hb_always_assert (bytes.length == sizeof (expected));
+  hb_always_assert (!hb_memcmp (bytes.arrayZ, expected, sizeof (expected)));
+  bytes.fini ();
+}
+
 int
 main (int argc, char **argv)
 {
   test_medium_rule ();
+  test_medium_chain_rule ();
 
   char buf[16384];
 
