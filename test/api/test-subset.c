@@ -199,6 +199,95 @@ test_subset_lookup_variations (void)
   hb_subset_input_destroy (input);
   hb_face_destroy (face);
 }
+
+static void
+assert_condition_instance_matches (hb_face_t *face, hb_face_t *subset,
+				   const int *coords,
+				   const int *subset_coords,
+				   unsigned subset_coord_count)
+{
+  hb_font_t *fonts[] = {hb_font_create (face), hb_font_create (subset)};
+  hb_buffer_t *buffers[] = {hb_buffer_create (), hb_buffer_create ()};
+  hb_font_set_var_coords_normalized (fonts[0], coords, 2);
+  hb_font_set_var_coords_normalized (fonts[1], subset_coords, subset_coord_count);
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_buffer_add_utf8 (buffers[i], "ABCDEF", -1, 0, -1);
+    hb_buffer_guess_segment_properties (buffers[i]);
+    hb_shape (fonts[i], buffers[i], NULL, 0);
+  }
+
+  unsigned length, subset_length;
+  const hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffers[0], &length);
+  const hb_glyph_info_t *subset_info = hb_buffer_get_glyph_infos (buffers[1], &subset_length);
+  const hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffers[0], NULL);
+  const hb_glyph_position_t *subset_pos = hb_buffer_get_glyph_positions (buffers[1], NULL);
+  g_assert_cmpuint (length, ==, 6);
+  g_assert_cmpuint (subset_length, ==, length);
+  for (unsigned i = 0; i < length; i++)
+  {
+    g_assert_cmpuint (subset_info[i].codepoint, ==, info[i].codepoint);
+    g_assert_cmpint (subset_pos[i].x_advance, ==, pos[i].x_advance);
+  }
+
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_buffer_destroy (buffers[i]);
+    hb_font_destroy (fonts[i]);
+  }
+}
+
+static void
+test_subset_feature_variation_conditions (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/feature-variation-conditions.ttf");
+  const float locations[] = {-0.8f, -0.6f, 0.f, 0.3f, 0.8f};
+  const int normalized[] = {-13107, -9830, 0, 4915, 13107};
+  const hb_tag_t tags[] = {HB_TAG ('T','E','S','T'), HB_TAG ('D','U','M','Y')};
+  const int original_coords[][2] = {{0, 0}, {4915, 0}, {4915, 13107},
+				   {13107, -13107}, {4915, -9830}};
+  const hb_codepoint_t expected[][6] = {
+    {2, 3, 5, 7, 9, 11}, {2, 4, 5, 7, 9, 11}, {2, 3, 6, 7, 9, 11},
+    {2, 3, 5, 7, 9, 12}, {2, 3, 5, 8, 9, 11}
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (original_coords); i++)
+    assert_lookup_variations_shape (face, original_coords[i], 2, expected[i]);
+
+  for (unsigned pinned = 0; pinned < 3; pinned++)
+    for (unsigned i = 0; i < G_N_ELEMENTS (locations); i++)
+      for (unsigned j = 0; j < (pinned == 2 ? G_N_ELEMENTS (locations) : 1); j++)
+      {
+        hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+        hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+        hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+        if (pinned == 2)
+        {
+          g_assert_true (hb_subset_input_pin_axis_location (input, face, tags[0], locations[i]));
+          g_assert_true (hb_subset_input_pin_axis_location (input, face, tags[1], locations[j]));
+        }
+        else
+          g_assert_true (hb_subset_input_pin_axis_location (input, face, tags[pinned], locations[i]));
+
+        hb_face_t *subset = hb_subset_or_fail (face, input);
+        g_assert_nonnull (subset);
+        if (pinned == 2)
+        {
+          int coords[] = {normalized[i], normalized[j]};
+          assert_condition_instance_matches (face, subset, coords, NULL, 0);
+        }
+        else
+          for (unsigned k = 0; k < G_N_ELEMENTS (locations); k++)
+          {
+            int coords[] = {0, 0};
+            coords[pinned] = normalized[i];
+            coords[1 - pinned] = normalized[k];
+            assert_condition_instance_matches (face, subset, coords, &normalized[k], 1);
+          }
+        hb_face_destroy (subset);
+        hb_subset_input_destroy (input);
+      }
+  hb_face_destroy (face);
+}
 #endif
 
 static void
@@ -751,6 +840,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_crash);
 #ifndef HB_NO_VAR
   hb_test_add (test_subset_lookup_variations);
+  hb_test_add (test_subset_feature_variation_conditions);
 #endif
   hb_test_add (test_subset_set_flags);
   hb_test_add (test_subset_sets);

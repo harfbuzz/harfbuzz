@@ -65,6 +65,8 @@ static bool ClassDef_remap_and_serialize (
     hb_sorted_vector_t<hb_codepoint_pair_t> &glyph_and_klass, /* IN/OUT */
     hb_map_t *klass_map /*IN/OUT*/);
 
+struct ItemVarStoreInstancer;
+
 struct hb_collect_feature_substitutes_with_var_context_t
 {
   const hb_map_t *axes_index_tag_map;
@@ -80,6 +82,8 @@ struct hb_collect_feature_substitutes_with_var_context_t
   bool universal;
   unsigned cur_record_idx;
   hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> *conditionset_map;
+  ItemVarStoreInstancer *instancer;
+  bool all_axes_pinned;
 };
 
 struct hb_prune_langsys_context_t
@@ -4387,15 +4391,6 @@ struct ConditionValue
     return value > 0;
   }
 
-  bool subset (hb_subset_context_t *c,
-               hb_subset_layout_context_t *l,
-               bool insert_catch_all) const
-  {
-    TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
-  }
-
   public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -4450,15 +4445,6 @@ struct ConditionAnd
 					   instancer))
 	return false;
     return true;
-  }
-
-  bool subset (hb_subset_context_t *c,
-               hb_subset_layout_context_t *l,
-               bool insert_catch_all) const
-  {
-    TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
   }
 
   public:
@@ -4516,15 +4502,6 @@ struct ConditionOr
     return false;
   }
 
-  bool subset (hb_subset_context_t *c,
-               hb_subset_layout_context_t *l,
-               bool insert_catch_all) const
-  {
-    TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
-  }
-
   public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -4566,15 +4543,6 @@ struct ConditionNegate
 					    instancer);
   }
 
-  bool subset (hb_subset_context_t *c,
-               hb_subset_layout_context_t *l,
-               bool insert_catch_all) const
-  {
-    TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
-  }
-
   public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -4591,6 +4559,18 @@ struct ConditionNegate
 
 struct Condition
 {
+  friend struct ConditionSet;
+
+  static bool serialize_constant (hb_serialize_context_t *c, bool value)
+  {
+    auto *out = c->start_embed<ConditionValue> ();
+    if (unlikely (!out || !c->extend_min (out))) return false;
+    out->format = 2;
+    out->defaultValue = value ? 1 : 0;
+    out->varIdx = VarIdx::NO_VARIATION;
+    return true;
+  }
+
   lookup_condition_subset_result_t subset_lookup_condition (
 				      hb_subset_context_t *c,
 				      unsigned depth = HB_MAX_NESTING_LEVEL,
@@ -4614,14 +4594,65 @@ struct Condition
   }
 
   Cond_with_Var_flag_t keep_with_variations (hb_collect_feature_substitutes_with_var_context_t *c,
-                                             hb_map_t *condition_map /* OUT */) const
+                                             hb_map_t *condition_map /* OUT */,
+                                             unsigned depth = HB_MAX_NESTING_LEVEL) const
   {
+    if (unlikely (!depth))
+    {
+      c->apply = false;
+      return DROP_RECORD_WITH_VAR;
+    }
+
     switch (u.format.v) {
     case 0: return KEEP_RECORD_WITH_VAR;
     case 1: hb_barrier (); return u.format1.keep_with_variations (c, condition_map);
-    // TODO(subset)
-    default: c->apply = false; return KEEP_COND_WITH_VAR;
+    case 2: case 3: case 4: case 5: break;
+    default: c->apply = false; return DROP_RECORD_WITH_VAR;
     }
+
+    hb_barrier ();
+    bool applies = evaluate (c->instancer->coords.arrayZ,
+			     c->instancer->coords.length, c->instancer);
+    c->apply &= applies;
+    if (c->all_axes_pinned)
+      return applies ? DROP_COND_WITH_VAR : DROP_RECORD_WITH_VAR;
+
+    if (u.format.v == 2)
+      return u.format2.varIdx == VarIdx::NO_VARIATION ||
+             !c->instancer->varStore->has_delta_set (u.format2.varIdx) ?
+             (applies ? KEEP_RECORD_WITH_VAR : DROP_RECORD_WITH_VAR) :
+             KEEP_COND_WITH_VAR;
+
+    auto classify_child = [c, condition_map, depth] (const Condition &child)
+    {
+      auto child_context = *c;
+      child_context.apply = true;
+      return child.keep_with_variations (&child_context, condition_map, depth - 1);
+    };
+
+    if (u.format.v == 5)
+    {
+      auto result = classify_child (&u.format5 + u.format5.condition);
+      return result == DROP_RECORD_WITH_VAR ? KEEP_RECORD_WITH_VAR :
+             result == KEEP_COND_WITH_VAR ? KEEP_COND_WITH_VAR :
+             DROP_RECORD_WITH_VAR;
+    }
+
+    bool is_and = u.format.v == 3;
+    bool variable = false;
+    const auto &conditions = is_and ? u.format3.conditions : u.format4.conditions;
+    const void *base = is_and ? (const void *) &u.format3 : (const void *) &u.format4;
+    for (const auto &offset : conditions)
+    {
+      auto result = classify_child (base + offset);
+      if (is_and && result == DROP_RECORD_WITH_VAR)
+        return DROP_RECORD_WITH_VAR;
+      if (!is_and && (result == DROP_COND_WITH_VAR || result == KEEP_RECORD_WITH_VAR))
+        return KEEP_RECORD_WITH_VAR;
+      variable |= result == KEEP_COND_WITH_VAR;
+    }
+    return variable ? KEEP_COND_WITH_VAR :
+           is_and ? KEEP_RECORD_WITH_VAR : DROP_RECORD_WITH_VAR;
   }
 
   template <typename context_t, typename ...Ts>
@@ -4844,13 +4875,8 @@ Condition::subset_lookup_condition (hb_subset_context_t *c,
   if (result != LOOKUP_CONDITION_SUBSET_TRUE || !materialize_true)
     return result;
 
-  auto *out = c->serializer->start_embed<ConditionValue> ();
-  if (unlikely (!out || !c->serializer->extend_min (out)))
-    return LOOKUP_CONDITION_SUBSET_ERROR;
-  out->format = 2;
-  out->defaultValue = 1;
-  out->varIdx = VarIdx::NO_VARIATION;
-  return LOOKUP_CONDITION_SUBSET_KEEP;
+  return serialize_constant (c->serializer, true) ?
+         LOOKUP_CONDITION_SUBSET_KEEP : LOOKUP_CONDITION_SUBSET_ERROR;
 }
 
 inline lookup_condition_subset_result_t
@@ -5081,13 +5107,20 @@ struct ConditionSet
 
     c->apply = true;
     bool should_keep = false;
+    /* The range map cannot identify value or boolean expressions uniquely. */
+    bool can_deduplicate = true;
     unsigned num_kept_cond = 0, cond_idx = 0;
     for (const auto& offset : conditions)
     {
-      Cond_with_Var_flag_t ret = (this+offset).keep_with_variations (c, condition_map);
+      const Condition &condition = this+offset;
+      can_deduplicate &= condition.u.format.v <= 1;
+      Cond_with_Var_flag_t ret = condition.keep_with_variations (c, condition_map);
       // condition is not met or condition out of range, drop the entire record
       if (ret == DROP_RECORD_WITH_VAR)
+      {
+        c->apply = false;
         return;
+      }
 
       if (ret == KEEP_COND_WITH_VAR)
       {
@@ -5105,11 +5138,12 @@ struct ConditionSet
     if (!should_keep) return;
 
     //check if condition_set is unique with variations
-    if (c->conditionset_map->has (p))
+    if (can_deduplicate && c->conditionset_map->has (p))
       //duplicate found, drop the entire record
       return;
 
-    c->conditionset_map->set (p, 1);
+    if (can_deduplicate)
+      c->conditionset_map->set (p, 1);
     c->record_cond_idx_map->set (c->cur_record_idx, s);
     if (should_keep && num_kept_cond == 0)
       c->universal = true;
@@ -5134,7 +5168,28 @@ struct ConditionSet
     {
       if (retained_cond_set != nullptr && !retained_cond_set->has (i))
         continue;
-      subset_offset_array (c, out->conditions, this) (conditions[i]);
+      const Condition &condition = this+conditions[i];
+      if (condition.u.format.v == 1)
+      {
+        subset_offset_array (c, out->conditions, this) (conditions[i]);
+        continue;
+      }
+
+      auto *offset = out->conditions.serialize_append (c->serializer);
+      if (unlikely (!offset)) return_trace (false);
+      c->serializer->push ();
+      auto result = condition.subset_lookup_condition (c, HB_MAX_NESTING_LEVEL, true);
+      if (result == LOOKUP_CONDITION_SUBSET_FALSE)
+        /* A false condition must not become a null (true) ConditionSet. */
+        result = Condition::serialize_constant (c->serializer, false) ?
+                 LOOKUP_CONDITION_SUBSET_KEEP : LOOKUP_CONDITION_SUBSET_ERROR;
+      if (unlikely (result == LOOKUP_CONDITION_SUBSET_ERROR))
+      {
+        c->serializer->pop_discard ();
+        c->serializer->check_success (false);
+        return_trace (false);
+      }
+      c->serializer->add_link (*offset, c->serializer->pop_pack ());
     }
 
     return_trace (bool (out->conditions));

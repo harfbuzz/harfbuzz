@@ -173,6 +173,9 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
   // collect feature substitutes with variations
   if (!plan->user_axes_location.is_empty ())
   {
+    hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
+    OT::ItemVarStoreInstancer instancer (&gdef->get_var_store (), nullptr,
+					 plan->normalized_coords.as_array ());
     hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> conditionset_map;
     OT::hb_collect_feature_substitutes_with_var_context_t c =
     {
@@ -186,9 +189,12 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
       false,
       false,
       0,
-      &conditionset_map
+      &conditionset_map,
+      &instancer,
+      plan->all_axes_pinned
     };
     table.collect_feature_substitutes_with_variations (&c);
+    gdef.destroy ();
   }
 #endif
 
