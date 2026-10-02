@@ -3404,7 +3404,7 @@ struct MultiVarData
   void get_delta (unsigned int inner,
 		  const int *coords, unsigned int coord_count,
 		  const SparseVarRegionList &regions,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
     auto &deltaSets = get_delta_sets ();
@@ -3827,7 +3827,7 @@ struct MultiItemVariationStore
   private:
   void get_delta (unsigned int outer, unsigned int inner,
 		  const int *coords, unsigned int coord_count,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
 #ifdef HB_NO_VAR
@@ -3847,7 +3847,7 @@ struct MultiItemVariationStore
   public:
   void get_delta (unsigned int index,
 		  const int *coords, unsigned int coord_count,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
     unsigned int outer = index >> 16;
@@ -3856,7 +3856,7 @@ struct MultiItemVariationStore
   }
   void get_delta (unsigned int index,
 		  hb_array_t<const int> coords,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
     return get_delta (index,
@@ -4203,14 +4203,14 @@ struct MultiItemVarStoreInstancer
 
   operator bool () const { return varStore && bool (coords); }
 
-  float operator[] (uint32_t varIdx) const
+  double operator[] (uint32_t varIdx) const
   {
-    float v = 0;
+    double v = 0;
     (*this) (hb_array (&v, 1), varIdx);
     return v;
   }
 
-  void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
+  void operator() (hb_array_t<double> out, uint32_t varIdx, unsigned short offset = 0) const
   {
     if (coords && varIdx != VarIdx::NO_VARIATION)
     {
@@ -4221,7 +4221,7 @@ struct MultiItemVarStoreInstancer
     }
     else
       for (unsigned i = 0; i < out.length; i++)
-        out.arrayZ[i] = 0.f;
+        out.arrayZ[i] = 0.;
   }
 
   const MultiItemVariationStore *varStore;
@@ -4407,8 +4407,8 @@ struct ConditionValue
   bool evaluate (const int *coords, unsigned int coord_len,
 		 Instancer *instancer) const
   {
-    float value = defaultValue;
-    value += (*instancer)[varIdx];
+    double value = defaultValue;
+    value += (double) (*instancer)[varIdx];
     return value > 0;
   }
 
