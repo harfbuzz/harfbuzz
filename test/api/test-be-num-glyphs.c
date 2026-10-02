@@ -94,12 +94,6 @@ test_maxp_and_loca (void)
   const char maxp_data[] = "\x00\x00\x50\x00" // version
 			   "\x00\x05" // numGlyphs
 			   ;
-#if 0
-  /* These checks belonged to an old beyond-64k proposal that has since
-   * changed. The library code needs to adapt before testing this behavior.
-   */
-  const char loca_data[18] = "";
-#endif
 
   face = hb_face_builder_create ();
   g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 0);
@@ -109,22 +103,6 @@ test_maxp_and_loca (void)
   HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
   g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 5);
   hb_face_destroy (face);
-
-#if 0
-  /* These checks belonged to an old beyond-64k proposal that has since
-   * changed. The library code needs to adapt before testing this behavior.
-   */
-  face = hb_face_builder_create ();
-  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
-  HB_FACE_ADD_TABLE (face, "loca", loca_data);
-  g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 8);
-  hb_face_destroy (face);
-
-  face = hb_face_builder_create ();
-  HB_FACE_ADD_TABLE (face, "loca", loca_data);
-  g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 8);
-  hb_face_destroy (face);
-#endif
 }
 
 static void
