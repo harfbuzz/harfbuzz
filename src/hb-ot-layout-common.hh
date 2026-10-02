@@ -4424,8 +4424,16 @@ struct ConditionAnd
     out->format = format;
 
     for (const auto &offset : conditions)
-      if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
+    {
+      if (offset.is_null ())
+      {
+	auto *out_offset = out->conditions.serialize_append (c->serializer);
+	if (unlikely (!out_offset)) return_trace (false);
+	*out_offset = 0;
+      }
+      else if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
 	return_trace (false);
+    }
 
     return_trace (true);
   }
@@ -4480,8 +4488,16 @@ struct ConditionOr
     out->format = format;
 
     for (const auto &offset : conditions)
-      if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
+    {
+      if (offset.is_null ())
+      {
+	auto *out_offset = out->conditions.serialize_append (c->serializer);
+	if (unlikely (!out_offset)) return_trace (false);
+	*out_offset = 0;
+      }
+      else if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
 	return_trace (false);
+    }
 
     return_trace (true);
   }
@@ -4532,6 +4548,11 @@ struct ConditionNegate
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
+    if (condition.is_null ())
+    {
+      out->condition = 0;
+      return_trace (true);
+    }
     return_trace (out->condition.serialize_subset (c, condition, this));
   }
 
@@ -4580,6 +4601,9 @@ struct Condition
 		 Instancer *instancer) const
   {
     switch (u.format.v) {
+    /* A null condition offset resolves to the nil Condition, whose reserved
+     * format 0 represents the True condition required by the specification. */
+    case 0: return true;
     case 1: hb_barrier (); return u.format1.evaluate (coords, coord_len, instancer);
     case 2: hb_barrier (); return u.format2.evaluate (coords, coord_len, instancer);
     case 3: hb_barrier (); return u.format3.evaluate (coords, coord_len, instancer);
@@ -4593,6 +4617,7 @@ struct Condition
                                              hb_map_t *condition_map /* OUT */) const
   {
     switch (u.format.v) {
+    case 0: return KEEP_RECORD_WITH_VAR;
     case 1: hb_barrier (); return u.format1.keep_with_variations (c, condition_map);
     // TODO(subset)
     default: c->apply = false; return KEEP_COND_WITH_VAR;
@@ -4704,6 +4729,7 @@ Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth) const
   if (unlikely (!depth)) return false;
   switch (u.format.v)
   {
+    case 0:
     case 1:
       return true;
     case 2:
@@ -4738,6 +4764,15 @@ Condition::serialize (hb_serialize_context_t *c,
   TRACE_SERIALIZE (this);
   switch (src->u.format.v)
   {
+    case 0:
+    {
+      auto *out = c->start_embed<ConditionValue> ();
+      if (unlikely (!out || !c->extend_min (out))) return_trace (false);
+      out->format = 2;
+      out->defaultValue = 1;
+      out->varIdx = VarIdx::NO_VARIATION;
+      return_trace (true);
+    }
     case 1:
       return_trace (bool (c->embed (&src->u.format1)));
     case 2:
@@ -4850,6 +4885,9 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
 
   switch (u.format.v)
   {
+    case 0:
+      return LOOKUP_CONDITION_SUBSET_TRUE;
+
     case 1:
     {
       const ConditionAxisRange &src = u.format1;

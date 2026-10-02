@@ -31,6 +31,66 @@
 using OT::Layout::Common::Coverage;
 
 static void
+test_null_condition ()
+{
+  static const char true_condition[] = {
+    0, 0,                         /* format */
+  };
+  static const char and_condition[] = {
+    0, 3, 1,                     /* format, conditionCount */
+    0, 0, 0,                     /* conditionOffset */
+  };
+  static const char or_condition[] = {
+    0, 4, 1,                     /* format, conditionCount */
+    0, 0, 0,                     /* conditionOffset */
+  };
+  static const char negate_condition[] = {
+    0, 5,                        /* format */
+    0, 0, 0,                     /* conditionOffset */
+  };
+
+  const auto &condition =
+      *reinterpret_cast<const OT::Condition *> (true_condition);
+  const auto &condition_and =
+      *reinterpret_cast<const OT::Condition *> (and_condition);
+  const auto &condition_or =
+      *reinterpret_cast<const OT::Condition *> (or_condition);
+  const auto &condition_negate =
+      *reinterpret_cast<const OT::Condition *> (negate_condition);
+  OT::ItemVarStoreInstancer *instancer = nullptr;
+  hb_set_t var_indices;
+
+  hb_always_assert (condition.evaluate (nullptr, 0, instancer));
+  hb_always_assert (condition_and.evaluate (nullptr, 0, instancer));
+  hb_always_assert (condition_or.evaluate (nullptr, 0, instancer));
+  hb_always_assert (!condition_negate.evaluate (nullptr, 0, instancer));
+
+  hb_always_assert (condition.collect_var_indices (&var_indices));
+  hb_always_assert (condition_and.collect_var_indices (&var_indices));
+  hb_always_assert (condition_or.collect_var_indices (&var_indices));
+  hb_always_assert (condition_negate.collect_var_indices (&var_indices));
+  hb_always_assert (var_indices.is_empty ());
+
+  char buf[8];
+  hb_serialize_context_t s (buf, sizeof (buf));
+  hb_map_t varidx_map;
+  static const unsigned char expected[] = {
+    0, 2,                        /* format */
+    0, 1,                        /* defaultValue */
+    0xFF, 0xFF, 0xFF, 0xFF,     /* varIdx */
+  };
+
+  auto *copy = s.start_serialize<OT::Condition> ();
+  hb_always_assert (copy->serialize (&s, &condition, varidx_map));
+  s.end_serialize ();
+
+  hb_bytes_t bytes = s.copy_bytes ();
+  hb_always_assert (bytes.length == sizeof (expected));
+  hb_always_assert (!hb_memcmp (bytes.arrayZ, expected, sizeof (expected)));
+  bytes.fini ();
+}
+
+static void
 test_medium_rule ()
 {
   static const char data[] = {
@@ -101,6 +161,7 @@ test_medium_chain_rule ()
 int
 main (int argc, char **argv)
 {
+  test_null_condition ();
   test_medium_rule ();
   test_medium_chain_rule ();
 
