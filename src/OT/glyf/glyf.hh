@@ -351,12 +351,25 @@ struct glyf_accelerator_t
 
 	    unsigned end = i;
 
-	    // Enough to start from the end. Our path-builder takes care of the rest.
-	    if (likely (end < count)) // Can only fail in case of alloc failure *maybe*.
+	    unsigned limit = end;
+#ifndef HB_NO_CUBIC_GLYF
+	    /* Rotating by one control point changes cubic pairing.  Preserve
+	     * the original order when the contour starts and ends off-curve
+	     * with cubic controls, including all-off-curve contours. */
+	    if (likely (end < count) &&
+		(points[start].flag & glyf_impl::SimpleGlyph::FLAG_CUBIC) &&
+		(points[end].flag & (glyf_impl::SimpleGlyph::FLAG_ON_CURVE |
+				    glyf_impl::SimpleGlyph::FLAG_CUBIC)) ==
+		 glyf_impl::SimpleGlyph::FLAG_CUBIC)
+	      limit++;
+	    else
+#endif
+	    if (likely (end < count))
 	      consumer.consume_point (points[end]);
 
-	    for (i = start; i < end; i++)
+	    for (i = start; i < limit; i++)
 	      consumer.consume_point (points[i]);
+	    i = end;
 
 	    consumer.contour_end ();
 	  }

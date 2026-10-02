@@ -281,6 +281,121 @@ test_GLYF_and_LOCA (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
+#ifndef HB_NO_CUBIC_GLYF
+static void
+record_cubic_move (hb_draw_funcs_t *draw_funcs HB_UNUSED,
+		   void *draw_data,
+		   hb_draw_state_t *draw_state HB_UNUSED,
+		   float x, float y,
+		   void *user_data HB_UNUSED)
+{
+  g_string_append_printf (draw_data, "M%g,%g;", x, y);
+}
+
+static void
+record_cubic (hb_draw_funcs_t *draw_funcs HB_UNUSED,
+	      void *draw_data,
+	      hb_draw_state_t *draw_state HB_UNUSED,
+	      float c1x, float c1y, float c2x, float c2y, float x, float y,
+	      void *user_data HB_UNUSED)
+{
+  g_string_append_printf (draw_data, "C%g,%g,%g,%g,%g,%g;", c1x, c1y, c2x, c2y, x, y);
+}
+
+static void
+record_cubic_close (hb_draw_funcs_t *draw_funcs HB_UNUSED,
+		    void *draw_data,
+		    hb_draw_state_t *draw_state HB_UNUSED,
+		    void *user_data HB_UNUSED)
+{
+  g_string_append (draw_data, "Z;");
+}
+
+static void
+test_GLYF_cubic_contours (void)
+{
+  static const char all_off[] =
+    "\x00\x01\x00\x00\x00\x00\x00\x64\x00\x64"
+    "\x00\x03\x00\x00\xB0\xB2\xB4\xA2\x64\x64\x64";
+  static const char two_contours[] =
+    "\x00\x02\x00\x00\x00\x00\x01\x2C\x00\x64"
+    "\x00\x03\x00\x07\x00\x00\xB0\xB2\xB4\xA2"
+    "\x96\xB2\xB4\xA2\x64\x64\xC8\x64\x64\x64\x64\x64";
+  static const char two_controls[] =
+    "\x00\x01\x00\x00\x00\x00\x00\x64\x00\x64"
+    "\x00\x01\x00\x00\xB0\xB6\x64\x64";
+  const struct {
+    const char *data;
+    unsigned length, points, contours, width;
+    const char *path;
+  } cases[] = {
+    {all_off, sizeof (all_off) - 1, 4, 1, 100,
+     "M100,50;C100,100,0,100,0,50;C0,0,100,0,100,50;Z;"},
+    {two_contours, sizeof (two_contours) - 1, 8, 2, 300,
+     "M100,50;C100,100,0,100,0,50;C0,0,100,0,100,50;Z;"
+     "M300,50;C300,100,200,100,200,50;C200,0,300,0,300,50;Z;"},
+    {two_controls, sizeof (two_controls) - 1, 2, 1, 100,
+     "M50,50;C0,0,100,100,50,50;Z;"},
+  };
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (draw_funcs, record_cubic_move, NULL, NULL);
+  hb_draw_funcs_set_cubic_to_func (draw_funcs, record_cubic, NULL, NULL);
+  hb_draw_funcs_set_quadratic_to_func (draw_funcs, quadratic_to, NULL, NULL);
+  hb_draw_funcs_set_close_path_func (draw_funcs, record_cubic_close, NULL, NULL);
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    /* Current OFF uppercase companion tables. */
+    char MAXP_data[33] = {0};
+    char head_data[54] = {0};
+    char HHEA_data[38] = {0};
+    char HMTX_data[4] = {0};
+    char LOCA_data[8] = {0};
+    write_u32 (MAXP_data, 0, 0x00010000);
+    MAXP_data[6] = 1; /* numGlyphs: uint24 */
+    write_u16 (MAXP_data, 7, cases[i].points);
+    write_u16 (MAXP_data, 9, cases[i].contours);
+    write_u16 (MAXP_data, 15, 2); /* maxZones */
+    write_u32 (head_data, 0, 0x00010000);
+    write_u32 (head_data, 12, 0x5F0F3CF5);
+    write_u16 (head_data, 18, 1000);
+    write_u16 (head_data, 40, cases[i].width);
+    write_u16 (head_data, 42, 100);
+    write_u16 (head_data, 50, 1); /* long LOCA offsets */
+    write_u32 (HHEA_data, 0, 0x00010000);
+    write_u16 (HHEA_data, 4, 800);
+    write_u16 (HHEA_data, 6, (unsigned) -200);
+    write_u16 (HHEA_data, 10, 600);
+    write_u16 (HHEA_data, 14, 600 - cases[i].width);
+    write_u16 (HHEA_data, 16, cases[i].width);
+    write_u16 (HHEA_data, 18, 1);
+    write_u32 (HHEA_data, 34, 1); /* numberOfHMetrics: uint32 */
+    write_u16 (HMTX_data, 0, 600);
+    write_u32 (LOCA_data, 4, cases[i].length);
+
+    hb_face_t *face = hb_face_builder_create ();
+    HB_FACE_ADD_TABLE (face, "MAXP", MAXP_data);
+    HB_FACE_ADD_TABLE (face, "head", head_data);
+    HB_FACE_ADD_TABLE (face, "HHEA", HHEA_data);
+    HB_FACE_ADD_TABLE (face, "HMTX", HMTX_data);
+    HB_FACE_ADD_TABLE (face, "LOCA", LOCA_data);
+    hb_blob_t *blob = hb_blob_create (cases[i].data, cases[i].length,
+				     HB_MEMORY_MODE_READONLY, NULL, NULL);
+    hb_face_builder_add_table (face, HB_TAG ('G','L','Y','F'), blob);
+    hb_blob_destroy (blob);
+    g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 1);
+    hb_font_t *font = hb_font_create (face);
+    GString *path = g_string_new (NULL);
+    hb_font_draw_glyph (font, 0, draw_funcs, path);
+    g_assert_cmpstr (path->str, ==, cases[i].path);
+    g_string_free (path, TRUE);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+  hb_draw_funcs_destroy (draw_funcs);
+}
+#endif
+
 static hb_face_t *
 create_composite_face (hb_bool_t extended)
 {
@@ -376,6 +491,9 @@ main (int argc, char **argv)
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_GLYF_and_LOCA);
   hb_test_add (test_GLYF_composite_gid);
+#ifndef HB_NO_CUBIC_GLYF
+  hb_test_add (test_GLYF_cubic_contours);
+#endif
 #endif
 
   return hb_test_run();
