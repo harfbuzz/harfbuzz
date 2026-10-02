@@ -218,7 +218,7 @@ struct hb_collect_variation_indices_context_t :
   hb_set_t *layout_variation_indices;
   const hb_set_t *glyph_set;
   const hb_map_t *gpos_lookups;
-  hb_hashmap_t<const void*, hb_pair_t<unsigned, int>> *condition_values = nullptr;
+  hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values = nullptr;
 
   hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
 					  const hb_set_t *glyph_set_,
@@ -4394,7 +4394,7 @@ struct ConditionValue
       return_trace (true);
 
     hb_pair_t<unsigned, int> *condition_value;
-    if (c->plan->layout_condition_idx_value_map.has (this, &condition_value))
+    if (c->plan->layout_condition_idx_value_map.has ((uintptr_t) this, &condition_value))
     {
       out->defaultValue = condition_value->second;
       out->varIdx = condition_value->first;
@@ -4715,7 +4715,7 @@ struct Condition
 
   bool collect_var_indices (hb_set_t *var_indices,
 			    unsigned depth = HB_MAX_NESTING_LEVEL,
-                            hb_hashmap_t<const void*, hb_pair_t<unsigned, int>> *condition_values = nullptr) const;
+                            hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values = nullptr) const;
 
   bool serialize (hb_serialize_context_t *c,
 		  const Condition *src,
@@ -4790,7 +4790,7 @@ struct ConditionList
 
 inline bool
 Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth,
-                               hb_hashmap_t<const void*, hb_pair_t<unsigned, int>> *condition_values) const
+                               hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values) const
 {
   if (unlikely (!depth)) return false;
   switch (u.format.v)
@@ -4803,7 +4803,7 @@ Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth,
       {
         var_indices->add (u.format2.varIdx);
         if (condition_values &&
-            !condition_values->set (&u.format2,
+            !condition_values->set ((uintptr_t) &u.format2,
                                     hb_pair (unsigned (u.format2.varIdx), int (u.format2.defaultValue))))
           return false;
       }
@@ -5026,7 +5026,7 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
 		LOOKUP_CONDITION_SUBSET_FALSE);
 
       hb_pair_t<unsigned, int> *condition_value;
-      if (c->plan->layout_condition_idx_value_map.has (&src, &condition_value))
+      if (c->plan->layout_condition_idx_value_map.has ((uintptr_t) &src, &condition_value))
       {
         out->defaultValue = condition_value->second;
         out->varIdx = condition_value->first;

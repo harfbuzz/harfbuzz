@@ -1876,7 +1876,7 @@ struct item_variations_t
     auto &condition_map = plan->layout_condition_idx_value_map;
     condition_map.clear ();
     if (!plan->layout_condition_values) return true;
-    using condition_value_t = hb_pair_t<const void*, hb_pair_t<unsigned, int>>;
+    using condition_value_t = hb_pair_t<uintptr_t, hb_pair_t<unsigned, int>>;
     hb_vector_t<condition_value_t> conditions;
     for (auto condition : plan->layout_condition_values.iter ())
       conditions.push (condition);
