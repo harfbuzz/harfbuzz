@@ -2117,7 +2117,7 @@ struct item_variations_t
         {
           int rounded_delta = hb_clamp_to<int> (roundf ((double) tuple.deltas_x[i]));
           delta_rows[start_row + i][*col_idx] += rounded_delta;
-          has_long |= rounded_delta < -65536 || rounded_delta > 65535;
+          has_long |= rounded_delta < -32768 || rounded_delta > 32767;
         }
       }
 

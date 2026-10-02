@@ -3123,8 +3123,8 @@ struct VarData
                                     HB_SERIALIZE_ERROR_INT_OVERFLOW)))
       return_trace (false);
 
-    int min_threshold = has_long ? -65536 : -128;
-    int max_threshold = has_long ? +65535 : +127;
+    int min_threshold = has_long ? -32768 : -128;
+    int max_threshold = has_long ? +32767 : +127;
     enum delta_size_t { kZero=0, kNonWord, kWord };
     hb_vector_t<delta_size_t> delta_sz;
     unsigned num_regions = rows[0]->length;
@@ -3222,7 +3222,7 @@ struct VarData
         for (unsigned old_gid : inner_map.keys())
 	{
 	  int32_t delta = src->get_item_delta_fast (old_gid, r, src_delta_bytes, src_row_size);
-	  if (delta < -65536 || 65535 < delta)
+	  if (delta < -32768 || 32767 < delta)
 	  {
 	    has_long = true;
 	    break;
@@ -3231,8 +3231,8 @@ struct VarData
       }
     }
 
-    signed min_threshold = has_long ? -65536 : -128;
-    signed max_threshold = has_long ? +65535 : +127;
+    signed min_threshold = has_long ? -32768 : -128;
+    signed max_threshold = has_long ? +32767 : +127;
     for (r = 0; r < ri_count; r++)
     {
       bool short_circuit = src_long_words == has_long && src_word_count <= r;
