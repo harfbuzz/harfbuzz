@@ -734,9 +734,12 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       ot_font->v_origin.release_origin_cache (origin_cache);
       return false;
     }
-    OT::hb_scalar_cache_t *gvar_cache = font->has_nonzero_coords ?
+    OT::hb_scalar_cache_t *gvar_cache = nullptr;
+#ifndef HB_NO_VAR
+    gvar_cache = font->has_nonzero_coords ?
 					ot_font->draw.acquire_gvar_cache (*ot_face->gvar) :
 					nullptr;
+#endif
 
     for (unsigned i = 0; i < count; i++)
     {
@@ -756,8 +759,10 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
 
+#ifndef HB_NO_VAR
     if (gvar_cache)
       ot_font->draw.release_gvar_cache (gvar_cache);
+#endif
     glyf.release_scratch (scratch);
     ot_font->v_origin.release_origin_cache (origin_cache);
     return true;
