@@ -5060,9 +5060,111 @@ struct FeatureVariationRecord
   DEFINE_SIZE_STATIC (8);
 };
 
+struct LookupIndexList
+{
+  void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
+  { lookupIndices.add_indexes_to (lookup_indexes); }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (lookupIndices.sanitize (c));
+  }
+
+  protected:
+  IndexArray	lookupIndices;
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (2, lookupIndices);
+};
+
+struct LookupConditionRecord
+{
+  template <typename Instancer>
+  bool evaluate (const void *base,
+		 const int *coords,
+		 unsigned int coord_len,
+		 Instancer *instancer) const
+  { return (base+condition).evaluate (coords, coord_len, instancer); }
+
+  void add_lookup_indexes_to (const void *base,
+			      hb_set_t *lookup_indexes) const
+  { (base+lookupIndices).add_lookup_indexes_to (lookup_indexes); }
+
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (condition.sanitize (c, base) &&
+		  lookupIndices.sanitize (c, base));
+  }
+
+  protected:
+  Offset32To<Condition>		condition;
+  Offset32To<LookupIndexList>	lookupIndices;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct FeatureLookupsTable
+{
+  bool adds_default_lookups () const { return flags & 0x0001u; }
+
+  template <typename Instancer>
+  void collect_lookups (const int *coords,
+			unsigned int coord_len,
+			Instancer *instancer,
+			hb_set_t *lookup_indexes) const
+  {
+    for (const LookupConditionRecord &record : records)
+      if (record.evaluate (this, coords, coord_len, instancer))
+	record.add_lookup_indexes_to (this, lookup_indexes);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  hb_barrier () &&
+		  likely (version.major == 1) &&
+		  records.sanitize (c, this));
+  }
+
+  protected:
+  FixedVersion<>	version;	/* Version--0x00010000u */
+  HBUINT16	flags;
+  Array32Of<LookupConditionRecord>
+		records;
+  public:
+  DEFINE_SIZE_ARRAY (10, records);
+};
+
+struct LookupVariationRecord
+{
+  friend struct FeatureVariations;
+
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  featureLookups.sanitize (c, base));
+  }
+
+  protected:
+  HBUINT16			featureIndex;
+  Offset32To<FeatureLookupsTable>	featureLookups;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
 struct FeatureVariations
 {
   static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFFFFFu;
+
+  const Array32Of<LookupVariationRecord> &get_lookup_variation_records () const
+  {
+    if (version.to_int () < 0x00010001u)
+      return Null (Array32Of<LookupVariationRecord>);
+    return StructAfter<Array32Of<LookupVariationRecord>> (varRecords);
+  }
 
   unsigned record_count () const
   {
@@ -5092,6 +5194,36 @@ struct FeatureVariations
   {
     const FeatureVariationRecord &record = varRecords[variations_index];
     return (this+record.substitutions).find_substitute (feature_index);
+  }
+
+  template <typename FeatureGetter>
+  bool resolve_lookup_variations (const int *coords,
+				  unsigned int coord_len,
+				  ItemVarStoreInstancer *instancer,
+				  FeatureGetter get_current_feature,
+				  hb_vector_t<unsigned> *state) const
+  {
+    for (const LookupVariationRecord &record : get_lookup_variation_records ())
+    {
+      const FeatureLookupsTable &feature_lookups = this+record.featureLookups;
+      hb_set_t lookup_indexes;
+
+      if (feature_lookups.adds_default_lookups ())
+	get_current_feature (record.featureIndex).add_lookup_indexes_to (&lookup_indexes);
+      feature_lookups.collect_lookups (coords, coord_len, instancer, &lookup_indexes);
+
+      if (unlikely (lookup_indexes.in_error ()))
+	return false;
+
+      state->push (record.featureIndex);
+      state->push (lookup_indexes.get_population ());
+      for (unsigned lookup_index : lookup_indexes)
+	state->push (lookup_index);
+
+      if (unlikely (state->in_error ()))
+	return false;
+    }
+    return true;
   }
 
   void collect_feature_substitutes_with_variations (hb_collect_feature_substitutes_with_var_context_t *c) const
@@ -5186,7 +5318,9 @@ struct FeatureVariations
     return_trace (version.sanitize (c) &&
 		  hb_barrier () &&
 		  likely (version.major == 1) &&
-		  varRecords.sanitize (c, this));
+		  varRecords.sanitize (c, this) &&
+		  (version.minor < 1 ||
+		   get_lookup_variation_records ().sanitize (c, this)));
   }
 
   protected:

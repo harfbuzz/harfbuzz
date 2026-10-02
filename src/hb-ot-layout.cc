@@ -1435,6 +1435,27 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 
 /* Variations support */
 
+bool
+_hb_ot_layout_table_get_feature_variations_state (hb_face_t             *face,
+						   hb_tag_t               table_tag,
+						   const int             *coords,
+						   unsigned int           num_coords,
+						   unsigned int          *variations_index,
+						   hb_vector_t<unsigned> *lookup_variations)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+  const OT::GDEF &gdef = *face->table.GDEF->table;
+
+  auto instancer = OT::ItemVarStoreInstancer (&gdef.get_var_store (), nullptr,
+					      hb_array (coords, num_coords));
+
+  return g.get_feature_variations_state (coords,
+					 num_coords,
+					 variations_index,
+					 &instancer,
+					 lookup_variations);
+}
+
 
 /**
  * hb_ot_layout_table_find_feature_variations:

@@ -6498,6 +6498,27 @@ struct GSUBGPOS
 #endif
     return get_feature_variations ().find_index (coords, num_coords, index, instancer);
   }
+  bool get_feature_variations_state (const int *coords,
+				     unsigned int num_coords,
+				     unsigned int *index,
+				     ItemVarStoreInstancer *instancer,
+				     hb_vector_t<unsigned> *lookup_variations) const
+  {
+    lookup_variations->reset ();
+#ifdef HB_NO_VAR
+    *index = FeatureVariations::NOT_FOUND_INDEX;
+    return true;
+#else
+    find_variations_index (coords, num_coords, index, instancer);
+    return get_feature_variations ().resolve_lookup_variations (
+	coords,
+	num_coords,
+	instancer,
+	[this, index] (unsigned feature_index) -> const Feature &
+	{ return get_feature_variation (feature_index, *index); },
+	lookup_variations);
+#endif
+  }
   const Feature& get_feature_variation (unsigned int feature_index,
 					unsigned int variations_index) const
   {
