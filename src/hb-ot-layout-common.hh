@@ -5568,12 +5568,12 @@ struct LookupVariationRecord
 
   bool subset (hb_subset_layout_context_t *l, const void *base) const
   {
+    hb_subset_context_t *c = l->subset_context;
     TRACE_SUBSET (this);
     uint32_t *new_feature_index;
     if (!l->feature_map_w_duplicates->has (featureIndex, &new_feature_index))
       return_trace (false);
 
-    hb_subset_context_t *c = l->subset_context;
     auto *out = c->serializer->embed (this);
     if (unlikely (!out ||
 		  !c->serializer->check_assign (out->featureIndex,
