@@ -26,7 +26,7 @@ namespace OT {
 struct hb_varc_scratch_t
 {
   hb_vector_t<unsigned> axisIndices;
-  hb_vector_t<float> axisValues;
+  hb_vector_t<double> axisValues;
   hb_glyf_scratch_t glyf_scratch;
 };
 
@@ -101,7 +101,7 @@ struct VarComponent
   HB_INTERNAL static bool decompile_record (const VARC &varc,
 					    hb_ubytes_t record,
 					    hb_vector_t<unsigned> *axis_indices,
-					    hb_vector_t<float> *axis_values,
+					    hb_vector_t<double> *axis_values,
 					    record_t *decoded /* OUT */,
 					    int64_t *budget = nullptr);
 };
