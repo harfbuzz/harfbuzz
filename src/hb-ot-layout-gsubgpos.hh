@@ -6544,6 +6544,13 @@ struct GSUBGPOS
 #endif
   }
 
+  void collect_feature_variation_indices (hb_collect_variation_indices_context_t *c) const
+  {
+#ifndef HB_NO_VAR
+    get_feature_variations ().collect_variation_indices (c);
+#endif
+  }
+
 #ifndef HB_NO_VAR
   void collect_feature_substitutes_with_variations (hb_collect_feature_substitutes_with_var_context_t *c) const
   { get_feature_variations ().collect_feature_substitutes_with_variations (c); }

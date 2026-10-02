@@ -385,11 +385,13 @@ void
 collect_layout_variation_indices (hb_subset_plan_t* plan)
 {
   hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
+  hb_blob_ptr_t<GSUB> gsub = plan->source_table<GSUB> ();
   hb_blob_ptr_t<GPOS> gpos = plan->source_table<GPOS> ();
 
   if (!gdef->has_data () || !gdef->has_var_store ())
   {
     gdef.destroy ();
+    gsub.destroy ();
     gpos.destroy ();
     return;
   }
@@ -400,8 +402,13 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
                                                 &plan->gpos_lookups);
   gdef->collect_variation_indices (&c);
 
+  if (hb_ot_layout_has_substitution (plan->source))
+    gsub->collect_feature_variation_indices (&c);
   if (hb_ot_layout_has_positioning (plan->source))
+  {
+    gpos->collect_feature_variation_indices (&c);
     gpos->collect_variation_indices (&c);
+  }
 
   remap_variation_indices (gdef->get_var_store (),
                            varidx_set, plan->normalized_coords,
@@ -413,6 +420,7 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
   generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
 
   gdef.destroy ();
+  gsub.destroy ();
   gpos.destroy ();
 }
 #endif

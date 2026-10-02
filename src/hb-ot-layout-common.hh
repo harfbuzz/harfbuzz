@@ -4813,6 +4813,13 @@ struct ConditionSet
     return_trace (conditions.sanitize (c, this));
   }
 
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  {
+    for (const auto &offset : conditions)
+      if (unlikely (!(this+offset).collect_var_indices (c->layout_variation_indices)))
+	c->layout_variation_indices->err ();
+  }
+
   protected:
   Array16OfOffset32To<Condition>	conditions;
   public:
@@ -5051,6 +5058,10 @@ struct FeatureVariationRecord
 		  substitutions.sanitize (c, base));
   }
 
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c,
+				  const void *base) const
+  { (base+conditions).collect_variation_indices (c); }
+
   protected:
   Offset32To<ConditionSet>
 			conditions;
@@ -5064,6 +5075,9 @@ struct LookupIndexList
 {
   void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
   { lookupIndices.add_indexes_to (lookup_indexes); }
+
+  bool intersects_lookup_indexes (const hb_map_t *lookup_indexes) const
+  { return lookupIndices.intersects (lookup_indexes); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -5089,6 +5103,17 @@ struct LookupConditionRecord
   void add_lookup_indexes_to (const void *base,
 			      hb_set_t *lookup_indexes) const
   { (base+lookupIndices).add_lookup_indexes_to (lookup_indexes); }
+
+  bool intersects_lookup_indexes (const void *base,
+				   const hb_map_t *lookup_indexes) const
+  { return (base+lookupIndices).intersects_lookup_indexes (lookup_indexes); }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c,
+				  const void *base) const
+  {
+    if (unlikely (!(base+condition).collect_var_indices (c->layout_variation_indices)))
+      c->layout_variation_indices->err ();
+  }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -5119,6 +5144,26 @@ struct FeatureLookupsTable
 	record.add_lookup_indexes_to (this, lookup_indexes);
   }
 
+  void collect_lookups (hb_set_t *lookup_indexes) const
+  {
+    for (const LookupConditionRecord &record : records)
+      record.add_lookup_indexes_to (this, lookup_indexes);
+  }
+
+  bool intersects_lookup_indexes (const hb_map_t *lookup_indexes) const
+  {
+    for (const LookupConditionRecord &record : records)
+      if (record.intersects_lookup_indexes (this, lookup_indexes))
+	return true;
+    return false;
+  }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  {
+    for (const LookupConditionRecord &record : records)
+      record.collect_variation_indices (c, this);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -5140,6 +5185,26 @@ struct FeatureLookupsTable
 struct LookupVariationRecord
 {
   friend struct FeatureVariations;
+
+  void collect_lookups (const void *base,
+			const hb_set_t *feature_indexes,
+			hb_set_t *lookup_indexes) const
+  {
+    if (feature_indexes->has (featureIndex))
+      (base+featureLookups).collect_lookups (lookup_indexes);
+  }
+
+  void closure_features (const void *base,
+			 const hb_map_t *lookup_indexes,
+			 hb_set_t *feature_indexes) const
+  {
+    if ((base+featureLookups).intersects_lookup_indexes (lookup_indexes))
+      feature_indexes->add (featureIndex);
+  }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c,
+				  const void *base) const
+  { (base+featureLookups).collect_variation_indices (c); }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -5258,6 +5323,15 @@ struct FeatureVariations
         continue;
       varRecords[i].collect_lookups (this, feature_indexes, lookup_indexes);
     }
+
+    collect_lookup_variation_lookups (feature_indexes, lookup_indexes);
+  }
+
+  void collect_lookup_variation_lookups (const hb_set_t *feature_indexes,
+					 hb_set_t *lookup_indexes /* OUT */) const
+  {
+    for (const LookupVariationRecord &record : get_lookup_variation_records ())
+      record.collect_lookups (this, feature_indexes, lookup_indexes);
   }
 
   void closure_features (const hb_map_t *lookup_indexes,
@@ -5272,6 +5346,17 @@ struct FeatureVariations
         continue;
       varRecords[i].closure_features (this, lookup_indexes, feature_indexes);
     }
+
+    for (const LookupVariationRecord &record : get_lookup_variation_records ())
+      record.closure_features (this, lookup_indexes, feature_indexes);
+  }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  {
+    for (const FeatureVariationRecord &record : varRecords)
+      record.collect_variation_indices (c, this);
+    for (const LookupVariationRecord &record : get_lookup_variation_records ())
+      record.collect_variation_indices (c, this);
   }
 
   bool subset (hb_subset_context_t *c,
