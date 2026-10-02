@@ -1097,8 +1097,6 @@ else
   cmake_package_prefix_dir = run_command(relative_to, get_option('prefix'), get_option('prefix') / cmake_config_dir, check: true).stdout().strip()
 endif
 
-cmake_package_prefix_dir = '${CMAKE_CURRENT_LIST_DIR}/@0@'.format(cmake_package_prefix_dir)
-
 # Make all the relevant paths relative to our prefix, so we can later append
 # them onto ${PACKAGE_PREFIX_DIR} to get the correct paths.
 
@@ -1133,7 +1131,8 @@ if fs.is_absolute(cmake_install_bindir)
 endif
 
 cmake_config.set('PACKAGE_INIT', '''
-get_filename_component(PACKAGE_PREFIX_DIR "@0@" ABSOLUTE)
+get_filename_component(ABSOLUTE_CMAKE_LIST_DIR ${CMAKE_CURRENT_LIST_DIR} REALPATH)
+set(PACKAGE_PREFIX_DIR "${ABSOLUTE_CMAKE_LIST_DIR}/@0@")
 
 macro(set_and_check _var _file)
   set(${_var} "${_file}")
