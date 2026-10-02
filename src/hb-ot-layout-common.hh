@@ -5435,7 +5435,7 @@ struct FeatureVariationRecord
     if (unlikely (!out)) return_trace (false);
 
     hb_set_t *retained_conditions = c->feature_record_cond_idx_map ?
-        c->feature_record_cond_idx_map->get (c->cur_feature_var_record_idx) : nullptr;
+        c->feature_record_cond_idx_map->get (c->cur_feature_var_record_idx).get () : nullptr;
     if (!insert_catch_all && retained_conditions && retained_conditions->is_empty ())
       /* A null ConditionSet is the unconditional first-match record. */
       out->conditions = 0;
