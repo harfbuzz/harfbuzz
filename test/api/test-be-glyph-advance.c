@@ -77,14 +77,6 @@ test_maxp_and_hmtx (void)
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 2), ==, 3);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 3), ==, 3);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 4), ==, 3);
-#if 0
-  /* These checks belonged to an old beyond-64k proposal that has since
-   * changed. The library code needs to adapt before testing this behavior.
-   */
-  g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 5), ==, 8);
-  g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 6), ==, 9);
-  g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 7), ==, 9);
-#endif
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 8), ==, 0);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 9), ==, 0);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font,10), ==, 0);
