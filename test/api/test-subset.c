@@ -94,23 +94,12 @@ test_subset_crash (void)
 
 #ifndef HB_NO_VAR
 static void
-test_subset_lookup_variations (void)
+assert_lookup_variations_shape (hb_face_t *face,
+				const int *coords,
+				unsigned coord_count)
 {
-  hb_face_t *face = hb_test_open_font_file (
-      "../shape/data/in-house/fonts/48b61f685ab1b3a3690fe4fea46ffc73dac3c301.ttf");
-  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-
-  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
-  hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
-  hb_set_clear (features);
-  hb_set_add (features, HB_TAG ('l', 'i', 'g', 'a'));
-
-  hb_face_t *subset = hb_subset_or_fail (face, input);
-  g_assert_nonnull (subset);
-
-  hb_font_t *font = hb_font_create (subset);
-  int coords[] = {13107}; /* 0.8 */
-  hb_font_set_var_coords_normalized (font, coords, 1);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_var_coords_normalized (font, coords, coord_count);
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf8 (buffer, "ABCDEF", -1, 0, -1);
@@ -126,6 +115,40 @@ test_subset_lookup_variations (void)
 
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
+}
+
+static void
+test_subset_lookup_variations (void)
+{
+  hb_face_t *face = hb_test_open_font_file (
+      "../shape/data/in-house/fonts/48b61f685ab1b3a3690fe4fea46ffc73dac3c301.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+
+  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+  hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_clear (features);
+  hb_set_add (features, HB_TAG ('l', 'i', 'g', 'a'));
+
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  int coords[] = {13107}; /* 0.8 */
+  assert_lookup_variations_shape (subset, coords, 1);
+
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+  features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_clear (features);
+  hb_set_add (features, HB_TAG ('l', 'i', 'g', 'a'));
+  g_assert_true (hb_subset_input_pin_axis_location (
+	input, face, HB_TAG ('T', 'E', 'S', 'T'), 0.8f));
+
+  subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  assert_lookup_variations_shape (subset, NULL, 0);
+
   hb_face_destroy (subset);
   hb_subset_input_destroy (input);
   hb_face_destroy (face);

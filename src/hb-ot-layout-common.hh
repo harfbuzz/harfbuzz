@@ -149,11 +149,13 @@ struct hb_subset_layout_context_t :
   const hb_map_t *feature_index_map;
   const hb_map_t *feature_map_w_duplicates;
   const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map;
+  const hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *lookup_variations;
   hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map;
   const hb_set_t *catch_all_record_feature_idxes;
   const hb_hashmap_t<unsigned, hb_pair_t<const void*, const void*>> *feature_idx_tag_map;
 
   unsigned cur_script_index;
+  unsigned cur_feature_index;
   unsigned cur_feature_var_record_idx;
 
   hb_subset_layout_context_t (hb_subset_context_t *c_,
@@ -161,6 +163,7 @@ struct hb_subset_layout_context_t :
 				subset_context (c_),
 				table_tag (tag_),
 				cur_script_index (0xFFFFu),
+				cur_feature_index (Index::NOT_FOUND_INDEX),
 				cur_feature_var_record_idx (0u),
 				script_count (0),
 				langsys_count (0),
@@ -174,6 +177,7 @@ struct hb_subset_layout_context_t :
       feature_index_map = &c_->plan->gsub_features;
       feature_map_w_duplicates = &c_->plan->gsub_features_w_duplicates;
       feature_substitutes_map = &c_->plan->gsub_feature_substitutes_map;
+      lookup_variations = &c_->plan->gsub_lookup_variations;
       feature_record_cond_idx_map = c_->plan->user_axes_location.is_empty () ? nullptr : &c_->plan->gsub_feature_record_cond_idx_map;
       catch_all_record_feature_idxes = &c_->plan->gsub_old_features;
       feature_idx_tag_map = &c_->plan->gsub_old_feature_idx_tag_map;
@@ -185,6 +189,7 @@ struct hb_subset_layout_context_t :
       feature_index_map = &c_->plan->gpos_features;
       feature_map_w_duplicates = &c_->plan->gpos_features_w_duplicates;
       feature_substitutes_map = &c_->plan->gpos_feature_substitutes_map;
+      lookup_variations = &c_->plan->gpos_lookup_variations;
       feature_record_cond_idx_map = c_->plan->user_axes_location.is_empty () ? nullptr : &c_->plan->gpos_feature_record_cond_idx_map;
       catch_all_record_feature_idxes = &c_->plan->gpos_old_features;
       feature_idx_tag_map = &c_->plan->gpos_old_feature_idx_tag_map;
@@ -818,13 +823,26 @@ struct Feature
 
     out->featureParams.serialize_subset (c, featureParams, this, tag);
 
-    auto it =
-    + hb_iter (lookupIndex)
-    | hb_filter (l->lookup_index_map)
-    | hb_map (l->lookup_index_map)
-    ;
-
-    out->lookupIndex.serialize (c->serializer, l, it);
+    hb::shared_ptr<hb_set_t> *lookup_variations;
+    if (l->cur_feature_index != Index::NOT_FOUND_INDEX &&
+	l->lookup_variations->has (l->cur_feature_index, &lookup_variations))
+    {
+      auto it =
+      + hb_iter (**lookup_variations)
+      | hb_filter (l->lookup_index_map)
+      | hb_map (l->lookup_index_map)
+      ;
+      out->lookupIndex.serialize (c->serializer, l, it);
+    }
+    else
+    {
+      auto it =
+      + hb_iter (lookupIndex)
+      | hb_filter (l->lookup_index_map)
+      | hb_map (l->lookup_index_map)
+      ;
+      out->lookupIndex.serialize (c->serializer, l, it);
+    }
     // The decision to keep or drop this feature is already made before we get here
     // so always retain it.
     return_trace (true);
@@ -965,7 +983,9 @@ struct RecordListOfFeature : RecordListOf<Feature>
                   if (l->feature_substitutes_map->has (_.first, &f))
                     f_sub = *f;
 
+                  l->cur_feature_index = _.first;
                   subset_record_array (l, out, this, f_sub) (_.second);
+                  l->cur_feature_index = Index::NOT_FOUND_INDEX;
                 })
     ;
 
