@@ -1008,6 +1008,9 @@ public:
       if (unlikely (root_idx >= vertices_.length))
         return Err(OUT_OF_BOUNDS);
       subgraph.set (root_idx, wide_parents (root_idx, parents));
+    }
+    for (unsigned root_idx : roots)
+    {
       TRY (find_subgraph (root_idx, subgraph));
     }
     TRY (graph_result_t<void>::from (subgraph, ALLOCATION_FAILURE));

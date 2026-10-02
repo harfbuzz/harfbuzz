@@ -236,9 +236,7 @@ graph_result_t<bool> _try_isolating_subgraphs (const hb_vector_t<graph::overflow
              sorted_graph.num_roots_for_space (space),
              roots_to_isolate.get_population (),
              sorted_graph.next_space ());
-
-  TRY_ASSIGN (bool isolated, sorted_graph.isolate_subgraph (roots_to_isolate));
-  if (!isolated) return Ok(false);
+  TRY (sorted_graph.isolate_subgraph (roots_to_isolate));
   TRY (sorted_graph.move_to_new_space (roots_to_isolate));
 
   return Ok(true);
