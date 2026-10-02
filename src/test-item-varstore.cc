@@ -163,10 +163,90 @@ test_item_variations_overflow ()
   hb_always_assert (varidx_map.get (131069) == 0x00037FFEu);
 }
 
+static void
+test_signed_delta_widths ()
+{
+  const int deltas[] = {32767, 32768, 65535, 65536,
+                       -32768, -32769, -65536, -65537};
+  hb_tag_t axis = HB_TAG ('T', 'E', 'S', 'T');
+  hb_vector_t<hb_tag_t> axes;
+  axes.push (axis);
+  hb_map_t axis_map;
+  axis_map.set (0, axis);
+  hb_hashmap_t<hb_tag_t, Triple> region;
+  region.set (axis, Triple (0, 1, 1));
+  hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple> *> regions;
+  regions.push (&region);
+
+  for (int delta : deltas)
+  {
+    hb_vector_t<int> row;
+    row.push (delta);
+    hb_vector_t<const hb_vector_t<int> *> rows;
+    rows.push (&row);
+    hb_vector_t<OT::delta_row_encoding_t> encodings;
+    encodings.push (OT::delta_row_encoding_t (std::move (rows), 1));
+
+    char buf[128];
+    hb_serialize_context_t s (buf, sizeof (buf));
+    auto *out = s.start_serialize<OT::ItemVariationStore> ();
+    hb_always_assert (out->serialize (&s, true, axes, regions, encodings));
+    s.end_serialize ();
+    hb_bytes_t bytes = s.copy_bytes ();
+    const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (bytes.arrayZ);
+    const auto &data = store.get_sub_table (0);
+    hb_always_assert (data.get_item_delta (0, 0) == delta);
+
+    hb_inc_bimap_t inner_map, region_map;
+    inner_map.add (0);
+    region_map.add (0);
+    char subset_buf[32];
+    hb_serialize_context_t subset_s (subset_buf, sizeof (subset_buf));
+    auto *subset = subset_s.start_serialize<OT::VarData> ();
+    hb_always_assert (subset->serialize (&subset_s, &data, inner_map, region_map));
+    subset_s.end_serialize ();
+    hb_bytes_t subset_bytes = subset_s.copy_bytes ();
+    const auto &subset_data = *reinterpret_cast<const OT::VarData *> (subset_bytes.arrayZ);
+    hb_always_assert (subset_data.get_item_delta (0, 0) == delta);
+
+    OT::item_variations_t item_vars;
+    hb_always_assert (item_vars.create_from_item_varstore (store, axis_map));
+    hb_hashmap_t<hb_tag_t, Triple> locations;
+    hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+    hb_always_assert (item_vars.instantiate_tuple_vars (locations, distances));
+    hb_always_assert (item_vars.as_item_varstore ());
+    hb_always_assert (item_vars.has_long_word () ==
+                      (delta < -32768 || delta > 32767));
+    subset_bytes.fini ();
+    bytes.fini ();
+  }
+}
+
+static void
+test_failed_encoding ()
+{
+  hb_vector_t<int> row;
+  row.push (1);
+  hb_vector_t<const hb_vector_t<int> *> rows;
+  rows.push (&row);
+  OT::item_variations_t item_vars;
+  hb_always_assert (item_vars.add_vardata_encoding_for_testing (std::move (rows), 1));
+  auto &encoding = const_cast<OT::delta_row_encoding_t &> (item_vars.get_vardata_encodings ()[0]);
+  /* Simulate a failed allocation of the encoding's column metadata. */
+  encoding.chars.clear ();
+  encoding.chars.set_error ();
+  hb_always_assert (encoding.in_error ());
+  hb_hashmap_t<unsigned, const hb_vector_t<int> *> front_mapping;
+  front_mapping.set (0, &row);
+  hb_always_assert (!item_vars.compile_varidx_map_for_testing (front_mapping));
+}
+
 int
 main (int argc, char **argv)
 {
   test_item_variations ();
   test_implicit_advance_mapping ();
   test_item_variations_overflow ();
+  test_signed_delta_widths ();
+  test_failed_encoding ();
 }

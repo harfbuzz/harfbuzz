@@ -207,10 +207,14 @@ struct ValueFormat : HBUINT16
     if (!format) return;
 
     HBINT16 *x_placement = nullptr, *y_placement = nullptr, *x_adv = nullptr, *y_adv = nullptr;
-    if (format & xPlacement) x_placement = copy_value (c, new_format, xPlacement, *values++);
-    if (format & yPlacement) y_placement = copy_value (c, new_format, yPlacement, *values++);
-    if (format & xAdvance)   x_adv = copy_value (c, new_format, xAdvance, *values++);
-    if (format & yAdvance)   y_adv = copy_value (c, new_format, yAdvance, *values++);
+    if ((format | new_format) & xPlacement)
+      x_placement = copy_value (c, new_format, xPlacement, format & xPlacement ? *values++ : Null (Value));
+    if ((format | new_format) & yPlacement)
+      y_placement = copy_value (c, new_format, yPlacement, format & yPlacement ? *values++ : Null (Value));
+    if ((format | new_format) & xAdvance)
+      x_adv = copy_value (c, new_format, xAdvance, format & xAdvance ? *values++ : Null (Value));
+    if ((format | new_format) & yAdvance)
+      y_adv = copy_value (c, new_format, yAdvance, format & yAdvance ? *values++ : Null (Value));
 
     if (!has_device ())
       return;
@@ -439,9 +443,14 @@ struct ValueFormat : HBUINT16
     {
       unsigned varidx = (base + get_device (value)).get_variation_index ();
       hb_pair_t<unsigned, int> *varidx_delta;
-      if (varidx_delta_map->has (varidx, &varidx_delta) &&
-          varidx_delta->first != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
-        return;
+      if (varidx_delta_map->has (varidx, &varidx_delta))
+      {
+        /* A device-only value needs a base field for its instanced delta. */
+        if (varidx_delta->second)
+          *format |= flag >> 4;
+        if (varidx_delta->first != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+          return;
+      }
     }
     *format = *format & ~flag;
   }

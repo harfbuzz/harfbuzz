@@ -117,7 +117,10 @@ struct glyf
 
     hb_vector_t<unsigned> padded_offsets;
     if (unlikely (!padded_offsets.alloc_exact (c->plan->new_to_old_gid_list.length)))
+    {
+      hb_font_destroy (font);
       return_trace (false);
+    }
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     /* SubsetGlyphs borrow bytes from this blob until they are serialized. */
