@@ -483,7 +483,7 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
 
   void push_longint_from_substr (byte_str_ref_t& str_ref)
   {
-    push_int ((str_ref[0] << 24) | (str_ref[1] << 16) | (str_ref[2] << 8) | (str_ref[3]));
+    push_int ((int) ((uint32_t (str_ref[0]) << 24) | (str_ref[1] << 16) | (str_ref[2] << 8) | (str_ref[3])));
     str_ref.inc (4);
   }
 

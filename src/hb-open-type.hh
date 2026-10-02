@@ -197,7 +197,7 @@ struct HBUINT32VAR
     else if (b0 < 0xF0)
       return ((b0 & 0x0F) << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
     else
-      return (v[1] << 24) | (v[2] << 16) | (v[3] << 8) | v[4];
+      return (uint32_t (v[1]) << 24) | (v[2] << 16) | (v[3] << 8) | v[4];
   }
 
   static unsigned serialize_unsafe (unsigned char *buf, uint32_t v)
