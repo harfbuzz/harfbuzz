@@ -27,6 +27,7 @@
 #include "hb-serialize.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gsubgpos.hh"
+#include "OT/Layout/GPOS/ValueFormat.hh"
 
 using OT::Layout::Common::Coverage;
 
@@ -154,12 +155,47 @@ test_medium_chain_rule ()
   bytes.fini ();
 }
 
+static void
+test_device_only_value ()
+{
+  using namespace OT::Layout::GPOS_impl;
+  static const char data[] = {
+    0, 2,                      /* Device offset */
+    0, 0, 0, 0, (char) 0x80, 0, /* VariationIndex 0 */
+  };
+  const auto *base = reinterpret_cast<const ValueBase *> (data);
+  const auto *values = reinterpret_cast<const Value *> (data);
+  for (unsigned device = ValueFormat::xPlaDevice;
+       device <= ValueFormat::yAdvDevice; device <<= 1)
+    for (bool partial : {false, true})
+    {
+      ValueFormat format;
+      format = device;
+      hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> mapping;
+      mapping.set (0, hb_pair (partial ? 1u : OT::VarIdx::NO_VARIATION, 25));
+      unsigned new_format = format.get_effective_format (values, false, false, base, &mapping);
+      hb_always_assert (new_format == (device >> 4 | (partial ? device : 0)));
+
+      char buf[32];
+      hb_serialize_context_t s (buf, sizeof (buf));
+      s.start_serialize ();
+      format.copy_values (&s, new_format, base, values, &mapping);
+      s.end_serialize ();
+      hb_bytes_t bytes = s.copy_bytes ();
+      hb_always_assert (!s.in_error ());
+      hb_always_assert (bytes.length >= OT::HBINT16::static_size);
+      hb_always_assert (*reinterpret_cast<const OT::HBINT16 *> (bytes.arrayZ) == 25);
+      bytes.fini ();
+    }
+}
+
 int
 main (int argc, char **argv)
 {
   test_null_condition ();
   test_medium_rule ();
   test_medium_chain_rule ();
+  test_device_only_value ();
 
   char buf[16384];
 
