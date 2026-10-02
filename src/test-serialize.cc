@@ -33,24 +33,20 @@ using OT::Layout::Common::Coverage;
 static void
 test_null_condition ()
 {
-  static const char true_condition[] = {
-    0, 0,                         /* format */
-  };
-  static const char and_condition[] = {
+  static const char and_condition[sizeof (OT::Condition)] = {
     0, 3, 1,                     /* format, conditionCount */
     0, 0, 0,                     /* conditionOffset */
   };
-  static const char or_condition[] = {
+  static const char or_condition[sizeof (OT::Condition)] = {
     0, 4, 1,                     /* format, conditionCount */
     0, 0, 0,                     /* conditionOffset */
   };
-  static const char negate_condition[] = {
+  static const char negate_condition[sizeof (OT::Condition)] = {
     0, 5,                        /* format */
     0, 0, 0,                     /* conditionOffset */
   };
 
-  const auto &condition =
-      *reinterpret_cast<const OT::Condition *> (true_condition);
+  const auto &condition = Null (OT::Condition);
   const auto &condition_and =
       *reinterpret_cast<const OT::Condition *> (and_condition);
   const auto &condition_or =
