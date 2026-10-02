@@ -2480,6 +2480,9 @@ struct delta_row_encoding_t
   bool is_empty () const
   { return !items; }
 
+  bool in_error () const
+  { return chars.in_error () || items.in_error (); }
+
   static inline unsigned get_chars_overhead (unsigned num_columns)
   {
     unsigned c = 4 + 6; // 4 bytes for LOffset, 6 bytes for VarData header

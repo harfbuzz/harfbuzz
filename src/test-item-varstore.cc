@@ -222,6 +222,25 @@ test_signed_delta_widths ()
   }
 }
 
+static void
+test_failed_encoding ()
+{
+  hb_vector_t<int> row;
+  row.push (1);
+  hb_vector_t<const hb_vector_t<int> *> rows;
+  rows.push (&row);
+  OT::item_variations_t item_vars;
+  hb_always_assert (item_vars.add_vardata_encoding_for_testing (std::move (rows), 1));
+  auto &encoding = const_cast<OT::delta_row_encoding_t &> (item_vars.get_vardata_encodings ()[0]);
+  /* Simulate a failed allocation of the encoding's column metadata. */
+  encoding.chars.clear ();
+  encoding.chars.set_error ();
+  hb_always_assert (encoding.in_error ());
+  hb_hashmap_t<unsigned, const hb_vector_t<int> *> front_mapping;
+  front_mapping.set (0, &row);
+  hb_always_assert (!item_vars.compile_varidx_map_for_testing (front_mapping));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -229,4 +248,5 @@ main (int argc, char **argv)
   test_implicit_advance_mapping ();
   test_item_variations_overflow ();
   test_signed_delta_widths ();
+  test_failed_encoding ();
 }

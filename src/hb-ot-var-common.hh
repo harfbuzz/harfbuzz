@@ -2158,7 +2158,11 @@ struct item_variations_t
       }
 
       if (major_rows)
-	encoding_objs.push (delta_row_encoding_t (std::move (major_rows), num_cols));
+      {
+	auto *encoding = encoding_objs.push (std::move (major_rows), num_cols);
+	if (unlikely (encoding_objs.in_error () || encoding->in_error ()))
+	  return false;
+      }
 
       start_row += num_rows;
     }
@@ -2211,8 +2215,10 @@ struct item_variations_t
 
       removed_todo_idxes.add (i);
       removed_todo_idxes.add (j);
+      if (unlikely (removed_todo_idxes.in_error ())) return false;
 
       encoding.merge (other_encoding);
+      if (unlikely (encoding.in_error ())) return false;
 
       for (unsigned idx = 0; idx < encoding_objs.length; idx++)
       {
@@ -2230,8 +2236,10 @@ struct item_variations_t
 
           for (const auto& row : obj.items)
             encoding.add_row (row);
+          if (unlikely (encoding.in_error ())) return false;
 
           removed_todo_idxes.add (idx);
+          if (unlikely (removed_todo_idxes.in_error ())) return false;
           continue;
         }
 
@@ -2241,7 +2249,8 @@ struct item_variations_t
       }
 
       auto moved_encoding = std::move (encoding);
-      encoding_objs.push (moved_encoding);
+      encoding_objs.push (std::move (moved_encoding));
+      if (unlikely (encoding_objs.in_error ())) return false;
     }
 
     int num_final_encodings = (int) encoding_objs.length - (int) removed_todo_idxes.get_population ();
@@ -2269,7 +2278,7 @@ struct item_variations_t
     {
       delta_row_encoding_t& encoding = encodings[i];
       /* just sanity check, this shouldn't happen */
-      if (encoding.is_empty ())
+      if (encoding.is_empty () || encoding.in_error ())
         return false;
 
       unsigned num_rows = encoding.items.length;
@@ -2295,7 +2304,9 @@ struct item_variations_t
             return false;
         }
 
-        split_encodings.push (delta_row_encoding_t (std::move (rows), num_cols));
+        auto *split = split_encodings.push (std::move (rows), num_cols);
+        if (unlikely (split_encodings.in_error () || split->in_error ()))
+          return false;
       }
     }
 
