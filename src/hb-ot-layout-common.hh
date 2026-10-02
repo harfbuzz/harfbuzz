@@ -4825,7 +4825,7 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
   if (unlikely (!depth))
     return LOOKUP_CONDITION_SUBSET_ERROR;
 
-  auto subset_offset = [c, depth] (auto &out,
+  auto subset_offset = [c, depth] (Array8OfOffset24To<Condition> &out,
 				   const Condition &condition)
       -> lookup_condition_subset_result_t
   {
