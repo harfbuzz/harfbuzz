@@ -2868,15 +2868,15 @@ _hb_avar2_region_is_dead (const hb_hashmap_t<hb_tag_t, Triple> &axis_tuples,
   return false;
 }
 
-struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
+struct SparseVariationRegion
 {
   float evaluate (const int *coords, unsigned int coord_len) const
   {
     float v = 1.f;
-    unsigned int count = len;
+    unsigned int count = axes.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      float factor = arrayZ[i].evaluate (coords, coord_len);
+      float factor = (this+axes[i]).evaluate (coords, coord_len);
       if (factor == 0.f)
 	return 0.;
       v *= factor;
@@ -2886,7 +2886,25 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
 
   bool serialize (hb_serialize_context_t *c,
 		  const SparseVariationRegion *src)
-  { return bool (src->copy (c)); }
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!axes.serialize (c, (unsigned) src->axes.len))) return_trace (false);
+    for (unsigned i = 0; i < axes.len; i++)
+      if (unlikely (!axes[i].serialize_copy (c, src->axes[i], src)))
+	return_trace (false);
+    return_trace (true);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (axes.sanitize (c, this));
+  }
+
+  protected:
+  Array16Of<Offset32To<SparseVarRegionAxis>> axes;
+  public:
+  DEFINE_SIZE_ARRAY (2, axes);
 };
 
 struct SparseVarRegionList
@@ -2939,10 +2957,10 @@ struct SparseVarRegionList
   }
 
   public:
-  Array16Of<Offset32To<SparseVariationRegion>>
+  Array32Of<Offset32To<SparseVariationRegion>>
 		regions;
   public:
-  DEFINE_SIZE_ARRAY (2, regions);
+  DEFINE_SIZE_ARRAY (4, regions);
 };
 
 
@@ -3336,8 +3354,10 @@ struct MultiVarData
 {
   size_t get_size () const
   { return hb_unsigned_add_saturate (min_size - regionIndices.min_size,
-				     regionIndices.get_size (),
-				     StructAfter<CFF2Index> (regionIndices).get_size ()); }
+				     regionIndices.get_size ()); }
+
+  const TupleList &get_delta_sets () const
+  { return this+StructAfter<decltype (deltaSetsX)> (regionIndices); }
 
   void get_delta (unsigned int inner,
 		  const int *coords, unsigned int coord_count,
@@ -3345,7 +3365,7 @@ struct MultiVarData
 		  hb_array_t<float> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
-    auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
+    auto &deltaSets = get_delta_sets ();
 
     auto values_iter = deltaSets.fetcher (inner);
     unsigned regionCount = regionIndices.len;
@@ -3378,11 +3398,11 @@ struct MultiVarData
 		  format == 1 &&
 		  regionIndices.sanitize (c) &&
 		  hb_barrier () &&
-		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c));
+		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c, this));
   }
 
   unsigned get_item_count () const
-  { return StructAfter<decltype (deltaSetsX)> (regionIndices).count; }
+  { return get_delta_sets ().count; }
 
   void collect_region_refs (hb_set_t &region_indices) const
   {
@@ -3399,7 +3419,8 @@ struct MultiVarData
     unsigned region_count = src->regionIndices.len;
     unsigned header_size = HBUINT8::static_size +
 			   Array16Of<HBUINT16>::min_size +
-			   region_count * HBUINT16::static_size;
+			   region_count * HBUINT16::static_size +
+			   HBUINT32::static_size;
     if (unlikely (!c->extend_size (this, header_size, false)))
       return_trace (false);
     format = 1;
@@ -3412,7 +3433,7 @@ struct MultiVarData
       regionIndices[i] = region_map.get (old_region);
     }
 
-    const auto &src_delta_sets = StructAfter<decltype (deltaSetsX)> (src->regionIndices);
+    const auto &src_delta_sets = src->get_delta_sets ();
     hb_vector_t<hb_ubytes_t> delta_sets;
     unsigned data_size = 0;
     if (unlikely (!delta_sets.alloc_exact (inner_map.get_population ())))
@@ -3429,15 +3450,15 @@ struct MultiVarData
       return_trace (false);
 
     auto &out_delta_sets = StructAfter<decltype (deltaSetsX)> (regionIndices);
-    return_trace (out_delta_sets.serialize (c, delta_sets.iter (), &data_size));
+    return_trace (out_delta_sets.serialize_serialize (c, delta_sets.iter (), &data_size));
   }
 
   protected:
   HBUINT8	      format; // 1
   Array16Of<HBUINT16> regionIndices;
-  TupleList	      deltaSetsX;
+  Offset32To<TupleList> deltaSetsX;
   public:
-  DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_MIN (7);
 };
 
 struct ItemVariationStore
