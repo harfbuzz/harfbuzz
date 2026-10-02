@@ -362,12 +362,16 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   hb_codepoint_t gid = component.gid;
   const unsigned char *record = total_record.arrayZ + component.size;
 
+  /* Static VARC fonts can have constant deltas even without coordinates. */
+  const int zero_coord = 0;
+  auto var_coords = coords ? coords : hb_array (&zero_coord, 1);
+
   // Condition
   bool show = true;
   if (flags & (unsigned) flags_t::HAVE_CONDITION)
   {
     const auto &condition = (&VARC+VARC.conditionList)[component.condition_index];
-    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache);
+    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, var_coords, cache);
     show = condition.evaluate (coords.arrayZ, coords.length, &instancer);
   }
 
@@ -375,12 +379,12 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 
   // Apply variations if any
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
-      show && coords && !axisValues.in_error ())
+      show && !axisValues.in_error ())
   {
     if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
 				    coords.length)))
       return hb_ubytes_t ();
-    varStore.get_delta (component.axis_values_var_idx, coords,
+    varStore.get_delta (component.axis_values_var_idx, var_coords,
 			axisValues.as_array (), cache);
   }
 
@@ -408,7 +412,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       component_coords = coord_setter.get_coords ();
 
     // Apply transform variations if any
-    if (transformVarIdx != VarIdx::NO_VARIATION && coords)
+    if (transformVarIdx != VarIdx::NO_VARIATION)
     {
       double transformValues[9];
       unsigned numTransformValues = 0;
@@ -420,7 +424,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       if (unlikely (!hb_budget_spend (c.budget, numTransformValues,
 				      coords.length)))
 	return hb_ubytes_t ();
-      varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
+      varStore.get_delta (transformVarIdx, var_coords, hb_array (transformValues, numTransformValues), cache);
       numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
