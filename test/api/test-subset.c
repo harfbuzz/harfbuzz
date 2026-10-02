@@ -238,6 +238,35 @@ assert_condition_instance_matches (hb_face_t *face, hb_face_t *subset,
 }
 
 static void
+test_subset_feature_variation_universal (void)
+{
+  const char *filenames[] = {
+    "fonts/feature-variation-universal.ttf",
+    "fonts/feature-variation-universal-prefix.ttf"
+  };
+  const int widths[] = {-16384, 0, 9830, 13107, 16384};
+  for (unsigned f = 0; f < G_N_ELEMENTS (filenames); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (filenames[f]);
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+    hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+    g_assert_true (hb_subset_input_pin_axis_location (
+        input, face, HB_TAG ('T', 'E', 'S', 'T'), 0.3f));
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_nonnull (subset);
+    for (unsigned i = 0; i < G_N_ELEMENTS (widths); i++)
+    {
+      int coords[] = {4915, widths[i]};
+      assert_condition_instance_matches (face, subset, coords, &widths[i], 1);
+    }
+    hb_face_destroy (subset);
+    hb_subset_input_destroy (input);
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_subset_feature_variation_conditions (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/feature-variation-conditions.ttf");
@@ -841,6 +870,7 @@ main (int argc, char **argv)
 #ifndef HB_NO_VAR
   hb_test_add (test_subset_lookup_variations);
   hb_test_add (test_subset_feature_variation_conditions);
+  hb_test_add (test_subset_feature_variation_universal);
 #endif
   hb_test_add (test_subset_set_flags);
   hb_test_add (test_subset_sets);

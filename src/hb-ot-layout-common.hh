@@ -5135,7 +5135,10 @@ struct ConditionSet
       cond_idx++;
     }
 
-    if (!should_keep) return;
+    /* Satisfied pinned conditions still terminate first-match processing.
+     * Keep their universal record when other axes remain variable. */
+    c->universal = num_kept_cond == 0;
+    if (!should_keep && c->all_axes_pinned) return;
 
     //check if condition_set is unique with variations
     if (can_deduplicate && c->conditionset_map->has (p))
@@ -5145,8 +5148,6 @@ struct ConditionSet
     if (can_deduplicate)
       c->conditionset_map->set (p, 1);
     c->record_cond_idx_map->set (c->cur_record_idx, s);
-    if (should_keep && num_kept_cond == 0)
-      c->universal = true;
   }
 
   bool subset (hb_subset_context_t *c,
@@ -5433,7 +5434,13 @@ struct FeatureVariationRecord
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    out->conditions.serialize_subset (c->subset_context, conditions, base, c, insert_catch_all);
+    hb_set_t *retained_conditions = c->feature_record_cond_idx_map ?
+        c->feature_record_cond_idx_map->get (c->cur_feature_var_record_idx) : nullptr;
+    if (!insert_catch_all && retained_conditions && retained_conditions->is_empty ())
+      /* A null ConditionSet is the unconditional first-match record. */
+      out->conditions = 0;
+    else
+      out->conditions.serialize_subset (c->subset_context, conditions, base, c, insert_catch_all);
     out->substitutions.serialize_subset (c->subset_context, substitutions, base, c, insert_catch_all);
 
     return_trace (true);
