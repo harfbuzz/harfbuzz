@@ -4330,8 +4330,23 @@ struct ConditionValue
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    if (varIdx == VarIdx::NO_VARIATION)
+      return_trace (true);
+
+    hb_pair_t<unsigned, int> *new_varidx_delta;
+    if (!c->plan->layout_variation_idx_delta_map.has (varIdx, &new_varidx_delta))
+      return_trace (false);
+
+    if (unlikely (!c->serializer->check_assign (
+		out->defaultValue,
+		defaultValue + hb_second (*new_varidx_delta),
+		HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return_trace (false);
+    out->varIdx = hb_first (*new_varidx_delta);
+    return_trace (true);
   }
 
   private:
@@ -4375,8 +4390,15 @@ struct ConditionAnd
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out || !c->serializer->extend_min (out)))
+      return_trace (false);
+
+    for (const auto &offset : conditions)
+      if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
+	return_trace (false);
+
+    return_trace (true);
   }
 
   private:
@@ -4423,8 +4445,15 @@ struct ConditionOr
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out || !c->serializer->extend_min (out)))
+      return_trace (false);
+
+    for (const auto &offset : conditions)
+      if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
+	return_trace (false);
+
+    return_trace (true);
   }
 
   private:
@@ -4471,8 +4500,9 @@ struct ConditionNegate
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+    return_trace (out->condition.serialize_subset (c, condition, this));
   }
 
   private:
@@ -5079,6 +5109,23 @@ struct LookupIndexList
   bool intersects_lookup_indexes (const hb_map_t *lookup_indexes) const
   { return lookupIndices.intersects (lookup_indexes); }
 
+  bool subset (hb_subset_context_t *c,
+	       hb_subset_layout_context_t *l) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out || !c->serializer->extend_min (out)))
+      return_trace (false);
+
+    auto it =
+    + hb_iter (lookupIndices)
+    | hb_filter (l->lookup_index_map)
+    | hb_map (l->lookup_index_map)
+    ;
+    out->lookupIndices.serialize (c->serializer, l, it);
+    return_trace (bool (out->lookupIndices));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -5113,6 +5160,19 @@ struct LookupConditionRecord
   {
     if (unlikely (!(base+condition).collect_var_indices (c->layout_variation_indices)))
       c->layout_variation_indices->err ();
+  }
+
+  bool subset (hb_subset_context_t *c,
+	       hb_subset_layout_context_t *l,
+	       const void *base) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    if (unlikely (!out->condition.serialize_subset (c, condition, base)))
+      return_trace (false);
+    return_trace (out->lookupIndices.serialize_subset (c, lookupIndices, base, l));
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -5164,6 +5224,30 @@ struct FeatureLookupsTable
       record.collect_variation_indices (c, this);
   }
 
+  bool subset (hb_subset_context_t *c,
+	       hb_subset_layout_context_t *l) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out || !c->serializer->extend_min (out)))
+      return_trace (false);
+
+    out->version.major = version.major;
+    out->version.minor = version.minor;
+    out->flags = flags;
+
+    for (const LookupConditionRecord &record : records)
+    {
+      auto snap = c->serializer->snapshot ();
+      if (record.subset (c, l, this))
+	out->records.len++;
+      else
+	c->serializer->revert (snap);
+    }
+
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -5205,6 +5289,24 @@ struct LookupVariationRecord
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
 				  const void *base) const
   { (base+featureLookups).collect_variation_indices (c); }
+
+  bool subset (hb_subset_layout_context_t *l, const void *base) const
+  {
+    TRACE_SUBSET (this);
+    uint32_t *new_feature_index;
+    if (!l->feature_map_w_duplicates->has (featureIndex, &new_feature_index))
+      return_trace (false);
+
+    hb_subset_context_t *c = l->subset_context;
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out ||
+		  !c->serializer->check_assign (out->featureIndex,
+						*new_feature_index,
+						HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return_trace (false);
+
+    return_trace (out->featureLookups.serialize_subset (c, featureLookups, base, l));
+  }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -5359,6 +5461,18 @@ struct FeatureVariations
       record.collect_variation_indices (c, this);
   }
 
+  bool has_lookup_variations (unsigned feature_index) const
+  {
+    for (const LookupVariationRecord &record : get_lookup_variation_records ())
+    {
+      if (record.featureIndex == feature_index)
+	return true;
+      if (record.featureIndex > feature_index)
+	break;
+    }
+    return false;
+  }
+
   bool subset (hb_subset_context_t *c,
 	       hb_subset_layout_context_t *l) const
   {
@@ -5394,7 +5508,20 @@ struct FeatureVariations
       subset_record_array (l, &(out->varRecords), this, insert_catch_all_record) (varRecords[0]);
     }
 
-    return_trace (bool (out->varRecords));
+    Array32Of<LookupVariationRecord> *out_lookup_records = nullptr;
+    if (version.minor >= 1)
+    {
+      out_lookup_records = &StructAfter<Array32Of<LookupVariationRecord>> (out->varRecords);
+      if (unlikely (!c->serializer->extend_min (out_lookup_records)))
+	return_trace (false);
+
+      + get_lookup_variation_records ().iter ()
+      | hb_apply (subset_record_array (l, out_lookup_records, this))
+      ;
+    }
+
+    return_trace (bool (out->varRecords) ||
+		  (out_lookup_records && bool (*out_lookup_records)));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

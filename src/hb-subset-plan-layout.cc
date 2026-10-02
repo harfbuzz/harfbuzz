@@ -206,6 +206,12 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
     hb_set_t* same_tag_features = unique_features.get (t);
     for (unsigned other_f_index : same_tag_features->iter ())
     {
+#ifndef HB_NO_VAR
+      if (g.get_feature_variations ().has_lookup_variations (i) ||
+	  g.get_feature_variations ().has_lookup_variations (other_f_index))
+	continue;
+#endif
+
       const OT::Feature* f = &(g.get_feature (i));
       const OT::Feature **p = nullptr;
       if (feature_substitutes_map->has (i, &p))
