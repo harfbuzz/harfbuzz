@@ -4993,6 +4993,17 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
 		LOOKUP_CONDITION_SUBSET_TRUE :
 		LOOKUP_CONDITION_SUBSET_FALSE);
 
+      if (!c->plan->user_axes_location.is_empty () &&
+          hb_first (*new_varidx_delta) == VarIdx::NO_VARIATION)
+      {
+        // Conditions becoming constant depend on the unrounded sign, not
+        // the integer delta used to instance positioning values.
+        float value = (int) src.defaultValue +
+                      c->plan->layout_variation_delta (src.varIdx);
+        return value > 0 ? LOOKUP_CONDITION_SUBSET_TRUE :
+                          LOOKUP_CONDITION_SUBSET_FALSE;
+      }
+
       int default_value = (int) src.defaultValue +
 			  hb_second (*new_varidx_delta);
       if (unlikely (!c->serializer->check_assign (
@@ -5002,11 +5013,6 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
         return LOOKUP_CONDITION_SUBSET_ERROR;
       out->varIdx = hb_first (*new_varidx_delta);
 
-      if (!c->plan->user_axes_location.is_empty () &&
-	  out->varIdx == VarIdx::NO_VARIATION)
-        return default_value > 0 ?
-	       LOOKUP_CONDITION_SUBSET_TRUE :
-	       LOOKUP_CONDITION_SUBSET_FALSE;
       return LOOKUP_CONDITION_SUBSET_KEEP;
     }
 

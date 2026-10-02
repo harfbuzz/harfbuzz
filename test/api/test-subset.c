@@ -267,11 +267,40 @@ test_subset_feature_variation_universal (void)
 }
 
 static void
+test_subset_lookup_variation_fractional_value (void)
+{
+  hb_face_t *face = hb_test_open_font_file (
+      "../shape/data/in-house/fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf");
+  const float locations[] = {0.5f, 0.6f, 0.7f};
+  const int normalized[] = {8192, 9830, 11469};
+  const int test_coords[] = {4915, 13107};
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (locations); i++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+    hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+    g_assert_true (hb_subset_input_pin_axis_location (
+        input, face, HB_TAG ('D', 'U', 'M', 'Y'), locations[i]));
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_nonnull (subset);
+    for (unsigned j = 0; j < G_N_ELEMENTS (test_coords); j++)
+    {
+      int coords[] = {test_coords[j], normalized[i]};
+      assert_condition_instance_matches (face, subset, coords, &test_coords[j], 1);
+    }
+    hb_face_destroy (subset);
+    hb_subset_input_destroy (input);
+  }
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_feature_variation_conditions (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/feature-variation-conditions.ttf");
-  const float locations[] = {-0.8f, -0.6f, 0.f, 0.3f, 0.8f};
-  const int normalized[] = {-13107, -9830, 0, 4915, 13107};
+  const float locations[] = {-0.8f, -0.6f, 0.f, 0.3f, 0.6f, 0.8f};
+  const int normalized[] = {-13107, -9830, 0, 4915, 9830, 13107};
   const hb_tag_t tags[] = {HB_TAG ('T','E','S','T'), HB_TAG ('D','U','M','Y')};
   const int original_coords[][2] = {{0, 0}, {4915, 0}, {4915, 13107},
 				   {13107, -13107}, {4915, -9830}};
@@ -869,6 +898,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_crash);
 #ifndef HB_NO_VAR
   hb_test_add (test_subset_lookup_variations);
+  hb_test_add (test_subset_lookup_variation_fractional_value);
   hb_test_add (test_subset_feature_variation_conditions);
   hb_test_add (test_subset_feature_variation_universal);
 #endif
