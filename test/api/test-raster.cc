@@ -465,7 +465,7 @@ test_background_stride (void)
   hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
 
   const unsigned width = 2, height = 4;
-  const unsigned stride = 64; /* far wider than width * 4 = 8 bytes */
+  const unsigned stride = 9; /* wider than width * 4, but not word-aligned */
   hb_raster_extents_t ext = {0, 0, width, height, stride};
   hb_raster_paint_set_extents (paint, &ext);
 
@@ -487,11 +487,15 @@ test_background_stride (void)
 
   for (unsigned y = 0; y < out_ext.height; y++)
   {
-    const uint32_t *row = (const uint32_t *) (buf + (size_t) y * out_ext.stride);
+    const uint8_t *row = buf + (size_t) y * out_ext.stride;
     for (unsigned x = 0; x < out_ext.width; x++)
-      /* 0xffff0000 == premultiplied opaque red in BGRA32 memory order
-       * (alpha in the top byte, blue in the bottom byte). */
-      g_assert_cmphex (row[x], ==, 0xffff0000);
+    {
+      const uint8_t *pixel = row + x * 4;
+      g_assert_cmphex (pixel[0], ==, 0x00); /* blue */
+      g_assert_cmphex (pixel[1], ==, 0x00); /* green */
+      g_assert_cmphex (pixel[2], ==, 0xff); /* red */
+      g_assert_cmphex (pixel[3], ==, 0xff); /* alpha */
+    }
   }
 
   hb_raster_image_destroy (img);

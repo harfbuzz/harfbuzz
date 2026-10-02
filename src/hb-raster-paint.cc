@@ -134,12 +134,10 @@ ensure_initialized (hb_raster_paint_t *c)
     const uint8_t *buf = hb_raster_image_get_buffer (root);
     for (unsigned y = 0; y < ext.height; y++)
     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-      uint32_t *row = (uint32_t *) (buf + (size_t) y * ext.stride);
-#pragma GCC diagnostic pop
+      hb_packed_t<uint32_t> *row =
+	(hb_packed_t<uint32_t> *) (buf + (size_t) y * ext.stride);
       for (unsigned x = 0; x < ext.width; x++)
-	row[x] = bg;
+	row[x] = hb_packed_t<uint32_t> (bg);
     }
   }
 
