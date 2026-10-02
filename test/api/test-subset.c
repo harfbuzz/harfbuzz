@@ -96,7 +96,8 @@ test_subset_crash (void)
 static void
 assert_lookup_variations_shape (hb_face_t *face,
 				const int *coords,
-				unsigned coord_count)
+				unsigned coord_count,
+				const hb_codepoint_t *expected)
 {
   hb_font_t *font = hb_font_create (face);
   hb_font_set_var_coords_normalized (font, coords, coord_count);
@@ -108,8 +109,7 @@ assert_lookup_variations_shape (hb_face_t *face,
 
   unsigned length;
   const hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &length);
-  const hb_codepoint_t expected[] = {2, 4, 6, 8, 9, 10};
-  g_assert_cmpuint (length, ==, G_N_ELEMENTS (expected));
+  g_assert_cmpuint (length, ==, 6);
   for (unsigned i = 0; i < length; i++)
     g_assert_cmpuint (info[i].codepoint, ==, expected[i]);
 
@@ -121,7 +121,11 @@ static void
 test_subset_lookup_variations (void)
 {
   hb_face_t *face = hb_test_open_font_file (
-      "../shape/data/in-house/fonts/48b61f685ab1b3a3690fe4fea46ffc73dac3c301.ttf");
+      "../shape/data/in-house/fonts/ce30d3c1c8f77c156589ac7584acecaa4dfb619b.ttf");
+  const hb_codepoint_t expected_all[] = {2, 4, 6, 8, 9, 10};
+  const hb_codepoint_t expected_test_08_dumy_08[] = {2, 3, 6, 8, 9, 10};
+  const hb_codepoint_t expected_test_03_dumy_0[] = {2, 4, 5, 7, 8, 11};
+  const hb_codepoint_t expected_test_03_dumy_08[] = {2, 3, 6, 7, 8, 11};
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
 
   hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
@@ -132,7 +136,24 @@ test_subset_lookup_variations (void)
   hb_face_t *subset = hb_subset_or_fail (face, input);
   g_assert_nonnull (subset);
   int coords[] = {13107}; /* 0.8 */
-  assert_lookup_variations_shape (subset, coords, 1);
+  assert_lookup_variations_shape (subset, coords, 1, expected_all);
+
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+  features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_clear (features);
+  hb_set_add (features, HB_TAG ('l', 'i', 'g', 'a'));
+  g_assert_true (hb_subset_input_pin_axis_location (
+	input, face, HB_TAG ('T', 'E', 'S', 'T'), 0.8f));
+  g_assert_true (hb_subset_input_pin_axis_location (
+	input, face, HB_TAG ('D', 'U', 'M', 'Y'), 0.f));
+
+  subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  assert_lookup_variations_shape (subset, NULL, 0, expected_all);
 
   hb_face_destroy (subset);
   hb_subset_input_destroy (input);
@@ -147,7 +168,32 @@ test_subset_lookup_variations (void)
 
   subset = hb_subset_or_fail (face, input);
   g_assert_nonnull (subset);
-  assert_lookup_variations_shape (subset, NULL, 0);
+  coords[0] = 0;
+  assert_lookup_variations_shape (subset, coords, 1, expected_all);
+  coords[0] = 13107; /* DUMY=0.8 */
+  assert_lookup_variations_shape (
+	subset, coords, 1, expected_test_08_dumy_08);
+
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'F');
+  features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_clear (features);
+  hb_set_add (features, HB_TAG ('l', 'i', 'g', 'a'));
+  hb_set_add (features, HB_TAG ('r', 'l', 'i', 'g'));
+  g_assert_true (hb_subset_input_pin_axis_location (
+	input, face, HB_TAG ('T', 'E', 'S', 'T'), 0.3f));
+
+  subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  coords[0] = 0;
+  assert_lookup_variations_shape (
+	subset, coords, 1, expected_test_03_dumy_0);
+  coords[0] = 13107; /* DUMY=0.8 */
+  assert_lookup_variations_shape (
+	subset, coords, 1, expected_test_03_dumy_08);
 
   hb_face_destroy (subset);
   hb_subset_input_destroy (input);

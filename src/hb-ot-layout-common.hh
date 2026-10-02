@@ -4217,6 +4217,14 @@ enum Cond_with_Var_flag_t
   DROP_RECORD_WITH_VAR = 3,
 };
 
+enum lookup_condition_subset_result_t
+{
+  LOOKUP_CONDITION_SUBSET_ERROR,
+  LOOKUP_CONDITION_SUBSET_FALSE,
+  LOOKUP_CONDITION_SUBSET_TRUE,
+  LOOKUP_CONDITION_SUBSET_KEEP,
+};
+
 struct Condition;
 
 template <typename Instancer>
@@ -4413,6 +4421,7 @@ struct ConditionAnd
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!out || !c->serializer->extend_min (out)))
       return_trace (false);
+    out->format = format;
 
     for (const auto &offset : conditions)
       if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
@@ -4468,6 +4477,7 @@ struct ConditionOr
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!out || !c->serializer->extend_min (out)))
       return_trace (false);
+    out->format = format;
 
     for (const auto &offset : conditions)
       if (unlikely (!subset_offset_array (c, out->conditions, this) (offset)))
@@ -4560,6 +4570,11 @@ struct ConditionNegate
 
 struct Condition
 {
+  lookup_condition_subset_result_t subset_lookup_condition (
+				      hb_subset_context_t *c,
+				      unsigned depth = HB_MAX_NESTING_LEVEL,
+				      bool materialize_true = false) const;
+
   template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
 		 Instancer *instancer) const
@@ -4615,6 +4630,11 @@ struct Condition
   bool serialize (hb_serialize_context_t *c,
 		  const Condition *src,
 		  const hb_map_t &varidx_map);
+
+  private:
+  lookup_condition_subset_result_t subset_lookup_condition_impl (
+				      hb_subset_context_t *c,
+				      unsigned depth) const;
 
   protected:
   union {
@@ -4771,6 +4791,231 @@ Condition::serialize (hb_serialize_context_t *c,
     }
     default:
       return_trace (false);
+  }
+}
+
+inline lookup_condition_subset_result_t
+Condition::subset_lookup_condition (hb_subset_context_t *c,
+				    unsigned depth,
+				    bool materialize_true) const
+{
+  auto snap = c->serializer->snapshot ();
+  lookup_condition_subset_result_t result =
+      subset_lookup_condition_impl (c, depth);
+  if (result == LOOKUP_CONDITION_SUBSET_KEEP)
+    return result;
+
+  c->serializer->revert (snap);
+  if (result != LOOKUP_CONDITION_SUBSET_TRUE || !materialize_true)
+    return result;
+
+  auto *out = c->serializer->start_embed<ConditionValue> ();
+  if (unlikely (!out || !c->serializer->extend_min (out)))
+    return LOOKUP_CONDITION_SUBSET_ERROR;
+  out->format = 2;
+  out->defaultValue = 1;
+  out->varIdx = VarIdx::NO_VARIATION;
+  return LOOKUP_CONDITION_SUBSET_KEEP;
+}
+
+inline lookup_condition_subset_result_t
+Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
+					 unsigned depth) const
+{
+  if (unlikely (!depth))
+    return LOOKUP_CONDITION_SUBSET_ERROR;
+
+  auto subset_offset = [c, depth] (auto &out,
+				   const Condition &condition)
+      -> lookup_condition_subset_result_t
+  {
+    auto snap = c->serializer->snapshot ();
+    auto *offset = out.serialize_append (c->serializer);
+    if (unlikely (!offset))
+      return LOOKUP_CONDITION_SUBSET_ERROR;
+
+    c->serializer->push ();
+    lookup_condition_subset_result_t result =
+        condition.subset_lookup_condition (c, depth - 1);
+    if (result == LOOKUP_CONDITION_SUBSET_KEEP)
+      c->serializer->add_link (*offset, c->serializer->pop_pack ());
+    else
+    {
+      c->serializer->pop_discard ();
+      out.pop ();
+      c->serializer->revert (snap);
+    }
+    return result;
+  };
+
+  switch (u.format.v)
+  {
+    case 1:
+    {
+      const ConditionAxisRange &src = u.format1;
+      if (c->plan->user_axes_location.is_empty ())
+        return c->serializer->embed (&src) ?
+               LOOKUP_CONDITION_SUBSET_KEEP :
+               LOOKUP_CONDITION_SUBSET_ERROR;
+
+      hb_codepoint_t *axis_tag;
+      if (!c->plan->axes_old_index_tag_map.has (src.axisIndex, &axis_tag))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+
+      Triple axis_limit {-1.0, 0.0, 1.0};
+      Triple *normalized_limit;
+      if (c->plan->axes_location.has (*axis_tag, &normalized_limit))
+        axis_limit = *normalized_limit;
+
+      double filter_min = (double) src.filterRangeMinValue.to_float ();
+      double filter_max = (double) src.filterRangeMaxValue.to_float ();
+      if (filter_min > filter_max)
+        return LOOKUP_CONDITION_SUBSET_FALSE;
+      if (axis_limit.is_point ())
+        return filter_min <= axis_limit.middle &&
+	       axis_limit.middle <= filter_max ?
+	       LOOKUP_CONDITION_SUBSET_TRUE :
+	       LOOKUP_CONDITION_SUBSET_FALSE;
+      if (axis_limit.maximum < filter_min ||
+	  filter_max < axis_limit.minimum)
+        return LOOKUP_CONDITION_SUBSET_FALSE;
+      if (filter_min <= axis_limit.minimum &&
+	  axis_limit.maximum <= filter_max)
+        return LOOKUP_CONDITION_SUBSET_TRUE;
+      if (!c->plan->axes_index_map.has (src.axisIndex))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+
+      auto *out = c->serializer->embed (&src);
+      if (unlikely (!out))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+
+      TripleDistances axis_distances {1.0, 1.0};
+      TripleDistances *distances;
+      if (c->plan->axes_triple_distances.has (*axis_tag, &distances))
+        axis_distances = *distances;
+
+      out->filterRangeMinValue.set_float (
+	  renormalizeValue (filter_min, axis_limit, axis_distances, false));
+      out->filterRangeMaxValue.set_float (
+	  renormalizeValue (filter_max, axis_limit, axis_distances, false));
+      if (unlikely (!c->serializer->check_assign (
+		out->axisIndex,
+		c->plan->axes_index_map.get (src.axisIndex),
+		HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+      return LOOKUP_CONDITION_SUBSET_KEEP;
+    }
+
+    case 2:
+    {
+      const ConditionValue &src = u.format2;
+      auto *out = c->serializer->embed (&src);
+      if (unlikely (!out))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+
+      if (src.varIdx == VarIdx::NO_VARIATION)
+        return c->plan->user_axes_location.is_empty () ?
+               LOOKUP_CONDITION_SUBSET_KEEP :
+               ((int) src.defaultValue > 0 ?
+		LOOKUP_CONDITION_SUBSET_TRUE :
+		LOOKUP_CONDITION_SUBSET_FALSE);
+
+      hb_pair_t<unsigned, int> *new_varidx_delta;
+      if (!c->plan->layout_variation_idx_delta_map.has (src.varIdx,
+							&new_varidx_delta))
+        return c->plan->user_axes_location.is_empty () ?
+               LOOKUP_CONDITION_SUBSET_KEEP :
+               ((int) src.defaultValue > 0 ?
+		LOOKUP_CONDITION_SUBSET_TRUE :
+		LOOKUP_CONDITION_SUBSET_FALSE);
+
+      int default_value = (int) src.defaultValue +
+			  hb_second (*new_varidx_delta);
+      if (unlikely (!c->serializer->check_assign (
+		out->defaultValue,
+		default_value,
+		HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+      out->varIdx = hb_first (*new_varidx_delta);
+
+      if (!c->plan->user_axes_location.is_empty () &&
+	  out->varIdx == VarIdx::NO_VARIATION)
+        return default_value > 0 ?
+	       LOOKUP_CONDITION_SUBSET_TRUE :
+	       LOOKUP_CONDITION_SUBSET_FALSE;
+      return LOOKUP_CONDITION_SUBSET_KEEP;
+    }
+
+    case 3:
+    {
+      const ConditionAnd &src = u.format3;
+      auto *out = c->serializer->start_embed (&src);
+      if (unlikely (!out || !c->serializer->extend_min (out)))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+      out->format = 3;
+
+      for (const auto &offset : src.conditions)
+      {
+        lookup_condition_subset_result_t result =
+            subset_offset (out->conditions, &src + offset);
+        if (result == LOOKUP_CONDITION_SUBSET_ERROR ||
+	    result == LOOKUP_CONDITION_SUBSET_FALSE)
+          return result;
+      }
+      return out->conditions ?
+	     LOOKUP_CONDITION_SUBSET_KEEP :
+	     LOOKUP_CONDITION_SUBSET_TRUE;
+    }
+
+    case 4:
+    {
+      const ConditionOr &src = u.format4;
+      auto *out = c->serializer->start_embed (&src);
+      if (unlikely (!out || !c->serializer->extend_min (out)))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+      out->format = 4;
+
+      for (const auto &offset : src.conditions)
+      {
+        lookup_condition_subset_result_t result =
+            subset_offset (out->conditions, &src + offset);
+        if (result == LOOKUP_CONDITION_SUBSET_ERROR ||
+	    result == LOOKUP_CONDITION_SUBSET_TRUE)
+          return result;
+      }
+      return out->conditions ?
+	     LOOKUP_CONDITION_SUBSET_KEEP :
+	     LOOKUP_CONDITION_SUBSET_FALSE;
+    }
+
+    case 5:
+    {
+      const ConditionNegate &src = u.format5;
+      auto *out = c->serializer->embed (&src);
+      if (unlikely (!out))
+        return LOOKUP_CONDITION_SUBSET_ERROR;
+      out->condition = 0;
+
+      c->serializer->push ();
+      lookup_condition_subset_result_t result =
+          (&src + src.condition).subset_lookup_condition (c, depth - 1);
+      if (result == LOOKUP_CONDITION_SUBSET_KEEP)
+      {
+        c->serializer->add_link (out->condition,
+				 c->serializer->pop_pack ());
+        return result;
+      }
+
+      c->serializer->pop_discard ();
+      if (result == LOOKUP_CONDITION_SUBSET_TRUE)
+        return LOOKUP_CONDITION_SUBSET_FALSE;
+      if (result == LOOKUP_CONDITION_SUBSET_FALSE)
+        return LOOKUP_CONDITION_SUBSET_TRUE;
+      return result;
+    }
+
+    default:
+      return LOOKUP_CONDITION_SUBSET_FALSE;
   }
 }
 
@@ -5190,8 +5435,19 @@ struct LookupConditionRecord
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (unlikely (!out->condition.serialize_subset (c, condition, base)))
+    out->condition = 0;
+    c->serializer->push ();
+    lookup_condition_subset_result_t result =
+        (base + condition).subset_lookup_condition (c,
+					    HB_MAX_NESTING_LEVEL,
+					    true);
+    if (result != LOOKUP_CONDITION_SUBSET_KEEP)
+    {
+      c->serializer->pop_discard ();
       return_trace (false);
+    }
+    c->serializer->add_link (out->condition, c->serializer->pop_pack ());
+
     return_trace (out->lookupIndices.serialize_subset (c, lookupIndices, base, l));
   }
 

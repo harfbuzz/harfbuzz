@@ -298,7 +298,7 @@ static void
 test_ot_layout_collect_lookup_variations (void)
 {
   hb_face_t *face = hb_test_open_font_file (
-      "../shape/data/in-house/fonts/48b61f685ab1b3a3690fe4fea46ffc73dac3c301.ttf");
+      "../shape/data/in-house/fonts/ce30d3c1c8f77c156589ac7584acecaa4dfb619b.ttf");
   const hb_tag_t features[] = {HB_TAG ('l','i','g','a'), HB_TAG_NONE};
   hb_set_t *lookups = hb_set_create ();
 

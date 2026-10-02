@@ -323,7 +323,7 @@ static void
 test_ot_shape_plan_lookup_variations_cache (void)
 {
   hb_face_t *face = hb_test_open_font_file (
-      "../shape/data/in-house/fonts/48b61f685ab1b3a3690fe4fea46ffc73dac3c301.ttf");
+      "../shape/data/in-house/fonts/ce30d3c1c8f77c156589ac7584acecaa4dfb619b.ttf");
   hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
   int coords[] = {0};
 
