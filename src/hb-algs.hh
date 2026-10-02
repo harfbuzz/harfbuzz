@@ -227,10 +227,10 @@ struct HBInt<BE, Type, 4>
       __builtin_bswap32 ((uint32_t) *((const hb_packed_t<uint32_t> *) v))
     ;
 #else
-    return (BE ? (v[0] << 24) : (v[0]      ))
-	 + (BE ? (v[1] << 16) : (v[1] <<  8))
-	 + (BE ? (v[2] <<  8) : (v[2] << 16))
-	 + (BE ? (v[3]      ) : (v[3] << 24));
+    return (BE ? (uint32_t (v[0]) << 24) : (uint32_t (v[0])      ))
+	 + (BE ? (uint32_t (v[1]) << 16) : (uint32_t (v[1]) <<  8))
+	 + (BE ? (uint32_t (v[2]) <<  8) : (uint32_t (v[2]) << 16))
+	 + (BE ? (uint32_t (v[3])      ) : (uint32_t (v[3]) << 24));
 #endif
   }
   private: uint8_t v[4];
