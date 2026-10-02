@@ -60,6 +60,40 @@ test_item_variations ()
 }
 
 static void
+test_implicit_advance_mapping ()
+{
+  char data[sizeof (hvar_data)];
+  hb_memcpy (data, hvar_data, sizeof (data));
+  auto *hvar = reinterpret_cast<OT::HVAR *> (data);
+  const auto &store = hvar + hvar->varStore;
+  const int locations[] = {-16384, 0, 16384};
+  bool exercised_outer_one = false;
+
+  for (int weight : locations)
+    for (int size : locations)
+    {
+      int coords[] = {weight, size};
+      unsigned mapped = (hvar + hvar->advMap).map (0x10000u);
+      hb_always_assert (hvar->get_advance_delta_unscaled (0x10000u, coords, 2) ==
+                        store.get_delta (mapped, coords, 2));
+    }
+
+  hvar->advMap = 0;
+  for (int weight : locations)
+    for (int size : locations)
+    {
+      int coords[] = {weight, size};
+      exercised_outer_one |= store.get_delta (0x10000u, coords, 2) != 0;
+      hb_always_assert (hvar->get_advance_delta_unscaled (0, coords, 2) ==
+                        store.get_delta (0, coords, 2));
+      hb_always_assert (hvar->get_advance_delta_unscaled (0xFFFFu, coords, 2) == 0);
+      hb_always_assert (hvar->get_advance_delta_unscaled (0x10000u, coords, 2) == 0);
+      hb_always_assert (hvar->get_advance_delta_unscaled (0x10001u, coords, 2) == 0);
+    }
+  hb_always_assert (exercised_outer_one);
+}
+
+static void
 test_item_variations_overflow ()
 {
   hb_vector_t<hb_vector_t<int>> row_storage;
@@ -133,5 +167,6 @@ int
 main (int argc, char **argv)
 {
   test_item_variations ();
+  test_implicit_advance_mapping ();
   test_item_variations_overflow ();
 }

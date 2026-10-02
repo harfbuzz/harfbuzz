@@ -70,6 +70,43 @@ test_ot_layout_gdef_unsupported_version (void)
 }
 #endif
 
+#ifndef HB_NO_BEYOND_64K
+static void
+test_ot_layout_gdef_1_4_offset2 (void)
+{
+  const char gdef[] = {
+    0x00, 0x01, 0x00, 0x04, /* version 1.4 */
+    0x00, 0x26,             /* glyphClassDefOffset */
+    0x00, 0x00,             /* attachListOffset */
+    0x00, 0x00,             /* ligCaretListOffset */
+    0x00, 0x00,             /* markAttachClassDefOffset */
+    0x00, 0x00,             /* markGlyphSetsDefOffset */
+    0x00, 0x00, 0x00, 0x00, /* itemVarStoreOffset */
+    0x00, 0x00, 0x00, 0x2E, /* glyphClassDefOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* attachListOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* ligCaretListOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* markAttachClassDefOffset2 */
+    0x00, 0x00, 0x00, 0x00, /* markGlyphSetsDefOffset2 */
+    0x00, 0x01, 0x00, 0x05, /* legacy ClassDef format 1, glyph 5 */
+    0x00, 0x01, 0x00, 0x01, /* one glyph in class 1 */
+    0x00, 0x01, 0x00, 0x05, /* ClassDef2 format 1, glyph 5 */
+    0x00, 0x01, 0x00, 0x03, /* one glyph in class 3 */
+  };
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gdef, sizeof (gdef),
+				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GDEF, blob));
+  hb_blob_destroy (blob);
+
+  g_assert_true (hb_ot_layout_has_glyph_classes (face));
+  g_assert_cmpuint (hb_ot_layout_get_glyph_class (face, 5), ==,
+		    HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+
+  hb_face_destroy (face);
+}
+#endif
+
 static void
 test_ot_layout_table_get_script_tags (void)
 {
@@ -256,6 +293,38 @@ test_ot_layout_language_get_feature_tags (void)
   hb_face_destroy (face);
 }
 
+#ifndef HB_NO_VAR
+static void
+test_ot_layout_collect_lookup_variations (void)
+{
+  hb_face_t *face = hb_test_open_font_file (
+      "../shape/data/in-house/fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf");
+  const hb_tag_t features[] = {HB_TAG ('l','i','g','a'), HB_TAG_NONE};
+  hb_set_t *lookups = hb_set_create ();
+
+  hb_ot_layout_collect_lookups (face, HB_OT_TAG_GSUB,
+				NULL, NULL, features, lookups);
+
+  g_assert_cmpuint (hb_set_get_population (lookups), ==, 4);
+  g_assert_true (hb_set_has (lookups, 0));
+  g_assert_true (hb_set_has (lookups, 1));
+  g_assert_true (hb_set_has (lookups, 2));
+  g_assert_true (hb_set_has (lookups, 5));
+
+  const hb_tag_t gpos_features[] = {HB_TAG ('k','e','r','n'), HB_TAG_NONE};
+  hb_set_clear (lookups);
+  hb_ot_layout_collect_lookups (face, HB_OT_TAG_GPOS,
+				NULL, NULL, gpos_features, lookups);
+
+  g_assert_cmpuint (hb_set_get_population (lookups), ==, 2);
+  g_assert_true (hb_set_has (lookups, 0));
+  g_assert_true (hb_set_has (lookups, 1));
+
+  hb_set_destroy (lookups);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -263,10 +332,16 @@ main (int argc, char **argv)
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT) && defined(HAVE_MMAP)
   hb_test_add (test_ot_layout_gdef_unsupported_version);
 #endif
+#ifndef HB_NO_BEYOND_64K
+  hb_test_add (test_ot_layout_gdef_1_4_offset2);
+#endif
   hb_test_add (test_ot_layout_table_get_script_tags);
   hb_test_add (test_ot_layout_table_find_script);
   hb_test_add (test_ot_layout_script_get_language_tags);
   hb_test_add (test_ot_layout_table_get_feature_tags);
   hb_test_add (test_ot_layout_language_get_feature_tags);
+#ifndef HB_NO_VAR
+  hb_test_add (test_ot_layout_collect_lookup_variations);
+#endif
   return hb_test_run ();
 }

@@ -101,6 +101,10 @@ HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb::shared_ptr<hb_set_t>>), gpo
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, const OT::Feature*>), gsub_feature_substitutes_map)
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, const OT::Feature*>), gpos_feature_substitutes_map)
 
+//feature index->resolved lookup set mapping for fully-instanced lookup variations
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb::shared_ptr<hb_set_t>>), gsub_lookup_variations)
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb::shared_ptr<hb_set_t>>), gpos_lookup_variations)
+
 // old feature_indexes set, used to reinstate the old features
 HB_SUBSET_PLAN_MEMBER (hb_set_t, gsub_old_features)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, gpos_old_features)

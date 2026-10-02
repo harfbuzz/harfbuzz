@@ -83,7 +83,8 @@ struct CFF2FDSelect
     }
   }
 
-  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount,
+                 unsigned int charstring_count = HB_CODEPOINT_INVALID) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -92,9 +93,9 @@ struct CFF2FDSelect
 
     switch (format)
     {
-    case 0: hb_barrier (); return_trace (u.format0.sanitize (c, fdcount));
-    case 3: hb_barrier (); return_trace (u.format3.sanitize (c, fdcount));
-    case 4: hb_barrier (); return_trace (u.format4.sanitize (c, fdcount));
+    case 0: hb_barrier (); return_trace (u.format0.sanitize (c, fdcount, charstring_count));
+    case 3: hb_barrier (); return_trace (u.format3.sanitize (c, fdcount, charstring_count));
+    case 4: hb_barrier (); return_trace (u.format4.sanitize (c, fdcount, charstring_count));
     default:return_trace (false);
     }
   }
@@ -434,7 +435,6 @@ struct cff2
       varStore = &StructAtOffsetOrNull<CFF2ItemVariationStore> (cff2, topDict.vstoreOffset, sc);
       charStrings = &StructAtOffsetOrNull<CFF2CharStrings> (cff2, topDict.charStringsOffset, sc);
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset, sc);
-      fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset, sc, fdArray->count);
 
       if (charStrings == &Null (CFF2CharStrings) ||
 	  globalSubrs == &Null (CFF2Subrs) ||
@@ -443,6 +443,18 @@ struct cff2
 
       num_glyphs = charStrings->count;
       if (num_glyphs != sc.get_num_glyphs ())
+      {
+        /* VARC can define glyphs beyond the CFF2 CharStrings INDEX. */
+        hb_blob_t *varc = face->reference_table (HB_TAG ('V','A','R','C'));
+        bool valid_count = num_glyphs < sc.get_num_glyphs () &&
+                           hb_blob_get_length (varc);
+        hb_blob_destroy (varc);
+        if (!valid_count) goto fail;
+      }
+
+      fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset, sc,
+                                                   fdArray->count, num_glyphs);
+      if (topDict.FDSelectOffset && fdSelect == &Null (CFF2FDSelect))
         goto fail;
 
       fdCount = fdArray->count;

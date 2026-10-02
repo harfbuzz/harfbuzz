@@ -9,6 +9,7 @@ tests = [
   'test-base-minmax.c',
   'test-be-glyph-advance.c',
   'test-be-num-glyphs.c',
+  'test-be-subset-tables.c',
   'test-blob.c',
   'test-buffer.c',
   'test-c.c',

@@ -204,7 +204,47 @@ static void test_class_and_coverage_size_estimates ()
   };
   hb_always_assert (check_add_class_def_size (multiple_ranges, 0));
   hb_always_assert (check_add_class_def_size (multiple_ranges, 1));
+
+#ifndef HB_NO_BEYOND_64K
+  gid_and_class_list_t high_consecutive = {
+    {0x10000, 1},
+    {0x10001, 1},
+  };
+  hb_always_assert (check_add_class_def_size (high_consecutive, 1));
+
+  gid_and_class_list_t high_non_consecutive = {
+    {0x10000, 1},
+    {0x10002, 1},
+  };
+  hb_always_assert (check_add_class_def_size (high_non_consecutive, 1));
+
+  gid_and_class_list_t high_class = {
+    {5, 0x10000},
+  };
+  hb_always_assert (check_add_class_def_size (high_class, 0x10000));
+#endif
 }
+
+#ifndef HB_NO_BEYOND_64K
+static void test_class_def_format_3_values ()
+{
+  alignas (OT::ClassDef) static const unsigned char data[] = {
+    0x00, 0x03,             // format
+    0x00, 0x00, 0x05,       // startGlyphID
+    0x00, 0x00, 0x02,       // glyphCount
+    0x00, 0x00, 0x01,       // classValue[0]
+    0x01, 0x00, 0x00,       // classValue[1]
+  };
+  const OT::ClassDef &class_def = *reinterpret_cast<const OT::ClassDef *> (data);
+
+  hb_always_assert (class_def.get_class (5) == 1);
+  hb_always_assert (class_def.get_class (6) == 0x10000u);
+
+  hb_set_t glyphs;
+  glyphs.add (6);
+  hb_always_assert (class_def.intersects_class (&glyphs, 0x10000u));
+}
+#endif
 
 static void test_running_class_and_coverage_size_estimates () {
   // #### With consecutive gids: switches formats ###
@@ -293,4 +333,7 @@ main (int argc, char **argv)
   test_class_and_coverage_size_estimates ();
   test_running_class_and_coverage_size_estimates ();
   test_running_class_size_estimates_with_locally_consecutive_glyphs ();
+#ifndef HB_NO_BEYOND_64K
+  test_class_def_format_3_values ();
+#endif
 }

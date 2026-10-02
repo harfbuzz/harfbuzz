@@ -18,6 +18,9 @@ bool _hb_subset_table_var		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_t
   case HB_TAG('H','V','A','R'): *success = _hb_subset_table<const OT::HVAR> (plan, buf); return true;
   case HB_TAG('V','V','A','R'): *success = _hb_subset_table<const OT::VVAR> (plan, buf); return true;
   case HB_TAG('g','v','a','r'): *success = _hb_subset_table<const OT::gvar> (plan, buf); return true;
+#ifndef HB_NO_BEYOND_64K
+  case HB_TAG('G','V','A','R'): *success = _hb_subset_table<const OT::GVAR> (plan, buf); return true;
+#endif
 #ifndef HB_NO_VAR_COMPOSITES
   case HB_TAG('V','A','R','C'): *success = _hb_subset_table<const OT::VARC> (plan, buf); return true;
 #endif

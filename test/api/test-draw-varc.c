@@ -305,6 +305,62 @@ test_hb_draw_varc_static_gvar (void)
 }
 
 static void
+test_hb_draw_varc_short_cff2 (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-short-cff2.otf");
+  g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 4);
+  hb_font_t *font = hb_font_create (face);
+
+  draw_data_t draw_data = {0};
+  hb_font_draw_glyph (font, 1, funcs, &draw_data);
+  g_assert_cmpuint (draw_data.move_to_count, ==, 1);
+  g_assert_cmpfloat (draw_data.first_move_x, ==, 100.f);
+
+  draw_data = (draw_data_t) {0};
+  hb_font_draw_glyph (font, 3, funcs, &draw_data);
+  g_assert_cmpuint (draw_data.move_to_count, ==, 1);
+  g_assert_cmpuint (draw_data.line_to_count, ==, 3);
+  g_assert_cmpfloat (draw_data.first_move_x, ==, 600.f);
+  hb_glyph_extents_t extents;
+  g_assert_true (hb_font_get_glyph_extents (font, 3, &extents));
+  g_assert_cmpint (extents.x_bearing, ==, 600);
+  g_assert_cmpint (extents.y_bearing, ==, 200);
+  g_assert_cmpint (extents.width, ==, 200);
+  g_assert_cmpint (extents.height, ==, -200);
+  hb_font_destroy (font);
+
+  /* A count mismatch without VARC must still disable the CFF2 accelerator. */
+  hb_face_t *without_varc = hb_face_builder_create ();
+  const hb_tag_t tags[] = {
+    HB_TAG ('C','F','F','2'), HB_TAG ('m','a','x','p'), HB_TAG ('h','e','a','d'),
+    HB_TAG ('h','m','t','x'), HB_TAG ('h','h','e','a')
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (tags); i++)
+  {
+    hb_blob_t *blob = hb_face_reference_table (face, tags[i]);
+    g_assert_true (hb_face_builder_add_table (without_varc, tags[i], blob));
+    hb_blob_destroy (blob);
+  }
+  font = hb_font_create (without_varc);
+  draw_data = (draw_data_t) {0};
+  hb_font_draw_glyph (font, 1, funcs, &draw_data);
+  g_assert_cmpuint (draw_data.move_to_count, ==, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (without_varc);
+
+  /* VARC does not permit more CharStrings than the font glyph count. */
+  hb_face_destroy (face);
+  face = hb_test_open_font_file ("fonts/varc-short-cff2.otf");
+  hb_face_set_glyph_count (face, 2);
+  font = hb_font_create (face);
+  draw_data = (draw_data_t) {0};
+  hb_font_draw_glyph (font, 1, funcs, &draw_data);
+  g_assert_cmpuint (draw_data.move_to_count, ==, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_hb_draw_varc_budget (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/varc-6868.ttf");
@@ -361,6 +417,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_varc_simple_hanzi);
   hb_test_add (test_hb_draw_varc_conditional);
   hb_test_add (test_hb_draw_varc_static_gvar);
+  hb_test_add (test_hb_draw_varc_short_cff2);
   hb_test_add (test_hb_draw_varc_budget);
 #endif
   unsigned result = hb_test_run ();

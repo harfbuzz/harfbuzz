@@ -318,6 +318,52 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult (void)
   hb_face_destroy (face);
 }
 
+#ifndef HB_NO_VAR
+static void
+test_ot_shape_plan_lookup_variations_cache (void)
+{
+  hb_face_t *face = hb_test_open_font_file (
+      "../shape/data/in-house/fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf");
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
+  int coords[] = {0};
+
+  props.script = HB_SCRIPT_LATIN;
+  props.direction = HB_DIRECTION_LTR;
+
+  hb_shape_plan_t *plan_0 = hb_shape_plan_create_cached2 (face, &props,
+							  NULL, 0, coords, 1, NULL);
+  coords[0] = 4915; /* 0.3 */
+  hb_shape_plan_t *plan_03 = hb_shape_plan_create_cached2 (face, &props,
+							   NULL, 0, coords, 1, NULL);
+  coords[0] = 6554; /* 0.4; same lookup set as 0.3. */
+  hb_shape_plan_t *plan_04 = hb_shape_plan_create_cached2 (face, &props,
+							   NULL, 0, coords, 1, NULL);
+  coords[0] = 9830; /* 0.6 */
+  hb_shape_plan_t *plan_06 = hb_shape_plan_create_cached2 (face, &props,
+							   NULL, 0, coords, 1, NULL);
+  coords[0] = 13107; /* 0.8 */
+  hb_shape_plan_t *plan_08 = hb_shape_plan_create_cached2 (face, &props,
+							   NULL, 0, coords, 1, NULL);
+  coords[0] = 0;
+  hb_shape_plan_t *plan_0_again = hb_shape_plan_create_cached2 (face, &props,
+								NULL, 0, coords, 1, NULL);
+
+  g_assert_true (plan_0 == plan_0_again);
+  g_assert_true (plan_03 == plan_04);
+  g_assert_true (plan_0 != plan_03);
+  g_assert_true (plan_03 != plan_06);
+  g_assert_true (plan_06 != plan_08);
+
+  hb_shape_plan_destroy (plan_0_again);
+  hb_shape_plan_destroy (plan_08);
+  hb_shape_plan_destroy (plan_06);
+  hb_shape_plan_destroy (plan_04);
+  hb_shape_plan_destroy (plan_03);
+  hb_shape_plan_destroy (plan_0);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -330,6 +376,9 @@ main (int argc, char **argv)
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disable);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablepartial);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult);
+#ifndef HB_NO_VAR
+  hb_test_add (test_ot_shape_plan_lookup_variations_cache);
+#endif
 
   return hb_test_run();
 }
