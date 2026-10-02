@@ -127,6 +127,11 @@ HB_SUBSET_PLAN_MEMBER (hb_map_t, colrv1_new_deltaset_idx_varidx_map)
 //Old layout item variation index -> (New varidx, delta) mapping
 HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<unsigned, hb_pair_t E(<unsigned, int>)>), layout_variation_idx_delta_map)
 
+//Layout condition -> (source variation index, default value)
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<const void*, hb_pair_t E(<unsigned, int>)>), layout_condition_values)
+//Layout condition -> (private variation index, rescaled default value)
+HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<const void*, hb_pair_t E(<unsigned, int>)>), layout_condition_idx_value_map)
+
 //gdef varstore retained varidx mapping
 HB_SUBSET_PLAN_MEMBER (hb_vector_t<hb_inc_bimap_t>, gdef_varstore_inner_maps)
 

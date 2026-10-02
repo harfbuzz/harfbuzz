@@ -490,6 +490,8 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
   OT::hb_collect_variation_indices_context_t c (&varidx_set,
                                                 &plan->_glyphset_gsub,
                                                 &plan->gpos_lookups);
+  if (plan->normalized_coords && !plan->all_axes_pinned)
+    c.condition_values = &plan->layout_condition_values;
   gdef->collect_variation_indices (&c);
 
   if (hb_ot_layout_has_substitution (plan->source))
@@ -508,6 +510,7 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
 
   unsigned subtable_count = gdef->get_var_store ().get_sub_table_count ();
   generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
+  plan->check_success (!plan->layout_condition_values.in_error ());
 
   gdef.destroy ();
   gsub.destroy ();

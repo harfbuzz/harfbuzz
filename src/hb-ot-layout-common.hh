@@ -218,6 +218,7 @@ struct hb_collect_variation_indices_context_t :
   hb_set_t *layout_variation_indices;
   const hb_set_t *glyph_set;
   const hb_map_t *gpos_lookups;
+  hb_hashmap_t<const void*, hb_pair_t<unsigned, int>> *condition_values = nullptr;
 
   hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
 					  const hb_set_t *glyph_set_,
@@ -4392,6 +4393,14 @@ struct ConditionValue
     if (varIdx == VarIdx::NO_VARIATION)
       return_trace (true);
 
+    hb_pair_t<unsigned, int> *condition_value;
+    if (c->plan->layout_condition_idx_value_map.has (this, &condition_value))
+    {
+      out->defaultValue = condition_value->second;
+      out->varIdx = condition_value->first;
+      return_trace (true);
+    }
+
     hb_pair_t<unsigned, int> *new_varidx_delta;
     if (!c->plan->layout_variation_idx_delta_map.has (varIdx, &new_varidx_delta))
       return_trace (false);
@@ -4705,7 +4714,8 @@ struct Condition
   }
 
   bool collect_var_indices (hb_set_t *var_indices,
-			    unsigned depth = HB_MAX_NESTING_LEVEL) const;
+			    unsigned depth = HB_MAX_NESTING_LEVEL,
+                            hb_hashmap_t<const void*, hb_pair_t<unsigned, int>> *condition_values = nullptr) const;
 
   bool serialize (hb_serialize_context_t *c,
 		  const Condition *src,
@@ -4779,7 +4789,8 @@ struct ConditionList
 };
 
 inline bool
-Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth) const
+Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth,
+                               hb_hashmap_t<const void*, hb_pair_t<unsigned, int>> *condition_values) const
 {
   if (unlikely (!depth)) return false;
   switch (u.format.v)
@@ -4789,23 +4800,29 @@ Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth) const
       return true;
     case 2:
       if (u.format2.varIdx != VarIdx::NO_VARIATION)
-	var_indices->add (u.format2.varIdx);
+      {
+        var_indices->add (u.format2.varIdx);
+        if (condition_values &&
+            !condition_values->set (&u.format2,
+                                    hb_pair (unsigned (u.format2.varIdx), int (u.format2.defaultValue))))
+          return false;
+      }
       return !var_indices->in_error ();
     case 3:
       for (const auto &offset : u.format3.conditions)
 	if (unlikely (!(&u.format3+offset).collect_var_indices (var_indices,
-							     depth - 1)))
+							     depth - 1, condition_values)))
 	  return false;
       return true;
     case 4:
       for (const auto &offset : u.format4.conditions)
 	if (unlikely (!(&u.format4+offset).collect_var_indices (var_indices,
-							     depth - 1)))
+							     depth - 1, condition_values)))
 	  return false;
       return true;
     case 5:
       return (&u.format5+u.format5.condition).collect_var_indices (var_indices,
-								  depth - 1);
+								  depth - 1, condition_values);
     default:
       return false;
   }
@@ -5007,6 +5024,17 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
                ((int) src.defaultValue > 0 ?
 		LOOKUP_CONDITION_SUBSET_TRUE :
 		LOOKUP_CONDITION_SUBSET_FALSE);
+
+      hb_pair_t<unsigned, int> *condition_value;
+      if (c->plan->layout_condition_idx_value_map.has (&src, &condition_value))
+      {
+        out->defaultValue = condition_value->second;
+        out->varIdx = condition_value->first;
+        if (out->varIdx == VarIdx::NO_VARIATION)
+          return out->defaultValue > 0 ? LOOKUP_CONDITION_SUBSET_TRUE :
+                                        LOOKUP_CONDITION_SUBSET_FALSE;
+        return LOOKUP_CONDITION_SUBSET_KEEP;
+      }
 
       hb_pair_t<unsigned, int> *new_varidx_delta;
       if (!c->plan->layout_variation_idx_delta_map.has (src.varIdx,
@@ -5235,7 +5263,9 @@ struct ConditionSet
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     for (const auto &offset : conditions)
-      if (unlikely (!(this+offset).collect_var_indices (c->layout_variation_indices)))
+      if (unlikely (!(this+offset).collect_var_indices (c->layout_variation_indices,
+                                                       HB_MAX_NESTING_LEVEL,
+                                                       c->condition_values)))
 	c->layout_variation_indices->err ();
   }
 
@@ -5553,7 +5583,9 @@ struct LookupConditionRecord
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
 				  const void *base) const
   {
-    if (unlikely (!(base+condition).collect_var_indices (c->layout_variation_indices)))
+    if (unlikely (!(base+condition).collect_var_indices (c->layout_variation_indices,
+                                                        HB_MAX_NESTING_LEVEL,
+                                                        c->condition_values)))
       c->layout_variation_indices->err ();
   }
 
