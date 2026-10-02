@@ -112,13 +112,21 @@ struct Lookup : public OT::Lookup
                type,
                this_index);
 
+    hb_set_t seen;
+    hb_vector_t<unsigned> subtables;
     for (unsigned i = 0; i < subTable.len; i++)
     {
       TRY_ASSIGN (unsigned subtable_index, c.graph.index_for_offset (this_index, &subTable[i]));
-      TRY (make_subtable_extension (c,
-                                    this_index,
-                                    subtable_index));
+      if (seen.has (subtable_index))
+        continue;
+      seen.add (subtable_index);
+      subtables.push (subtable_index);
     }
+    TRY (graph_result_t<void>::from (seen, ALLOCATION_FAILURE));
+    TRY (graph_result_t<void>::from (subtables, ALLOCATION_FAILURE));
+
+    for (unsigned subtable_index : subtables)
+      TRY (make_subtable_extension (c, this_index, subtable_index));
 
     lookupType = ext_type;
     return Ok();
@@ -348,21 +356,25 @@ struct Lookup : public OT::Lookup
 
     auto& subtable_vertex = c.graph.vertices_[subtable_index];
     auto& lookup_vertex = c.graph.vertices_[lookup_index];
+    unsigned replaced = 0;
     for (auto& l : lookup_vertex.real_links_writer ())
     {
       if (l.objidx == subtable_index) {
         // Change lookup to point at the extension.
         l.objidx = ext_index;
-        if (existing_ext_index)
-          subtable_vertex.remove_parent(lookup_index);
+        replaced++;
       }
     }
 
     // Make extension point at the subtable.
     auto& ext_vertex = c.graph.vertices_[ext_index];
-    TRY(ext_vertex.add_parent (lookup_index, false));
+    for (unsigned i = 0; i < replaced; i++)
+    {
+      subtable_vertex.remove_parent (lookup_index);
+      TRY(ext_vertex.add_parent (lookup_index, false));
+    }
     if (!existing_ext_index)
-      TRY(subtable_vertex.remap_parent (lookup_index, ext_index));
+      TRY(subtable_vertex.add_parent (ext_index, false));
 
     return Ok();
   }
@@ -437,15 +449,16 @@ struct GSTAR : public OT::GSUBGPOS
   graph_result_t<void> find_lookups (graph_t& graph,
                                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */) const
   {
+#ifndef HB_NO_BEYOND_64K
+    if (version.to_int () >= 0x00010002u && lookupList2)
+      return find_lookups<MediumTypes> (graph, lookups);
+#endif
     TRY(find_lookups<SmallTypes> (graph, lookups));
     return Ok();
   }
 
   graph_result_t<unsigned> get_lookup_list_index (graph_t& graph) const
   {
-    if (version.to_int () >= 0x00010002u)
-      return Err(INVALID_ARGUMENT);
-
     const void* offset = get_lookup_list_field_offset ();
     if (unlikely (!offset)) return Err(INVALID_ARGUMENT);
     return graph.index_for_offset (graph.root_idx (), offset);
@@ -455,9 +468,6 @@ struct GSTAR : public OT::GSUBGPOS
   graph_result_t<void> find_lookups (graph_t& graph,
                                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */) const
   {
-    if (version.to_int () >= 0x00010002u)
-      return Ok();
-
     TRY_ASSIGN (unsigned lookup_list_idx, get_lookup_list_index (graph));
     const LookupList<Types>* lookupList =
         (const LookupList<Types>*) graph.object (lookup_list_idx).head;

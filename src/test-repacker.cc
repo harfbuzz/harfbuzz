@@ -96,6 +96,24 @@ static void add_gsubgpos_header (unsigned lookup_list,
   c->pop_pack (false);
 }
 
+static void add_gsubgpos_header_1_2 (unsigned lookup_list,
+                                     hb_serialize_context_t* c)
+{
+  char header[] = {
+    0, 1, 0, 2, // version
+    0, 0, // script list
+    0, 0, // feature list
+    0, 0, // lookup list
+    0, 0, 0, 0, // feature variations
+    0, 0, 0, 0, // script list 2
+    0, 0, 0, 0, // feature list 2
+  };
+
+  start_object (header, sizeof (header), c);
+  add_wide_offset (lookup_list, c);
+  c->pop_pack (false);
+}
+
 static unsigned add_lookup_list (const unsigned* lookups,
                                  char count,
                                  hb_serialize_context_t* c)
@@ -105,6 +123,19 @@ static unsigned add_lookup_list (const unsigned* lookups,
 
   for (int i = 0; i < count; i++)
     add_offset (lookups[i], c);
+
+  return c->pop_pack (false);
+}
+
+static unsigned add_lookup_list_1_2 (const unsigned* lookups,
+                                     char count,
+                                     hb_serialize_context_t* c)
+{
+  char lookup_count[] = {0, count};
+  start_object ((char *) &lookup_count, 2, c);
+
+  for (int i = 0; i < count; i++)
+    add_wide_offset (lookups[i], c);
 
   return c->pop_pack (false);
 }
@@ -1411,7 +1442,8 @@ populate_serializer_with_24_and_32_bit_offsets (hb_serialize_context_t* c)
 static void
 populate_serializer_with_extension_promotion (hb_serialize_context_t* c,
                                               int num_extensions = 0,
-                                              bool shared_subtables = false)
+                                              bool shared_subtables = false,
+                                              bool version_1_2 = false)
 {
   constexpr int num_lookups = 5;
   constexpr int num_subtables = num_lookups * 2;
@@ -1458,9 +1490,14 @@ populate_serializer_with_extension_promotion (hb_serialize_context_t* c,
     lookups[i] = finish_lookup (c);
   }
 
-  unsigned lookup_list = add_lookup_list (lookups, num_lookups, c);
+  unsigned lookup_list = version_1_2
+                         ? add_lookup_list_1_2 (lookups, num_lookups, c)
+                         : add_lookup_list (lookups, num_lookups, c);
 
-  add_gsubgpos_header (lookup_list, c);
+  if (version_1_2)
+    add_gsubgpos_header_1_2 (lookup_list, c);
+  else
+    add_gsubgpos_header (lookup_list, c);
 
   c->end_serialize();
 }
@@ -2311,6 +2348,73 @@ static void test_resolve_with_shared_extension_promotion ()
   free (expected_buffer);
 }
 
+#ifndef HB_NO_BEYOND_64K
+static void test_resolve_with_extension_promotion_1_2 ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  hb_always_assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_extension_promotion (&c, 0, false, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  hb_always_assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_extension_promotion (&e, 3, false, true);
+
+  run_resolve_overflow_test ("test_resolve_with_extension_promotion_1_2",
+                             c,
+                             e,
+                             20,
+                             true);
+  free (buffer);
+  free (expected_buffer);
+}
+#endif
+
+static void test_resolve_with_repeated_extension_promotion ()
+{
+  size_t buffer_size = 1000;
+  void* buffer = malloc (buffer_size);
+  hb_always_assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize<char> ();
+  unsigned subtable = add_object ("subt", 4, &c);
+  start_lookup (5, 2, &c);
+  add_offset (subtable, &c);
+  add_offset (subtable, &c);
+  unsigned lookup = finish_lookup (&c);
+  unsigned lookup_list = add_lookup_list (&lookup, 1, &c);
+  add_gsubgpos_header (lookup_list, &c);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  auto context = graph::gsubgpos_graph_context_t::create (HB_TAG ('G', 'S', 'U', 'B'),
+                                                          graph).value ();
+  hb_always_assert (context.lookups.get_population () == 1);
+  unsigned lookup_index = *context.lookups.keys ();
+  graph::Lookup* lookup_table = context.lookups.get (lookup_index);
+  hb_always_assert (lookup_table->make_extension (context, lookup_index).is_ok ());
+
+  const auto& lookup_vertex = graph.vertices_[lookup_index];
+  hb_always_assert (lookup_vertex.obj ().real_links.length == 2);
+  unsigned extension_index = lookup_vertex.obj ().real_links[0].objidx;
+  hb_always_assert (lookup_vertex.obj ().real_links[1].objidx == extension_index);
+
+  auto* extension = graph.vertices_[extension_index].as<
+      graph::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*> ();
+  unsigned promoted_subtable = extension->get_subtable_index (graph, extension_index).value ();
+  hb_always_assert (graph.vertices_[promoted_subtable].table_size () == 4);
+  hb_always_assert (graph.update_parents ().is_ok ());
+  hb_always_assert (graph.vertices_[extension_index].incoming_edges () == 2);
+  hb_always_assert (graph.vertices_[promoted_subtable].incoming_edges () == 1);
+
+  hb_blob_t* out = graph::serialize (graph).value ();
+  hb_blob_destroy (out);
+  free (buffer);
+}
+
 static void test_resolve_with_basic_pair_pos_1_split ()
 {
   size_t buffer_size = 200000;
@@ -2923,6 +3027,10 @@ main (int argc, char **argv)
   test_shared_node_with_virtual_links ();
   test_resolve_with_extension_promotion ();
   test_resolve_with_shared_extension_promotion ();
+#ifndef HB_NO_BEYOND_64K
+  test_resolve_with_extension_promotion_1_2 ();
+#endif
+  test_resolve_with_repeated_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
   test_resolve_with_extension_pair_pos_1_split ();
   test_resolve_with_basic_pair_pos_2_split ();

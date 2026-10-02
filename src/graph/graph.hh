@@ -828,12 +828,12 @@ public:
           // pointer to the lookup list.
           continue;
 
-        if (l.width == 3)
+        if (l.width >= 3)
         {
-          // A 24bit offset forms a root, unless there is 32bit offsets somewhere
-          // in it's subgraph, then those become the roots instead. This is to make sure
-          // that extension subtables beneath a 24bit lookup become the spaces instead
-          // of the offset to the lookup.
+          // A wide offset forms a root, unless there are 32-bit offsets somewhere
+          // in its subgraph, then those become the roots instead. This is to make sure
+          // that extension subtables beneath a 24-bit lookup and lookups beneath a
+          // 32-bit lookup list become the spaces instead of their enclosing lists.
           hb_set_t sub_roots;
           TRY (find_32bit_roots (l.objidx, sub_roots));
           if (sub_roots) {
