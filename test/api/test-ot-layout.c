@@ -298,7 +298,7 @@ static void
 test_ot_layout_collect_lookup_variations (void)
 {
   hb_face_t *face = hb_test_open_font_file (
-      "../shape/data/in-house/fonts/ce30d3c1c8f77c156589ac7584acecaa4dfb619b.ttf");
+      "../shape/data/in-house/fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf");
   const hb_tag_t features[] = {HB_TAG ('l','i','g','a'), HB_TAG_NONE};
   hb_set_t *lookups = hb_set_create ();
 
@@ -310,6 +310,15 @@ test_ot_layout_collect_lookup_variations (void)
   g_assert_true (hb_set_has (lookups, 1));
   g_assert_true (hb_set_has (lookups, 2));
   g_assert_true (hb_set_has (lookups, 5));
+
+  const hb_tag_t gpos_features[] = {HB_TAG ('k','e','r','n'), HB_TAG_NONE};
+  hb_set_clear (lookups);
+  hb_ot_layout_collect_lookups (face, HB_OT_TAG_GPOS,
+				NULL, NULL, gpos_features, lookups);
+
+  g_assert_cmpuint (hb_set_get_population (lookups), ==, 2);
+  g_assert_true (hb_set_has (lookups, 0));
+  g_assert_true (hb_set_has (lookups, 1));
 
   hb_set_destroy (lookups);
   hb_face_destroy (face);

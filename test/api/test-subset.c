@@ -121,7 +121,7 @@ static void
 test_subset_lookup_variations (void)
 {
   hb_face_t *face = hb_test_open_font_file (
-      "../shape/data/in-house/fonts/ce30d3c1c8f77c156589ac7584acecaa4dfb619b.ttf");
+      "../shape/data/in-house/fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf");
   const hb_codepoint_t expected_all[] = {2, 4, 6, 8, 9, 10};
   const hb_codepoint_t expected_test_08_dumy_08[] = {2, 3, 6, 8, 9, 10};
   const hb_codepoint_t expected_test_03_dumy_0[] = {2, 4, 5, 7, 8, 11};
