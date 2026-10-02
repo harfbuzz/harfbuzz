@@ -26,9 +26,38 @@
 #include "hb-ot-cff-common.hh"
 #include "hb-subset-cff-common.hh"
 
+template <typename GID, typename FD>
+static void
+test_fd_select_sentinel ()
+{
+  unsigned char data[3 * GID::static_size + FD::static_size] = {};
+  auto *select = reinterpret_cast<CFF::FDSelect3_4<GID, FD> *> (data);
+  select->ranges.len = 1;
+  select->ranges.arrayZ[0].first = 0;
+  select->ranges.arrayZ[0].fd = 0;
+  hb_sanitize_context_t c ((const char *) data, (const char *) data + sizeof (data));
+  c.set_num_glyphs (4);
+  c.start_processing ();
+
+  select->sentinel () = 3;
+  hb_always_assert (select->sanitize (&c, 1, 3));
+  hb_always_assert (!select->sanitize (&c, 1));
+  select->sentinel () = 4;
+  hb_always_assert (select->sanitize (&c, 1, 3));
+  hb_always_assert (select->sanitize (&c, 1));
+  select->sentinel () = 2;
+  hb_always_assert (!select->sanitize (&c, 1, 3));
+  select->sentinel () = 5;
+  hb_always_assert (!select->sanitize (&c, 1, 3));
+  c.end_processing ();
+}
+
 int
 main (int argc, char **argv)
 {
+  test_fd_select_sentinel<OT::HBUINT16, OT::HBUINT8> ();
+  test_fd_select_sentinel<OT::HBUINT32, OT::HBUINT16> ();
+
   /* Test encode_num_tp */
   {
     CFF::str_buff_t buff;
