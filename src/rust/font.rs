@@ -11,12 +11,19 @@ use read_fonts::model::{
     Blob, Font, NormalizedCoord,
 };
 use read_fonts::types::{BoundingBox as FontBounds, F48Dot16, GlyphId};
+
+#[cfg(feature = "skrifa")]
 use read_fonts::FontRef;
 
+#[cfg(feature = "skrifa")]
 use skrifa::bitmap::{BitmapFormat, BitmapGlyph, BitmapStrikes, Origin};
+#[cfg(feature = "skrifa")]
 use skrifa::color::ColorGlyphCollection;
+#[cfg(feature = "skrifa")]
 use skrifa::instance::Size;
+#[cfg(feature = "skrifa")]
 use skrifa::MetadataProvider;
+#[cfg(feature = "draw")]
 use skrifa::OutlineGlyphCollection;
 
 #[cfg(feature = "draw")]
@@ -35,14 +42,12 @@ use skrifa::{
 
 // A struct for storing your “fontations” data
 #[repr(C)]
-struct FontationsData<'a> {
+struct FontationsData {
+    #[cfg(feature = "paint")]
     face_blob: Arc<HbBlob>,
     font: *mut hb_font_t,
-    outline_glyphs: OutlineGlyphCollection<'a>,
-    color_glyphs: ColorGlyphCollection<'a>,
-    cbdt_strikes: Option<BitmapStrikes<'a>>,
-    sbix_strikes: Option<BitmapStrikes<'a>>,
-    size: Size,
+    #[cfg(feature = "skrifa")]
+    skrifa: SkrifaData<'static>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -52,42 +57,49 @@ struct FontationsData<'a> {
     instance: Font,
 }
 
-impl FontationsData<'_> {
+#[cfg(feature = "skrifa")]
+struct SkrifaData<'a> {
+    #[cfg(feature = "draw")]
+    outline_glyphs: OutlineGlyphCollection<'a>,
+    color_glyphs: ColorGlyphCollection<'a>,
+    cbdt_strikes: Option<BitmapStrikes<'a>>,
+    sbix_strikes: Option<BitmapStrikes<'a>>,
+    size: Size,
+}
+
+impl FontationsData {
     unsafe fn from_hb_font(font: *mut hb_font_t) -> Option<Self> {
         let face_index = hb_face_get_index(hb_font_get_face(font));
         let face_blob = Arc::new(HbBlob(hb_face_reference_blob(hb_font_get_face(font))));
-        let blob_length = hb_blob_get_length(face_blob.0);
-        let blob_data: *const u8 = hb_blob_get_data(face_blob.0, null_mut()).cast();
-        if blob_data.is_null() {
-            return None;
-        }
-        let face_data = std::slice::from_raw_parts(blob_data, blob_length as usize);
-
-        let font_ref = FontRef::from_index(face_data, face_index);
-        let font_ref = match font_ref {
-            Ok(f) => f,
-            Err(_) => return None,
-        };
-
         let instance = Font::new(Blob::Shared(face_blob.clone()), face_index)?;
 
-        let outline_glyphs = font_ref.outline_glyphs();
+        #[cfg(feature = "skrifa")]
+        let skrifa = {
+            let blob_length = hb_blob_get_length(face_blob.0);
+            let blob_data: *const u8 = hb_blob_get_data(face_blob.0, null_mut()).cast();
+            if blob_data.is_null() {
+                return None;
+            }
+            // The instance owns the blob for the lifetime of these collections.
+            let face_data = std::slice::from_raw_parts(blob_data, blob_length as usize);
+            let font_ref = FontRef::from_index(face_data, face_index).ok()?;
 
-        let color_glyphs = font_ref.color_glyphs();
-
-        let cbdt_strikes = BitmapStrikes::with_format(&font_ref, BitmapFormat::Cbdt);
-        let sbix_strikes = BitmapStrikes::with_format(&font_ref, BitmapFormat::Sbix);
-
-        let upem = hb_face_get_upem(hb_font_get_face(font));
+            SkrifaData {
+                #[cfg(feature = "draw")]
+                outline_glyphs: font_ref.outline_glyphs(),
+                color_glyphs: font_ref.color_glyphs(),
+                cbdt_strikes: BitmapStrikes::with_format(&font_ref, BitmapFormat::Cbdt),
+                sbix_strikes: BitmapStrikes::with_format(&font_ref, BitmapFormat::Sbix),
+                size: Size::new(hb_face_get_upem(hb_font_get_face(font)) as f32),
+            }
+        };
 
         let mut data = FontationsData {
+            #[cfg(feature = "paint")]
             face_blob,
             font,
-            outline_glyphs,
-            color_glyphs,
-            cbdt_strikes,
-            sbix_strikes,
-            size: Size::new(upem as f32),
+            #[cfg(feature = "skrifa")]
+            skrifa,
             mutex: Mutex::new(()),
             x_mult: 1.0,
             y_mult: 1.0,
@@ -225,6 +237,7 @@ fn struct_at_offset_mut<T: Copy>(first: *mut T, index: u32, stride: u32) -> &'st
     unsafe { &mut *((first as *mut u8).offset((index * stride) as isize) as *mut T) }
 }
 
+#[cfg(feature = "skrifa")]
 fn bitmap_size(font: *mut hb_font_t) -> Size {
     let mut x_ppem = 0;
     let mut y_ppem = 0;
@@ -237,6 +250,7 @@ fn bitmap_size(font: *mut hb_font_t) -> Size {
     }
 }
 
+#[cfg(feature = "skrifa")]
 fn bitmap_glyph_extents(
     data: &FontationsData,
     bitmap_glyph: &BitmapGlyph,
@@ -251,7 +265,7 @@ fn bitmap_glyph_extents(
         return None;
     }
 
-    let upem = data.size.ppem()?;
+    let upem = data.skrifa.size.ppem()?;
     let x_scale = upem / bitmap_glyph.ppem_x;
     let y_scale = upem / bitmap_glyph.ppem_y;
 
@@ -418,7 +432,7 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
 }
 
 extern "C" fn _hb_fontations_get_glyph_extents(
-    font: *mut hb_font_t,
+    _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
     extents: *mut hb_glyph_extents_t,
@@ -429,60 +443,63 @@ extern "C" fn _hb_fontations_get_glyph_extents(
 
     let glyph_id = GlyphId::new(glyph);
 
-    let size = bitmap_size(font);
-    let bitmap_glyph = data
-        .sbix_strikes
-        .as_ref()
-        .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
-        .or_else(|| {
-            data.cbdt_strikes
-                .as_ref()
-                .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
-        });
-    if let Some(bitmap_glyph) = bitmap_glyph {
-        let Some(bitmap_extents) = bitmap_glyph_extents(data, &bitmap_glyph) else {
-            return false as hb_bool_t;
-        };
-        unsafe { *extents = bitmap_extents };
-        return true as hb_bool_t;
+    #[cfg(feature = "skrifa")]
+    {
+        let skrifa = &data.skrifa;
+        let size = bitmap_size(_font);
+        let bitmap_glyph = skrifa
+            .sbix_strikes
+            .as_ref()
+            .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+            .or_else(|| {
+                skrifa
+                    .cbdt_strikes
+                    .as_ref()
+                    .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+            });
+        if let Some(bitmap_glyph) = bitmap_glyph {
+            let Some(bitmap_extents) = bitmap_glyph_extents(data, &bitmap_glyph) else {
+                return false as hb_bool_t;
+            };
+            unsafe { *extents = bitmap_extents };
+            return true as hb_bool_t;
+        }
+
+        if let Some(color_glyph) = skrifa.color_glyphs.get(glyph_id) {
+            let Some(glyph_extents) =
+                color_glyph.bounding_box(data.instance.normalized_coords(), skrifa.size)
+            else {
+                return false as hb_bool_t;
+            };
+
+            let x_bearing = (glyph_extents.x_min * data.x_mult).round() as hb_position_t;
+            let width = ((glyph_extents.x_max * data.x_mult).round() as hb_position_t)
+                .saturating_sub(x_bearing);
+            let y_bearing = (glyph_extents.y_max * data.y_mult).round() as hb_position_t;
+            let height = ((glyph_extents.y_min * data.y_mult).round() as hb_position_t)
+                .saturating_sub(y_bearing);
+
+            unsafe {
+                *extents = hb_glyph_extents_t {
+                    x_bearing,
+                    y_bearing,
+                    width,
+                    height,
+                };
+            }
+            return true as hb_bool_t;
+        }
     }
 
-    let color_glyphs = &data.color_glyphs;
-    let glyph_extents = if let Some(color_glyph) = color_glyphs.get(glyph_id) {
-        let Some(glyph_extents) =
-            color_glyph.bounding_box(data.instance.normalized_coords(), data.size)
-        else {
-            return false as hb_bool_t;
-        };
-        glyph_extents
-    } else {
-        let Some(glyph_extents) = data.glyph_metrics().extents(glyph_id) else {
-            return false as hb_bool_t;
-        };
-        unsafe {
-            *extents = hb_glyph_extents_t {
-                x_bearing: hb_position(glyph_extents.x_bearing),
-                y_bearing: hb_position(glyph_extents.y_bearing),
-                width: hb_position(glyph_extents.width),
-                height: hb_position(-glyph_extents.height),
-            };
-        }
-        return true as hb_bool_t;
+    let Some(glyph_extents) = data.glyph_metrics().extents(glyph_id) else {
+        return false as hb_bool_t;
     };
-
-    let x_bearing = (glyph_extents.x_min * data.x_mult).round() as hb_position_t;
-    let width =
-        ((glyph_extents.x_max * data.x_mult).round() as hb_position_t).saturating_sub(x_bearing);
-    let y_bearing = (glyph_extents.y_max * data.y_mult).round() as hb_position_t;
-    let height =
-        ((glyph_extents.y_min * data.y_mult).round() as hb_position_t).saturating_sub(y_bearing);
-
     unsafe {
         *extents = hb_glyph_extents_t {
-            x_bearing,
-            y_bearing,
-            width,
-            height,
+            x_bearing: hb_position(glyph_extents.x_bearing),
+            y_bearing: hb_position(glyph_extents.y_bearing),
+            width: hb_position(glyph_extents.width),
+            height: hb_position(-glyph_extents.height),
         };
     }
 
@@ -594,9 +611,9 @@ extern "C" fn _hb_fontations_draw_glyph_or_fail(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let size = &data.size;
+    let size = &data.skrifa.size;
     let location = data.instance.normalized_coords();
-    let outline_glyphs = &data.outline_glyphs;
+    let outline_glyphs = &data.skrifa.outline_glyphs;
 
     let glyph_id = GlyphId::new(glyph);
     let Some(outline_glyph) = outline_glyphs.get(glyph_id) else {
@@ -1007,11 +1024,13 @@ fn paint_bitmap_glyph(
 ) -> hb_bool_t {
     let size = bitmap_size(font);
     let bitmap_glyph = data
+        .skrifa
         .cbdt_strikes
         .as_ref()
         .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
         .or_else(|| {
-            data.sbix_strikes
+            data.skrifa
+                .sbix_strikes
                 .as_ref()
                 .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
         });
@@ -1078,7 +1097,7 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
     data.check_for_updates();
 
     let location = data.instance.normalized_coords();
-    let color_glyphs = &data.color_glyphs;
+    let color_glyphs = &data.skrifa.color_glyphs;
 
     let glyph_id = GlyphId::new(glyph);
     let Some(color_glyph) = color_glyphs.get(glyph_id) else {
