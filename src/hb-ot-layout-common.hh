@@ -2541,8 +2541,6 @@ struct VarRegionAxis
     int peak = peakCoord.to_int ();
     if (peak == 0 || coord == peak)
       return 1.f;
-    else if (coord == 0) // Faster
-      return 0.f;
 
     int start = startCoord.to_int (), end = endCoord.to_int ();
 
@@ -2551,6 +2549,10 @@ struct VarRegionAxis
       return 1.f;
     if (unlikely (start < 0 && end > 0))
       return 1.f;
+
+    /* Invalid axes are ignored even at the default coordinate. */
+    if (coord == 0)
+      return 0.f;
 
     if (coord <= start || end <= coord)
       return 0.f;

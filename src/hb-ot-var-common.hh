@@ -145,7 +145,8 @@ struct TupleVariationHeader
 	  shared_tuple_scalar_cache->length &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
       {
-        if (has_interm && (scalar != 0 && scalar != 1.f))
+        /* Only a factor of one is independent of intermediate bounds. */
+        if (has_interm && scalar != 1.f)
 	  shared_tuple_scalar_cache = nullptr;
 	else
 	  return (double) scalar;
@@ -192,7 +193,6 @@ struct TupleVariationHeader
       if (!peak) continue;
 
       int v = coords[i];
-      if (!v) { scalar = 0.0; break; }
       if (v == peak) continue;
 
       if (has_interm)
@@ -202,13 +202,13 @@ struct TupleVariationHeader
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
                       (start < 0 && end > 0 && peak))) continue;
-        if (v < start || v > end) { scalar = 0.0; break; }
+        if (!v || v < start || v > end) { scalar = 0.0; break; }
         if (v < peak)
         { if (peak != start) scalar *= (double) (v - start) / (peak - start); }
         else
         { if (peak != end) scalar *= (double) (end - v) / (end - peak); }
       }
-      else if (v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; break; }
+      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; break; }
       else
         scalar *= (double) v / peak;
     }

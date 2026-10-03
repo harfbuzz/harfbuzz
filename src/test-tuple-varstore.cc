@@ -28,6 +28,58 @@
 const unsigned char cvar_data[] = "\x0\x1\x0\x0\x0\x2\x0\x14\x0\x51\xa0\x0\xc0\x0\x0\x54\xa0\x0\x40\x0\x2a\x29\x17\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\xd\xff\x0\xfd\x1\x0\xff\x0\xfd\x1\x0\xdb\xdb\xe6\xe6\x82\x0\xfd\x84\x6\xfd\x0\x2\xe3\xe3\xec\xec\x82\x4\x1\xe3\xe3\xec\xec\x82\x0\x1\x2a\x29\x17\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\xd\x1\x0\x5\xfd\x0\x1\x0\x5\xfd\x0\x61\x61\x44\x44\x82\x0\x5\x81\x9\x1\xff\x1\x7\xff\xfb\x49\x49\x35\x35\x82\x4\xff\x49\x49\x35\x35\x82\x0\xff";
 
 static void
+test_invalid_intermediate_regions ()
+{
+  const int ranges[][3] = {
+    {8192, 4096, 16384},
+    {0, 16384, 8192},
+    {-16384, 8192, 16384}
+  };
+  const int locations[] = {-16384, 0, 4096, 8192, 16384};
+  OT::HBUINT16 data[5] = {};
+  const auto &header = *reinterpret_cast<const OT::TupleVariationHeader *> (data);
+  OT::HBUINT16 plain_data[2] = {};
+  const auto &plain = *reinterpret_cast<const OT::TupleVariationHeader *> (plain_data);
+  OT::F2DOT14 peak;
+
+  for (const auto &range : ranges)
+  {
+    peak.set_int (range[1]);
+    for (int coord : locations)
+    {
+      int coords[] = {coord};
+      data[1] = 0xC000; /* embedded peak, intermediate region */
+      data[2] = range[1];
+      data[3] = range[0];
+      data[4] = range[2];
+      hb_always_assert (header.calculate_scalar (hb_array (coords), 1, {}) == 1.0);
+
+      OT::hb_scalar_cache_t cache;
+      hb_always_assert (OT::hb_scalar_cache_t::create (1, &cache) == &cache);
+      auto shared = hb_array (&peak, 1);
+      double plain_scalar = plain.calculate_scalar (hb_array (coords), 1, shared, &cache);
+      data[1] = 0x4000; /* shared peak, intermediate region */
+      data[2] = range[0];
+      data[3] = range[2];
+      hb_always_assert (header.calculate_scalar (hb_array (coords), 1, shared, &cache) == 1.0);
+      hb_always_assert (plain.calculate_scalar (hb_array (coords), 1, shared, &cache) == plain_scalar);
+    }
+  }
+
+  data[1] = 0xC000;
+  data[2] = 8192;
+  data[3] = 0;
+  data[4] = 16384;
+  const int valid_locations[] = {0, 4096, 8192, 12288, 16384};
+  const double expected[] = {0, 0.5, 1, 0.5, 0};
+  for (unsigned i = 0; i < ARRAY_LENGTH (valid_locations); i++)
+  {
+    int coords[] = {valid_locations[i]};
+    hb_always_assert (header.calculate_scalar (hb_array (coords), 1, {}) == expected[i]);
+  }
+}
+
+static void
 test_decompile_cvar ()
 {
   const OT::cvar* cvar_table = reinterpret_cast<const OT::cvar*> (cvar_data);
@@ -155,5 +207,6 @@ test_decompile_cvar ()
 int
 main (int argc, char **argv)
 {
+  test_invalid_intermediate_regions ();
   test_decompile_cvar ();
 }

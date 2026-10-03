@@ -28,6 +28,47 @@
 const char hvar_data[] = "\x0\x1\x0\x0\x0\x0\x0\x14\x0\x0\x0\xc4\x0\x0\x0\x0\x0\x0\x0\x0\x0\x1\x0\x0\x0\x10\x0\x2\x0\x0\x0\x74\x0\x0\x0\x7a\x0\x2\x0\x8\xc0\x0\xc0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x40\x0\x40\x0\xc0\x0\xc0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x40\x0\x40\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x40\x0\x40\x0\x0\x1\x0\x0\x0\x0\x0\x4\x0\x0\x0\x8\x0\x0\x0\x1\x0\x2\x0\x3\x0\x4\x0\x5\x0\x6\x0\x7\xf9\xf\x2f\xbf\xfb\xfb\x35\xf9\x4\x4\xf3\xb4\xf2\xfb\x2e\xf3\x4\x4\xe\xad\xfa\x1\x1a\x1\x15\x22\x59\xd6\xe3\xf6\x6\xf5\x0\x1\x0\x5\x0\x4\x7\x5\x6";
 
 static void
+test_invalid_region_axes ()
+{
+  const int ranges[][3] = {
+    {8192, 4096, 16384},  /* start > peak */
+    {0, 16384, 8192},     /* peak > end */
+    {-16384, 8192, 16384} /* crosses zero */
+  };
+  const int locations[] = {-16384, 0, 4096, 8192, 16384};
+
+  OT::SparseVarRegionAxis sparse;
+  sparse.axisIndex = 1;
+  for (const auto &range : ranges)
+  {
+    sparse.axis.startCoord.set_int (range[0]);
+    sparse.axis.peakCoord.set_int (range[1]);
+    sparse.axis.endCoord.set_int (range[2]);
+    for (int coord : locations)
+    {
+      int coords[] = {16384, coord};
+      hb_always_assert (sparse.axis.evaluate (coord) == 1.f);
+      hb_always_assert (sparse.evaluate (coords, 2) == 1.f);
+    }
+    hb_always_assert (sparse.evaluate (nullptr, 0) == 1.f);
+  }
+
+  sparse.axis.startCoord.set_int (0);
+  sparse.axis.peakCoord.set_int (8192);
+  sparse.axis.endCoord.set_int (16384);
+  hb_always_assert (sparse.axis.evaluate (0) == 0.f);
+  hb_always_assert (sparse.axis.evaluate (4096) == 0.5f);
+  hb_always_assert (sparse.axis.evaluate (8192) == 1.f);
+  hb_always_assert (sparse.axis.evaluate (12288) == 0.5f);
+  hb_always_assert (sparse.evaluate (nullptr, 0) == 0.f);
+
+  sparse.axis.startCoord.set_int (-16384);
+  sparse.axis.peakCoord.set_int (0);
+  for (int coord : locations)
+    hb_always_assert (sparse.axis.evaluate (coord) == 1.f);
+}
+
+static void
 test_item_variations ()
 {
   const OT::HVAR* hvar_table = reinterpret_cast<const OT::HVAR*> (hvar_data);
@@ -166,6 +207,7 @@ test_item_variations_overflow ()
 int
 main (int argc, char **argv)
 {
+  test_invalid_region_axes ();
   test_item_variations ();
   test_implicit_advance_mapping ();
   test_item_variations_overflow ();
