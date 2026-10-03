@@ -2,7 +2,7 @@
 // C enum becomes i32 on some systems (eg. Windows).
 #![allow(clippy::unnecessary_cast)]
 
-use super::hb::*;
+use super::{hb::*, HbBlob};
 
 use std::ffi::c_void;
 use std::mem::{align_of, offset_of, size_of};
@@ -69,31 +69,6 @@ impl HbFace {
 
 unsafe impl Send for HbFace {}
 unsafe impl Sync for HbFace {}
-
-struct HbBlob(*mut hb_blob_t);
-
-impl Drop for HbBlob {
-    fn drop(&mut self) {
-        unsafe {
-            hb_blob_destroy(self.0);
-        }
-    }
-}
-
-impl AsRef<[u8]> for HbBlob {
-    fn as_ref(&self) -> &[u8] {
-        let mut length = 0;
-        let data = unsafe { hb_blob_get_data(self.0, &mut length) };
-        if data.is_null() {
-            &[]
-        } else {
-            unsafe { std::slice::from_raw_parts(data.cast(), length as usize) }
-        }
-    }
-}
-
-unsafe impl Send for HbBlob {}
-unsafe impl Sync for HbBlob {}
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(

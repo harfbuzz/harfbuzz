@@ -1,28 +1,29 @@
-use super::hb::*;
+use super::{hb::*, HbBlob};
 
 use std::collections::HashMap;
 use std::ffi::c_void;
-use std::mem::transmute;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
+
+use read_fonts::model::{
+    metrics::{GlyphExtents, LineExtents, Scale, ScaledGlyphMetrics},
+    Blob, Font, NormalizedCoord,
+};
+use read_fonts::types::{BoundingBox as FontBounds, F48Dot16, GlyphId};
+use read_fonts::FontRef;
 
 use skrifa::bitmap::{BitmapFormat, BitmapGlyph, BitmapStrikes, Origin};
-use skrifa::charmap::Charmap;
-use skrifa::charmap::MapVariant::{UseDefault, Variant};
 use skrifa::color::ColorGlyphCollection;
-use skrifa::font::FontRef;
-use skrifa::instance::{Location, NormalizedCoord, Size};
-use skrifa::metrics::GlyphMetrics;
-use skrifa::raw::tables::vmtx::Vmtx;
-use skrifa::raw::tables::vorg::Vorg;
-use skrifa::raw::tables::vvar::Vvar;
-use skrifa::raw::TableProvider;
+use skrifa::instance::Size;
+use skrifa::MetadataProvider;
 use skrifa::OutlineGlyphCollection;
-use skrifa::{GlyphId, GlyphNames, MetadataProvider};
 
 #[cfg(feature = "draw")]
 use skrifa::outline::{pen::OutlinePen, DrawSettings};
+
+#[cfg(feature = "paint")]
+use read_fonts::TableProvider;
 
 #[cfg(feature = "paint")]
 use skrifa::{
@@ -35,35 +36,28 @@ use skrifa::{
 // A struct for storing your “fontations” data
 #[repr(C)]
 struct FontationsData<'a> {
-    face_blob: *mut hb_blob_t,
+    face_blob: Arc<HbBlob>,
     font: *mut hb_font_t,
-    font_ref: FontRef<'a>,
-    char_map: Charmap<'a>,
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
     cbdt_strikes: Option<BitmapStrikes<'a>>,
     sbix_strikes: Option<BitmapStrikes<'a>>,
-    glyph_names: GlyphNames<'a>,
     size: Size,
-    vert_metrics: Option<Vmtx<'a>>,
-    vert_origin: Option<Vorg<'a>>,
-    vert_vars: Option<Vvar<'a>>,
 
     // Mutex for the below
     mutex: Mutex<()>,
     serial: AtomicU32,
     x_mult: f32,
     y_mult: f32,
-    location: Location,
-    glyph_metrics: Option<GlyphMetrics<'a>>,
+    instance: Font,
 }
 
 impl FontationsData<'_> {
     unsafe fn from_hb_font(font: *mut hb_font_t) -> Option<Self> {
         let face_index = hb_face_get_index(hb_font_get_face(font));
-        let face_blob = hb_face_reference_blob(hb_font_get_face(font));
-        let blob_length = hb_blob_get_length(face_blob);
-        let blob_data: *const u8 = hb_blob_get_data(face_blob, null_mut()).cast();
+        let face_blob = Arc::new(HbBlob(hb_face_reference_blob(hb_font_get_face(font))));
+        let blob_length = hb_blob_get_length(face_blob.0);
+        let blob_data: *const u8 = hb_blob_get_data(face_blob.0, null_mut()).cast();
         if blob_data.is_null() {
             return None;
         }
@@ -75,7 +69,7 @@ impl FontationsData<'_> {
             Err(_) => return None,
         };
 
-        let char_map = Charmap::new(&font_ref);
+        let instance = Font::new(Blob::Shared(face_blob.clone()), face_index)?;
 
         let outline_glyphs = font_ref.outline_glyphs();
 
@@ -84,34 +78,21 @@ impl FontationsData<'_> {
         let cbdt_strikes = BitmapStrikes::with_format(&font_ref, BitmapFormat::Cbdt);
         let sbix_strikes = BitmapStrikes::with_format(&font_ref, BitmapFormat::Sbix);
 
-        let glyph_names = font_ref.glyph_names();
-
         let upem = hb_face_get_upem(hb_font_get_face(font));
-
-        let vert_metrics = font_ref.vmtx().ok();
-        let vert_origin = font_ref.vorg().ok();
-        let vert_vars = font_ref.vvar().ok();
 
         let mut data = FontationsData {
             face_blob,
             font,
-            font_ref,
-            char_map,
             outline_glyphs,
             color_glyphs,
             cbdt_strikes,
             sbix_strikes,
-            glyph_names,
             size: Size::new(upem as f32),
-            vert_metrics,
-            vert_origin,
-            vert_vars,
             mutex: Mutex::new(()),
             x_mult: 1.0,
             y_mult: 1.0,
             serial: AtomicU32::new(u32::MAX),
-            location: Location::default(),
-            glyph_metrics: None,
+            instance,
         };
 
         data.check_for_updates();
@@ -142,38 +123,97 @@ impl FontationsData<'_> {
         } else {
             std::slice::from_raw_parts(coords, num_coords as usize)
         };
-        let all_zeros = coords.iter().all(|&x| x == 0);
-        // if all zeros, use Location::default()
-        // otherwise, use the provided coords.
-        // This currently doesn't seem to have a perf effect on fontations, but it's a good idea to
-        // check if the coords are all zeros before creating a Location.
-        self.location = if all_zeros {
-            Location::default()
-        } else {
-            let mut location = Location::new(num_coords as usize);
-            let coords_mut = location.coords_mut();
-            coords_mut
-                .iter_mut()
-                .zip(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
-                .for_each(|(dest, source)| *dest = source);
-            location
-        };
-
-        let location = transmute::<&Location, &Location>(&self.location);
-        self.glyph_metrics = Some(self.font_ref.glyph_metrics(self.size, location));
+        self.instance = self
+            .instance
+            .instance_builder()
+            .normalized_coords(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
+            .build();
 
         self.serial.store(font_serial, Ordering::Release);
     }
     fn check_for_updates(&mut self) {
         unsafe { self._check_for_updates() }
     }
+
+    fn scale(&self) -> FontationsScale {
+        FontationsScale {
+            x_mult: self.x_mult,
+            y_mult: self.y_mult,
+        }
+    }
+
+    fn glyph_metrics(&self) -> ScaledGlyphMetrics<'_, 'static, FontationsScale> {
+        self.instance.glyph_metrics().scaled(self.scale())
+    }
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
-    let data = unsafe { Box::from_raw(font_data as *mut FontationsData) };
+    let _data = unsafe { Box::from_raw(font_data as *mut FontationsData) };
+}
 
+#[derive(Clone, Copy)]
+struct FontationsScale {
+    x_mult: f32,
+    y_mult: f32,
+}
+
+impl Scale for FontationsScale {
+    // Keep intermediate sums wide when combining HarfBuzz callback results.
+    type Value = i64;
+
+    fn add(a: i64, b: i64) -> i64 {
+        a.saturating_add(b)
+    }
+
+    fn sub(a: i64, b: i64) -> i64 {
+        a.saturating_sub(b)
+    }
+
+    fn half(value: i64) -> i64 {
+        value >> 1
+    }
+
+    fn scale_x(&self, value: F48Dot16) -> i64 {
+        (value.to_f32() * self.x_mult).round() as hb_position_t as i64
+    }
+
+    fn scale_y(&self, value: F48Dot16) -> i64 {
+        (value.to_f32() * self.y_mult).round() as hb_position_t as i64
+    }
+
+    fn scale_glyph_extents(&self, extents: GlyphExtents<F48Dot16>) -> GlyphExtents<i64> {
+        let x_bearing = self.scale_x(extents.x_bearing);
+        let y_bearing = self.scale_y(extents.y_bearing);
+        GlyphExtents {
+            x_bearing,
+            y_bearing,
+            width: self.scale_x(extents.x_bearing.saturating_add(extents.width)) - x_bearing,
+            height: y_bearing - self.scale_y(extents.y_bearing.saturating_sub(extents.height)),
+        }
+    }
+
+    fn scale_rect(&self, bounds: FontBounds<F48Dot16>) -> FontBounds<i64> {
+        FontBounds {
+            x_min: self.scale_x(bounds.x_min),
+            y_min: self.scale_y(bounds.y_min),
+            x_max: self.scale_x(bounds.x_max),
+            y_max: self.scale_y(bounds.y_max),
+        }
+    }
+}
+
+fn hb_position(value: i64) -> hb_position_t {
+    value.clamp(hb_position_t::MIN as i64, hb_position_t::MAX as i64) as hb_position_t
+}
+
+fn font_line_extents(font: *mut hb_font_t) -> LineExtents<i64> {
+    let mut extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
     unsafe {
-        hb_blob_destroy(data.face_blob);
+        hb_font_get_extents_for_direction(font, hb_direction_t_HB_DIRECTION_LTR, &mut extents);
+    }
+    LineExtents {
+        ascender: extents.ascender as i64,
+        descender: extents.descender as i64,
     }
 }
 
@@ -250,11 +290,11 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
     _user_data: *mut ::std::os::raw::c_void,
 ) -> ::std::os::raw::c_uint {
     let data = unsafe { &*(font_data as *const FontationsData) };
-    let char_map = &data.char_map;
+    let char_map = data.instance.charmap();
 
     for i in 0..count {
         let unicode = struct_at_offset(first_unicode, i, unicode_stride);
-        let Some(glyph) = char_map.map(unicode) else {
+        let Some(glyph) = char_map.map_unicode(unicode) else {
             return i;
         };
         let glyph_id = glyph.to_u32() as hb_codepoint_t;
@@ -273,21 +313,16 @@ extern "C" fn _hb_fontations_get_variation_glyph(
 ) -> hb_bool_t {
     let data = unsafe { &*(font_data as *const FontationsData) };
 
-    let char_map = &data.char_map;
-
-    match char_map.map_variant(unicode, variation_selector) {
-        Some(Variant(glyph_id)) => {
+    match data
+        .instance
+        .charmap()
+        .map_unicode_variant(unicode, variation_selector)
+    {
+        Some(glyph_id) => {
             unsafe { *glyph = glyph_id.to_u32() as hb_codepoint_t };
             true as hb_bool_t
         }
-        Some(UseDefault) => match char_map.map(unicode) {
-            Some(glyph_id) => {
-                unsafe { *glyph = glyph_id.to_u32() as hb_codepoint_t };
-                true as hb_bool_t
-            }
-            None => false as hb_bool_t,
-        },
-        _ => false as hb_bool_t,
+        None => false as hb_bool_t,
     }
 }
 
@@ -304,15 +339,18 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let glyph_metrics = &data.glyph_metrics.as_ref().unwrap();
-
-    for i in 0..count {
-        let glyph = struct_at_offset(first_glyph, i, glyph_stride);
-        let glyph_id = GlyphId::new(glyph);
-        let advance = glyph_metrics.advance_width(glyph_id).unwrap_or_default();
-        let scaled = (advance * data.x_mult).round() as hb_position_t;
-        *struct_at_offset_mut(first_advance, i, advance_stride) = scaled;
-    }
+    let glyphs = (0..count).map(|i| {
+        let glyph = GlyphId::new(struct_at_offset(first_glyph, i, glyph_stride));
+        (
+            glyph,
+            struct_at_offset_mut(first_advance, i, advance_stride),
+        )
+    });
+    data.instance.glyph_metrics().h_advance_batched(
+        // Skrifa rounded advances to design units before applying our scale.
+        |advance| (advance.to_i32() as f32 * data.x_mult).round() as hb_position_t,
+        glyphs,
+    );
 }
 
 extern "C" fn _hb_fontations_get_glyph_v_advances(
@@ -328,42 +366,17 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    if let Some(vert_metrics) = &data.vert_metrics {
-        let vert_vars = &data.vert_vars;
-        for i in 0..count {
-            let glyph = struct_at_offset(first_glyph, i, glyph_stride);
-            let glyph_id = GlyphId::new(glyph);
-            let mut advance = vert_metrics.advance(glyph_id).unwrap_or_default() as f32;
-            if let Some(vert_vars) = vert_vars {
-                let coords = data.location.coords();
-                if !coords.is_empty() {
-                    advance += vert_vars
-                        .advance_delta(glyph_id, coords)
-                        .unwrap_or_default()
-                        .to_f32();
-                }
-            }
-            let scaled = ((advance * data.y_mult).round() as hb_position_t).saturating_neg();
-            *struct_at_offset_mut(first_advance, i, advance_stride) = scaled;
-        }
-    } else {
-        let mut font_extents = unsafe { std::mem::zeroed() };
-        unsafe {
-            hb_font_get_extents_for_direction(
-                font,
-                hb_direction_t_HB_DIRECTION_LTR,
-                &mut font_extents,
-            );
-        }
-        let advance = font_extents
-            .ascender
-            .saturating_sub(font_extents.descender)
-            .saturating_neg();
-
-        for i in 0..count {
-            *struct_at_offset_mut(first_advance, i, advance_stride) = advance;
-        }
-    }
+    let line = font_line_extents(font);
+    let glyphs = (0..count).map(|i| {
+        let glyph = GlyphId::new(struct_at_offset(first_glyph, i, glyph_stride));
+        (
+            glyph,
+            struct_at_offset_mut(first_advance, i, advance_stride),
+        )
+    });
+    data.glyph_metrics()
+        .with_line_extents(Some(line))
+        .v_advance_batched(|advance| hb_position(advance).saturating_neg(), glyphs);
 }
 
 extern "C" fn _hb_fontations_get_glyph_v_origin(
@@ -381,76 +394,25 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
         *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
     }
 
-    let vert_origin = &data.vert_origin;
-    if let Some(vert_origin) = vert_origin {
-        let glyph_id = GlyphId::new(glyph);
-
-        let mut y_origin = vert_origin.vertical_origin_y(glyph_id) as f32;
-        let vert_vars = &data.vert_vars;
-        if let Some(vert_vars) = vert_vars {
-            let coords = data.location.coords();
-            if !coords.is_empty() {
-                y_origin += vert_vars
-                    .v_origin_y_delta(glyph_id, coords)
-                    .unwrap_or_default()
-                    .to_f32();
-            }
+    let line = font_line_extents(font);
+    let extents = |glyph: GlyphId| {
+        let mut extents: hb_glyph_extents_t = unsafe { std::mem::zeroed() };
+        if unsafe { hb_font_get_glyph_extents(font, glyph.to_u32(), &mut extents) } == 0 {
+            return None;
         }
-
-        unsafe {
-            *y = (y_origin * data.y_mult).round() as hb_position_t;
-        }
-
-        return true as hb_bool_t;
-    }
-
-    let mut extents: hb_glyph_extents_t = unsafe { std::mem::zeroed() };
-    if unsafe { hb_font_get_glyph_extents(font, glyph, &mut extents) != 0 } {
-        if let Some(vert_metrics) = &data.vert_metrics {
-            let glyph = GlyphId::new(glyph);
-            let mut tsb: f32 = vert_metrics.side_bearing(glyph).unwrap_or_default() as f32;
-            if let Some(vert_vars) = &data.vert_vars {
-                let coords = data.location.coords();
-                if !coords.is_empty() {
-                    tsb += vert_vars
-                        .tsb_delta(glyph, coords)
-                        .unwrap_or_default()
-                        .to_f32();
-                }
-            }
-            unsafe {
-                *y = extents
-                    .y_bearing
-                    .saturating_add((tsb * data.y_mult).round() as hb_position_t);
-            }
-            return true as hb_bool_t;
-        }
-
-        let mut font_extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
-        unsafe {
-            hb_font_get_extents_for_direction(
-                font,
-                hb_direction_t_HB_DIRECTION_LTR,
-                &mut font_extents,
-            );
-        }
-        let advance = font_extents.ascender as i64 - font_extents.descender as i64;
-        let diff = advance + extents.height as i64;
-        unsafe {
-            *y = (extents.y_bearing as i64 + (diff >> 1))
-                .clamp(hb_position_t::MIN as i64, hb_position_t::MAX as i64)
-                as hb_position_t;
-        }
-        return true as hb_bool_t;
-    }
-
-    let mut font_extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
-    unsafe {
-        hb_font_get_extents_for_direction(font, hb_direction_t_HB_DIRECTION_LTR, &mut font_extents);
-    }
-    unsafe {
-        *y = font_extents.ascender;
-    }
+        Some(GlyphExtents {
+            x_bearing: extents.x_bearing as i64,
+            y_bearing: extents.y_bearing as i64,
+            width: extents.width as i64,
+            height: -(extents.height as i64),
+        })
+    };
+    let y_origin = data
+        .glyph_metrics()
+        .with_line_extents(Some(line))
+        .with_glyph_extents(Some(&extents))
+        .v_origin_y(GlyphId::new(glyph));
+    unsafe { *y = hb_position(y_origin) };
 
     true as hb_bool_t
 }
@@ -487,16 +449,25 @@ extern "C" fn _hb_fontations_get_glyph_extents(
 
     let color_glyphs = &data.color_glyphs;
     let glyph_extents = if let Some(color_glyph) = color_glyphs.get(glyph_id) {
-        let Some(glyph_extents) = color_glyph.bounding_box(&data.location, data.size) else {
+        let Some(glyph_extents) =
+            color_glyph.bounding_box(data.instance.normalized_coords(), data.size)
+        else {
             return false as hb_bool_t;
         };
         glyph_extents
     } else {
-        let glyph_metrics = &data.glyph_metrics.as_ref().unwrap();
-        let Some(glyph_extents) = glyph_metrics.bounds(glyph_id) else {
+        let Some(glyph_extents) = data.glyph_metrics().extents(glyph_id) else {
             return false as hb_bool_t;
         };
-        glyph_extents
+        unsafe {
+            *extents = hb_glyph_extents_t {
+                x_bearing: hb_position(glyph_extents.x_bearing),
+                y_bearing: hb_position(glyph_extents.y_bearing),
+                width: hb_position(glyph_extents.width),
+                height: hb_position(-glyph_extents.height),
+            };
+        }
+        return true as hb_bool_t;
     };
 
     let x_bearing = (glyph_extents.x_min * data.x_mult).round() as hb_position_t;
@@ -527,15 +498,17 @@ extern "C" fn _hb_fontations_get_font_h_extents(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let font_ref = &data.font_ref;
-    let size = &data.size;
-    let location = &data.location;
-    let metrics = font_ref.metrics(*size, location);
+    let line = data
+        .instance
+        .metrics()
+        .scaled(data.scale())
+        .h_line()
+        .unwrap_or_default();
 
     unsafe {
-        (*extents).ascender = (metrics.ascent * data.y_mult).round() as hb_position_t;
-        (*extents).descender = (metrics.descent * data.y_mult).round() as hb_position_t;
-        (*extents).line_gap = (metrics.leading * data.y_mult).round() as hb_position_t;
+        (*extents).ascender = hb_position(line.ascender);
+        (*extents).descender = hb_position(line.descender);
+        (*extents).line_gap = hb_position(line.line_gap);
     }
 
     true as hb_bool_t
@@ -622,7 +595,7 @@ extern "C" fn _hb_fontations_draw_glyph_or_fail(
     data.check_for_updates();
 
     let size = &data.size;
-    let location = &data.location;
+    let location = data.instance.normalized_coords();
     let outline_glyphs = &data.outline_glyphs;
 
     let glyph_id = GlyphId::new(glyph);
@@ -1060,7 +1033,7 @@ fn paint_bitmap_glyph(
     let Ok(image_length) = image.len().try_into() else {
         return false as hb_bool_t;
     };
-    let face_blob = unsafe { hb_blob_reference(data.face_blob) };
+    let face_blob = unsafe { hb_blob_reference(data.face_blob.0) };
     let blob = unsafe {
         hb_blob_create_or_fail(
             image.as_ptr().cast(),
@@ -1104,8 +1077,7 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let font_ref = &data.font_ref;
-    let location = &data.location;
+    let location = data.instance.normalized_coords();
     let color_glyphs = &data.color_glyphs;
 
     let glyph_id = GlyphId::new(glyph);
@@ -1113,7 +1085,7 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
         return paint_bitmap_glyph(font, data, glyph_id, paint_funcs, paint_data);
     };
 
-    let cpal = font_ref.cpal();
+    let cpal = data.instance.tables().cpal();
     let color_records = if let Ok(cpal) = cpal {
         let num_entries = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
@@ -1177,7 +1149,7 @@ extern "C" fn _hb_fontations_glyph_name(
 ) -> hb_bool_t {
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
 
-    if let Some(glyph_name) = data.glyph_names.get(GlyphId::new(glyph)) {
+    if let Some(glyph_name) = data.instance.glyph_name(GlyphId::new(glyph)) {
         if size == 0 {
             return true as hb_bool_t;
         }
@@ -1232,7 +1204,7 @@ extern "C" fn _hb_fontations_glyph_from_name(
 
         // Build the HashMap from glyph names to IDs
         let mut map = HashMap::new();
-        for (glyph_id, glyph_name) in data.glyph_names.iter() {
+        for (glyph_id, glyph_name) in data.instance.glyph_names() {
             map.insert(glyph_name.to_string(), glyph_id.to_u32());
         }
 

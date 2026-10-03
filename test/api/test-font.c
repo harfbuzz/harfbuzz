@@ -26,6 +26,10 @@
 
 #include "hb-test.h"
 
+#ifdef HAVE_FONTATIONS
+#include <hb-fontations.h>
+#endif
+
 /* Unit tests for hb-font.h */
 
 
@@ -712,6 +716,78 @@ test_synthetic_glyph_extents_overflow (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
+#ifdef HAVE_FONTATIONS
+static void
+test_fontations_advances (void)
+{
+  const char *fonts[] = {
+    "fonts/Roboto-Variable.abc.ttf",
+    "fonts/SourceSerifVariable-Roman-VVAR.abc.ttf",
+    "fonts/SourceSansVariable-Roman-nohvar-41,C1.ttf",
+  };
+  const int coords[] = {0, 16384, -16384, 0};
+  const struct {
+    hb_codepoint_t glyph;
+    hb_codepoint_t padding[2];
+  } glyphs[] = {{1, {0}}, {2, {0}}, {3, {0}}, {HB_CODEPOINT_INVALID, {0}}};
+
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    hb_font_t *font = hb_font_create (face);
+    hb_font_t *reference = hb_font_create (face);
+    int upem = hb_face_get_upem (face);
+    hb_fontations_font_set_funcs (font);
+
+    for (int sign = 1; sign >= -1; sign -= 2)
+    {
+      hb_font_set_scale (font, sign * upem * 2, sign * upem * 3);
+      hb_font_set_scale (reference, sign * upem * 2, sign * upem * 3);
+
+      for (unsigned c = 0; c < G_N_ELEMENTS (coords); c++)
+      {
+        hb_font_set_var_coords_normalized (font, &coords[c], 1);
+        hb_font_set_var_coords_normalized (reference, &coords[c], 1);
+
+        hb_position_t h_advances[2 * G_N_ELEMENTS (glyphs)];
+        hb_position_t v_advances[2 * G_N_ELEMENTS (glyphs)];
+        for (unsigned i = 0; i < G_N_ELEMENTS (h_advances); i++)
+          h_advances[i] = v_advances[i] = 123456;
+
+        hb_font_get_glyph_h_advances (font, G_N_ELEMENTS (glyphs),
+                                     &glyphs[0].glyph, sizeof (glyphs[0]),
+                                     h_advances, 2 * sizeof (h_advances[0]));
+        hb_font_get_glyph_v_advances (font, G_N_ELEMENTS (glyphs),
+                                     &glyphs[0].glyph, sizeof (glyphs[0]),
+                                     v_advances, 2 * sizeof (v_advances[0]));
+
+        for (unsigned i = 0; i < G_N_ELEMENTS (glyphs); i++)
+        {
+          hb_codepoint_t glyph = glyphs[i].glyph;
+          g_assert_cmpint (h_advances[2 * i], ==, hb_font_get_glyph_h_advance (font, glyph));
+          g_assert_cmpint (v_advances[2 * i], ==, hb_font_get_glyph_v_advance (font, glyph));
+          /* OT can apply variation deltas even to invalid glyph IDs. */
+          if (glyph < hb_face_get_glyph_count (face))
+          {
+            g_assert_cmpint (h_advances[2 * i], ==, hb_font_get_glyph_h_advance (reference, glyph));
+            g_assert_cmpint (v_advances[2 * i], ==, hb_font_get_glyph_v_advance (reference, glyph));
+          }
+          g_assert_cmpint (h_advances[2 * i + 1], ==, 123456);
+          g_assert_cmpint (v_advances[2 * i + 1], ==, 123456);
+        }
+
+        hb_font_get_glyph_h_advances (font, 0, NULL, 0, NULL, 0);
+        hb_font_get_glyph_v_advances (font, 0, NULL, 0, NULL, 0);
+      }
+    }
+
+    hb_font_destroy (reference);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -730,6 +806,9 @@ main (int argc, char **argv)
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
+#ifdef HAVE_FONTATIONS
+  hb_test_add (test_fontations_advances);
+#endif
 
   return hb_test_run();
 }
