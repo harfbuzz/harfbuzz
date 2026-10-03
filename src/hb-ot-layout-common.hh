@@ -4174,6 +4174,8 @@ struct ItemVarStoreInstancer
 
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
   {
+   /* Keep the empty-coordinate shortcut for ordinary stores, even though
+    * zero-axis regions could still contribute constant deltas. */
    if (!coords || varIdx == VarIdx::NO_VARIATION)
      return 0.f;
 
@@ -4201,7 +4203,7 @@ struct MultiItemVarStoreInstancer
       varStore = &Null(MultiItemVariationStore);
   }
 
-  operator bool () const { return varStore && bool (coords); }
+  operator bool () const { return varStore; }
 
   double operator[] (uint32_t varIdx) const
   {
@@ -4212,7 +4214,8 @@ struct MultiItemVarStoreInstancer
 
   void operator() (hb_array_t<double> out, uint32_t varIdx, unsigned short offset = 0) const
   {
-    if (coords && varIdx != VarIdx::NO_VARIATION)
+    /* Static VARC fonts can have constant deltas even with empty coordinates. */
+    if (varIdx != VarIdx::NO_VARIATION)
     {
       varIdx += offset;
       if (varIdxMap)

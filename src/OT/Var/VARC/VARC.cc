@@ -375,7 +375,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 
   // Apply variations if any
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
-      show && coords && !axisValues.in_error ())
+      show && !axisValues.in_error ())
   {
     if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
 				    coords.length)))
@@ -408,7 +408,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       component_coords = coord_setter.get_coords ();
 
     // Apply transform variations if any
-    if (transformVarIdx != VarIdx::NO_VARIATION && coords)
+    if (transformVarIdx != VarIdx::NO_VARIATION)
     {
       double transformValues[9];
       unsigned numTransformValues = 0;
