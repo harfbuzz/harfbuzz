@@ -50,6 +50,66 @@ test_subset_cmap (void)
 }
 
 static void
+check_default_uvs_range_limit (unsigned int format)
+{
+  static const char maxp_data[] = {0, 0, 0x50, 0, 3, 1};
+  char cmap_data[] = {
+    0, 0, 0, 2,                              /* cmap header */
+    0, 0, 0, 5, 0, 0, 0, 48,                /* UVS encoding record */
+    0, 3, 0, 10, 0, 0, 0, 20,               /* nominal encoding record */
+    0, 12, 0, 0, 0, 0, 0, 28,               /* format 12 header */
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0x10, 0, 0, 0, 0x12, (char) 0xFF, 0, 0, 0, 1,
+    0, 14, 0, 0, 0, 37, 0, 0, 0, 1,         /* format 14 or 15 header */
+    0, (char) 0xFE, 0, 0, 0, 0, 21, 0, 0, 0, 0,
+    0, 0, 0, 3,                              /* three adjacent 256-codepoint ranges */
+    0, 0x10, 0, (char) 0xFF,
+    0, 0x11, 0, (char) 0xFF,
+    0, 0x12, 0, (char) 0xFF,
+  };
+  cmap_data[49] = format;
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+
+  const unsigned int counts[] = {1, 255, 256, 257, 512, 513, 768};
+  for (unsigned int i = 0; i < G_N_ELEMENTS (counts); i++)
+  {
+    hb_set_t *codepoints = hb_set_create ();
+    hb_set_add_range (codepoints, 0x1000, 0x1000 + counts[i] - 1);
+    hb_set_add (codepoints, 0xFE00);
+    hb_face_t *subset = hb_subset_test_create_subset (
+        face, hb_subset_test_create_input (codepoints));
+    hb_set_clear (codepoints);
+    hb_face_collect_variation_unicodes (subset, 0xFE00, codepoints);
+    g_assert_cmpuint (hb_set_get_population (codepoints), ==, counts[i]);
+    hb_font_t *font = hb_font_create (subset);
+    hb_codepoint_t glyph;
+    g_assert_true (hb_font_get_variation_glyph (font, 0x1000 + counts[i] - 1,
+                                              0xFE00, &glyph));
+    g_assert_cmpuint (glyph, ==, counts[i]);
+    hb_font_destroy (font);
+    hb_set_destroy (codepoints);
+    hb_face_destroy (subset);
+  }
+  hb_face_destroy (face);
+}
+
+static void
+test_subset_cmap_default_uvs_range_limit (void)
+{
+  check_default_uvs_range_limit (14);
+}
+
+#ifndef HB_NO_BEYOND_64K
+static void
+test_subset_cmap15_default_uvs_range_limit (void)
+{
+  check_default_uvs_range_limit (15);
+}
+#endif
+
+static void
 test_subset_cmap_non_consecutive_glyphs (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.D7,D8,D9,DA,DE.ttf");
@@ -357,6 +417,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_cmap);
   hb_test_add (test_subset_cmap_noop);
+  hb_test_add (test_subset_cmap_default_uvs_range_limit);
   hb_test_add (test_subset_cmap_non_consecutive_glyphs);
   hb_test_add (test_subset_cmap4_no_exceeding_maximum_codepoint);
   hb_test_add (test_subset_cmap_empty_tables);
@@ -365,6 +426,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_DMAP);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_cmap_format15);
+  hb_test_add (test_subset_cmap15_default_uvs_range_limit);
 #endif
 
   return hb_test_run();
