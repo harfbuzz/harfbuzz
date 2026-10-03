@@ -338,7 +338,7 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
                 let coords = data.location.coords();
                 if !coords.is_empty() {
                     advance += vert_vars
-                        .advance_height_delta(glyph_id, coords)
+                        .advance_delta(glyph_id, coords)
                         .unwrap_or_default()
                         .to_f32();
                 }
@@ -391,7 +391,7 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
             let coords = data.location.coords();
             if !coords.is_empty() {
                 y_origin += vert_vars
-                    .v_org_delta(glyph_id, coords)
+                    .v_origin_y_delta(glyph_id, coords)
                     .unwrap_or_default()
                     .to_f32();
             }
