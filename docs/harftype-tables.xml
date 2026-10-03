@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<chapter id="harftype-tables">
+  <title>Tables</title>
+
+  <section id="harftype-required-tables">
+    <title>Required tables</title>
+
+    <para>
+      A HarfType font has only two required tables: <literal>head</literal> and
+      <literal>maxp</literal>.
+    </para>
+
+    <para>
+      A font file made for testing <literal>GSUB</literal>, for example, might
+      not contain any glyph-drawing tables.
+    </para>
+  </section>
+</chapter>

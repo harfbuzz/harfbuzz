@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<chapter id="harftype-introduction">
+  <title>Introduction</title>
+
+  <para>
+    HarfType documents, at a high level, the font format implemented by
+    HarfBuzz and HarfRust.
+  </para>
+
+  <para>
+    HarfBuzz behavior is normative for HarfType. HarfRust aims to match that
+    behavior.
+  </para>
+
+  <para>
+    HarfType prioritizes robust consumption by supported platforms while
+    aiming for interoperability. It does not require acceptance by every font
+    validator or proprietary platform.
+  </para>
+
+  <para>
+    HarfType does not duplicate the specifications it extends. Readers should
+    consult the Microsoft OpenType, Apple TrueType, and ISO Open Font Format
+    specifications for table-level definitions. HarfType documents the common
+    model implemented by HarfBuzz and HarfRust, together with the places where
+    that model extends, relaxes, or resolves ambiguity in those specifications.
+  </para>
+
+  <para>
+    HarfType is a superset of Microsoft OpenType, Apple TrueType, and the ISO
+    Open Font Format, with small extensions and relaxed constraints. Currently,
+    HarfType adds no top-level tables to the SFNT-based font format.
+  </para>
+
+  <para>
+    HarfType remains transparent to, and supported by, transport-layer
+    transformations such as WOFF and WOFF2.
+  </para>
+
+  <para>
+    Font-validation tools might flag extensions used by HarfType as invalid,
+    although OTS is generally kept aware of HarfType extensions. Such fonts
+    remain valid for use with HarfBuzz and often with other open-source tools,
+    including FreeType, FontTools, and Fontations.
+  </para>
+
+  <para>
+    HarfType is released with each HarfBuzz release, using the same version
+    number.
+  </para>
+</chapter>
