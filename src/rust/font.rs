@@ -1220,17 +1220,16 @@ fn paint_bitmap_glyph(
     paint_funcs: *mut hb_paint_funcs_t,
     paint_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
-    let size = bitmap_size(font);
     let bitmap_glyph = data
         .skrifa
         .cbdt_strikes
         .as_ref()
-        .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+        .and_then(|strikes| strikes.glyph_for_size(bitmap_size(font), glyph_id))
         .or_else(|| {
             data.skrifa
                 .sbix_strikes
                 .as_ref()
-                .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+                .and_then(|strikes| strikes.glyph_for_size(bitmap_size(font), glyph_id))
         });
     let Some(bitmap_glyph) = bitmap_glyph else {
         return false as hb_bool_t;
