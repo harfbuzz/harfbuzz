@@ -670,12 +670,12 @@ extern "C" fn _hb_fontations_get_glyph_extents(
                 return false as hb_bool_t;
             };
 
-            let x_bearing = (glyph_extents.x_min * data.x_mult).round() as hb_position_t;
-            let width = ((glyph_extents.x_max * data.x_mult).round() as hb_position_t)
-                .saturating_sub(x_bearing);
-            let y_bearing = (glyph_extents.y_max * data.y_mult).round() as hb_position_t;
-            let height = ((glyph_extents.y_min * data.y_mult).round() as hb_position_t)
-                .saturating_sub(y_bearing);
+            let x_bearing = round_to_position(glyph_extents.x_min * data.x_mult);
+            let width =
+                round_to_position(glyph_extents.x_max * data.x_mult).saturating_sub(x_bearing);
+            let y_bearing = round_to_position(glyph_extents.y_max * data.y_mult);
+            let height =
+                round_to_position(glyph_extents.y_min * data.y_mult).saturating_sub(y_bearing);
 
             unsafe {
                 *extents = hb_glyph_extents_t {
