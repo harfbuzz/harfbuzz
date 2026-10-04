@@ -297,6 +297,23 @@ impl<'a> Iterator for StridedGlyphs<'a> {
     }
 }
 
+fn strided_ranges_overlap<T, U>(
+    count: u32,
+    first_a: *const T,
+    stride_a: u32,
+    first_b: *const U,
+    stride_b: u32,
+) -> bool {
+    if count == 0 {
+        return false;
+    }
+    let end_a =
+        first_a as usize + (count - 1) as usize * stride_a as usize + std::mem::size_of::<T>();
+    let end_b =
+        first_b as usize + (count - 1) as usize * stride_b as usize + std::mem::size_of::<U>();
+    end_a > first_b as usize && end_b > first_a as usize
+}
+
 // SAFETY: All input/output slots must be readable/writable for this call.
 // The callback must access these buffers only through the supplied iterator.
 unsafe fn with_strided_glyphs(
@@ -310,13 +327,8 @@ unsafe fn with_strided_glyphs(
     if count == 0 {
         return;
     }
-    let glyph_end = first_glyph as usize
-        + (count - 1) as usize * glyph_stride as usize
-        + std::mem::size_of::<hb_codepoint_t>();
-    let value_end = first_value as usize
-        + (count - 1) as usize * value_stride as usize
-        + std::mem::size_of::<hb_position_t>();
-    let disjoint = glyph_end <= first_value as usize || value_end <= first_glyph as usize;
+    let disjoint =
+        !strided_ranges_overlap(count, first_glyph, glyph_stride, first_value, value_stride);
     if disjoint
         && first_value.is_aligned()
         && (count == 1
@@ -518,19 +530,54 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
     }
 }
 
-extern "C" fn _hb_fontations_get_glyph_v_origin(
+extern "C" fn _hb_fontations_get_glyph_v_origins(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
-    glyph: hb_codepoint_t,
-    x: *mut hb_position_t,
-    y: *mut hb_position_t,
+    count: ::std::os::raw::c_uint,
+    first_glyph: *const hb_codepoint_t,
+    glyph_stride: ::std::os::raw::c_uint,
+    first_x: *mut hb_position_t,
+    x_stride: ::std::os::raw::c_uint,
+    first_y: *mut hb_position_t,
+    y_stride: ::std::os::raw::c_uint,
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
+    // Preserve scalar write order for aliased buffers. Equal output strides
+    // can share an interleaved buffer while still having disjoint slots.
+    let outputs_overlap = strided_ranges_overlap(count, first_x, x_stride, first_y, y_stride);
+    let interleaved = x_stride == y_stride && x_stride != 0 && {
+        let gap = (first_x as usize).abs_diff(first_y as usize) % x_stride as usize;
+        gap >= std::mem::size_of::<hb_position_t>()
+            && x_stride as usize - gap >= std::mem::size_of::<hb_position_t>()
+    };
+    if (count > 1 && (x_stride as usize) < std::mem::size_of::<hb_position_t>())
+        || strided_ranges_overlap(count, first_glyph, glyph_stride, first_x, x_stride)
+        || strided_ranges_overlap(count, first_glyph, glyph_stride, first_y, y_stride)
+        || (outputs_overlap && !interleaved)
+    {
+        for i in 0..count {
+            let glyph = unsafe { struct_at_offset(first_glyph, i, glyph_stride) };
+            let (mut x, mut y) = (0, 0);
+            _hb_fontations_get_glyph_v_origins(
+                font, font_data, 1, &glyph, 0, &mut x, 0, &mut y, 0, _user_data,
+            );
+            unsafe {
+                write_struct_at_offset(first_x, i, x_stride, x);
+                write_struct_at_offset(first_y, i, y_stride, y);
+            }
+        }
+        return true as hb_bool_t;
+    }
+
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
     unsafe {
-        *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
+        hb_font_get_glyph_h_advances(font, count, first_glyph, glyph_stride, first_x, x_stride);
+        for i in 0..count {
+            let x = struct_at_offset(first_x, i, x_stride) / 2;
+            write_struct_at_offset(first_x, i, x_stride, x);
+        }
     }
 
     let line = font_line_extents(font);
@@ -546,12 +593,22 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
             height: -(extents.height as i64),
         })
     };
-    let y_origin = data
+    let metrics = data
         .glyph_metrics()
         .with_line_extents(Some(line))
-        .with_glyph_extents(Some(&extents))
-        .v_origin_y(GlyphId::new(glyph));
-    unsafe { *y = hb_position(y_origin) };
+        .with_glyph_extents(Some(&extents));
+    unsafe {
+        with_strided_glyphs(
+            count,
+            first_glyph,
+            glyph_stride,
+            first_y,
+            y_stride,
+            |glyphs| {
+                metrics.v_origin_y_batched(hb_position, glyphs);
+            },
+        );
+    }
 
     true as hb_bool_t
 }
@@ -1424,9 +1481,9 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
                 null_mut(),
                 None,
             );
-            hb_font_funcs_set_glyph_v_origin_func(
+            hb_font_funcs_set_glyph_v_origins_func(
                 ffuncs,
-                Some(_hb_fontations_get_glyph_v_origin),
+                Some(_hb_fontations_get_glyph_v_origins),
                 null_mut(),
                 None,
             );
