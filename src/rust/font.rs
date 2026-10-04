@@ -1212,15 +1212,10 @@ extern "C" fn _hb_fontations_glyph_from_name(
     };
 
     let face = unsafe { hb_font_get_face(font) };
-    let mut user_data_ptr: *mut c_void;
+    let mut user_data_ptr =
+        unsafe { hb_face_get_user_data(face, std::ptr::addr_of_mut!(GLYPH_FROM_NAMES_KEY)) };
 
-    loop {
-        user_data_ptr =
-            unsafe { hb_face_get_user_data(face, std::ptr::addr_of_mut!(GLYPH_FROM_NAMES_KEY)) };
-        if !user_data_ptr.is_null() {
-            break;
-        }
-
+    if user_data_ptr.is_null() {
         // Build the HashMap from glyph names to IDs
         let mut map = HashMap::new();
         for (glyph_id, glyph_name) in data.instance.glyph_names() {
@@ -1236,18 +1231,24 @@ extern "C" fn _hb_fontations_glyph_from_name(
                 std::ptr::addr_of_mut!(GLYPH_FROM_NAMES_KEY),
                 ptr,
                 Some(_hb_glyph_from_names_destroy),
-                true as hb_bool_t,
+                false as hb_bool_t,
             )
         };
 
         if success != false as hb_bool_t {
             user_data_ptr = ptr;
-            break;
+        } else {
+            // Another reader may have published first. Never replace its map:
+            // readers keep using it until the face is destroyed.
+            _hb_glyph_from_names_destroy(ptr);
+            user_data_ptr = unsafe {
+                hb_face_get_user_data(face, std::ptr::addr_of_mut!(GLYPH_FROM_NAMES_KEY))
+            };
+            if user_data_ptr.is_null() {
+                // Publication failed without a winner (for example, on OOM).
+                return false as hb_bool_t;
+            }
         }
-
-        // We failed to set user data — reclaim the pointer to avoid leaking
-        _hb_glyph_from_names_destroy(ptr);
-        // Try again in next loop iteration
     }
 
     let glyph_from_names = unsafe { &*(user_data_ptr as *const HashMap<String, u32>) };

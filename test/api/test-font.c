@@ -717,6 +717,69 @@ test_synthetic_glyph_extents_overflow (void)
 }
 
 #ifdef HAVE_FONTATIONS
+typedef struct {
+  hb_font_t *font;
+  GMutex mutex;
+  GCond cond;
+  unsigned waiting;
+  hb_bool_t start;
+  char name[128];
+} fontations_name_test_t;
+
+static gpointer
+fontations_name_thread (gpointer user_data)
+{
+  fontations_name_test_t *data = user_data;
+  g_mutex_lock (&data->mutex);
+  data->waiting++;
+  g_cond_broadcast (&data->cond);
+  while (!data->start)
+    g_cond_wait (&data->cond, &data->mutex);
+  g_mutex_unlock (&data->mutex);
+
+  for (unsigned i = 0; i < 100; i++)
+  {
+    hb_codepoint_t glyph = HB_CODEPOINT_INVALID;
+    g_assert_true (hb_font_get_glyph_from_name (data->font, data->name, -1, &glyph));
+    g_assert_cmpuint (glyph, ==, 1);
+    g_assert_false (hb_font_get_glyph_from_name (data->font, "nonexistent-glyph", -1, &glyph));
+  }
+  return NULL;
+}
+
+static void
+test_fontations_glyph_from_name_threads (void)
+{
+  for (unsigned run = 0; run < 8; run++)
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
+    fontations_name_test_t data = {0};
+    data.font = hb_font_create (face);
+    hb_fontations_font_set_funcs (data.font);
+    hb_font_make_immutable (data.font);
+    g_assert_true (hb_font_get_glyph_name (data.font, 1, data.name, sizeof (data.name)));
+    g_mutex_init (&data.mutex);
+    g_cond_init (&data.cond);
+
+    GThread *threads[8];
+    for (unsigned i = 0; i < G_N_ELEMENTS (threads); i++)
+      threads[i] = g_thread_new ("fontations-names", fontations_name_thread, &data);
+    g_mutex_lock (&data.mutex);
+    while (data.waiting != G_N_ELEMENTS (threads))
+      g_cond_wait (&data.cond, &data.mutex);
+    data.start = true;
+    g_cond_broadcast (&data.cond);
+    g_mutex_unlock (&data.mutex);
+    for (unsigned i = 0; i < G_N_ELEMENTS (threads); i++)
+      g_thread_join (threads[i]);
+
+    g_cond_clear (&data.cond);
+    g_mutex_clear (&data.mutex);
+    hb_font_destroy (data.font);
+    hb_face_destroy (face);
+  }
+}
+
 static void
 test_fontations_advances (void)
 {
@@ -807,6 +870,7 @@ main (int argc, char **argv)
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
 #ifdef HAVE_FONTATIONS
+  hb_test_add (test_fontations_glyph_from_name_threads);
   hb_test_add (test_fontations_advances);
 #endif
 
