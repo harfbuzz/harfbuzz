@@ -297,7 +297,8 @@ impl<'a> Iterator for StridedGlyphs<'a> {
     }
 }
 
-fn strided_ranges_overlap<T, U>(
+// Conservatively check the used slots, allowing disjoint interleaved fields.
+fn strided_slots_overlap<T, U>(
     count: u32,
     first_a: *const T,
     stride_a: u32,
@@ -311,7 +312,22 @@ fn strided_ranges_overlap<T, U>(
         first_a as usize + (count - 1) as usize * stride_a as usize + std::mem::size_of::<T>();
     let end_b =
         first_b as usize + (count - 1) as usize * stride_b as usize + std::mem::size_of::<U>();
-    end_a > first_b as usize && end_b > first_a as usize
+    if end_a <= first_b as usize || end_b <= first_a as usize {
+        return false;
+    }
+    if stride_a == stride_b && stride_a != 0 {
+        let gap = (first_a as usize).abs_diff(first_b as usize) % stride_a as usize;
+        let (size_low, size_high) = if first_a as usize <= first_b as usize {
+            (std::mem::size_of::<T>(), std::mem::size_of::<U>())
+        } else {
+            (std::mem::size_of::<U>(), std::mem::size_of::<T>())
+        };
+        // Both gaps must fit the fields, including across record boundaries.
+        if gap >= size_low && stride_a as usize - gap >= size_high {
+            return false;
+        }
+    }
+    true
 }
 
 // SAFETY: All input/output slots must be readable/writable for this call.
@@ -328,7 +344,7 @@ unsafe fn with_strided_glyphs(
         return;
     }
     let disjoint =
-        !strided_ranges_overlap(count, first_glyph, glyph_stride, first_value, value_stride);
+        !strided_slots_overlap(count, first_glyph, glyph_stride, first_value, value_stride);
     if disjoint
         && first_value.is_aligned()
         && (count == 1
@@ -542,18 +558,12 @@ extern "C" fn _hb_fontations_get_glyph_v_origins(
     y_stride: ::std::os::raw::c_uint,
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
-    // Preserve scalar write order for aliased buffers. Equal output strides
-    // can share an interleaved buffer while still having disjoint slots.
-    let outputs_overlap = strided_ranges_overlap(count, first_x, x_stride, first_y, y_stride);
-    let interleaved = x_stride == y_stride && x_stride != 0 && {
-        let gap = (first_x as usize).abs_diff(first_y as usize) % x_stride as usize;
-        gap >= std::mem::size_of::<hb_position_t>()
-            && x_stride as usize - gap >= std::mem::size_of::<hb_position_t>()
-    };
+    // Preserve scalar write order for aliased buffers, while batching disjoint
+    // glyph and position fields in the same interleaved records.
     if (count > 1 && (x_stride as usize) < std::mem::size_of::<hb_position_t>())
-        || strided_ranges_overlap(count, first_glyph, glyph_stride, first_x, x_stride)
-        || strided_ranges_overlap(count, first_glyph, glyph_stride, first_y, y_stride)
-        || (outputs_overlap && !interleaved)
+        || strided_slots_overlap(count, first_glyph, glyph_stride, first_x, x_stride)
+        || strided_slots_overlap(count, first_glyph, glyph_stride, first_y, y_stride)
+        || strided_slots_overlap(count, first_x, x_stride, first_y, y_stride)
     {
         for i in 0..count {
             let glyph = unsafe { struct_at_offset(first_glyph, i, glyph_stride) };

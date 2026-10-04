@@ -860,6 +860,28 @@ test_fontations_strides (void)
   }
   g_assert_cmpuint (glyph_bytes[0], ==, 0xA5);
 
+  /* hb-ot-normalize maps codepoint to var1.u32 in the same glyph-info array. */
+  hb_glyph_info_t infos[3] = {0};
+  for (unsigned i = 0; i < G_N_ELEMENTS (infos); i++)
+  {
+    infos[i].codepoint = unicodes[i];
+    infos[i].mask = 123456;
+    infos[i].cluster = i;
+    infos[i].var1.u32 = HB_CODEPOINT_INVALID;
+    infos[i].var2.u32 = 123456;
+  }
+  g_assert_cmpuint (hb_font_get_nominal_glyphs (font, G_N_ELEMENTS (infos),
+                   &infos[0].codepoint, sizeof (infos[0]),
+                   &infos[0].var1.u32, sizeof (infos[0])), ==, G_N_ELEMENTS (infos));
+  for (unsigned i = 0; i < G_N_ELEMENTS (infos); i++)
+  {
+    g_assert_cmpuint (infos[i].codepoint, ==, unicodes[i]);
+    g_assert_cmpuint (infos[i].var1.u32, ==, ids[i]);
+    g_assert_cmpuint (infos[i].mask, ==, 123456);
+    g_assert_cmpuint (infos[i].cluster, ==, i);
+    g_assert_cmpuint (infos[i].var2.u32, ==, 123456);
+  }
+
   void (*get_advances[])(hb_font_t *, unsigned, const hb_codepoint_t *, unsigned,
                         hb_position_t *, unsigned) = {
     hb_font_get_glyph_h_advances, hb_font_get_glyph_v_advances,
@@ -890,6 +912,38 @@ test_fontations_strides (void)
                        (hb_position_t *) in_place, sizeof (in_place[0]));
     for (unsigned i = 0; i < 3; i++)
       g_assert_cmpint ((hb_position_t) in_place[i], ==, expected[i]);
+  }
+
+  struct {
+    hb_codepoint_t glyph;
+    hb_position_t h_advance, v_advance, x, y, padding;
+  } records[3];
+  for (unsigned i = 0; i < G_N_ELEMENTS (records); i++)
+  {
+    records[i].glyph = ids[i];
+    records[i].h_advance = records[i].v_advance = records[i].x = records[i].y = 0;
+    records[i].padding = 123456;
+  }
+  hb_font_get_glyph_h_advances (font, G_N_ELEMENTS (records),
+                               &records[0].glyph, sizeof (records[0]),
+                               &records[0].h_advance, sizeof (records[0]));
+  hb_font_get_glyph_v_advances (font, G_N_ELEMENTS (records),
+                               &records[0].glyph, sizeof (records[0]),
+                               &records[0].v_advance, sizeof (records[0]));
+  g_assert_true (hb_font_get_glyph_v_origins (font, G_N_ELEMENTS (records),
+                 &records[0].glyph, sizeof (records[0]),
+                 &records[0].x, sizeof (records[0]),
+                 &records[0].y, sizeof (records[0])));
+  for (unsigned i = 0; i < G_N_ELEMENTS (records); i++)
+  {
+    hb_position_t x, y;
+    g_assert_cmpuint (records[i].glyph, ==, ids[i]);
+    g_assert_cmpint (records[i].h_advance, ==, hb_font_get_glyph_h_advance (font, ids[i]));
+    g_assert_cmpint (records[i].v_advance, ==, hb_font_get_glyph_v_advance (font, ids[i]));
+    g_assert_true (hb_font_get_glyph_v_origin (font, ids[i], &x, &y));
+    g_assert_cmpint (records[i].x, ==, x);
+    g_assert_cmpint (records[i].y, ==, y);
+    g_assert_cmpint (records[i].padding, ==, 123456);
   }
   hb_font_destroy (font);
   hb_face_destroy (face);
