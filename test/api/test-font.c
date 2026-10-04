@@ -26,6 +26,10 @@
 
 #include "hb-test.h"
 
+#ifdef HAVE_FONTATIONS
+#include <hb-fontations.h>
+#endif
+
 /* Unit tests for hb-font.h */
 
 
@@ -712,6 +716,397 @@ test_synthetic_glyph_extents_overflow (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
+#ifdef HAVE_FONTATIONS
+typedef struct {
+  hb_font_t *font;
+  GMutex mutex;
+  GCond cond;
+  unsigned waiting;
+  hb_bool_t start;
+  char name[128];
+} fontations_name_test_t;
+
+static gpointer
+fontations_name_thread (gpointer user_data)
+{
+  fontations_name_test_t *data = user_data;
+  g_mutex_lock (&data->mutex);
+  data->waiting++;
+  g_cond_broadcast (&data->cond);
+  while (!data->start)
+    g_cond_wait (&data->cond, &data->mutex);
+  g_mutex_unlock (&data->mutex);
+
+  for (unsigned i = 0; i < 100; i++)
+  {
+    hb_codepoint_t glyph = HB_CODEPOINT_INVALID;
+    g_assert_true (hb_font_get_glyph_from_name (data->font, data->name, -1, &glyph));
+    g_assert_cmpuint (glyph, ==, 1);
+    g_assert_false (hb_font_get_glyph_from_name (data->font, "nonexistent-glyph", -1, &glyph));
+  }
+  return NULL;
+}
+
+static void
+test_fontations_glyph_from_name_threads (void)
+{
+  for (unsigned run = 0; run < 8; run++)
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
+    fontations_name_test_t data = {0};
+    data.font = hb_font_create (face);
+    hb_fontations_font_set_funcs (data.font);
+    hb_font_make_immutable (data.font);
+    g_assert_true (hb_font_get_glyph_name (data.font, 1, data.name, sizeof (data.name)));
+    g_mutex_init (&data.mutex);
+    g_cond_init (&data.cond);
+
+    GThread *threads[8];
+    for (unsigned i = 0; i < G_N_ELEMENTS (threads); i++)
+      threads[i] = g_thread_new ("fontations-names", fontations_name_thread, &data);
+    g_mutex_lock (&data.mutex);
+    while (data.waiting != G_N_ELEMENTS (threads))
+      g_cond_wait (&data.cond, &data.mutex);
+    data.start = true;
+    g_cond_broadcast (&data.cond);
+    g_mutex_unlock (&data.mutex);
+    for (unsigned i = 0; i < G_N_ELEMENTS (threads); i++)
+      g_thread_join (threads[i]);
+
+    g_cond_clear (&data.cond);
+    g_mutex_clear (&data.mutex);
+    hb_font_destroy (data.font);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_fontations_scale_changes (void)
+{
+  const char *fonts[] = {
+    "fonts/Roboto-Variable.abc.ttf",
+    "fonts/SourceSerifVariable-Roman-VVAR.abc.ttf",
+    "fonts/Roboto-Regular.abc.ttf",
+  };
+  const struct {
+    int values[3];
+    unsigned count;
+  } locations[] = {
+    {{0, 0, 0}, 0}, {{0, 0, 0}, 3},
+    {{9830, 0, 0}, 1}, {{9830, 0, 0}, 3},
+    {{9830, 16384, 0}, 2}, {{9830, 16384, 16384}, 3},
+    {{0, 0, 16384}, 3}, {{0, 0, 0}, 0},
+  };
+  const int scales[][2] = {{2048, 4096}, {-1234, -5678}, {0, 0}, {1234, 5678}};
+
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    hb_font_t *font = hb_font_create (face);
+    hb_font_t *reference = hb_font_create (face);
+    hb_fontations_font_set_funcs (font);
+
+    for (unsigned c = 0; c < G_N_ELEMENTS (locations); c++)
+    {
+      hb_font_set_var_coords_normalized (font, locations[c].values, locations[c].count);
+      hb_font_set_var_coords_normalized (reference, locations[c].values, locations[c].count);
+      for (unsigned s = 0; s < G_N_ELEMENTS (scales); s++)
+      {
+        hb_font_set_scale (font, scales[s][0], scales[s][1]);
+        hb_font_set_scale (reference, scales[s][0], scales[s][1]);
+        /* Compare the reused instance against a freshly initialized one. */
+        hb_fontations_font_set_funcs (reference);
+        for (hb_codepoint_t glyph = 0; glyph < hb_face_get_glyph_count (face); glyph++)
+        {
+          g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==,
+                           hb_font_get_glyph_h_advance (reference, glyph));
+          g_assert_cmpint (hb_font_get_glyph_v_advance (font, glyph), ==,
+                           hb_font_get_glyph_v_advance (reference, glyph));
+        }
+      }
+    }
+
+    hb_font_destroy (reference);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_fontations_strides (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_fontations_font_set_funcs (font);
+  const hb_codepoint_t unicodes[] = {'a', 'b', 'c'};
+  hb_codepoint_t ids[3];
+  uint8_t unicode_bytes[16], glyph_bytes[16], advance_bytes[16];
+  memset (unicode_bytes, 0xA5, sizeof (unicode_bytes));
+  memset (glyph_bytes, 0xA5, sizeof (glyph_bytes));
+  for (unsigned i = 0; i < G_N_ELEMENTS (unicodes); i++)
+  {
+    memcpy (unicode_bytes + 1 + 5 * i, &unicodes[i], sizeof (unicodes[i]));
+    g_assert_true (hb_font_get_nominal_glyph (font, unicodes[i], &ids[i]));
+  }
+  g_assert_cmpuint (hb_font_get_nominal_glyphs (font, 3,
+                   (const hb_codepoint_t *) (unicode_bytes + 1), 5,
+                   (hb_codepoint_t *) (glyph_bytes + 1), 5), ==, 3);
+  for (unsigned i = 0; i < 3; i++)
+  {
+    hb_codepoint_t glyph;
+    memcpy (&glyph, glyph_bytes + 1 + 5 * i, sizeof (glyph));
+    g_assert_cmpuint (glyph, ==, ids[i]);
+    g_assert_cmpuint (glyph_bytes[5 * i + 5], ==, 0xA5);
+  }
+  g_assert_cmpuint (glyph_bytes[0], ==, 0xA5);
+
+  /* hb-ot-normalize maps codepoint to var1.u32 in the same glyph-info array. */
+  hb_glyph_info_t infos[3] = {0};
+  for (unsigned i = 0; i < G_N_ELEMENTS (infos); i++)
+  {
+    infos[i].codepoint = unicodes[i];
+    infos[i].mask = 123456;
+    infos[i].cluster = i;
+    infos[i].var1.u32 = HB_CODEPOINT_INVALID;
+    infos[i].var2.u32 = 123456;
+  }
+  g_assert_cmpuint (hb_font_get_nominal_glyphs (font, G_N_ELEMENTS (infos),
+                   &infos[0].codepoint, sizeof (infos[0]),
+                   &infos[0].var1.u32, sizeof (infos[0])), ==, G_N_ELEMENTS (infos));
+  for (unsigned i = 0; i < G_N_ELEMENTS (infos); i++)
+  {
+    g_assert_cmpuint (infos[i].codepoint, ==, unicodes[i]);
+    g_assert_cmpuint (infos[i].var1.u32, ==, ids[i]);
+    g_assert_cmpuint (infos[i].mask, ==, 123456);
+    g_assert_cmpuint (infos[i].cluster, ==, i);
+    g_assert_cmpuint (infos[i].var2.u32, ==, 123456);
+  }
+
+  void (*get_advances[])(hb_font_t *, unsigned, const hb_codepoint_t *, unsigned,
+                        hb_position_t *, unsigned) = {
+    hb_font_get_glyph_h_advances, hb_font_get_glyph_v_advances,
+  };
+  for (unsigned axis = 0; axis < G_N_ELEMENTS (get_advances); axis++)
+  {
+    hb_position_t expected[3];
+    get_advances[axis] (font, 3, ids, sizeof (ids[0]), expected, sizeof (expected[0]));
+    memset (advance_bytes, 0xA5, sizeof (advance_bytes));
+    get_advances[axis] (font, 3, (const hb_codepoint_t *) (glyph_bytes + 1), 5,
+                       (hb_position_t *) (advance_bytes + 1), 5);
+    for (unsigned i = 0; i < 3; i++)
+    {
+      hb_position_t advance;
+      memcpy (&advance, advance_bytes + 1 + 5 * i, sizeof (advance));
+      g_assert_cmpint (advance, ==, expected[i]);
+      g_assert_cmpuint (advance_bytes[5 * i + 5], ==, 0xA5);
+    }
+    g_assert_cmpuint (advance_bytes[0], ==, 0xA5);
+
+    hb_position_t last = 0;
+    get_advances[axis] (font, 3, ids, sizeof (ids[0]), &last, 0);
+    g_assert_cmpint (last, ==, expected[2]);
+
+    hb_codepoint_t in_place[3];
+    memcpy (in_place, ids, sizeof (ids));
+    get_advances[axis] (font, 3, in_place, sizeof (in_place[0]),
+                       (hb_position_t *) in_place, sizeof (in_place[0]));
+    for (unsigned i = 0; i < 3; i++)
+      g_assert_cmpint ((hb_position_t) in_place[i], ==, expected[i]);
+  }
+
+  struct {
+    hb_codepoint_t glyph;
+    hb_position_t h_advance, v_advance, x, y, padding;
+  } records[3];
+  for (unsigned i = 0; i < G_N_ELEMENTS (records); i++)
+  {
+    records[i].glyph = ids[i];
+    records[i].h_advance = records[i].v_advance = records[i].x = records[i].y = 0;
+    records[i].padding = 123456;
+  }
+  hb_font_get_glyph_h_advances (font, G_N_ELEMENTS (records),
+                               &records[0].glyph, sizeof (records[0]),
+                               &records[0].h_advance, sizeof (records[0]));
+  hb_font_get_glyph_v_advances (font, G_N_ELEMENTS (records),
+                               &records[0].glyph, sizeof (records[0]),
+                               &records[0].v_advance, sizeof (records[0]));
+  g_assert_true (hb_font_get_glyph_v_origins (font, G_N_ELEMENTS (records),
+                 &records[0].glyph, sizeof (records[0]),
+                 &records[0].x, sizeof (records[0]),
+                 &records[0].y, sizeof (records[0])));
+  for (unsigned i = 0; i < G_N_ELEMENTS (records); i++)
+  {
+    hb_position_t x, y;
+    g_assert_cmpuint (records[i].glyph, ==, ids[i]);
+    g_assert_cmpint (records[i].h_advance, ==, hb_font_get_glyph_h_advance (font, ids[i]));
+    g_assert_cmpint (records[i].v_advance, ==, hb_font_get_glyph_v_advance (font, ids[i]));
+    g_assert_true (hb_font_get_glyph_v_origin (font, ids[i], &x, &y));
+    g_assert_cmpint (records[i].x, ==, x);
+    g_assert_cmpint (records[i].y, ==, y);
+    g_assert_cmpint (records[i].padding, ==, 123456);
+  }
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_fontations_v_origins (void)
+{
+  const char *fonts[] = {
+    "fonts/Roboto-Regular.abc.ttf",
+    "fonts/Roboto-Variable.abc.ttf",
+    "fonts/SourceSerifVariable-Roman-VVAR.abc.ttf",
+    "fonts/AdobeVFPrototype.abc.otf",
+    "../shape/data/in-house/fonts/NotoSansCJK-VF.abc.ttf",
+    "../shape/data/in-house/fonts/NotoSansCJK-VF.abc.otf",
+  };
+  const int coords[] = {0, 16384, -16384, 0};
+  const hb_codepoint_t glyphs[] = {0, 1, 2, 3, HB_CODEPOINT_INVALID};
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    hb_font_t *font = hb_font_create (face);
+    hb_fontations_font_set_funcs (font);
+    int upem = hb_face_get_upem (face);
+    for (int sign = 1; sign >= -1; sign -= 2)
+    {
+      hb_font_set_scale (font, sign * upem * 2, sign * upem * 3);
+      for (unsigned c = 0; c < G_N_ELEMENTS (coords); c++)
+      {
+        hb_font_set_var_coords_normalized (font, &coords[c], 1);
+        hb_position_t expected_x[G_N_ELEMENTS (glyphs)], expected_y[G_N_ELEMENTS (glyphs)];
+        for (unsigned i = 0; i < G_N_ELEMENTS (glyphs); i++)
+          g_assert_true (hb_font_get_glyph_v_origin (font, glyphs[i], &expected_x[i], &expected_y[i]));
+
+        hb_position_t origins[4 * G_N_ELEMENTS (glyphs)];
+        for (unsigned i = 0; i < G_N_ELEMENTS (origins); i++)
+          origins[i] = 123456;
+        g_assert_true (hb_font_get_glyph_v_origins (font, G_N_ELEMENTS (glyphs),
+                       glyphs, sizeof (glyphs[0]),
+                       origins, 4 * sizeof (origins[0]),
+                       origins + 1, 4 * sizeof (origins[0])));
+        for (unsigned i = 0; i < G_N_ELEMENTS (glyphs); i++)
+        {
+          g_assert_cmpint (origins[4 * i], ==, expected_x[i]);
+          g_assert_cmpint (origins[4 * i + 1], ==, expected_y[i]);
+          g_assert_cmpint (origins[4 * i + 2], ==, 123456);
+          g_assert_cmpint (origins[4 * i + 3], ==, 123456);
+        }
+
+        hb_position_t last_x = 0, last_y = 0;
+        g_assert_true (hb_font_get_glyph_v_origins (font, G_N_ELEMENTS (glyphs),
+                       glyphs, sizeof (glyphs[0]), &last_x, 0, &last_y, 0));
+        g_assert_cmpint (last_x, ==, expected_x[G_N_ELEMENTS (glyphs) - 1]);
+        g_assert_cmpint (last_y, ==, expected_y[G_N_ELEMENTS (glyphs) - 1]);
+
+        hb_codepoint_t in_place[G_N_ELEMENTS (glyphs)];
+        memcpy (in_place, glyphs, sizeof (glyphs));
+        g_assert_true (hb_font_get_glyph_v_origins (font, G_N_ELEMENTS (glyphs),
+                       in_place, sizeof (in_place[0]),
+                       (hb_position_t *) in_place, sizeof (in_place[0]),
+                       origins, sizeof (origins[0])));
+        for (unsigned i = 0; i < G_N_ELEMENTS (glyphs); i++)
+        {
+          g_assert_cmpint ((hb_position_t) in_place[i], ==, expected_x[i]);
+          g_assert_cmpint (origins[i], ==, expected_y[i]);
+        }
+
+        uint8_t x_bytes[1 + 5 * G_N_ELEMENTS (glyphs)], y_bytes[sizeof (x_bytes)];
+        memset (x_bytes, 0xA5, sizeof (x_bytes));
+        memset (y_bytes, 0xA5, sizeof (y_bytes));
+        g_assert_true (hb_font_get_glyph_v_origins (font, G_N_ELEMENTS (glyphs),
+                       glyphs, sizeof (glyphs[0]),
+                       (hb_position_t *) (x_bytes + 1), 5,
+                       (hb_position_t *) (y_bytes + 1), 5));
+        for (unsigned i = 0; i < G_N_ELEMENTS (glyphs); i++)
+        {
+          hb_position_t x, y;
+          memcpy (&x, x_bytes + 1 + 5 * i, sizeof (x));
+          memcpy (&y, y_bytes + 1 + 5 * i, sizeof (y));
+          g_assert_cmpint (x, ==, expected_x[i]);
+          g_assert_cmpint (y, ==, expected_y[i]);
+          g_assert_cmpuint (x_bytes[5 * i + 5], ==, 0xA5);
+          g_assert_cmpuint (y_bytes[5 * i + 5], ==, 0xA5);
+        }
+        g_assert_true (hb_font_get_glyph_v_origins (font, 0, NULL, 0, NULL, 0, NULL, 0));
+      }
+    }
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_fontations_advances (void)
+{
+  const char *fonts[] = {
+    "fonts/Roboto-Variable.abc.ttf",
+    "fonts/SourceSerifVariable-Roman-VVAR.abc.ttf",
+    "fonts/SourceSansVariable-Roman-nohvar-41,C1.ttf",
+  };
+  const int coords[] = {0, 16384, -16384, 0};
+  const struct {
+    hb_codepoint_t glyph;
+    hb_codepoint_t padding[2];
+  } glyphs[] = {{1, {0}}, {2, {0}}, {3, {0}}, {HB_CODEPOINT_INVALID, {0}}};
+
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    hb_font_t *font = hb_font_create (face);
+    hb_font_t *reference = hb_font_create (face);
+    int upem = hb_face_get_upem (face);
+    hb_fontations_font_set_funcs (font);
+
+    for (int sign = 1; sign >= -1; sign -= 2)
+    {
+      hb_font_set_scale (font, sign * upem * 2, sign * upem * 3);
+      hb_font_set_scale (reference, sign * upem * 2, sign * upem * 3);
+
+      for (unsigned c = 0; c < G_N_ELEMENTS (coords); c++)
+      {
+        hb_font_set_var_coords_normalized (font, &coords[c], 1);
+        hb_font_set_var_coords_normalized (reference, &coords[c], 1);
+
+        hb_position_t h_advances[2 * G_N_ELEMENTS (glyphs)];
+        hb_position_t v_advances[2 * G_N_ELEMENTS (glyphs)];
+        for (unsigned i = 0; i < G_N_ELEMENTS (h_advances); i++)
+          h_advances[i] = v_advances[i] = 123456;
+
+        hb_font_get_glyph_h_advances (font, G_N_ELEMENTS (glyphs),
+                                     &glyphs[0].glyph, sizeof (glyphs[0]),
+                                     h_advances, 2 * sizeof (h_advances[0]));
+        hb_font_get_glyph_v_advances (font, G_N_ELEMENTS (glyphs),
+                                     &glyphs[0].glyph, sizeof (glyphs[0]),
+                                     v_advances, 2 * sizeof (v_advances[0]));
+
+        for (unsigned i = 0; i < G_N_ELEMENTS (glyphs); i++)
+        {
+          hb_codepoint_t glyph = glyphs[i].glyph;
+          g_assert_cmpint (h_advances[2 * i], ==, hb_font_get_glyph_h_advance (font, glyph));
+          g_assert_cmpint (v_advances[2 * i], ==, hb_font_get_glyph_v_advance (font, glyph));
+          /* OT can apply variation deltas even to invalid glyph IDs. */
+          if (glyph < hb_face_get_glyph_count (face))
+          {
+            g_assert_cmpint (h_advances[2 * i], ==, hb_font_get_glyph_h_advance (reference, glyph));
+            g_assert_cmpint (v_advances[2 * i], ==, hb_font_get_glyph_v_advance (reference, glyph));
+          }
+          g_assert_cmpint (h_advances[2 * i + 1], ==, 123456);
+          g_assert_cmpint (v_advances[2 * i + 1], ==, 123456);
+        }
+
+        hb_font_get_glyph_h_advances (font, 0, NULL, 0, NULL, 0);
+        hb_font_get_glyph_v_advances (font, 0, NULL, 0, NULL, 0);
+      }
+    }
+
+    hb_font_destroy (reference);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -730,6 +1125,13 @@ main (int argc, char **argv)
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
+#ifdef HAVE_FONTATIONS
+  hb_test_add (test_fontations_glyph_from_name_threads);
+  hb_test_add (test_fontations_scale_changes);
+  hb_test_add (test_fontations_strides);
+  hb_test_add (test_fontations_v_origins);
+  hb_test_add (test_fontations_advances);
+#endif
 
   return hb_test_run();
 }
