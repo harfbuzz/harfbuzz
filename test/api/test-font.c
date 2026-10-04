@@ -833,6 +833,69 @@ test_fontations_scale_changes (void)
 }
 
 static void
+test_fontations_strides (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_fontations_font_set_funcs (font);
+  const hb_codepoint_t unicodes[] = {'a', 'b', 'c'};
+  hb_codepoint_t ids[3];
+  uint8_t unicode_bytes[16], glyph_bytes[16], advance_bytes[16];
+  memset (unicode_bytes, 0xA5, sizeof (unicode_bytes));
+  memset (glyph_bytes, 0xA5, sizeof (glyph_bytes));
+  for (unsigned i = 0; i < G_N_ELEMENTS (unicodes); i++)
+  {
+    memcpy (unicode_bytes + 1 + 5 * i, &unicodes[i], sizeof (unicodes[i]));
+    g_assert_true (hb_font_get_nominal_glyph (font, unicodes[i], &ids[i]));
+  }
+  g_assert_cmpuint (hb_font_get_nominal_glyphs (font, 3,
+                   (const hb_codepoint_t *) (unicode_bytes + 1), 5,
+                   (hb_codepoint_t *) (glyph_bytes + 1), 5), ==, 3);
+  for (unsigned i = 0; i < 3; i++)
+  {
+    hb_codepoint_t glyph;
+    memcpy (&glyph, glyph_bytes + 1 + 5 * i, sizeof (glyph));
+    g_assert_cmpuint (glyph, ==, ids[i]);
+    g_assert_cmpuint (glyph_bytes[5 * i + 5], ==, 0xA5);
+  }
+  g_assert_cmpuint (glyph_bytes[0], ==, 0xA5);
+
+  void (*get_advances[])(hb_font_t *, unsigned, const hb_codepoint_t *, unsigned,
+                        hb_position_t *, unsigned) = {
+    hb_font_get_glyph_h_advances, hb_font_get_glyph_v_advances,
+  };
+  for (unsigned axis = 0; axis < G_N_ELEMENTS (get_advances); axis++)
+  {
+    hb_position_t expected[3];
+    get_advances[axis] (font, 3, ids, sizeof (ids[0]), expected, sizeof (expected[0]));
+    memset (advance_bytes, 0xA5, sizeof (advance_bytes));
+    get_advances[axis] (font, 3, (const hb_codepoint_t *) (glyph_bytes + 1), 5,
+                       (hb_position_t *) (advance_bytes + 1), 5);
+    for (unsigned i = 0; i < 3; i++)
+    {
+      hb_position_t advance;
+      memcpy (&advance, advance_bytes + 1 + 5 * i, sizeof (advance));
+      g_assert_cmpint (advance, ==, expected[i]);
+      g_assert_cmpuint (advance_bytes[5 * i + 5], ==, 0xA5);
+    }
+    g_assert_cmpuint (advance_bytes[0], ==, 0xA5);
+
+    hb_position_t last = 0;
+    get_advances[axis] (font, 3, ids, sizeof (ids[0]), &last, 0);
+    g_assert_cmpint (last, ==, expected[2]);
+
+    hb_codepoint_t in_place[3];
+    memcpy (in_place, ids, sizeof (ids));
+    get_advances[axis] (font, 3, in_place, sizeof (in_place[0]),
+                       (hb_position_t *) in_place, sizeof (in_place[0]));
+    for (unsigned i = 0; i < 3; i++)
+      g_assert_cmpint ((hb_position_t) in_place[i], ==, expected[i]);
+  }
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_fontations_advances (void)
 {
   const char *fonts[] = {
@@ -924,6 +987,7 @@ main (int argc, char **argv)
 #ifdef HAVE_FONTATIONS
   hb_test_add (test_fontations_glyph_from_name_threads);
   hb_test_add (test_fontations_scale_changes);
+  hb_test_add (test_fontations_strides);
   hb_test_add (test_fontations_advances);
 #endif
 

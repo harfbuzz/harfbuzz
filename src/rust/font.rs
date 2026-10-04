@@ -2,6 +2,7 @@ use super::{hb::*, HbBlob};
 
 use std::collections::HashMap;
 use std::ffi::c_void;
+use std::marker::PhantomData;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
@@ -244,12 +245,113 @@ fn font_line_extents(font: *mut hb_font_t) -> LineExtents<i64> {
     }
 }
 
-fn struct_at_offset<T: Copy>(first: *const T, index: u32, stride: u32) -> T {
-    unsafe { *((first as *const u8).offset((index * stride) as isize) as *const T) }
+// SAFETY: The selected slot must be readable for a T. Alignment is not required.
+unsafe fn struct_at_offset<T: Copy>(first: *const T, index: u32, stride: u32) -> T {
+    first
+        .cast::<u8>()
+        .add(index as usize * stride as usize)
+        .cast::<T>()
+        .read_unaligned()
 }
 
-fn struct_at_offset_mut<T: Copy>(first: *mut T, index: u32, stride: u32) -> &'static mut T {
-    unsafe { &mut *((first as *mut u8).offset((index * stride) as isize) as *mut T) }
+// SAFETY: The selected slot must be writable for a T. Alignment is not required.
+unsafe fn write_struct_at_offset<T>(first: *mut T, index: u32, stride: u32, value: T) {
+    first
+        .cast::<u8>()
+        .add(index as usize * stride as usize)
+        .cast::<T>()
+        .write_unaligned(value);
+}
+
+// Constructed only by with_strided_glyphs: outputs are aligned, disjoint,
+// and exclusively borrowed for 'a, and cannot alias the input slots.
+struct StridedGlyphs<'a> {
+    index: u32,
+    count: u32,
+    first_glyph: *const hb_codepoint_t,
+    glyph_stride: u32,
+    first_value: *mut hb_position_t,
+    value_stride: u32,
+    lifetime: PhantomData<&'a mut hb_position_t>,
+}
+
+impl<'a> Iterator for StridedGlyphs<'a> {
+    type Item = (GlyphId, &'a mut hb_position_t);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index == self.count {
+            return None;
+        }
+        let i = self.index;
+        self.index += 1;
+        unsafe {
+            Some((
+                GlyphId::new(struct_at_offset(self.first_glyph, i, self.glyph_stride)),
+                &mut *self
+                    .first_value
+                    .cast::<u8>()
+                    .add(i as usize * self.value_stride as usize)
+                    .cast::<hb_position_t>(),
+            ))
+        }
+    }
+}
+
+// SAFETY: All input/output slots must be readable/writable for this call.
+// The callback must access these buffers only through the supplied iterator.
+unsafe fn with_strided_glyphs(
+    count: u32,
+    first_glyph: *const hb_codepoint_t,
+    glyph_stride: u32,
+    first_value: *mut hb_position_t,
+    value_stride: u32,
+    mut batch: impl for<'a> FnMut(StridedGlyphs<'a>),
+) {
+    if count == 0 {
+        return;
+    }
+    let glyph_end = first_glyph as usize
+        + (count - 1) as usize * glyph_stride as usize
+        + std::mem::size_of::<hb_codepoint_t>();
+    let value_end = first_value as usize
+        + (count - 1) as usize * value_stride as usize
+        + std::mem::size_of::<hb_position_t>();
+    let disjoint = glyph_end <= first_value as usize || value_end <= first_glyph as usize;
+    if disjoint
+        && first_value.is_aligned()
+        && (count == 1
+            || (value_stride as usize >= std::mem::size_of::<hb_position_t>()
+                && (value_stride as usize).is_multiple_of(std::mem::align_of::<hb_position_t>())))
+    {
+        batch(StridedGlyphs {
+            index: 0,
+            count,
+            first_glyph,
+            glyph_stride,
+            first_value,
+            value_stride,
+            lifetime: PhantomData,
+        });
+    } else {
+        // Unaligned or overlapping slots cannot yield simultaneous &mut
+        // references. Use one stack output at a time and scatter it back.
+        for i in 0..count {
+            let mut value = 0;
+            batch(StridedGlyphs {
+                index: 0,
+                count: 1,
+                first_glyph: first_glyph
+                    .cast::<u8>()
+                    .add(i as usize * glyph_stride as usize)
+                    .cast(),
+                glyph_stride: 0,
+                first_value: &mut value,
+                value_stride: 0,
+                lifetime: PhantomData,
+            });
+            write_struct_at_offset(first_value, i, value_stride, value);
+        }
+    }
 }
 
 #[cfg(feature = "skrifa")]
@@ -322,12 +424,12 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
     let char_map = data.instance.charmap();
 
     for i in 0..count {
-        let unicode = struct_at_offset(first_unicode, i, unicode_stride);
+        let unicode = unsafe { struct_at_offset(first_unicode, i, unicode_stride) };
         let Some(glyph) = char_map.map_unicode(unicode) else {
             return i;
         };
         let glyph_id = glyph.to_u32() as hb_codepoint_t;
-        *struct_at_offset_mut(first_glyph, i, glyph_stride) = glyph_id;
+        unsafe { write_struct_at_offset(first_glyph, i, glyph_stride, glyph_id) };
     }
 
     count
@@ -368,18 +470,22 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let glyphs = (0..count).map(|i| {
-        let glyph = GlyphId::new(struct_at_offset(first_glyph, i, glyph_stride));
-        (
-            glyph,
-            struct_at_offset_mut(first_advance, i, advance_stride),
-        )
-    });
-    data.instance.glyph_metrics().h_advance_batched(
-        // Skrifa rounded advances to design units before applying our scale.
-        |advance| (advance.to_i32() as f32 * data.x_mult).round() as hb_position_t,
-        glyphs,
-    );
+    unsafe {
+        with_strided_glyphs(
+            count,
+            first_glyph,
+            glyph_stride,
+            first_advance,
+            advance_stride,
+            |glyphs| {
+                data.instance.glyph_metrics().h_advance_batched(
+                    // Skrifa rounded advances to design units before applying our scale.
+                    |advance| (advance.to_i32() as f32 * data.x_mult).round() as hb_position_t,
+                    glyphs,
+                );
+            },
+        );
+    }
 }
 
 extern "C" fn _hb_fontations_get_glyph_v_advances(
@@ -396,16 +502,20 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
     data.check_for_updates();
 
     let line = font_line_extents(font);
-    let glyphs = (0..count).map(|i| {
-        let glyph = GlyphId::new(struct_at_offset(first_glyph, i, glyph_stride));
-        (
-            glyph,
-            struct_at_offset_mut(first_advance, i, advance_stride),
-        )
-    });
-    data.glyph_metrics()
-        .with_line_extents(Some(line))
-        .v_advance_batched(|advance| hb_position(advance).saturating_neg(), glyphs);
+    unsafe {
+        with_strided_glyphs(
+            count,
+            first_glyph,
+            glyph_stride,
+            first_advance,
+            advance_stride,
+            |glyphs| {
+                data.glyph_metrics()
+                    .with_line_extents(Some(line))
+                    .v_advance_batched(|advance| hb_position(advance).saturating_neg(), glyphs);
+            },
+        );
+    }
 }
 
 extern "C" fn _hb_fontations_get_glyph_v_origin(
