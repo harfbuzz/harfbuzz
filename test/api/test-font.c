@@ -781,6 +781,58 @@ test_fontations_glyph_from_name_threads (void)
 }
 
 static void
+test_fontations_scale_changes (void)
+{
+  const char *fonts[] = {
+    "fonts/Roboto-Variable.abc.ttf",
+    "fonts/SourceSerifVariable-Roman-VVAR.abc.ttf",
+    "fonts/Roboto-Regular.abc.ttf",
+  };
+  const struct {
+    int values[3];
+    unsigned count;
+  } locations[] = {
+    {{0, 0, 0}, 0}, {{0, 0, 0}, 3},
+    {{9830, 0, 0}, 1}, {{9830, 0, 0}, 3},
+    {{9830, 16384, 0}, 2}, {{9830, 16384, 16384}, 3},
+    {{0, 0, 16384}, 3}, {{0, 0, 0}, 0},
+  };
+  const int scales[][2] = {{2048, 4096}, {-1234, -5678}, {0, 0}, {1234, 5678}};
+
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    hb_font_t *font = hb_font_create (face);
+    hb_font_t *reference = hb_font_create (face);
+    hb_fontations_font_set_funcs (font);
+
+    for (unsigned c = 0; c < G_N_ELEMENTS (locations); c++)
+    {
+      hb_font_set_var_coords_normalized (font, locations[c].values, locations[c].count);
+      hb_font_set_var_coords_normalized (reference, locations[c].values, locations[c].count);
+      for (unsigned s = 0; s < G_N_ELEMENTS (scales); s++)
+      {
+        hb_font_set_scale (font, scales[s][0], scales[s][1]);
+        hb_font_set_scale (reference, scales[s][0], scales[s][1]);
+        /* Compare the reused instance against a freshly initialized one. */
+        hb_fontations_font_set_funcs (reference);
+        for (hb_codepoint_t glyph = 0; glyph < hb_face_get_glyph_count (face); glyph++)
+        {
+          g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==,
+                           hb_font_get_glyph_h_advance (reference, glyph));
+          g_assert_cmpint (hb_font_get_glyph_v_advance (font, glyph), ==,
+                           hb_font_get_glyph_v_advance (reference, glyph));
+        }
+      }
+    }
+
+    hb_font_destroy (reference);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_fontations_advances (void)
 {
   const char *fonts[] = {
@@ -871,6 +923,7 @@ main (int argc, char **argv)
   hb_test_add (test_synthetic_glyph_extents_overflow);
 #ifdef HAVE_FONTATIONS
   hb_test_add (test_fontations_glyph_from_name_threads);
+  hb_test_add (test_fontations_scale_changes);
   hb_test_add (test_fontations_advances);
 #endif
 

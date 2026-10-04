@@ -11,6 +11,7 @@ use read_fonts::model::{
     Blob, Font, NormalizedCoord,
 };
 use read_fonts::types::{BoundingBox as FontBounds, F48Dot16, GlyphId};
+use read_fonts::TableProvider;
 
 #[cfg(feature = "skrifa")]
 use read_fonts::FontRef;
@@ -28,9 +29,6 @@ use skrifa::OutlineGlyphCollection;
 
 #[cfg(feature = "draw")]
 use skrifa::outline::{pen::OutlinePen, DrawSettings};
-
-#[cfg(feature = "paint")]
-use read_fonts::TableProvider;
 
 #[cfg(feature = "paint")]
 use skrifa::{
@@ -135,11 +133,28 @@ impl FontationsData {
         } else {
             std::slice::from_raw_parts(coords, num_coords as usize)
         };
-        self.instance = self
+        let current_coords = self.instance.normalized_coords();
+        let axis_count = self
             .instance
-            .instance_builder()
-            .normalized_coords(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
-            .build();
+            .tables()
+            .fvar()
+            .map(|fvar| fvar.axis_count() as usize)
+            .unwrap_or(0);
+        // Match the builder's padding and truncation, including its empty
+        // representation of an all-default location.
+        if (0..axis_count).any(|i| {
+            current_coords
+                .get(i)
+                .copied()
+                .unwrap_or(NormalizedCoord::ZERO)
+                != NormalizedCoord::from_bits(coords.get(i).copied().unwrap_or(0) as i16)
+        }) {
+            self.instance = self
+                .instance
+                .instance_builder()
+                .normalized_coords(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
+                .build();
+        }
 
         self.serial.store(font_serial, Ordering::Release);
     }
