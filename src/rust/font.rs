@@ -202,11 +202,11 @@ impl Scale for FontationsScale {
     }
 
     fn scale_x(&self, value: F48Dot16) -> i64 {
-        (value.to_f32() * self.x_mult).round() as hb_position_t as i64
+        round_to_position(value.to_f32() * self.x_mult) as i64
     }
 
     fn scale_y(&self, value: F48Dot16) -> i64 {
-        (value.to_f32() * self.y_mult).round() as hb_position_t as i64
+        round_to_position(value.to_f32() * self.y_mult) as i64
     }
 
     fn scale_glyph_extents(&self, extents: GlyphExtents<F48Dot16>) -> GlyphExtents<i64> {
