@@ -645,16 +645,15 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     #[cfg(feature = "skrifa")]
     {
         let skrifa = &data.skrifa;
-        let size = bitmap_size(_font);
         let bitmap_glyph = skrifa
             .sbix_strikes
             .as_ref()
-            .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+            .and_then(|strikes| strikes.glyph_for_size(bitmap_size(_font), glyph_id))
             .or_else(|| {
                 skrifa
                     .cbdt_strikes
                     .as_ref()
-                    .and_then(|strikes| strikes.glyph_for_size(size, glyph_id))
+                    .and_then(|strikes| strikes.glyph_for_size(bitmap_size(_font), glyph_id))
             });
         if let Some(bitmap_glyph) = bitmap_glyph {
             let Some(bitmap_extents) = bitmap_glyph_extents(data, &bitmap_glyph) else {
