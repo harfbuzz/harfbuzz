@@ -6,3 +6,7 @@
 ../fonts/bef923f4ccb474f961c43b63a9c74b7d9b7a023f.ttf;;U+0061,U+002E,U+002E,U+002E;[a=0+600|SPC=1+600|SPC=2+600|period_period_period.liga=3+600]
 ../fonts/49bd922bd447fb15bb05abab5c7ceac8d547a3a2.ttf;;U+0995,U+09BE,U+09B9,U+09BF,U+09A8,U+09C0;[uni0995=0+807|uni09BE=0+266|uni09BF.short01=2+266|uni09B9=2+534|uni09A8=4+602|uni09C0=4+266]
 ../fonts/165281ca0c268390f24200a0e73d399ae750c735.ttf;;U+0997,U+09CD,U+09B0,U+09B9,U+09A3;[gid10=0+695|gid16=0@-667,-35+0|gid5=3+534|gid2=4+620]
+../fonts/36f8e7f3b4f54efaa6bfd8225893022dc0041915.ttf;;U+0041;[.notdef=0+900]
+../fonts/36f8e7f3b4f54efaa6bfd8225893022dc0041915.ttf;;U+0066,U+0069;[.notdef=0+900|.notdef=1+900]
+../fonts/ecc344a5fa31c4d69350231bb3b96cc693646089.ttf;;U+0041;[.notdef=0+900]
+../fonts/ecc344a5fa31c4d69350231bb3b96cc693646089.ttf;;U+0066,U+0069;[.notdef=0+900|.notdef=1+900]
