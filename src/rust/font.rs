@@ -234,6 +234,13 @@ fn hb_position(value: i64) -> hb_position_t {
     value.clamp(hb_position_t::MIN as i64, hb_position_t::MAX as i64) as hb_position_t
 }
 
+#[inline]
+fn round_to_position(value: f32) -> hb_position_t {
+    // Bias in f64 so values just below a half-integer do not round up.
+    let value = f64::from(value);
+    (value + 0.5f64.copysign(value)) as hb_position_t
+}
+
 fn font_line_extents(font: *mut hb_font_t) -> LineExtents<i64> {
     let mut extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
     unsafe {
@@ -508,7 +515,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
             |glyphs| {
                 data.instance.glyph_metrics().h_advance_batched(
                     // Skrifa rounded advances to design units before applying our scale.
-                    |advance| (advance.to_i32() as f32 * data.x_mult).round() as hb_position_t,
+                    |advance| round_to_position(advance.to_i32() as f32 * data.x_mult),
                     glyphs,
                 );
             },
