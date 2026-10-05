@@ -1,3 +1,24 @@
+Overview of changes leading to 14.6.0
+Monday, October 5, 2026
+=====================================
+- Fix shaping failures caused by out-of-range glyph IDs, a regression from
+  11.4.0.
+- Update experimental beyond-64k support to the final ISO Open Font Format
+  5th edition. This support remains disabled by default.
+- Add support for the `DMAP` table.
+- Support `FeatureVariations` 1.1 lookup variations, including subsetting and
+  instancing.
+- Update `VARC` to the revised variation-store format. The new format is
+  incompatible with the previous one.
+- Various `VARC` fixes.
+- Fix background color and stride handling in the experimental raster library.
+- Improve the experimental Rust shaper (HarfRust) and font functions
+  (`fontations`), and update HarfRust to 0.14.
+- Various subsetting fixes and improvements.
+- Various fixes for malformed fonts.
+- Various build and CI fixes.
+
+
 Overview of changes leading to 14.5.1
 Thursday, October 1, 2026
 =====================================
