@@ -245,6 +245,42 @@ test_accumulated_delta_widths ()
 }
 
 static void
+test_condition_delta_precision ()
+{
+  hb_vector_t<hb_tag_t> axes;
+  axes.push (HB_TAG ('T','E','S','T'));
+  hb_hashmap_t<hb_tag_t, Triple> neutral, region;
+  region.set (axes[0], Triple (0, 1, 1));
+  hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple> *> regions;
+  regions.push (&neutral);
+  regions.push (&region);
+  hb_vector_t<int> row;
+  row.push (16777217);
+  row.push (-16777216);
+  hb_vector_t<const hb_vector_t<int> *> rows;
+  rows.push (&row);
+  hb_vector_t<OT::delta_row_encoding_t> encodings;
+  encodings.push (OT::delta_row_encoding_t (std::move (rows), 2));
+  char buf[128];
+  hb_serialize_context_t s (buf, sizeof (buf));
+  auto *out = s.start_serialize<OT::ItemVariationStore> ();
+  hb_always_assert (out->serialize (&s, true, axes, regions, encodings));
+  s.end_serialize ();
+  hb_bytes_t bytes = s.copy_bytes ();
+  const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (bytes.arrayZ);
+  int coords[] = {16384};
+  OT::ItemVarStoreInstancer instancer (&store, nullptr, hb_array (coords));
+  // Positioning keeps float arithmetic, but conditions must retain the unit
+  // left after cancellation of two deltas exceeding float's integer range.
+  hb_always_assert (instancer[0] == 0.f);
+  hb_always_assert (instancer.get_condition_delta (0) == 1.);
+  const char condition_data[] = "\x00\x02\x00\x00\x00\x00\x00\x00";
+  const auto &condition = *reinterpret_cast<const OT::Condition *> (condition_data);
+  hb_always_assert (condition.evaluate (coords, 1, &instancer));
+  bytes.fini ();
+}
+
+static void
 test_failed_encoding ()
 {
   hb_vector_t<int> row;
@@ -272,4 +308,5 @@ main (int argc, char **argv)
   test_signed_delta_widths ();
   test_failed_encoding ();
   test_accumulated_delta_widths ();
+  test_condition_delta_precision ();
 }

@@ -35,12 +35,12 @@ using OT::Layout::GPOS;
 
 #ifndef HB_NO_SUBSET_LAYOUT
 
-float
+double
 hb_subset_plan_t::layout_variation_delta (unsigned var_idx HB_UNUSED)
 {
 #ifndef HB_NO_VAR
   hb_blob_ptr_t<OT::GDEF> gdef = source_table<OT::GDEF> ();
-  float delta = gdef->get_var_store ().get_delta (var_idx,
+  double delta = gdef->get_var_store ().get_delta<double> (var_idx,
                                                 normalized_coords.as_array ());
   gdef.destroy ();
   return delta;

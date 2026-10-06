@@ -313,17 +313,44 @@ test_subset_condition_value_precision (void)
     "fonts/feature-variation-precision-GSUB-lookup-third.ttf",
     "fonts/feature-variation-precision-GPOS-legacy-third.ttf",
     "fonts/feature-variation-precision-GPOS-lookup-third.ttf",
+    "fonts/feature-variation-precision-GSUB-legacy-large-third.ttf",
+    "fonts/feature-variation-precision-GSUB-lookup-large-third.ttf",
+    "fonts/feature-variation-precision-GPOS-legacy-large-third.ttf",
+    "fonts/feature-variation-precision-GPOS-lookup-large-third.ttf",
     "fonts/feature-variation-precision-GSUB-legacy-avar2.ttf",
     "fonts/feature-variation-precision-GSUB-lookup-avar2.ttf",
     "fonts/feature-variation-precision-GPOS-legacy-avar2.ttf",
     "fonts/feature-variation-precision-GPOS-lookup-avar2.ttf"
   };
   const hb_tag_t tags[] = {HB_TAG ('T','E','S','T'), HB_TAG ('D','U','M','Y')};
-  const int locations[] = {-8192, 0, 2048, 4096, 5461, 5462,
+  const int locations[] = {-8192, 0, 1, 2048, 4096, 5461, 5462,
                            8192, 12288, 16383, 16384};
   for (unsigned f = 0; f < G_N_ELEMENTS (filenames); f++)
   {
+    g_test_message ("Font: %s", filenames[f]);
     hb_face_t *face = hb_test_open_font_file (filenames[f]);
+    if (strstr (filenames[f], "large-third"))
+    {
+      hb_font_t *font = hb_font_create (face);
+      hb_buffer_t *buffer = hb_buffer_create ();
+      const int coords[] = {1, 16384};
+      hb_font_set_var_coords_normalized (font, coords, 2);
+      hb_buffer_add_utf8 (buffer, "AB", -1, 0, -1);
+      hb_buffer_guess_segment_properties (buffer);
+      hb_shape (font, buffer, NULL, 0);
+      unsigned length;
+      const hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &length);
+      const hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+      g_assert_cmpuint (length, ==, 2);
+      /* 32767 + 1/12288 - 32767 is positive, even though float addition
+       * loses the fractional residual next to the large default. */
+      if (strstr (filenames[f], "-GSUB-"))
+        g_assert_cmpuint (info[1].codepoint, ==, 4);
+      else
+        g_assert_cmpint (pos[1].x_advance, ==, 620);
+      hb_buffer_destroy (buffer);
+      hb_font_destroy (font);
+    }
     for (unsigned pinned = 0; pinned < 2; pinned++)
       for (unsigned i = 0; i < G_N_ELEMENTS (locations); i++)
       {

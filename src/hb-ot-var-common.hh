@@ -1896,8 +1896,8 @@ struct item_variations_t
     for (auto condition : conditions)
     {
       unsigned old_idx = condition.second.first;
-      float value = condition.second.second +
-                    varStore.get_delta (old_idx, plan->normalized_coords.as_array ());
+      double value = condition.second.second +
+                     varStore.get_delta<double> (old_idx, plan->normalized_coords.as_array ());
       unsigned old_outer = old_idx >> 16;
       if (!outer_map.has (old_outer))
         continue;
@@ -1964,14 +1964,22 @@ struct item_variations_t
         if (default_value < -32768 || default_value > 32767)
         {
           // A neutral region can carry the bias when the int16 default cannot.
-          unsigned count = vars[idx >> 16].tuple_vars.length;
-          add_tuple (idx >> 16, hb_hashmap_t<hb_tag_t, Triple> (),
-                     0, default_value, 1);
+          // Each part is exact in float; integer row assembly adds them
+          // before serialization, preserving all 32 bits of the bias.
+          int high = default_value / 65536 * 65536;
+          int parts[] = {high, default_value - high};
+          for (int part : parts)
+          {
+            if (!part) continue;
+            unsigned count = vars[idx >> 16].tuple_vars.length;
+            add_tuple (idx >> 16, hb_hashmap_t<hb_tag_t, Triple> (),
+                       0, part, 1);
+            const auto &tuples = vars[idx >> 16].tuple_vars;
+            if (unlikely (tuples.in_error () || tuples.length != count + 1 ||
+                          tuples.tail ().indices.in_error () ||
+                          tuples.tail ().deltas_x.in_error ())) return false;
+          }
           default_value = 0;
-          const auto &tuples = vars[idx >> 16].tuple_vars;
-          if (unlikely (tuples.in_error () || tuples.length != count + 1 ||
-                        tuples.tail ().indices.in_error () ||
-                        tuples.tail ().deltas_x.in_error ())) return false;
         }
       }
       if (!condition_map.set (condition.first, hb_pair (idx, default_value)))

@@ -31,6 +31,8 @@ for tag, default, peak in (
     ("GPOS", 32767, 1),
     ("GSUB", 0, 0.75),
     ("GPOS", 0, 0.75),
+    ("GSUB", 32767, 0.75),
+    ("GPOS", 32767, 0.75),
 ):
     for legacy in (True, False):
         fb = FontBuilder(1000)
@@ -85,7 +87,11 @@ for tag, default, peak in (
             ),
             [
                 builder.buildVarData(
-                    [0, 1, 2], [[1, -32768 if default else -1, 0], [1, 0, -1]]
+                    [0, 1, 2],
+                    [
+                        [1, (-32767 if peak != 1 else -32768) if default else -1, 0],
+                        [1, 0, -1],
+                    ],
                 )
             ],
         )
@@ -99,6 +105,9 @@ for tag, default, peak in (
                 compound(5, compound(5, value(0, 1))),
             ],
         )
+        if default and peak != 1:
+            # At DUMY=1 the large default cancels, leaving TEST's fraction.
+            condition = compound(4, [value(default, 0), value(0)])
         table = font[tag].table
         feature = next(
             i
@@ -134,7 +143,7 @@ for tag, default, peak in (
             variations.LookupVariationCount = 1
         font["head"].created = font["head"].modified = 3800000000
         font.recalcTimestamp = False
-        suffix = "-large" if default else "-third" if peak != 1 else ""
+        suffix = ("-large" if default else "") + ("-third" if peak != 1 else "")
         font.save(
             Path(__file__).parent
             / f"feature-variation-precision-{tag}-{'legacy' if legacy else 'lookup'}{suffix}.ttf"

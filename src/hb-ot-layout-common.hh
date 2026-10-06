@@ -3031,7 +3031,8 @@ struct VarData
 				     regionIndices.get_size (),
 				     hb_unsigned_mul_saturate (itemCount, get_row_size ())); }
 
-  float _get_delta (unsigned int inner,
+  template <typename Float = float>
+  Float _get_delta (unsigned int inner,
 		    const int *coords, unsigned int coord_count,
 		    const VarRegionList &regions,
 		    hb_scalar_cache_t *cache = nullptr) const
@@ -3047,7 +3048,7 @@ struct VarData
     const HBUINT8 *bytes = get_delta_bytes ();
     const HBUINT8 *row = bytes + inner * get_row_size ();
 
-    float delta = 0.;
+    Float delta = 0;
     unsigned int i = 0;
 
     const HBINT32 *lcursor = reinterpret_cast<const HBINT32 *> (row);
@@ -3055,7 +3056,7 @@ struct VarData
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
       if (scalar)
-        delta += scalar * *lcursor;
+        delta += (Float) scalar * (int) *lcursor;
       lcursor++;
     }
     const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
@@ -3063,7 +3064,7 @@ struct VarData
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
       if (scalar)
-       delta += scalar * *scursor;
+       delta += (Float) scalar * (int) *scursor;
       scursor++;
     }
     const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
@@ -3071,22 +3072,23 @@ struct VarData
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
       if (scalar)
-        delta += scalar * *bcursor;
+        delta += (Float) scalar * (int) *bcursor;
       bcursor++;
     }
 
     return delta;
   }
 
+  template <typename Float = float>
   HB_ALWAYS_INLINE
-  float get_delta (unsigned int inner,
+  Float get_delta (unsigned int inner,
 		   const int *coords, unsigned int coord_count,
 		   const VarRegionList &regions,
 		   hb_scalar_cache_t *cache = nullptr) const
   {
     unsigned int count = regionIndices.len;
-    if (!count) return 0.f; // This is quite common, so optimize it.
-    return _get_delta (inner, coords, coord_count, regions, cache);
+    if (!count) return Float (0); // This is quite common, so optimize it.
+    return _get_delta<Float> (inner, coords, coord_count, regions, cache);
   }
 
   void get_region_scalars (const int *coords, unsigned int coord_count,
@@ -3527,18 +3529,19 @@ struct ItemVariationStore
   }
 
   private:
-  float get_delta (unsigned int outer, unsigned int inner,
+  template <typename Float = float>
+  Float get_delta (unsigned int outer, unsigned int inner,
 		   const int *coords, unsigned int coord_count,
 		   hb_scalar_cache_t *cache = nullptr) const
   {
 #ifdef HB_NO_VAR
-    return 0.f;
+    return Float (0);
 #endif
 
     if (unlikely (outer >= dataSets.len))
-      return 0.f;
+      return Float (0);
 
-    return (this+dataSets[outer]).get_delta (inner,
+    return (this+dataSets[outer]).get_delta<Float> (inner,
 					     coords, coord_count,
 					     this+regions,
 					     cache);
@@ -3557,19 +3560,21 @@ struct ItemVariationStore
 	   inner < (this+dataSets[outer]).get_item_count ();
   }
 
-  float get_delta (unsigned int index,
+  template <typename Float = float>
+  Float get_delta (unsigned int index,
 		   const int *coords, unsigned int coord_count,
 		   hb_scalar_cache_t *cache = nullptr) const
   {
     unsigned int outer = index >> 16;
     unsigned int inner = index & 0xFFFF;
-    return get_delta (outer, inner, coords, coord_count, cache);
+    return get_delta<Float> (outer, inner, coords, coord_count, cache);
   }
-  float get_delta (unsigned int index,
+  template <typename Float = float>
+  Float get_delta (unsigned int index,
 		   hb_array_t<const int> coords,
 		   hb_scalar_cache_t *cache = nullptr) const
   {
-    return get_delta (index,
+    return get_delta<Float> (index,
 		      coords.arrayZ, coords.length,
 		      cache);
   }
@@ -4179,14 +4184,21 @@ struct ItemVarStoreInstancer
   { return (*this) (varIdx); }
 
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
+  { return get_delta (varIdx, offset); }
+
+  double get_condition_delta (uint32_t varIdx) const
+  { return get_delta<double> (varIdx); }
+
+  template <typename Float = float>
+  Float get_delta (uint32_t varIdx, unsigned short offset = 0) const
   {
    if (!coords || varIdx == VarIdx::NO_VARIATION)
-     return 0.f;
+     return Float (0);
 
     varIdx += offset;
     if (varIdxMap)
       varIdx = varIdxMap->map (varIdx);
-    return varStore->get_delta (varIdx, coords, cache);
+    return varStore->get_delta<Float> (varIdx, coords, cache);
   }
 
   const ItemVariationStore *varStore;
@@ -4208,6 +4220,9 @@ struct MultiItemVarStoreInstancer
   }
 
   operator bool () const { return varStore && bool (coords); }
+
+  double get_condition_delta (uint32_t varIdx) const
+  { return (double) (*this)[varIdx]; }
 
   float operator[] (uint32_t varIdx) const
   {
@@ -4421,8 +4436,8 @@ struct ConditionValue
   bool evaluate (const int *coords, unsigned int coord_len,
 		 Instancer *instancer) const
   {
-    float value = defaultValue;
-    value += (*instancer)[varIdx];
+    double value = defaultValue;
+    value += instancer->get_condition_delta (varIdx);
     return value > 0;
   }
 
@@ -5052,7 +5067,7 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
       {
         // Conditions becoming constant depend on the unrounded sign, not
         // the integer delta used to instance positioning values.
-        float value = (int) src.defaultValue +
+        double value = (int) src.defaultValue +
                       c->plan->layout_variation_delta (src.varIdx);
         return value > 0 ? LOOKUP_CONDITION_SUBSET_TRUE :
                           LOOKUP_CONDITION_SUBSET_FALSE;
