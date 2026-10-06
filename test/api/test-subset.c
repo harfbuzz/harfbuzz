@@ -312,7 +312,11 @@ test_subset_condition_value_precision (void)
     "fonts/feature-variation-precision-GSUB-legacy-third.ttf",
     "fonts/feature-variation-precision-GSUB-lookup-third.ttf",
     "fonts/feature-variation-precision-GPOS-legacy-third.ttf",
-    "fonts/feature-variation-precision-GPOS-lookup-third.ttf"
+    "fonts/feature-variation-precision-GPOS-lookup-third.ttf",
+    "fonts/feature-variation-precision-GSUB-legacy-avar2.ttf",
+    "fonts/feature-variation-precision-GSUB-lookup-avar2.ttf",
+    "fonts/feature-variation-precision-GPOS-legacy-avar2.ttf",
+    "fonts/feature-variation-precision-GPOS-lookup-avar2.ttf"
   };
   const hb_tag_t tags[] = {HB_TAG ('T','E','S','T'), HB_TAG ('D','U','M','Y')};
   const int locations[] = {-8192, 0, 2048, 4096, 5461, 5462,

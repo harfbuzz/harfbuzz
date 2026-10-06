@@ -139,3 +139,16 @@ for tag, default, peak in (
             Path(__file__).parent
             / f"feature-variation-precision-{tag}-{'legacy' if legacy else 'lookup'}{suffix}.ttf"
         )
+
+        if not default and peak == 1:
+            # Even an identity avar2 defers GDEF until avar has been subsetted.
+            avar = font["avar"] = newTable("avar")
+            avar.majorVersion = 2
+            avar.segments = {axis: {-1: -1, 0: 0, 1: 1} for axis in ("TEST", "DUMY")}
+            avar.table = ot.avar()
+            avar.table.VarIdxMap = None
+            avar.table.VarStore = None
+            font.save(
+                Path(__file__).parent
+                / f"feature-variation-precision-{tag}-{'legacy' if legacy else 'lookup'}-avar2.ttf"
+            )
