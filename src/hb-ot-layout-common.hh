@@ -1513,13 +1513,15 @@ static bool ClassDef_remap_and_serialize (hb_serialize_context_t *c,
   }
 
 
+  if (unlikely (!c->propagate_error (glyph_and_klass, klasses, klass_map)))
+    return false;
+
   for (unsigned i = 0; i < glyph_and_klass.length; i++)
   {
     hb_codepoint_t klass = glyph_and_klass[i].second;
     glyph_and_klass[i].second = klass_map->get (klass);
   }
 
-  c->propagate_error (glyph_and_klass, klasses);
   return ClassDef_serialize (c, glyph_and_klass.iter ());
 }
 

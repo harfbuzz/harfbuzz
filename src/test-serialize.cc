@@ -189,6 +189,24 @@ test_device_only_value ()
     }
 }
 
+static void
+test_failed_class_mapping ()
+{
+  hb_set_t klasses;
+  klasses.add (1);
+  hb_sorted_vector_t<hb_codepoint_pair_t> glyph_and_klass;
+  glyph_and_klass.push (hb_pair (hb_codepoint_t (42), hb_codepoint_t (1)));
+  hb_map_t klass_map;
+  klass_map.successful = false; /* Simulate failure allocating the class map. */
+  char buf[32];
+  hb_serialize_context_t s (buf, sizeof (buf));
+  s.start_serialize<OT::ClassDef> ();
+  hb_always_assert (!OT::ClassDef_remap_and_serialize (
+      &s, klasses, true, glyph_and_klass, &klass_map));
+  hb_always_assert (s.in_error () && !s.only_overflow ());
+  hb_always_assert (glyph_and_klass[0].second == 1);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -196,6 +214,7 @@ main (int argc, char **argv)
   test_medium_rule ();
   test_medium_chain_rule ();
   test_device_only_value ();
+  test_failed_class_mapping ();
 
   char buf[16384];
 
