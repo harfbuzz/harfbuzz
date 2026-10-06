@@ -223,6 +223,28 @@ test_signed_delta_widths ()
 }
 
 static void
+test_accumulated_delta_widths ()
+{
+  const int deltas[] = {20000, -20000, 1073741824};
+  for (int delta : deltas)
+  {
+    OT::item_variations_t item_vars;
+    unsigned outer = item_vars.add_vardata (1);
+    item_vars.add_tuple (outer, hb_hashmap_t<hb_tag_t, Triple> (), 0, delta, 1);
+    item_vars.add_tuple (outer, hb_hashmap_t<hb_tag_t, Triple> (), 0, delta, 1);
+    hb_always_assert (item_vars.build_region_list ());
+    if (delta == 1073741824)
+      hb_always_assert (!item_vars.as_item_varstore ());
+    else
+    {
+      hb_always_assert (item_vars.as_item_varstore ());
+      hb_always_assert (item_vars.has_long_word ());
+      hb_always_assert ((*item_vars.get_vardata_encodings ()[0].items[0])[0] == 2 * delta);
+    }
+  }
+}
+
+static void
 test_failed_encoding ()
 {
   hb_vector_t<int> row;
@@ -249,4 +271,5 @@ main (int argc, char **argv)
   test_item_variations_overflow ();
   test_signed_delta_widths ();
   test_failed_encoding ();
+  test_accumulated_delta_widths ();
 }

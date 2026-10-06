@@ -2232,8 +2232,11 @@ struct item_variations_t
         for (unsigned i = 0; i < num_rows; i++)
         {
           int rounded_delta = hb_clamp_to<int> (roundf ((double) tuple.deltas_x[i]));
-          delta_rows[start_row + i][*col_idx] += rounded_delta;
-          has_long |= rounded_delta < -32768 || rounded_delta > 32767;
+          int &delta = delta_rows[start_row + i][*col_idx];
+          int64_t sum = (int64_t) delta + rounded_delta;
+          if (unlikely (sum < INT_MIN || sum > INT_MAX)) return false;
+          delta = (int) sum;
+          has_long |= delta < -32768 || delta > 32767;
         }
       }
 
@@ -2273,6 +2276,8 @@ struct item_variations_t
 	major_rows.push (&row);
       }
 
+      if (unlikely (major_rows.in_error () || delta_rows_map.in_error ()))
+        return false;
       if (major_rows)
       {
 	auto *encoding = encoding_objs.push (std::move (major_rows), num_cols);
