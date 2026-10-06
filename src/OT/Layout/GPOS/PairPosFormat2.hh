@@ -338,6 +338,8 @@ struct PairPosFormat2_4 : ValueBase
 
     unsigned total_len = len1 + len2;
     hb_vector_t<unsigned> class2_idxs (+ hb_range ((unsigned) class2Count) | hb_filter (klass2_map));
+    if (unlikely (!c->serializer->propagate_error (class2_idxs)))
+      return_trace (false);
     for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
     {
       for (unsigned class2_idx : class2_idxs)
@@ -374,7 +376,8 @@ struct PairPosFormat2_4 : ValueBase
         format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1], strip_hints, strip_empty, this, varidx_delta_map);
       }
 
-      if (format1 == valueFormat1 && format2 == valueFormat2)
+      if (!varidx_delta_map &&
+          format1 == valueFormat1 && format2 == valueFormat2)
         break;
     }
 
