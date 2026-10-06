@@ -374,7 +374,8 @@ struct PairPosFormat2_4 : ValueBase
         format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1], strip_hints, strip_empty, this, varidx_delta_map);
       }
 
-      if (format1 == valueFormat1 && format2 == valueFormat2)
+      if (!varidx_delta_map &&
+          format1 == valueFormat1 && format2 == valueFormat2)
         break;
     }
 
