@@ -361,6 +361,55 @@ test_hb_draw_varc_short_cff2 (void)
 }
 
 static void
+test_hb_draw_varc_delta_precision (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-delta-precision.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  hb_variation_t variation = { HB_TAG ('T','E','S','T'), 1.f };
+  hb_font_set_variations (font, &variation, 1);
+
+  const float first_moves[] = {600.f, 664.f, 101.f};
+  for (unsigned i = 0; i < G_N_ELEMENTS (first_moves); i++)
+  {
+    draw_data_t draw_data = {0};
+    hb_font_draw_glyph (font, i + 2, funcs, &draw_data);
+    g_assert_cmpuint (draw_data.move_to_count, ==, 1);
+    g_assert_cmpfloat (draw_data.first_move_x, ==, first_moves[i]);
+  }
+  hb_font_destroy (font);
+}
+
+static void
+test_hb_draw_varc_static_deltas (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-static-deltas.ttf");
+  g_assert_cmpuint (hb_ot_var_get_axis_count (face), ==, 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  unsigned coord_count = 0;
+  hb_font_get_var_coords_normalized (font, &coord_count);
+  g_assert_cmpuint (coord_count, ==, 0);
+
+  const float first_moves[] = {500.f, 564.f, 600.f};
+  for (unsigned i = 0; i < G_N_ELEMENTS (first_moves); i++)
+  {
+    draw_data_t draw_data = {0};
+    hb_font_draw_glyph (font, i + 2, funcs, &draw_data);
+    g_assert_cmpuint (draw_data.move_to_count, ==, 1);
+    g_assert_cmpfloat (draw_data.first_move_x, ==, first_moves[i]);
+
+    hb_glyph_extents_t extents;
+    g_assert_true (hb_font_get_glyph_extents (font, i + 2, &extents));
+    g_assert_cmpint (extents.x_bearing, ==, (int) first_moves[i]);
+    g_assert_cmpint (extents.y_bearing, ==, 100);
+    g_assert_cmpint (extents.width, ==, 100);
+    g_assert_cmpint (extents.height, ==, -100);
+  }
+  hb_font_destroy (font);
+}
+
+static void
 test_hb_draw_varc_budget (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/varc-6868.ttf");
@@ -418,6 +467,8 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_varc_conditional);
   hb_test_add (test_hb_draw_varc_static_gvar);
   hb_test_add (test_hb_draw_varc_short_cff2);
+  hb_test_add (test_hb_draw_varc_delta_precision);
+  hb_test_add (test_hb_draw_varc_static_deltas);
   hb_test_add (test_hb_draw_varc_budget);
 #endif
   unsigned result = hb_test_run ();

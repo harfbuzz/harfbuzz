@@ -1147,7 +1147,7 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
 	  count += 1;
 	  if (lastCode == HB_SET_VALUE_INVALID)
 	    lastCode = curEntry;
-	  else if (lastCode + count != curEntry)
+	  else if (lastCode + count != curEntry || count > 255)
 	  {
 	    UnicodeValueRange rec;
 	    rec.startUnicodeValue = lastCode;

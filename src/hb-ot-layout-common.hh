@@ -3412,7 +3412,7 @@ struct MultiVarData
   void get_delta (unsigned int inner,
 		  const int *coords, unsigned int coord_count,
 		  const SparseVarRegionList &regions,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
     auto &deltaSets = get_delta_sets ();
@@ -3838,7 +3838,7 @@ struct MultiItemVariationStore
   private:
   void get_delta (unsigned int outer, unsigned int inner,
 		  const int *coords, unsigned int coord_count,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
 #ifdef HB_NO_VAR
@@ -3858,7 +3858,7 @@ struct MultiItemVariationStore
   public:
   void get_delta (unsigned int index,
 		  const int *coords, unsigned int coord_count,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
     unsigned int outer = index >> 16;
@@ -3867,7 +3867,7 @@ struct MultiItemVariationStore
   }
   void get_delta (unsigned int index,
 		  hb_array_t<const int> coords,
-		  hb_array_t<float> out,
+		  hb_array_t<double> out,
 		  hb_scalar_cache_t *cache = nullptr) const
   {
     return get_delta (index,
@@ -4192,6 +4192,8 @@ struct ItemVarStoreInstancer
   template <typename Float = float>
   Float get_delta (uint32_t varIdx, unsigned short offset = 0) const
   {
+   /* Keep the empty-coordinate shortcut for ordinary stores, even though
+    * zero-axis regions could still contribute constant deltas. */
    if (!coords || varIdx == VarIdx::NO_VARIATION)
      return Float (0);
 
@@ -4219,21 +4221,22 @@ struct MultiItemVarStoreInstancer
       varStore = &Null(MultiItemVariationStore);
   }
 
-  operator bool () const { return varStore && bool (coords); }
+  operator bool () const { return varStore; }
 
   double get_condition_delta (uint32_t varIdx) const
   { return (double) (*this)[varIdx]; }
 
-  float operator[] (uint32_t varIdx) const
+  double operator[] (uint32_t varIdx) const
   {
-    float v = 0;
+    double v = 0;
     (*this) (hb_array (&v, 1), varIdx);
     return v;
   }
 
-  void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
+  void operator() (hb_array_t<double> out, uint32_t varIdx, unsigned short offset = 0) const
   {
-    if (coords && varIdx != VarIdx::NO_VARIATION)
+    /* Static VARC fonts can have constant deltas even with empty coordinates. */
+    if (varIdx != VarIdx::NO_VARIATION)
     {
       varIdx += offset;
       if (varIdxMap)
@@ -4242,7 +4245,7 @@ struct MultiItemVarStoreInstancer
     }
     else
       for (unsigned i = 0; i < out.length; i++)
-        out.arrayZ[i] = 0.f;
+        out.arrayZ[i] = 0.;
   }
 
   const MultiItemVariationStore *varStore;

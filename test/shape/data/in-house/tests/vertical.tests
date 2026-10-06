@@ -7,8 +7,7 @@
 @font-funcs=ot,ft,fontations
 ../fonts/NotoSansCJK-VF.abc.ttf;--direction=t;U+0041,U+0042;[gid1=0@-287,-880+0,-1000|gid2=1@-316,-880+0,-1000]
 ../fonts/NotoSerifHK-subset.ttf;--direction=t;U+0041,U+0042;[gid1=0@-353,-880+0,-1000|gid2=1@-327,-880+0,-1000]
-# glyf+gvar+vmtx; TODO: fontations needs more work https://github.com/harfbuzz/harfbuzz/issues/5388
-@font-funcs=ot,ft
+# glyf+gvar+vmtx
 ../fonts/NotoSansCJK-VF.abc.ttf;--direction=t --variations wght=700;U+0041,U+0042;[gid1=0@-320,-880+0,-1000|gid2=1@-340,-880+0,-1000]
 ../fonts/NotoSerifHK-subset.ttf;--direction=t --variations wght=700;U+0041,U+0042;[gid1=0@-373,-880+0,-1000|gid2=1@-354,-880+0,-1000]
 @font-funcs=ot,ft,fontations

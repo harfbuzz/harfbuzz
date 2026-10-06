@@ -32,7 +32,7 @@ bool
 VarComponent::decompile_record (const VARC &varc,
 				hb_ubytes_t total_record,
 				hb_vector_t<unsigned> *axis_indices,
-				hb_vector_t<float> *axis_values,
+				hb_vector_t<double> *axis_values,
 				record_t *decoded,
 				int64_t *budget)
 {
@@ -375,7 +375,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 
   // Apply variations if any
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
-      show && coords && !axisValues.in_error ())
+      show && !axisValues.in_error ())
   {
     if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
 				    coords.length)))
@@ -403,18 +403,18 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       return hb_ubytes_t ();
     coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
     for (unsigned i = 0; i < axisIndices.length; i++)
-      coord_setter[axisIndices[i]] = hb_clamp_to<int> (roundf (axisValues[i]));
+      coord_setter[axisIndices[i]] = hb_clamp_to<int> (round (axisValues[i]));
     if (axisIndices)
       component_coords = coord_setter.get_coords ();
 
     // Apply transform variations if any
-    if (transformVarIdx != VarIdx::NO_VARIATION && coords)
+    if (transformVarIdx != VarIdx::NO_VARIATION)
     {
-      float transformValues[9];
+      double transformValues[9];
       unsigned numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
-	    transformValues[numTransformValues++] = transform.name;
+	    transformValues[numTransformValues++] = (double) transform.name;
       VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
       if (unlikely (!hb_budget_spend (c.budget, numTransformValues,
@@ -424,7 +424,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
-	    transform.name = transformValues[numTransformValues++];
+	    transform.name = (float) transformValues[numTransformValues++];
       VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
     }
