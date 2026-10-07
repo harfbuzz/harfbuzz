@@ -400,6 +400,28 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
     hb_ot_layout_lookups_substitute_closure (plan->source,
                                              &lookup_indices,
 					     gids_to_retain);
+
+  /* closure_lookups () recurses through the face's GSUB/GPOS accelerator
+   * with get_relaxed ().  Make sure libharfbuzz has created it; it is not
+   * stored if its allocation failed. */
+  bool has_accelerator;
+  if (table_tag == HB_OT_TAG_GSUB)
+  {
+    hb_ot_layout_has_substitution (plan->source);
+    has_accelerator = plan->source->table.GSUB.get_relaxed ();
+  }
+  else
+  {
+    hb_ot_layout_has_positioning (plan->source);
+    has_accelerator = plan->source->table.GPOS.get_relaxed ();
+  }
+  if (unlikely (!has_accelerator))
+  {
+    plan->check_success (false);
+    table.destroy ();
+    return;
+  }
+
   table->closure_lookups (plan->source,
 			  gids_to_retain,
                           &lookup_indices);

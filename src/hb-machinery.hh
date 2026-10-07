@@ -228,7 +228,11 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
       p = this->template call_create<Stored, Funcs> ();
       if (unlikely (!p))
+      {
 	p = const_cast<Stored *> (Funcs::get_null ());
+	if (!Funcs::cache_null)
+	  return p;
+      }
 
       if (unlikely (!cmpexch (nullptr, p)))
       {
@@ -259,6 +263,10 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   /* By default null/init/fini the object. */
   static const Stored* get_null () { return &Null (Stored); }
+  /* Whether to store get_null () into the instance when create () fails.
+   * Loaders whose get_null () is a per-library Null object must not, since
+   * another library sharing the face cannot recognize it in do_destroy (). */
+  static constexpr bool cache_null = true;
   static Stored *create (Data *data)
   {
     Stored *p = (Stored *) hb_calloc (1, sizeof (Stored));
@@ -291,6 +299,10 @@ struct hb_face_lazy_loader_t : hb_lazy_loader_t<T,
 						hb_face_lazy_loader_t<T, WheresFace>,
 						hb_face_t, WheresFace>
 {
+  /* create () fails only on allocation failure; retry instead of caching
+   * this library's Null object.  See cache_null above. */
+  static constexpr bool cache_null = false;
+
   // Hack; have them here for API parity with hb_table_lazy_loader_t
   hb_blob_t *get_blob () { return this->get ()->get_blob (); }
 };
