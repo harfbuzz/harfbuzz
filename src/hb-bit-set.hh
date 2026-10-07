@@ -970,12 +970,15 @@ struct hb_bit_set_t
 	  return 0;  // codepoint is greater than our max element.
       }
       start_page = i;
-      start_page_value = page_remainder (codepoint + 1);
-      if (unlikely (start_page_value == 0))
+      if (page_map_array[i].major == major)
       {
-        // The export-after value was last in the page. Start on next page.
-        start_page++;
-        start_page_value = 0;
+        start_page_value = page_remainder (codepoint + 1);
+        if (unlikely (start_page_value == 0))
+        {
+          // The export-after value was last in the page. Start on next page.
+          start_page++;
+          start_page_value = 0;
+        }
       }
     }
 
@@ -1019,12 +1022,15 @@ struct hb_bit_set_t
         }
       }
       start_page = i;
-      start_page_value = page_remainder (codepoint + 1);
-      if (unlikely (start_page_value == 0))
+      if (page_map_array[i].major == major)
       {
-        // The export-after value was last in the page. Start on next page.
-        start_page++;
-        start_page_value = 0;
+        start_page_value = page_remainder (codepoint + 1);
+        if (unlikely (start_page_value == 0))
+        {
+          // The export-after value was last in the page. Start on next page.
+          start_page++;
+          start_page_value = 0;
+        }
       }
     }
 
