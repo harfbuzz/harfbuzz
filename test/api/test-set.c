@@ -1025,6 +1025,31 @@ test_set_inverted_equality (void)
 }
 
 static void
+test_set_mixed_inversion_equality (void)
+{
+  hb_set_t *a = hb_set_create ();
+  hb_set_t *b = hb_set_create ();
+  hb_set_invert (b);
+
+  /* Empty and full sets have the same (empty) zipped prefix. */
+  g_assert_false (hb_set_is_equal (a, b));
+  g_assert_false (hb_set_is_equal (b, a));
+
+  /* Matching initial members do not imply equal sets. */
+  hb_set_add_range (a, 0, 10);
+  g_assert_false (hb_set_is_equal (a, b));
+  g_assert_false (hb_set_is_equal (b, a));
+
+  hb_set_del_range (b, 0, 4);
+  hb_set_del_range (a, 0, 4);
+  g_assert_false (hb_set_is_equal (a, b));
+  g_assert_false (hb_set_is_equal (b, a));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+}
+
+static void
 test_set_intersects (void)
 {
   hb_set_t *a = hb_set_create ();
@@ -1408,6 +1433,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_iteration_next);
   hb_test_add (test_set_inverted_iteration_prev);
   hb_test_add (test_set_inverted_equality);
+  hb_test_add (test_set_mixed_inversion_equality);
   hb_test_add (test_set_intersects);
   hb_test_add (test_set_inverted_operations);
 
