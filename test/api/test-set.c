@@ -1300,6 +1300,36 @@ test_set_next_many_inverted (void)
 }
 
 static void
+test_set_next_many_missing_page (void)
+{
+  hb_set_t *set = hb_set_create ();
+  hb_set_add (set, 512);
+  hb_set_add (set, 1024);
+  hb_codepoint_t cursors[] = {0, 2, 255, 510, 511, 512, 700, 1023, 1024};
+
+  for (unsigned int inverted = 0; inverted < 2; inverted++)
+  {
+    for (unsigned int i = 0; i < G_N_ELEMENTS (cursors); i++)
+    {
+      hb_codepoint_t array[8];
+      unsigned int count = hb_set_next_many (set, cursors[i], array, G_N_ELEMENTS (array));
+      hb_codepoint_t cursor = cursors[i];
+      unsigned int expected_count = 0;
+      while (expected_count < G_N_ELEMENTS (array) && hb_set_next (set, &cursor))
+      {
+	g_assert_cmpuint (expected_count, <, count);
+	g_assert_cmpuint (array[expected_count], ==, cursor);
+	expected_count++;
+      }
+      g_assert_cmpuint (count, ==, expected_count);
+    }
+    hb_set_invert (set);
+  }
+
+  hb_set_destroy (set);
+}
+
+static void
 test_set_next_many_out_of_order_pages (void) {
   hb_set_t* set = hb_set_create();
   hb_set_add(set, 1957);
@@ -1415,6 +1445,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_next_many);
   hb_test_add (test_set_next_many_restricted);
   hb_test_add (test_set_next_many_inverted);
+  hb_test_add (test_set_next_many_missing_page);
   hb_test_add (test_set_next_many_out_of_order_pages);
 
   return hb_test_run();
