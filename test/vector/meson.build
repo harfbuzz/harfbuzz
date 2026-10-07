@@ -1,3 +1,7 @@
+if get_option('vector').disabled()
+  subdir_done()
+endif
+
 run_test = find_program('run-tests.py')
 
 test_vector_budget = executable('test-vector-budget', 'test-vector-budget.c',
