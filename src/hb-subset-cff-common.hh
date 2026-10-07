@@ -34,6 +34,16 @@
 
 namespace CFF {
 
+/* CFF2 CharStrings may omit a tail of glyphs provided by VARC, in which
+ * case FDSelect only covers the CharStrings glyphs.  Use FD 0 for glyphs
+ * beyond that. */
+template <typename ACC>
+static inline unsigned
+subset_get_fd (const ACC &acc, hb_codepoint_t glyph)
+{
+  return likely (glyph < acc.num_glyphs) ? acc.fdSelect->get_fd (glyph) : 0;
+}
+
 /* Used for writing a temporary charstring */
 struct str_encoder_t
 {
@@ -378,7 +388,7 @@ struct subr_flattener_t
 	continue;
       }
       const hb_ubytes_t str = (*acc.charStrings)[glyph];
-      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      unsigned int fd = subset_get_fd (acc, glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
 
@@ -869,7 +879,7 @@ struct subr_subsetter_t
       hb_codepoint_t old_glyph = _.second;
 
       const hb_ubytes_t str = (*acc.charStrings)[old_glyph];
-      unsigned int fd = acc.fdSelect->get_fd (old_glyph);
+      unsigned int fd = subset_get_fd (acc, old_glyph);
       if (unlikely (fd >= acc.fdCount))
         return false;
 
@@ -972,7 +982,7 @@ struct subr_subsetter_t
 	}
 
       last++; // Skip over gid
-      unsigned int  fd = acc.fdSelect->get_fd (old_glyph);
+      unsigned int  fd = subset_get_fd (acc, old_glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
       if (unlikely (!encode_str (get_parsed_charstring (gid), fd, buffArray.arrayZ[gid], encode_prefix)))
@@ -1156,7 +1166,7 @@ struct subr_subsetter_t
     {
       hb_codepoint_t new_glyph = _.first;
       hb_codepoint_t old_glyph = _.second;
-      unsigned int fd = acc.fdSelect->get_fd (old_glyph);
+      unsigned int fd = subset_get_fd (acc, old_glyph);
       if (unlikely (fd >= acc.fdCount))
         return false;
 
@@ -1315,6 +1325,7 @@ HB_INTERNAL bool
 hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 			    unsigned int fdCount,
 			    const CFF::FDSelect &src, /* IN */
+			    unsigned int src_num_glyphs,
 			    unsigned int &subset_fd_count /* OUT */,
 			    unsigned int &subset_fdselect_size /* OUT */,
 			    unsigned int &subset_fdselect_format /* OUT */,
