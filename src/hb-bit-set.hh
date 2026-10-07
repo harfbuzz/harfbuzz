@@ -267,7 +267,7 @@ struct hb_bit_set_t
 	last_g = g;
 
         if (g != INVALID && (v || page)) /* The v check is to optimize out the page check if v is true. */
-	  page->add (g);
+	  page->set (g, v);
 
 	array = &StructAtOffsetUnaligned<T> (array, stride);
 	count--;
