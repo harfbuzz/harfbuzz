@@ -1439,11 +1439,49 @@ test_set_next_previous_range (void)
   hb_set_destroy (s);
 }
 
+static void
+test_set_previous_empty_pages (void)
+{
+  hb_set_t *s = hb_set_create ();
+  hb_set_add (s, 512);
+  hb_set_del (s, 512);
+  hb_codepoint_t cp = 1024;
+  g_assert_false (hb_set_previous (s, &cp));
+  g_assert_cmpuint (cp, ==, HB_SET_VALUE_INVALID);
+
+  hb_set_add_range (s, 100, 101);
+  hb_set_add (s, 1536);
+  hb_set_del (s, 1536);
+  cp = 2048;
+  g_assert_true (hb_set_previous (s, &cp));
+  g_assert_cmpuint (cp, ==, 101);
+  g_assert_true (hb_set_previous (s, &cp));
+  g_assert_cmpuint (cp, ==, 100);
+  g_assert_false (hb_set_previous (s, &cp));
+
+  hb_codepoint_t first = 2048, last = 2048;
+  g_assert_true (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpuint (first, ==, 100);
+  g_assert_cmpuint (last, ==, 101);
+  g_assert_false (hb_set_previous_range (s, &first, &last));
+
+  hb_set_invert (s);
+  cp = 1537;
+  g_assert_true (hb_set_previous (s, &cp));
+  g_assert_cmpuint (cp, ==, 1536);
+  first = last = 2048;
+  g_assert_true (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpuint (first, ==, 102);
+  g_assert_cmpuint (last, ==, 2047);
+  hb_set_destroy (s);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+  hb_test_add (test_set_previous_empty_pages);
   hb_test_add (test_set_basic);
   hb_test_add (test_set_next_previous_range);
   hb_test_add (test_set_subsets);
