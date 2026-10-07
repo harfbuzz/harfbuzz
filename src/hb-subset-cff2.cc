@@ -1141,7 +1141,7 @@ struct cff2_subset_plan
 	  if (!plan->old_gid_for_new_gid (i, &glyph))
 	    continue;
 	  const hb_ubytes_t str = (*acc.charStrings)[glyph];
-	  unsigned int fd = acc.fdSelect->get_fd (glyph);
+	  unsigned int fd = CFF::subset_get_fd (acc, glyph);
 	  if (unlikely (fd >= acc.fdCount))
 	    return false;
 	  used_fds.add (fd);
@@ -1183,7 +1183,7 @@ struct cff2_subset_plan
 	  if (!plan->old_gid_for_new_gid (i, &glyph))
 	    continue;
 	  const hb_ubytes_t str = (*acc.charStrings)[glyph];
-	  unsigned int fd = acc.fdSelect->get_fd (glyph);
+	  unsigned int fd = CFF::subset_get_fd (acc, glyph);
 	  if (unlikely (fd >= acc.fdCount))
 	    return false;
 
@@ -1253,6 +1253,7 @@ struct cff2_subset_plan
       if (unlikely (!hb_plan_subset_cff_fdselect (plan,
 						  orig_fdcount,
 						  *(const FDSelect *)acc.fdSelect,
+						  acc.num_glyphs,
 						  subset_fdcount,
 						  subset_fdselect_size,
 						  subset_fdselect_format,

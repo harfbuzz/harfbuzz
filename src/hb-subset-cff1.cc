@@ -677,6 +677,7 @@ struct cff1_subset_plan
 	if (unlikely (!hb_plan_subset_cff_fdselect (plan,
 				  orig_fdcount,
 				  *acc.fdSelect,
+				  acc.num_glyphs,
 				  subset_fdcount,
 				  info.fd_select.size,
 				  subset_fdselect_format,
