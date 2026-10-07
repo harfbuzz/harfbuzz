@@ -191,6 +191,9 @@ struct hb_bit_set_invertible_t
       return s.is_equal (other.s);
     else
     {
+      if (get_population () != other.get_population ())
+	return false;
+
       /* TODO Add iter_ranges() and use here. */
       auto it1 = iter ();
       auto it2 = other.iter ();
