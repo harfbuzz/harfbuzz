@@ -1025,6 +1025,30 @@ test_set_inverted_equality (void)
 }
 
 static void
+test_set_self_assignment (void)
+{
+  hb_set_t *set = hb_set_create ();
+  hb_set_add (set, 1);
+  hb_set_add (set, 512);
+  hb_set_add (set, 1024);
+
+  for (unsigned int inverted = 0; inverted < 2; inverted++)
+  {
+    hb_set_t *copy = hb_set_copy (set);
+    hb_set_set (set, set);
+    g_assert_true (hb_set_is_equal (set, copy));
+    g_assert_cmpuint (hb_set_get_population (set), ==, hb_set_get_population (copy));
+    g_assert_cmpuint (hb_set_get_min (set), ==, hb_set_get_min (copy));
+    g_assert_cmpuint (hb_set_get_max (set), ==, hb_set_get_max (copy));
+    g_assert_cmpint (hb_set_is_inverted (set), ==, hb_set_is_inverted (copy));
+    hb_set_destroy (copy);
+    hb_set_invert (set);
+  }
+
+  hb_set_destroy (set);
+}
+
+static void
 test_set_intersects (void)
 {
   hb_set_t *a = hb_set_create ();
@@ -1408,6 +1432,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_iteration_next);
   hb_test_add (test_set_inverted_iteration_prev);
   hb_test_add (test_set_inverted_equality);
+  hb_test_add (test_set_self_assignment);
   hb_test_add (test_set_intersects);
   hb_test_add (test_set_inverted_operations);
 
