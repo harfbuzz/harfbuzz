@@ -73,6 +73,11 @@ jobs:
         name: harfbuzz
         path: build/meson-dist/harfbuzz-*.tar.xz
         if-no-files-found: error
+    - name: Build and test without vector
+      run: |
+        meson configure build -Dvector=disabled
+        meson compile -Cbuild
+        meson test --print-errorlogs -Cbuild
 
   release:
     name: Create and populate release
