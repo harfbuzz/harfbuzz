@@ -353,6 +353,32 @@ main (int argc, char **argv)
     hb_always_assert (keys.is_equal (hb_set_t (m.keys ())));
     hb_always_assert (values.is_equal (hb_set_t (m.values ())));
   }
+  /* Test setting a key or value that lives in the map's own storage
+   * while the map grows. */
+  {
+    hb_map_t m;
+    m.set (1, 2);
+    for (unsigned i = 0; i < 1000; i++)
+    {
+      m.set (1000 + i, m.get (1));
+      hb_always_assert (m.get (1000 + i) == 2);
+    }
+    hb_map_t m2;
+    m2.set (1, 5000);
+    for (unsigned i = 0; i < 1000; i++)
+    {
+      m2.set (m2.get (1), i);
+      m2.set (1, 5001 + i);
+      hb_always_assert (m2.get (5000 + i) == i);
+    }
+    hb_hashmap_t<unsigned, hb_vector_t<unsigned>> v;
+    v.set (1, hb_vector_t<unsigned> {1, 2, 3});
+    for (unsigned i = 0; i < 1000; i++)
+    {
+      v.set (1000 + i, v.get (1));
+      hb_always_assert (v.get (1000 + i).length == 3);
+    }
+  }
   /* Test allocation bounds and overflow protection. */
   {
     hb_map_t m1;
