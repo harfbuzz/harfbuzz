@@ -73,8 +73,8 @@ foreach file_name : tests
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
 
-# Build depend-related fuzzers only if depend_api is enabled
-if conf.get('HB_EXPERIMENTAL_API', 0) == 1
+# Build depend-related fuzzers only if experimental and subset APIs are enabled
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1 and not get_option('subset').disabled()
   foreach file_name : depend_tests
     test_name = file_name.split('.')[0]
 
@@ -238,7 +238,7 @@ if not get_option('subset').disabled()
   endforeach
 endif
 
-if conf.get('HB_EXPERIMENTAL_API', 0) == 1
+if conf.get('HB_EXPERIMENTAL_API', 0) == 1 and not get_option('subset').disabled()
   if conf.get('HAVE_GLIB', 0) == 1
     i = 0
     foreach chunk : depend_closure_parity_fonts_glob_chunks
