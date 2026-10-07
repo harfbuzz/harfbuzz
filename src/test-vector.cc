@@ -61,6 +61,26 @@ main (int argc, char **argv)
     hb_always_assert (v2[1] == 2);
   }
 
+  /* Self-copy assignment must preserve both trivial and nontrivial items. */
+  {
+    hb_vector_t<int> v {1, 2};
+    const auto &self = v;
+    v = self;
+    hb_always_assert (v.length == 2);
+    hb_always_assert (v[0] == 1);
+    hb_always_assert (v[1] == 2);
+  }
+  {
+    hb_vector_t<std::string> v;
+    v.push (std::string ("one"));
+    v.push (std::string ("two"));
+    const auto &self = v;
+    v = self;
+    hb_always_assert (v.length == 2);
+    hb_always_assert (v[0] == "one");
+    hb_always_assert (v[1] == "two");
+  }
+
   /* Test move constructor. */
   {
     hb_vector_t<int> s {1, 2};

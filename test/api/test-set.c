@@ -1214,6 +1214,29 @@ test_set_inverted_operations (void)
 }
 
 static void
+test_set_add_sorted_array_inverted (void)
+{
+  hb_set_t *s = hb_set_create ();
+  hb_codepoint_t excluded[] = {1, 512, 513, 1024, 1536};
+  hb_set_add_sorted_array (s, excluded, G_N_ELEMENTS (excluded));
+  hb_set_invert (s);
+
+  hb_codepoint_t added[] = {0, 1, 1, 512, 514, 1024, 2048};
+  hb_set_add_sorted_array (s, added, G_N_ELEMENTS (added));
+  for (unsigned i = 0; i < G_N_ELEMENTS (added); i++)
+    g_assert_true (hb_set_has (s, added[i]));
+  g_assert_false (hb_set_has (s, 513));
+  g_assert_false (hb_set_has (s, 1536));
+  g_assert_cmpuint (hb_set_get_population (s), ==, HB_SET_VALUE_INVALID - 2);
+
+  hb_set_invert (s);
+  g_assert_cmpuint (hb_set_get_population (s), ==, 2);
+  g_assert_cmpuint (hb_set_get_min (s), ==, 513);
+  g_assert_cmpuint (hb_set_get_max (s), ==, 1536);
+  hb_set_destroy (s);
+}
+
+static void
 test_hb_set_add_sorted_array (void)
 {
   hb_set_t *set = hb_set_create ();
@@ -1477,26 +1500,27 @@ test_set_previous_empty_pages (void)
 }
 
 static void
-test_set_add_sorted_array_inverted (void)
+test_set_self_assignment (void)
 {
-  hb_set_t *s = hb_set_create ();
-  hb_codepoint_t excluded[] = {1, 512, 513, 1024, 1536};
-  hb_set_add_sorted_array (s, excluded, G_N_ELEMENTS (excluded));
-  hb_set_invert (s);
+  hb_set_t *set = hb_set_create ();
+  hb_set_add (set, 1);
+  hb_set_add (set, 512);
+  hb_set_add (set, 1024);
 
-  hb_codepoint_t added[] = {0, 1, 1, 512, 514, 1024, 2048};
-  hb_set_add_sorted_array (s, added, G_N_ELEMENTS (added));
-  for (unsigned i = 0; i < G_N_ELEMENTS (added); i++)
-    g_assert_true (hb_set_has (s, added[i]));
-  g_assert_false (hb_set_has (s, 513));
-  g_assert_false (hb_set_has (s, 1536));
-  g_assert_cmpuint (hb_set_get_population (s), ==, HB_SET_VALUE_INVALID - 2);
+  for (unsigned int inverted = 0; inverted < 2; inverted++)
+  {
+    hb_set_t *copy = hb_set_copy (set);
+    hb_set_set (set, set);
+    g_assert_true (hb_set_is_equal (set, copy));
+    g_assert_cmpuint (hb_set_get_population (set), ==, hb_set_get_population (copy));
+    g_assert_cmpuint (hb_set_get_min (set), ==, hb_set_get_min (copy));
+    g_assert_cmpuint (hb_set_get_max (set), ==, hb_set_get_max (copy));
+    g_assert_cmpint (hb_set_is_inverted (set), ==, hb_set_is_inverted (copy));
+    hb_set_destroy (copy);
+    hb_set_invert (set);
+  }
 
-  hb_set_invert (s);
-  g_assert_cmpuint (hb_set_get_population (s), ==, 2);
-  g_assert_cmpuint (hb_set_get_min (s), ==, 513);
-  g_assert_cmpuint (hb_set_get_max (s), ==, 1536);
-  hb_set_destroy (s);
+  hb_set_destroy (set);
 }
 
 
@@ -1506,7 +1530,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_set_previous_empty_pages);
-  hb_test_add (test_set_add_sorted_array_inverted);
+  hb_test_add (test_set_self_assignment);
   hb_test_add (test_set_basic);
   hb_test_add (test_set_next_previous_range);
   hb_test_add (test_set_subsets);
@@ -1531,6 +1555,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_operations);
 
   hb_test_add (test_hb_set_add_sorted_array);
+  hb_test_add (test_set_add_sorted_array_inverted);
   hb_test_add (test_set_next_many);
   hb_test_add (test_set_next_many_restricted);
   hb_test_add (test_set_next_many_inverted);
