@@ -1476,12 +1476,38 @@ test_set_previous_empty_pages (void)
   hb_set_destroy (s);
 }
 
+static void
+test_set_self_assignment (void)
+{
+  hb_set_t *set = hb_set_create ();
+  hb_set_add (set, 1);
+  hb_set_add (set, 512);
+  hb_set_add (set, 1024);
+
+  for (unsigned int inverted = 0; inverted < 2; inverted++)
+  {
+    hb_set_t *copy = hb_set_copy (set);
+    hb_set_set (set, set);
+    g_assert_true (hb_set_is_equal (set, copy));
+    g_assert_cmpuint (hb_set_get_population (set), ==, hb_set_get_population (copy));
+    g_assert_cmpuint (hb_set_get_min (set), ==, hb_set_get_min (copy));
+    g_assert_cmpuint (hb_set_get_max (set), ==, hb_set_get_max (copy));
+    g_assert_cmpint (hb_set_is_inverted (set), ==, hb_set_is_inverted (copy));
+    hb_set_destroy (copy);
+    hb_set_invert (set);
+  }
+
+  hb_set_destroy (set);
+}
+
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_set_previous_empty_pages);
+  hb_test_add (test_set_self_assignment);
   hb_test_add (test_set_basic);
   hb_test_add (test_set_next_previous_range);
   hb_test_add (test_set_subsets);

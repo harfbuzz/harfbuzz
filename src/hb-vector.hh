@@ -231,6 +231,8 @@ struct hb_vector_t
 
   hb_vector_t& operator = (const hb_vector_t &o)
   {
+    if (this == &o) return *this;
+
     reset ();
     alloc_exact (o.length);
     if (unlikely (in_error ())) return *this;
