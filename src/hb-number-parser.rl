@@ -58,14 +58,20 @@ action add_exp  {
 
 num = [0-9]+;
 
-main := (
+action end_number {
+	matched = true;
+	fbreak;
+}
+
+main := |*
 	(
-		(('+'|'-'@see_neg)? num @add_int) ('.' num @add_frac)?
+		(('+'|'-'@see_neg)? num @add_int) ('.' (num @add_frac)?)?
 		|
 		(('+'|'-'@see_neg)? '.' num @add_frac)
 	)
 	(('e'|'E') (('+'|'-'@see_exp_neg)? num @add_exp))?
-);
+	=> end_number;
+	*|;
 
 }%%
 
@@ -112,14 +118,22 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
   const char *pe = *end_ptr;
   while (p < pe && ISSPACE (*p))
     p++;
+  const char *p_start = p;   /* subject sequence must start here */
 
   int cs;
+  const char *ts = p;
+  const char *te = p;
+  int act = 0;
+  const char *eof = pe;
+  bool matched = false;
+  (void) act;
   %%{
     write init;
     write exec;
   }%%
 
-  *end_ptr = p;
+  // end_ptr = end of match on success, else start of subject sequence
+  *end_ptr = (matched && ts == p_start) ? p : p_start;
 
   // Apply round-to-nearest-even using the dropped tail recorded above
   if (frac_drop > 5 ||

@@ -270,5 +270,90 @@ main (int argc, char **argv)
     hb_always_assert (pv == 0.5);
   }
 
+  {
+    const char str[] = "1e";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
+  }
+  {
+    const char str[] = "1e+";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
+  }
+  {
+    const char str[] = "-";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = ".";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "1e-";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
+  }
+  {
+    const char str[] = "-1e";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == -1.0);
+    hb_always_assert (pp == str + 2);
+  }
+  {
+    const char str[] = "+";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "-.";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+
+  // But be careful with fractional parts
+  {
+    const char str[] = "1.";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "1.abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 2); // at least "1." was consumed
+  }
+
   return 0;
 }
