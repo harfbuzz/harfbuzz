@@ -71,6 +71,9 @@ main := (
 static inline double
 _pow10 (unsigned exponent)
 {
+  // DBL_MAX is between 10^308 and 10^309
+  if (unlikely (exponent > 308)) return HUGE_VAL;
+
   static const double _powers_of_10[] =
   {
     1.0e+256,

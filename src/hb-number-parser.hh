@@ -31,7 +31,7 @@
 #include "hb.hh"
 
 
-#line 32 "hb-number-parser.hh"
+#line 35 "hb-number-parser.hh"
 static const unsigned char _double_parser_trans_keys[] = {
 	0u, 0u, 43u, 57u, 46u, 57u, 48u, 57u, 43u, 57u, 48u, 57u, 48u, 101u, 48u, 57u, 
 	46u, 101u, 0
@@ -98,6 +98,9 @@ static const int double_parser_en_main = 1;
 static inline double
 _pow10 (unsigned exponent)
 {
+  // DBL_MAX is between 10^308 and 10^309
+  if (unlikely (exponent > 308)) return HUGE_VAL;
+
   static const double _powers_of_10[] =
   {
     1.0e+256,
@@ -135,12 +138,12 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
 
   int cs;
   
-#line 132 "hb-number-parser.hh"
+#line 142 "hb-number-parser.hh"
 	{
 	cs = double_parser_start;
 	}
 
-#line 135 "hb-number-parser.hh"
+#line 147 "hb-number-parser.hh"
 	{
 	int _slen;
 	int _trans;
@@ -198,7 +201,7 @@ _resume:
 	  exp_overflow = true;
 }
 	break;
-#line 187 "hb-number-parser.hh"
+#line 205 "hb-number-parser.hh"
 	}
 
 _again:
@@ -210,7 +213,7 @@ _again:
 	_out: {}
 	}
 
-#line 113 "hb-number-parser.rl"
+#line 116 "hb-number-parser.rl"
 
 
   *end_ptr = p;

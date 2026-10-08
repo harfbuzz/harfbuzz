@@ -220,5 +220,38 @@ main (int argc, char **argv)
     hb_always_assert (end - pp == 0);
   }
 
+  {
+    const char str[] = "1e512";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (isinf (pv) && pv > 0);
+  }
+  {
+    const char str[] = "1e600";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (isinf (pv) && pv > 0);
+  }
+  {
+    const char str[] = "1e-512";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0);
+  }
+  {
+    const char str[] = "1e-600";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0);
+  }
+
   return 0;
 }
