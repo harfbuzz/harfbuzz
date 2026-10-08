@@ -23,7 +23,8 @@
  *
  */
 
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "hb.hh"
 #include "hb-number.hh"
