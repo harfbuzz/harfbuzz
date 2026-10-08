@@ -410,7 +410,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (pv > 0 && !isinf (pv));
+    hb_always_assert (pv > 0 && pv <= DBL_MAX);
   }
   {
     const char str[] = "1e309";
@@ -676,6 +676,34 @@ main (int argc, char **argv)
     double pv = 99.0;
     hb_always_assert (!hb_parse_double (&pp, end, &pv));
     hb_always_assert (pp == str);
+  }
+
+  {
+    const char str[] = "1.7976931348623157e308";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv >= DBL_MAX || isinf (pv));
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "99999999999999999999"; // 20 nines
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv >= 1e19 && pv <= 1.1e20);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "1.e5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 100000.0);
+    hb_always_assert (pp == end);
   }
 
   return 0;
