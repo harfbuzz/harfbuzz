@@ -152,8 +152,23 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
 
   if (exp)
   {
-    if (exp_neg) value /= _pow10 (exp);
-    else         value *= _pow10 (exp);
+    if (exp_neg)
+    {
+      // 10^308 is the largest finite power of ten so two reductions of 308 suffice.
+      if (exp > 308)
+      {
+	value /= 1e308;
+	exp -= 308;
+	if (exp > 308)
+	{
+	  value /= 1e308;
+	  exp -= 308;
+	}
+      }
+      value /= _pow10 (exp);
+    }
+    else
+      value *= _pow10 (exp);
   }
 
   return value;

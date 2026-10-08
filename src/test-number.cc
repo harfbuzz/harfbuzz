@@ -23,6 +23,8 @@
  *
  */
 
+#include <stdlib.h>
+
 #include "hb.hh"
 #include "hb-number.hh"
 
@@ -424,7 +426,17 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (pv == 0.0);
+    hb_always_assert (pv > 0.0 && pv < DBL_MIN);
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
+  {
+    const char str[] = "5e-324";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv > 0.0 && pv < DBL_MIN);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e+5";
