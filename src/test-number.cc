@@ -253,5 +253,22 @@ main (int argc, char **argv)
     hb_always_assert (pv == 0.0);
   }
 
+  {
+    const char str[] = "0.9999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+  }
+  {
+    const char str[] = "0.499999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.5);
+  }
+
   return 0;
 }

@@ -46,6 +46,8 @@ action add_frac {
 	  frac = frac * 10. + (fc - '0');
 	  ++frac_count;
 	}
+	// Record the tail we couldn't fit for round-to-nearest below
+	else if (frac_drop < 0) frac_drop = fc - '0'; else if (fc != '0') frac_sticky = true;
 }
 action add_exp  {
 	if (likely (exp * 10 + (fc - '0') <= MAX_EXP))
@@ -102,6 +104,8 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
   double frac_count = 0;
   unsigned exp = 0;
   bool neg = false, exp_neg = false, exp_overflow = false;
+  int frac_drop = -1;
+  bool frac_sticky = false;
   const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
   const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
 
@@ -117,6 +121,10 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
 
   *end_ptr = p;
 
+  // Apply round-to-nearest-even using the dropped tail recorded above
+  if (frac_drop > 5 ||
+      (frac_drop == 5 && (frac_sticky || (((uint64_t) frac) & 1))))
+    frac += 1;
   if (frac_count) value += frac / _pow10 (frac_count);
   if (neg) value *= -1.;
 
