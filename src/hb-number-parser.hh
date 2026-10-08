@@ -306,7 +306,7 @@ _again:
   if (unlikely (exp_overflow))
   {
     if (value == 0) return value;
-    if (exp_neg)    return neg ? -DBL_MIN : DBL_MIN;
+    if (exp_neg)    return neg ? -0.0 : 0.0;
     else            return neg ? -DBL_MAX : DBL_MAX;
   }
 
