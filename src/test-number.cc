@@ -650,5 +650,21 @@ main (int argc, char **argv)
     hb_always_assert (pp == str + 3); // Don't consume ending ".5"
   }
 
+  {
+    const char str[] = "   ";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = " abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pp == str);
+  }
+
   return 0;
 }

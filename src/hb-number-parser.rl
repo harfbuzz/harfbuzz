@@ -115,10 +115,11 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
   const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
   const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
 
+  const char *p_original = p;
   const char *pe = *end_ptr;
   while (p < pe && ISSPACE (*p))
     p++;
-  const char *p_start = p;   /* subject sequence must start here */
+  const char *p_start = p;
 
   int cs;
   const char *ts = p;
@@ -132,8 +133,8 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
     write exec;
   }%%
 
-  // end_ptr = end of match on success, else start of subject sequence
-  *end_ptr = (matched && ts == p_start) ? p : p_start;
+  // end_ptr = end of match on success, else the original p
+  *end_ptr = (matched && ts == p_start) ? p : p_original;
 
   // Apply round-to-nearest-even using the dropped tail recorded above
   if (frac_drop > 5 ||

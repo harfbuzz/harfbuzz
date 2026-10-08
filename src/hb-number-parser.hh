@@ -149,10 +149,11 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
   const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
   const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
 
+  const char *p_original = p;
   const char *pe = *end_ptr;
   while (p < pe && ISSPACE (*p))
     p++;
-  const char *p_start = p;   /* subject sequence must start here */
+  const char *p_start = p;
 
   int cs;
   const char *ts = p;
@@ -162,7 +163,7 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
   bool matched = false;
   (void) act;
   
-#line 166 "hb-number-parser.hh"
+#line 167 "hb-number-parser.hh"
 	{
 	cs = double_parser_start;
 	ts = 0;
@@ -170,7 +171,7 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
 	act = 0;
 	}
 
-#line 174 "hb-number-parser.hh"
+#line 175 "hb-number-parser.hh"
 	{
 	int _slen;
 	int _trans;
@@ -186,7 +187,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 190 "hb-number-parser.hh"
+#line 191 "hb-number-parser.hh"
 	}
 
 	_keys = _double_parser_trans_keys + (cs<<1);
@@ -261,7 +262,7 @@ _eof_trans:
 	else if (frac_drop < 0) frac_drop = (*p) - '0'; else if ((*p) != '0') frac_sticky = true;
 }
 	break;
-#line 265 "hb-number-parser.hh"
+#line 266 "hb-number-parser.hh"
 	}
 
 _again:
@@ -270,7 +271,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 274 "hb-number-parser.hh"
+#line 275 "hb-number-parser.hh"
 	}
 
 	if ( cs == 0 )
@@ -289,11 +290,11 @@ _again:
 	_out: {}
 	}
 
-#line 133 "hb-number-parser.rl"
+#line 134 "hb-number-parser.rl"
 
 
-  // end_ptr = end of match on success, else start of subject sequence
-  *end_ptr = (matched && ts == p_start) ? p : p_start;
+  // end_ptr = end of match on success, else the original p
+  *end_ptr = (matched && ts == p_start) ? p : p_original;
 
   // Apply round-to-nearest-even using the dropped tail recorded above
   if (frac_drop > 5 ||
