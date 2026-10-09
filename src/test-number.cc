@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019  Ebrahim Byagowi
+ * Copyright © 2019-2026  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -262,6 +262,69 @@ test_parse_int ()
     hb_always_assert (!hb_parse_int (&pp, end, &pv));
     hb_always_assert (pp == str);
     hb_always_assert (pv == 99);
+  }
+
+  /* INT_MAX / INT_MIN - exactly representable */
+  {
+    const char str[] = "2147483647";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv;
+    hb_always_assert (hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pv == 2147483647);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "-2147483648";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv;
+    hb_always_assert (hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pv == -2147483647 - 1);   /* not -2147483648, that's UB as an int literal */
+    hb_always_assert (pp == end);
+  }
+
+  /* One past INT_MAX - must fail */
+  {
+    const char str[] = "2147483648";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+  /* One past INT_MIN - must fail */
+  {
+    const char str[] = "-2147483649";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  /* Same for signed */
+  {
+    const char str[] = "9999999999999999999999999999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  {
+    /* Verify *pv and *pp are untouched when a range check rejects. */
+    const char str[] = "9999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 42;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 42);
   }
 }
 
@@ -665,6 +728,90 @@ test_parse_uint ()
     hb_always_assert (!hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pp == str);
     hb_always_assert (pv == 99);
+  }
+
+  /* UINT_MAX - exactly representable */
+  {
+    const char str[] = "4294967295";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pv == 4294967295u);
+    hb_always_assert (pp == end);
+  }
+  /* One past UINT_MAX - must fail (currently truncates to 0) */
+  {
+    const char str[] = "4294967296";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  /* 20 digits, way past UINT_MAX */
+  {
+    const char str[] = "99999999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+  /* 40 digits, past the old 32-byte stack buffer */
+  {
+    const char str[] = "9999999999999999999999999999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  /* 0xFFFFFFFF = UINT_MAX */
+  {
+    const char str[] = "0xFFFFFFFF";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
+    hb_always_assert (pv == 4294967295u);
+    hb_always_assert (pp == end);
+  }
+  /* 0x100000000 = UINT_MAX + 1 */
+  {
+    const char str[] = "0x100000000";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv, true, 16));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  /* 13 'Z's = 36^13 - 1, comfortably > UINT64_MAX would need ~12 digits */
+  {
+    const char str[] = "ZZZZZZZZZZZZZZ";   /* 14 Z's */
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv, true, 36));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  {
+    const char str[] = "9999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 42;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 42);
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019  Ebrahim Byagowi
+ * Copyright © 2019-2026  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
