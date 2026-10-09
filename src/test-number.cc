@@ -138,6 +138,15 @@ test_parse_int ()
   }
 }
 
+/* Tolerate 1 ULP difference. Needed because 32-bit x86 (x87) computes
+ * at 80-bit precision and rounds to 64-bit on store, which can differ
+ * from a directly-rounded decimal literal by one ULP. */
+static inline bool
+almost_equal (double a, double b)
+{
+  return fabs (a - b) <= fabs (a) * 2 * DBL_EPSILON;
+}
+
 static void
 test_parse_double (void)
 {
@@ -488,7 +497,7 @@ test_parse_double (void)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
-    hb_always_assert (pv == 1.5e-10);
+    hb_always_assert (almost_equal (pv, 1.5e-10));
   }
   {
     const char str[] = "-.5";
