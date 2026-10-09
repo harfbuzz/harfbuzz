@@ -23,12 +23,14 @@
  *
  */
 
+#include <cmath>
+#include <cstdlib>
+
 #include "hb.hh"
 #include "hb-number.hh"
 
-
-int
-main (int argc, char **argv)
+static void
+test_parse_int ()
 {
   {
     const char str[] = "123";
@@ -134,7 +136,20 @@ main (int argc, char **argv)
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 2);
   }
+}
 
+/* Tolerate 1 ULP difference. Needed because 32-bit x86 (x87) computes
+ * at 80-bit precision and rounds to 64-bit on store, which can differ
+ * from a directly-rounded decimal literal by one ULP. */
+static inline bool
+almost_equal (double a, double b)
+{
+  return fabs (a - b) <= fabs (a) * 2 * DBL_EPSILON;
+}
+
+static void
+test_parse_double (void)
+{
   {
     const char str[] = ".123";
     const char *pp = str;
@@ -219,6 +234,507 @@ main (int argc, char **argv)
     hb_always_assert (pp - str == 8);
     hb_always_assert (end - pp == 0);
   }
+
+  {
+    const char str[] = "1e512";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (std::isinf (pv) && pv > 0);
+  }
+  {
+    const char str[] = "1e600";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (std::isinf (pv) && pv > 0);
+  }
+  {
+    const char str[] = "1e-512";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0);
+  }
+  {
+    const char str[] = "1e-600";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0);
+  }
+
+  {
+    const char str[] = "0.9999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+  }
+  {
+    const char str[] = "0.499999999999999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.5);
+  }
+
+  {
+    const char str[] = "1e";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
+  }
+  {
+    const char str[] = "1e+";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
+  }
+  {
+    const char str[] = "-";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = ".";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "1e-";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
+  }
+  {
+    const char str[] = "-1e";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == -1.0);
+    hb_always_assert (pp == str + 2);
+  }
+  {
+    const char str[] = "+";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "-.";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+
+  // But be careful with fractional parts
+  {
+    const char str[] = "1.";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "1.abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 2); // at least "1." was consumed
+  }
+
+  {
+    const char str[] = "abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "";
+    const char *pp = str;
+    const char *end = str;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = " \t 123";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 123.0);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "-0.0";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && std::signbit (pv));
+  }
+  {
+    const char str[] = "1.5E10";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1.5e10);
+  }
+  {
+    const char str[] = "1.5E+10";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1.5e10);
+  }
+  {
+    const char str[] = "1e308";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv > 0 && pv <= DBL_MAX);
+  }
+  {
+    const char str[] = "1e309";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (std::isinf (pv) && pv > 0);
+  }
+  {
+    const char str[] = "1e-309";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv > 0.0 && pv < DBL_MIN);
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
+  {
+    const char str[] = "5e-324";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv > 0.0 && pv < DBL_MIN);
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
+  {
+    const char str[] = "1e+5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 100000.0);
+  }
+  {
+    const char str[] = "1E5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 100000.0);
+  }
+  {
+    const char str[] = "123abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 123.0);
+    hb_always_assert (pp == str + 3);
+  }
+  {
+    const char str[] = "123abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv, true));
+  }
+  {
+    const char str[] = "-1.5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == -1.5);
+  }
+  {
+    const char str[] = "1.5E-10";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (almost_equal (pv, 1.5e-10));
+  }
+  {
+    const char str[] = "-.5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == -0.5);
+  }
+  {
+    const char str[] = "500";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 500.0);
+  }
+  {
+    const char str[] = "-7.5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == -7.5);
+  }
+  {
+    const char str[] = "123 ";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv, true));
+  }
+  {
+    const char str[] = " 123";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 123.0);
+  }
+  {
+    const char str[] = "+1";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1.0);
+  }
+  {
+    const char str[] = "+1.5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1.5);
+  }
+  {
+    const char str[] = "--1";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "+-1";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "0e5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 0.0);
+  }
+  {
+    const char str[] = "1.5e";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.5);
+    hb_always_assert (pp == str + 3);
+  }
+  {
+    const char str[] = "1.5e+";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.5);
+    hb_always_assert (pp == str + 3);
+  }
+  {
+    const char str[] = "1e9999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == DBL_MAX);
+  }
+  {
+    const char str[] = "-1e9999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == -DBL_MAX);
+  }
+  {
+    const char str[] = "1e-9999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == .0);
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
+  {
+    const char str[] = "-1e-9999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == -.0);
+    hb_always_assert (pv == -strtod (str, nullptr));
+  }
+  {
+    const char str[] = "1e-400";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0);
+  }
+  {
+    const char str[] = "007";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 7.0);
+  }
+  {
+    const char str[] = "0.0";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 0.0 && !std::signbit (pv));
+  }
+  {
+    const char str[] = "NaN";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "inf";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = "1..5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 2); // Don't consume ending ".5"
+  }
+  {
+    const char str[] = "1.5.5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.5);
+    hb_always_assert (pp == str + 3); // Don't consume ending ".5"
+  }
+
+  {
+    const char str[] = "   ";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+  }
+  {
+    const char str[] = " abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 99.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pp == str);
+  }
+
+  {
+    const char str[] = "1.7976931348623157e308";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv >= DBL_MAX || std::isinf (pv));
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "99999999999999999999"; // 20 nines
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv >= 1e19 && pv <= 1.1e20);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "1.e5";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 100000.0);
+    hb_always_assert (pp == end);
+  }
+}
+
+int
+main (int argc, char **argv)
+{
+  test_parse_int ();
+  test_parse_double ();
 
   return 0;
 }

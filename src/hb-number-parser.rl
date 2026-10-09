@@ -46,6 +46,8 @@ action add_frac {
 	  frac = frac * 10. + (fc - '0');
 	  ++frac_count;
 	}
+	// Record the tail we couldn't fit for round-to-nearest below
+	else if (frac_drop < 0) frac_drop = fc - '0'; else if (fc != '0') frac_sticky = true;
 }
 action add_exp  {
 	if (likely (exp * 10 + (fc - '0') <= MAX_EXP))
@@ -56,14 +58,20 @@ action add_exp  {
 
 num = [0-9]+;
 
-main := (
+action end_number {
+	matched = true;
+	fbreak;
+}
+
+main := |*
 	(
-		(('+'|'-'@see_neg)? num @add_int) ('.' num @add_frac)?
+		(('+'|'-'@see_neg)? num @add_int) ('.' (num @add_frac)?)?
 		|
 		(('+'|'-'@see_neg)? '.' num @add_frac)
 	)
 	(('e'|'E') (('+'|'-'@see_exp_neg)? num @add_exp))?
-);
+	=> end_number;
+	*|;
 
 }%%
 
@@ -71,6 +79,9 @@ main := (
 static inline double
 _pow10 (unsigned exponent)
 {
+  // DBL_MAX is between 10^308 and 10^309
+  if (unlikely (exponent > 308)) return HUGE_VAL;
+
   static const double _powers_of_10[] =
   {
     1.0e+256,
@@ -99,35 +110,65 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
   double frac_count = 0;
   unsigned exp = 0;
   bool neg = false, exp_neg = false, exp_overflow = false;
+  int frac_drop = -1;
+  bool frac_sticky = false;
   const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
   const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
 
+  const char *p_original = p;
   const char *pe = *end_ptr;
   while (p < pe && ISSPACE (*p))
     p++;
+  const char *p_start = p;
 
   int cs;
+  const char *ts = p;
+  const char *te = p;
+  int act = 0;
+  const char *eof = pe;
+  bool matched = false;
+  (void) act;
   %%{
     write init;
     write exec;
   }%%
 
-  *end_ptr = p;
+  // end_ptr = end of match on success, else the original p
+  *end_ptr = (matched && ts == p_start) ? p : p_original;
 
+  // Apply round-to-nearest-even using the dropped tail recorded above
+  if (frac_drop > 5 ||
+      (frac_drop == 5 && (frac_sticky || (((uint64_t) frac) & 1))))
+    frac += 1;
   if (frac_count) value += frac / _pow10 (frac_count);
   if (neg) value *= -1.;
 
   if (unlikely (exp_overflow))
   {
     if (value == 0) return value;
-    if (exp_neg)    return neg ? -DBL_MIN : DBL_MIN;
+    if (exp_neg)    return neg ? -0.0 : 0.0;
     else            return neg ? -DBL_MAX : DBL_MAX;
   }
 
   if (exp)
   {
-    if (exp_neg) value /= _pow10 (exp);
-    else         value *= _pow10 (exp);
+    if (exp_neg)
+    {
+      // 10^308 is the largest finite power of ten so two reductions of 308 suffice.
+      if (exp > 308)
+      {
+	value /= 1e308;
+	exp -= 308;
+	if (exp > 308)
+	{
+	  value /= 1e308;
+	  exp -= 308;
+	}
+      }
+      value /= _pow10 (exp);
+    }
+    else
+      value *= _pow10 (exp);
   }
 
   return value;
