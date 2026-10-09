@@ -229,7 +229,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (isinf (pv) && pv > 0);
+    hb_always_assert (std::isinf (pv) && pv > 0);
   }
   {
     const char str[] = "1e600";
@@ -237,7 +237,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (isinf (pv) && pv > 0);
+    hb_always_assert (std::isinf (pv) && pv > 0);
   }
   {
     const char str[] = "1e-512";
@@ -387,7 +387,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (pv == 0.0 && signbit (pv));
+    hb_always_assert (pv == 0.0 && std::signbit (pv));
   }
   {
     const char str[] = "1.5E10";
@@ -419,7 +419,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (isinf (pv) && pv > 0);
+    hb_always_assert (std::isinf (pv) && pv > 0);
   }
   {
     const char str[] = "1e-309";
@@ -638,7 +638,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
-    hb_always_assert (pv == 0.0 && !signbit (pv));
+    hb_always_assert (pv == 0.0 && !std::signbit (pv));
   }
   {
     const char str[] = "NaN";
@@ -695,7 +695,7 @@ main (int argc, char **argv)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
-    hb_always_assert (pv >= DBL_MAX || isinf (pv));
+    hb_always_assert (pv >= DBL_MAX || std::isinf (pv));
     hb_always_assert (pp == end);
   }
   {
