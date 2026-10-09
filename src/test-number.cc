@@ -29,9 +29,8 @@
 #include "hb.hh"
 #include "hb-number.hh"
 
-
-int
-main (int argc, char **argv)
+static void
+test_parse_int ()
 {
   {
     const char str[] = "123";
@@ -137,7 +136,11 @@ main (int argc, char **argv)
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 2);
   }
+}
 
+static void
+test_parse_double (void)
+{
   {
     const char str[] = ".123";
     const char *pp = str;
@@ -716,6 +719,13 @@ main (int argc, char **argv)
     hb_always_assert (pv == 100000.0);
     hb_always_assert (pp == end);
   }
+}
+
+int
+main (int argc, char **argv)
+{
+  test_parse_int ();
+  test_parse_double ();
 
   return 0;
 }
