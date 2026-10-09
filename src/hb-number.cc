@@ -76,7 +76,7 @@ bool
 hb_parse_double (const char **pp, const char *end, double *pv, bool whole_buffer)
 {
   const char *pend = end;
-  *pv = strtod_rl (*pp, &pend);
+  *pv = hb_strtod (*pp, &pend);
   if (unlikely (*pp == pend)) return false;
   *pp = pend;
   return !whole_buffer || end == pend;

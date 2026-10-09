@@ -1,7 +1,5 @@
-
-#line 1 "hb-number-parser.rl"
 /*
- * Copyright © 2019  Ebrahim Byagowi
+ * Copyright © 2019-2026  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -30,86 +28,7 @@
 
 #include "hb.hh"
 
-
-#line 35 "hb-number-parser.hh"
-static const unsigned char _double_parser_trans_keys[] = {
-	0u, 0u, 46u, 57u, 48u, 57u, 43u, 57u, 48u, 57u, 43u, 57u, 48u, 101u, 48u, 57u, 
-	46u, 101u, 0
-};
-
-static const char _double_parser_key_spans[] = {
-	0, 12, 10, 15, 10, 15, 54, 10, 
-	56
-};
-
-static const unsigned char _double_parser_index_offsets[] = {
-	0, 0, 13, 24, 40, 51, 67, 122, 
-	133
-};
-
-static const char _double_parser_indicies[] = {
-	0, 1, 2, 2, 2, 2, 2, 
-	2, 2, 2, 2, 2, 1, 3, 3, 
-	3, 3, 3, 3, 3, 3, 3, 3, 
-	1, 5, 4, 6, 4, 4, 7, 7, 
-	7, 7, 7, 7, 7, 7, 7, 7, 
-	4, 7, 7, 7, 7, 7, 7, 7, 
-	7, 7, 7, 4, 8, 1, 9, 0, 
-	1, 2, 2, 2, 2, 2, 2, 2, 
-	2, 2, 2, 1, 3, 3, 3, 3, 
-	3, 3, 3, 3, 3, 3, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 11, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 11, 10, 7, 7, 7, 7, 7, 
-	7, 7, 7, 7, 7, 10, 12, 10, 
-	2, 2, 2, 2, 2, 2, 2, 2, 
-	2, 2, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 11, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 10, 10, 10, 
-	10, 10, 10, 10, 10, 11, 10, 0
-};
-
-static const char _double_parser_trans_targs[] = {
-	2, 0, 8, 6, 5, 4, 4, 7, 
-	1, 1, 5, 3, 6
-};
-
-static const char _double_parser_trans_actions[] = {
-	0, 0, 1, 2, 3, 0, 4, 5, 
-	0, 8, 9, 0, 10
-};
-
-static const char _double_parser_to_state_actions[] = {
-	0, 0, 0, 0, 0, 6, 0, 0, 
-	0
-};
-
-static const char _double_parser_from_state_actions[] = {
-	0, 0, 0, 0, 0, 7, 0, 0, 
-	0
-};
-
-static const char _double_parser_eof_trans[] = {
-	0, 0, 0, 5, 5, 0, 11, 11, 
-	11
-};
-
-static const int double_parser_start = 5;
-static const int double_parser_first_final = 5;
-static const int double_parser_error = 0;
-
-static const int double_parser_en_main = 5;
-
-
-#line 76 "hb-number-parser.rl"
-
-
-/* Works only for n < 512 */
+// Works only for n < 512
 static inline double
 _pow10 (unsigned exponent)
 {
@@ -135,9 +54,21 @@ _pow10 (unsigned exponent)
   return result;
 }
 
-/* a variant of strtod that also gets end of buffer in its second argument */
+// A variant of strtod that also gets end of buffer in its second argument.
+//
+// Grammar (with backtracking on partial exponents):
+//
+//   number  := sign? mantissa exponent?
+//   sign    := '+' | '-'
+//   mantissa:= digits ('.' digits?)?
+//	    | '.' digits
+//   exponent:= ('e'|'E') sign? digits
+//
+// On success, *end_ptr is set just past the longest well-formed prefix.
+// On no match, *end_ptr is left at the original p (matching strtod's
+// "no conversion performed" behavior, so the caller's pointer is unchanged).
 static inline double
-strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
+hb_strtod (const char *p, const char **end_ptr /* IN/OUT */)
 {
   double value = 0;
   double frac = 0;
@@ -151,156 +82,114 @@ strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
 
   const char *p_original = p;
   const char *pe = *end_ptr;
+
+  // Skip leading whitespace
   while (p < pe && ISSPACE (*p))
     p++;
-  const char *p_start = p;
 
-  int cs;
-  const char *ts = p;
-  const char *te = p;
-  int act = 0;
-  const char *eof = pe;
-  bool matched = false;
-  (void) act;
-  
-#line 167 "hb-number-parser.hh"
-	{
-	cs = double_parser_start;
-	ts = 0;
-	te = 0;
-	act = 0;
-	}
+  // Sign
+  if (p < pe && (*p == '+' || *p == '-'))
+  {
+    neg = (*p == '-');
+    p++;
+  }
 
-#line 175 "hb-number-parser.hh"
-	{
-	int _slen;
-	int _trans;
-	const unsigned char *_keys;
-	const char *_inds;
-	if ( p == pe )
-		goto _test_eof;
-	if ( cs == 0 )
-		goto _out;
-_resume:
-	switch ( _double_parser_from_state_actions[cs] ) {
-	case 7:
-#line 1 "NONE"
-	{ts = p;}
-	break;
-#line 191 "hb-number-parser.hh"
-	}
+  // Mantissa.
+  const char *mantissa_end = nullptr;
 
-	_keys = _double_parser_trans_keys + (cs<<1);
-	_inds = _double_parser_indicies + _double_parser_index_offsets[cs];
+  if (p < pe && '0' <= *p && *p <= '9')
+  {
+    // Integer part
+    do
+    {
+      value = value * 10. + (*p - '0');
+      p++;
+    } while (p < pe && '0' <= *p && *p <= '9');
+    mantissa_end = p;
 
-	_slen = _double_parser_key_spans[cs];
-	_trans = _inds[ _slen > 0 && _keys[0] <=(*p) &&
-		(*p) <= _keys[1] ?
-		(*p) - _keys[0] : _slen ];
-
-_eof_trans:
-	cs = _double_parser_trans_targs[_trans];
-
-	if ( _double_parser_trans_actions[_trans] == 0 )
-		goto _again;
-
-	switch ( _double_parser_trans_actions[_trans] ) {
-	case 8:
-#line 37 "hb-number-parser.rl"
-	{ neg = true; }
-	break;
-	case 4:
-#line 38 "hb-number-parser.rl"
-	{ exp_neg = true; }
-	break;
-	case 5:
-#line 52 "hb-number-parser.rl"
-	{
-	if (likely (exp * 10 + ((*p) - '0') <= MAX_EXP))
-	  exp = exp * 10 + ((*p) - '0');
-	else
-	  exp_overflow = true;
-}
-	break;
-	case 10:
-#line 1 "NONE"
-	{te = p+1;}
-	break;
-	case 9:
-#line 61 "hb-number-parser.rl"
-	{te = p;p--;{
-	matched = true;
-	{p++; goto _out; }
-}}
-	break;
-	case 3:
-#line 61 "hb-number-parser.rl"
-	{{p = ((te))-1;}{
-	matched = true;
-	{p++; goto _out; }
-}}
-	break;
-	case 1:
-#line 1 "NONE"
-	{te = p+1;}
-#line 40 "hb-number-parser.rl"
-	{
-	value = value * 10. + ((*p) - '0');
-}
-	break;
-	case 2:
-#line 1 "NONE"
-	{te = p+1;}
-#line 43 "hb-number-parser.rl"
-	{
+    // Optional fractional part; a trailing '.' with no digits is accepted
+    if (p < pe && *p == '.')
+    {
+      p++;
+      while (p < pe && '0' <= *p && *p <= '9')
+      {
 	if (likely (frac <= MAX_FRACT / 10))
 	{
-	  frac = frac * 10. + ((*p) - '0');
+	  frac = frac * 10. + (*p - '0');
 	  ++frac_count;
 	}
 	// Record the tail we couldn't fit for round-to-nearest below
-	else if (frac_drop < 0) frac_drop = (*p) - '0'; else if ((*p) != '0') frac_sticky = true;
-}
-	break;
-#line 266 "hb-number-parser.hh"
-	}
-
-_again:
-	switch ( _double_parser_to_state_actions[cs] ) {
-	case 6:
-#line 1 "NONE"
-	{ts = 0;}
-	break;
-#line 275 "hb-number-parser.hh"
-	}
-
-	if ( cs == 0 )
-		goto _out;
-	if ( ++p != pe )
-		goto _resume;
-	_test_eof: {}
-	if ( p == eof )
+	else if (frac_drop < 0) frac_drop = *p - '0';
+	else if (*p != '0') frac_sticky = true;
+	p++;
+      }
+      mantissa_end = p;
+    }
+  }
+  else if (p < pe && *p == '.')
+  {
+    // Fractional-only form: '.' must be followed by at least one digit
+    p++;
+    if (p < pe && '0' <= *p && *p <= '9')
+    {
+      do
+      {
+	if (likely (frac <= MAX_FRACT / 10))
 	{
-	if ( _double_parser_eof_trans[cs] > 0 ) {
-		_trans = _double_parser_eof_trans[cs] - 1;
-		goto _eof_trans;
+	  frac = frac * 10. + (*p - '0');
+	  ++frac_count;
 	}
-	}
+	else if (frac_drop < 0) frac_drop = *p - '0';
+	else if (*p != '0') frac_sticky = true;
+	p++;
+      } while (p < pe && '0' <= *p && *p <= '9');
+      mantissa_end = p;
+    }
+    else
+    {
+      *end_ptr = p_original;
+      return 0.0;
+    }
+  }
+  else
+  {
+    // No digits: no subject sequence
+    *end_ptr = p_original;
+    return 0.0;
+  }
 
-	_out: {}
-	}
+  // Exponent. Backtracking is implicit: end_ptr follows mantissa_end,
+  // which is only updated when the exponent is well-formed.
+  if (p < pe && (*p == 'e' || *p == 'E'))
+  {
+    p++;
+    if (p < pe && (*p == '+' || *p == '-'))
+    {
+      exp_neg = (*p == '-');
+      p++;
+    }
+    if (p < pe && '0' <= *p && *p <= '9')
+    {
+      do
+      {
+	if (likely (exp * 10 + (*p - '0') <= MAX_EXP))
+	  exp = exp * 10 + (*p - '0');
+	else
+	  exp_overflow = true;
+	p++;
+      } while (p < pe && '0' <= *p && *p <= '9');
+      mantissa_end = p;
+    }
+    // else: exponent malformed; end_ptr stays at end of mantissa
+  }
 
-#line 134 "hb-number-parser.rl"
-
-
-  // end_ptr = end of match on success, else the original p
-  *end_ptr = (matched && ts == p_start) ? p : p_original;
+  *end_ptr = mantissa_end;
 
   // Apply round-to-nearest-even using the dropped tail recorded above
   if (frac_drop > 5 ||
       (frac_drop == 5 && (frac_sticky || (((uint64_t) frac) & 1))))
     frac += 1;
-  if (frac_count) value += frac / _pow10 (frac_count);
+  if (frac_count) value += frac / _pow10 ((unsigned) frac_count);
   if (neg) value *= -1.;
 
   if (unlikely (exp_overflow))
@@ -314,12 +203,12 @@ _again:
   {
     if (exp_neg)
     {
-      // 10^308 is the largest finite power of ten so two reductions of 308 suffice.
-      if (exp > 308)
+      // 10^308 is the largest finite power of ten, so two reductions of 308 suffice.
+      if (unlikely (exp > 308))
       {
 	value /= 1e308;
 	exp -= 308;
-	if (exp > 308)
+	if (unlikely (exp > 308))
 	{
 	  value /= 1e308;
 	  exp -= 308;
