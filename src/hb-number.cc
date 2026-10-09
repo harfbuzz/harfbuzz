@@ -45,12 +45,13 @@ _parse_number (const char **pp, const char *end, T *pv,
   char *pend = p;
 
   errno = 0;
-  *pv = f (p, &pend);
+  T value = f (p, &pend);
   if (unlikely (errno || p == pend ||
 		/* Check if consumed whole buffer if is requested */
 		(whole_buffer && pend - p != end - *pp)))
     return false;
 
+  *pv = value;
   *pp += pend - p;
   return true;
 }
@@ -76,8 +77,9 @@ bool
 hb_parse_double (const char **pp, const char *end, double *pv, bool whole_buffer)
 {
   const char *pend = end;
-  *pv = hb_strtod (*pp, &pend);
+  double value = hb_strtod (*pp, &pend);
   if (unlikely (*pp == pend)) return false;
+  *pv = value;
   *pp = pend;
   return !whole_buffer || end == pend;
 }
