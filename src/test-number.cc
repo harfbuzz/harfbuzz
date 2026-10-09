@@ -251,6 +251,18 @@ test_parse_int ()
     hb_always_assert (pp == str);
     hb_always_assert (pv == 99);
   }
+  {
+    /* 10 digits > INT_MAX.  The old strtol-based implementation silently
+     * truncated on 64-bit platforms (long is 64-bit) but rejected on
+     * 32-bit; the new implementation rejects uniformly. */
+    const char str[] = "9999999999";   /* 10 digits, > INT_MAX */
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
 }
 
 static void
@@ -641,6 +653,18 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 10));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == str + 1);
+  }
+  {
+    /* 10 digits > UINT_MAX.  The old strtol-based implementation silently
+     * truncated on 64-bit platforms (unsigned long is 64-bit) but rejected on
+     * 32-bit; the new implementation rejects uniformly. */
+    const char str[] = "9999999999";   /* 10 digits, > UINT_MAX */
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
   }
 }
 
