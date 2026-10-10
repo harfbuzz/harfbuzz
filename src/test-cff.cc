@@ -70,6 +70,36 @@ test_specialized_line_geometry ()
       }
 }
 
+static void
+test_specialized_fractional_geometry ()
+{
+  const double deltas[][2] = {
+    {0.5, 12}, {-0.5, 12}, {12, 0.5}, {12, -0.5},
+    {0.25, -0.75}, {0, 12}, {12, 0},
+  };
+  for (CFF::op_code_t op : {OpCode_rmoveto, OpCode_rlineto})
+    for (const auto &delta : deltas)
+    {
+      hb_vector_t<CFF::cs_command_t> commands;
+      CFF::cs_command_t cmd (op);
+      CFF::number_t dx, dy;
+      dx.set_real (delta[0]);
+      dy.set_real (delta[1]);
+      cmd.args.push (dx);
+      cmd.args.push (dy);
+      commands.push (std::move (cmd));
+      CFF::specialize_commands (commands);
+      CFF::str_buff_t encoded;
+      hb_always_assert (CFF::encode_commands (commands, encoded));
+      CFF::generalize_commands (commands);
+      hb_always_assert (commands.length == 1);
+      hb_always_assert (commands[0].op == op);
+      hb_always_assert (commands[0].args.length == 2);
+      hb_always_assert (commands[0].args[0].to_real () == delta[0]);
+      hb_always_assert (commands[0].args[1].to_real () == delta[1]);
+    }
+}
+
 template <typename GID, typename FD>
 static void
 test_fd_select_sentinel ()
@@ -100,6 +130,7 @@ int
 main (int argc, char **argv)
 {
   test_specialized_line_geometry ();
+  test_specialized_fractional_geometry ();
   test_fd_select_sentinel<OT::HBUINT16, OT::HBUINT8> ();
   test_fd_select_sentinel<OT::HBUINT32, OT::HBUINT16> ();
 
