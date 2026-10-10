@@ -955,8 +955,8 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
  *
  * Discards accumulated draw output so @draw can be reused for
  * another render.  User configuration (transform, scale factors,
- * precision) is preserved.  Call hb_vector_draw_reset() to
- * also reset user configuration to defaults.
+ * precision, foreground, background, and budget) is preserved.  Call
+ * hb_vector_draw_reset() to also reset user configuration to defaults.
  *
  * Since: 14.2.0
  */
@@ -968,6 +968,8 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
   draw->defs.clear ();
   draw->body.clear ();
   draw->path.clear ();
+  draw->pdf_extgstate_dict.clear ();
+  draw->pdf_extgstate_count = 0;
   draw->recharge_budget ();
 }
 
@@ -975,7 +977,8 @@ hb_vector_draw_clear (hb_vector_draw_t *draw)
  * hb_vector_draw_reset:
  * @draw: a draw context.
  *
- * Resets @draw state and clears accumulated content.
+ * Restores user configuration to defaults and clears accumulated content.
+ * The output format and attached user data are preserved.
  *
  * Since: 13.0.0
  */
@@ -985,6 +988,8 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->transform = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
+  draw->foreground = HB_COLOR (0, 0, 0, 255);
+  draw->background = HB_COLOR (0, 0, 0, 0);
   draw->set_precision (2);
   draw->budget = HB_BUDGET_DEFAULT;
   hb_vector_draw_clear (draw);
