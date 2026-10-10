@@ -18,11 +18,11 @@ namespace CFF {
 
 /* CharString command representation - forward declared in hb-subset-cff-common.hh */
 
-/* Check if a value is effectively zero */
+/* Specialization must preserve nonzero fractional displacements. */
 static inline bool
 is_zero (const number_t &n)
 {
-  return n.to_int () == 0;
+  return n.to_real () == 0.;
 }
 
 /* Generalize CharString commands to canonical form
