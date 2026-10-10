@@ -1,0 +1,19 @@
+# Rebased tuples grow the gvar buffer and trigger a serialization retry.
+# Its contour coordinates must not accumulate the shifted default twice.
+FONTS:
+RobotoFlex-Variable.ABC.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=280:640:865
+
+IUP_OPTIONS:
+Yes
+
+OPTIONS:
+no_fonttools

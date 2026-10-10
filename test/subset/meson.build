@@ -80,6 +80,7 @@ tests = [
   'instantiate_cff2_update_metrics',
   'layout.empty_ligature_offset',
   'glyf_partial_instancing',
+  'glyf_iup_retry',
   'glyf_iup_large_contour',
   'hvar_partial_instance_implicit_map',
   'mvar_partial_instance',
