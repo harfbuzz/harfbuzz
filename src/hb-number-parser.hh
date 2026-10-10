@@ -28,7 +28,7 @@
 
 #include "hb.hh"
 
-// Works only for n < 512
+// Handles 0..308; anything larger overflows double and returns HUGE_VAL.
 static inline double
 _pow10 (unsigned exponent)
 {
@@ -54,6 +54,38 @@ _pow10 (unsigned exponent)
   return result;
 }
 
+struct _hb_fraction
+{
+  void add (int digit)
+  {
+    if (likely (fraction <= MAX_FRACT / 10))
+    {
+      fraction = fraction * 10. + digit;
+      ++count;
+    }
+    else if (drop < 0) drop = digit;
+    else if (digit != 0) sticky = true;
+  }
+
+  double get_value () const
+  {
+    double result = fraction;
+    // Round-to-nearest-even using the recorded tail
+    if (drop > 5 || (drop == 5 && ((((uint64_t) fraction) & 1) || sticky)))
+      result += 1;
+    return result / _pow10 (count);
+  }
+
+  bool is_empty () const { return !count; }
+
+private:
+  unsigned count = 0;
+  double fraction = 0;
+  int drop = -1; // drop is the first digit we couldn't accumulate
+  bool sticky = false; // sticky is set when any later digit was nonzero.
+  static constexpr uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
+};
+
 // A variant of strtod that also gets end of buffer in its second argument.
 //
 // Grammar (with backtracking on partial exponents):
@@ -70,16 +102,6 @@ _pow10 (unsigned exponent)
 static inline double
 hb_strtod (const char *p, const char **end_ptr /* IN/OUT */)
 {
-  double value = 0;
-  double frac = 0;
-  double frac_count = 0;
-  unsigned exp = 0;
-  bool neg = false, exp_neg = false, exp_overflow = false;
-  int frac_drop = -1;
-  bool frac_sticky = false;
-  const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
-  const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
-
   const char *p_original = p;
   const char *pe = *end_ptr;
 
@@ -88,88 +110,60 @@ hb_strtod (const char *p, const char **end_ptr /* IN/OUT */)
     p++;
 
   // Sign
+  bool neg = false;
   if (p < pe && (*p == '+' || *p == '-'))
   {
     neg = (*p == '-');
     p++;
   }
 
-  // Mantissa.
-  const char *mantissa_end = nullptr;
+  double value = 0;
 
-  if (p < pe && '0' <= *p && *p <= '9')
+  // Integer and fraction
   {
-    // Integer part
-    do
+    const char *int_start = p;
+    while (p < pe && '0' <= *p && *p <= '9')
     {
       value = value * 10. + (*p - '0');
       p++;
-    } while (p < pe && '0' <= *p && *p <= '9');
-    mantissa_end = p;
+    }
+    bool has_int = p > int_start;
 
-    // Optional fractional part; a trailing '.' with no digits is accepted
+    _hb_fraction frac;
     if (p < pe && *p == '.')
     {
       p++;
       while (p < pe && '0' <= *p && *p <= '9')
       {
-	if (likely (frac <= MAX_FRACT / 10))
-	{
-	  frac = frac * 10. + (*p - '0');
-	  ++frac_count;
-	}
-	// Record the tail we couldn't fit for round-to-nearest below
-	else if (frac_drop < 0) frac_drop = *p - '0';
-	else if (*p != '0') frac_sticky = true;
+	frac.add (*p - '0');
 	p++;
       }
-      mantissa_end = p;
     }
-  }
-  else if (p < pe && *p == '.')
-  {
-    // Fractional-only form: '.' must be followed by at least one digit
-    p++;
-    if (p < pe && '0' <= *p && *p <= '9')
+
+    if (!frac.is_empty ()) value += frac.get_value ();
+    else if (!has_int)
     {
-      do
-      {
-	if (likely (frac <= MAX_FRACT / 10))
-	{
-	  frac = frac * 10. + (*p - '0');
-	  ++frac_count;
-	}
-	else if (frac_drop < 0) frac_drop = *p - '0';
-	else if (*p != '0') frac_sticky = true;
-	p++;
-      } while (p < pe && '0' <= *p && *p <= '9');
-      mantissa_end = p;
-    }
-    else
-    {
+      // Nothing could be parsed
       *end_ptr = p_original;
-      return 0.0;
+      return .0;
     }
-  }
-  else
-  {
-    // No digits: no subject sequence
-    *end_ptr = p_original;
-    return 0.0;
   }
 
-  // Exponent. Backtracking is implicit: end_ptr follows mantissa_end,
-  // which is only updated when the exponent is well-formed.
+  // Exponent
+  unsigned exp = 0;
+  bool exp_neg = false, exp_overflow = false;
   if (p < pe && (*p == 'e' || *p == 'E'))
   {
+    constexpr unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
+    const char *before_exponent = p;
     p++;
     if (p < pe && (*p == '+' || *p == '-'))
     {
       exp_neg = (*p == '-');
       p++;
     }
+
     if (p < pe && '0' <= *p && *p <= '9')
-    {
       do
       {
 	if (likely (exp * 10 + (*p - '0') <= MAX_EXP))
@@ -178,24 +172,17 @@ hb_strtod (const char *p, const char **end_ptr /* IN/OUT */)
 	  exp_overflow = true;
 	p++;
       } while (p < pe && '0' <= *p && *p <= '9');
-      mantissa_end = p;
-    }
-    // else: exponent malformed; end_ptr stays at end of mantissa
+    else
+      p = before_exponent; // rewind
   }
+  *end_ptr = p;
 
-  *end_ptr = mantissa_end;
-
-  // Apply round-to-nearest-even using the dropped tail recorded above
-  if (frac_drop > 5 ||
-      (frac_drop == 5 && (frac_sticky || (((uint64_t) frac) & 1))))
-    frac += 1;
-  if (frac_count) value += frac / _pow10 ((unsigned) frac_count);
   if (neg) value *= -1.;
 
   if (unlikely (exp_overflow))
   {
     if (value == 0) return value;
-    if (exp_neg)    return neg ? -0.0 : 0.0;
+    if (exp_neg)    return neg ? -.0 : .0;
     else            return neg ? -DBL_MAX : DBL_MAX;
   }
 
