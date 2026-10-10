@@ -326,6 +326,38 @@ test_parse_int ()
     hb_always_assert (pp == str);
     hb_always_assert (pv == 42);
   }
+
+  /* Whitespace between sign and digits is not allowed */
+  {
+    const char str[] = "- 123";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  /* Plus zero, for symmetry with the -0 case */
+  {
+    const char str[] = "+0";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pv == 0);
+    hb_always_assert (pp == end);
+  }
+
+  /* Sign alone plus trailing whitespace still fails */
+  {
+    const char str[] = "-   ";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    int pv = 99;
+    hb_always_assert (!hb_parse_int (&pp, end, &pv));
+    hb_always_assert (pv == 99);
+  }
 }
 
 static void
@@ -417,7 +449,7 @@ test_parse_uint ()
     unsigned int pv = 99;
     hb_always_assert (!hb_parse_uint (&pp, end, &pv, true));
     hb_always_assert (pp == str);
-    // hb_always_assert (pv == 99); this shouldn't fail but it does with the current implementation
+    hb_always_assert (pv == 99);
   }
 
   /* Leading whitespace */
@@ -812,6 +844,82 @@ test_parse_uint ()
     hb_always_assert (!hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pp == str);
     hb_always_assert (pv == 42);
+  }
+
+  /* Negative values whose magnitude exceeds UINT_MAX must fail, not wrap */
+  {
+    const char str[] = "-4294967296";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 99);
+  }
+
+  /* INT_MIN magnitude as unsigned: wraps to 0x80000000 */
+  {
+    const char str[] = "-2147483648";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pv == 2147483648u);
+    hb_always_assert (pp == end);
+  }
+
+  /* Mixed case in base 36 */
+  {
+    const char str[] = "Az";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 36));
+    hb_always_assert (pv == 10 * 36 + 35);
+    hb_always_assert (pp == end);
+  }
+
+  /* Whitespace between sign and digits is not allowed */
+  {
+    const char str[] = "- 1";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv = 99;
+    hb_always_assert (!hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pv == 99);
+  }
+
+  /* "0x" prefix is case-insensitive but only for base 16 */
+  {
+    const char str[] = "0X10";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
+    hb_always_assert (pv == 16);
+    hb_always_assert (pp == end);
+  }
+
+  /* A second "0x" is not consumed as a prefix */
+  {
+    const char str[] = "0x0x10";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 16));
+    hb_always_assert (pv == 0);
+    hb_always_assert (pp == str + 3);
+  }
+
+  /* Null byte stops the scan (end passed at NUL) */
+  {
+    const char str[] = "12\0F";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    unsigned int pv;
+    hb_always_assert (hb_parse_uint (&pp, end, &pv));
+    hb_always_assert (pv == 12);
+    hb_always_assert (pp == str + 2);
   }
 }
 
@@ -1414,6 +1522,70 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 100000.0);
     hb_always_assert (pp == end);
+  }
+
+  /* Exponent with leading zeros */
+  {
+    const char str[] = "1e005";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 100000.0);
+    hb_always_assert (pp == end);
+  }
+  {
+    const char str[] = "1e-005";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 1e-5);
+    hb_always_assert (pp == end);
+  }
+
+  /* Bare -0 (no decimal) preserves the sign, matching strtod */
+  {
+    const char str[] = "-0";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv == 0.0 && std::signbit (pv));
+    hb_always_assert (pp == end);
+  }
+
+  /* Long mantissa followed by an exponent */
+  {
+    const char str[] = "12345678901234567890e-10";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pv > 1.234e9 && pv < 1.235e9);
+    hb_always_assert (pp == end);
+  }
+
+  /* whole_buffer failure must not touch *pv */
+  {
+    const char str[] = "123abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 42.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv, true));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 42.0);
+  }
+
+  /* Same for no-match failure */
+  {
+    const char str[] = "abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv = 42.0;
+    hb_always_assert (!hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pp == str);
+    hb_always_assert (pv == 42.0);
   }
 }
 

@@ -37,9 +37,10 @@ hb_parse_double (const char **pp, const char *end, double *pv, bool whole_buffer
   const char *pend = end;
   double value = hb_strtod (*pp, &pend);
   if (unlikely (*pp == pend)) return false;
+  if (unlikely (whole_buffer && end != pend)) return false;
   *pv = value;
   *pp = pend;
-  return !whole_buffer || end == pend;
+  return true;
 }
 
 /* Returns the digit value of c in the given base (2..36), or -1 if c
@@ -104,11 +105,11 @@ _parse_number (const char **pp, const char *end, T *pv,
 
   uint64_t v = 0;
   p = _hb_scan_digits (p, pend, base, &v, &overflow, &any);
-  if (!any || overflow) return false;
+  if (unlikely (!any || overflow)) return false;
 
   T out;
-  if (!post (v, neg, &out)) return false;
-  if (whole_buffer && p != pend) return false;
+  if (unlikely (!post (v, neg, &out))) return false;
+  if (unlikely (whole_buffer && p != pend)) return false;
 
   *pv = out;
   *pp = p;
@@ -122,7 +123,7 @@ hb_parse_int (const char **pp, const char *end, int *pv, bool whole_buffer)
                         [] (uint64_t v, bool neg, int *out) {
     /* INT_MAX = 2^31-1, INT_MIN magnitude = 2^31 */
     uint64_t limit = neg ? (uint64_t) INT_MAX + 1 : (uint64_t) INT_MAX;
-    if (v > limit) return false;
+    if (unlikely (v > limit)) return false;
     *out = (int) (neg ? -(int64_t) v : (int64_t) v);
     return true;
   });
@@ -134,7 +135,7 @@ hb_parse_uint (const char **pp, const char *end, unsigned *pv,
 {
   return _parse_number (pp, end, pv, whole_buffer, base,
                         [] (uint64_t v, bool neg, unsigned *out) {
-    if (v > UINT_MAX) return false;
+    if (unlikely (v > UINT_MAX)) return false;
     /* Negate in unsigned so -1 wraps to UINT_MAX, matching strtoul
      * truncated to unsigned. */
     unsigned u = (unsigned) v;
