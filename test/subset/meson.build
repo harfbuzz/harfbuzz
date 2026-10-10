@@ -101,6 +101,7 @@ tests = [
 if get_option('experimental_api')
   tests += [
     'iftb_requirements',
+    'downgrade_cff2_iftb',
     'retain-num-glyphs',
   ]
 endif

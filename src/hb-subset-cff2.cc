@@ -1382,7 +1382,7 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
   }
 
   unsigned data_size = 0;
-  unsigned total_size = CFF1CharStrings::total_size (cff1_charstrings, &data_size);
+  unsigned total_size = CFF1CharStrings::total_size (cff1_charstrings, &data_size, plan.min_charstrings_off_size);
   if (unlikely (!c->start_zerocopy (total_size)))
   {
     c->pop_discard ();
@@ -1390,7 +1390,7 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
   }
 
   auto *cs = c->start_embed<CFF1CharStrings> ();
-  if (unlikely (!cs->serialize (c, cff1_charstrings)))
+  if (unlikely (!cs->serialize (c, cff1_charstrings, &data_size, plan.min_charstrings_off_size)))
   {
     c->pop_discard ();
     return false;
