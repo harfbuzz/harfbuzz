@@ -43,6 +43,19 @@ struct A
 int
 main (int argc, char **argv)
 {
+  hb_always_assert (roundf (0.5f) == 1.f);
+  hb_always_assert (roundf (-0.5f) == 0.f);
+  hb_always_assert (roundf (1.5f) == 2.f);
+  hb_always_assert (roundf (-1.5f) == -1.f);
+  hb_always_assert (roundf (nextafterf (0.5f, 0.f)) == 0.f);
+  hb_always_assert (roundf (nextafterf (-0.5f, -1.f)) == -1.f);
+  hb_always_assert (roundf (nextafterf (1.5f, 1.f)) == 1.f);
+  hb_always_assert (roundf (nextafterf (-1.5f, -2.f)) == -2.f);
+  hb_always_assert (roundf (15383929.f) == 15383929.f);
+  hb_always_assert (roundf (-15383929.f) == -15383929.f);
+  hb_always_assert (roundf (8388609.f) == 8388609.f);
+  hb_always_assert (roundf (-8388609.f) == -8388609.f);
+
   int i = 1;
   auto p = hb_pair (1, i);
 
