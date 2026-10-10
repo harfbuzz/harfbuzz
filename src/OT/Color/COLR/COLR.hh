@@ -497,7 +497,11 @@ struct ColorStop
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->stopOffset.set_float (stopOffset.to_float(instancer (varIdxBase, 0)));
-      out->alpha.set_float (alpha.to_float (instancer (varIdxBase, 1)));
+      float a = alpha.to_float (instancer (varIdxBase, 1));
+      /* Partial instances must keep the unclamped base: retained axes can
+       * bring the alpha back into range. Clamp before narrowing a full
+       * instance so overflow cannot wrap an opaque alpha to transparent. */
+      out->alpha.set_float (c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
     }
 
     return_trace (c->serializer->check_assign (out->paletteIndex, c->plan->colr_palettes.get (paletteIndex),
@@ -747,7 +751,10 @@ struct PaintSolid
     if (unlikely (!out)) return_trace (false);
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
-      out->alpha.set_float (alpha.to_float (instancer (varIdxBase, 0)));
+    {
+      float a = alpha.to_float (instancer (varIdxBase, 0));
+      out->alpha.set_float (c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
+    }
 
     if (format == 3 && c->plan->all_axes_pinned)
         out->format = 2;
