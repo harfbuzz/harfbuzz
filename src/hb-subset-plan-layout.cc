@@ -417,6 +417,18 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
   table->prune_langsys (&duplicate_feature_map, &plan->layout_scripts, langsys_map, &feature_indices);
   remap_feature_indices (feature_indices, duplicate_feature_map, catch_all_record_idx_feature_map, features, features_w_duplicates);
 
+#ifndef HB_NO_VAR
+  // Populate alternate parameter tags after deduplication. Before this point
+  // the map contains only catch-all features and also controls their retention.
+  if (table->get_feature_variations ().record_count ())
+    for (auto p : *features_w_duplicates)
+    {
+      const OT::Feature& f = table->get_feature (p.first);
+      const void *tag = &(table->get_feature_list ().get_tag (p.first));
+      catch_all_record_idx_feature_map.set (p.first, hb_pair (&f, tag));
+    }
+#endif
+
   table.destroy ();
 }
 
@@ -426,13 +438,21 @@ void layout_nameid_closure (hb_subset_plan_t* plan,
   if (!drop_tables->has (HB_OT_TAG_GPOS))
   {
     hb_blob_ptr_t<GPOS> gpos = plan->source_table<GPOS> ();
-    gpos->collect_name_ids (&plan->gpos_features, &plan->name_ids);
+    gpos->collect_name_ids (&plan->gpos_features, &plan->name_ids,
+                            &plan->gpos_feature_substitutes_map,
+                            plan->user_axes_location.is_empty () ? nullptr : &plan->gpos_feature_record_cond_idx_map,
+                            &plan->gpos_old_features,
+                            plan->all_axes_pinned);
     gpos.destroy ();
   }
   if (!drop_tables->has (HB_OT_TAG_GSUB))
   {
     hb_blob_ptr_t<GSUB> gsub = plan->source_table<GSUB> ();
-    gsub->collect_name_ids (&plan->gsub_features, &plan->name_ids);
+    gsub->collect_name_ids (&plan->gsub_features, &plan->name_ids,
+                            &plan->gsub_feature_substitutes_map,
+                            plan->user_axes_location.is_empty () ? nullptr : &plan->gsub_feature_record_cond_idx_map,
+                            &plan->gsub_old_features,
+                            plan->all_axes_pinned);
     gsub.destroy ();
   }
 }

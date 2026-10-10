@@ -77,6 +77,8 @@ tests = [
   'post_apply_mvar_delta',
   'apply_cvar_delta',
   'collect_name_ids',
+  'feature_params_variations',
+  'feature_params_alternate',
   'instantiate_cff2_update_metrics',
   'layout.empty_ligature_offset',
   'glyf_partial_instancing',

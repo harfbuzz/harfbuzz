@@ -1,0 +1,11 @@
+FONTS:
+FeatureParams-variations.ttf
+
+PROFILES:
+feature-params-variations.txt
+
+SUBSETS:
+*
+
+OPTIONS:
+no_fonttools

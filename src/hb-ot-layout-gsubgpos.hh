@@ -6638,15 +6638,33 @@ struct GSUBGPOS
   }
 
   void collect_name_ids (const hb_map_t *feature_index_map,
-                         hb_set_t *nameids_to_retain /* OUT */) const
+                         hb_set_t *nameids_to_retain, /* OUT */
+                         const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map,
+                         const hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map HB_UNUSED,
+                         const hb_set_t *catch_all_features,
+                         bool all_axes_pinned HB_UNUSED) const
   {
     unsigned count = get_feature_count ();
     for (unsigned i = 0 ; i < count; i++)
     {
       if (!feature_index_map->has (i)) continue;
       hb_tag_t tag = get_feature_tag (i);
-      get_feature (i).collect_name_ids (tag, nameids_to_retain);
+      const Feature *feature = &get_feature (i);
+      const Feature **substitute;
+      if (feature_substitutes_map->has (i, &substitute))
+      {
+        feature = *substitute;
+        if (catch_all_features->has (i))
+          get_feature (i).collect_name_ids (tag, nameids_to_retain);
+      }
+      feature->collect_name_ids (tag, nameids_to_retain);
     }
+#ifndef HB_NO_VAR
+    if (!all_axes_pinned)
+      get_feature_variations ().collect_name_ids (feature_index_map, feature_record_cond_idx_map,
+                                                  [this] (unsigned i) { return get_feature_tag (i); },
+                                                  nameids_to_retain);
+#endif
   }
 
   template <typename T>

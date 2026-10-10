@@ -109,8 +109,8 @@ HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb::shared_ptr<hb_set_t>>), gpo
 HB_SUBSET_PLAN_MEMBER (hb_set_t, gsub_old_features)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, gpos_old_features)
 
-//feature_index->pair of (address of old feature, feature tag), used for inserting a catch all record
-//if necessary
+//feature_index->pair of (address of old feature, feature tag), used for alternate feature
+//parameter formats and inserting a catch all record if necessary
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb_pair_t E(<const void*, const void*>)>), gsub_old_feature_idx_tag_map)
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb_pair_t E(<const void*, const void*>)>), gpos_old_feature_idx_tag_map)
 
