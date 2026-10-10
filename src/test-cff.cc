@@ -25,6 +25,50 @@
 #include "hb.hh"
 #include "hb-ot-cff-common.hh"
 #include "hb-subset-cff-common.hh"
+#include "hb-cff-specializer.hh"
+
+static void
+test_specialized_line_geometry ()
+{
+  /* Reconstruct every point after specializing horizontal/vertical line
+   * sequences, including repeated directions and merged alternating runs. */
+  for (unsigned n = 1; n <= 8; n++)
+    for (unsigned mask = 0; mask < (1u << n); mask++)
+      for (unsigned maxstack : {4u, 48u})
+      {
+        hb_vector_t<CFF::cs_command_t> commands;
+        for (unsigned i = 0; i < n; i++)
+        {
+          bool horizontal = mask & (1u << i);
+          int delta = (i & 1) ? -(int) i - 1 : (int) i + 1;
+          CFF::cs_command_t cmd (OpCode_rlineto);
+          CFF::number_t dx, dy;
+          dx.set_int (horizontal ? delta : 0);
+          dy.set_int (horizontal ? 0 : delta);
+          cmd.args.push (dx);
+          cmd.args.push (dy);
+          commands.push (std::move (cmd));
+        }
+        CFF::specialize_commands (commands, maxstack);
+        for (const auto &cmd : commands)
+          hb_always_assert (cmd.args.length <= maxstack);
+        CFF::str_buff_t encoded;
+        hb_always_assert (CFF::encode_commands (commands, encoded));
+        CFF::generalize_commands (commands);
+        hb_always_assert (commands.length == n);
+        int x = 0, y = 0, expected_x = 0, expected_y = 0;
+        for (unsigned i = 0; i < n; i++)
+        {
+          bool horizontal = mask & (1u << i);
+          int delta = (i & 1) ? -(int) i - 1 : (int) i + 1;
+          expected_x += horizontal ? delta : 0;
+          expected_y += horizontal ? 0 : delta;
+          x += commands[i].args[0].to_int ();
+          y += commands[i].args[1].to_int ();
+          hb_always_assert (x == expected_x && y == expected_y);
+        }
+      }
+}
 
 template <typename GID, typename FD>
 static void
@@ -55,6 +99,7 @@ test_fd_select_sentinel ()
 int
 main (int argc, char **argv)
 {
+  test_specialized_line_geometry ();
   test_fd_select_sentinel<OT::HBUINT16, OT::HBUINT8> ();
   test_fd_select_sentinel<OT::HBUINT32, OT::HBUINT16> ();
 
