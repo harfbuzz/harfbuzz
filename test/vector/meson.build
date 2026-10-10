@@ -13,6 +13,14 @@ test('budget', test_vector_budget,
   suite: 'vector',
 )
 
+test_vector_reset = executable('test-vector-reset', 'test-vector-reset.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('reset', test_vector_reset,
+  suite: 'vector',
+)
+
 tests = [
   'basic',
   'varc',

@@ -722,9 +722,9 @@ hb_vector_paint_get_precision (const hb_vector_paint_t *paint)
  *
  * Discards accumulated paint output so @paint can be reused for
  * another render.  User configuration (transform, scale factors,
- * precision, foreground, palette, custom palette colors)
- * is preserved.  Call hb_vector_paint_reset() to also reset
- * user configuration to defaults.
+ * precision, foreground, background, palette, custom palette colors,
+ * SVG id prefix, and budget) is preserved.  Call hb_vector_paint_reset()
+ * to also reset user configuration to defaults.
  *
  * Since: 14.2.0
  */
@@ -784,7 +784,8 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
  * hb_vector_paint_reset:
  * @paint: a paint context.
  *
- * Resets @paint state and clears accumulated content.
+ * Restores user configuration to defaults and clears accumulated content.
+ * The output format and attached user data are preserved.
  *
  * Since: 13.0.0
  */
@@ -795,7 +796,10 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->x_scale_factor = 1.f;
   paint->y_scale_factor = 1.f;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
+  paint->background = HB_COLOR (0, 0, 0, 0);
   paint->palette = 0;
+  hb_vector_paint_set_svg_prefix (paint, nullptr);
+  hb_vector_paint_clear_custom_palette_colors (paint);
   paint->set_precision (2);
   paint->budget = HB_BUDGET_DEFAULT;
   hb_vector_paint_clear (paint);
