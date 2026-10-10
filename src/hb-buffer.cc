@@ -816,8 +816,12 @@ hb_buffer_create_similar (const hb_buffer_t *src)
  * hb_buffer_reset:
  * @buffer: An #hb_buffer_t
  *
- * Resets the buffer to its initial status, as if it was just newly created
- * with hb_buffer_create().
+ * Clears the buffer contents and segment properties, and restores the
+ * default Unicode functions and buffer settings.
+ *
+ * The message callback, its associated data, and any attached user data are
+ * preserved. To remove the message callback, call
+ * hb_buffer_set_message_func() with a `NULL` function.
  *
  * Since: 0.9.2
  **/
@@ -2332,6 +2336,9 @@ hb_buffer_t::changed ()
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_buffer_message_func_t.
+ * The callback and its associated data are preserved by hb_buffer_reset()
+ * and hb_buffer_clear_contents(). The @destroy function is called when the
+ * callback is replaced or removed, or when @buffer is destroyed.
  *
  * Since: 1.1.3
  **/
