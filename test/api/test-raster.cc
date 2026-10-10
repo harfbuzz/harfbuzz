@@ -502,6 +502,49 @@ test_background_stride (void)
   hb_raster_paint_destroy (paint);
 }
 
+static void
+test_paint_reset (void)
+{
+  hb_raster_paint_t *fresh = hb_raster_paint_create_or_fail ();
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (fresh);
+  g_assert_nonnull (paint);
+
+  hb_color_t background = HB_COLOR (0, 255, 0, 255);
+  hb_raster_paint_set_background (paint, background);
+  hb_raster_paint_set_palette (paint, 7);
+  hb_raster_paint_clear (paint);
+  g_assert_cmphex (hb_raster_paint_get_background (paint), ==, background);
+  g_assert_cmpuint (hb_raster_paint_get_palette (paint), ==, 7);
+
+  /* Populate the image cache with output using the old background. */
+  hb_raster_extents_t ext = {0, 0, 1, 1, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_push_clip_rectangle (funcs, paint, 0.f, 0.f, 1.f, 1.f);
+  hb_paint_pop_clip (funcs, paint);
+  hb_raster_image_t *image = hb_raster_paint_render (paint);
+  g_assert_nonnull (image);
+  g_assert_cmpuint (hb_raster_image_get_buffer (image)[3], ==, 255);
+  hb_raster_paint_recycle_image (paint, image);
+
+  hb_raster_paint_reset (paint);
+  g_assert_cmphex (hb_raster_paint_get_background (paint), ==,
+		   hb_raster_paint_get_background (fresh));
+  g_assert_cmpuint (hb_raster_paint_get_palette (paint), ==,
+		    hb_raster_paint_get_palette (fresh));
+
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_paint_push_clip_rectangle (funcs, paint, 0.f, 0.f, 1.f, 1.f);
+  hb_paint_pop_clip (funcs, paint);
+  image = hb_raster_paint_render (paint);
+  g_assert_nonnull (image);
+  g_assert_cmpuint (hb_raster_image_get_buffer (image)[3], ==, 0);
+  hb_raster_image_destroy (image);
+  hb_raster_paint_destroy (paint);
+  hb_raster_paint_destroy (fresh);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -521,6 +564,7 @@ main (int argc, char **argv)
   hb_test_add (test_budget_colr_outline);
   hb_test_add (test_background_premultiplied);
   hb_test_add (test_background_stride);
+  hb_test_add (test_paint_reset);
 
   return hb_test_run ();
 }
