@@ -1,3 +1,6 @@
+- Support instancing axes not referenced by retained `VARC` data.
+
+
 Overview of changes leading to 14.6.0
 Monday, October 5, 2026
 =====================================

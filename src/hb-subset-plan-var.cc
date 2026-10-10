@@ -583,21 +583,27 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
        * (its 'pinned' path flattens ALL blends; lift this once
        * https://github.com/harfbuzz/harfbuzz/pull/4710 lands, porting
        * fontTools' instantiateCFF2 from
-       * https://github.com/fonttools/fonttools/pull/3506), and VARC passes
-       * through verbatim with explicit fvar axis indices that renumbering
-       * would desynchronize. Such axes stay in fvar as ordinary hidden
-       * pins. */
-      bool detect_self_contained = true;
-      for (hb_tag_t table_tag : { HB_TAG ('C','F','F','2'), HB_TAG ('V','A','R','C') })
-      {
-        hb_blob_t *blob = hb_face_reference_table (face, table_tag);
-        if (hb_blob_get_length (blob))
-          detect_self_contained = false;
-        hb_blob_destroy (blob);
-      }
+       * https://github.com/fonttools/fonttools/pull/3506). Such axes stay
+       * in fvar as ordinary hidden pins. VARC remaps its axis indices and
+       * rejects instancing of axes it references. */
+      hb_blob_t *cff2_blob = hb_face_reference_table (face, HB_TAG ('C','F','F','2'));
+      bool detect_self_contained = !hb_blob_get_length (cff2_blob);
+      hb_blob_destroy (cff2_blob);
       if (!_compute_avar2_reachable_ranges (plan, axes, avar_table,
                                             detect_self_contained))
         return false;
+
+#ifndef HB_NO_VAR_COMPOSITES
+      /* VARC overrides can reach coordinates outside the font-level
+       * ranges. Do not cull variation data using those ranges. */
+      if (!plan->drop_tables.has (HB_TAG ('V','A','R','C')))
+      {
+        hb_blob_t *varc_blob = hb_face_reference_table (face, HB_TAG ('V','A','R','C'));
+        if (hb_blob_get_length (varc_blob))
+          plan->avar2_reachable_ranges.reset ();
+        hb_blob_destroy (varc_blob);
+      }
+#endif
 
       /* Keep all axes in fvar (pinned ones as hidden), EXCEPT self-contained
        * pinned axes, which are removed entirely. */

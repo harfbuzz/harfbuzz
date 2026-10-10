@@ -25,6 +25,8 @@
 #include "hb-test.h"
 #include "hb-subset-test.h"
 
+#include <math.h>
+
 static void
 draw_move_to (hb_draw_funcs_t *funcs HB_UNUSED, void *data,
 	      hb_draw_state_t *state HB_UNUSED, float x, float y,
@@ -93,6 +95,28 @@ draw_unicode_at (hb_face_t *face, hb_codepoint_t unicode,
 static char *
 draw_unicode (hb_face_t *face, hb_codepoint_t unicode)
 { return draw_unicode_at (face, unicode, NULL, 0); }
+
+static void
+assert_paths_close (const char *a, const char *b)
+{
+  /* Baking gvar deltas changes floating-point summation order. */
+  while (*a && *b)
+  {
+    char *a_end, *b_end;
+    double x = g_ascii_strtod (a, &a_end);
+    double y = g_ascii_strtod (b, &b_end);
+    if (a_end != a || b_end != b)
+    {
+      g_assert_true (a_end != a && b_end != b);
+      g_assert_cmpfloat (fabs (x - y), <, 0.001);
+      a = a_end;
+      b = b_end;
+    }
+    else
+      g_assert_cmpint (*a++, ==, *b++);
+  }
+  g_assert_cmpint (*a, ==, *b);
+}
 
 static void
 assert_has_varc (hb_face_t *face, hb_bool_t expected)
@@ -271,18 +295,118 @@ test_subset_varc_retain_gids (void)
 static void
 test_subset_varc_fails_when_instancing (void)
 {
+  const char *fonts[] = {
+    "fonts/varc-unrelated-axis.ttf",
+    "fonts/varc-unrelated-axis-avar2.ttf",
+  };
+  const hb_tag_t tags[] = {
+    HB_TAG ('w','g','h','t'), /* MultiVarStore */
+    HB_TAG ('o','p','s','z'), /* MultiVarStore */
+    HB_TAG ('0','0','0','0'), /* Component coordinates */
+    HB_TAG ('C','O','N','D'), /* Nested conditions only */
+  };
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    for (unsigned i = 0; i < G_N_ELEMENTS (tags); i++)
+      for (unsigned restrict_range = 0; restrict_range < 2; restrict_range++)
+      {
+	hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+	hb_set_add (hb_subset_input_unicode_set (input), 0xAC01);
+	hb_ot_var_axis_info_t axis;
+	g_assert_true (hb_ot_var_find_axis_info (face, tags[i], &axis));
+	if (restrict_range)
+	  g_assert_true (hb_subset_input_set_axis_range (
+	    input, face, tags[i], axis.min_value,
+	    (axis.default_value + axis.max_value) / 2, axis.default_value));
+	else
+	  g_assert_true (hb_subset_input_pin_axis_to_default (input, face, tags[i]));
+
+	g_assert_null (hb_subset_or_fail (face, input));
+	hb_subset_input_destroy (input);
+      }
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_unicode_set (input), 0xAC01);
+    g_assert_true (hb_subset_input_pin_all_axes_to_default (input, face));
+    g_assert_null (hb_subset_or_fail (face, input));
+    hb_subset_input_destroy (input);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_subset_varc_instance_unrelated_axis (void)
+{
+  const char *fonts[] = {
+    "fonts/varc-unrelated-axis.ttf",
+    "fonts/varc-unrelated-axis-avar2.ttf",
+  };
+  hb_tag_t dummy = HB_TAG ('D','U','M','Y');
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    for (unsigned mode = 0; mode < 3; mode++)
+    {
+      hb_bool_t restrict_range = mode == 1;
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add (hb_subset_input_unicode_set (input), 0xAC01);
+      if (mode == 2)
+	hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+      if (restrict_range)
+	g_assert_true (hb_subset_input_set_axis_range (input, face, dummy, 0, 1, 0.5f));
+      else
+	g_assert_true (hb_subset_input_pin_axis_location (input, face, dummy, 0.5f));
+      hb_face_t *subset = hb_subset_test_create_subset (face, input);
+      assert_has_varc (subset, true);
+      g_assert_cmpuint (hb_ot_var_get_axis_count (subset), ==,
+			hb_ot_var_get_axis_count (face) - !restrict_range);
+      hb_ot_var_axis_info_t axis;
+      g_assert_cmpint (hb_ot_var_find_axis_info (subset, dummy, &axis), ==, restrict_range);
+      if (restrict_range)
+      {
+	g_assert_cmpfloat (axis.min_value, ==, 0);
+	g_assert_cmpfloat (axis.default_value, ==, 0.5f);
+	g_assert_cmpfloat (axis.max_value, ==, 1);
+      }
+      g_assert_true (hb_ot_var_find_axis_info (subset, HB_TAG ('w','g','h','t'), &axis));
+      g_assert_cmpuint (axis.axis_index, ==, restrict_range ? 2 : 1);
+
+      for (unsigned sample = 0; sample < 8; sample++)
+      {
+	hb_variation_t variations[] = {
+	  {dummy, restrict_range && (sample & 1) ? 1.f : 0.5f},
+	  {HB_TAG ('w','g','h','t'), sample & 2 ? 840.3f : 356.5f},
+	  {HB_TAG ('o','p','s','z'), sample & 1 ? 1.f : 0.f},
+	  {HB_TAG ('C','O','N','D'), sample & 4 ? 1.f : 0.f},
+	};
+	char *source_path = draw_unicode_at (face, 0xAC01, variations,
+					   G_N_ELEMENTS (variations));
+	char *subset_path = draw_unicode_at (subset, 0xAC01, variations,
+					   G_N_ELEMENTS (variations));
+	g_assert_cmpstr (source_path, !=, "");
+	assert_paths_close (subset_path, source_path);
+	g_free (subset_path);
+	g_free (source_path);
+      }
+      hb_face_destroy (subset);
+    }
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_subset_varc_instance_without_varc_glyphs (void)
+{
   hb_face_t *face = hb_test_open_font_file ("fonts/varc-ac00-ac01.ttf");
-  hb_set_t *unicodes = hb_set_create ();
-  hb_set_add (unicodes, 0xAC00);
-  hb_subset_input_t *input = hb_subset_test_create_input (unicodes);
-  hb_set_destroy (unicodes);
-
-  g_assert_true (hb_subset_input_pin_axis_location (input, face,
-						    HB_TAG ('w','g','h','t'), 400));
-  hb_face_t *subset = hb_subset_or_fail (face, input);
-  g_assert_null (subset);
-
-  hb_subset_input_destroy (input);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 0);
+  g_assert_true (hb_subset_input_pin_axis_to_default (
+    input, face, HB_TAG ('w','g','h','t')));
+  hb_face_t *subset = hb_subset_test_create_subset (face, input);
+  assert_has_varc (subset, false);
+  g_assert_cmpuint (hb_ot_var_get_axis_count (subset), ==,
+		    hb_ot_var_get_axis_count (face) - 1);
+  hb_face_destroy (subset);
   hb_face_destroy (face);
 }
 
@@ -333,6 +457,12 @@ test_subset_varc_passthrough_requires_retained_gids (void)
   assert_has_varc (subset, true);
 
   hb_face_destroy (subset);
+  input = create_varc_no_subset_input (true);
+  /* Even an unrelated pin cannot renumber axes in a passthrough table. */
+  g_assert_true (hb_subset_input_pin_axis_to_default (
+    input, face, HB_TAG ('0','0','0','5')));
+  g_assert_null (hb_subset_or_fail (face, input));
+  hb_subset_input_destroy (input);
   hb_face_destroy (face);
 }
 
@@ -347,6 +477,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_varc_no_variation_index);
   hb_test_add (test_subset_varc_retain_gids);
   hb_test_add (test_subset_varc_fails_when_instancing);
+  hb_test_add (test_subset_varc_instance_unrelated_axis);
+  hb_test_add (test_subset_varc_instance_without_varc_glyphs);
   hb_test_add (test_subset_varc_can_be_explicitly_dropped_when_instancing);
   hb_test_add (test_subset_varc_passthrough_requires_retained_gids);
   return hb_test_run ();
