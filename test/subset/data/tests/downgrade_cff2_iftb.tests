@@ -1,0 +1,14 @@
+FONTS:
+Cantarell-VF-ABC.otf
+
+PROFILES:
+downgrade-cff2-iftb.txt
+
+SUBSETS:
+ABC
+
+INSTANCES:
+wght=650
+
+OPTIONS:
+no_fonttools
