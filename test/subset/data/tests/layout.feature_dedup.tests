@@ -1,0 +1,11 @@
+FONTS:
+LayoutFeatureDedup.ttf
+
+PROFILES:
+layout-feature-dedup.txt
+
+SUBSETS:
+*
+
+OPTIONS:
+no_fonttools
