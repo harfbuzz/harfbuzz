@@ -63,6 +63,7 @@ tests = [
   'pin_all_at_default',
   'instantiate_base',
   'instantiate_colrv1',
+  'colrv1_alpha_instance',
   'instantiate_glyf',
   'instantiate_cff2',
   'instantiate_cff2_partial',
