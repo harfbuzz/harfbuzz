@@ -39,6 +39,8 @@ tests = [
   'layout.notonastaliqurdu',
   'layout.tinos',
   'layout.duplicate_features',
+  'layout.feature_dedup',
+  'layout.feature_dedup_instance',
   'layout.unsorted_featurelist',
   'layout.drop_feature',
   'no_layout_closure',

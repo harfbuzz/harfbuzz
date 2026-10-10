@@ -5418,6 +5418,12 @@ struct FeatureTableSubstitutionRecord
 
 struct FeatureTableSubstitution
 {
+  void collect_feature_indices (hb_set_t *feature_indices) const
+  {
+    for (const FeatureTableSubstitutionRecord &record : substitutions)
+      feature_indices->add (record.featureIndex);
+  }
+
   const Feature *find_substitute (unsigned int feature_index) const
   {
     unsigned int count = substitutions.len;
@@ -5992,6 +5998,12 @@ struct FeatureVariations
       record.collect_variation_indices (c, this);
     for (const LookupVariationRecord &record : get_lookup_variation_records ())
       record.collect_variation_indices (c, this);
+  }
+
+  void collect_feature_indices (hb_set_t *feature_indices) const
+  {
+    for (const FeatureVariationRecord &record : varRecords)
+      (this+record.substitutions).collect_feature_indices (feature_indices);
   }
 
   bool has_lookup_variations (unsigned feature_index) const
