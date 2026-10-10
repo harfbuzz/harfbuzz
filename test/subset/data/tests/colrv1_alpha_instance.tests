@@ -1,0 +1,18 @@
+# Synthetic solid and gradient alpha values overflow F2DOT14 at wght=900.
+# Partial instancing must preserve a 1.5 base because wdth=125 reduces it.
+FONTS:
+COLRv1-alpha.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=900,wdth=drop
+wght=650,wdth=125
+wght=650
+
+OPTIONS:
+no_fonttools
