@@ -1540,7 +1540,7 @@ test_parse_double (void)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
-    hb_always_assert (pv == 1e-5);
+    hb_always_assert (almost_equal (pv, 1e-5));
     hb_always_assert (pp == end);
   }
 
@@ -1586,6 +1586,37 @@ test_parse_double (void)
     hb_always_assert (!hb_parse_double (&pp, end, &pv));
     hb_always_assert (pp == str);
     hb_always_assert (pv == 42.0);
+  }
+
+  /* Exponent followed by trailing content */
+  {
+    const char str[] = "1e5abc";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 100000.0);
+    hb_always_assert (pp == str + 3);
+  }
+  /* Same with a sign in the exponent */
+  {
+    const char str[] = "1e+5x";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 100000.0);
+    hb_always_assert (pp == str + 4);
+  }
+  /* Malformed exponent followed by content: should stop at the 'e' */
+  {
+    const char str[] = "1ex";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == str + 1);
   }
 }
 
