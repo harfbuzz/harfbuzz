@@ -759,6 +759,8 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
  * @paint: a paint context.
  *
  * Renders accumulated paint content to an output blob.
+ * Accumulated content and extents are cleared on return, including
+ * when rendering fails. User configuration is preserved.
  *
  * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
  *
@@ -767,6 +769,7 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
 hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint)
 {
+  HB_SCOPE_GUARD (hb_vector_paint_clear (paint));
   switch (paint->format)
   {
     case HB_VECTOR_FORMAT_SVG:

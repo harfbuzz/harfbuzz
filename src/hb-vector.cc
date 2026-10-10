@@ -65,9 +65,9 @@
  * Both contexts accumulate multiple glyphs into a single document.
  * Call hb_vector_draw_render() / hb_vector_paint_render() to
  * retrieve the final blob.  Rendering clears all accumulated
- * content (including extents), so retrieve any needed extents
- * via hb_vector_draw_get_extents() / hb_vector_paint_get_extents()
- * before rendering.
+ * content (including extents), even on failure, so retrieve any
+ * needed extents via hb_vector_draw_get_extents() /
+ * hb_vector_paint_get_extents() before rendering.
  *
  * Each glyph is emitted as an independent element.  If glyphs
  * overlap and the foreground color is semi-transparent, the

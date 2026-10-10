@@ -110,6 +110,87 @@ draw_triangle (hb_vector_draw_t *draw)
 }
 
 static void
+assert_blob_equal (hb_blob_t *output, hb_blob_t *expected)
+{
+  assert (output && expected);
+  unsigned int length, expected_length;
+  const char *data = hb_blob_get_data (output, &length);
+  const char *expected_data = hb_blob_get_data (expected, &expected_length);
+  assert (length && length == expected_length);
+  assert (!memcmp (data, expected_data, length));
+  hb_blob_destroy (output);
+  hb_blob_destroy (expected);
+}
+
+static void
+test_draw_render_failure (hb_vector_format_t format)
+{
+  hb_vector_draw_t *fresh = hb_vector_draw_create_or_fail (format);
+  hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (format);
+  assert (fresh && draw);
+  hb_color_t foreground = HB_COLOR (0, 0, 255, 128);
+  hb_vector_draw_set_foreground (fresh, foreground);
+  hb_vector_draw_set_foreground (draw, foreground);
+
+  /* Discard content, including PDF opacity resources, on failure. */
+  draw_triangle (draw);
+  hb_vector_draw_set_extents (draw, NULL);
+  assert (!hb_vector_draw_render (draw));
+  assert (hb_vector_draw_get_foreground (draw) == foreground);
+
+  draw_triangle (draw);
+  draw_triangle (fresh);
+  assert_blob_equal (hb_vector_draw_render (draw), hb_vector_draw_render (fresh));
+  assert (!hb_vector_draw_get_extents (draw, NULL));
+  hb_vector_draw_destroy (draw);
+  hb_vector_draw_destroy (fresh);
+}
+
+static void
+paint_rectangle (hb_vector_paint_t *paint, hb_color_t color)
+{
+  hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
+  hb_paint_push_clip_rectangle (funcs, paint, 0, 0, 10, 10);
+  hb_paint_color (funcs, paint, 0, color);
+  hb_paint_pop_clip (funcs, paint);
+}
+
+static void
+test_paint_render_failure (hb_vector_format_t format)
+{
+  hb_vector_paint_t *fresh = hb_vector_paint_create_or_fail (format);
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (format);
+  assert (fresh && paint);
+  hb_vector_extents_t extents = {0, 0, 10, 10};
+  hb_vector_paint_set_svg_prefix (fresh, "kept-");
+  hb_vector_paint_set_svg_prefix (paint, "kept-");
+
+  /* An empty PDF render fails even when extents are available. */
+  hb_vector_paint_set_extents (paint, &extents);
+  hb_blob_t *empty = hb_vector_paint_render (paint);
+  if (format == HB_VECTOR_FORMAT_PDF)
+    assert (!empty);
+  else
+    assert (empty);
+  hb_blob_destroy (empty);
+  assert (!hb_vector_paint_get_extents (paint, NULL));
+
+  /* Missing extents must discard the old content and resources too. */
+  paint_rectangle (paint, HB_COLOR (255, 0, 0, 128));
+  assert (!hb_vector_paint_render (paint));
+  assert (!strcmp (hb_vector_paint_get_svg_prefix (paint), "kept-"));
+
+  hb_vector_paint_set_extents (paint, &extents);
+  hb_vector_paint_set_extents (fresh, &extents);
+  paint_rectangle (paint, HB_COLOR (0, 0, 255, 128));
+  paint_rectangle (fresh, HB_COLOR (0, 0, 255, 128));
+  assert_blob_equal (hb_vector_paint_render (paint), hb_vector_paint_render (fresh));
+  assert (!hb_vector_paint_get_extents (paint, NULL));
+  hb_vector_paint_destroy (paint);
+  hb_vector_paint_destroy (fresh);
+}
+
+static void
 test_pdf_clear (void)
 {
   hb_vector_draw_t *fresh = hb_vector_draw_create_or_fail (HB_VECTOR_FORMAT_PDF);
@@ -166,5 +247,9 @@ main (void)
   test_paint_reset (HB_VECTOR_FORMAT_SVG);
   test_paint_reset (HB_VECTOR_FORMAT_PDF);
   test_pdf_clear ();
+  test_draw_render_failure (HB_VECTOR_FORMAT_SVG);
+  test_draw_render_failure (HB_VECTOR_FORMAT_PDF);
+  test_paint_render_failure (HB_VECTOR_FORMAT_SVG);
+  test_paint_render_failure (HB_VECTOR_FORMAT_PDF);
   return 0;
 }
