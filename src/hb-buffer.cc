@@ -1492,8 +1492,12 @@ hb_buffer_get_random_state (const hb_buffer_t *buffer)
  * hb_buffer_clear_contents:
  * @buffer: An #hb_buffer_t
  *
- * Similar to hb_buffer_reset(), but does not clear the Unicode functions and
- * the replacement code point.
+ * Clears the buffer contents and segment properties (direction, script,
+ * language), and resets the random state to its default value of 1.
+ *
+ * Unlike hb_buffer_reset(), this function preserves the Unicode functions,
+ * flags, cluster level, replacement code point, and invisible and not-found
+ * glyphs. The message callback and attached user data are also preserved.
  *
  * Since: 0.9.11
  **/
