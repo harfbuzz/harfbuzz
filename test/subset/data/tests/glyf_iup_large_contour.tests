@@ -1,0 +1,18 @@
+# A 600-point contour exceeds the IUP bitset limit; keep dense deltas.
+FONTS:
+IUP-large-contour.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=400:900
+
+IUP_OPTIONS:
+Yes
+
+OPTIONS:
+no_fonttools
