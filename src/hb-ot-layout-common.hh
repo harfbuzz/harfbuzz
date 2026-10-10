@@ -5396,7 +5396,11 @@ struct FeatureTableSubstitutionRecord
     if (unlikely (!out)) return_trace (false);
 
     out->featureIndex = *new_feature_index;
-    return_trace (out->feature.serialize_subset (c->subset_context, feature, base, c));
+    hb_pair_t<const void*, const void*> *original;
+    if (!c->feature_idx_tag_map->has (featureIndex, &original))
+      return_trace (false);
+    const Tag *tag = reinterpret_cast<const Tag*> (original->second);
+    return_trace (out->feature.serialize_subset (c->subset_context, feature, base, c, tag));
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -5434,6 +5438,16 @@ struct FeatureTableSubstitution
     | hb_apply ([this, lookup_indexes] (const FeatureTableSubstitutionRecord& r)
 		{ r.collect_lookups (this, lookup_indexes); })
     ;
+  }
+
+  template <typename TagGetter>
+  void collect_name_ids (const hb_map_t *feature_index_map,
+                         TagGetter get_tag,
+                         hb_set_t *nameids_to_retain) const
+  {
+    for (const FeatureTableSubstitutionRecord &record : substitutions)
+      if (feature_index_map->has (record.featureIndex))
+        (this+record.feature).collect_name_ids (get_tag (record.featureIndex), nameids_to_retain);
   }
 
   void closure_features (const hb_map_t *lookup_indexes,
@@ -5520,6 +5534,15 @@ struct FeatureVariationRecord
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
     return (base+substitutions).collect_lookups (feature_indexes, lookup_indexes);
+  }
+
+  template <typename TagGetter>
+  void collect_name_ids (const void *base,
+                         const hb_map_t *feature_index_map,
+                         TagGetter get_tag,
+                         hb_set_t *nameids_to_retain) const
+  {
+    (base+substitutions).collect_name_ids (feature_index_map, get_tag, nameids_to_retain);
   }
 
   void closure_features (const void     *base,
@@ -5923,6 +5946,20 @@ struct FeatureVariations
     }
 
     collect_lookup_variation_lookups (feature_indexes, lookup_indexes);
+  }
+
+  template <typename TagGetter>
+  void collect_name_ids (const hb_map_t *feature_index_map,
+                         const hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map,
+                         TagGetter get_tag,
+                         hb_set_t *nameids_to_retain) const
+  {
+    for (unsigned i = 0; i < varRecords.len; i++)
+    {
+      if (feature_record_cond_idx_map && !feature_record_cond_idx_map->has (i))
+        continue;
+      varRecords[i].collect_name_ids (this, feature_index_map, get_tag, nameids_to_retain);
+    }
   }
 
   void collect_lookup_variation_lookups (const hb_set_t *feature_indexes,
