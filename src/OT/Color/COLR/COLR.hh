@@ -337,6 +337,18 @@ static bool colr_f2dot14_overflows (F2DOT14 value, float delta)
   return bits < -32768.f || bits >= 32768.f;
 }
 
+static bool colr_word_overflows (int value, float delta, bool is_unsigned = false)
+{
+  double derived = value + (double) roundf (delta);
+  return derived < (is_unsigned ? 0 : -32768) || derived > (is_unsigned ? 65535 : 32767);
+}
+
+static bool colr_fixed_overflows (F16DOT16 value, float delta)
+{
+  float derived = value.to_float (delta);
+  return derived < -32768.f || derived >= 32768.f;
+}
+
 template <typename T>
 struct Variable
 {
@@ -1845,6 +1857,17 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
 
 struct ClipBox
 {
+  bool default_overflows (const ItemVarStoreInstancer &instancer) const
+  {
+    if (u.format.v != 2) return false;
+    const auto &box = u.format2.get_value ();
+    unsigned base = u.format2.varIdxBase;
+    return colr_word_overflows (box.xMin, instancer (base, 0)) ||
+           colr_word_overflows (box.yMin, instancer (base, 1)) ||
+           colr_word_overflows (box.xMax, instancer (base, 2)) ||
+           colr_word_overflows (box.yMax, instancer (base, 3));
+  }
+
   bool subset (hb_subset_context_t *c,
                const ItemVarStoreInstancer &instancer) const
   {
@@ -2073,31 +2096,77 @@ struct Paint
       case 5:
       {
         const auto &paint = u.paintformat5.get_value ();
-        return (&paint+paint.colorLine).default_overflows (instancer);
+        unsigned base = u.paintformat5.varIdxBase;
+        return (&paint+paint.colorLine).default_overflows (instancer) ||
+               colr_word_overflows (paint.x0, instancer (base, 0)) ||
+               colr_word_overflows (paint.y0, instancer (base, 1)) ||
+               colr_word_overflows (paint.x1, instancer (base, 2)) ||
+               colr_word_overflows (paint.y1, instancer (base, 3)) ||
+               colr_word_overflows (paint.x2, instancer (base, 4)) ||
+               colr_word_overflows (paint.y2, instancer (base, 5));
       }
       case 7:
       {
         const auto &paint = u.paintformat7.get_value ();
-        return (&paint+paint.colorLine).default_overflows (instancer);
+        unsigned base = u.paintformat7.varIdxBase;
+        return (&paint+paint.colorLine).default_overflows (instancer) ||
+               colr_word_overflows (paint.x0, instancer (base, 0)) ||
+               colr_word_overflows (paint.y0, instancer (base, 1)) ||
+               colr_word_overflows (paint.radius0, instancer (base, 2), true) ||
+               colr_word_overflows (paint.x1, instancer (base, 3)) ||
+               colr_word_overflows (paint.y1, instancer (base, 4)) ||
+               colr_word_overflows (paint.radius1, instancer (base, 5), true);
       }
       case 9:
       {
         const auto &paint = u.paintformat9.get_value ();
         unsigned base = u.paintformat9.varIdxBase;
         return (&paint+paint.colorLine).default_overflows (instancer) ||
+               colr_word_overflows (paint.centerX, instancer (base, 0)) ||
+               colr_word_overflows (paint.centerY, instancer (base, 1)) ||
                colr_f2dot14_overflows (paint.startAngle, instancer (base, 2)) ||
                colr_f2dot14_overflows (paint.endAngle, instancer (base, 3));
+      }
+      case 13:
+      {
+        const auto &paint = u.paintformat13;
+        const auto &transform = &paint+paint.transform;
+        const auto &value = transform.get_value ();
+        unsigned base = transform.varIdxBase;
+        return colr_fixed_overflows (value.xx, instancer (base, 0)) ||
+               colr_fixed_overflows (value.yx, instancer (base, 1)) ||
+               colr_fixed_overflows (value.xy, instancer (base, 2)) ||
+               colr_fixed_overflows (value.yy, instancer (base, 3)) ||
+               colr_fixed_overflows (value.dx, instancer (base, 4)) ||
+               colr_fixed_overflows (value.dy, instancer (base, 5));
+      }
+      case 15:
+      {
+        const auto &paint = u.paintformat15.get_value ();
+        unsigned base = u.paintformat15.varIdxBase;
+        return colr_word_overflows (paint.dx, instancer (base, 0)) ||
+               colr_word_overflows (paint.dy, instancer (base, 1));
       }
       case 17:
         return colr_f2dot14_overflows (u.paintformat17.get_value ().scaleX, instancer (u.paintformat17.varIdxBase, 0)) ||
                colr_f2dot14_overflows (u.paintformat17.get_value ().scaleY, instancer (u.paintformat17.varIdxBase, 1));
       case 19:
         return colr_f2dot14_overflows (u.paintformat19.get_value ().scaleX, instancer (u.paintformat19.varIdxBase, 0)) ||
-               colr_f2dot14_overflows (u.paintformat19.get_value ().scaleY, instancer (u.paintformat19.varIdxBase, 1));
+               colr_f2dot14_overflows (u.paintformat19.get_value ().scaleY, instancer (u.paintformat19.varIdxBase, 1)) ||
+               colr_word_overflows (u.paintformat19.get_value ().centerX, instancer (u.paintformat19.varIdxBase, 2)) ||
+               colr_word_overflows (u.paintformat19.get_value ().centerY, instancer (u.paintformat19.varIdxBase, 3));
       case 21:
         return colr_f2dot14_overflows (u.paintformat21.get_value ().scale, instancer (u.paintformat21.varIdxBase, 0));
       case 23:
-        return colr_f2dot14_overflows (u.paintformat23.get_value ().scale, instancer (u.paintformat23.varIdxBase, 0));
+        return colr_f2dot14_overflows (u.paintformat23.get_value ().scale, instancer (u.paintformat23.varIdxBase, 0)) ||
+               colr_word_overflows (u.paintformat23.get_value ().centerX, instancer (u.paintformat23.varIdxBase, 1)) ||
+               colr_word_overflows (u.paintformat23.get_value ().centerY, instancer (u.paintformat23.varIdxBase, 2));
+      case 27:
+        return colr_word_overflows (u.paintformat27.get_value ().centerX, instancer (u.paintformat27.varIdxBase, 1)) ||
+               colr_word_overflows (u.paintformat27.get_value ().centerY, instancer (u.paintformat27.varIdxBase, 2));
+      case 31:
+        return colr_word_overflows (u.paintformat31.get_value ().centerX, instancer (u.paintformat31.varIdxBase, 2)) ||
+               colr_word_overflows (u.paintformat31.get_value ().centerY, instancer (u.paintformat31.varIdxBase, 3));
       default:
         return false;
     }
@@ -2627,6 +2696,13 @@ struct COLR
       ItemVarStoreInstancer instancer (get_var_store_ptr (), get_delta_set_index_map_ptr (), coords);
       for (unsigned offset : c.visited_paint)
         if (StructAtOffset<Paint> (this, offset).default_overflows (instancer))
+        {
+          *preserve_defaults = true;
+          break;
+        }
+      for (const ClipRecord &clip_record : cliplist.clips.iter ())
+        if (glyphset->intersects (clip_record.startGlyphID, clip_record.endGlyphID) &&
+            (&cliplist+clip_record.clipBox).default_overflows (instancer))
         {
           *preserve_defaults = true;
           break;

@@ -236,6 +236,65 @@ test_subset_colr_partial_overflow (void)
   }
 }
 
+typedef struct {
+  float xx, dx, radius;
+} geometry_t;
+
+static void
+record_transform (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+                  float xx, float yx HB_UNUSED, float xy HB_UNUSED, float yy HB_UNUSED,
+                  float dx, float dy HB_UNUSED, void *user_data HB_UNUSED)
+{
+  geometry_t *geometry = paint_data;
+  geometry->xx = xx;
+  geometry->dx = dx;
+}
+
+static void
+record_radial (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+               hb_color_line_t *line HB_UNUSED,
+               float x0 HB_UNUSED, float y0 HB_UNUSED, float r0,
+               float x1 HB_UNUSED, float y1 HB_UNUSED, float r1 HB_UNUSED,
+               void *user_data HB_UNUSED)
+{
+  ((geometry_t *) paint_data)->radius = r0;
+}
+
+static void
+test_subset_colr_geometry_overflow (void)
+{
+  const char *files[] = {"fonts/colr-geometry-overflow.ttf", "fonts/colr-geometry-overflow-mapped.ttf"};
+  for (unsigned file = 0; file < G_N_ELEMENTS (files); file++)
+  {
+    hb_face_t *face = hb_test_open_font_file (files[file]);
+    hb_face_t *partial = instance_colr (face, 1, 0, true, false);
+    hb_font_t *font = hb_font_create (partial);
+    hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_set_push_transform_func (funcs, record_transform, NULL, NULL);
+    hb_paint_funcs_set_radial_gradient_func (funcs, record_radial, NULL, NULL);
+    geometry_t geometry = {0};
+    hb_font_paint_glyph (font, 1, funcs, &geometry, 0, HB_COLOR (0, 0, 0, 255));
+    g_assert_cmpfloat (geometry.dx, ==, 40000.f);
+    hb_font_paint_glyph (font, 2, funcs, &geometry, 0, HB_COLOR (0, 0, 0, 255));
+    g_assert_cmpfloat (geometry.radius, ==, -100.f);
+    hb_font_paint_glyph (font, 3, funcs, &geometry, 0, HB_COLOR (0, 0, 0, 255));
+    g_assert_cmpfloat (geometry.xx, ==, 40000.f);
+    hb_paint_funcs_destroy (funcs);
+    hb_font_destroy (font);
+    const float widths[] = {0.5f, 0.75f, 1.f};
+    for (unsigned i = 0; i < G_N_ELEMENTS (widths); i++)
+    {
+      hb_face_t *direct = instance_colr (face, 1, widths[i], true, true);
+      hb_face_t *composed = instance_colr (partial, 0, widths[i], false, true);
+      hb_subset_test_check (direct, composed, HB_TAG ('C','O','L','R'));
+      hb_face_destroy (composed);
+      hb_face_destroy (direct);
+    }
+    hb_face_destroy (partial);
+    hb_face_destroy (face);
+  }
+}
+
 static void
 test_subset_colr_constant_default (void)
 {
@@ -317,6 +376,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_partial_overflow);
   hb_test_add (test_subset_colr_constant_default);
   hb_test_add (test_subset_colr_default_paint);
+  hb_test_add (test_subset_colr_geometry_overflow);
 
   return hb_test_run();
 }
