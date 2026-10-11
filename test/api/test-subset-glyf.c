@@ -532,6 +532,53 @@ test_subset_glyf_iftb_requirements (void)
 
 // TODO(grieger): test for long loca generation.
 
+static void
+test_subset_glyf_zero_contour_instructions (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/empty-hinted.ttf");
+  /* No instance, partial instance, full instance, and pinning at default. */
+  for (unsigned instance = 0; instance < 4; instance++)
+    for (unsigned no_hinting = 0; no_hinting < 2; no_hinting++)
+    {
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add (hb_subset_input_glyph_set (input), 1);
+      hb_subset_input_set_flags (input, no_hinting ? HB_SUBSET_FLAGS_NO_HINTING : HB_SUBSET_FLAGS_DEFAULT);
+      if (instance)
+        g_assert_true (hb_subset_input_pin_axis_location (input, face,
+                      HB_TAG ('w','g','h','t'), instance == 3 ? 0.f : 1.f));
+      if (instance >= 2)
+        g_assert_true (hb_subset_input_pin_axis_location (input, face,
+                      HB_TAG ('w','d','t','h'), 0.f));
+      hb_face_t *subset = hb_subset_test_create_subset (face, input);
+      hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
+      unsigned length;
+      const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+      if (!no_hinting)
+      {
+        static const unsigned char instructions[] = {0xb0, 1, 0x21};
+        g_assert_cmpuint (length, >=, 15);
+        g_assert_cmpuint (data[0], ==, 0);
+        g_assert_cmpuint (data[1], ==, 0);
+        g_assert_cmpuint (data[10], ==, 0);
+        g_assert_cmpuint (data[11], ==, sizeof (instructions));
+        g_assert_cmpmem (data + 12, sizeof (instructions), instructions, sizeof (instructions));
+      }
+      else if (length >= 12)
+      {
+        g_assert_cmpuint (data[10], ==, 0);
+        g_assert_cmpuint (data[11], ==, 0);
+      }
+      hb_blob_destroy (blob);
+      hb_font_t *font = hb_font_create (subset);
+      hb_ot_font_set_funcs (font);
+      g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==,
+                      instance == 1 || instance == 2 ? 550 : 500);
+      hb_font_destroy (font);
+      hb_face_destroy (subset);
+    }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -553,6 +600,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_without_gsub);
   hb_test_add (test_subset_glyf_retain_gids);
   hb_test_add (test_subset_glyf_retain_gids_truncates);
+  hb_test_add (test_subset_glyf_zero_contour_instructions);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_glyf_iftb_requirements);
