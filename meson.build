@@ -66,12 +66,16 @@ add_project_link_arguments(cpp.get_supported_link_arguments([
   '-Bsymbolic-functions'
 ]), language: 'c')
 
+visibility_inlines_hidden_argument = ['-fvisibility-inlines-hidden']
+# XCOFF rejects hidden visibility on references to imported inline symbols.
+if host_machine.system() in ['os400', 'aix']
+  visibility_inlines_hidden_argument = []
+endif
 add_project_arguments(cpp.get_supported_arguments([
   '-fno-exceptions',
   '-fno-rtti',
   '-fno-threadsafe-statics',
-  '-fvisibility-inlines-hidden',
-]), language: 'cpp')
+] + visibility_inlines_hidden_argument), language: 'cpp')
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
   if cpp.has_argument('-mstructure-size-boundary=8')
