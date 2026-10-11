@@ -222,25 +222,25 @@ struct ValueFormat : HBUINT16
 
     if (format & xPlaDevice)
     {
-      add_delta_to_value (x_placement, base, values, layout_variation_idx_delta_map);
+      add_delta_to_value (c, x_placement, base, values, layout_variation_idx_delta_map);
       copy_device (c, base, values++, layout_variation_idx_delta_map, new_format, xPlaDevice);
     }
 
     if (format & yPlaDevice)
     {
-      add_delta_to_value (y_placement, base, values, layout_variation_idx_delta_map);
+      add_delta_to_value (c, y_placement, base, values, layout_variation_idx_delta_map);
       copy_device (c, base, values++, layout_variation_idx_delta_map, new_format, yPlaDevice);
     }
 
     if (format & xAdvDevice)
     {
-      add_delta_to_value (x_adv, base, values, layout_variation_idx_delta_map);
+      add_delta_to_value (c, x_adv, base, values, layout_variation_idx_delta_map);
       copy_device (c, base, values++, layout_variation_idx_delta_map, new_format, xAdvDevice);
     }
 
     if (format & yAdvDevice)
     {
-      add_delta_to_value (y_adv, base, values, layout_variation_idx_delta_map);
+      add_delta_to_value (c, y_adv, base, values, layout_variation_idx_delta_map);
       copy_device (c, base, values++, layout_variation_idx_delta_map, new_format, yAdvDevice);
     }
   }
@@ -331,7 +331,8 @@ struct ValueFormat : HBUINT16
     return base + offset;
   }
 
-  void add_delta_to_value (HBINT16 *value,
+  void add_delta_to_value (hb_serialize_context_t *c,
+                           HBINT16 *value,
                            const ValueBase *base,
                            const Value *src_value,
                            const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map) const
@@ -341,7 +342,8 @@ struct ValueFormat : HBUINT16
     hb_pair_t<unsigned, int> *varidx_delta;
     if (!layout_variation_idx_delta_map->has (varidx, &varidx_delta)) return;
 
-    *value += hb_second (*varidx_delta);
+    c->check_assign (*value, (int64_t) (int) *value + hb_second (*varidx_delta),
+                     HB_SERIALIZE_ERROR_INT_OVERFLOW);
   }
 
   bool copy_device (hb_serialize_context_t *c,

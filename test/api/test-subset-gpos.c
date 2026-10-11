@@ -82,6 +82,80 @@ test_subset_gpos_pairpos1_vf (void)
 }
 
 static void
+test_subset_gpos_value_limits (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/layout-value-overflow.ttf");
+  for (unsigned glyph = 0; glyph < 16; glyph++)
+  {
+    for (unsigned partial = 0; partial < 2; partial++)
+    {
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add (hb_subset_input_unicode_set (input), 'a' + glyph);
+      g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w', 'g', 'h', 't'), 1));
+      if (!partial)
+        g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w', 'd', 't', 'h'), 0));
+      hb_face_t *subset = hb_subset_or_fail (face, input);
+      hb_subset_input_destroy (input);
+      if (glyph < 8)
+      {
+        /* 30000 + 10000 and -30000 - 10000 must not wrap. */
+        g_assert_null (subset);
+        continue;
+      }
+      g_assert_nonnull (subset);
+      for (unsigned width = 0; width <= (partial ? 2 : 0); width++)
+      {
+        hb_font_t *fonts[] = {hb_font_create (face), hb_font_create (subset)};
+        const int coords[] = {16384, (int) width * 8192};
+        hb_font_set_var_coords_normalized (fonts[0], coords, 2);
+        if (partial)
+          hb_font_set_var_coords_normalized (fonts[1], &coords[1], 1);
+        hb_buffer_t *buffers[] = {hb_buffer_create (), hb_buffer_create ()};
+        const hb_glyph_position_t *positions[2];
+        for (unsigned i = 0; i < 2; i++)
+        {
+          hb_buffer_add (buffers[i], 'a' + glyph, 0);
+          hb_buffer_set_content_type (buffers[i], HB_BUFFER_CONTENT_TYPE_UNICODE);
+          hb_buffer_guess_segment_properties (buffers[i]);
+          hb_shape (fonts[i], buffers[i], NULL, 0);
+          unsigned length;
+          positions[i] = hb_buffer_get_glyph_positions (buffers[i], &length);
+          g_assert_cmpuint (length, ==, 1);
+        }
+        g_assert_cmpint (positions[1]->x_offset, ==, positions[0]->x_offset);
+        g_assert_cmpint (positions[1]->y_offset, ==, positions[0]->y_offset);
+        g_assert_cmpint (positions[1]->x_advance, ==, positions[0]->x_advance);
+        g_assert_cmpint (positions[1]->y_advance, ==, positions[0]->y_advance);
+        for (unsigned i = 0; i < 2; i++)
+        {
+          hb_buffer_destroy (buffers[i]);
+          hb_font_destroy (fonts[i]);
+        }
+      }
+      hb_face_destroy (subset);
+    }
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_unicode_set (input), 'a' + glyph);
+    g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w', 'd', 't', 'h'), 0));
+    hb_face_t *width_first = hb_subset_or_fail (face, input);
+    g_assert_nonnull (width_first);
+    hb_subset_input_destroy (input);
+    input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_unicode_set (input), 'a' + glyph);
+    g_assert_true (hb_subset_input_pin_axis_location (input, width_first, HB_TAG ('w', 'g', 'h', 't'), 1));
+    hb_face_t *subset = hb_subset_or_fail (width_first, input);
+    if (glyph < 8)
+      g_assert_null (subset);
+    else
+      g_assert_nonnull (subset);
+    hb_face_destroy (subset);
+    hb_face_destroy (width_first);
+    hb_subset_input_destroy (input);
+  }
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_gpos_device_only_pairpos (void)
 {
   const char *filenames[] = {"fonts/device-only-pairpos1.ttf",
@@ -140,6 +214,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_gpos_lookup_subtable);
   hb_test_add (test_subset_gpos_pairpos1_vf);
   hb_test_add (test_subset_gpos_device_only_pairpos);
+  hb_test_add (test_subset_gpos_value_limits);
 
   return hb_test_run ();
 }
