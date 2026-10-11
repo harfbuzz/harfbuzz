@@ -2119,10 +2119,14 @@ struct ClipBoxFormat1
 
     if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->xMin = xMin + (int) roundf (instancer (varIdxBase, 0));
-      out->yMin = yMin + (int) roundf (instancer (varIdxBase, 1));
-      out->xMax = xMax + (int) roundf (instancer (varIdxBase, 2));
-      out->yMax = yMax + (int) roundf (instancer (varIdxBase, 3));
+      if (!c->serializer->check_assign (out->xMin, (int64_t) xMin + (int64_t) floorf (instancer (varIdxBase, 0)),
+                                         HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+      if (!c->serializer->check_assign (out->yMin, (int64_t) yMin + (int64_t) floorf (instancer (varIdxBase, 1)),
+                                         HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+      if (!c->serializer->check_assign (out->xMax, (int64_t) xMax + (int64_t) ceilf (instancer (varIdxBase, 2)),
+                                         HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+      if (!c->serializer->check_assign (out->yMax, (int64_t) yMax + (int64_t) ceilf (instancer (varIdxBase, 3)),
+                                         HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
     }
 
     if (format == 2 && c->plan->all_axes_pinned)
@@ -2148,10 +2152,10 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
     value.get_clip_box(clip_box, instancer);
     if (instancer)
     {
-      clip_box.xMin = hb_saturate_add (clip_box.xMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 0))));
-      clip_box.yMin = hb_saturate_add (clip_box.yMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 1))));
-      clip_box.xMax = hb_saturate_add (clip_box.xMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 2))));
-      clip_box.yMax = hb_saturate_add (clip_box.yMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 3))));
+      clip_box.xMin = hb_saturate_add (clip_box.xMin, hb_clamp_to<int> (floorf (instancer (varIdxBase, 0))));
+      clip_box.yMin = hb_saturate_add (clip_box.yMin, hb_clamp_to<int> (floorf (instancer (varIdxBase, 1))));
+      clip_box.xMax = hb_saturate_add (clip_box.xMax, hb_clamp_to<int> (ceilf (instancer (varIdxBase, 2))));
+      clip_box.yMax = hb_saturate_add (clip_box.yMax, hb_clamp_to<int> (ceilf (instancer (varIdxBase, 3))));
     }
   }
 

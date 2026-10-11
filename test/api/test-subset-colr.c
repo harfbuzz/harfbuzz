@@ -26,6 +26,7 @@
 
 #include "hb-test.h"
 #include "hb-subset-test.h"
+#include <math.h>
 
 /* Unit tests for COLR subsetting */
 
@@ -396,13 +397,19 @@ test_subset_colr_default_paint (void)
 }
 
 static hb_face_t *
-instance_colr_axes (hb_face_t *face, unsigned pins)
+instance_colr_at (hb_face_t *face, unsigned pins, float weight)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_add_range (hb_subset_input_glyph_set (input), 0, 30);
-  if (pins & 1) g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 1));
+  if (pins & 1) g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), weight));
   if (pins & 2) g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','d','t','h'), 0));
   return hb_subset_test_create_subset (face, input);
+}
+
+static hb_face_t *
+instance_colr_axes (hb_face_t *face, unsigned pins)
+{
+  return instance_colr_at (face, pins, 1);
 }
 
 static void
@@ -701,6 +708,68 @@ test_subset_colr_affine_precision (void)
   hb_face_destroy (face);
 }
 
+static void
+check_clip_rounding (hb_face_t *face, float weight, bool variable)
+{
+  const int deltas[][4] = {{-1, -1, 1, 1}, {1, 1, -1, -1},
+                           {1, -1, 1, -1}, {-1, 1, -1, 1}};
+  hb_font_t *font = hb_font_create (face);
+  hb_ot_font_set_funcs (font);
+  if (variable)
+  {
+    int coords[] = {(int) (weight * 16384), 0};
+    hb_font_set_var_coords_normalized (font, coords, 2);
+  }
+  for (unsigned i = 0; i < 4; i++)
+  {
+    int xMin = (int) floorf (50 + weight * deltas[i][0]);
+    int yMin = (int) floorf (50 + weight * deltas[i][1]);
+    int xMax = (int) ceilf (500 + weight * deltas[i][2]);
+    int yMax = (int) ceilf (500 + weight * deltas[i][3]);
+    hb_glyph_extents_t extents;
+    g_assert_true (hb_font_get_glyph_extents (font, i + 1, &extents));
+    g_assert_cmpint (extents.x_bearing, ==, xMin);
+    g_assert_cmpint (extents.y_bearing, ==, yMax);
+    g_assert_cmpint (extents.width, ==, xMax - xMin);
+    g_assert_cmpint (extents.height, ==, yMin - yMax);
+  }
+  hb_font_destroy (font);
+}
+
+static void
+test_subset_colr_clip_rounding (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-clip-rounding.ttf");
+  for (unsigned step = 0; step <= 4; step++)
+  {
+    float weight = step / 4.f;
+    check_clip_rounding (face, weight, true);
+    for (unsigned first = 0; first <= 2; first++)
+    {
+      hb_face_t *partial = first ? instance_colr_at (face, first, weight) : hb_face_reference (face);
+      hb_face_t *full = instance_colr_at (partial, first ? 3 - first : 3, weight);
+      check_clip_rounding (full, weight, false);
+      hb_face_destroy (full);
+      hb_face_destroy (partial);
+    }
+  }
+  hb_face_destroy (face);
+}
+
+static void
+test_subset_colr_clip_rounding_overflow (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-clip-rounding-overflow.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 0.25f));
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','d','t','h'), 0));
+  hb_face_t *full = hb_subset_or_fail (face, input);
+  g_assert_null (full);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -714,6 +783,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_large_translates);
   hb_test_add (test_subset_colr_wide_centers);
   hb_test_add (test_subset_colr_affine_precision);
+  hb_test_add (test_subset_colr_clip_rounding);
+  hb_test_add (test_subset_colr_clip_rounding_overflow);
   hb_test_add (test_subset_colr_negative_radii);
   hb_test_add (test_subset_colr_negative_radii_precision);
   hb_test_add (test_subset_colr_negative_radii_wide_stops);
