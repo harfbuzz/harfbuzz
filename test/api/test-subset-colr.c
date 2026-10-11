@@ -659,6 +659,48 @@ test_subset_colr_wide_centers (void)
   hb_face_destroy (face);
 }
 
+static void
+check_affine_precision (hb_face_t *face)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 28, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 4);
+  for (unsigned i = 0; i < 4; i++)
+  {
+    unsigned paint = list + read_uint_be (data + list + 6 + i * 6, 4);
+    g_assert_cmpuint (paint + 7, <=, length);
+    g_assert_cmpuint (data[paint], ==, 12);
+    unsigned affine = paint + read_uint_be (data + paint + 4, 3);
+    g_assert_cmpuint (affine + 24, <=, length);
+    double scale = 2 + 1 / 16384.;
+    double cx = i % 2 ? -20001 : 20001, cy = i % 2 ? -20003 : 20003;
+    g_assert_cmpint ((int32_t) read_uint_be (data + affine, 4), ==, 131076);
+    g_assert_cmpint ((int32_t) read_uint_be (data + affine + 12, 4), ==, 131076);
+    g_assert_cmpfloat ((int32_t) read_uint_be (data + affine + 16, 4) / 65536., ==, cx * (1 - scale));
+    g_assert_cmpfloat ((int32_t) read_uint_be (data + affine + 20, 4) / 65536., ==, cy * (1 - scale));
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+test_subset_colr_affine_precision (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-affine-precision.ttf");
+  for (unsigned first = 0; first <= 2; first++)
+  {
+    hb_face_t *partial = first ? instance_colr_axes (face, first) : hb_face_reference (face);
+    hb_face_t *full = instance_colr_axes (partial, first ? 3 - first : 3);
+    check_affine_precision (full);
+    hb_face_destroy (full);
+    hb_face_destroy (partial);
+  }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -671,6 +713,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_wide_scales);
   hb_test_add (test_subset_colr_large_translates);
   hb_test_add (test_subset_colr_wide_centers);
+  hb_test_add (test_subset_colr_affine_precision);
   hb_test_add (test_subset_colr_negative_radii);
   hb_test_add (test_subset_colr_negative_radii_precision);
   hb_test_add (test_subset_colr_negative_radii_wide_stops);

@@ -1332,7 +1332,7 @@ struct PaintTranslate
 
 template <typename Source>
 static bool serialize_scale_matrix (hb_subset_context_t *c,
-                                    float xx, float yx, float xy, float yy, float dx, float dy,
+                                    float xx, float yx, float xy, float yy, double dx, double dy,
                                     const Source &source)
 {
   auto *out = c->serializer->allocate_size<PaintTransform<NoVariable>> (7);
@@ -1350,8 +1350,10 @@ static bool serialize_scale_matrix (hb_subset_context_t *c,
   transform->yx.set_float (yx);
   transform->xy.set_float (xy);
   transform->yy.set_float (yy);
-  transform->dx.set_float (dx);
-  transform->dy.set_float (dy);
+  // Centered scales can require all 16 fractional bits in a translation.
+  // Narrowing the product to float before Fixed loses those low bits.
+  transform->dx.set_int ((int32_t) round (dx * 65536));
+  transform->dy.set_int ((int32_t) round (dy * 65536));
   c->serializer->add_link (out->transform, c->serializer->pop_pack ());
 
   c->serializer->push ();
@@ -1365,7 +1367,7 @@ static bool serialize_scale_matrix (hb_subset_context_t *c,
 
 template <typename Source>
 static bool serialize_scale_transform (hb_subset_context_t *c,
-                                       float sx, float sy, float dx, float dy,
+                                       float sx, float sy, double dx, double dy,
                                        const Source &source)
 {
   return serialize_scale_matrix (c, sx, 0, 0, sy, dx, dy, source);
@@ -1494,7 +1496,7 @@ static bool subset_scale_as_transform (hb_subset_context_t *c,
   double dx = cx * (1 - (double) sx), dy = cy * (1 - (double) sy);
   if (sx >= -32768 && sx < 32768 && sy >= -32768 && sy < 32768 &&
       dx >= -32768 && dx < 32768 && dy >= -32768 && dy < 32768)
-    return serialize_scale_transform (c, sx, sy, (float) dx, (float) dy, source);
+    return serialize_scale_transform (c, sx, sy, dx, dy, source);
   if (cx == 0 && cy == 0)
     return serialize_scale_graph (c, sx, sy, source);
 
