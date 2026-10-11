@@ -386,13 +386,15 @@ struct serialize_math_record_array_t
 {
   serialize_math_record_array_t (hb_serialize_context_t *serialize_context_,
                          OutputArray& out_,
-                         const void *base_) : serialize_context (serialize_context_),
-                                              out (out_), base (base_) {}
+                         const void *base_,
+                         const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *variation_map_) :
+                                              serialize_context (serialize_context_),
+                                              out (out_), base (base_), variation_map (variation_map_) {}
 
   template <typename T>
   bool operator () (T&& record)
   {
-    if (!serialize_context->copy (record, base)) return false;
+    if (!serialize_context->copy (record, base, variation_map)) return false;
     out.len++;
     return true;
   }
@@ -401,6 +403,7 @@ struct serialize_math_record_array_t
   hb_serialize_context_t *serialize_context;
   OutputArray &out;
   const void *base;
+  const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *variation_map;
 };
 
 /*
@@ -411,8 +414,9 @@ struct
   template<typename OutputArray>
   serialize_math_record_array_t<OutputArray>
   operator () (hb_serialize_context_t *serialize_context, OutputArray& out,
-               const void *base) const
-  { return serialize_math_record_array_t<OutputArray> (serialize_context, out, base); }
+               const void *base,
+               const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *variation_map) const
+  { return serialize_math_record_array_t<OutputArray> (serialize_context, out, base, variation_map); }
 
 }
 HB_FUNCOBJ (serialize_math_record_array);

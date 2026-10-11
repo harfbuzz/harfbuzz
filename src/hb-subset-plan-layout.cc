@@ -29,6 +29,7 @@
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-math-table.hh"
 
 using OT::Layout::GSUB;
 using OT::Layout::GPOS;
@@ -560,6 +561,18 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
     gpos->collect_feature_variation_indices (&c);
     gpos->collect_variation_indices (&c);
   }
+
+#ifndef HB_NO_MATH
+  if (!plan->drop_tables.has (HB_OT_TAG_MATH))
+  {
+    hb_blob_ptr_t<OT::MATH> math = plan->source_table<OT::MATH> ();
+    auto *glyph_set = c.glyph_set;
+    c.glyph_set = &plan->_glyphset_mathed;
+    math->collect_variation_indices (&c, &plan->_glyphset_cmaped);
+    c.glyph_set = glyph_set;
+    math.destroy ();
+  }
+#endif
 
   remap_variation_indices (gdef->get_var_store (),
                            varidx_set, plan->normalized_coords,
