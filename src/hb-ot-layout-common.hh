@@ -3107,6 +3107,9 @@ struct VarData
   {
     unsigned int count = regionIndices.len;
     if (!count) return Float (0); // This is quite common, so optimize it.
+    /* LONG_WORDS sums can be far larger than one signed long. Accumulate
+     * them in double so a compact split preserves the original delta. */
+    if (longWords ()) return (Float) _get_delta<double> (inner, coords, coord_count, regions, cache);
     return _get_delta<Float> (inner, coords, coord_count, regions, cache);
   }
 

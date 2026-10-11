@@ -2210,10 +2210,10 @@ struct item_variations_t
     if (!column_counts.resize (num_cols) || !column_indices.resize (num_cols)) return false;
     for (unsigned i = 0; i < num_cols; i++) column_counts[i] = 1;
 
-    /* Merged regions can exceed a signed long. Preserve the float value by
-     * splitting it into representable words instead of saturating it. Powers
-     * of two keep each large chunk exactly representable in float as well. */
-    constexpr int64_t chunk_limit = int64_t (1) << 30;
+    /* Merged regions can exceed a signed long. Use the largest positive
+     * signed long that is also exactly representable in float. This avoids
+     * exhausting the 15-bit region count for a valid near-maximum row. */
+    constexpr int64_t chunk_limit = (int64_t (1) << 31) - 128;
     for (const auto &tuples : vars)
       for (const auto &tuple : tuples.tuple_vars)
       {

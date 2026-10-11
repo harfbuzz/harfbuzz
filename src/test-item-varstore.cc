@@ -270,9 +270,9 @@ test_condition_delta_precision ()
   const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (bytes.arrayZ);
   int coords[] = {16384};
   OT::ItemVarStoreInstancer instancer (&store, nullptr, hb_array (coords));
-  // Positioning keeps float arithmetic, but conditions must retain the unit
-  // left after cancellation of two deltas exceeding float's integer range.
-  hb_always_assert (instancer[0] == 0.f);
+  // LONG_WORDS retain the unit left after cancellation in both ordinary
+  // delta access and condition evaluation, before conversion to float.
+  hb_always_assert (instancer[0] == 1.f);
   hb_always_assert (instancer.get_condition_delta (0) == 1.);
   const char condition_data[] = "\x00\x02\x00\x00\x00\x00\x00\x00";
   const auto &condition = *reinterpret_cast<const OT::Condition *> (condition_data);
