@@ -811,9 +811,13 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
 /**
  * hb_vector_paint_recycle_blob:
  * @paint: a paint context.
- * @blob: (nullable): previously rendered blob to recycle.
+ * @blob: (transfer full) (nullable): previously rendered blob to recycle.
  *
  * Provides a blob for internal buffer reuse by later render calls.
+ * The caller transfers ownership of one reference to @paint and must
+ * not destroy that reference after this call. Finish accessing @blob
+ * and its data before recycling: later renders may reuse the blob
+ * and overwrite its data.
  *
  * Since: 13.0.0
  */
