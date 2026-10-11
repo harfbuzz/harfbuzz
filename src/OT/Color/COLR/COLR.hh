@@ -331,10 +331,18 @@ struct BaseGlyphRecord
   DEFINE_SIZE_STATIC (6);
 };
 
+static bool colr_f2dot14_overflows (F2DOT14 value, float delta)
+{
+  float bits = roundf (value.to_float (delta) * 16384.f);
+  return bits < -32768.f || bits >= 32768.f;
+}
+
 template <typename T>
 struct Variable
 {
   static constexpr bool is_variable = true;
+
+  const T& get_value () const { return value; }
 
   Variable<T>* copy (hb_serialize_context_t *c) const
   {
@@ -494,7 +502,7 @@ struct ColorStop
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->stopOffset.set_float (stopOffset.to_float(instancer (varIdxBase, 0)));
       float a = alpha.to_float (instancer (varIdxBase, 1));
@@ -546,6 +554,15 @@ struct Extend : HBUINT8
 template <template<typename> class Var>
 struct ColorLine
 {
+  bool default_overflows (const ItemVarStoreInstancer &instancer) const
+  {
+    for (const auto &stop : stops.iter ())
+      if (colr_f2dot14_overflows (stop.get_value ().stopOffset, instancer (stop.varIdxBase, 0)) ||
+          colr_f2dot14_overflows (stop.get_value ().alpha, instancer (stop.varIdxBase, 1)))
+        return true;
+    return false;
+  }
+
   void dependv1 (hb_colrv1_depend_context_t * c) const {}
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
@@ -667,7 +684,7 @@ struct Affine2x3
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->xx.set_float (xx.to_float(instancer (varIdxBase, 0)));
       out->yx.set_float (yx.to_float(instancer (varIdxBase, 1)));
@@ -750,7 +767,7 @@ struct PaintSolid
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       float a = alpha.to_float (instancer (varIdxBase, 0));
       out->alpha.set_float (c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
@@ -813,7 +830,7 @@ struct PaintLinearGradient
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
       out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
@@ -885,7 +902,7 @@ struct PaintRadialGradient
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
       out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
@@ -957,7 +974,7 @@ struct PaintSweepGradient
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->centerX = centerX + (int) roundf (instancer (varIdxBase, 0));
       out->centerY = centerY + (int) roundf (instancer (varIdxBase, 1));
@@ -1126,7 +1143,7 @@ struct PaintTranslate
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->dx = dx + (int) roundf (instancer (varIdxBase, 0));
       out->dy = dy + (int) roundf (instancer (varIdxBase, 1));
@@ -1238,7 +1255,7 @@ struct PaintScale
   {
     TRACE_SUBSET (this);
     if (c->plan->all_axes_pinned && instancer &&
-        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       float sx = roundf (scaleX.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
       float sy = roundf (scaleY.to_float (instancer (varIdxBase, 1)) * 16384) / 16384;
@@ -1248,7 +1265,7 @@ struct PaintScale
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->scaleX.set_float (scaleX.to_float (instancer (varIdxBase, 0)));
       out->scaleY.set_float (scaleY.to_float (instancer (varIdxBase, 1)));
@@ -1296,7 +1313,7 @@ struct PaintScaleAroundCenter
   {
     TRACE_SUBSET (this);
     if (c->plan->all_axes_pinned && instancer &&
-        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       float sx = roundf (scaleX.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
       float sy = roundf (scaleY.to_float (instancer (varIdxBase, 1)) * 16384) / 16384;
@@ -1309,7 +1326,7 @@ struct PaintScaleAroundCenter
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->scaleX.set_float (scaleX.to_float (instancer (varIdxBase, 0)));
       out->scaleY.set_float (scaleY.to_float (instancer (varIdxBase, 1)));
@@ -1363,7 +1380,7 @@ struct PaintScaleUniform
   {
     TRACE_SUBSET (this);
     if (c->plan->all_axes_pinned && instancer &&
-        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       float s = roundf (scale.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
       if (s < -2 || s >= 2)
@@ -1372,7 +1389,7 @@ struct PaintScaleUniform
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
       out->scale.set_float (scale.to_float (instancer (varIdxBase, 0)));
 
     if (format == 21 && c->plan->all_axes_pinned)
@@ -1415,7 +1432,7 @@ struct PaintScaleUniformAroundCenter
   {
     TRACE_SUBSET (this);
     if (c->plan->all_axes_pinned && instancer &&
-        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       float s = roundf (scale.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
       if (s < -2 || s >= 2)
@@ -1427,7 +1444,7 @@ struct PaintScaleUniformAroundCenter
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->scale.set_float (scale.to_float (instancer (varIdxBase, 0)));
       out->centerX = centerX + (int) roundf (instancer (varIdxBase, 1));
@@ -1480,7 +1497,7 @@ struct PaintRotate
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
       out->angle.set_float (angle.to_float (instancer (varIdxBase, 0)));
 
     if (format == 25 && c->plan->all_axes_pinned)
@@ -1525,7 +1542,7 @@ struct PaintRotateAroundCenter
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->angle.set_float (angle.to_float (instancer (varIdxBase, 0)));
       out->centerX = centerX + (int) roundf (instancer (varIdxBase, 1));
@@ -1578,7 +1595,7 @@ struct PaintSkew
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->xSkewAngle.set_float (xSkewAngle.to_float (instancer (varIdxBase, 0)));
       out->ySkewAngle.set_float (ySkewAngle.to_float (instancer (varIdxBase, 1)));
@@ -1628,7 +1645,7 @@ struct PaintSkewAroundCenter
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->xSkewAngle.set_float (xSkewAngle.to_float (instancer (varIdxBase, 0)));
       out->ySkewAngle.set_float (ySkewAngle.to_float (instancer (varIdxBase, 1)));
@@ -1784,7 +1801,7 @@ struct ClipBoxFormat1
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    if (instancer && (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       out->xMin = xMin + (int) roundf (instancer (varIdxBase, 0));
       out->yMin = yMin + (int) roundf (instancer (varIdxBase, 1));
@@ -2047,6 +2064,44 @@ struct ClipList
 
 struct Paint
 {
+  bool default_overflows (const ItemVarStoreInstancer &instancer) const
+  {
+    switch (u.format.v)
+    {
+      case 3:
+        return colr_f2dot14_overflows (u.paintformat3.get_value ().alpha, instancer (u.paintformat3.varIdxBase, 0));
+      case 5:
+      {
+        const auto &paint = u.paintformat5.get_value ();
+        return (&paint+paint.colorLine).default_overflows (instancer);
+      }
+      case 7:
+      {
+        const auto &paint = u.paintformat7.get_value ();
+        return (&paint+paint.colorLine).default_overflows (instancer);
+      }
+      case 9:
+      {
+        const auto &paint = u.paintformat9.get_value ();
+        unsigned base = u.paintformat9.varIdxBase;
+        return (&paint+paint.colorLine).default_overflows (instancer) ||
+               colr_f2dot14_overflows (paint.startAngle, instancer (base, 2)) ||
+               colr_f2dot14_overflows (paint.endAngle, instancer (base, 3));
+      }
+      case 17:
+        return colr_f2dot14_overflows (u.paintformat17.get_value ().scaleX, instancer (u.paintformat17.varIdxBase, 0)) ||
+               colr_f2dot14_overflows (u.paintformat17.get_value ().scaleY, instancer (u.paintformat17.varIdxBase, 1));
+      case 19:
+        return colr_f2dot14_overflows (u.paintformat19.get_value ().scaleX, instancer (u.paintformat19.varIdxBase, 0)) ||
+               colr_f2dot14_overflows (u.paintformat19.get_value ().scaleY, instancer (u.paintformat19.varIdxBase, 1));
+      case 21:
+        return colr_f2dot14_overflows (u.paintformat21.get_value ().scale, instancer (u.paintformat21.varIdxBase, 0));
+      case 23:
+        return colr_f2dot14_overflows (u.paintformat23.get_value ().scale, instancer (u.paintformat23.varIdxBase, 0));
+      default:
+        return false;
+    }
+  }
 
   template <typename ...Ts>
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
@@ -2427,8 +2482,10 @@ struct COLR
                         hb_set_t *layer_indices,
                         hb_set_t *palette_indices,
                         hb_set_t *variation_indices,
-                        hb_set_t *delta_set_indices) const
-    { colr->closure_forV1 (glyphset, layer_indices, palette_indices, variation_indices, delta_set_indices); }
+                        hb_set_t *delta_set_indices,
+                      hb_array_t<const int> coords = {},
+                      bool *preserve_defaults = nullptr) const
+    { colr->closure_forV1 (glyphset, layer_indices, palette_indices, variation_indices, delta_set_indices, coords, preserve_defaults); }
 
     bool has_var_store () const
     { return colr->has_var_store (); }
@@ -2538,7 +2595,9 @@ struct COLR
                       hb_set_t *layer_indices,
                       hb_set_t *palette_indices,
                       hb_set_t *variation_indices,
-                      hb_set_t *delta_set_indices) const
+                      hb_set_t *delta_set_indices,
+                      hb_array_t<const int> coords = {},
+                      bool *preserve_defaults = nullptr) const
   {
     if (version < 1) return;
     hb_barrier ();
@@ -2562,6 +2621,17 @@ struct COLR
     c.glyphs = glyphset;
     for (const ClipRecord &clip_record : cliplist.clips.iter())
       clip_record.closurev1 (&c, &cliplist);
+
+    if (preserve_defaults && coords)
+    {
+      ItemVarStoreInstancer instancer (get_var_store_ptr (), get_delta_set_index_map_ptr (), coords);
+      for (unsigned offset : c.visited_paint)
+        if (StructAtOffset<Paint> (this, offset).default_overflows (instancer))
+        {
+          *preserve_defaults = true;
+          break;
+        }
+    }
 
     // if a DeltaSetIndexMap is included, collected variation indices are
     // actually delta set indices, we need to map them into variation indices
@@ -2706,7 +2776,8 @@ struct COLR
       if (!item_vars.instantiate (var_store, c->plan,
                                   optimize, /* optimization */
                                   optimize, /* use_no_variation_idx = false */
-                                  c->plan->colrv1_varstore_inner_maps.as_array ()))
+                                  c->plan->colrv1_varstore_inner_maps.as_array (),
+                                  false, c->plan->colr_preserve_default_deltas))
         return_trace (false);
 
       /* do not serialize varStore if there's no variation data after
@@ -2855,9 +2926,9 @@ struct COLR
      * after instancing */
     if (!subset_varstore (c, colr_prime)) return_trace (false);
 
-    ItemVarStoreInstancer instancer (c->plan->normalized_coords ? get_var_store_ptr () : nullptr,
+    ItemVarStoreInstancer instancer (c->plan->normalized_coords && !c->plan->colr_preserve_default_deltas ? get_var_store_ptr () : nullptr,
 				     c->plan->normalized_coords ? get_delta_set_index_map_ptr () : nullptr,
-				     c->plan->normalized_coords.as_array ());
+				     c->plan->colr_preserve_default_deltas ? hb_array_t<const int> () : c->plan->normalized_coords.as_array ());
 
     if (!colr_prime->baseGlyphList.serialize_subset (c, baseGlyphList, this, instancer))
       return_trace (false);
