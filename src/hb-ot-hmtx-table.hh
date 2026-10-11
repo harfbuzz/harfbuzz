@@ -453,6 +453,7 @@ struct hmtx_accelerator_t : hb_dual_accelerator_t<hmtx::accelerator_t,
     hb_dual_accelerator_t<hmtx::accelerator_t, HMTX::accelerator_t> (face)
   {
     var_table = hb_sanitize_context_t ().reference_table<HVAR> (face);
+    has_default_variations = var_table->get_var_store ().has_default_regions ();
   }
 
   ~hmtx_accelerator_t ()
@@ -484,6 +485,7 @@ struct hmtx_accelerator_t : hb_dual_accelerator_t<hmtx::accelerator_t,
 #endif
 
   hb_blob_ptr_t<HVAR> var_table;
+  bool has_default_variations;
 };
 
 #ifndef HB_NO_VERTICAL
@@ -494,6 +496,7 @@ struct vmtx_accelerator_t : hb_dual_accelerator_t<vmtx::accelerator_t,
     hb_dual_accelerator_t<vmtx::accelerator_t, VMTX::accelerator_t> (face)
   {
     var_table = hb_sanitize_context_t ().reference_table<VVAR> (face);
+    has_default_variations = var_table->get_var_store ().has_default_regions ();
   }
 
   ~vmtx_accelerator_t ()
@@ -525,6 +528,7 @@ struct vmtx_accelerator_t : hb_dual_accelerator_t<vmtx::accelerator_t,
 #endif
 
   hb_blob_ptr_t<VVAR> var_table;
+  bool has_default_variations;
 };
 #else
 struct vmtx_accelerator_t : vmtx::accelerator_t {

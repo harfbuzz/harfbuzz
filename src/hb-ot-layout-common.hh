@@ -3567,6 +3567,17 @@ struct ItemVariationStore
   }
 
   public:
+  bool has_default_regions () const
+  {
+#ifdef HB_NO_VAR
+    return false;
+#endif
+    const auto &region_list = this+regions;
+    for (unsigned i = 0; i < region_list.regionCount; i++)
+      if (region_list.evaluate (i, nullptr, 0)) return true;
+    return false;
+  }
+
   bool has_delta_set (unsigned int index) const
   {
 #ifdef HB_NO_VAR
@@ -6184,12 +6195,12 @@ struct VariationDevice
   hb_position_t get_x_delta (hb_font_t *font,
 			     const ItemVariationStore &store,
 			     hb_scalar_cache_t *store_cache = nullptr) const
-  { return !font->has_nonzero_coords ? 0 : font->em_scalef_x (get_delta (font, store, store_cache)); }
+  { return font->em_scalef_x (get_delta (font, store, store_cache)); }
 
   hb_position_t get_y_delta (hb_font_t *font,
 			     const ItemVariationStore &store,
 			     hb_scalar_cache_t *store_cache = nullptr) const
-  { return !font->has_nonzero_coords ? 0 : font->em_scalef_y (get_delta (font, store, store_cache)); }
+  { return font->em_scalef_y (get_delta (font, store, store_cache)); }
 
   VariationDevice* copy (hb_serialize_context_t *c,
                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map) const

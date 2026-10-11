@@ -406,7 +406,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
 
 #ifndef HB_NO_VAR
-  if (!font->has_nonzero_coords)
+  if (!font->has_nonzero_coords && !hmtx.has_default_variations)
   {
   fallback:
 #else
@@ -423,7 +423,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
 
 #ifndef HB_NO_VAR
-  /* has_nonzero_coords. */
+  /* Non-default coordinates or constant variation regions. */
 
   ot_font->check_serial (font);
   hb_ot_font_advance_cache_t *advance_cache = ot_font->h.acquire_advance_cache ();
@@ -531,7 +531,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   }
 
 #ifndef HB_NO_VAR
-  if (!font->has_nonzero_coords)
+  if (!font->has_nonzero_coords && !vmtx.has_default_variations)
   {
   fallback:
 #else
@@ -548,7 +548,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   }
 
 #ifndef HB_NO_VAR
-  /* has_nonzero_coords. */
+  /* Non-default coordinates or constant variation regions. */
 
   ot_font->check_serial (font);
   hb_ot_font_advance_cache_t *advance_cache = ot_font->v.acquire_advance_cache ();
@@ -668,7 +668,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
   if (origin_cache && VORG.has_data ())
   {
 #ifndef HB_NO_VAR
-    if (!font->has_nonzero_coords)
+    if (!font->has_nonzero_coords && !ot_face->vmtx->has_default_variations)
 #endif
     {
       for (unsigned i = 0; i < count; i++)

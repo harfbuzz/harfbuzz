@@ -120,8 +120,9 @@ struct ValueFormat : HBUINT16
 
     if (!has_device ()) return ret;
 
-    bool use_x_device = font->x_ppem || font->has_nonzero_coords;
-    bool use_y_device = font->y_ppem || font->has_nonzero_coords;
+    bool use_variations = font->has_nonzero_coords || c->gdef_accel.has_default_variations;
+    bool use_x_device = font->x_ppem || use_variations;
+    bool use_y_device = font->y_ppem || use_variations;
 
     if (!use_x_device && !use_y_device) return ret;
 
