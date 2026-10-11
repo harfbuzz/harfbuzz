@@ -296,6 +296,29 @@ test_subset_colr_geometry_overflow (void)
 }
 
 static void
+test_subset_colr_long_delta_sums (void)
+{
+  const char *files[] = {"fonts/colr-long-sums-positive.ttf", "fonts/colr-long-sums-positive-mapped.ttf",
+                         "fonts/colr-long-sums-negative.ttf", "fonts/colr-long-sums-negative-mapped.ttf"};
+  for (unsigned file = 0; file < G_N_ELEMENTS (files); file++)
+  {
+    hb_face_t *face = hb_test_open_font_file (files[file]);
+    for (unsigned weight = 0; weight < 2; weight++)
+    {
+      hb_face_t *partial = instance_colr (face, weight, 0, true, false);
+      float width = (weight ? 16383.f : 1.f) / 16384;
+      hb_face_t *direct = instance_colr (face, weight, width, true, true);
+      hb_face_t *composed = instance_colr (partial, 0, width, false, true);
+      hb_subset_test_check (direct, composed, HB_TAG ('C','O','L','R'));
+      hb_face_destroy (composed);
+      hb_face_destroy (direct);
+      hb_face_destroy (partial);
+    }
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_subset_colr_constant_default (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/colr-constant-bias.ttf");
@@ -377,6 +400,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_constant_default);
   hb_test_add (test_subset_colr_default_paint);
   hb_test_add (test_subset_colr_geometry_overflow);
+  hb_test_add (test_subset_colr_long_delta_sums);
 
   return hb_test_run();
 }
