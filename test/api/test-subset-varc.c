@@ -335,6 +335,64 @@ test_subset_varc_fails_when_instancing (void)
 }
 
 static void
+test_subset_varc_original_axis_ranges (void)
+{
+  const char *fonts[] = {
+    "fonts/varc-unrelated-axis.ttf",
+    "fonts/varc-unrelated-axis-avar2.ttf",
+  };
+  const hb_tag_t tags[] = {
+    HB_TAG ('w','g','h','t'),
+    HB_TAG ('o','p','s','z'),
+    HB_TAG ('0','0','0','0'),
+    HB_TAG ('C','O','N','D'),
+  };
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    for (unsigned pin = 0; pin < 2; pin++)
+    {
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add (hb_subset_input_unicode_set (input), 0xAC01);
+      if (pin)
+        g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('D','U','M','Y'), 0.5f));
+      hb_face_t *expected = hb_subset_test_create_subset (face, input);
+      for (unsigned request = 0; request <= G_N_ELEMENTS (tags); request++)
+      {
+        input = hb_subset_input_create_or_fail ();
+        hb_set_add (hb_subset_input_unicode_set (input), 0xAC01);
+        if (pin)
+          g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('D','U','M','Y'), 0.5f));
+        for (unsigned i = 0; i < G_N_ELEMENTS (tags); i++)
+          if (i == request || request == G_N_ELEMENTS (tags))
+          {
+            hb_ot_var_axis_info_t axis;
+            g_assert_true (hb_ot_var_find_axis_info (face, tags[i], &axis));
+            g_assert_true (hb_subset_input_set_axis_range (
+                input, face, tags[i], axis.min_value, axis.max_value, axis.default_value));
+          }
+        hb_face_t *subset = hb_subset_test_create_subset (face, input);
+        hb_subset_test_check (expected, subset, HB_TAG ('V','A','R','C'));
+        hb_subset_test_check (expected, subset, HB_TAG ('f','v','a','r'));
+        hb_variation_t variations[] = {
+          {HB_TAG ('w','g','h','t'), 840.3f},
+          {HB_TAG ('C','O','N','D'), 0.75f},
+          {HB_TAG ('0','0','0','0'), -0.5f},
+        };
+        char *expected_path = draw_unicode_at (expected, 0xAC01, variations, G_N_ELEMENTS (variations));
+        char *actual_path = draw_unicode_at (subset, 0xAC01, variations, G_N_ELEMENTS (variations));
+        assert_paths_close (actual_path, expected_path);
+        g_free (actual_path);
+        g_free (expected_path);
+        hb_face_destroy (subset);
+      }
+      hb_face_destroy (expected);
+    }
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_subset_varc_instance_unrelated_axis (void)
 {
   const char *fonts[] = {
@@ -478,6 +536,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_varc_retain_gids);
   hb_test_add (test_subset_varc_fails_when_instancing);
   hb_test_add (test_subset_varc_instance_unrelated_axis);
+  hb_test_add (test_subset_varc_original_axis_ranges);
   hb_test_add (test_subset_varc_instance_without_varc_glyphs);
   hb_test_add (test_subset_varc_can_be_explicitly_dropped_when_instancing);
   hb_test_add (test_subset_varc_passthrough_requires_retained_gids);

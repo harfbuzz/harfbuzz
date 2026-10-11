@@ -465,6 +465,21 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     return true;
 
   hb_array_t<const OT::AxisRecord> axes = face->table.fvar->get_axes ();
+  for (const auto &axis : axes)
+  {
+    hb_tag_t tag = axis.get_axis_tag ();
+    const Triple *range;
+    float minimum, middle, maximum;
+    axis.get_coordinates (minimum, middle, maximum);
+    if (plan->user_axes_location.has (tag, &range) && !range->is_point () &&
+        range->minimum == static_cast<double> (minimum) &&
+        range->middle == static_cast<double> (middle) &&
+        range->maximum == static_cast<double> (maximum))
+      plan->user_axes_location.del (tag);
+  }
+  if (plan->user_axes_location.is_empty ())
+    return true;
+
   if (!plan->check_success (plan->normalized_coords.resize (axes.length)))
     return false;
 
