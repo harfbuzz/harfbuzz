@@ -1163,6 +1163,70 @@ struct PaintTranslate
   DEFINE_SIZE_STATIC (4 + 2 * FWORD::static_size);
 };
 
+template <typename Source>
+static bool serialize_scale_transform (hb_subset_context_t *c,
+                                       float sx, float sy, float dx, float dy,
+                                       const Source &source)
+{
+  auto *out = c->serializer->allocate_size<PaintTransform<NoVariable>> (7);
+  if (unlikely (!out)) return false;
+  out->format = 12;
+
+  c->serializer->push ();
+  auto *transform = c->serializer->allocate_size<Affine2x3> (Affine2x3::static_size);
+  if (unlikely (!transform))
+  {
+    c->serializer->pop_discard ();
+    return false;
+  }
+  transform->xx.set_float (sx);
+  transform->yx.set_float (0);
+  transform->xy.set_float (0);
+  transform->yy.set_float (sy);
+  transform->dx.set_float (dx);
+  transform->dy.set_float (dy);
+  c->serializer->add_link (out->transform, c->serializer->pop_pack ());
+
+  c->serializer->push ();
+  bool ret = source ();
+  if (ret)
+    c->serializer->add_link (out->src, c->serializer->pop_pack ());
+  else
+    c->serializer->pop_discard ();
+  return ret;
+}
+
+template <typename Base>
+static bool subset_scale_as_transform (hb_subset_context_t *c,
+                                      const Base *base,
+                                      const Offset24To<Paint> &src,
+                                      const ItemVarStoreInstancer &instancer,
+                                      float sx, float sy,
+                                      float cx = 0, float cy = 0)
+{
+  if (src.is_null ()) return false;
+  auto source = [&] { return c->dispatch (base+src, instancer); };
+  float dx = cx * (1 - sx), dy = cy * (1 - sy);
+  if (dx >= -32768 && dx < 32768 && dy >= -32768 && dy < 32768)
+    return serialize_scale_transform (c, sx, sy, dx, dy, source);
+
+  // Preserve the center as separate translations when the combined matrix
+  // exceeds Fixed. Splitting also makes the inverse of -32768 representable.
+  auto inner = [&] {
+    return serialize_scale_transform (c, 1, 1, -cx / 2, -cy / 2, source);
+  };
+  auto inverse = [&] {
+    return serialize_scale_transform (c, 1, 1, -cx / 2, -cy / 2, inner);
+  };
+  auto scale = [&] {
+    return serialize_scale_transform (c, sx, sy, 0, 0, inverse);
+  };
+  auto outer = [&] {
+    return serialize_scale_transform (c, 1, 1, cx / 2, cy / 2, scale);
+  };
+  return serialize_scale_transform (c, 1, 1, cx / 2, cy / 2, outer);
+}
+
 struct PaintScale
 {
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
@@ -1173,6 +1237,14 @@ struct PaintScale
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    {
+      float sx = roundf (scaleX.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
+      float sy = roundf (scaleY.to_float (instancer (varIdxBase, 1)) * 16384) / 16384;
+      if (sx < -2 || sx >= 2 || sy < -2 || sy >= 2)
+        return_trace (subset_scale_as_transform (c, this, src, instancer, sx, sy));
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
@@ -1223,6 +1295,17 @@ struct PaintScaleAroundCenter
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    {
+      float sx = roundf (scaleX.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
+      float sy = roundf (scaleY.to_float (instancer (varIdxBase, 1)) * 16384) / 16384;
+      if (sx < -2 || sx >= 2 || sy < -2 || sy >= 2)
+        return_trace (subset_scale_as_transform (
+            c, this, src, instancer, sx, sy,
+            centerX + roundf (instancer (varIdxBase, 2)),
+            centerY + roundf (instancer (varIdxBase, 3))));
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
@@ -1279,6 +1362,13 @@ struct PaintScaleUniform
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    {
+      float s = roundf (scale.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
+      if (s < -2 || s >= 2)
+        return_trace (subset_scale_as_transform (c, this, src, instancer, s, s));
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
@@ -1324,6 +1414,16 @@ struct PaintScaleUniformAroundCenter
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
+    {
+      float s = roundf (scale.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
+      if (s < -2 || s >= 2)
+        return_trace (subset_scale_as_transform (
+            c, this, src, instancer, s, s,
+            centerX + roundf (instancer (varIdxBase, 1)),
+            centerY + roundf (instancer (varIdxBase, 2))));
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
