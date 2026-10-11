@@ -985,6 +985,8 @@ struct GDEF
 	table = hb_blob_get_empty ();
       }
 
+      has_default_variations = table->get_var_store ().has_default_regions ();
+
 #ifndef HB_NO_GDEF_CACHE
       /* Flatten each mark set whose glyphs span fewer than PAGE_BITS
        * gids into a single bit-page biased at its first glyph, for
@@ -1086,6 +1088,7 @@ struct GDEF
     }
 
     hb_blob_ptr_t<GDEF> table;
+    bool has_default_variations;
 #ifndef HB_NO_GDEF_CACHE
     struct mark_glyph_set_bitmap_t
     {
