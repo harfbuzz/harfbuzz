@@ -1487,32 +1487,24 @@ static bool subset_scale_as_transform (hb_subset_context_t *c,
                                       const Offset24To<Paint> &src,
                                       const ItemVarStoreInstancer &instancer,
                                       float sx, float sy,
-                                      float cx = 0, float cy = 0)
+                                      double cx = 0, double cy = 0)
 {
   if (src.is_null ()) return false;
   auto source = [&] { return c->dispatch (base+src, instancer); };
-  float dx = cx * (1 - sx), dy = cy * (1 - sy);
+  double dx = cx * (1 - (double) sx), dy = cy * (1 - (double) sy);
   if (sx >= -32768 && sx < 32768 && sy >= -32768 && sy < 32768 &&
       dx >= -32768 && dx < 32768 && dy >= -32768 && dy < 32768)
-    return serialize_scale_transform (c, sx, sy, dx, dy, source);
+    return serialize_scale_transform (c, sx, sy, (float) dx, (float) dy, source);
   if (cx == 0 && cy == 0)
     return serialize_scale_graph (c, sx, sy, source);
 
-  // Preserve the center as separate translations when the combined matrix
-  // exceeds Fixed. Splitting also makes the inverse of -32768 representable.
-  auto inner = [&] {
-    return serialize_scale_transform (c, 1, 1, -cx / 2, -cy / 2, source);
-  };
   auto inverse = [&] {
-    return serialize_scale_transform (c, 1, 1, -cx / 2, -cy / 2, inner);
+    return serialize_translate_graph (c, -cx, -cy, source);
   };
   auto scale = [&] {
     return serialize_scale_graph (c, sx, sy, inverse);
   };
-  auto outer = [&] {
-    return serialize_scale_transform (c, 1, 1, cx / 2, cy / 2, scale);
-  };
-  return serialize_scale_transform (c, 1, 1, cx / 2, cy / 2, outer);
+  return serialize_translate_graph (c, cx, cy, scale);
 }
 
 struct PaintScale
@@ -1588,11 +1580,11 @@ struct PaintScaleAroundCenter
     {
       float sx = roundf (scaleX.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
       float sy = roundf (scaleY.to_float (instancer (varIdxBase, 1)) * 16384) / 16384;
-      if (sx < -2 || sx >= 2 || sy < -2 || sy >= 2)
-        return_trace (subset_scale_as_transform (
-            c, this, src, instancer, sx, sy,
-            centerX + roundf (instancer (varIdxBase, 2)),
-            centerY + roundf (instancer (varIdxBase, 3))));
+      double cx = centerX + (double) roundf (instancer (varIdxBase, 2));
+      double cy = centerY + (double) roundf (instancer (varIdxBase, 3));
+      if (sx < -2 || sx >= 2 || sy < -2 || sy >= 2 ||
+          cx < -32768 || cx >= 32768 || cy < -32768 || cy >= 32768)
+        return_trace (subset_scale_as_transform (c, this, src, instancer, sx, sy, cx, cy));
     }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
@@ -1706,11 +1698,11 @@ struct PaintScaleUniformAroundCenter
         (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
     {
       float s = roundf (scale.to_float (instancer (varIdxBase, 0)) * 16384) / 16384;
-      if (s < -2 || s >= 2)
-        return_trace (subset_scale_as_transform (
-            c, this, src, instancer, s, s,
-            centerX + roundf (instancer (varIdxBase, 1)),
-            centerY + roundf (instancer (varIdxBase, 2))));
+      double cx = centerX + (double) roundf (instancer (varIdxBase, 1));
+      double cy = centerY + (double) roundf (instancer (varIdxBase, 2));
+      if (s < -2 || s >= 2 ||
+          cx < -32768 || cx >= 32768 || cy < -32768 || cy >= 32768)
+        return_trace (subset_scale_as_transform (c, this, src, instancer, s, s, cx, cy));
     }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
@@ -1754,6 +1746,38 @@ struct PaintScaleUniformAroundCenter
   public:
   DEFINE_SIZE_STATIC (4 + F2DOT14::static_size + 2 * FWORD::static_size);
 };
+
+struct colr_origin_angles_t
+{
+  HBUINT8 format;
+  Offset24To<Paint> src;
+  F2DOT14 angles[2];
+};
+
+template <typename Base>
+static bool subset_centered_angles (hb_subset_context_t *c, const Base *base,
+                                   const Offset24To<Paint> &src,
+                                   const ItemVarStoreInstancer &instancer,
+                                   double cx, double cy, bool skew,
+                                   float angle1, float angle2 = 0)
+{
+  if (src.is_null ()) return false;
+  auto source = [&] { return c->dispatch (base+src, instancer); };
+  auto inverse = [&] { return serialize_translate_graph (c, -cx, -cy, source); };
+  auto operation = [&] {
+    auto *out = c->serializer->allocate_size<colr_origin_angles_t> (skew ? 8 : 6);
+    if (!out) return false;
+    out->format = skew ? 28 : 24;
+    out->angles[0].set_float (angle1);
+    if (skew) out->angles[1].set_float (angle2);
+    c->serializer->push ();
+    bool ret = inverse ();
+    if (ret) c->serializer->add_link (out->src, c->serializer->pop_pack ());
+    else c->serializer->pop_discard ();
+    return ret;
+  };
+  return serialize_translate_graph (c, cx, cy, operation);
+}
 
 struct PaintRotate
 {
@@ -1810,6 +1834,15 @@ struct PaintRotateAroundCenter
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
+    {
+      double cx = centerX + (double) roundf (instancer (varIdxBase, 1));
+      double cy = centerY + (double) roundf (instancer (varIdxBase, 2));
+      if (cx < -32768 || cx >= 32768 || cy < -32768 || cy >= 32768)
+        return_trace (subset_centered_angles (c, this, src, instancer, cx, cy,
+                                             false, angle.to_float (instancer (varIdxBase, 0))));
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
@@ -1913,6 +1946,16 @@ struct PaintSkewAroundCenter
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) && varIdxBase != VarIdx::NO_VARIATION)
+    {
+      double cx = centerX + (double) roundf (instancer (varIdxBase, 2));
+      double cy = centerY + (double) roundf (instancer (varIdxBase, 3));
+      if (cx < -32768 || cx >= 32768 || cy < -32768 || cy >= 32768)
+        return_trace (subset_centered_angles (c, this, src, instancer, cx, cy,
+                                             true, xSkewAngle.to_float (instancer (varIdxBase, 0)),
+                                                       ySkewAngle.to_float (instancer (varIdxBase, 1))));
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 

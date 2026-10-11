@@ -584,6 +584,81 @@ test_subset_colr_large_translates (void)
   }
 }
 
+static void
+check_wide_centers (hb_face_t *face)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  const double centers[][2] = {{40000, -40000}, {-40000, 40000},
+    {4294967297., -4294967299.}, {-4294967297., 4294967299.}};
+  const double linear[][4] = {{1.5, 0, 0, 0.5}, {1.5, 0, 0, 1.5},
+    {0, 1, -1, 0}, {1, -1, -1, 1}};
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 4 + 16 * 6, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 16);
+  for (unsigned i = 0; i < 16; i++)
+  {
+    unsigned paint = list + read_uint_be (data + list + 6 + i * 6, 4);
+    double xx = 1, yx = 0, xy = 0, yy = 1, dx = 0, dy = 0;
+    unsigned depth = 0;
+    g_assert_cmpuint (paint + 7, <=, length);
+    g_assert_cmpuint (data[paint], ==, 12);
+    while (data[paint] != 10)
+    {
+      g_assert_cmpuint (paint + 8, <=, length);
+      double values[6] = {1, 0, 0, 1, 0, 0};
+      if (data[paint] == 12)
+      {
+        unsigned affine = paint + read_uint_be (data + paint + 4, 3);
+        g_assert_cmpuint (affine + 24, <=, length);
+        for (unsigned j = 0; j < 6; j++) values[j] = (int32_t) read_uint_be (data + affine + j * 4, 4) / 65536.;
+      }
+      else if (data[paint] == 24)
+      {
+        g_assert_cmpuint (read_uint_be (data + paint + 4, 2), ==, 8192); /* 90 degrees */
+        values[0] = values[3] = 0; values[1] = 1; values[2] = -1;
+      }
+      else
+      {
+        g_assert_cmpuint (data[paint], ==, 28);
+        g_assert_cmpuint (read_uint_be (data + paint + 4, 2), ==, 4096); /* 45 degrees */
+        g_assert_cmpint ((int16_t) read_uint_be (data + paint + 6, 2), ==, -4096);
+        values[1] = values[2] = -1;
+      }
+      dx += xx * values[4] + xy * values[5]; dy += yx * values[4] + yy * values[5];
+      double nxx = xx * values[0] + xy * values[1], nyx = yx * values[0] + yy * values[1];
+      double nxy = xx * values[2] + xy * values[3], nyy = yx * values[2] + yy * values[3];
+      xx = nxx; yx = nyx; xy = nxy; yy = nyy;
+      paint += read_uint_be (data + paint + 1, 3);
+      g_assert_cmpuint (paint, <, length);
+      g_assert_cmpuint (++depth, <=, 15);
+    }
+    const double *m = linear[i / 4], *center = centers[i % 4];
+    g_assert_cmpfloat (xx, ==, m[0]); g_assert_cmpfloat (yx, ==, m[1]);
+    g_assert_cmpfloat (xy, ==, m[2]); g_assert_cmpfloat (yy, ==, m[3]);
+    g_assert_cmpfloat (dx, ==, center[0] - m[0] * center[0] - m[2] * center[1]);
+    g_assert_cmpfloat (dy, ==, center[1] - m[1] * center[0] - m[3] * center[1]);
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+test_subset_colr_wide_centers (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-wide-centers.ttf");
+  for (unsigned first = 0; first <= 2; first++)
+  {
+    hb_face_t *partial = first ? instance_colr_axes (face, first) : hb_face_reference (face);
+    hb_face_t *full = instance_colr_axes (partial, first ? 3 - first : 3);
+    check_wide_centers (full);
+    hb_face_destroy (full);
+    hb_face_destroy (partial);
+  }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -595,6 +670,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_keep_no_colr_glyph);
   hb_test_add (test_subset_colr_wide_scales);
   hb_test_add (test_subset_colr_large_translates);
+  hb_test_add (test_subset_colr_wide_centers);
   hb_test_add (test_subset_colr_negative_radii);
   hb_test_add (test_subset_colr_negative_radii_precision);
   hb_test_add (test_subset_colr_negative_radii_wide_stops);
