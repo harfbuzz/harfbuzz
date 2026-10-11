@@ -395,6 +395,137 @@ test_subset_colr_default_paint (void)
   hb_face_destroy (face);
 }
 
+static hb_face_t *
+instance_negative_radial (hb_face_t *face, unsigned pins)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 30);
+  if (pins & 1) g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 1));
+  if (pins & 2) g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','d','t','h'), 0));
+  return hb_subset_test_create_subset (face, input);
+}
+
+static void
+test_subset_colr_negative_radii (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-negative-radii.ttf");
+  hb_face_t *full = instance_negative_radial (face, 3);
+  hb_blob_t *blob = hb_face_reference_table (full, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 4 + 30 * 6, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 30);
+  for (unsigned i = 0; i < 30; i++)
+  {
+    unsigned paint = list + read_uint_be (data + list + 4 + i * 6 + 2, 4);
+    g_assert_cmpuint (paint + 5, <=, length);
+    unsigned variant = i % 5, extend = i / 5 % 3;
+    if (variant == 4)
+    {
+      g_assert_cmpuint (data[paint], ==, 2);
+      g_assert_cmpuint (read_uint_be (data + paint + 3, 2), ==, 0);
+      continue;
+    }
+    g_assert_cmpuint (data[paint], ==, 6);
+    g_assert_cmpuint (paint + 16, <=, length);
+    const int expected[][6] = {
+      {410, 215, 500, 810, 415, 1100},
+      {-790, -385, 1700, 10, 15, 500},
+      {-790, -385, 100, -390, -185, 0},
+      {810, 415, 0, 1210, 615, 100}
+    };
+    for (unsigned j = 0; j < 6; j++)
+    {
+      int value = read_uint_be (data + paint + 4 + j * 2, 2);
+      if (j % 3 != 2) value = (int16_t) value;
+      int wanted = expected[variant][j];
+      if (variant == 1 && extend) wanted = (int[]) {-390, -185, 1100, 10, 15, 500}[j];
+      g_assert_cmpint (value, ==, wanted);
+    }
+    unsigned line = paint + read_uint_be (data + paint + 1, 3);
+    g_assert_cmpuint (line + 3, <=, length);
+    g_assert_cmpuint (data[line], ==, extend);
+    unsigned count = read_uint_be (data + line + 1, 2);
+    unsigned wanted_count = !extend && variant >= 2 ? 1 : 3;
+    g_assert_cmpuint (count, ==, wanted_count);
+    g_assert_cmpuint (line + 3 + count * 6, <=, length);
+    for (unsigned j = 0; j < count; j++)
+    {
+      double offset = (int16_t) read_uint_be (data + line + 3 + j * 6, 2) / 16384.;
+      double alpha = (int16_t) read_uint_be (data + line + 7 + j * 6, 2) / 16384.;
+      double wanted_offset = 0, wanted_alpha = (double[]) {0.25, 0.5, 1}[j];
+      if (!extend && variant == 0) wanted_offset = -1 + j * 0.5;
+      if (!extend && variant == 1) wanted_offset = 1 + j * 0.25;
+      if (!extend && variant == 2) wanted_alpha = 0.25;
+      if (!extend && variant == 3) wanted_alpha = 1;
+      if (extend) wanted_offset = (extend == 2 && variant < 2 ? -1 : -2) + j * 0.5;
+      g_assert_cmpfloat (offset, ==, wanted_offset);
+      g_assert_cmpfloat (alpha, ==, wanted_alpha);
+    }
+  }
+  hb_blob_destroy (blob);
+  for (unsigned first = 1; first <= 2; first++)
+  {
+    hb_face_t *partial = instance_negative_radial (face, first);
+    hb_face_t *composed = instance_negative_radial (partial, 3 - first);
+    hb_subset_test_check (full, composed, HB_TAG ('C','O','L','R'));
+    hb_face_destroy (composed);
+    hb_face_destroy (partial);
+  }
+  hb_face_destroy (full);
+  hb_face_destroy (face);
+}
+
+static void
+test_subset_colr_negative_radii_precision (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-negative-radii-precision.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 1));
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','d','t','h'), 0));
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_null (subset);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
+static void
+test_subset_colr_negative_radii_wide_stops (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-negative-radii-wide-stops.ttf");
+  hb_face_t *full = instance_negative_radial (face, 3);
+  hb_blob_t *blob = hb_face_reference_table (full, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 10, <=, length);
+  unsigned paint = list + read_uint_be (data + list + 6, 4);
+  g_assert_cmpuint (paint + 16, <=, length);
+  g_assert_cmpuint (data[paint], ==, 6);
+  g_assert_cmpuint (read_uint_be (data + paint + 8, 2), ==, 0);
+  g_assert_cmpuint (read_uint_be (data + paint + 14, 2), ==, 32768);
+  unsigned line = paint + read_uint_be (data + paint + 1, 3);
+  g_assert_cmpuint (line + 15, <=, length);
+  g_assert_cmpuint (read_uint_be (data + line + 1, 2), ==, 2);
+  g_assert_cmpuint (read_uint_be (data + line + 3, 2), ==, 16384);
+  g_assert_cmpuint (read_uint_be (data + line + 9, 2), ==, 32767);
+  hb_blob_destroy (blob);
+  for (unsigned first = 1; first <= 2; first++)
+  {
+    hb_face_t *partial = instance_negative_radial (face, first);
+    hb_face_t *composed = instance_negative_radial (partial, 3 - first);
+    hb_subset_test_check (full, composed, HB_TAG ('C','O','L','R'));
+    hb_face_destroy (composed);
+    hb_face_destroy (partial);
+  }
+  hb_face_destroy (full);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -405,6 +536,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_keep_mixed_glyph);
   hb_test_add (test_subset_colr_keep_no_colr_glyph);
   hb_test_add (test_subset_colr_wide_scales);
+  hb_test_add (test_subset_colr_negative_radii);
+  hb_test_add (test_subset_colr_negative_radii_precision);
+  hb_test_add (test_subset_colr_negative_radii_wide_stops);
   hb_test_add (test_subset_colr_partial_overflow);
   hb_test_add (test_subset_colr_constant_default);
   hb_test_add (test_subset_colr_default_paint);
