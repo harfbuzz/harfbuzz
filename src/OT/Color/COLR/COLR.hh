@@ -438,6 +438,8 @@ struct NoVariable
 {
   static constexpr bool is_variable = false;
 
+  const T& get_value () const { return value; }
+
   static constexpr uint32_t varIdxBase = VarIdx::NO_VARIATION;
 
   NoVariable<T>* copy (hb_serialize_context_t *c) const
@@ -906,11 +908,127 @@ struct PaintRadialGradient
     c->num_var_idxes = 6;
   }
 
+  bool subset_nonnegative (hb_subset_context_t *c,
+                           const ItemVarStoreInstancer &instancer,
+                           uint32_t varIdxBase) const
+  {
+    double source[6] = {
+      x0 + (double) roundf (instancer (varIdxBase, 0)),
+      y0 + (double) roundf (instancer (varIdxBase, 1)),
+      radius0 + (double) roundf (instancer (varIdxBase, 2)),
+      x1 + (double) roundf (instancer (varIdxBase, 3)),
+      y1 + (double) roundf (instancer (varIdxBase, 4)),
+      radius1 + (double) roundf (instancer (varIdxBase, 5))
+    };
+    auto transparent = [&] {
+      auto *out = c->serializer->allocate_size<PaintSolid> (5);
+      if (!out) return false;
+      out->format = 2; out->paletteIndex = 0xFFFF; out->alpha.set_float (0);
+      return true;
+    };
+    const auto &line = this+colorLine;
+    if (source[2] == source[5] || !line.stops.len) return transparent ();
+    struct stop_t { double offset, alpha; unsigned palette, order; };
+    hb_vector_t<stop_t> stops;
+    if (!stops.alloc (line.stops.len)) return false;
+    unsigned order = 0;
+    for (const auto &entry : line.stops.iter ())
+    {
+      const auto &stop = entry.get_value ();
+      stops.push (stop_t {(double) roundf (stop.stopOffset.to_float (instancer (entry.varIdxBase, 0)) * 16384.f) / 16384.,
+                   (double) hb_clamp (stop.alpha.to_float (instancer (entry.varIdxBase, 1)), 0.f, 1.f),
+                   stop.paletteIndex, order++});
+    }
+    if (stops.in_error ()) return false;
+    stops.qsort ([] (const stop_t &a, const stop_t &b) {
+      return a.offset < b.offset ? -1 : a.offset > b.offset ? 1 :
+             a.order < b.order ? -1 : a.order > b.order ? 1 : 0;
+    });
+    double dr = source[5] - source[2];
+    for (unsigned shift = 0; shift < 16; shift++)
+    {
+      double b = 1u << shift;
+      double a = dr > 0 ? ceil (-source[2] / dr) : floor (source[2] / -dr) - b;
+      // omega = a + b*q. Positive b preserves the largest valid root.
+      double geometry[6];
+      bool fits = true;
+      for (unsigned j = 0; j < 3; j++)
+      {
+        double difference = source[j + 3] - source[j];
+        geometry[j] = source[j] + a * difference;
+        geometry[j + 3] = source[j] + (a + b) * difference;
+        double low = j == 2 ? 0 : -32768, high = j == 2 ? 65535 : 32767;
+        fits &= geometry[j] >= low && geometry[j] <= high &&
+                geometry[j + 3] >= low && geometry[j + 3] <= high;
+      }
+      if (!fits) continue;
+      unsigned first = 0, count = stops.length;
+      double min = (stops[0].offset - a) / b, max = (stops.tail ().offset - a) / b;
+      double bias = 0;
+      bool constant = false;
+      if (line.extend == Extend::EXTEND_PAD)
+      {
+        double tip = -geometry[2] / (b * dr);
+        if ((dr > 0 && max <= tip) || (dr < 0 && min > tip))
+        {
+          first = dr > 0 ? stops.length - 1 : 0;
+          count = 1; constant = true;
+        }
+      }
+      else
+      {
+        double period = max - min;
+        if (line.extend == Extend::EXTEND_REFLECT) period *= 2;
+        if (period <= 0) return transparent ();
+        double n = ceil ((-2 - min) / period);
+        if (n > floor ((32767. / 16384. - max) / period)) continue;
+        bias = n * period;
+      }
+      for (unsigned j = 0; j < count; j++)
+      {
+        double bits = constant ? 0 : ((stops[first + j].offset - a) / b + bias) * 16384;
+        fits &= bits >= -32768 && bits <= 32767 && bits == round (bits);
+      }
+      if (!fits) continue;
+      auto *out = c->serializer->allocate_size<PaintRadialGradient<NoVariable>> (16);
+      if (!out) return false;
+      out->format = 6;
+      out->x0 = (int) geometry[0]; out->y0 = (int) geometry[1]; out->radius0 = (unsigned) geometry[2];
+      out->x1 = (int) geometry[3]; out->y1 = (int) geometry[4]; out->radius1 = (unsigned) geometry[5];
+      c->serializer->push ();
+      auto *out_line = c->serializer->allocate_size<ColorLine<NoVariable>> (3 + count * ColorStop::static_size);
+      if (!out_line) { c->serializer->pop_discard (); return false; }
+      out_line->extend = line.extend;
+      out_line->stops.len = count;
+      for (unsigned j = 0; j < count; j++)
+      {
+        const auto &stop = stops[first + j];
+        auto &out_stop = out_line->stops[j].value;
+        out_stop.stopOffset.set_float ((float) (constant ? 0 : (stop.offset - a) / b + bias));
+        out_stop.alpha.set_float ((float) stop.alpha);
+        if (!c->serializer->check_assign (out_stop.paletteIndex, c->plan->colr_palettes.get (stop.palette),
+                                          HB_SERIALIZE_ERROR_INT_OVERFLOW))
+        { c->serializer->pop_discard (); return false; }
+      }
+      c->serializer->add_link (out->colorLine, c->serializer->pop_pack ());
+      return !c->serializer->in_error ();
+    }
+    // Reject an unrepresentable static result instead of changing its colors.
+    c->serializer->err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+    return false;
+  }
+
   bool subset (hb_subset_context_t *c,
                const ItemVarStoreInstancer &instancer,
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) &&
+        varIdxBase != VarIdx::NO_VARIATION &&
+        (radius0 + (double) roundf (instancer (varIdxBase, 2)) < 0 ||
+         radius1 + (double) roundf (instancer (varIdxBase, 5)) < 0))
+      return_trace (subset_nonnegative (c, instancer, varIdxBase));
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
