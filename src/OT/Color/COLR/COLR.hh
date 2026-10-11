@@ -1786,10 +1786,10 @@ struct ClipBoxFormat1
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->xMin = xMin + (int) roundf (instancer (varIdxBase, 0));
-      out->yMin = yMin + (int) roundf (instancer (varIdxBase, 1));
-      out->xMax = xMax + (int) roundf (instancer (varIdxBase, 2));
-      out->yMax = yMax + (int) roundf (instancer (varIdxBase, 3));
+      out->xMin = xMin + (int) floorf (instancer (varIdxBase, 0));
+      out->yMin = yMin + (int) floorf (instancer (varIdxBase, 1));
+      out->xMax = xMax + (int) ceilf (instancer (varIdxBase, 2));
+      out->yMax = yMax + (int) ceilf (instancer (varIdxBase, 3));
     }
 
     if (format == 2 && c->plan->all_axes_pinned)
@@ -1815,10 +1815,10 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
     value.get_clip_box(clip_box, instancer);
     if (instancer)
     {
-      clip_box.xMin = hb_saturate_add (clip_box.xMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 0))));
-      clip_box.yMin = hb_saturate_add (clip_box.yMin, hb_clamp_to<int> (roundf (instancer (varIdxBase, 1))));
-      clip_box.xMax = hb_saturate_add (clip_box.xMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 2))));
-      clip_box.yMax = hb_saturate_add (clip_box.yMax, hb_clamp_to<int> (roundf (instancer (varIdxBase, 3))));
+      clip_box.xMin = hb_saturate_add (clip_box.xMin, hb_clamp_to<int> (floorf (instancer (varIdxBase, 0))));
+      clip_box.yMin = hb_saturate_add (clip_box.yMin, hb_clamp_to<int> (floorf (instancer (varIdxBase, 1))));
+      clip_box.xMax = hb_saturate_add (clip_box.xMax, hb_clamp_to<int> (ceilf (instancer (varIdxBase, 2))));
+      clip_box.yMax = hb_saturate_add (clip_box.yMax, hb_clamp_to<int> (ceilf (instancer (varIdxBase, 3))));
     }
   }
 
