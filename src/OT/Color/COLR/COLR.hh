@@ -1260,6 +1260,15 @@ struct PaintTransform
   DEFINE_SIZE_STATIC (7);
 };
 
+template <typename Source>
+static bool serialize_translate_graph (hb_subset_context_t *c, double dx, double dy,
+                                       const Source &source);
+
+template <typename Base>
+static bool subset_translate_as_transform (hb_subset_context_t *c, const Base *base,
+                                          const Offset24To<Paint> &src, double dx, double dy,
+                                          const ItemVarStoreInstancer &instancer);
+
 struct PaintTranslate
 {
   HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
@@ -1270,6 +1279,17 @@ struct PaintTranslate
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned && instancer &&
+        (!c->plan->pinned_at_default || c->plan->colr_has_default_deltas) &&
+        varIdxBase != VarIdx::NO_VARIATION)
+    {
+      double tx = dx + (double) roundf (instancer (varIdxBase, 0));
+      double ty = dy + (double) roundf (instancer (varIdxBase, 1));
+      if (tx < -32768 || tx >= 32768 || ty < -32768 || ty >= 32768)
+      {
+        return_trace (subset_translate_as_transform (c, this, src, tx, ty, instancer));
+      }
+    }
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
@@ -1351,21 +1371,21 @@ static bool serialize_scale_transform (hb_subset_context_t *c,
   return serialize_scale_matrix (c, sx, 0, 0, sy, dx, dy, source);
 }
 
-struct colr_scale_matrix_t
+struct colr_transform_matrix_t
 {
-  float xx, yx, xy, yy;
+  float xx, yx, xy, yy, dx, dy;
 };
 
-static bool append_scale_matrices (hb_vector_t<colr_scale_matrix_t> &matrices,
+static bool append_scale_matrices (hb_vector_t<colr_transform_matrix_t> &matrices,
                                   float value, bool y_axis)
 {
-  auto append = [&] (colr_scale_matrix_t matrix) {
-    if (y_axis) matrix = {matrix.yy, matrix.xy, matrix.yx, matrix.xx};
+  auto append = [&] (colr_transform_matrix_t matrix) {
+    if (y_axis) matrix = {matrix.yy, matrix.xy, matrix.yx, matrix.xx, 0, 0};
     if (matrix.xx != 1 || matrix.yx != 0 || matrix.xy != 0 || matrix.yy != 1)
       matrices.push (matrix);
   };
   if (value >= -32768 && value < 32768)
-    append ({value, 0, 0, 1});
+    append ({value, 0, 0, 1, 0, 0});
   else
   {
     float scaled = value;
@@ -1384,27 +1404,68 @@ static bool append_scale_matrices (hb_vector_t<colr_scale_matrix_t> &matrices,
     r -= x * m;
     /* Eliminating the -unit pivot gives diag(value, 1). The pivot retains
      * fractional bits even when the scale itself needs downscaling. */
-    append ({ldexpf (1.f, shifts), 0, 0, 1 / unit});
-    append ({1, 0, k, 1});
-    append ({unit, 0, 0, 1});
-    append ({k, -unit, r, m});
-    append ({1 / unit, 0, 0, 1});
-    append ({1, 0, m, 1});
-    append ({unit, 0, 0, 1});
-    append ({0, 1, -1, 0});
+    append ({ldexpf (1.f, shifts), 0, 0, 1 / unit, 0, 0});
+    append ({1, 0, k, 1, 0, 0});
+    append ({unit, 0, 0, 1, 0, 0});
+    append ({k, -unit, r, m, 0, 0});
+    append ({1 / unit, 0, 0, 1, 0, 0});
+    append ({1, 0, m, 1, 0, 0});
+    append ({unit, 0, 0, 1, 0, 0});
+    append ({0, 1, -1, 0, 0, 0});
   }
   return !matrices.in_error ();
 }
 
 template <typename Source>
-static bool serialize_scale_matrices (hb_subset_context_t *c,
-                                      hb_array_t<const colr_scale_matrix_t> matrices,
+static bool serialize_transform_matrices (hb_subset_context_t *c,
+                                      hb_array_t<const colr_transform_matrix_t> matrices,
                                       const Source &source)
 {
   if (!matrices) return source ();
   const auto &matrix = matrices[0];
-  auto child = [&] { return serialize_scale_matrices (c, matrices.sub_array (1), source); };
-  return serialize_scale_matrix (c, matrix.xx, matrix.yx, matrix.xy, matrix.yy, 0, 0, child);
+  auto child = [&] { return serialize_transform_matrices (c, matrices.sub_array (1), source); };
+  return serialize_scale_matrix (c, matrix.xx, matrix.yx, matrix.xy, matrix.yy, matrix.dx, matrix.dy, child);
+}
+
+template <typename Source>
+static bool serialize_translate_graph (hb_subset_context_t *c, double dx, double dy,
+                                       const Source &source)
+{
+  // T(k*q + r) = S(k) T(q) S(1/k) T(r). Dyadic factors bound fields
+  // and depth while preserving translations larger than Fixed storage.
+  constexpr double k = 16384;
+  hb_vector_t<colr_transform_matrix_t> matrices;
+  if (!matrices.alloc (13)) return false;
+  hb_pair_t<float, float> remainders[4];
+  unsigned depth = 0;
+  while (dx < -32768 || dx >= 32768 || dy < -32768 || dy >= 32768)
+  {
+    if (depth == 4)
+    { c->serializer->err (HB_SERIALIZE_ERROR_INT_OVERFLOW); return false; }
+    double qx = trunc (dx / k), qy = trunc (dy / k);
+    remainders[depth++] = {(float) (dx - qx * k), (float) (dy - qy * k)};
+    matrices.push (colr_transform_matrix_t {(float) k, 0, 0, (float) k, 0, 0});
+    dx = qx; dy = qy;
+  }
+  matrices.push (colr_transform_matrix_t {1, 0, 0, 1, (float) dx, (float) dy});
+  while (depth)
+  {
+    const auto &r = remainders[--depth];
+    matrices.push (colr_transform_matrix_t {(float) (1 / k), 0, 0, (float) (1 / k), 0, 0});
+    matrices.push (colr_transform_matrix_t {1, 0, 0, 1, r.first, r.second});
+  }
+  if (matrices.in_error ()) return false;
+  return serialize_transform_matrices (c, matrices.as_array (), source);
+}
+
+template <typename Base>
+static bool subset_translate_as_transform (hb_subset_context_t *c, const Base *base,
+                                          const Offset24To<Paint> &src, double dx, double dy,
+                                          const ItemVarStoreInstancer &instancer)
+{
+  if (src.is_null ()) return false;
+  auto source = [&] { return c->dispatch (base+src, instancer); };
+  return serialize_translate_graph (c, dx, dy, source);
 }
 
 template <typename Source>
@@ -1413,11 +1474,11 @@ static bool serialize_scale_graph (hb_subset_context_t *c, float sx, float sy,
 {
   if (sx >= -32768 && sx < 32768 && sy >= -32768 && sy < 32768)
     return serialize_scale_transform (c, sx, sy, 0, 0, source);
-  hb_vector_t<colr_scale_matrix_t> matrices;
+  hb_vector_t<colr_transform_matrix_t> matrices;
   if (!matrices.alloc (16) ||
       !append_scale_matrices (matrices, sx, false) ||
       !append_scale_matrices (matrices, sy, true)) return false;
-  return serialize_scale_matrices (c, matrices.as_array (), source);
+  return serialize_transform_matrices (c, matrices.as_array (), source);
 }
 
 template <typename Base>

@@ -396,7 +396,7 @@ test_subset_colr_default_paint (void)
 }
 
 static hb_face_t *
-instance_negative_radial (hb_face_t *face, unsigned pins)
+instance_colr_axes (hb_face_t *face, unsigned pins)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_add_range (hb_subset_input_glyph_set (input), 0, 30);
@@ -409,7 +409,7 @@ static void
 test_subset_colr_negative_radii (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/colr-negative-radii.ttf");
-  hb_face_t *full = instance_negative_radial (face, 3);
+  hb_face_t *full = instance_colr_axes (face, 3);
   hb_blob_t *blob = hb_face_reference_table (full, HB_TAG ('C','O','L','R'));
   unsigned length;
   const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
@@ -468,8 +468,8 @@ test_subset_colr_negative_radii (void)
   hb_blob_destroy (blob);
   for (unsigned first = 1; first <= 2; first++)
   {
-    hb_face_t *partial = instance_negative_radial (face, first);
-    hb_face_t *composed = instance_negative_radial (partial, 3 - first);
+    hb_face_t *partial = instance_colr_axes (face, first);
+    hb_face_t *composed = instance_colr_axes (partial, 3 - first);
     hb_subset_test_check (full, composed, HB_TAG ('C','O','L','R'));
     hb_face_destroy (composed);
     hb_face_destroy (partial);
@@ -496,7 +496,7 @@ static void
 test_subset_colr_negative_radii_wide_stops (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/colr-negative-radii-wide-stops.ttf");
-  hb_face_t *full = instance_negative_radial (face, 3);
+  hb_face_t *full = instance_colr_axes (face, 3);
   hb_blob_t *blob = hb_face_reference_table (full, HB_TAG ('C','O','L','R'));
   unsigned length;
   const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
@@ -516,14 +516,72 @@ test_subset_colr_negative_radii_wide_stops (void)
   hb_blob_destroy (blob);
   for (unsigned first = 1; first <= 2; first++)
   {
-    hb_face_t *partial = instance_negative_radial (face, first);
-    hb_face_t *composed = instance_negative_radial (partial, 3 - first);
+    hb_face_t *partial = instance_colr_axes (face, first);
+    hb_face_t *composed = instance_colr_axes (partial, 3 - first);
     hb_subset_test_check (full, composed, HB_TAG ('C','O','L','R'));
     hb_face_destroy (composed);
     hb_face_destroy (partial);
   }
   hb_face_destroy (full);
   hb_face_destroy (face);
+}
+
+static void
+test_subset_colr_large_translates (void)
+{
+  const char *files[] = {"fonts/colr-large-translate.ttf", "fonts/colr-maximum-translate.ttf"};
+  const double expected[][2] = {{40000, -40000}, {-40000, 40000},
+    {4294967296., -4294967296.}, {-4294967296., 4294967296.},
+    {4294967296., 0}, {0, -4294967296.}};
+  for (unsigned file = 0; file < G_N_ELEMENTS (files); file++)
+  {
+    hb_face_t *face = hb_test_open_font_file (files[file]);
+    for (unsigned first = 0; first <= 2; first++)
+    {
+      hb_face_t *partial = first ? instance_colr_axes (face, first) : hb_face_reference (face);
+      hb_face_t *full = instance_colr_axes (partial, first ? 3 - first : 3);
+      hb_blob_t *blob = hb_face_reference_table (full, HB_TAG ('C','O','L','R'));
+      unsigned length;
+      const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+      g_assert_cmpuint (length, >=, 34);
+      unsigned list = read_uint_be (data + 14, 4);
+      unsigned count = file ? 1 : 6;
+      g_assert_cmpuint (list + 4 + count * 6, <=, length);
+      g_assert_cmpuint (read_uint_be (data + list, 4), ==, count);
+      for (unsigned i = 0; i < count; i++)
+      {
+        unsigned paint = list + read_uint_be (data + list + 6 + i * 6, 4);
+        double xx = 1, yx = 0, xy = 0, yy = 1, dx = 0, dy = 0;
+        unsigned depth = 0;
+        g_assert_cmpuint (paint + 7, <=, length);
+        g_assert_cmpuint (data[paint], ==, 12);
+        while (data[paint] == 12)
+        {
+          g_assert_cmpuint (paint + 7, <=, length);
+          unsigned affine = paint + read_uint_be (data + paint + 4, 3);
+          g_assert_cmpuint (affine + 24, <=, length);
+          double values[6];
+          for (unsigned j = 0; j < 6; j++) values[j] = (int32_t) read_uint_be (data + affine + j * 4, 4) / 65536.;
+          dx += xx * values[4] + xy * values[5]; dy += yx * values[4] + yy * values[5];
+          double nxx = xx * values[0] + xy * values[1], nyx = yx * values[0] + yy * values[1];
+          double nxy = xx * values[2] + xy * values[3], nyy = yx * values[2] + yy * values[3];
+          xx = nxx; yx = nyx; xy = nxy; yy = nyy;
+          paint += read_uint_be (data + paint + 1, 3);
+          g_assert_cmpuint (paint, <, length);
+          g_assert_cmpuint (++depth, <=, 10);
+        }
+        g_assert_cmpuint (data[paint], ==, 10); /* PaintGlyph */
+        g_assert_cmpfloat (xx, ==, 1); g_assert_cmpfloat (yy, ==, 1);
+        g_assert_cmpfloat (xy, ==, 0); g_assert_cmpfloat (yx, ==, 0);
+        g_assert_cmpfloat (dx, ==, file ? (32766. * 1073741824.) : expected[i][0]);
+        g_assert_cmpfloat (dy, ==, file ? -(32766. * 1073741824.) : expected[i][1]);
+      }
+      hb_blob_destroy (blob);
+      hb_face_destroy (full);
+      hb_face_destroy (partial);
+    }
+    hb_face_destroy (face);
+  }
 }
 
 int
@@ -536,6 +594,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_keep_mixed_glyph);
   hb_test_add (test_subset_colr_keep_no_colr_glyph);
   hb_test_add (test_subset_colr_wide_scales);
+  hb_test_add (test_subset_colr_large_translates);
   hb_test_add (test_subset_colr_negative_radii);
   hb_test_add (test_subset_colr_negative_radii_precision);
   hb_test_add (test_subset_colr_negative_radii_wide_stops);
