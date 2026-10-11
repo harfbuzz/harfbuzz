@@ -2205,6 +2205,42 @@ struct item_variations_t
     /* return true if no variation data */
     if (!region_list) return true;
     unsigned num_cols = region_list.length;
+    hb_vector_t<unsigned> column_counts;
+    hb_vector_t<hb_vector_t<unsigned>> column_indices;
+    if (!column_counts.resize (num_cols) || !column_indices.resize (num_cols)) return false;
+    for (unsigned i = 0; i < num_cols; i++) column_counts[i] = 1;
+
+    /* Merged regions can exceed a signed long. Preserve the float value by
+     * splitting it into representable words instead of saturating it. Powers
+     * of two keep each large chunk exactly representable in float as well. */
+    constexpr int64_t chunk_limit = int64_t (1) << 30;
+    for (const auto &tuples : vars)
+      for (const auto &tuple : tuples.tuple_vars)
+      {
+        unsigned *col_idx;
+        if (!region_map.has (&tuple.axis_tuples, &col_idx)) continue;
+        for (float delta : tuple.deltas_x)
+          if (delta < -2147483648.f || delta >= 2147483648.f)
+          {
+            double count = ceil (fabs ((double) delta) / chunk_limit);
+            if (!(count < 32768)) return false;
+            column_counts[*col_idx] = hb_max (column_counts[*col_idx], (unsigned) count);
+          }
+      }
+    for (unsigned i = 0; i < num_cols; i++)
+    {
+      if (region_list.length + column_counts[i] - 1 >= 32768) return false;
+      if (!column_indices[i].alloc (column_counts[i])) return false;
+      column_indices[i].push (i);
+      region_t region = region_list[i];
+      for (unsigned j = 1; j < column_counts[i]; j++)
+      {
+        column_indices[i].push (region_list.length);
+        region_list.push (region);
+      }
+      if (region_list.in_error ()) return false;
+    }
+    num_cols = region_list.length;
     /* pre-alloc a 2D vector for all sub_table's VarData rows */
     unsigned total_rows = 0;
     for (unsigned major = 0; major < var_data_num_rows.length; major++)
@@ -2244,12 +2280,21 @@ struct item_variations_t
 
         for (unsigned i = 0; i < num_rows; i++)
         {
-          int rounded_delta = hb_clamp_to<int> (roundf ((double) tuple.deltas_x[i]));
-          int &delta = delta_rows[start_row + i][*col_idx];
-          int64_t sum = (int64_t) delta + rounded_delta;
-          if (unlikely (sum < INT_MIN || sum > INT_MAX)) return false;
-          delta = (int) sum;
-          has_long |= delta < -32768 || delta > 32767;
+          double rounded = roundf ((double) tuple.deltas_x[i]);
+          if (!(rounded >= -9223372036854775808. && rounded < 9223372036854775808.)) return false;
+          int64_t remaining = (int64_t) rounded;
+          for (unsigned column : column_indices[*col_idx])
+          {
+            int word = column_counts[*col_idx] == 1 ? (int) remaining :
+                       (int) hb_clamp (remaining, -chunk_limit, chunk_limit);
+            int &delta = delta_rows[start_row + i][column];
+            int64_t sum = (int64_t) delta + word;
+            if (unlikely (sum < INT_MIN || sum > INT_MAX)) return false;
+            delta = (int) sum;
+            has_long |= delta < -32768 || delta > 32767;
+            remaining -= word;
+          }
+          if (remaining) return false;
         }
       }
 
