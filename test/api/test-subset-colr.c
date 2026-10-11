@@ -122,7 +122,7 @@ test_subset_colr_wide_scales (void)
   for (unsigned file = 0; file < G_N_ELEMENTS (files); file++)
   {
     hb_face_t *face = hb_test_open_font_file (files[file]);
-    for (unsigned composed = 0; composed < (file == 2 ? 1 : 3); composed++)
+    for (unsigned composed = 0; composed < 3; composed++)
     {
       hb_face_t *source = hb_face_reference (face);
       if (composed)
