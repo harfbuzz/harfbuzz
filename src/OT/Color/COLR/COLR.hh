@@ -673,12 +673,17 @@ struct Affine2x3
     if (unlikely (!out)) return_trace (false);
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->xx.set_float (xx.to_float(instancer (varIdxBase, 0)));
-      out->yx.set_float (yx.to_float(instancer (varIdxBase, 1)));
-      out->xy.set_float (xy.to_float(instancer (varIdxBase, 2)));
-      out->yy.set_float (yy.to_float(instancer (varIdxBase, 3)));
-      out->dx.set_float (dx.to_float(instancer (varIdxBase, 4)));
-      out->dy.set_float (dy.to_float(instancer (varIdxBase, 5)));
+      auto fold = [&] (F16DOT16 &target, F16DOT16 source, unsigned offset) {
+        // Keep the stored integer precise while applying the float delta.
+        target.set_int ((int32_t) roundf ((double) source.to_int () +
+                                         (double) instancer (varIdxBase, offset)));
+      };
+      fold (out->xx, xx, 0);
+      fold (out->yx, yx, 1);
+      fold (out->xy, xy, 2);
+      fold (out->yy, yy, 3);
+      fold (out->dx, dx, 4);
+      fold (out->dy, dy, 5);
     }
     return_trace (true);
   }

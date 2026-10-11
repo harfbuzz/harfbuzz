@@ -352,6 +352,50 @@ test_subset_colr_negative_radii_precision (void)
   hb_face_destroy (face);
 }
 
+static void
+check_affine_values (hb_face_t *face)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 4 + 28 * 6, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 28);
+  for (unsigned i = 0; i < 28; i++)
+  {
+    unsigned paint = list + read_uint_be (data + list + 6 + i * 6, 4);
+    g_assert_cmpuint (paint + 7, <=, length);
+    g_assert_cmpuint (data[paint], ==, 12);
+    unsigned affine = paint + read_uint_be (data + paint + 4, 3);
+    g_assert_cmpuint (affine + 24, <=, length);
+    int32_t expected[6] = {65536, 0, 0, 65536, 0, 0};
+    int sign = i % 4 < 2 ? 1 : -1, delta = i % 2 ? -1 : 1;
+    if (i < 24)
+      expected[i / 4] = sign * ((i / 4 < 4 ? 1 : 1000) * 65536 + 1) + delta;
+    else
+      expected[4] = sign * (1000 * 65536 + (i % 2 ? 2 : 1));
+    for (unsigned j = 0; j < 6; j++)
+      g_assert_cmpint ((int32_t) read_uint_be (data + affine + j * 4, 4), ==, expected[j]);
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+test_subset_colr_affine_values (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-affine-values.ttf");
+  for (unsigned first = 0; first <= 2; first++)
+  {
+    hb_face_t *partial = first ? instance_colr_at (face, first, 1) : hb_face_reference (face);
+    hb_face_t *full = instance_colr_at (partial, first ? 3 - first : 3, 1);
+    check_affine_values (full);
+    hb_face_destroy (full);
+    hb_face_destroy (partial);
+  }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -365,6 +409,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_clip_rounding);
   hb_test_add (test_subset_colr_negative_radii);
   hb_test_add (test_subset_colr_negative_radii_precision);
+  hb_test_add (test_subset_colr_affine_values);
 
   return hb_test_run();
 }
