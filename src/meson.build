@@ -751,7 +751,7 @@ hb_vector_headers = [
 
 libharfbuzz_raster_dep = null_dep
 if not get_option('raster').disabled()
-  raster_deps = [m_dep]
+  raster_deps = common_harfbuzz_deps
   if png_dep.found()
     raster_deps += [png_dep]
   endif
@@ -792,7 +792,7 @@ endif
 
 libharfbuzz_vector_dep = null_dep
 if not get_option('vector').disabled()
-  vector_deps = [m_dep]
+  vector_deps = common_harfbuzz_deps
   if zlib_dep.found()
     vector_deps += [zlib_dep]
   endif
@@ -873,7 +873,7 @@ hb_gpu_headers = [
 
 libharfbuzz_gpu_dep = null_dep
 if not get_option('gpu').disabled()
-  gpu_deps = [m_dep]
+  gpu_deps = common_harfbuzz_deps
 
   libharfbuzz_gpu = library('harfbuzz-gpu',
     hb_gpu_sources,
@@ -928,7 +928,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
 
   libharfbuzz_cairo = library('harfbuzz-cairo', hb_cairo_sources,
     include_directories: incconfig,
-    dependencies: [m_dep, cairo_dep],
+    dependencies: common_harfbuzz_deps + [cairo_dep],
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
@@ -1053,7 +1053,7 @@ if have_icu and not have_icu_builtin
 
   libharfbuzz_icu = library('harfbuzz-icu', [hb_icu_sources, hb_icu_headers],
     include_directories: incconfig,
-    dependencies: icu_dep,
+    dependencies: [thread_dep, icu_dep],
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
@@ -1246,7 +1246,7 @@ if have_gobject
 
   libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, gobject_enums_c, gobject_enums_h],
     include_directories: incconfig,
-    dependencies: [glib_dep, gobject_dep],
+    dependencies: [thread_dep, glib_dep, gobject_dep],
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
