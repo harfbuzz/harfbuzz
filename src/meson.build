@@ -1026,6 +1026,17 @@ if get_option('tests').enabled()
       install: false,
     ), suite: ['src'])
   endforeach
+
+  if not cpp_is_microsoft_compiler and not get_option('subset').disabled()
+    test('test-cbdt-cache', executable('test-cbdt-cache', ['test-cbdt-cache.cc', 'hb-static.cc'],
+      include_directories: incconfig,
+      cpp_args: cpp_args + ['-UNDEBUG'],
+      dependencies: [libharfbuzz_dep, libharfbuzz_subset_dep],
+      install: false,
+    ),
+      args: [meson.project_source_root() / 'test/api/fonts/NotoColorEmoji.subset.multiple_size_tables.ttf'],
+      suite: ['src', 'subset'])
+  endif
 endif
 
 pkgmod.generate(libharfbuzz,
