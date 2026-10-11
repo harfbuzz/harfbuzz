@@ -186,6 +186,86 @@ test_subset_colr_wide_scales (void)
   hb_face_destroy (face);
 }
 
+static hb_face_t *
+instance_colr (hb_face_t *face, float weight, float width, hb_bool_t pin_weight, hb_bool_t pin_width)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 3);
+  if (pin_weight)
+    g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), weight));
+  if (pin_width)
+    g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','d','t','h'), width));
+  return hb_subset_test_create_subset (face, input);
+}
+
+static void
+test_subset_colr_partial_overflow (void)
+{
+  const char *files[] = {"fonts/colr-partial-overflow.ttf", "fonts/colr-partial-overflow-mapped.ttf"};
+  for (unsigned file = 0; file < G_N_ELEMENTS (files); file++)
+  {
+    hb_face_t *face = hb_test_open_font_file (files[file]);
+    hb_face_t *partial = instance_colr (face, 1, 0, true, false);
+    /* Retained deltas bring alpha, scale, and stop offsets back into range. */
+    const float widths[] = {0.5f, 0.75f, 1.f};
+    for (unsigned i = 0; i < G_N_ELEMENTS (widths); i++)
+    {
+      hb_face_t *direct = instance_colr (face, 1, widths[i], true, true);
+      hb_face_t *composed = instance_colr (partial, 0, widths[i], false, true);
+      hb_subset_test_check (direct, composed, HB_TAG ('C','O','L','R'));
+      hb_face_destroy (composed);
+      hb_face_destroy (direct);
+    }
+    hb_face_destroy (partial);
+
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 3);
+    g_assert_true (hb_subset_input_set_axis_range (input, face, HB_TAG ('w','g','h','t'), 0, 1, 0.5f));
+    partial = hb_subset_test_create_subset (face, input);
+    for (unsigned i = 0; i < G_N_ELEMENTS (widths); i++)
+    {
+      float weight = i * 0.5f;
+      hb_face_t *direct = instance_colr (face, weight, widths[i], true, true);
+      hb_face_t *composed = instance_colr (partial, weight, widths[i], true, true);
+      hb_subset_test_check (direct, composed, HB_TAG ('C','O','L','R'));
+      hb_face_destroy (composed);
+      hb_face_destroy (direct);
+    }
+    hb_face_destroy (partial);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_subset_colr_constant_default (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-constant-bias.ttf");
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *subset = instance_colr (face, i, 0, true, true);
+    hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','O','L','R'));
+    unsigned length;
+    const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+    g_assert_cmpuint (length, >=, 34);
+    unsigned list = read_uint_be (data + 14, 4);
+    g_assert_cmpuint (list + 10, <=, length);
+    unsigned paint = list + read_uint_be (data + list + 6, 4);
+    g_assert_cmpuint (paint + 5, <=, length);
+    g_assert_cmpuint (data[paint], ==, 2); /* PaintSolid */
+    g_assert_cmpuint (read_uint_be (data + paint + 3, 2), ==, 16384);
+    hb_blob_destroy (blob);
+    hb_face_destroy (subset);
+  }
+  hb_face_t *partial = instance_colr (face, 0, 0, true, false);
+  hb_face_t *direct = instance_colr (face, 0, 0, true, true);
+  hb_face_t *composed = instance_colr (partial, 0, 0, false, true);
+  hb_subset_test_check (direct, composed, HB_TAG ('C','O','L','R'));
+  hb_face_destroy (composed);
+  hb_face_destroy (direct);
+  hb_face_destroy (partial);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -196,6 +276,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_keep_mixed_glyph);
   hb_test_add (test_subset_colr_keep_no_colr_glyph);
   hb_test_add (test_subset_colr_wide_scales);
+  hb_test_add (test_subset_colr_partial_overflow);
+  hb_test_add (test_subset_colr_constant_default);
 
   return hb_test_run();
 }

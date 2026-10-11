@@ -160,6 +160,8 @@ struct hb_subset_plan_t
 
   bool all_axes_pinned;
   bool pinned_at_default;
+  bool colr_preserve_default_deltas;
+  bool colr_has_default_deltas;
   bool has_seac;
 
   // whether to insert a catch-all FeatureVariationRecord

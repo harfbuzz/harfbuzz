@@ -1185,7 +1185,8 @@ struct TupleVariationData
 
     /* merge tuple variations with overlapping tents, if iup delta optimization
      * is enabled, add default deltas to contour_points */
-    bool merge_tuple_variations (contour_point_vector_t* contour_points = nullptr)
+    bool merge_tuple_variations (contour_point_vector_t* contour_points = nullptr,
+                                 bool preserve_constants = false)
     {
       hb_vector_t<tuple_delta_t> new_vars;
       // The pre-allocation is essential for address stability of pointers
@@ -1196,7 +1197,7 @@ struct TupleVariationData
       for (tuple_delta_t& var : tuple_vars)
       {
         /* if all axes are pinned, drop the tuple variation */
-        if (var.axis_tuples.is_empty ())
+        if (var.axis_tuples.is_empty () && !preserve_constants)
         {
           /* if iup_delta_optimize is enabled, add deltas to contour coords */
           if (contour_points && !contour_points->add_deltas (var.deltas_x,
@@ -1326,7 +1327,8 @@ struct TupleVariationData
 		      optimize_scratch_t &scratch,
 		      hb_alloc_pool_t *pool = nullptr,
                       contour_point_vector_t* contour_points = nullptr,
-                      bool optimize = false)
+                      bool optimize = false,
+                      bool preserve_constants = false)
     {
       if (!tuple_vars) return true;
       if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, pool))
@@ -1343,7 +1345,7 @@ struct TupleVariationData
       if (optimize && !contour_points)
         return false;
 
-      if (!merge_tuple_variations (optimize ? contour_points : nullptr))
+      if (!merge_tuple_variations (optimize ? contour_points : nullptr, preserve_constants))
         return false;
 
       if (optimize && !iup_optimize (*contour_points, scratch)) return false;
@@ -1852,7 +1854,8 @@ struct item_variations_t
                     bool optimize=true,
                     bool use_no_variation_idx=true,
                     const hb_array_t <const hb_inc_bimap_t> inner_maps = hb_array_t<const hb_inc_bimap_t> (),
-                    bool layout_conditions = false)
+                    bool layout_conditions = false,
+                    bool preserve_constants = false)
   {
     if (!create_from_item_varstore (varStore, plan->axes_old_index_tag_map, inner_maps))
       return false;
@@ -1861,7 +1864,7 @@ struct item_variations_t
       for (tuple_variations_t& tuple_vars : vars)
 	tuple_vars.cull_unreachable (plan->avar2_reachable_ranges);
     if (!instantiate_tuple_vars (plan->axes_location, plan->axes_triple_distances,
-                                 !layout_conditions))
+                                 !layout_conditions, preserve_constants))
       return false;
     if (layout_conditions &&
         (!instantiate_condition_values (plan, varStore) || !build_region_list ()))
@@ -2023,11 +2026,13 @@ struct item_variations_t
 
   bool instantiate_tuple_vars (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
-                               bool build_regions = true)
+                               bool build_regions = true,
+                               bool preserve_constants = false)
   {
     optimize_scratch_t scratch;
     for (tuple_variations_t& tuple_vars : vars)
-      if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances, scratch))
+      if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances, scratch,
+                                   nullptr, nullptr, false, preserve_constants))
         return false;
 
     return !build_regions || build_region_list ();

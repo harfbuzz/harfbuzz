@@ -125,7 +125,9 @@ static void _colr_closure (hb_subset_plan_t* plan,
 
   //closure for COLRv1
   hb_set_t variation_indices, delta_set_indices;
-  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices, &delta_set_indices);
+  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices, &delta_set_indices,
+                     plan->all_axes_pinned ? hb_array_t<const int> () : plan->normalized_coords.as_array (),
+                     &plan->colr_preserve_default_deltas);
 
   colr.closure_V0palette_indices (glyphs_colred, &palette_indices);
   remap_indexes (&layer_indices, &plan->colrv1_layers);
@@ -135,6 +137,13 @@ static void _colr_closure (hb_subset_plan_t* plan,
   if (!colr.has_var_store () || !variation_indices) return;
 
   const OT::ItemVariationStore &var_store = colr.get_var_store ();
+  if (plan->pinned_at_default && plan->normalized_coords)
+    for (unsigned index : variation_indices)
+      if (var_store.get_delta<float> (index, plan->normalized_coords.as_array ()) != 0.f)
+      {
+        plan->colr_has_default_deltas = true;
+        break;
+      }
   // generated inner_maps is used by ItemVariationStore serialize(), which is subset only
   unsigned subtable_count = var_store.get_sub_table_count ();
   generate_varstore_inner_maps (variation_indices, subtable_count, plan->colrv1_varstore_inner_maps);
@@ -670,6 +679,8 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   all_axes_pinned = false;
   pinned_at_default = true;
   has_gdef_varstore = false;
+  colr_preserve_default_deltas = false;
+  colr_has_default_deltas = false;
   has_avar2 = false;
 
 #ifdef HB_EXPERIMENTAL_API
