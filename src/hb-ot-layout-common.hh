@@ -4198,7 +4198,7 @@ struct ItemVarStoreInstancer
       varStore = &Null(ItemVariationStore);
   }
 
-  operator bool () const { return varStore && bool (coords); }
+  operator bool () const { return varStore != &Null(ItemVariationStore); }
 
   float operator[] (uint32_t varIdx) const
   { return (*this) (varIdx); }
@@ -4212,10 +4212,10 @@ struct ItemVarStoreInstancer
   template <typename Float = float>
   Float get_delta (uint32_t varIdx, unsigned short offset = 0) const
   {
-   /* Keep the empty-coordinate shortcut for ordinary stores, even though
-    * zero-axis regions could still contribute constant deltas. */
-   if (!coords || varIdx == VarIdx::NO_VARIATION)
-     return Float (0);
+    /* Missing coordinates are at the default. Regions that ignore every
+     * axis can still contribute a nonzero delta there. */
+    if (varIdx == VarIdx::NO_VARIATION)
+      return Float (0);
 
     varIdx += offset;
     if (varIdxMap)

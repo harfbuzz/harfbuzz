@@ -266,6 +266,44 @@ test_subset_colr_constant_default (void)
   hb_face_destroy (face);
 }
 
+static void
+record_alpha (hb_paint_funcs_t *funcs HB_UNUSED,
+              void *paint_data,
+              hb_bool_t foreground HB_UNUSED,
+              hb_color_t color,
+              void *user_data HB_UNUSED)
+{
+  *(unsigned *) paint_data = hb_color_get_alpha (color);
+}
+
+static void
+test_subset_colr_default_paint (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-constant-bias.ttf");
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_color_func (funcs, record_alpha, NULL, NULL);
+  for (unsigned composed = 0; composed < 2; composed++)
+  {
+    hb_face_t *source = composed ? instance_colr (face, 0, 0, true, false) : hb_face_reference (face);
+    hb_font_t *font = hb_font_create (source);
+    for (unsigned explicit_coords = 0; explicit_coords < 2; explicit_coords++)
+    {
+      if (explicit_coords)
+      {
+        const int coords[] = {0, 0};
+        hb_font_set_var_coords_normalized (font, coords, composed ? 1 : 2);
+      }
+      unsigned alpha = 999;
+      hb_font_paint_glyph (font, 1, funcs, &alpha, 0, HB_COLOR (0, 0, 0, 255));
+      g_assert_cmpuint (alpha, ==, 255);
+    }
+    hb_font_destroy (font);
+    hb_face_destroy (source);
+  }
+  hb_paint_funcs_destroy (funcs);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -278,6 +316,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_wide_scales);
   hb_test_add (test_subset_colr_partial_overflow);
   hb_test_add (test_subset_colr_constant_default);
+  hb_test_add (test_subset_colr_default_paint);
 
   return hb_test_run();
 }
