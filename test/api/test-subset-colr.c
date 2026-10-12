@@ -396,6 +396,51 @@ test_subset_colr_affine_values (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_colr_sentinel_map_without_variations (void)
+{
+  const char *fonts[] = {
+    "fonts/colr-null-store-sentinel-map.ttf",
+    "fonts/colr-empty-store-sentinel-map.ttf"
+  };
+  for (unsigned f = 0; f < G_N_ELEMENTS (fonts); f++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[f]);
+    for (unsigned axes = 0; axes <= 3; axes++)
+    {
+      hb_face_t *subset = instance_colr_at (face, axes, 1);
+      hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','O','L','R'));
+      unsigned length;
+      const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+      g_assert_cmpuint (length, >=, 34);
+      unsigned list = read_uint_be (data + 14, 4);
+      g_assert_cmpuint (list + 10, <=, length);
+      g_assert_cmpuint (read_uint_be (data + list, 4), ==, 1);
+      unsigned paint = list + read_uint_be (data + list + 6, 4);
+      g_assert_cmpuint (paint + 16, <=, length);
+      g_assert_cmpuint (data[paint], ==, axes == 3 ? 6 : 7);
+      g_assert_cmpuint (read_uint_be (data + paint + 8, 2), ==, 10);
+      g_assert_cmpuint (read_uint_be (data + paint + 10, 2), ==, 100);
+      g_assert_cmpuint (read_uint_be (data + paint + 14, 2), ==, 20);
+      unsigned line = paint + read_uint_be (data + paint + 1, 3);
+      unsigned stride = axes == 3 ? 6 : 10;
+      g_assert_cmpuint (line + 3 + 2 * stride, <=, length);
+      g_assert_cmpuint (data[line], ==, 0);
+      g_assert_cmpuint (read_uint_be (data + line + 1, 2), ==, 2);
+      for (unsigned stop = 0; stop < 2; stop++)
+      {
+        unsigned at = line + 3 + stop * stride;
+        g_assert_cmpuint (read_uint_be (data + at, 2), ==, stop * 16384);
+        g_assert_cmpuint (read_uint_be (data + at + 2, 2), ==, stop);
+        g_assert_cmpuint (read_uint_be (data + at + 4, 2), ==, 16384);
+      }
+      hb_blob_destroy (blob);
+      hb_face_destroy (subset);
+    }
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -410,6 +455,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_negative_radii);
   hb_test_add (test_subset_colr_negative_radii_precision);
   hb_test_add (test_subset_colr_affine_values);
+  hb_test_add (test_subset_colr_sentinel_map_without_variations);
 
   return hb_test_run();
 }
