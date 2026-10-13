@@ -81,6 +81,80 @@ main (int argc, char **argv)
     hb_always_assert (v[1] == "two");
   }
 
+  /* Test pushing an element of the vector itself while it grows. */
+  {
+    hb_vector_t<int> v {7};
+    for (unsigned i = 0; i < 1000; i++)
+      v.push (v.arrayZ[0]);
+    hb_always_assert (v.length == 1001);
+    for (unsigned i = 0; i < v.length; i++)
+      hb_always_assert (v[i] == 7);
+  }
+  {
+    hb_vector_t<std::string> v;
+    v.push (std::string ("a string longer than the small-string buffer"));
+    for (unsigned i = 0; i < 1000; i++)
+      v.push (v.arrayZ[i]);
+    hb_always_assert (v.length == 1001);
+    for (unsigned i = 0; i < v.length; i++)
+      hb_always_assert (v[i] == "a string longer than the small-string buffer");
+  }
+  {
+    hb_vector_t<hb_vector_t<int>> v;
+    v.push (hb_vector_t<int> {1, 2, 3});
+    for (unsigned i = 0; i < 1000; i++)
+      v.push (v.arrayZ[0]);
+    hb_always_assert (v.length == 1001);
+    for (unsigned i = 0; i < v.length; i++)
+      hb_always_assert (v[i].length == 3 && v[i][2] == 3);
+  }
+  {
+    hb_vector_t<hb_vector_t<int>> v {hb_vector_t<int> {1, 2, 3}};
+    v.push (std::move (v[0]));
+    hb_always_assert (v.length == 2 && v[0].length == 0);
+    hb_always_assert (v[1].length == 3 && v[1][2] == 3);
+  }
+  {
+    hb_vector_t<std::string> v {"one"};
+    v.push (3, v[0][0]);
+    hb_always_assert (v.length == 2);
+    hb_always_assert (v[0] == "one" && v[1] == "ooo");
+  }
+  {
+    hb_vector_t<int> v {1, 2, 3};
+    v.extend (v.as_array ());
+    hb_always_assert (v.length == 6);
+    hb_always_assert (v[3] == 1 && v[4] == 2 && v[5] == 3);
+  }
+  {
+    hb_vector_t<int> v {1, 2, 3};
+    v.extend (hb_array_t<const int> (v.arrayZ + 1, 2));
+    hb_always_assert (v.length == 5);
+    hb_always_assert (v[3] == 2 && v[4] == 3);
+  }
+  {
+    hb_vector_t<std::string> v {"one", "two", "three"};
+    v.extend (v.as_array ());
+    hb_always_assert (v.length == 6);
+    for (unsigned i = 0; i < 3; i++)
+      hb_always_assert (v[i] == v[i + 3]);
+  }
+  {
+    hb_vector_t<std::string> v {"one", "two", "three"};
+    v.extend (v);
+    hb_always_assert (v.length == 6);
+    for (unsigned i = 0; i < 3; i++)
+      hb_always_assert (v[i] == v[i + 3]);
+  }
+
+  /* A failed vector must not move from an aliased argument. */
+  {
+    hb_vector_t<std::string> v {"one"};
+    v.set_error ();
+    hb_always_assert (!v.push_or_fail (std::move (v[0])));
+    hb_always_assert (v.length == 1 && v[0] == "one");
+  }
+
   /* Test move constructor. */
   {
     hb_vector_t<int> s {1, 2};
