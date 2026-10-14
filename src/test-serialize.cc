@@ -183,7 +183,8 @@ test_lookup_condition_resolution ()
     OT::ItemVarStoreInstancer instancer (nullptr, nullptr, hb_array (coords));
     hb_vector_t<unsigned> state;
     hb_always_assert (variations.collect_lookup_conditions (coords, 2, &instancer, &state));
-    hb_always_assert (state.length == !!(mask & 1) + !!(mask & 2));
+    unsigned condition_count = !!(mask & 1) + !!(mask & 2);
+    hb_always_assert (state.length == condition_count);
     if (mask == 3)
       hb_always_assert (state[0] == 92 && state[1] == 100);
 
