@@ -716,6 +716,85 @@ test_synthetic_glyph_extents_overflow (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
+static void
+test_font_set_face (void)
+{
+  hb_face_t *face1 = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face2 = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
+  hb_font_t *font = hb_font_create (face1);
+  hb_codepoint_t glyph1, glyph2, glyph;
+  char name[32];
+
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph1));
+  g_assert_true (hb_font_get_glyph_h_advance (font, glyph1));
+
+  /* The font holds the last reference to face1, so setting a new face
+   * frees it; the font funcs must use the new face from then on. */
+  hb_face_destroy (face1);
+  hb_font_set_face (font, face2);
+
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  hb_font_t *font2 = hb_font_create (face2);
+  g_assert_true (hb_font_get_nominal_glyph (font2, 'a', &glyph2));
+  g_assert_cmpuint (glyph, ==, glyph2);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==,
+		   hb_font_get_glyph_h_advance (font2, glyph2));
+  g_assert_true (hb_font_get_glyph_name (font, glyph, name, sizeof (name)));
+  g_assert_cmpstr (name, ==, "a");
+
+  hb_font_destroy (font2);
+  hb_font_destroy (font);
+  hb_face_destroy (face2);
+}
+
+static hb_bool_t
+_set_face_nominal_glyph_func (hb_font_t *font HB_UNUSED,
+			      void *font_data HB_UNUSED,
+			      hb_codepoint_t unicode HB_UNUSED,
+			      hb_codepoint_t *glyph,
+			      void *user_data HB_UNUSED)
+{
+  *glyph = 1234;
+  return TRUE;
+}
+
+static void
+_set_face_destroy (void *data)
+{
+  /* Font data may point into the old face without holding a reference;
+   * the face must still be alive when the data is released. */
+  hb_face_t *face = (hb_face_t *) data;
+  g_assert_cmpuint (hb_face_get_glyph_count (face), >, 0);
+}
+
+static void
+test_font_set_face_custom_funcs (void)
+{
+  hb_face_t *face1 = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face2 = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
+  hb_font_t *font = hb_font_create (face1);
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_codepoint_t glyph;
+
+  hb_font_funcs_set_nominal_glyph_func (ffuncs, _set_face_nominal_glyph_func, NULL, NULL);
+  hb_font_set_funcs (font, ffuncs, face1, _set_face_destroy);
+  hb_font_funcs_destroy (ffuncs);
+
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpuint (glyph, ==, 1234);
+
+  /* Custom font funcs belong to the old face; setting a new face
+   * releases them and installs the default ones for the new face. */
+  hb_face_destroy (face1);
+  hb_font_set_face (font, face2);
+
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpuint (glyph, !=, 1234);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face2);
+}
+
 #ifdef HAVE_FONTATIONS
 typedef struct {
   hb_font_t *font;
@@ -1125,6 +1204,8 @@ main (int argc, char **argv)
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
+  hb_test_add (test_font_set_face);
+  hb_test_add (test_font_set_face_custom_funcs);
 #ifdef HAVE_FONTATIONS
   hb_test_add (test_fontations_glyph_from_name_threads);
   hb_test_add (test_fontations_scale_changes);

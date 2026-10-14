@@ -1,4 +1,8 @@
 - Support instancing axes not referenced by retained `VARC` data.
+- Fix stale face data and possible use-after-free in hb_font_set_face().
+  Changing the face now releases the font functions and their data and
+  installs the default font functions for the new face. Other font
+  properties are preserved.
 
 
 Overview of changes leading to 14.6.0
