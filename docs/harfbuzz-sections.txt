@@ -392,6 +392,7 @@ hb_font_funcs_set_paint_glyph_func
 hb_font_get_glyph_v_kerning
 hb_font_get_glyph_v_kerning_func_t
 HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
+hb_font_set_face
 hb_directwrite_face_get_font_face
 hb_directwrite_font_get_dw_font
 hb_ft_font_get_face
@@ -474,7 +475,6 @@ hb_font_set_user_data
 hb_font_get_user_data
 hb_font_make_immutable
 hb_font_is_immutable
-hb_font_set_face
 hb_font_get_face
 hb_font_get_glyph
 hb_font_get_glyph_advance_for_direction

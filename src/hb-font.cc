@@ -2469,6 +2469,7 @@ hb_font_get_parent (hb_font_t *font)
   return font->parent;
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_font_set_face:
  * @font: #hb_font_t to work upon
@@ -2482,6 +2483,7 @@ hb_font_get_parent (hb_font_t *font)
  * font properties, such as scale and variations, are kept.
  *
  * Since: 1.4.3
+ * XDeprecated: REPLACEME: Use hb_font_create() instead.
  **/
 void
 hb_font_set_face (hb_font_t *font,
@@ -2511,6 +2513,7 @@ hb_font_set_face (hb_font_t *font,
   font->changed ();
   font->serial_coords = font->serial;
 }
+#endif
 
 /**
  * hb_font_get_face:

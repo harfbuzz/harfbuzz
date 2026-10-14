@@ -3,6 +3,8 @@
   Changing the face now releases the font functions and their data and
   installs the default font functions for the new face. Other font
   properties are preserved.
+- Deprecate hb_font_set_face(). Use hb_font_create() to create a new font
+  instead.
 
 
 Overview of changes leading to 14.6.0
