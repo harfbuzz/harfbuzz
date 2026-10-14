@@ -716,6 +716,15 @@ test_synthetic_glyph_extents_overflow (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
+#ifndef HB_DISABLE_DEPRECATED
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#pragma warning (push)
+#pragma warning (disable: 4996)
+#endif
+
 static void
 test_font_set_face (void)
 {
@@ -794,6 +803,13 @@ test_font_set_face_custom_funcs (void)
   hb_font_destroy (font);
   hb_face_destroy (face2);
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning (pop)
+#endif
+#endif
 
 #ifdef HAVE_FONTATIONS
 typedef struct {
@@ -1204,8 +1220,10 @@ main (int argc, char **argv)
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
+#ifndef HB_DISABLE_DEPRECATED
   hb_test_add (test_font_set_face);
   hb_test_add (test_font_set_face_custom_funcs);
+#endif
 #ifdef HAVE_FONTATIONS
   hb_test_add (test_fontations_glyph_from_name_threads);
   hb_test_add (test_fontations_scale_changes);
