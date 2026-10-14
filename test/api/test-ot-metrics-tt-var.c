@@ -244,6 +244,32 @@ test_advance_tt_var_gvar_infer (void)
   hb_font_destroy (font);
 }
 
+static void
+test_advance_tt_var_hvar_long_deltas (void)
+{
+  /* hvar-long-deltas.ttf has an HVAR whose item-variation store uses
+   * long-word (int32) advance deltas across three regions that all peak at
+   * the axis maximum.  At that location the summed advance delta is about
+   * 6e9, so advance + roundf (delta) exceeds the unsigned range; converting
+   * that float to unsigned in get_advance_with_var_unscaled was undefined
+   * behavior.  The value is now saturated instead. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/hvar-long-deltas.ttf");
+  g_assert_true (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert_true (font);
+
+  /* At the default location the delta is zero. */
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==, 500);
+
+  /* At the axis extreme the summed delta overflows; the result is clamped. */
+  float coords[1] = { 1.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==, -1);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -256,6 +282,7 @@ main (int argc, char **argv)
   hb_test_add (test_extents_tt_var_comp);
   hb_test_add (test_advance_tt_var_comp_v);
   hb_test_add (test_advance_tt_var_gvar_infer);
+  hb_test_add (test_advance_tt_var_hvar_long_deltas);
 
   return hb_test_run ();
 }
