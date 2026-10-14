@@ -2476,6 +2476,11 @@ hb_font_get_parent (hb_font_t *font)
  *
  * Sets @face as the font-face value of @font.
  *
+ * Font functions and their data may hold pointers into the old face,
+ * so the font functions of @font are released and replaced with the
+ * default ones for @face, as hb_font_create() would set up.  Other
+ * font properties, such as scale and variations, are kept.
+ *
  * Since: 1.4.3
  **/
 void
@@ -2496,6 +2501,10 @@ hb_font_set_face (hb_font_t *font,
   hb_face_make_immutable (face);
   font->face = hb_face_reference (face);
   font->changed ();
+
+  /* Release the old font funcs while the old face is still alive. */
+  hb_font_set_funcs (font, nullptr, nullptr, nullptr);
+  hb_font_set_funcs_using (font, nullptr);
 
   hb_face_destroy (old);
 
