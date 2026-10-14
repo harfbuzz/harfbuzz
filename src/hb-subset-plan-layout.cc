@@ -109,6 +109,7 @@ static bool
 _collect_instanced_lookup_variations (
     hb_subset_plan_t *plan,
     const T& table,
+    const hb_set_t *feature_indices,
     hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *lookup_variations)
 {
   hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
@@ -127,20 +128,16 @@ _collect_instanced_lookup_variations (
   if (unlikely (!success || state.in_error ()))
     return plan->check_success (false);
 
-  unsigned i = 0;
-  while (i < state.length)
+  const auto &variations = table.get_feature_variations ();
+  for (const auto &record : variations.get_lookup_variation_records ())
   {
-    if (unlikely (state.length - i < 2))
-      return plan->check_success (false);
-
-    unsigned feature_index = state[i++];
-    unsigned lookup_count = state[i++];
-    if (unlikely (lookup_count > state.length - i))
-      return plan->check_success (false);
+    unsigned feature_index = record.get_feature_index ();
+    if (!feature_indices->has (feature_index)) continue;
 
     hb::shared_ptr<hb_set_t> lookups {hb_set_create ()};
-    for (unsigned end = i + lookup_count; i < end; i++)
-      lookups->add (state[i]);
+    record.collect_lookups (&variations,
+                           table.get_feature_variation (feature_index, variations_index),
+                           state.as_sorted_array (), lookups);
 
     if (unlikely (lookups->in_error () ||
 		  !lookup_variations->set (feature_index, lookups)))
@@ -215,7 +212,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
 
 #ifndef HB_NO_VAR
   if (plan->all_axes_pinned &&
-      !_collect_instanced_lookup_variations (plan, table, lookup_variations))
+      !_collect_instanced_lookup_variations (plan, table, feature_indices, lookup_variations))
     return;
 #endif
 

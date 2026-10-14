@@ -88,6 +88,125 @@ test_null_condition ()
 }
 
 static void
+test_lookup_condition_sharing ()
+{
+  const unsigned feature_count = 10922, lookup_count = 402;
+  const unsigned table_offset = 12 + 6 * feature_count;
+  const unsigned condition_offset = table_offset + 20 + 2 * lookup_count;
+  hb_vector_t<char> data;
+  hb_always_assert (data.resize (condition_offset + 8));
+  hb_memset (data.arrayZ, 0, data.length);
+  auto put16 = [&data] (unsigned offset, unsigned value)
+  {
+    data[offset] = value >> 8;
+    data[offset + 1] = value;
+  };
+  auto put32 = [&put16] (unsigned offset, unsigned value)
+  {
+    put16 (offset, value >> 16);
+    put16 (offset + 2, value);
+  };
+  put32 (0, 0x00010001);
+  put32 (8, feature_count);
+  for (unsigned i = 0; i < feature_count; i++)
+  {
+    put16 (12 + 6 * i, i);
+    put32 (14 + 6 * i, table_offset);
+  }
+  put32 (table_offset, 0x00010000);
+  put32 (table_offset + 6, 1); /* LookupConditionRecord count */
+  put32 (table_offset + 10, condition_offset - table_offset);
+  put32 (table_offset + 14, 18); /* LookupIndexList offset */
+  put16 (table_offset + 18, lookup_count);
+  for (unsigned i = 0; i < lookup_count; i++)
+    put16 (table_offset + 20 + 2 * i, i);
+  put16 (condition_offset, 2); /* Constant true ConditionValue */
+  put16 (condition_offset + 2, 1);
+  put32 (condition_offset + 4, OT::VarIdx::NO_VARIATION);
+
+  const auto &variations = *reinterpret_cast<const OT::FeatureVariations *> (data.arrayZ);
+  OT::ItemVarStoreInstancer instancer (nullptr, nullptr, hb_array_t<const int> ());
+  hb_vector_t<unsigned> state;
+  hb_always_assert (variations.collect_lookup_conditions (nullptr, 0, &instancer, &state));
+  hb_always_assert (state.length == 1 && state[0] == condition_offset);
+
+  for (unsigned feature_index : {0u, feature_count - 1})
+  {
+    hb_set_t lookups;
+    hb_always_assert (variations.get_lookup_variations (
+        feature_index, Null (OT::Feature), state.as_sorted_array (), &lookups));
+    hb_always_assert (lookups.get_population () == lookup_count);
+    hb_always_assert (lookups.get_min () == 0 && lookups.get_max () == lookup_count - 1);
+  }
+
+  /* Null conditions need no state, even when thousands of records use them. */
+  put32 (table_offset + 10, 0);
+  state.reset ();
+  hb_always_assert (variations.collect_lookup_conditions (nullptr, 0, &instancer, &state));
+  hb_always_assert (!state.length);
+  hb_set_t lookups;
+  hb_always_assert (variations.get_lookup_variations (
+      0, Null (OT::Feature), state.as_sorted_array (), &lookups));
+  hb_always_assert (lookups.get_population () == lookup_count);
+
+  put32 (table_offset + 10, condition_offset - table_offset);
+  state.set_error (); /* Simulate failure allocating the condition key. */
+  hb_always_assert (!variations.collect_lookup_conditions (nullptr, 0, &instancer, &state));
+}
+
+static void
+test_lookup_condition_resolution ()
+{
+  static const char data[] = {
+    0, 1, 0, 1, 0, 0, 0, 0,     /* FeatureVariations 1.1, no 1.0 records */
+    0, 0, 0, 2,                 /* LookupVariationRecord count */
+    0, 0, 0, 0, 0, 24,          /* Feature 0 */
+    0, 1, 0, 0, 0, 50,          /* Feature 1 */
+    0, 1, 0, 0, 0, 1, 0, 0, 0, 2, /* ADD_DEFAULT_LOOKUPS, two conditions */
+    0, 0, 0, 0, 0, 0, 0, 52,    /* Null condition, list A */
+    0, 0, 0, 76, 0, 0, 0, 60,   /* Axis 0 condition, list B */
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 2, /* Two conditions, no default lookups */
+    0, 0, 0, 42, 0, 0, 0, 34,   /* Axis 1 condition, list B */
+    0, 0, 0, 50, 0, 0, 0, 26,   /* Shared axis 0 condition, list A */
+    0, 3, 0, 1, 0, 2, 0, 3,     /* List A: 1, 2, 3 */
+    0, 3, 0, 3, 0, 4, 0, 5,     /* List B: 3, 4, 5 */
+    0, 1, 0, 1, 0x20, 0, 0x40, 0, /* Axis 1: [0.5, 1] */
+    0, 1, 0, 0, 0x20, 0, 0x40, 0, /* Axis 0: [0.5, 1] */
+  };
+  static const char feature_data[] = {0, 0, 0, 2, 0, 0, 0, 6};
+  const auto &variations = *reinterpret_cast<const OT::FeatureVariations *> (data);
+  const auto &feature = *reinterpret_cast<const OT::Feature *> (feature_data);
+
+  for (unsigned mask = 0; mask < 4; mask++)
+  {
+    int coords[] = {mask & 1 ? 16384 : 0, mask & 2 ? 16384 : 0};
+    OT::ItemVarStoreInstancer instancer (nullptr, nullptr, hb_array (coords));
+    hb_vector_t<unsigned> state;
+    hb_always_assert (variations.collect_lookup_conditions (coords, 2, &instancer, &state));
+    hb_always_assert (state.length == !!(mask & 1) + !!(mask & 2));
+    if (mask == 3)
+      hb_always_assert (state[0] == 92 && state[1] == 100);
+
+    hb_set_t lookups;
+    hb_always_assert (variations.get_lookup_variations (
+        0, feature, state.as_sorted_array (), &lookups));
+    hb_always_assert (lookups.get_population () == (mask & 1 ? 7 : 5));
+    hb_always_assert (lookups.has (0) && lookups.has (6));
+    hb_always_assert (lookups.has (4) == !!(mask & 1));
+
+    lookups.clear ();
+    hb_always_assert (variations.get_lookup_variations (
+        1, feature, state.as_sorted_array (), &lookups));
+    hb_always_assert (lookups.get_population () == (mask == 3 ? 5 : mask ? 3 : 0));
+    hb_always_assert (!lookups.has (0) && !lookups.has (6));
+    hb_always_assert (lookups.has (1) == !!(mask & 1));
+    hb_always_assert (lookups.has (5) == !!(mask & 2));
+    hb_always_assert (!variations.get_lookup_variations (
+        2, feature, state.as_sorted_array (), &lookups));
+  }
+}
+
+static void
 test_medium_rule ()
 {
   static const char data[] = {
@@ -211,6 +330,8 @@ int
 main (int argc, char **argv)
 {
   test_null_condition ();
+  test_lookup_condition_sharing ();
+  test_lookup_condition_resolution ();
   test_medium_rule ();
   test_medium_chain_rule ();
   test_device_only_value ();
