@@ -100,12 +100,8 @@ struct SinglePosFormat1_3 : ValueBase
     unsigned int index = (this+coverage).get_coverage  (gid);
     if (likely (index == NOT_COVERED)) return false;
 
-    /* This is ugly... */
-    hb_buffer_t buffer {};
-    buffer.props.direction = direction;
-    OT::hb_ot_apply_context_t c (1, font, &buffer, table_blob);
-
-    valueFormat.apply_value (&c, this, values, pos);
+    valueFormat.position_single (font, table_blob, direction, this,
+                                 values, pos);
     return true;
   }
 
