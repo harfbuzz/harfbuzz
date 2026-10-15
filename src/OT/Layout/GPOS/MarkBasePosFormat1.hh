@@ -58,22 +58,10 @@ struct MarkBasePosFormat1_2
     hb_map_t klass_mapping;
     Markclass_closure_and_remap_indexes (this+markCoverage, this+markArray, *c->glyph_set, &klass_mapping);
 
-    unsigned basecount = (this+baseArray).rows;
-    auto base_iter =
-    + hb_zip (this+baseCoverage, hb_range (basecount))
-    | hb_filter (c->glyph_set, hb_first)
-    | hb_map (hb_second)
-    ;
-
     hb_sorted_vector_t<unsigned> base_indexes;
-    for (const unsigned row : base_iter)
-    {
-      + hb_range ((unsigned) classCount)
-      | hb_filter (klass_mapping)
-      | hb_map ([&] (const unsigned col) { return row * (unsigned) classCount + col; })
-      | hb_sink (base_indexes)
-      ;
-    }
+    collect_anchor_indexes (this+baseCoverage, (this+baseArray).rows,
+                            classCount, *c->glyph_set, klass_mapping,
+                            base_indexes);
     (this+baseArray).collect_variation_indices (c, base_indexes.iter ());
   }
 

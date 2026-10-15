@@ -157,6 +157,21 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
+  void position_single (hb_font_t *font,
+                        hb_blob_t *table_blob,
+                        hb_direction_t direction,
+                        const ValueBase *base,
+                        const Value *values,
+                        hb_glyph_position_t &pos) const
+  {
+    /* This is ugly... */
+    hb_buffer_t buffer {};
+    buffer.props.direction = direction;
+    hb_ot_apply_context_t c (1, font, &buffer, table_blob);
+
+    apply_value (&c, base, values, pos);
+  }
+
   unsigned int get_effective_format (const Value *values, bool strip_hints, bool strip_empty, const ValueBase *base,
                                      const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
