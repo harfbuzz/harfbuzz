@@ -625,7 +625,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 	for (unsigned r = 0; r < k_new; r++)
 	{
 	  number_t v;
-	  v.set_int ((int) round (t->transform_delta (r, arg1.deltas.as_array ())));
+	  v.set_int (hb_clamp_to<int> (round (t->transform_delta (r, arg1.deltas.as_array ()))));
 	  encoder.encode_num_cs (v);
 	}
       }
@@ -915,7 +915,7 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
 	  for (unsigned r = 0; r < k_new; r++)
 	  {
 	    number_t v;
-	    v.set_int ((int) round (t->transform_delta (r, blends)));
+	    v.set_int (hb_clamp_to<int> (round (t->transform_delta (r, blends))));
 	    encoder.encode_num_tp (v);
 	  }
 	}

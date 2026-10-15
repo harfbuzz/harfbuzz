@@ -63,6 +63,31 @@ test_instance_cff2 (void)
 }
 
 
+static void
+test_instance_cff2_private_blend_overflow (void)
+{
+  /* StdVW blend delta of 1e12; partial instancing must not convert the
+   * transformed delta to int out of range. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.huge-blend.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 97);
+
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_set_destroy (codepoints);
+  g_assert_true (hb_subset_input_set_axis_range (input, face,
+						 HB_TAG ('w', 'g', 'h', 't'),
+						 300, 600, 300));
+
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  g_assert_nonnull (subset);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
+
 
 int
 main (int argc, char **argv)
@@ -70,6 +95,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_instance_cff2);
+  hb_test_add (test_instance_cff2_private_blend_overflow);
 
   return hb_test_run();
 }
