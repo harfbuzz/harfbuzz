@@ -110,10 +110,10 @@ struct SinglePosFormat1_3 : ValueBase
   }
 
   template<typename Iterator,
-      typename SrcLookup,
       hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-                  const SrcLookup *src,
+                  const ValueBase *src,
+                  ValueFormat src_format,
                   Iterator it,
                   ValueFormat newFormat,
                   const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map)
@@ -125,7 +125,7 @@ struct SinglePosFormat1_3 : ValueBase
 
     for (const hb_array_t<const Value>& _ : + it | hb_map (hb_second))
     {
-      src->get_value_format ().copy_values (c, newFormat, src,  &_, layout_variation_idx_delta_map);
+      src_format.copy_values (c, newFormat, src,  &_, layout_variation_idx_delta_map);
       // Only serialize the first entry in the iterator, the rest are assumed to
       // be the same.
       break;
@@ -179,7 +179,7 @@ struct SinglePosFormat1_3 : ValueBase
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, &c->plan->layout_variation_idx_delta_map, new_format);
+    SinglePos_serialize (c->serializer, this, valueFormat, it, &c->plan->layout_variation_idx_delta_map, new_format);
     return_trace (ret);
   }
 };
