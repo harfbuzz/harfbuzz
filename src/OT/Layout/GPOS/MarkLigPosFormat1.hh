@@ -203,7 +203,7 @@ struct MarkLigPosFormat1_2
     out->classCount = klass_mapping.get_population ();
 
     auto mark_iter =
-    + hb_zip (this+markCoverage, this+markArray)
+    + hb_zip (this+markCoverage, hb_range ((unsigned) (this+markArray).len))
     | hb_filter (glyphset, hb_first)
     ;
 
