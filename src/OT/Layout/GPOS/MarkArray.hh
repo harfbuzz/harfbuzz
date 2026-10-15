@@ -147,21 +147,22 @@ struct MarkArray : Types::template ArrayOf<MarkRecord<Types>>
   }
 };
 
-template <typename Types>
 HB_INTERNAL inline
-void Markclass_closure_and_remap_indexes (const Coverage     &mark_coverage,
-                                          const MarkArray<Types> &mark_array,
-                                          const hb_set_t     &glyphset,
-                                          hb_map_t*           klass_mapping /* INOUT */)
+void Markclass_closure_and_remap_indexes (const Coverage &mark_coverage,
+                                    const void *mark_records,
+                                    unsigned count,
+                                    unsigned record_size,
+                                    const hb_set_t &glyphset,
+                                    hb_map_t *klass_mapping)
 {
   hb_set_t orig_classes;
-
-  + hb_zip (mark_coverage, mark_array)
-  | hb_filter (glyphset, hb_first)
-  | hb_map (hb_second)
-  | hb_map (&MarkRecord<Types>::get_class)
-  | hb_sink (orig_classes)
-  ;
+  for (const auto _ : hb_zip (mark_coverage, hb_range (count)))
+    if (glyphset.has (_.first))
+    {
+      const auto *klass = reinterpret_cast<const HBUINT16 *>
+        ((const char *) mark_records + _.second * record_size);
+      orig_classes.add (*klass);
+    }
 
   unsigned idx = 0;
   for (auto klass : orig_classes.iter ())
@@ -170,6 +171,19 @@ void Markclass_closure_and_remap_indexes (const Coverage     &mark_coverage,
     klass_mapping->set (klass, idx);
     idx++;
   }
+}
+
+template <typename Types>
+HB_INTERNAL inline
+void Markclass_closure_and_remap_indexes (const Coverage     &mark_coverage,
+                                          const MarkArray<Types> &mark_array,
+                                          const hb_set_t     &glyphset,
+                                          hb_map_t*           klass_mapping /* INOUT */)
+{
+  Markclass_closure_and_remap_indexes (mark_coverage,
+                                       mark_array.arrayZ, mark_array.len,
+                                       MarkRecord<Types>::static_size,
+                                       glyphset, klass_mapping);
 }
 
 }
