@@ -82,6 +82,25 @@ overflow:
   return true;
 }
 
+HB_INTERNAL inline
+void collect_mark_variation_indices (hb_collect_variation_indices_context_t *c,
+                                    const Coverage &coverage,
+                                    const void *base,
+                                    glyph_data_t anchors,
+                                    unsigned count,
+                                    unsigned record_size)
+{
+  for (const auto _ : hb_zip (coverage, hb_range (count)))
+  {
+    if (!c->glyph_set->has (_.first)) continue;
+    glyph_data_t anchor = anchors;
+    anchor.data = (const char *) anchors.data + _.second * record_size;
+    unsigned offset = anchor[0];
+    if (offset)
+      StructAtOffset<const Anchor> (base, offset).collect_variation_indices (c);
+  }
+}
+
 template <typename Types>
 struct MarkArray : Types::template ArrayOf<MarkRecord<Types>>
                                                 /* Array of MarkRecords--in Coverage order */
@@ -92,6 +111,15 @@ struct MarkArray : Types::template ArrayOf<MarkRecord<Types>>
   {
     TRACE_SANITIZE (this);
     return_trace (Super::sanitize (c, this));
+  }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c,
+                                  const Coverage &coverage) const
+  {
+    if (!this->len) return;
+    collect_mark_variation_indices (c, coverage, this,
+                                   &this->arrayZ[0].markAnchor,
+                                   this->len, MarkRecord<Types>::static_size);
   }
 
   template <typename AnchorMatrixType>

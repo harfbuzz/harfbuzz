@@ -67,6 +67,71 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
   }
 }
 
+/* Keep class-matrix traversal independent of the source table width. */
+struct pair_pos_class_values_t
+{
+  const ValueBase *base;
+  const ValueRecord &values;
+  const ValueFormat &valueFormat1;
+  const ValueFormat &valueFormat2;
+  unsigned class1_count;
+  unsigned class2_count;
+
+  hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_map_t &klass1_map,
+                                                               const hb_map_t &klass2_map,
+                                                               bool strip_hints, bool strip_empty,
+                                                               const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map = nullptr) const
+  {
+    unsigned len1 = valueFormat1.get_len ();
+    unsigned len2 = valueFormat2.get_len ();
+    unsigned record_size = len1 + len2;
+
+    unsigned format1 = 0;
+    unsigned format2 = 0;
+
+    for (unsigned class1_idx : + hb_range (class1_count) | hb_filter (klass1_map))
+    {
+      for (unsigned class2_idx : + hb_range (class2_count) | hb_filter (klass2_map))
+      {
+        unsigned idx = (class1_idx * class2_count + class2_idx) * record_size;
+        format1 = format1 | valueFormat1.get_effective_format (&values[idx], strip_hints, strip_empty, base, varidx_delta_map);
+        format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1], strip_hints, strip_empty, base, varidx_delta_map);
+      }
+
+      if (!varidx_delta_map &&
+          format1 == valueFormat1 && format2 == valueFormat2)
+        break;
+    }
+
+    return hb_pair (format1, format2);
+  }
+
+  bool serialize (hb_subset_context_t *c,
+                  const hb_map_t &klass1_map,
+                  const hb_map_t &klass2_map,
+                  ValueFormat newFormat1,
+                  ValueFormat newFormat2) const
+  {
+    unsigned len1 = valueFormat1.get_len ();
+    unsigned len2 = valueFormat2.get_len ();
+    unsigned total_len = len1 + len2;
+    hb_vector_t<unsigned> class2_idxs (+ hb_range (class2_count) | hb_filter (klass2_map));
+    if (unlikely (!c->serializer->propagate_error (class2_idxs)))
+      return false;
+    for (unsigned class1_idx : + hb_range (class1_count) | hb_filter (klass1_map))
+    {
+      for (unsigned class2_idx : class2_idxs)
+      {
+        unsigned idx = (class1_idx * class2_count + class2_idx) * total_len;
+        valueFormat1.copy_values (c->serializer, newFormat1, base, &values[idx], &c->plan->layout_variation_idx_delta_map);
+        valueFormat2.copy_values (c->serializer, newFormat2, base, &values[idx + len1], &c->plan->layout_variation_idx_delta_map);
+      }
+    }
+
+    return true;
+  }
+};
+
 template <typename Types>
 struct PairPosFormat2_4 : ValueBase
 {
@@ -326,8 +391,8 @@ struct PairPosFormat2_4 : ValueBase
     out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, true, false);
     out->class2Count = klass2_map.get_population ();
 
-    unsigned len1 = valueFormat1.get_len ();
-    unsigned len2 = valueFormat2.get_len ();
+    pair_pos_class_values_t class_values {this, values, valueFormat1, valueFormat2,
+                                         class1Count, class2Count};
 
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
 
@@ -335,7 +400,7 @@ struct PairPosFormat2_4 : ValueBase
     {
       /* in case of full instancing, all var device flags will be dropped so no
        * need to strip hints here */
-      newFormats = compute_effective_value_formats (klass1_map, klass2_map, false, false, &c->plan->layout_variation_idx_delta_map);
+      newFormats = class_values.compute_effective_value_formats (klass1_map, klass2_map, false, false, &c->plan->layout_variation_idx_delta_map);
     }
     /* do not strip hints for VF */
     else if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
@@ -349,58 +414,18 @@ struct PairPosFormat2_4 : ValueBase
        * subsetting*/
       if (has_fvar && !c->plan->has_gdef_varstore)
         strip = true;
-      newFormats = compute_effective_value_formats (klass1_map, klass2_map, strip, true);
+      newFormats = class_values.compute_effective_value_formats (klass1_map, klass2_map, strip, true);
     }
 
     out->valueFormat1 = newFormats.first;
     out->valueFormat2 = newFormats.second;
 
-    unsigned total_len = len1 + len2;
-    hb_vector_t<unsigned> class2_idxs (+ hb_range ((unsigned) class2Count) | hb_filter (klass2_map));
-    if (unlikely (!c->serializer->propagate_error (class2_idxs)))
+    if (!class_values.serialize (c, klass1_map, klass2_map,
+                                 out->valueFormat1, out->valueFormat2))
       return_trace (false);
-    for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
-    {
-      for (unsigned class2_idx : class2_idxs)
-      {
-        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * total_len;
-        valueFormat1.copy_values (c->serializer, out->valueFormat1, this, &values[idx], &c->plan->layout_variation_idx_delta_map);
-        valueFormat2.copy_values (c->serializer, out->valueFormat2, this, &values[idx + len1], &c->plan->layout_variation_idx_delta_map);
-      }
-    }
 
     bool ret = out->coverage.serialize_subset(c, coverage, this);
     return_trace (out->class1Count && out->class2Count && ret);
-  }
-
-
-  hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_map_t& klass1_map,
-                                                                 const hb_map_t& klass2_map,
-                                                                 bool strip_hints, bool strip_empty,
-                                                                 const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map = nullptr) const
-  {
-    unsigned len1 = valueFormat1.get_len ();
-    unsigned len2 = valueFormat2.get_len ();
-    unsigned record_size = len1 + len2;
-
-    unsigned format1 = 0;
-    unsigned format2 = 0;
-
-    for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
-    {
-      for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
-      {
-        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * record_size;
-        format1 = format1 | valueFormat1.get_effective_format (&values[idx], strip_hints, strip_empty, this, varidx_delta_map);
-        format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1], strip_hints, strip_empty, this, varidx_delta_map);
-      }
-
-      if (!varidx_delta_map &&
-          format1 == valueFormat1 && format2 == valueFormat2)
-        break;
-    }
-
-    return hb_pair (format1, format2);
   }
 };
 
