@@ -5,6 +5,21 @@ namespace OT {
 namespace Layout {
 namespace GPOS_impl {
 
+HB_INTERNAL inline
+void collect_anchor_indexes (const Coverage &coverage,
+                             unsigned rows,
+                             unsigned class_count,
+                             const hb_set_t &glyphset,
+                             const hb_map_t &klass_mapping,
+                             hb_sorted_vector_t<unsigned> &indexes)
+{
+  for (const auto _ : hb_zip (coverage, hb_range (rows)))
+    if (glyphset.has (_.first))
+      for (unsigned col = 0; col < class_count; col++)
+        if (klass_mapping.has (col))
+          indexes.push (_.second * class_count + col);
+}
+
 template <typename Types, typename RowCount=typename Types::HBUINT>
 struct AnchorMatrix
 {
