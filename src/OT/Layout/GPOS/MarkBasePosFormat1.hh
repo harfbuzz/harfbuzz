@@ -184,35 +184,13 @@ struct MarkBasePosFormat1_2
 						    &klass_mapping)))
       return_trace (false);
 
-    unsigned basecount = (this+baseArray).rows;
-    auto base_iter =
-    + hb_zip (this+baseCoverage, hb_range (basecount))
-    | hb_filter (glyphset, hb_first)
-    ;
-
     new_coverage.reset ();
     hb_sorted_vector_t<unsigned> base_indexes;
-    auto &base_array = (this+baseArray);
-    for (const auto _ : + base_iter)
-    {
-      unsigned row = _.second;
-      bool non_empty = + hb_range ((unsigned) classCount)
-                       | hb_filter (klass_mapping)
-                       | hb_map ([&] (const unsigned col) { return !base_array.offset_is_null (row, col, (unsigned) classCount); })
-                       | hb_any
-                       ;
-
-      if (!non_empty) continue;
-      
-      hb_codepoint_t new_g = glyph_map.get ( _.first);
-      new_coverage.push (new_g);
-
-      + hb_range ((unsigned) classCount)
-      | hb_filter (klass_mapping)
-      | hb_map ([&] (const unsigned col) { return row * (unsigned) classCount + col; })
-      | hb_sink (base_indexes)
-      ;
-    }
+    const auto &base_array = this+baseArray;
+    collect_subset_anchor_indexes (this+baseCoverage, base_array.rows,
+                                   classCount, base_array.matrixZ.arrayZ,
+                                   glyphset, glyph_map, klass_mapping,
+                                   new_coverage, base_indexes);
 
     if (!new_coverage) return_trace (false);
     if (!out->baseCoverage.serialize_serialize (c->serializer, new_coverage.iter ()))

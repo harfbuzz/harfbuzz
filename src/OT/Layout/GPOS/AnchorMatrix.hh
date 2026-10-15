@@ -46,6 +46,37 @@ void collect_anchor_indexes (const Coverage &coverage,
           indexes.push (_.second * class_count + col);
 }
 
+HB_INTERNAL inline
+void collect_subset_anchor_indexes (const Coverage &coverage,
+                                    unsigned rows,
+                                    unsigned class_count,
+                                    glyph_data_t offsets,
+                                    const hb_set_t &glyphset,
+                                    const hb_map_t &glyph_map,
+                                    const hb_map_t &klass_mapping,
+                                    hb_sorted_vector_t<hb_codepoint_t> &new_coverage,
+                                    hb_sorted_vector_t<unsigned> &indexes)
+{
+  for (const auto _ : hb_zip (coverage, hb_range (rows)))
+  {
+    if (!glyphset.has (_.first)) continue;
+    unsigned row = _.second;
+    bool non_empty = false;
+    for (unsigned col = 0; col < class_count; col++)
+      if (klass_mapping.has (col) && offsets[row * class_count + col])
+      {
+        non_empty = true;
+        break;
+      }
+    if (!non_empty) continue;
+
+    new_coverage.push (glyph_map.get (_.first));
+    for (unsigned col = 0; col < class_count; col++)
+      if (klass_mapping.has (col))
+        indexes.push (row * class_count + col);
+  }
+}
+
 template <typename Types, typename RowCount=typename Types::HBUINT>
 struct AnchorMatrix
 {
