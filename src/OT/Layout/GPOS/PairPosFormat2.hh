@@ -7,6 +7,66 @@ namespace OT {
 namespace Layout {
 namespace GPOS_impl {
 
+HB_INTERNAL inline
+void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
+                                     const ValueBase *base,
+                                     const Coverage &coverage,
+                                     const ClassDef &class_def1,
+                                     const ClassDef &class_def2,
+                                     const ValueFormat &valueFormat1,
+                                     const ValueFormat &valueFormat2,
+                                     unsigned class1_count,
+                                     unsigned class2_count,
+                                     const ValueRecord &values)
+{
+  if (!coverage.intersects (c->glyph_set) ||
+      !class_def2.intersects (c->glyph_set)) return;
+  if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
+
+  hb_set_t klass1_glyphs, klass2_glyphs;
+  if (!class_def1.collect_coverage (&klass1_glyphs)) return;
+  if (!class_def2.collect_coverage (&klass2_glyphs)) return;
+
+  hb_set_t class1_set, class2_set;
+  for (const unsigned cp : + c->glyph_set->iter () | hb_filter (coverage))
+  {
+    if (!klass1_glyphs.has (cp)) class1_set.add (0);
+    else
+    {
+      unsigned klass1 = class_def1.get (cp);
+      class1_set.add (klass1);
+    }
+  }
+
+  class2_set.add (0);
+  for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
+  {
+    unsigned klass2 = class_def2.get (cp);
+    class2_set.add (klass2);
+  }
+
+  if (class1_set.is_empty ()
+      || class2_set.is_empty ()
+      || (class2_set.get_population() == 1 && class2_set.has(0)))
+    return;
+
+  unsigned len1 = valueFormat1.get_len ();
+  unsigned len2 = valueFormat2.get_len ();
+  const hb_array_t<const Value> values_array = values.as_array ((unsigned)class1_count * (unsigned) class2_count * (len1 + len2));
+  for (const unsigned class1_idx : class1_set.iter ())
+  {
+    for (const unsigned class2_idx : class2_set.iter ())
+    {
+      unsigned start_offset = (class1_idx * (unsigned) class2_count + class2_idx) * (len1 + len2);
+      if (valueFormat1.has_device ())
+        valueFormat1.collect_variation_indices (c, base, values_array.sub_array (start_offset, len1));
+
+      if (valueFormat2.has_device ())
+        valueFormat2.collect_variation_indices (c, base, values_array.sub_array (start_offset+len1, len2));
+    }
+  }
+}
+
 template <typename Types>
 struct PairPosFormat2_4 : ValueBase
 {
@@ -68,51 +128,10 @@ struct PairPosFormat2_4 : ValueBase
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
-    if (!intersects (c->glyph_set)) return;
-    if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
-
-    hb_set_t klass1_glyphs, klass2_glyphs;
-    if (!(this+classDef1).collect_coverage (&klass1_glyphs)) return;
-    if (!(this+classDef2).collect_coverage (&klass2_glyphs)) return;
-
-    hb_set_t class1_set, class2_set;
-    for (const unsigned cp : + c->glyph_set->iter () | hb_filter (this + coverage))
-    {
-      if (!klass1_glyphs.has (cp)) class1_set.add (0);
-      else
-      {
-        unsigned klass1 = (this+classDef1).get (cp);
-        class1_set.add (klass1);
-      }
-    }
-
-    class2_set.add (0);
-    for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
-    {
-      unsigned klass2 = (this+classDef2).get (cp);
-      class2_set.add (klass2);
-    }
-
-    if (class1_set.is_empty ()
-        || class2_set.is_empty ()
-        || (class2_set.get_population() == 1 && class2_set.has(0)))
-      return;
-
-    unsigned len1 = valueFormat1.get_len ();
-    unsigned len2 = valueFormat2.get_len ();
-    const hb_array_t<const Value> values_array = values.as_array ((unsigned)class1Count * (unsigned) class2Count * (len1 + len2));
-    for (const unsigned class1_idx : class1_set.iter ())
-    {
-      for (const unsigned class2_idx : class2_set.iter ())
-      {
-        unsigned start_offset = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
-        if (valueFormat1.has_device ())
-          valueFormat1.collect_variation_indices (c, this, values_array.sub_array (start_offset, len1));
-
-        if (valueFormat2.has_device ())
-          valueFormat2.collect_variation_indices (c, this, values_array.sub_array (start_offset+len1, len2));
-      }
-    }
+    collect_pair_variation_indices (c, this, this+coverage,
+                                    this+classDef1, this+classDef2,
+                                    valueFormat1, valueFormat2,
+                                    class1Count, class2Count, values);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
