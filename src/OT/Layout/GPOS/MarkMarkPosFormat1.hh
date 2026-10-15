@@ -51,11 +51,7 @@ struct MarkMarkPosFormat1_2
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
-    + hb_zip (this+mark1Coverage, this+mark1Array)
-    | hb_filter (c->glyph_set, hb_first)
-    | hb_map (hb_second)
-    | hb_apply ([&] (const MarkRecord<Types>& record) { record.collect_variation_indices (c, &(this+mark1Array)); })
-    ;
+    (this+mark1Array).collect_variation_indices (c, this+mark1Coverage);
 
     hb_map_t klass_mapping;
     Markclass_closure_and_remap_indexes (this+mark1Coverage, this+mark1Array, *c->glyph_set, &klass_mapping);

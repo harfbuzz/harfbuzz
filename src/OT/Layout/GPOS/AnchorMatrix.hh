@@ -6,6 +6,32 @@ namespace Layout {
 namespace GPOS_impl {
 
 HB_INTERNAL inline
+void collect_ligature_anchor_indexes (unsigned rows,
+                                     unsigned class_count,
+                                     const hb_map_t &klass_mapping,
+                                     hb_sorted_vector_t<unsigned> &indexes)
+{
+  for (unsigned row = 0; row < rows; row++)
+    for (unsigned col = 0; col < class_count; col++)
+      if (klass_mapping.has (col))
+        indexes.push (row * class_count + col);
+}
+
+HB_INTERNAL inline
+void collect_anchor_variation_indices (hb_collect_variation_indices_context_t *c,
+                                      const void *base,
+                                      glyph_data_t offsets,
+                                      hb_array_t<const unsigned> indexes)
+{
+  for (unsigned i : indexes)
+  {
+    unsigned offset = offsets[i];
+    if (offset)
+      StructAtOffset<const Anchor> (base, offset).collect_variation_indices (c);
+  }
+}
+
+HB_INTERNAL inline
 void collect_anchor_indexes (const Coverage &coverage,
                              unsigned rows,
                              unsigned class_count,
@@ -61,13 +87,10 @@ struct AnchorMatrix
     return this+offset;
   }
 
-  template <typename Iterator,
-            hb_requires (hb_is_iterator (Iterator))>
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
-                                  Iterator index_iter) const
+                                  hb_array_t<const unsigned> indexes) const
   {
-    for (unsigned i : index_iter)
-      (this+matrixZ[i]).collect_variation_indices (c);
+    collect_anchor_variation_indices (c, this, matrixZ.arrayZ, indexes);
   }
 
   template <typename Iterator,
