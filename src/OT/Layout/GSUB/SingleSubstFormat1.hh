@@ -7,6 +7,33 @@ namespace OT {
 namespace Layout {
 namespace GSUB_impl {
 
+static inline bool
+subset_single_subst (hb_subset_context_t *c,
+                     const Coverage &coverage,
+                     hb_codepoint_t d,
+                     hb_codepoint_t mask)
+{
+  const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
+  const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+  hb_set_t intersection;
+  coverage.intersect_set (glyphset, intersection);
+
+  auto it =
+  + hb_iter (intersection)
+  | hb_map_retains_sorting ([d, mask] (hb_codepoint_t g) {
+                              return hb_codepoint_pair_t (g,
+                                                          (g + d) & mask); })
+  | hb_filter (glyphset, hb_second)
+  | hb_map_retains_sorting ([&] (hb_codepoint_pair_t p) -> hb_codepoint_pair_t
+                            { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
+  ;
+
+  bool ret = bool (it);
+  SingleSubst_serialize (c->serializer, it);
+  return ret;
+}
+
 template <typename Types>
 struct SingleSubstFormat1_3
 {
@@ -203,28 +230,7 @@ struct SingleSubstFormat1_3
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
-    const hb_map_t &glyph_map = *c->plan->glyph_map;
-
-    hb_codepoint_t d = deltaGlyphID;
-    hb_codepoint_t mask = get_mask ();
-
-    hb_set_t intersection;
-    (this+coverage).intersect_set (glyphset, intersection);
-
-    auto it =
-    + hb_iter (intersection)
-    | hb_map_retains_sorting ([d, mask] (hb_codepoint_t g) {
-                                return hb_codepoint_pair_t (g,
-                                                            (g + d) & mask); })
-    | hb_filter (glyphset, hb_second)
-    | hb_map_retains_sorting ([&] (hb_codepoint_pair_t p) -> hb_codepoint_pair_t
-                              { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
-    ;
-
-    bool ret = bool (it);
-    SingleSubst_serialize (c->serializer, it);
-    return_trace (ret);
+    return_trace (subset_single_subst (c, this+coverage, deltaGlyphID, get_mask ()));
   }
 };
 
