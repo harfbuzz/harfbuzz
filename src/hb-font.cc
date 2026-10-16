@@ -3151,10 +3151,10 @@ hb_font_set_variation (hb_font_t *font,
     return;
   }
 
-  /* Initialize design coords. */
-  if (font->design_coords)
+  /* Initialize design coords.
+   * The font's coords may belong to another face after hb_font_set_face(). */
+  if (font->design_coords && font->num_coords == coords_length)
   {
-    assert (coords_length == font->num_coords);
     for (unsigned int i = 0; i < coords_length; i++)
       design_coords[i] = font->design_coords[i];
   }
