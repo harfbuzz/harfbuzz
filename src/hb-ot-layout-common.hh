@@ -4200,6 +4200,10 @@ struct ItemVarStoreInstancer
   {
     if (!varStore)
       varStore = &Null(ItemVariationStore);
+    /* Like hb_font_t::has_nonzero_coords, treat explicit all-zero coordinates
+     * as the default instance, which uses unadjusted values (OFF 7.1). */
+    if (!hb_any (coords))
+      this->coords = {};
   }
 
   operator bool () const { return varStore && bool (coords); }
@@ -4216,8 +4220,7 @@ struct ItemVarStoreInstancer
   template <typename Float = float>
   Float get_delta (uint32_t varIdx, unsigned short offset = 0) const
   {
-   /* Keep the empty-coordinate shortcut for ordinary stores, even though
-    * zero-axis regions could still contribute constant deltas. */
+   /* Ordinary stores do not apply deltas at the default instance. */
    if (!coords || varIdx == VarIdx::NO_VARIATION)
      return Float (0);
 
