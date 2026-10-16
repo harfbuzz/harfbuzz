@@ -1963,11 +1963,14 @@ struct item_variations_t
         if (unlikely (vars.in_error () || var_data_num_rows.in_error ())) return false;
         if (default_value < -32768 || default_value > 32767)
         {
-          // A neutral region can carry the bias when the int16 default cannot.
+          // Keep the Boolean result in the int16 default: no deltas apply
+          // at the default instance. A neutral region carries the excess.
           // Each part is exact in float; integer row assembly adds them
           // before serialization, preserving all 32 bits of the bias.
-          int high = default_value / 65536 * 65536;
-          int parts[] = {high, default_value - high};
+          int bias = default_value - hb_clamp (default_value, -32768, 32767);
+          default_value -= bias;
+          int high = bias / 65536 * 65536;
+          int parts[] = {high, bias - high};
           for (int part : parts)
           {
             if (!part) continue;
@@ -1979,7 +1982,6 @@ struct item_variations_t
                           tuples.tail ().indices.in_error () ||
                           tuples.tail ().deltas_x.in_error ())) return false;
           }
-          default_value = 0;
         }
       }
       if (!condition_map.set (condition.first, hb_pair (idx, default_value)))

@@ -320,6 +320,77 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult (void)
 
 #ifndef HB_NO_VAR
 static void
+test_ot_shape_plan_default_condition_deltas (void)
+{
+  hb_face_t *source = hb_test_open_font_file (
+      "../shape/data/in-house/fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf");
+  hb_face_t *face = hb_face_builder_create ();
+  hb_tag_t tags[32];
+  unsigned count = G_N_ELEMENTS (tags);
+  unsigned total = hb_face_get_table_tags (source, 0, &count, tags);
+  g_assert_cmpuint (total, <=, G_N_ELEMENTS (tags));
+  for (unsigned i = 0; i < count; i++)
+  {
+    if (tags[i] == HB_OT_TAG_GDEF) continue;
+    hb_blob_t *blob = hb_face_reference_table (source, tags[i]);
+    g_assert_true (hb_face_builder_add_table (face, tags[i], blob));
+    hb_blob_destroy (blob);
+  }
+  /* The fixture's GDEF store, with both region axes neutral. Its delta of
+   * two applies everywhere except the default instance (OFF 7.1). */
+  const char gdef[] = {
+    0, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18,
+    0, 1, 0, 0, 0, 12, 0, 1, 0, 0, 0, 28, /* store */
+    0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* region */
+    0, 1, 0, 0, 0, 1, 0, 0, 2, /* delta data */
+  };
+  hb_blob_t *blob = hb_blob_create (gdef, sizeof (gdef),
+				  HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GDEF, blob));
+  hb_blob_destroy (blob);
+
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
+  props.script = HB_SCRIPT_LATIN;
+  props.direction = HB_DIRECTION_LTR;
+  hb_shape_plan_t *default_plan = hb_shape_plan_create_cached2 (
+      face, &props, NULL, 0, NULL, 0, NULL);
+  int coords[] = {0, 0};
+  hb_shape_plan_t *zero_plan = hb_shape_plan_create_cached2 (
+      face, &props, NULL, 0, coords, G_N_ELEMENTS (coords), NULL);
+  g_assert_true (default_plan == zero_plan);
+  coords[1] = 8192;
+  hb_shape_plan_t *varied_plan = hb_shape_plan_create_cached2 (
+      face, &props, NULL, 0, coords, G_N_ELEMENTS (coords), NULL);
+  g_assert_true (default_plan != varied_plan);
+
+  hb_font_t *font = hb_font_create (face);
+  for (unsigned i = 0; i < 3; i++)
+  {
+    coords[1] = i == 1 ? 8192 : 0;
+    hb_font_set_var_coords_normalized (font, coords, G_N_ELEMENTS (coords));
+    hb_buffer_t *buffer = hb_buffer_create ();
+    hb_buffer_set_segment_properties (buffer, &props);
+    hb_buffer_add_utf8 (buffer, "C", -1, 0, -1);
+    hb_shape (font, buffer, NULL, 0);
+    unsigned length;
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &length);
+    g_assert_cmpuint (length, ==, 1);
+    hb_codepoint_t expected;
+    g_assert_true (hb_font_get_glyph_from_name (
+	font, i == 1 ? "C.alt" : "C", -1, &expected));
+    g_assert_cmpuint (info[0].codepoint, ==, expected);
+    hb_buffer_destroy (buffer);
+  }
+
+  hb_font_destroy (font);
+  hb_shape_plan_destroy (varied_plan);
+  hb_shape_plan_destroy (zero_plan);
+  hb_shape_plan_destroy (default_plan);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
+static void
 test_ot_shape_plan_lookup_variations_cache (void)
 {
   hb_face_t *face = hb_test_open_font_file (
@@ -377,6 +448,7 @@ main (int argc, char **argv)
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablepartial);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult);
 #ifndef HB_NO_VAR
+  hb_test_add (test_ot_shape_plan_default_condition_deltas);
   hb_test_add (test_ot_shape_plan_lookup_variations_cache);
 #endif
 
