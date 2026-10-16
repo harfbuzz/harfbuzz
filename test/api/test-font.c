@@ -804,6 +804,31 @@ test_font_set_face_custom_funcs (void)
   hb_face_destroy (face2);
 }
 
+static void
+test_font_set_face_variation (void)
+{
+  hb_face_t *face1 = hb_test_open_font_file ("fonts/Mada-VF.ttf");
+  hb_face_t *face2 = hb_test_open_font_file ("fonts/Roboto-Variable.abc.ttf");
+  hb_font_t *font = hb_font_create (face1);
+  const float *coords;
+  unsigned length;
+
+  /* The font's design coords are sized for face1's single axis. */
+  hb_font_set_variation (font, HB_TAG ('w','g','h','t'), 400);
+  hb_font_set_face (font, face2);
+
+  /* face2 has two axes; the old coords must not be read as face2's. */
+  hb_font_set_variation (font, HB_TAG ('w','g','h','t'), 500);
+  coords = hb_font_get_var_coords_design (font, &length);
+  g_assert_cmpuint (length, ==, 2);
+  g_assert_cmpfloat (coords[0], ==, 500);
+  g_assert_cmpfloat (coords[1], ==, 100);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face1);
+  hb_face_destroy (face2);
+}
+
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
@@ -1223,6 +1248,7 @@ main (int argc, char **argv)
 #ifndef HB_DISABLE_DEPRECATED
   hb_test_add (test_font_set_face);
   hb_test_add (test_font_set_face_custom_funcs);
+  hb_test_add (test_font_set_face_variation);
 #endif
 #ifdef HAVE_FONTATIONS
   hb_test_add (test_fontations_glyph_from_name_threads);
