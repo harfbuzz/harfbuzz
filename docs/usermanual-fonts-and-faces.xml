@@ -495,8 +495,8 @@ hb_font_set_variations(font, variation_data, variation_count);
     <para>
       Fonts may provide pre-rendered images for glyphs instead of or in addition to
       outlines. This is most common for fonts that contain colored glyphs, such as
-      Emoji. To access these images, use <function>hb_ot_color_reference_png()</function>
-      or <function>hb_ot_color_reference_svg()</function>.
+      Emoji. To access these images, use <function>hb_ot_color_glyph_reference_png()</function>
+      or <function>hb_ot_color_glyph_reference_svg()</function>.
     </para>
     <para>
       Another way in which fonts provide colored glyphs is via paint graphs that
@@ -507,7 +507,7 @@ hb_font_set_variations(font, variation_data, variation_count);
       access glyph data in this form.
     </para>
     <para>
-      In the general case, you have to use <function>hb_font_paint_or_fail_glyph()</function>
+      In the general case, you have to use <function>hb_font_paint_glyph_or_fail()</function>
       and pass a <type>hb_paint_funcs_t</type> struct with callbacks to obtain paint
       color glyphs, either graphs or image glyphs.
       The <function>hb_font_paint_glyph()</function> API is higher level and can handle

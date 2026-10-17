@@ -256,7 +256,7 @@ hb_font_t *font = hb_ft_font_create(face);
       <function>hb_ft_font_changed()</function> that you should
       call whenever you have altered the properties of your underlying
       <type>FT_Face</type>, as well as a
-      <function>hb_ft_get_face()</function> that you can call on an
+      <function>hb_ft_font_get_face()</function> that you can call on an
       <type>hb_font_t</type> font object to fetch its underlying <type>FT_Face</type>.
     </para>
     <para>
@@ -524,7 +524,7 @@ hb_ft_font_set_funcs(font);
       <function>hb_coretext_font_create()</function>, and you can
       fetch the associated <type>CTFontRef</type> from a
       <type>hb_font_t</type> font object with
-      <function>hb_coretext_face_get_ct_font()</function>. 
+      <function>hb_coretext_font_get_ct_font()</function>. 
     </para>
     <para>
       HarfBuzz also offers a <function>hb_font_set_ptem()</function>
