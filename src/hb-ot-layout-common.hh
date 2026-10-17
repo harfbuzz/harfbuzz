@@ -750,6 +750,9 @@ struct FeatureParams
 
   bool subset (hb_subset_context_t *c, const Tag* tag) const
   {
+#ifdef HB_NO_LAYOUT_FEATURE_PARAMS
+    return false;
+#endif
     TRACE_SUBSET (this);
     if (!tag) return_trace (false);
     if (*tag == HB_TAG ('s','i','z','e') && hb_barrier ())
