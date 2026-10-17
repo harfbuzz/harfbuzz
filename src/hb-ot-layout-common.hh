@@ -5410,10 +5410,15 @@ struct FeatureTableSubstitutionRecord
     return_trace (out->feature.serialize_subset (c->subset_context, feature, base, c, tag));
   }
 
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base,
+		 const FeatureList *feature_list) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && feature.sanitize (c, base));
+    if (unlikely (!c->check_struct (this))) return_trace (false);
+    hb_barrier ();
+    /* The substitute is read with the tag of the feature it replaces. */
+    const Record_sanitize_closure_t closure = {feature_list->get_tag (featureIndex), base};
+    return_trace (feature.sanitize (c, base, &closure));
   }
 
   protected:
@@ -5521,13 +5526,13 @@ struct FeatureTableSubstitution
     return_trace (bool (out->substitutions));
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c, const FeatureList *feature_list) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
 		  hb_barrier () &&
 		  likely (version.major == 1) &&
-		  substitutions.sanitize (c, this));
+		  substitutions.sanitize (c, this, feature_list));
   }
 
   protected:
@@ -5600,11 +5605,12 @@ struct FeatureVariationRecord
     return_trace (true);
   }
 
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base,
+		 const FeatureList *feature_list) const
   {
     TRACE_SANITIZE (this);
     return_trace (conditions.sanitize (c, base) &&
-		  substitutions.sanitize (c, base));
+		  substitutions.sanitize (c, base, feature_list));
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
@@ -6157,13 +6163,13 @@ struct FeatureVariations
 		  (out_lookup_records && bool (*out_lookup_records)));
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c, const FeatureList *feature_list) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
 		  hb_barrier () &&
 		  likely (version.major == 1) &&
-		  varRecords.sanitize (c, this) &&
+		  varRecords.sanitize (c, this, feature_list) &&
 		  (version.minor < 1 ||
 		   get_lookup_variation_records ().sanitize (c, this)));
   }

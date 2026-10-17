@@ -27,6 +27,7 @@
 #include "hb-serialize.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gsubgpos.hh"
+#include "hb-ot-layout-gsub-table.hh"
 #include "OT/Layout/GPOS/ValueFormat.hh"
 
 using OT::Layout::Common::Coverage;
@@ -208,6 +209,41 @@ test_lookup_condition_resolution ()
 }
 
 static void
+test_feature_substitution_params_sanitize ()
+{
+  static const char data[] = {
+    0, 1, 0, 1,                 /* GSUB 1.1 */
+    0, 14, 0, 16, 0, 28,        /* ScriptList, FeatureList, LookupList */
+    0, 0, 0, 30,                /* FeatureVariations */
+    0, 0,                       /* ScriptList: no scripts */
+    0, 1, 'c', 'v', '0', '1', 0, 8, /* FeatureList: cv01 */
+    0, 0, 0, 0,                 /* cv01: no params, no lookups */
+    0, 0,                       /* LookupList: no lookups */
+    0, 1, 0, 0, 0, 0, 0, 1,     /* FeatureVariations 1.0, one record */
+    0, 0, 0, 0, 0, 0, 0, 16,    /* Null ConditionSet, substitution */
+    0, 1, 0, 0, 0, 1,           /* FeatureTableSubstitution 1.0, one record */
+    0, 0, 0, 0, 0, 12,          /* Feature 0 */
+    0, 4, 0, 0,                 /* Substitute: params, no lookups */
+    0, 0, 0, 0, 0, 0, 0, 0,     /* cvXX: format, label, tooltip, sample */
+    0, 0, 0, 0, 0, 1, 0, 0, 0x41, /* No named parameters, one character */
+  };
+
+  hb_blob_t *blob = hb_blob_create (data, sizeof (data),
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  blob = hb_sanitize_context_t ().sanitize_blob<OT::Layout::GSUB> (blob);
+  hb_always_assert (hb_blob_get_length (blob) == sizeof (data));
+  hb_blob_destroy (blob);
+
+#if !defined(HB_NO_VAR) && !defined(HB_NO_LAYOUT_FEATURE_PARAMS)
+  blob = hb_blob_create (data, sizeof (data) - 1,
+			 HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  blob = hb_sanitize_context_t ().sanitize_blob<OT::Layout::GSUB> (blob);
+  hb_always_assert (!hb_blob_get_length (blob));
+  hb_blob_destroy (blob);
+#endif
+}
+
+static void
 test_medium_rule ()
 {
   static const char data[] = {
@@ -333,6 +369,7 @@ main (int argc, char **argv)
   test_null_condition ();
   test_lookup_condition_sharing ();
   test_lookup_condition_resolution ();
+  test_feature_substitution_params_sanitize ();
   test_medium_rule ();
   test_medium_chain_rule ();
   test_device_only_value ();
