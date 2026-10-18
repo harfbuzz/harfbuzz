@@ -748,7 +748,7 @@ struct hb_bit_set_t
     unsigned int elt = 0;
     if (likely (*codepoint != INVALID))
     {
-      hb_codepoint_t base = *codepoint & -page_t::ELT_BITS;
+      hb_codepoint_t base = *codepoint & ~page_t::ELT_MASK;
       if (unlikely (base >= INVALID - page_t::ELT_BITS + 1))
         goto done;
       base += page_t::ELT_BITS;
