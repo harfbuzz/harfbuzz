@@ -441,6 +441,152 @@ test_subset_colr_sentinel_map_without_variations (void)
   }
 }
 
+static void
+check_colr_var_overflow (hb_face_t *face, bool variable)
+{
+  const unsigned formats[] = {5, 7, 9, 13, 15, 19, 23, 27, 31};
+  const unsigned offsets[] = {4, 4, 4, 0, 4, 8, 6, 6, 8};
+  const unsigned counts[] = {6, 6, 2, 6, 2, 2, 2, 2, 2};
+  const int32_t affine_values[] = {INT32_MAX, INT32_MIN, INT32_MAX, INT32_MIN, 98604, -98607};
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  unsigned num_paints = G_N_ELEMENTS (formats) * G_N_ELEMENTS (affine_values);
+  g_assert_cmpuint (list + 4 + (num_paints + 18) * 6, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, num_paints + 18);
+  for (unsigned i = 0; i < num_paints; i++)
+  {
+    unsigned kind = i % G_N_ELEMENTS (formats), scenario = i / G_N_ELEMENTS (formats);
+    unsigned paint = list + read_uint_be (data + list + 6 + i * 6, 4);
+    g_assert_cmpuint (paint + 7, <=, length);
+    g_assert_cmpuint (data[paint], ==, formats[kind] - !variable);
+    unsigned values = paint + offsets[kind], width = 2;
+    if (formats[kind] == 13)
+    {
+      values = paint + read_uint_be (data + paint + 4, 3);
+      width = 4;
+    }
+    g_assert_cmpuint (values + counts[kind] * width, <=, length);
+    for (unsigned j = 0; j < counts[kind]; j++)
+    {
+      unsigned raw = read_uint_be (data + values + j * width, width);
+      int32_t actual = width == 4 ? (int32_t) raw : (int16_t) raw;
+      int32_t expected = width == 4 ? affine_values[scenario] : scenario % 2 ? -32768 : 32767;
+      if (formats[kind] == 7 && j % 3 == 2)
+      {
+        actual = raw;
+        expected = 65535;
+      }
+      g_assert_cmpint (actual, ==, expected);
+    }
+  }
+  unsigned clips = read_uint_be (data + 22, 4);
+  g_assert_cmpuint (clips, >, 0);
+  g_assert_cmpuint (clips + 5 + G_N_ELEMENTS (affine_values) * 7, <=, length);
+  g_assert_cmpuint (read_uint_be (data + clips + 1, 4), ==, G_N_ELEMENTS (affine_values));
+  for (unsigned i = 0; i < G_N_ELEMENTS (affine_values); i++)
+  {
+    unsigned record = clips + 5 + i * 7;
+    g_assert_cmpuint (read_uint_be (data + record, 2), ==, i * G_N_ELEMENTS (formats) + 1);
+    g_assert_cmpuint (read_uint_be (data + record + 2, 2), ==, i * G_N_ELEMENTS (formats) + 1);
+    unsigned box = clips + read_uint_be (data + record + 4, 3);
+    g_assert_cmpuint (box + 9, <=, length);
+    g_assert_cmpuint (data[box], ==, variable ? 2 : 1);
+    for (unsigned j = 0; j < 4; j++)
+      g_assert_cmpint ((int16_t) read_uint_be (data + box + 1 + j * 2, 2), ==, i % 2 ? -32768 : 32767);
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+check_colr_fixed_overflow (hb_face_t *face, bool variable)
+{
+  const int32_t scales[] = {INT32_MAX, INT32_MIN, INT32_MAX, INT32_MIN, 458752, -327692};
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 4 + 72 * 6, <=, length);
+  for (unsigned i = 0; i < 18; i++)
+  {
+    unsigned paint = list + read_uint_be (data + list + 6 + (54 + i) * 6, 4);
+    int expected = i / 3 % 2 ? -32768 : 32767;
+    int alpha = variable ? expected : expected > 0 ? 16384 : 0;
+    g_assert_cmpuint (paint + 5, <=, length);
+    if (i % 3 == 0)
+    {
+      g_assert_cmpuint (data[paint], ==, variable ? 3 : 2);
+      g_assert_cmpint ((int16_t) read_uint_be (data + paint + 3, 2), ==, alpha);
+    }
+    else if (i % 3 == 1)
+    {
+      g_assert_cmpuint (paint + 12, <=, length);
+      g_assert_cmpuint (data[paint], ==, variable ? 9 : 8);
+      for (unsigned j = 0; j < 2; j++)
+        g_assert_cmpint ((int16_t) read_uint_be (data + paint + 8 + j * 2, 2), ==, expected);
+      unsigned line = paint + read_uint_be (data + paint + 1, 3);
+      unsigned stride = variable ? 10 : 6;
+      g_assert_cmpuint (line + 3 + 2 * stride, <=, length);
+      g_assert_cmpuint (read_uint_be (data + line + 1, 2), ==, 2);
+      for (unsigned j = 0; j < 2; j++)
+      {
+        g_assert_cmpint ((int16_t) read_uint_be (data + line + 3 + j * stride, 2), ==, expected);
+        g_assert_cmpint ((int16_t) read_uint_be (data + line + 7 + j * stride, 2), ==, alpha);
+      }
+    }
+    else if (variable)
+    {
+      g_assert_cmpuint (paint + 8, <=, length);
+      g_assert_cmpuint (data[paint], ==, 17);
+      for (unsigned j = 0; j < 2; j++)
+        g_assert_cmpint ((int16_t) read_uint_be (data + paint + 4 + j * 2, 2), ==, expected);
+    }
+    else
+    {
+      g_assert_cmpuint (paint + 7, <=, length);
+      g_assert_cmpuint (data[paint], ==, 12);
+      unsigned affine = paint + read_uint_be (data + paint + 4, 3);
+      g_assert_cmpuint (affine + 24, <=, length);
+      for (unsigned j = 0; j < 6; j++)
+        g_assert_cmpint ((int32_t) read_uint_be (data + affine + j * 4, 4), ==, j == 0 || j == 3 ? scales[i / 3] : 0);
+    }
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+test_subset_colr_var_overflow (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-var-overflow.ttf");
+  for (unsigned first = 0; first <= 2; first++)
+  {
+    hb_face_t *source = hb_face_reference (face);
+    for (unsigned step = 0; step < (first ? 2u : 1u); step++)
+    {
+      unsigned pins = first ? (step ? 3 - first : first) : 3;
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add_range (hb_subset_input_glyph_set (input), 0, hb_face_get_glyph_count (source) - 1);
+      if (pins & 1) g_assert_true (hb_subset_input_pin_axis_location (input, source, HB_TAG ('w','g','h','t'), 1));
+      if (pins & 2) g_assert_true (hb_subset_input_pin_axis_location (input, source, HB_TAG ('w','d','t','h'), 0));
+      hb_face_t *subset = hb_subset_test_create_subset (source, input);
+      if (!step && first == 1)
+      {
+        check_colr_var_overflow (subset, true);
+        check_colr_fixed_overflow (subset, true);
+      }
+      hb_face_destroy (source);
+      source = subset;
+    }
+    check_colr_var_overflow (source, false);
+    if (first != 1) check_colr_fixed_overflow (source, false);
+    hb_face_destroy (source);
+  }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -456,6 +602,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_negative_radii_precision);
   hb_test_add (test_subset_colr_affine_values);
   hb_test_add (test_subset_colr_sentinel_map_without_variations);
+  hb_test_add (test_subset_colr_var_overflow);
 
   return hb_test_run();
 }
