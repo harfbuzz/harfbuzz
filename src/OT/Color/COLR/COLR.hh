@@ -480,6 +480,14 @@ struct NoVariable
 
 // Color structures
 
+template <typename Type, unsigned fraction_bits>
+static void
+set_fixed_clamped (HBFixed<Type, fraction_bits> &out, float value)
+{
+  // Variation deltas are unbounded; clamp before the implicit integer cast.
+  out.set_int (hb_clamp_to<typename Type::type> (roundf ((value / HBFixed<Type, fraction_bits>::mult))));
+}
+
 struct ColorStop
 {
   void dependv1 (hb_colrv1_depend_context_t * c) const {}
@@ -500,12 +508,12 @@ struct ColorStop
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->stopOffset.set_float (stopOffset.to_float(instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->stopOffset, stopOffset.to_float(instancer (varIdxBase, 0)));
       float a = alpha.to_float (instancer (varIdxBase, 1));
       /* Partial instances must keep the unclamped base: retained axes can
        * bring the alpha back into range. Clamp before narrowing a full
        * instance so overflow cannot wrap an opaque alpha to transparent. */
-      out->alpha.set_float (c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
+      set_fixed_clamped (out->alpha, c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
     }
 
     return_trace (c->serializer->check_assign (out->paletteIndex, c->plan->colr_palettes.get (paletteIndex),
@@ -675,8 +683,8 @@ struct Affine2x3
     {
       auto fold = [&] (F16DOT16 &target, F16DOT16 source, unsigned offset) {
         // Keep the stored integer precise while applying the float delta.
-        target.set_int ((int32_t) roundf ((double) source.to_int () +
-                                         (double) instancer (varIdxBase, offset)));
+        target.set_int (hb_clamp_to<int32_t> (roundf ((double) source.to_int () +
+                                                    (double) instancer (varIdxBase, offset))));
       };
       fold (out->xx, xx, 0);
       fold (out->yx, yx, 1);
@@ -762,7 +770,7 @@ struct PaintSolid
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
       float a = alpha.to_float (instancer (varIdxBase, 0));
-      out->alpha.set_float (c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
+      set_fixed_clamped (out->alpha, c->plan->all_axes_pinned ? hb_clamp (a, 0.f, 1.f) : a);
     }
 
     if (format == 3 && c->plan->all_axes_pinned)
@@ -824,12 +832,12 @@ struct PaintLinearGradient
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
-      out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
-      out->x1 = x1 + (int) roundf (instancer (varIdxBase, 2));
-      out->y1 = y1 + (int) roundf (instancer (varIdxBase, 3));
-      out->x2 = x2 + (int) roundf (instancer (varIdxBase, 4));
-      out->y2 = y2 + (int) roundf (instancer (varIdxBase, 5));
+      out->x0 = hb_clamp_to<int16_t> ((double) x0 + (double) roundf (instancer (varIdxBase, 0)));
+      out->y0 = hb_clamp_to<int16_t> ((double) y0 + (double) roundf (instancer (varIdxBase, 1)));
+      out->x1 = hb_clamp_to<int16_t> ((double) x1 + (double) roundf (instancer (varIdxBase, 2)));
+      out->y1 = hb_clamp_to<int16_t> ((double) y1 + (double) roundf (instancer (varIdxBase, 3)));
+      out->x2 = hb_clamp_to<int16_t> ((double) x2 + (double) roundf (instancer (varIdxBase, 4)));
+      out->y2 = hb_clamp_to<int16_t> ((double) y2 + (double) roundf (instancer (varIdxBase, 5)));
     }
 
     if (format == 5 && c->plan->all_axes_pinned)
@@ -1055,12 +1063,12 @@ struct PaintRadialGradient
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->x0 = x0 + (int) roundf (instancer (varIdxBase, 0));
-      out->y0 = y0 + (int) roundf (instancer (varIdxBase, 1));
-      out->radius0 = hb_clamp ((int) radius0 + (int) roundf (instancer (varIdxBase, 2)), 0, 0xFFFF);
-      out->x1 = x1 + (int) roundf (instancer (varIdxBase, 3));
-      out->y1 = y1 + (int) roundf (instancer (varIdxBase, 4));
-      out->radius1 = hb_clamp ((int) radius1 + (int) roundf (instancer (varIdxBase, 5)), 0, 0xFFFF);
+      out->x0 = hb_clamp_to<int16_t> ((double) x0 + (double) roundf (instancer (varIdxBase, 0)));
+      out->y0 = hb_clamp_to<int16_t> ((double) y0 + (double) roundf (instancer (varIdxBase, 1)));
+      out->radius0 = hb_clamp_to<uint16_t> ((double) radius0 + (double) roundf (instancer (varIdxBase, 2)));
+      out->x1 = hb_clamp_to<int16_t> ((double) x1 + (double) roundf (instancer (varIdxBase, 3)));
+      out->y1 = hb_clamp_to<int16_t> ((double) y1 + (double) roundf (instancer (varIdxBase, 4)));
+      out->radius1 = hb_clamp_to<uint16_t> ((double) radius1 + (double) roundf (instancer (varIdxBase, 5)));
     }
 
     if (format == 7 && c->plan->all_axes_pinned)
@@ -1127,10 +1135,10 @@ struct PaintSweepGradient
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->centerX = centerX + (int) roundf (instancer (varIdxBase, 0));
-      out->centerY = centerY + (int) roundf (instancer (varIdxBase, 1));
-      out->startAngle.set_float (startAngle.to_float (instancer (varIdxBase, 2)));
-      out->endAngle.set_float (endAngle.to_float (instancer (varIdxBase, 3)));
+      out->centerX = hb_clamp_to<int16_t> ((double) centerX + (double) roundf (instancer (varIdxBase, 0)));
+      out->centerY = hb_clamp_to<int16_t> ((double) centerY + (double) roundf (instancer (varIdxBase, 1)));
+      set_fixed_clamped (out->startAngle, startAngle.to_float (instancer (varIdxBase, 2)));
+      set_fixed_clamped (out->endAngle, endAngle.to_float (instancer (varIdxBase, 3)));
     }
 
     if (format == 9 && c->plan->all_axes_pinned)
@@ -1296,8 +1304,8 @@ struct PaintTranslate
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->dx = dx + (int) roundf (instancer (varIdxBase, 0));
-      out->dy = dy + (int) roundf (instancer (varIdxBase, 1));
+      out->dx = hb_clamp_to<int16_t> ((double) dx + (double) roundf (instancer (varIdxBase, 0)));
+      out->dy = hb_clamp_to<int16_t> ((double) dy + (double) roundf (instancer (varIdxBase, 1)));
     }
 
     if (format == 15 && c->plan->all_axes_pinned)
@@ -1347,12 +1355,12 @@ static bool serialize_scale_transform (hb_subset_context_t *c,
     c->serializer->pop_discard ();
     return false;
   }
-  transform->xx.set_float (sx);
+  set_fixed_clamped (transform->xx, sx);
   transform->yx.set_float (0);
   transform->xy.set_float (0);
-  transform->yy.set_float (sy);
-  transform->dx.set_float (dx);
-  transform->dy.set_float (dy);
+  set_fixed_clamped (transform->yy, sy);
+  set_fixed_clamped (transform->dx, dx);
+  set_fixed_clamped (transform->dy, dy);
   c->serializer->add_link (out->transform, c->serializer->pop_pack ());
 
   c->serializer->push ();
@@ -1418,8 +1426,8 @@ struct PaintScale
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->scaleX.set_float (scaleX.to_float (instancer (varIdxBase, 0)));
-      out->scaleY.set_float (scaleY.to_float (instancer (varIdxBase, 1)));
+      set_fixed_clamped (out->scaleX, scaleX.to_float (instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->scaleY, scaleY.to_float (instancer (varIdxBase, 1)));
     }
 
     if (format == 17 && c->plan->all_axes_pinned)
@@ -1479,10 +1487,10 @@ struct PaintScaleAroundCenter
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->scaleX.set_float (scaleX.to_float (instancer (varIdxBase, 0)));
-      out->scaleY.set_float (scaleY.to_float (instancer (varIdxBase, 1)));
-      out->centerX = centerX + (int) roundf (instancer (varIdxBase, 2));
-      out->centerY = centerY + (int) roundf (instancer (varIdxBase, 3));
+      set_fixed_clamped (out->scaleX, scaleX.to_float (instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->scaleY, scaleY.to_float (instancer (varIdxBase, 1)));
+      out->centerX = hb_clamp_to<int16_t> ((double) centerX + (double) roundf (instancer (varIdxBase, 2)));
+      out->centerY = hb_clamp_to<int16_t> ((double) centerY + (double) roundf (instancer (varIdxBase, 3)));
     }
 
     if (format == 19 && c->plan->all_axes_pinned)
@@ -1541,7 +1549,7 @@ struct PaintScaleUniform
     if (unlikely (!out)) return_trace (false);
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
-      out->scale.set_float (scale.to_float (instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->scale, scale.to_float (instancer (varIdxBase, 0)));
 
     if (format == 21 && c->plan->all_axes_pinned)
         out->format = 20;
@@ -1597,9 +1605,9 @@ struct PaintScaleUniformAroundCenter
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->scale.set_float (scale.to_float (instancer (varIdxBase, 0)));
-      out->centerX = centerX + (int) roundf (instancer (varIdxBase, 1));
-      out->centerY = centerY + (int) roundf (instancer (varIdxBase, 2));
+      set_fixed_clamped (out->scale, scale.to_float (instancer (varIdxBase, 0)));
+      out->centerX = hb_clamp_to<int16_t> ((double) centerX + (double) roundf (instancer (varIdxBase, 1)));
+      out->centerY = hb_clamp_to<int16_t> ((double) centerY + (double) roundf (instancer (varIdxBase, 2)));
     }
 
     if (format == 23 && c->plan->all_axes_pinned)
@@ -1649,7 +1657,7 @@ struct PaintRotate
     if (unlikely (!out)) return_trace (false);
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
-      out->angle.set_float (angle.to_float (instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->angle, angle.to_float (instancer (varIdxBase, 0)));
 
     if (format == 25 && c->plan->all_axes_pinned)
       out->format = 24;
@@ -1695,9 +1703,9 @@ struct PaintRotateAroundCenter
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->angle.set_float (angle.to_float (instancer (varIdxBase, 0)));
-      out->centerX = centerX + (int) roundf (instancer (varIdxBase, 1));
-      out->centerY = centerY + (int) roundf (instancer (varIdxBase, 2));
+      set_fixed_clamped (out->angle, angle.to_float (instancer (varIdxBase, 0)));
+      out->centerX = hb_clamp_to<int16_t> ((double) centerX + (double) roundf (instancer (varIdxBase, 1)));
+      out->centerY = hb_clamp_to<int16_t> ((double) centerY + (double) roundf (instancer (varIdxBase, 2)));
     }
 
     if (format ==27 && c->plan->all_axes_pinned)
@@ -1748,8 +1756,8 @@ struct PaintSkew
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->xSkewAngle.set_float (xSkewAngle.to_float (instancer (varIdxBase, 0)));
-      out->ySkewAngle.set_float (ySkewAngle.to_float (instancer (varIdxBase, 1)));
+      set_fixed_clamped (out->xSkewAngle, xSkewAngle.to_float (instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->ySkewAngle, ySkewAngle.to_float (instancer (varIdxBase, 1)));
     }
 
     if (format == 29 && c->plan->all_axes_pinned)
@@ -1798,10 +1806,10 @@ struct PaintSkewAroundCenter
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->xSkewAngle.set_float (xSkewAngle.to_float (instancer (varIdxBase, 0)));
-      out->ySkewAngle.set_float (ySkewAngle.to_float (instancer (varIdxBase, 1)));
-      out->centerX = centerX + (int) roundf (instancer (varIdxBase, 2));
-      out->centerY = centerY + (int) roundf (instancer (varIdxBase, 3));
+      set_fixed_clamped (out->xSkewAngle, xSkewAngle.to_float (instancer (varIdxBase, 0)));
+      set_fixed_clamped (out->ySkewAngle, ySkewAngle.to_float (instancer (varIdxBase, 1)));
+      out->centerX = hb_clamp_to<int16_t> ((double) centerX + (double) roundf (instancer (varIdxBase, 2)));
+      out->centerY = hb_clamp_to<int16_t> ((double) centerY + (double) roundf (instancer (varIdxBase, 3)));
     }
 
     if (format == 31 && c->plan->all_axes_pinned)
@@ -1954,10 +1962,10 @@ struct ClipBoxFormat1
 
     if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION)
     {
-      out->xMin = xMin + (int) floorf (instancer (varIdxBase, 0));
-      out->yMin = yMin + (int) floorf (instancer (varIdxBase, 1));
-      out->xMax = xMax + (int) ceilf (instancer (varIdxBase, 2));
-      out->yMax = yMax + (int) ceilf (instancer (varIdxBase, 3));
+      out->xMin = hb_clamp_to<int16_t> ((double) xMin + (double) floorf (instancer (varIdxBase, 0)));
+      out->yMin = hb_clamp_to<int16_t> ((double) yMin + (double) floorf (instancer (varIdxBase, 1)));
+      out->xMax = hb_clamp_to<int16_t> ((double) xMax + (double) ceilf (instancer (varIdxBase, 2)));
+      out->yMax = hb_clamp_to<int16_t> ((double) yMax + (double) ceilf (instancer (varIdxBase, 3)));
     }
 
     if (format == 2 && c->plan->all_axes_pinned)
