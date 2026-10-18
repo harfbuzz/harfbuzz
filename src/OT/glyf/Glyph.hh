@@ -374,7 +374,16 @@ struct Glyph
     case COMPOSITE:
     {
       for (auto &item : get_composite_iterator ())
-        if (unlikely (!item.get_points (points, extended))) return false;
+      {
+        /* Charge component offsets before recursion, including components
+         * that will later be skipped by cycle detection. */
+        if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1) ||
+                      !item.get_points (points, extended)))
+        {
+          points.resize (old_length);
+          return false;
+        }
+      }
       break;
     }
     case EMPTY:
