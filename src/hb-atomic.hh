@@ -36,7 +36,9 @@
 #include "hb-meta.hh"
 
 
+#ifndef HB_NO_MT
 #include <atomic>
+#endif
 
 
 /* This should never be disabled, even under HB_NO_MT.
@@ -48,12 +50,15 @@
 #if defined(__ATOMIC_ACQUIRE) // gcc-like
 static inline void _hb_compiler_memory_r_barrier () { asm volatile("": : :"memory"); }
 #elif !defined(_MSC_VER)
+#include <atomic>
 #define _hb_compiler_memory_r_barrier() std::atomic_signal_fence (std::memory_order_acquire)
 #else
 static inline void _hb_compiler_memory_r_barrier () {}
 #endif
 #endif
 
+
+#ifndef HB_NO_MT
 
 template <typename T>
 struct hb_atomic_t
@@ -125,6 +130,57 @@ struct hb_atomic_t<T *>
 
   std::atomic<T *> v {nullptr};
 };
+
+#else /* defined(HB_NO_MT) */
+
+template <typename T>
+struct hb_atomic_t
+{
+  hb_atomic_t () = default;
+  constexpr hb_atomic_t (T v) : v (v) {}
+
+  hb_atomic_t& operator = (T v_) { set_relaxed (v_); return *this; }
+  operator T () const { return get_relaxed (); }
+
+  void set_relaxed (T v_) { v = v_; }
+  void set_release (T v_) { v = v_; }
+  T get_relaxed () const { return v; }
+  T get_acquire () const { return v; }
+  T inc () { return v++; }
+  T dec () { return v--; }
+
+  int operator ++ (int) { return inc (); }
+  int operator -- (int) { return dec (); }
+
+  T v = 0;
+};
+
+template <typename T>
+struct hb_atomic_t<T*>
+{
+  hb_atomic_t () = default;
+  constexpr hb_atomic_t (T* v) : v (v) {}
+  hb_atomic_t (const hb_atomic_t &other) = delete;
+
+  void init (T* v_ = nullptr) { set_relaxed (v_); }
+  void set_relaxed (T* v_) { v = v_; }
+  T *get_relaxed () const { return v; }
+  T *get_acquire () const { return v; }
+  bool cmpexch (T *old, T *new_)
+  {
+    if (v != old) return false;
+    v = new_;
+    return true;
+  }
+
+  operator bool () const { return get_acquire () != nullptr; }
+  T * operator -> () const                    { return get_acquire (); }
+  template <typename C> operator C * () const { return get_acquire (); }
+
+  T *v = nullptr;
+};
+
+#endif
 
 
 static inline bool hb_barrier ()
