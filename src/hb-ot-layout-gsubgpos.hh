@@ -6344,7 +6344,8 @@ struct GSUBGPOS
       return_trace (false);
 
 #ifndef HB_NO_VAR
-    if (unlikely (!(version.to_int () < 0x00010001u || featureVars.sanitize (c, this))))
+    if (unlikely (!(version.to_int () < 0x00010001u ||
+		    featureVars.sanitize (c, this, &get_feature_list ()))))
       return_trace (false);
 #endif
 
