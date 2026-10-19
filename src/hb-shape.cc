@@ -319,6 +319,7 @@ hb_shape_justify (hb_font_t          *font,
   auto *text_info = (hb_glyph_info_t *) hb_malloc2 (text_len, sizeof (buffer->info[0]));
   if (unlikely (text_len && !text_info))
     return false;
+  HB_SCOPE_GUARD (hb_free (text_info));
   hb_memcpy (text_info, buffer->info, text_len * sizeof (buffer->info[0]));
   auto text = hb_array<const hb_glyph_info_t> (text_info, text_len);
 
@@ -427,8 +428,6 @@ hb_shape_justify (hb_font_t          *font,
 			  epsilon,
 			  (double) min_target_advance, (double) max_target_advance,
 			  ya, yb, y);
-
-  hb_free (text_info);
 
   if (failed)
     return false;
