@@ -528,6 +528,9 @@ _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
                         hb_map_t* out,
                         hb_vector_t<hb_codepoint_t>* out_flat)
 {
+  if (unlikely (glyph_set_gsub->in_error ()))
+    return false;
+
   hb_codepoint_t max_gid = HB_SET_VALUE_INVALID;
   hb_set_previous (glyph_set_gsub, &max_gid);
   unsigned flat_size = max_gid == HB_SET_VALUE_INVALID ? 0 : max_gid + 1;
