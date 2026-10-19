@@ -2641,9 +2641,7 @@ struct hb_scalar_cache_t
 {
   private:
   static constexpr unsigned STATIC_LENGTH = 128;
-  static constexpr int INVALID = INT_MIN;
-  static constexpr float MULTIPLIER = 1 << ((sizeof (int) * 8) - 2);
-  static constexpr float DIVISOR = 1.f / MULTIPLIER;
+  static constexpr float INVALID = NAN;
 
   public:
   hb_scalar_cache_t () {}
@@ -2708,16 +2706,10 @@ struct hb_scalar_cache_t
     }
     auto *values = &static_values[0];
     auto *cached_value = &values[i];
-    // Super hot. Most common path is that we have a cached value of 0.
-    int v = *cached_value;
-    if (likely (!v))
-    {
-      *value = 0.f;
-      return true;
-    }
-    if (v == INVALID)
+    float v = *cached_value;
+    if (std::isnan (v))
       return false;
-    *value = v * DIVISOR;
+    *value = v;
     return true;
   }
 
@@ -2727,13 +2719,13 @@ struct hb_scalar_cache_t
     if (unlikely (i >= length)) return;
     auto *values = &static_values[0];
     auto *cached_value = &values[i];
-    *cached_value = roundf(value * MULTIPLIER);
+    *cached_value = value;
   }
 
   public:
   unsigned length;
   private:
-  mutable hb_atomic_t<int> static_values[STATIC_LENGTH];
+  mutable hb_atomic_t<float> static_values[STATIC_LENGTH];
 };
 
 struct VarRegionList

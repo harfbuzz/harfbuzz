@@ -28,6 +28,42 @@
 const char hvar_data[] = "\x0\x1\x0\x0\x0\x0\x0\x14\x0\x0\x0\xc4\x0\x0\x0\x0\x0\x0\x0\x0\x0\x1\x0\x0\x0\x10\x0\x2\x0\x0\x0\x74\x0\x0\x0\x7a\x0\x2\x0\x8\xc0\x0\xc0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x40\x0\x40\x0\xc0\x0\xc0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x40\x0\x40\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x40\x0\x40\x0\x0\x1\x0\x0\x0\x0\x0\x4\x0\x0\x0\x8\x0\x0\x0\x1\x0\x2\x0\x3\x0\x4\x0\x5\x0\x6\x0\x7\xf9\xf\x2f\xbf\xfb\xfb\x35\xf9\x4\x4\xf3\xb4\xf2\xfb\x2e\xf3\x4\x4\xe\xad\xfa\x1\x1a\x1\x15\x22\x59\xd6\xe3\xf6\x6\xf5\x0\x1\x0\x5\x0\x4\x7\x5\x6";
 
 static void
+test_scalar_cache_precision ()
+{
+  const float scalars[] = {
+    0.f,
+    1.f,
+    1.f / 3.f,
+    /* Three variation axes can produce a scalar below the old cache's
+     * fixed-point precision. */
+    1.f / (16384.f * 16384.f * 16384.f),
+  };
+  const unsigned counts[] = {4, 129};
+  OT::hb_scalar_cache_t scratch_cache;
+  for (unsigned count : counts)
+  {
+    auto *cache = OT::hb_scalar_cache_t::create (count, &scratch_cache);
+    hb_always_assert (cache->length == count);
+    for (unsigned i = 0; i < count; i++)
+    {
+      float value;
+      float scalar = scalars[i % ARRAY_LENGTH (scalars)];
+      hb_always_assert (!cache->get (i, &value));
+      cache->set (i, scalar);
+      hb_always_assert (cache->get (i, &value));
+      hb_always_assert (value == scalar);
+    }
+    cache->clear ();
+    for (unsigned i = 0; i < count; i++)
+    {
+      float value;
+      hb_always_assert (!cache->get (i, &value));
+    }
+    OT::hb_scalar_cache_t::destroy (cache, &scratch_cache);
+  }
+}
+
+static void
 test_item_variations ()
 {
   const OT::HVAR* hvar_table = reinterpret_cast<const OT::HVAR*> (hvar_data);
@@ -302,6 +338,7 @@ test_failed_encoding ()
 int
 main (int argc, char **argv)
 {
+  test_scalar_cache_precision ();
   test_item_variations ();
   test_implicit_advance_mapping ();
   test_item_variations_overflow ();
