@@ -256,6 +256,9 @@ HB_WASM_API (bool_t, font_set_coords) (HB_WASM_EXEC_ENV
     return false;
 
   const int *our_coords = (const int *) (validate_app_addr (coords->coords, bytes) ? addr_app_to_native (coords->coords) : nullptr);
+  if (unlikely (!our_coords))
+    return false;
+
   hb_font_set_var_coords_normalized(font, our_coords, length);
   return true;
 }
