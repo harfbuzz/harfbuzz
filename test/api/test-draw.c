@@ -1151,6 +1151,49 @@ test_hb_draw_cff_budget (void)
 }
 
 static void
+test_hb_draw_glyf_composite_budget (void)
+{
+  /* A child composite whose 256 components all reference itself.  Preparing
+   * its offsets must consume budget even when cycle detection skips children. */
+  char glyf_data[16 + 10 + 256 * 6] = {0};
+  glyf_data[0] = glyf_data[1] = (char) 0xFF;
+  glyf_data[11] = 0x02;
+  glyf_data[13] = 0x01;
+  glyf_data[16] = glyf_data[17] = (char) 0xFF;
+  for (unsigned i = 0; i < 256; i++)
+  {
+    glyf_data[26 + i * 6 + 1] = i < 255 ? 0x22 : 0x02;
+    glyf_data[26 + i * 6 + 3] = 0x01;
+  }
+  const char loca_data[] = {0, 0, 0, 8, 0x03, 0x0D};
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+  hb_face_set_glyph_count (face, 2);
+  hb_font_t *font = hb_font_create (face);
+
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 0};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 10000));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 2048));
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (data.live, <, 0);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 10000));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+
+  hb_draw_funcs_destroy (draw_funcs);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_hb_draw_budget (void)
 {
   draw_budget_data_t data = {HB_BUDGET_DEFAULT, 1234};
@@ -1318,6 +1361,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_immutable);
   hb_test_add (test_hb_draw_budget);
   hb_test_add (test_hb_draw_cff_budget);
+  hb_test_add (test_hb_draw_glyf_composite_budget);
 
   const char **font_funcs = hb_font_list_funcs ();
   for (const char **font_funcs_name = font_funcs; *font_funcs_name; font_funcs_name++)

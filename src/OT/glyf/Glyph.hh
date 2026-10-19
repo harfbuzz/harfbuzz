@@ -374,7 +374,16 @@ struct Glyph
     case COMPOSITE:
     {
       for (auto &item : get_composite_iterator ())
-        if (unlikely (!item.get_points (points, extended))) return false;
+      {
+        /* Preparing a component is a traversal step, even if cycle
+         * detection later skips its child glyph. */
+        if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_16) ||
+                      !item.get_points (points, extended)))
+        {
+          points.resize (old_length);
+          return false;
+        }
+      }
       break;
     }
     case EMPTY:
