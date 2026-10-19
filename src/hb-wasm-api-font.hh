@@ -115,9 +115,12 @@ HB_WASM_API (bool_t, font_get_glyph_extents) (HB_WASM_EXEC_ENV
 HB_WASM_API (void, font_glyph_to_string) (HB_WASM_EXEC_ENV
 					  ptr_d(font_t, font),
 					  codepoint_t glyph,
-					  char *s, uint32_t size)
+					  ptr_d(char, s), uint32_t size)
 {
   HB_REF2OBJ (font);
+  HB_ARRAY_PARAM (char, s, size);
+  if (unlikely (!s))
+    return;
 
   hb_font_glyph_to_string (font, glyph, s, size);
 }
