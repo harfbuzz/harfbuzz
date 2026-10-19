@@ -179,7 +179,7 @@ HB_WASM_API (bool_t, font_copy_glyph_outline) (HB_WASM_EXEC_ENV
 						    hb_outline.contours.get_size ());
 
   if ((outline->n_points && !outline->points) ||
-      (!outline->n_contours && !outline->contours))
+      (outline->n_contours && !outline->contours))
   {
     outline->n_points = outline->n_contours = 0;
     return false;
