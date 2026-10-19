@@ -1181,7 +1181,7 @@ test_hb_draw_glyf_composite_budget (void)
   g_assert_true (hb_draw_set_budget (draw_funcs, &data, 10000));
   g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
 
-  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 128));
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 2048));
   g_assert_false (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
   g_assert_cmpint (data.live, <, 0);
 

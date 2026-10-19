@@ -375,9 +375,9 @@ struct Glyph
     {
       for (auto &item : get_composite_iterator ())
       {
-        /* Charge component offsets before recursion, including components
-         * that will later be skipped by cycle detection. */
-        if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1) ||
+        /* Preparing a component is a traversal step, even if cycle
+         * detection later skips its child glyph. */
+        if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_16) ||
                       !item.get_points (points, extended)))
         {
           points.resize (old_length);
