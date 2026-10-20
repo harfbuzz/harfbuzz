@@ -6288,6 +6288,16 @@ struct VariationDevice
 			     hb_scalar_cache_t *store_cache = nullptr) const
   { return !font->has_nonzero_coords ? 0 : font->em_scalef_y (get_delta (font, store, store_cache)); }
 
+  float get_x_delta_f (hb_font_t *font,
+		       const ItemVariationStore &store,
+		       hb_scalar_cache_t *store_cache) const
+  { return !font->has_nonzero_coords ? 0.f : font->em_fscalef_x (get_delta (font, store, store_cache)); }
+
+  float get_y_delta_f (hb_font_t *font,
+		       const ItemVariationStore &store,
+		       hb_scalar_cache_t *store_cache) const
+  { return !font->has_nonzero_coords ? 0.f : font->em_fscalef_y (get_delta (font, store, store_cache)); }
+
   VariationDevice* copy (hb_serialize_context_t *c,
                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map) const
   {
@@ -6350,6 +6360,36 @@ struct DeviceHeader
 
 struct Device
 {
+  // Anchors retain fractional coordinates until their difference is rounded.
+  // Hinting adjustments and value records keep their integer semantics.
+  float get_x_delta_f (hb_font_t *font,
+		       const ItemVariationStore &store,
+		       hb_scalar_cache_t *store_cache = nullptr) const
+  {
+#ifndef HB_NO_VAR
+    if (u.b.format == 0x8000)
+    {
+      hb_barrier ();
+      return u.variation.get_x_delta_f (font, store, store_cache);
+    }
+#endif
+    return get_x_delta (font, store, store_cache);
+  }
+
+  float get_y_delta_f (hb_font_t *font,
+		       const ItemVariationStore &store,
+		       hb_scalar_cache_t *store_cache = nullptr) const
+  {
+#ifndef HB_NO_VAR
+    if (u.b.format == 0x8000)
+    {
+      hb_barrier ();
+      return u.variation.get_y_delta_f (font, store, store_cache);
+    }
+#endif
+    return get_y_delta (font, store, store_cache);
+  }
+
   hb_position_t get_x_delta (hb_font_t *font,
 			     const ItemVariationStore &store=Null (ItemVariationStore),
 			     hb_scalar_cache_t *store_cache = nullptr) const
