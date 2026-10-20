@@ -60,7 +60,9 @@
  static double
  _tent_eval (const Triple &tent, double v)
  {
-   double start = tent.minimum, peak = tent.middle, end = tent.maximum;
+   double start = (double) tent.minimum;
+   double peak = (double) tent.middle;
+   double end = (double) tent.maximum;
    if (unlikely (start > peak || peak > end)) return 1.0;
    if (unlikely (start < 0.0 && end > 0.0 && peak != 0.0)) return 1.0;
    if (peak == 0.0 || v == peak) return 1.0;
@@ -80,7 +82,7 @@
    double b = _tent_eval (tent, hi);
    *tmin = hb_min (a, b);
    *tmax = hb_max (a, b);
-   if (lo <= tent.middle && tent.middle <= hi)
+   if (lo <= (double) tent.middle && (double) tent.middle <= hi)
      *tmax = hb_max (*tmax, 1.0);
  }
 
@@ -118,8 +120,8 @@
      if (plan->user_axes_location.has (tag))
      {
        if (!plan->old_intermediates.has (tag, &old_int)) return false;
-       lo = old_int->minimum;
-       hi = old_int->maximum;
+       lo = (double) old_int->minimum;
+       hi = (double) old_int->maximum;
      }
      else if (axis.is_hidden ())
        lo = hi = 0.0; /* private axis: intermediate is always 0 */
@@ -214,17 +216,17 @@
        {
 	 const Triple &tent = _.second;
 	 /* Tents the runtime ignores (constant scalar 1) add no breakpoints. */
-	 if (tent.middle == 0.0 ||
+	 if (tent.middle == 0.f ||
 	     tent.minimum > tent.middle || tent.middle > tent.maximum ||
-	     (tent.minimum < 0.0 && tent.maximum > 0.0))
+	     (tent.minimum < 0.f && tent.maximum > 0.f))
 	   continue;
 	 int pos = add_grid_axis (_.first);
 	 if (pos < 0) return false;
 	 auto &points = grid_points[pos];
 	 double blo = points[0], bhi = points[1];
-	 points.push (hb_clamp (tent.minimum, blo, bhi));
-	 points.push (hb_clamp (tent.middle, blo, bhi));
-	 points.push (hb_clamp (tent.maximum, blo, bhi));
+	 points.push (hb_clamp ((double) tent.minimum, blo, bhi));
+	 points.push (hb_clamp ((double) tent.middle, blo, bhi));
+	 points.push (hb_clamp ((double) tent.maximum, blo, bhi));
 	 tents.push (hb_pair ((unsigned) pos, tent));
 	 if (points.in_error () || tents.in_error ()) return false;
        }
@@ -472,9 +474,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     float minimum, middle, maximum;
     axis.get_coordinates (minimum, middle, maximum);
     if (plan->user_axes_location.has (tag, &range) && !range->is_point () &&
-        range->minimum == static_cast<double> (minimum) &&
-        range->middle == static_cast<double> (middle) &&
-        range->maximum == static_cast<double> (maximum))
+        range->minimum == minimum &&
+        range->middle == middle &&
+        range->maximum == maximum)
       plan->user_axes_location.del (tag);
   }
   if (plan->user_axes_location.is_empty ())

@@ -5027,13 +5027,13 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
       if (!c->plan->axes_old_index_tag_map.has (src.axisIndex, &axis_tag))
         return LOOKUP_CONDITION_SUBSET_ERROR;
 
-      Triple axis_limit {-1.0, 0.0, 1.0};
+      Triple axis_limit {-1.f, 0.f, 1.f};
       Triple *normalized_limit;
       if (c->plan->axes_location.has (*axis_tag, &normalized_limit))
         axis_limit = *normalized_limit;
 
-      double filter_min = (double) src.filterRangeMinValue.to_float ();
-      double filter_max = (double) src.filterRangeMaxValue.to_float ();
+      float filter_min = src.filterRangeMinValue.to_float ();
+      float filter_max = src.filterRangeMaxValue.to_float ();
       if (filter_min > filter_max)
         return LOOKUP_CONDITION_SUBSET_FALSE;
       if (axis_limit.is_point ())
@@ -5054,7 +5054,7 @@ Condition::subset_lookup_condition_impl (hb_subset_context_t *c,
       if (unlikely (!out))
         return LOOKUP_CONDITION_SUBSET_ERROR;
 
-      TripleDistances axis_distances {1.0, 1.0};
+      TripleDistances axis_distances {1.f, 1.f};
       TripleDistances *distances;
       if (c->plan->axes_triple_distances.has (*axis_tag, &distances))
         axis_distances = *distances;
