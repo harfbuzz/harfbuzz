@@ -92,6 +92,8 @@ struct hb_cache_t
   HB_HOT
   bool get (unsigned int key, unsigned int *value) const
   {
+    if (unlikely (key >> key_bits))
+      return false; /* Overflows */
     unsigned int k = key & ((1u<<cache_bits)-1);
     unsigned int v = values[k];
     if ((key_bits + value_bits - cache_bits == 8 * sizeof (item_t) && (item_t) v == (item_t) -1) ||
