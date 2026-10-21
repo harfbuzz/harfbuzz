@@ -158,6 +158,156 @@ test_instance_cff2_large_store (void)
 }
 
 
+typedef struct {
+  char op;
+  unsigned count;
+  float points[6];
+} rounding_command_t;
+
+static void
+rounding_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED, void *data,
+		 hb_draw_state_t *st HB_UNUSED, float x, float y,
+		 void *user_data HB_UNUSED)
+{
+  rounding_command_t command = {'M', 2, {x, y}};
+  g_array_append_val ((GArray *) data, command);
+}
+
+static void
+rounding_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED, void *data,
+		 hb_draw_state_t *st HB_UNUSED, float x, float y,
+		 void *user_data HB_UNUSED)
+{
+  rounding_command_t command = {'L', 2, {x, y}};
+  g_array_append_val ((GArray *) data, command);
+}
+
+static void
+rounding_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED, void *data,
+		  hb_draw_state_t *st HB_UNUSED, float x1, float y1,
+		  float x2, float y2, float x, float y,
+		  void *user_data HB_UNUSED)
+{
+  rounding_command_t command = {'C', 6, {x1, y1, x2, y2, x, y}};
+  g_array_append_val ((GArray *) data, command);
+}
+
+static void
+rounding_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED, void *data,
+		     hb_draw_state_t *st HB_UNUSED, void *user_data HB_UNUSED)
+{
+  rounding_command_t command = {'Z', 0, {0}};
+  g_array_append_val ((GArray *) data, command);
+}
+
+static void
+check_rounding (hb_face_t *face, hb_face_t *subset, float weight, float slant,
+		float tolerance)
+{
+  hb_variation_t location[] = {{HB_TAG ('w','g','h','t'), weight},
+			     {HB_TAG ('s','l','n','t'), slant}};
+  hb_font_t *original = hb_font_create (face);
+  hb_font_t *instanced = hb_font_create (subset);
+  hb_font_set_variations (original, location, 2);
+  hb_font_set_variations (instanced, location, 2);
+  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (funcs, rounding_move_to, NULL, NULL);
+  hb_draw_funcs_set_line_to_func (funcs, rounding_line_to, NULL, NULL);
+  hb_draw_funcs_set_cubic_to_func (funcs, rounding_cubic_to, NULL, NULL);
+  hb_draw_funcs_set_close_path_func (funcs, rounding_close_path, NULL, NULL);
+
+  for (hb_codepoint_t glyph = 1; glyph < hb_face_get_glyph_count (face); glyph++)
+  {
+    char name[64];
+    g_assert_true (hb_font_get_glyph_name (original, glyph, name, sizeof (name)));
+    GArray *expected = g_array_new (FALSE, FALSE, sizeof (rounding_command_t));
+    GArray *actual = g_array_new (FALSE, FALSE, sizeof (rounding_command_t));
+    g_assert_true (hb_font_draw_glyph_or_fail (original, glyph, funcs, expected));
+    g_assert_true (hb_font_draw_glyph_or_fail (instanced, glyph, funcs, actual));
+    g_test_message ("glyph %u, wght %g, slnt %g", glyph, weight, slant);
+    if (!strcmp (name, "flex1"))
+    {
+      /* flex1 deliberately retains relative rounding for the entire glyph.
+       * At wght=570 its first dx/dy round to 24/15, after a 101/103 moveto. */
+      if (weight == 570)
+      {
+	rounding_command_t *curve = &g_array_index (actual, rounding_command_t, 1);
+	g_assert_cmpint (curve->op, ==, 'C');
+	g_assert_cmpfloat (curve->points[0], ==, 125);
+	g_assert_cmpfloat (curve->points[1], ==, 118);
+      }
+      g_array_free (actual, TRUE);
+      g_array_free (expected, TRUE);
+      continue;
+    }
+    g_assert_cmpuint (expected->len, ==, actual->len);
+    for (unsigned i = 0; i < expected->len; i++)
+    {
+      rounding_command_t *a = &g_array_index (actual, rounding_command_t, i);
+      rounding_command_t *e = &g_array_index (expected, rounding_command_t, i);
+      g_assert_cmpint (a->op, ==, e->op);
+      for (unsigned j = 0; j < e->count; j++)
+	g_assert_cmpfloat_with_epsilon (a->points[j], e->points[j], tolerance);
+      /* The rings' final cubic endpoint must equal their moveto, without
+       * relying on the implicit line supplied by close_path. */
+      if ((!strcmp (name, "ring") || !strcmp (name, "hinted")) && a->op == 'Z')
+      {
+	rounding_command_t *end = &g_array_index (actual, rounding_command_t, i - 1);
+	unsigned start = i - 1;
+	while (g_array_index (actual, rounding_command_t, start).op != 'M') start--;
+	rounding_command_t *move = &g_array_index (actual, rounding_command_t, start);
+	g_assert_cmpint (end->op, ==, 'C');
+	g_assert_cmpfloat_with_epsilon (end->points[4], move->points[0], .001);
+	g_assert_cmpfloat_with_epsilon (end->points[5], move->points[1], .001);
+      }
+    }
+    g_array_free (actual, TRUE);
+    g_array_free (expected, TRUE);
+  }
+  hb_draw_funcs_destroy (funcs);
+  hb_font_destroy (original);
+  hb_font_destroy (instanced);
+}
+
+static void
+test_instance_cff2_absolute_rounding (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff2-rounding.otf");
+  for (unsigned mode = 0; mode < 4; mode++)
+    for (unsigned no_hinting = 0; no_hinting < 2; no_hinting++)
+    {
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add_range (hb_subset_input_glyph_set (input), 0, hb_face_get_glyph_count (face) - 1);
+      if (no_hinting) hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+      if (mode == 0 || mode == 3)
+      {
+	g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), mode == 0 ? 570 : 300));
+	g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('s','l','n','t'), mode == 0 ? -5.5 : 0));
+      }
+      else
+      {
+	g_assert_true (hb_subset_input_set_axis_range (input, face, HB_TAG ('w','g','h','t'), 300, 900, 400));
+	if (mode == 2)
+	  g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('s','l','n','t'), -5.5));
+      }
+      hb_face_t *subset = hb_subset_or_fail (face, input);
+      g_assert_nonnull (subset);
+      check_rounding (face, subset, mode == 0 ? 570 : mode == 3 ? 300 : 400,
+		      mode == 1 || mode == 3 ? 0 : -5.5, .501);
+      if (mode == 1 || mode == 2)
+      {
+	check_rounding (face, subset, 300, mode == 1 ? 0 : -5.5, 1.51);
+	check_rounding (face, subset, 600, mode == 1 ? -11 : -5.5, 2.01);
+	check_rounding (face, subset, 900, mode == 1 ? -11 : -5.5, 2.01);
+      }
+      hb_face_destroy (subset);
+      hb_subset_input_destroy (input);
+    }
+  hb_face_destroy (face);
+}
+
+
+
 int
 main (int argc, char **argv)
 {
@@ -167,6 +317,7 @@ main (int argc, char **argv)
   hb_test_add (test_instance_cff2_private_blend_overflow);
   hb_test_add (test_instance_cff2_empty_bounds);
   hb_test_add (test_instance_cff2_large_store);
+  hb_test_add (test_instance_cff2_absolute_rounding);
 
   return hb_test_run();
 }

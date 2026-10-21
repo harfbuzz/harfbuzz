@@ -199,6 +199,7 @@ set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-subset-cff-common.hh
      ${PROJECT_SOURCE_DIR}/src/hb-subset-cff1.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-cff2.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-cff2-round.hh
      ${PROJECT_SOURCE_DIR}/src/hb-subset-input.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-input.hh
      ${PROJECT_SOURCE_DIR}/src/hb-subset-instancer-iup.hh

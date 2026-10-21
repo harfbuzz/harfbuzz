@@ -345,6 +345,7 @@ struct cs_command_t
 typedef hb_vector_t<cs_command_t> *cs_command_vec_t;
 
 struct cff2_instancing_plan_t;
+struct cff2_cs_rounding_t;
 
 struct flatten_param_t
 {
@@ -362,6 +363,7 @@ struct flatten_param_t
   /* CFF2 partial instancing: when set, blends are rewritten against the
    * instanced variation store instead of being copied or flattened. */
   const cff2_instancing_plan_t *instancer = nullptr;
+  cff2_cs_rounding_t *rounding = nullptr;
   bool emitted_blend = false;
 };
 

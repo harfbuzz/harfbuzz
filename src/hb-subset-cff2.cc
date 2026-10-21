@@ -35,6 +35,7 @@
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff2-interp-cs.hh"
+#include "hb-subset-cff2-round.hh"
 #include "hb-subset-cff2-to-cff1.hh"
 
 using namespace CFF;
@@ -321,6 +322,8 @@ struct cff2_usage_param_t
 
   cff2_instancing_plan_t *instancing = nullptr;
   bool drop_hints = false;
+  bool has_blend = false;
+  bool has_flex1 = false;
   unsigned ivs = 0;	/* dict-side current vsindex */
 };
 
@@ -328,6 +331,7 @@ struct cff2_cs_opset_usage_t : cff2_cs_opset_t<cff2_cs_opset_usage_t, cff2_usage
 {
   static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, cff2_usage_param_t& param)
   {
+    param.has_flex1 |= op == OpCode_flex1;
     bool counts = true;
     switch (op)
     {
@@ -354,7 +358,8 @@ struct cff2_cs_opset_usage_t : cff2_cs_opset_t<cff2_cs_opset_usage_t, cff2_usage
       for (unsigned int i = 0; i < env.argStack.get_count (); i++)
 	if (env.argStack[i].blending ())
 	{
-	  param.instancing->note_use (env.get_ivs ());
+	  param.has_blend = true;
+	  if (param.instancing) param.instancing->note_use (env.get_ivs ());
 	  break;
 	}
 
@@ -423,54 +428,52 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 {
   static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
-    /* Optionally capture command for specialization (before flushing, to preserve args) */
-    if (param.commands)
+    bool skip_command = false;
+    switch (op)
     {
-      bool skip_command = false;
+      case OpCode_return:
+      case OpCode_endchar:
+	skip_command = true;
+	break;
 
-      switch (op)
+      case OpCode_hstem:
+      case OpCode_hstemhm:
+      case OpCode_vstem:
+      case OpCode_vstemhm:
+      case OpCode_hintmask:
+      case OpCode_cntrmask:
+	skip_command = param.drop_hints;
+	break;
+
+      default:
+	break;
+    }
+
+    if (!skip_command && param.rounding && unlikely (!round_args (op, env, param)))
+    {
+      env.set_error ();
+      return;
+    }
+
+    /* Capture resolved commands for CFF2-to-CFF1 specialization. */
+    if (param.commands && !skip_command)
+    {
+      cs_command_t cmd (op);
+      for (unsigned int i = 0; i < env.argStack.get_count ();)
       {
-	case OpCode_return:
-	case OpCode_endchar:
-	  skip_command = true;
-	  break;
-
-	case OpCode_hstem:
-	case OpCode_hstemhm:
-	case OpCode_vstem:
-	case OpCode_vstemhm:
-	case OpCode_hintmask:
-	case OpCode_cntrmask:
-	  if (param.drop_hints)
-	    skip_command = true;
-	  break;
-
-	default:
-	  break;
-      }
-
-      if (!skip_command)
-      {
-	cs_command_t cmd (op);
-	/* Capture resolved blend values */
-	for (unsigned int i = 0; i < env.argStack.get_count ();)
+	const blend_arg_t &arg = env.argStack[i];
+	if (arg.blending ())
 	{
-	  const blend_arg_t &arg = env.argStack[i];
-	  if (arg.blending ())
-	  {
-	    /* For blend args, capture only the resolved default value */
-	    cmd.args.push (arg);
-	    /* Skip over the multiple blend values */
-	    i += arg.numValues;
-	  }
-	  else
-	  {
-	    cmd.args.push (arg);
-	    i++;
-	  }
+	  cmd.args.push (arg);
+	  i += arg.numValues;
 	}
-	param.commands->push (cmd);
+	else
+	{
+	  cmd.args.push (arg);
+	  i++;
+	}
       }
+      param.commands->push (cmd);
     }
 
     switch (op)
@@ -503,6 +506,12 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 
   static void flush_args (cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
+    if (param.rounding)
+    {
+      encode_rounded_args (env, param);
+      SUPER::flush_args (env, param);
+      return;
+    }
     for (unsigned int i = 0; i < env.argStack.get_count ();)
     {
       const blend_arg_t &arg = env.argStack[i];
@@ -527,6 +536,65 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
       }
     }
     SUPER::flush_args (env, param);
+  }
+
+  static bool round_args (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
+  {
+    unsigned k = 0;
+    if (param.instancer)
+    {
+      unsigned ivs = env.get_ivs ();
+      const auto *t = param.instancer->get_transform (ivs);
+      k = t && t->alive () ? t->matrix.length : 0;
+      for (unsigned i = 0; i < env.argStack.get_count (); i++)
+      {
+	auto &arg = env.argStack[i];
+	if (!arg.blending ()) continue;
+	if (unlikely (!t || arg.deltas.length != t->gains.length)) return false;
+	double value = arg.to_real () + param.instancer->fold_deltas (ivs, arg.deltas.as_array ());
+	hb_vector_t<number_t> deltas = std::move (arg.deltas);
+	arg.set_real (value);
+	if (unlikely (!arg.deltas.resize (k))) return false;
+	for (unsigned r = 0; r < k; r++)
+	  arg.deltas.arrayZ[r].set_real (t->transform_delta (r, deltas.as_array ()));
+      }
+    }
+    return param.rounding->round (op, hb_array (env.argStack.arrayZ, env.argStack.get_count ()), k);
+  }
+
+  static void encode_rounded_args (cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
+  {
+    str_encoder_t encoder (param.flatStr);
+    unsigned count = env.argStack.get_count ();
+    for (unsigned i = 0; i < count;)
+    {
+      const auto &arg = env.argStack[i];
+      if (!arg.blending ())
+      {
+	encoder.encode_num_cs (arg);
+	i++;
+	continue;
+      }
+      unsigned k = arg.deltas.length;
+      unsigned n = 1;
+      while (i + n < count && env.argStack[i + n].deltas.length == k) n++;
+      /* Previously emitted operands remain on the stack during each blend. */
+      unsigned chunk = hb_min (n, (512 - i) / (k + 1));
+      if (unlikely (!chunk))
+      {
+	env.set_error ();
+	return;
+      }
+      for (unsigned j = 0; j < chunk; j++)
+	encoder.encode_num_cs (env.argStack[i + j]);
+      for (unsigned j = 0; j < chunk; j++)
+	for (const auto &d : env.argStack[i + j].deltas)
+	  encoder.encode_num_cs (d);
+      encoder.encode_int (chunk);
+      encoder.encode_op (OpCode_blendcs);
+      param.emitted_blend = true;
+      i += chunk;
+    }
   }
 
   static void flatten_blends (const blend_arg_t &arg, unsigned int i, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
@@ -1131,10 +1199,13 @@ struct cff2_subset_plan
 
     if (desubroutinize)
     {
-      if (partial_instancing)
+      if (instancing_requested)
       {
-	/* Pass 1: collect which VarDatas the retained blends reference, so
-	 * unused ones get pruned and the survivors renumbered. */
+	/* Identify charstrings that can round absolute coordinates.  Conservatively
+	 * keep relative rounding for flex1, whose implicit direction can vary.
+	 * Also collect the VarDatas referenced by partial instances. */
+	hb_vector_t<bool> round_charstrings;
+	if (unlikely (!round_charstrings.resize (num_glyphs))) return false;
 	hb_set_t used_fds;
 	for (unsigned int i = 0; i < num_glyphs; i++)
 	{
@@ -1150,33 +1221,39 @@ struct cff2_subset_plan
 	  cff2_cs_interp_env_t<blend_arg_t> env (str, acc, fd);
 	  cs_interpreter_t<cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_usage_t, cff2_usage_param_t> interp (env);
 	  cff2_usage_param_t param;
-	  param.instancing = &instancing;
+	  param.instancing = partial_instancing ? &instancing : nullptr;
 	  param.drop_hints = drop_hints;
 	  if (unlikely (!interp.interpret (param)))
 	    return false;
+	  round_charstrings.arrayZ[i] = param.has_blend && !param.has_flex1;
 	}
-	for (unsigned fd : used_fds)
+	if (partial_instancing)
 	{
-	  cff2_usage_param_t param;
-	  param.instancing = &instancing;
-	  unsigned count = acc.privateDicts[fd].get_count ();
-	  for (unsigned j = 0; j < count; j++)
+	  for (unsigned fd : used_fds)
 	  {
-	    const op_str_t &opstr = acc.privateDicts[fd][j];
-	    if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
-	      continue;
-	    cff2_priv_dict_interp_env_t env {hb_ubytes_t (opstr.ptr, opstr.length)};
-	    dict_interpreter_t<cff2_private_dict_usage_opset_t, cff2_usage_param_t, cff2_priv_dict_interp_env_t> interp (env);
-	    if (unlikely (!interp.interpret (param)))
-	      return false;
+	    cff2_usage_param_t param;
+	    param.instancing = &instancing;
+	    unsigned count = acc.privateDicts[fd].get_count ();
+	    for (unsigned j = 0; j < count; j++)
+	    {
+	      const op_str_t &opstr = acc.privateDicts[fd][j];
+	      if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
+	        continue;
+	      cff2_priv_dict_interp_env_t env {hb_ubytes_t (opstr.ptr, opstr.length)};
+	      dict_interpreter_t<cff2_private_dict_usage_opset_t, cff2_usage_param_t, cff2_priv_dict_interp_env_t> interp (env);
+	      if (unlikely (!interp.interpret (param)))
+	        return false;
+	    }
 	  }
+	  if (unlikely (!instancing.finalize ()))
+	    return false;
 	}
-	if (unlikely (!instancing.finalize ()))
-	  return false;
 
-	/* Pass 2: like subr_flattener_t, but blends stay symbolic (no coords
-	 * fed to the env) and get rewritten against the instanced store. */
+	/* Keep full-instance blends unrounded until their absolute positions
+	 * are known; partial-instance blends stay symbolic for rewriting. */
 	if (!subset_charstrings.resize_exact (num_glyphs))
+	  return false;
+	if (capture_commands && !charstring_commands.resize_exact (num_glyphs))
 	  return false;
 	for (unsigned int i = 0; i < num_glyphs; i++)
 	{
@@ -1188,14 +1265,20 @@ struct cff2_subset_plan
 	  if (unlikely (fd >= acc.fdCount))
 	    return false;
 
-	  cff2_cs_interp_env_t<blend_arg_t> env (str, acc, fd);
+	  cff2_cs_interp_env_t<blend_arg_t> env (str, acc, fd,
+					       pinned ? plan->normalized_coords.arrayZ : nullptr,
+					       pinned ? plan->normalized_coords.length : 0);
+	  env.round_blends = !round_charstrings.arrayZ[i];
 	  cs_interpreter_t<cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_flatten_t, flatten_param_t> interp (env);
 	  flatten_param_t param = {
 	    subset_charstrings.arrayZ[i],
 	    (bool) (plan->flags & HB_SUBSET_FLAGS_NO_HINTING),
-	    plan
+	    plan,
+	    capture_commands ? &charstring_commands.arrayZ[i] : nullptr
 	  };
-	  param.instancer = &instancing;
+	  cff2_cs_rounding_t rounding;
+	  if (round_charstrings.arrayZ[i]) param.rounding = &rounding;
+	  param.instancer = partial_instancing ? &instancing : nullptr;
 	  if (unlikely (!interp.interpret (param)))
 	    return false;
 	}
