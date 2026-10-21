@@ -441,8 +441,7 @@ struct parsed_cs_op_t : op_str_t
   bool is_hinting () const { return hinting_flag; }
   void set_hinting ()       { hinting_flag = true; }
 
-  /* The layout of this struct is designed to fit within the
-   * padding of op_str_t! */
+  /* Metadata for retained charstring tokens. */
 
   protected:
   bool	  hinting_flag = false;
@@ -467,6 +466,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   void add_op (op_code_t op, const byte_str_ref_t& str_ref)
   {
     if (is_parsed ()) return;
+    last_op_ = op;
     if (coalescing_)
     {
       /* Do not record individual tokens; only note their boundaries.
@@ -482,10 +482,20 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
     SUPER::add_op (op, str_ref);
   }
 
+  bool has_immediate_subr_number () const
+  {
+    if (is_parsed ()) return true;
+    op_code_t op = coalescing_ ? last_op_ :
+                   values.length ? values.tail ().op : OpCode_Invalid;
+    return op == OpCode_shortint || op == OpCode_fixedcs ||
+           (OpCode_OneByteIntFirst <= op && op <= OpCode_TwoByteNegInt3);
+  }
+
   void add_call_op (op_code_t op, const byte_str_ref_t& str_ref, unsigned int subr_num)
   {
     if (is_parsed ()) return;
     has_calls_ = true;
+    last_op_ = op;
 
     if (coalescing_)
     {
@@ -601,6 +611,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
    * hint analysis. */
   bool    coalescing_ : 1;
   /* End offsets of the last two tokens seen (coalescing mode). */
+  op_code_t last_op_ = OpCode_Invalid;
   unsigned penultimate_end_ = 0;
   unsigned last_end_ = 0;
   op_code_t	prefix_op_;
@@ -825,8 +836,9 @@ struct subr_subsetter_t
    * Phase #3 walks charstrings/subroutines forward then backward (hence parsing required),
    * because we can't tell if a number belongs to a hint op until we see the first moveto.
    *
-   * Assumption: a callsubr/callgsubr operator must immediately follow a (biased) subroutine number
-   * within the same charstring/subroutine, e.g., not split across a charstring and a subroutine.
+   * Retained calls require an immediately preceding subroutine-number token
+   * within the same program. Caller-supplied operands are rejected; use
+   * desubroutinization for those programs.
    */
   bool subset (void)
   {

@@ -815,6 +815,11 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
 				 cff2_cs_interp_env_t<blend_arg_t> &env, subr_subset_param_t& param,
 				 cff2_biased_subrs_t& subrs, hb_set_t *closure)
   {
+    if (unlikely (!param.current_parsed_str->has_immediate_subr_number ()))
+    {
+      env.set_error ();
+      return;
+    }
     byte_str_ref_t    str_ref = env.str_ref;
     env.call_subr (subrs, type);
     param.current_parsed_str->add_call_op (op, str_ref, env.context.subr_num);
@@ -2017,7 +2022,11 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 {
   cff2_subset_plan cff2_plan;
 
-  if (unlikely (!cff2_plan.create (*this, c->plan))) return false;
+  if (unlikely (!cff2_plan.create (*this, c->plan)))
+  {
+    c->serializer->err (HB_SERIALIZE_ERROR_OTHER);
+    return false;
+  }
 
   // If instantiating (pinned) and downgrade flag is set, convert to CFF1
   if (cff2_plan.pinned && (c->plan->flags & HB_SUBSET_FLAGS_DOWNGRADE_CFF2))

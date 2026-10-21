@@ -412,10 +412,41 @@ test_subset_cff1_iftb_requirements (void)
 #endif
 
 
+/* Caller-dependent subroutine numbers cannot be remapped at a shared offset. */
+static void
+test_subset_cff1_caller_supplied_subr (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_caller_subr.otf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'B');
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_subset_input_set_flags (input, i ? HB_SUBSET_FLAGS_NO_HINTING : HB_SUBSET_FLAGS_DEFAULT);
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_null (subset);
+  }
+  /* Explicit flattening does not remap caller-supplied operands. */
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_DESUBROUTINIZE);
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  hb_font_t *font = hb_font_create (subset);
+  hb_glyph_extents_t extents;
+  g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+  g_assert_cmpint (extents.width, ==, 10);
+  g_assert_true (hb_font_get_glyph_extents (font, 2, &extents));
+  g_assert_cmpint (extents.width, ==, 20);
+  hb_font_destroy (font);
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+
+  hb_test_add (test_subset_cff1_caller_supplied_subr);
 
   hb_test_add (test_subset_cff1_noop);
   hb_test_add (test_subset_cff1);
