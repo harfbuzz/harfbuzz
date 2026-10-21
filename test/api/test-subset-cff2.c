@@ -188,10 +188,45 @@ test_subset_cff2_iftb_requirements (void)
 }
 #endif
 
+static void
+test_subset_cff2_long_private_blends (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff2_long_private_blends.otf");
+  hb_blob_t *source = hb_face_reference_table (face, HB_TAG ('C','F','F','2'));
+  unsigned source_length;
+  const char *source_data = hb_blob_get_data (source, &source_length);
+  /* This fixture's Private DICT occupies [395, 974), including its final
+   * BlueValues operator. Its live stack never exceeds 513 operands. */
+  const unsigned private_offset = 395, private_length = 579;
+  g_assert_cmpuint (private_offset + private_length, <=, source_length);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_unicode_set (input), 'A', 'B');
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  hb_blob_t *result = hb_face_reference_table (subset, HB_TAG ('C','F','F','2'));
+  unsigned length;
+  const char *data = hb_blob_get_data (result, &length);
+  gboolean found = FALSE;
+  for (unsigned i = 0; i + private_length <= length; i++)
+    if (!memcmp (source_data + private_offset, data + i, private_length))
+    {
+      found = TRUE;
+      break;
+    }
+  g_assert_true (found);
+  hb_blob_destroy (result);
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+  hb_blob_destroy (source);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+
+  hb_test_add (test_subset_cff2_long_private_blends);
 
   hb_test_add (test_subset_cff2_noop);
   hb_test_add (test_subset_cff2);
