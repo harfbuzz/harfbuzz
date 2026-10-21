@@ -103,14 +103,14 @@ struct TupleVariationHeader
         start = hb_min (peak, 0.f);
         end = hb_max (peak, 0.f);
       }
-      axis_tuples.set (*axis_tag, Triple ((double) start, (double) peak, (double) end));
+      axis_tuples.set (*axis_tag, Triple (start, peak, end));
     }
 
     return true;
   }
 
   HB_ALWAYS_INLINE
-  double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
+  float calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
 			   const hb_array_t<const F2DOT14> shared_tuples,
 			   hb_scalar_cache_t *shared_tuple_scalar_cache = (hb_scalar_cache_t *) &Null(hb_scalar_cache_t)) const
   {
@@ -126,7 +126,7 @@ struct TupleVariationHeader
     {
       float scalar;
       if (likely (shared_tuple_scalar_cache->get (index, &scalar)))
-	return (double) scalar;
+	return scalar;
     }
 
     const F2DOT14 *peak_tuple;
@@ -148,11 +148,11 @@ struct TupleVariationHeader
         if (has_interm && (scalar != 0 && scalar != 1.f))
 	  shared_tuple_scalar_cache = nullptr;
 	else
-	  return (double) scalar;
+	  return scalar;
       }
 
       if (unlikely ((index + 1) * coord_count > shared_tuples.length))
-        return 0.0;
+        return 0.f;
       peak_tuple = shared_tuples.arrayZ + (coord_count * index);
 
     }
@@ -166,7 +166,7 @@ struct TupleVariationHeader
       end_tuple = get_end_tuple (coord_count);
     }
 
-    double scalar = 1.0;
+    float scalar = 1.f;
 #ifndef HB_OPTIMIZE_SIZE
 #if HB_FAST_NUM_ACCESS
     bool skip = coord_count >= 16;
@@ -192,7 +192,7 @@ struct TupleVariationHeader
       if (!peak) continue;
 
       int v = coords[i];
-      if (!v) { scalar = 0.0; break; }
+      if (!v) { scalar = 0.f; break; }
       if (v == peak) continue;
 
       if (has_interm)
@@ -202,15 +202,15 @@ struct TupleVariationHeader
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
                       (start < 0 && end > 0 && peak))) continue;
-        if (v < start || v > end) { scalar = 0.0; break; }
+        if (v < start || v > end) { scalar = 0.f; break; }
         if (v < peak)
-        { if (peak != start) scalar *= (double) (v - start) / (peak - start); }
+        { if (peak != start) scalar *= (float) (v - start) / (peak - start); }
         else
-        { if (peak != end) scalar *= (double) (end - v) / (end - peak); }
+        { if (peak != end) scalar *= (float) (end - v) / (end - peak); }
       }
-      else if (v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; break; }
+      else if (v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.f; break; }
       else
-        scalar *= (double) v / peak;
+        scalar *= (float) v / peak;
     }
     if (shared_tuple_scalar_cache)
       shared_tuple_scalar_cache->set (index, scalar);
@@ -412,21 +412,21 @@ struct tuple_delta_t
       return;
     }
 
-    if ((tent->minimum < 0.0 && tent->maximum > 0.0) ||
+    if ((tent->minimum < 0.f && tent->maximum > 0.f) ||
         !(tent->minimum <= tent->middle && tent->middle <= tent->maximum))
       return;
 
-    if (tent->middle == 0.0)
+    if (tent->middle == 0.f)
     {
       out.push (std::move (*this));
       return;
     }
 
     if (!axis_limit.is_point () &&
-        !(-1.0 <= axis_limit.minimum &&
+        !(-1.f <= axis_limit.minimum &&
           axis_limit.minimum <= axis_limit.middle &&
           axis_limit.middle <= axis_limit.maximum &&
-          axis_limit.maximum <= +1.0))
+          axis_limit.maximum <= +1.f))
       return;
 
     rebase_tent_result_t &solutions = scratch.first;
@@ -723,14 +723,14 @@ struct tuple_delta_t
         {
           i = next_index (i, start_point, end_point);
           if (i == next) break;
-          deltas_x.arrayZ[i] = infer_delta ((double) orig_points.arrayZ[i].x,
-                                            (double) orig_points.arrayZ[prev].x,
-                                            (double) orig_points.arrayZ[next].x,
-                                            (double) deltas_x.arrayZ[prev], (double) deltas_x.arrayZ[next]);
-          deltas_y.arrayZ[i] = infer_delta ((double) orig_points.arrayZ[i].y,
-                                            (double) orig_points.arrayZ[prev].y,
-                                            (double) orig_points.arrayZ[next].y,
-                                            (double) deltas_y.arrayZ[prev], (double) deltas_y.arrayZ[next]);
+          deltas_x.arrayZ[i] = infer_delta (orig_points.arrayZ[i].x,
+                                            orig_points.arrayZ[prev].x,
+                                            orig_points.arrayZ[next].x,
+                                            deltas_x.arrayZ[prev], deltas_x.arrayZ[next]);
+          deltas_y.arrayZ[i] = infer_delta (orig_points.arrayZ[i].y,
+                                            orig_points.arrayZ[prev].y,
+                                            orig_points.arrayZ[next].y,
+                                            deltas_y.arrayZ[prev], deltas_y.arrayZ[next]);
           inferred_idxes.add (i);
           if (--unref_count == 0) goto no_more_gaps;
         }
@@ -747,8 +747,8 @@ struct tuple_delta_t
       {
         if (!inferred_idxes.has (i))
         {
-          deltas_x.arrayZ[i] = 0.0;
-          deltas_y.arrayZ[i] = 0.0;
+          deltas_x.arrayZ[i] = 0.f;
+          deltas_y.arrayZ[i] = 0.f;
         }
         indices[i] = true;
       }
@@ -919,16 +919,16 @@ struct tuple_delta_t
     return compiled_points.resize_dirty  (pos);
   }
 
-  static double infer_delta (double target_val, double prev_val, double next_val, double prev_delta, double next_delta)
+  static float infer_delta (float target_val, float prev_val, float next_val, float prev_delta, float next_delta)
   {
     if (prev_val == next_val)
-      return (prev_delta == next_delta) ? prev_delta : 0.0;
+      return (prev_delta == next_delta) ? prev_delta : 0.f;
     else if (target_val <= hb_min (prev_val, next_val))
       return (prev_val < next_val) ? prev_delta : next_delta;
     else if (target_val >= hb_max (prev_val, next_val))
       return (prev_val > next_val) ? prev_delta : next_delta;
 
-    double r = (target_val - prev_val) / (next_val - prev_val);
+    float r = (target_val - prev_val) / (next_val - prev_val);
     return prev_delta + r * (next_delta - prev_delta);
   }
 
@@ -1159,7 +1159,7 @@ struct TupleVariationData
         Triple *axis_limit;
         if (!normalized_axes_location.has (axis_tag, &axis_limit))
           return false;
-        TripleDistances axis_triple_distances{1.0, 1.0};
+        TripleDistances axis_triple_distances{1.f, 1.f};
         if (axes_triple_distances.has (axis_tag))
           axis_triple_distances = axes_triple_distances.get (axis_tag);
 
