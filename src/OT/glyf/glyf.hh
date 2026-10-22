@@ -156,7 +156,7 @@ struct glyf
 
     auto *glyf_prime = c->serializer->start_embed <glyf> ();
     bool result = glyf_prime->serialize (c->serializer, hb_iter (glyphs), use_short_loca, c->plan);
-    if (c->plan->normalized_coords && !c->plan->pinned_at_default)
+    if (c->plan->normalized_coords)
       _free_compiled_subset_glyphs (glyphs);
     hb_blob_destroy (source_glyf);
 
@@ -697,9 +697,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
     {
       if (unlikely (!subset_glyph.compile_bytes_with_deltas (plan, font, glyf)))
       {
-        // when pinned at default, only bounds are updated, thus no need to free
-        if (!plan->pinned_at_default)
-          _free_compiled_subset_glyphs (glyphs);
+        _free_compiled_subset_glyphs (glyphs);
         return false;
       }
     }
