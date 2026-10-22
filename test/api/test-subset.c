@@ -298,6 +298,61 @@ test_subset_lookup_variation_fractional_value (void)
 }
 
 static void
+test_subset_condition_value_subnormal (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/feature-variation-subnormal.ttf");
+  /* One positive 20-axis region, delta 1, and a format-2 condition with
+   * default 0. The first 18 pins contribute 2^-144; the last contributes
+   * 2^-5, leaving the smallest nonzero float. At ZZZZ=1/4 the original
+   * scalar rounds to zero, but rescaling a residual row would make it true. */
+  for (unsigned mode = 0; mode < 3; mode++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 3);
+    int coords[20];
+    for (unsigned i = 0; i < 19; i++)
+    {
+      hb_tag_t tag = HB_TAG ('A', '0', '0' + i / 10, '0' + i % 10);
+      float value = mode == 2 ? 0.5f : i == 18 ? 0.03125f : 0.00390625f;
+      coords[i] = (int) (value * 16384);
+      g_assert_true (hb_subset_input_pin_axis_location (input, face, tag, value));
+    }
+    coords[19] = 4096;
+    if (mode == 1)
+      g_assert_true (hb_subset_input_pin_axis_location (
+          input, face, HB_TAG ('Z','Z','Z','Z'), 0.25f));
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    if (mode)
+    {
+      g_assert_nonnull (subset);
+      hb_font_t *fonts[] = {hb_font_create (face), hb_font_create (subset)};
+      hb_font_set_var_coords_normalized (fonts[0], coords, 20);
+      if (mode == 2)
+        hb_font_set_var_coords_normalized (fonts[1], &coords[19], 1);
+      for (unsigned i = 0; i < 2; i++)
+      {
+        hb_buffer_t *buffer = hb_buffer_create ();
+        hb_buffer_add_utf8 (buffer, "A", -1, 0, -1);
+        hb_buffer_guess_segment_properties (buffer);
+        hb_shape (fonts[i], buffer, NULL, 0);
+        unsigned length;
+        const hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &length);
+        g_assert_cmpuint (length, ==, 1);
+        g_assert_cmpuint (info[0].codepoint, ==, mode == 1 ? 2 : 3);
+        hb_buffer_destroy (buffer);
+        hb_font_destroy (fonts[i]);
+      }
+    }
+    else
+      g_assert_null (subset);
+    hb_face_destroy (subset);
+    hb_subset_input_destroy (input);
+  }
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_condition_value_precision (void)
 {
   const char *filenames[] = {
@@ -991,6 +1046,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_lookup_variations);
   hb_test_add (test_subset_lookup_variation_fractional_value);
   hb_test_add (test_subset_condition_value_precision);
+  hb_test_add (test_subset_condition_value_subnormal);
   hb_test_add (test_subset_feature_variation_conditions);
   hb_test_add (test_subset_feature_variation_universal);
 #endif
