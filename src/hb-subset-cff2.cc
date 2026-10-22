@@ -463,20 +463,8 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     if (param.commands && !skip_command)
     {
       cs_command_t cmd (op);
-      for (unsigned int i = 0; i < env.argStack.get_count ();)
-      {
-	const blend_arg_t &arg = env.argStack[i];
-	if (arg.blending ())
-	{
-	  cmd.args.push (arg);
-	  i += arg.numValues;
-	}
-	else
-	{
-	  cmd.args.push (arg);
-	  i++;
-	}
-      }
+      for (unsigned i = 0; i < env.argStack.get_count (); i++)
+	cmd.args.push (env.argStack[i]);
       param.commands->push (cmd);
     }
 
@@ -1299,20 +1287,8 @@ struct cff2_subset_plan
       subr_flattener_t<const OT::cff2::accelerator_subset_t, cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_flatten_t>
 		    flattener(acc, plan);
 
-      /* Enable command capture if requested (for specialization) */
-      if (capture_commands)
-      {
-	if (!charstring_commands.resize_exact (num_glyphs))
-	  return false;
-
-	if (!flattener.flatten (subset_charstrings, &charstring_commands))
-	  return false;
-      }
-      else
-      {
-	if (!flattener.flatten (subset_charstrings))
-	  return false;
-      }
+      if (!flattener.flatten (subset_charstrings))
+	return false;
       }
     }
     else
