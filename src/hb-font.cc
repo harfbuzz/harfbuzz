@@ -2483,7 +2483,7 @@ hb_font_get_parent (hb_font_t *font)
  * font properties, such as scale and variations, are kept.
  *
  * Since: 1.4.3
- * XDeprecated: REPLACEME: Use hb_font_create() instead.
+ * Deprecated: 15.0.0: Use hb_font_create() instead.
  **/
 void
 hb_font_set_face (hb_font_t *font,
