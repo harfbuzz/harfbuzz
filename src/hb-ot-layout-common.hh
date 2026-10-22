@@ -2842,6 +2842,12 @@ struct VarRegionList
     return_trace (true);
   }
 
+  hb_array_t<const VarRegionAxis> get_region_axes (unsigned region_index) const
+  {
+    if (unlikely (region_index >= regionCount)) return {};
+    return hb_array (axesZ.arrayZ + region_index * axisCount, (unsigned) axisCount);
+  }
+
   bool get_var_region (unsigned region_index,
                        const hb_map_t& axes_old_index_tag_map,
                        hb_hashmap_t<hb_tag_t, Triple>& axis_tuples /* OUT */) const

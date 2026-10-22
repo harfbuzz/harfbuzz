@@ -1876,6 +1876,30 @@ struct item_variations_t
     auto &condition_map = plan->layout_condition_idx_value_map;
     condition_map.clear ();
     if (!plan->layout_condition_values) return true;
+    // A subnormal pinned scalar can round to zero at some retained locations.
+    // Positive rescaling cannot preserve that source underflow boundary.
+    const VarRegionList &regions = varStore.get_region_list ();
+    hb_set_t subnormal_regions;
+    // Eight positive F2DOT14 factors cannot reach the float subnormal range.
+    if (regions.axisCount > 8)
+      for (unsigned r = 0; r < regions.regionCount; r++)
+      {
+        float scalar = 1.f;
+        bool variable = false;
+        auto axes = regions.get_region_axes (r);
+        for (unsigned i = 0; i < axes.length; i++)
+        {
+          const Triple *limit;
+          hb_tag_t tag = plan->axes_old_index_tag_map.get (i);
+          if (plan->axes_location.has (tag, &limit) && limit->is_point ())
+            scalar *= axes[i].evaluate (plan->normalized_coords[i]);
+          else
+            variable |= axes[i].peakCoord.to_int () != 0;
+        }
+        if (variable && scalar != 0.f && scalar < FLT_MIN)
+          subnormal_regions.add (r);
+      }
+    if (unlikely (subnormal_regions.in_error ())) return false;
     using condition_value_t = hb_pair_t<uintptr_t, hb_pair_t<unsigned, int>>;
     hb_vector_t<condition_value_t> conditions;
     for (auto condition : plan->layout_condition_values.iter ())
@@ -1923,6 +1947,13 @@ struct item_variations_t
           return false;
         continue;
       }
+
+      const VarData &source_data = varStore.get_sub_table (old_outer);
+      if (!subnormal_regions.is_empty ())
+        for (unsigned column = 0; column < source_data.get_region_index_count (); column++)
+          if (subnormal_regions.has (source_data.get_region_index (column)) &&
+              source_data.get_item_delta (old_idx & 0xFFFF, column))
+            return false;
 
       double scale = 1.;
       while (maximum * scale > INT_MAX)
