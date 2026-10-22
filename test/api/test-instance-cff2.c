@@ -308,6 +308,57 @@ test_instance_cff2_absolute_rounding (void)
 
 
 
+static void
+test_instance_cff2_nested_delta (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff2-nested-delta.otf");
+  for (unsigned mode = 0; mode < 5; mode++)
+  {
+    g_test_message ("nested delta mode %u", mode);
+    hb_set_t *codepoints = hb_set_create ();
+    hb_set_add (codepoints, mode == 4 ? 65 : 66);
+    hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+    hb_set_destroy (codepoints);
+    if (mode == 1 || mode == 2 || mode == 4)
+      g_assert_true (hb_subset_input_pin_axis_location (input, face,
+                                                       HB_TAG ('w', 'g', 'h', 't'), 0.25f));
+    if (mode == 2)
+      g_assert_true (hb_subset_input_pin_axis_location (input, face,
+                                                       HB_TAG ('w', 'd', 't', 'h'), 1));
+    if (mode == 3)
+      hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_DESUBROUTINIZE);
+
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    hb_subset_input_destroy (input);
+    if (mode == 1 || mode == 3)
+    {
+      /* The flat symbolic representation cannot retain a variable delta.
+       * Fail the operation instead of changing the outline or dropping CFF2. */
+      g_assert_null (subset);
+      continue;
+    }
+    g_assert_nonnull (subset);
+    hb_blob_t *cff2 = hb_face_reference_table (subset, HB_TAG ('C', 'F', 'F', '2'));
+    g_assert_cmpuint (hb_blob_get_length (cff2), >, 0);
+    hb_blob_destroy (cff2);
+    hb_font_t *font = hb_font_create (subset);
+    hb_variation_t variations[] = {
+      {HB_TAG ('w', 'g', 'h', 't'), 0.25f},
+      {HB_TAG ('w', 'd', 't', 'h'), 1}
+    };
+    hb_font_set_variations (font, variations, G_N_ELEMENTS (variations));
+    hb_codepoint_t glyph;
+    hb_glyph_extents_t extents;
+    g_assert_true (hb_font_get_nominal_glyph (font, mode == 4 ? 65 : 66, &glyph));
+    g_assert_true (hb_font_get_glyph_extents (font, glyph, &extents));
+    g_assert_cmpint (extents.width, ==, mode == 4 ? 135 : 115);
+    hb_font_destroy (font);
+    hb_face_destroy (subset);
+  }
+  hb_face_destroy (face);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -318,6 +369,7 @@ main (int argc, char **argv)
   hb_test_add (test_instance_cff2_empty_bounds);
   hb_test_add (test_instance_cff2_large_store);
   hb_test_add (test_instance_cff2_absolute_rounding);
+  hb_test_add (test_instance_cff2_nested_delta);
 
   return hb_test_run();
 }

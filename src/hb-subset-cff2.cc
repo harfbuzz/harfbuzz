@@ -329,6 +329,8 @@ struct cff2_usage_param_t
 
 struct cff2_cs_opset_usage_t : cff2_cs_opset_t<cff2_cs_opset_usage_t, cff2_usage_param_t, blend_arg_t>
 {
+  static constexpr bool preserve_blends = true;
+
   static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, cff2_usage_param_t& param)
   {
     param.has_flex1 |= op == OpCode_flex1;
@@ -426,6 +428,8 @@ struct cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
 
 struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatten_param_t, blend_arg_t>
 {
+  static constexpr bool preserve_blends = true;
+
   static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
     bool skip_command = false;
@@ -1224,6 +1228,7 @@ struct cff2_subset_plan
 	  used_fds.add (fd);
 
 	  cff2_cs_interp_env_t<blend_arg_t> env (str, acc, fd);
+	  env.preserve_blends = partial_instancing;
 	  cs_interpreter_t<cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_usage_t, cff2_usage_param_t> interp (env);
 	  cff2_usage_param_t param;
 	  param.instancing = partial_instancing ? &instancing : nullptr;
@@ -2024,6 +2029,7 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 
   if (unlikely (!cff2_plan.create (*this, c->plan)))
   {
+    /* A planning failure is not an intentionally empty outline table. */
     c->serializer->err (HB_SERIALIZE_ERROR_OTHER);
     return false;
   }
