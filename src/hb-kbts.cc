@@ -40,6 +40,7 @@
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wextra-semi-stmt"
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
 #include "kb_text_shape.h"
 #pragma GCC diagnostic pop
 
