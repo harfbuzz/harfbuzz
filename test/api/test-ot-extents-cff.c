@@ -208,6 +208,27 @@ test_extents_cff2_vsindex_named_instance (void)
   hb_font_destroy (font);
 }
 
+static void
+test_extents_cff2_private_blend_groups (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff2-private-blend-groups.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  for (unsigned i = 0; i < 2; i++)
+  {
+    float coordinate = i * 0.5f;
+    hb_font_set_var_coords_design (font, &coordinate, 1);
+    hb_glyph_extents_t extents;
+    g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+    g_assert_cmpint (extents.x_bearing, ==, 10);
+    g_assert_cmpint (extents.y_bearing, ==, 110);
+    g_assert_cmpint (extents.width, ==, 40);
+    g_assert_cmpint (extents.height, ==, -90);
+  }
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -219,6 +240,7 @@ main (int argc, char **argv)
   hb_test_add (test_extents_cff2);
   hb_test_add (test_extents_cff2_vsindex);
   hb_test_add (test_extents_cff2_vsindex_named_instance);
+  hb_test_add (test_extents_cff2_private_blend_groups);
 
   return hb_test_run ();
 }
