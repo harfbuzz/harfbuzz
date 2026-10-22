@@ -88,6 +88,40 @@ test_instance_cff2_private_blend_overflow (void)
 }
 
 
+static void
+test_instance_cff2_empty_bounds (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff2-empty.otf");
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 32);
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_set_destroy (codepoints);
+  g_assert_true (hb_subset_input_pin_axis_location (input, face,
+                                                   HB_TAG ('w', 'g', 'h', 't'), 0.5f));
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  g_assert_nonnull (subset);
+
+  hb_blob_t *head = hb_face_reference_table (subset, HB_TAG ('h', 'e', 'a', 'd'));
+  unsigned length;
+  const char *data = hb_blob_get_data (head, &length);
+  const char zero_bounds[8] = {0};
+  g_assert_cmpuint (length, >=, 44);
+  g_assert_cmpmem (data + 36, 8, zero_bounds, 8);
+  hb_blob_destroy (head);
+
+  /* Empty outlines must still retain their advance and original bearing. */
+  hb_blob_t *hmtx = hb_face_reference_table (subset, HB_TAG ('h', 'm', 't', 'x'));
+  data = hb_blob_get_data (hmtx, &length);
+  const char metric[4] = {1, (char) 0xF4, 0, 50};
+  g_assert_cmpuint (length, >=, 4);
+  g_assert_cmpmem (data, 4, metric, 4);
+  hb_blob_destroy (hmtx);
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
+
 
 int
 main (int argc, char **argv)
@@ -96,6 +130,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_instance_cff2);
   hb_test_add (test_instance_cff2_private_blend_overflow);
+  hb_test_add (test_instance_cff2_empty_bounds);
 
   return hb_test_run();
 }

@@ -780,6 +780,13 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       plan->bounds_height_vec[new_gid] = extents.height;
     }
   }
+  /* No glyph contributed bounds: do not serialize the accumulator's
+   * inverted sentinels into head (or a downgraded CFF FontBBox). */
+  if (plan->head_maxp_info.xMin > plan->head_maxp_info.xMax)
+  {
+    plan->head_maxp_info.xMin = plan->head_maxp_info.xMax = 0;
+    plan->head_maxp_info.yMin = plan->head_maxp_info.yMax = 0;
+  }
   hb_font_destroy (font);
   if (hvar_store_cache)
     _hmtx.var_table->get_var_store ().destroy_cache (hvar_store_cache);
