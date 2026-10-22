@@ -178,7 +178,7 @@ struct Glyph
                              hb_bytes_t &dest_bytes /* OUT */) const
   {
     GlyphHeader *glyph_header = nullptr;
-    if (!plan->pinned_at_default && type != EMPTY && all_points.length >= 4)
+    if (type != EMPTY && all_points.length >= 4)
     {
       glyph_header = (GlyphHeader *) hb_calloc (1, GlyphHeader::static_size);
       if (unlikely (!glyph_header)) return false;
@@ -221,9 +221,7 @@ struct Glyph
       plan->head_maxp_info.yMax = hb_max (plan->head_maxp_info.yMax, rounded_yMax);
     }
 
-    /* when pinned at default, no need to compile glyph header
-     * and for empty glyphs: all_points only include phantom points.
-     * just update metrics and then return */
+    /* Empty glyphs only include phantom points; update metrics and return. */
     if (!glyph_header)
       return true;
 
@@ -272,45 +270,43 @@ struct Glyph
       dest_end = hb_bytes_t ();
     }
 
-    //dont compile bytes when pinned at default, just recalculate bounds
-    if (!plan->pinned_at_default)
+    // Recompile even at default: a previous partial instance may have
+    // rounded component offsets and child points independently.
+    switch (type)
     {
-      switch (type)
-      {
-      case COMPOSITE:
-        if (!CompositeGlyph (*header, bytes, extended).compile_bytes_with_deltas (dest_start,
+    case COMPOSITE:
+      if (!CompositeGlyph (*header, bytes, extended).compile_bytes_with_deltas (dest_start,
 										  points_with_deltas,
 										  dest_end))
-          return false;
-        break;
-      case SIMPLE:
-        if (!SimpleGlyph (*header, bytes).compile_bytes_with_deltas (all_points,
+        return false;
+      break;
+    case SIMPLE:
+      if (!SimpleGlyph (*header, bytes).compile_bytes_with_deltas (all_points,
 								     plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
 								     dest_end))
-          return false;
-        break;
-      case EMPTY:
-        dest_start = hb_bytes_t ();
-        dest_end = hb_bytes_t ();
-        /* Zero-contour glyphs may carry instructions for phantom points.
-         * Copy them into owned memory like the other compiled glyphs. */
-        if (!(plan->flags & HB_SUBSET_FLAGS_NO_HINTING) &&
-            bytes.length >= GlyphHeader::static_size &&
-            header->numberOfContours == 0)
+        return false;
+      break;
+    case EMPTY:
+      dest_start = hb_bytes_t ();
+      dest_end = hb_bytes_t ();
+      /* Zero-contour glyphs may carry instructions for phantom points.
+       * Copy them into owned memory like the other compiled glyphs. */
+      if (!(plan->flags & HB_SUBSET_FLAGS_NO_HINTING) &&
+          bytes.length >= GlyphHeader::static_size &&
+          header->numberOfContours == 0)
+      {
+        SimpleGlyph simple (*header, bytes);
+        unsigned length = simple.instructions_length ();
+        if (length)
         {
-          SimpleGlyph simple (*header, bytes);
-          unsigned length = simple.instructions_length ();
-          if (length)
-          {
-            length = simple.length (length);
-            char *p = (char *) hb_malloc (length);
-            if (unlikely (!p)) return false;
-            hb_memcpy (p, bytes.arrayZ, length);
-            dest_start = hb_bytes_t (p, length);
-          }
+          length = simple.length (length);
+          char *p = (char *) hb_malloc (length);
+          if (unlikely (!p)) return false;
+          hb_memcpy (p, bytes.arrayZ, length);
+          dest_start = hb_bytes_t (p, length);
         }
-        break;
       }
+      break;
     }
 
     if (!compile_header_bytes (plan, all_points, dest_start))

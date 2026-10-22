@@ -579,6 +579,41 @@ test_subset_glyf_zero_contour_instructions (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_glyf_recompute_default_instance_bounds (void)
+{
+  hb_face_t *source = hb_test_open_font_file ("fonts/glyf-default-instance-bounds.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 2);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+  g_assert_true (hb_subset_input_pin_axis_location (input, source,
+                  HB_TAG ('w','g','h','t'), 0.5f));
+  hb_face_t *partial = hb_subset_test_create_subset (source, input);
+
+  hb_font_t *font = hb_font_create (partial);
+  hb_ot_font_set_funcs (font);
+  hb_glyph_extents_t extents;
+  g_assert_true (hb_font_get_glyph_extents (font, 2, &extents));
+  g_assert_cmpint (extents.x_bearing + extents.width, ==, 11);
+  hb_font_destroy (font);
+
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 2);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+  g_assert_true (hb_subset_input_pin_all_axes_to_default (input, partial));
+  hb_face_t *full = hb_subset_test_create_subset (partial, input);
+  font = hb_font_create (full);
+  hb_ot_font_set_funcs (font);
+  /* Partial instancing stores the child's xMax 10.5 as 11 and the component
+   * offset 0.5 as 1. Recomputing at the new default must therefore give 12. */
+  g_assert_true (hb_font_get_glyph_extents (font, 2, &extents));
+  g_assert_cmpint (extents.x_bearing + extents.width, ==, 12);
+  hb_font_destroy (font);
+  hb_face_destroy (full);
+  hb_face_destroy (partial);
+  hb_face_destroy (source);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -601,6 +636,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_retain_gids);
   hb_test_add (test_subset_glyf_retain_gids_truncates);
   hb_test_add (test_subset_glyf_zero_contour_instructions);
+  hb_test_add (test_subset_glyf_recompute_default_instance_bounds);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_glyf_iftb_requirements);
