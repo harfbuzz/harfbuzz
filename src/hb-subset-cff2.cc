@@ -272,11 +272,12 @@ struct cff2_instancing_plan_t
       return false;
     unsigned regions_offset = (unsigned) offset;
     uint64_t total = offset + 4 + (uint64_t) new_regions.length * axis_tags.length * 6;
-    if (unlikely (total > 0xFFFFu)) return false;
+    if (unlikely (total > 0xFFFFFFFFu)) return false;
 
     HBUINT16 *size_field = c->allocate_size<HBUINT16> (HBUINT16::static_size);
     if (unlikely (!size_field)) return false;
-    *size_field = total;
+    /* OFF 2026 5.3.3.11.2 permits larger stores with length=65535. */
+    *size_field = hb_min (total, (uint64_t) 0xFFFFu);
 
     char *header = c->allocate_size<char> (header_size);
     if (unlikely (!header)) return false;
