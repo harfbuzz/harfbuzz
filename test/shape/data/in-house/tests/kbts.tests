@@ -6,3 +6,7 @@
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--features=-liga;U+0066,U+0066,U+0069,U+0066;[f=0+300|f=1+300|i=2+263|f=3+300]
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;;U+0648,U+0628,U+0627;[alef-ar.fina=2+229|beh-ar.init=1+190|waw-ar=0@83,0+483]
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--features=ss01;U+0648,U+0628,U+0627;[alef-ar.fina=2+229|beh-ar.init.LD=1+190|waw-ar=0+400]
+../fonts/HBTest-VF.ttf;--variations=TEST=491;U+0041;[A=0+496]
+../fonts/HBTest-VF.ttf;--variations=TEST=509;U+0041;[A=0+505]
+../fonts/d23d76ea0909c14972796937ba072b5a40c1e257.ttf;--variations=FVTT=481;U+0072;[rvrn_base=0+1529]
+../fonts/d23d76ea0909c14972796937ba072b5a40c1e257.ttf;--variations=FVTT=491;U+0072;[rvrn_subst=0+1825]
