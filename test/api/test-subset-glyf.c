@@ -550,6 +550,16 @@ test_subset_glyf_zero_contour_instructions (void)
         g_assert_true (hb_subset_input_pin_axis_location (input, face,
                       HB_TAG ('w','d','t','h'), 0.f));
       hb_face_t *subset = hb_subset_test_create_subset (face, input);
+      if (instance)
+      {
+        hb_blob_t *head = hb_face_reference_table (subset, HB_TAG ('h','e','a','d'));
+        unsigned length;
+        const char *data = hb_blob_get_data (head, &length);
+        static const char zero_bounds[8] = {0};
+        g_assert_cmpuint (length, >=, 44);
+        g_assert_cmpmem (data + 36, 8, zero_bounds, 8);
+        hb_blob_destroy (head);
+      }
       hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
       unsigned length;
       const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);

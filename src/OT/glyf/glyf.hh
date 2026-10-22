@@ -704,6 +704,13 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
       }
     }
   }
+  /* All retained glyphs can be empty. Do not write the untouched bounds
+   * accumulator's inverted sentinels into the instance's head table. */
+  if (font && plan->head_maxp_info.xMin > plan->head_maxp_info.xMax)
+  {
+    plan->head_maxp_info.xMin = plan->head_maxp_info.xMax = 0;
+    plan->head_maxp_info.yMin = plan->head_maxp_info.yMax = 0;
+  }
   return true;
 }
 
