@@ -122,6 +122,41 @@ test_instance_cff2_empty_bounds (void)
 }
 
 
+static void
+test_instance_cff2_large_store (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff2-large-store.otf");
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add_range (codepoints, 65, 264);
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_set_destroy (codepoints);
+  g_assert_true (hb_subset_input_set_axis_range (input, face,
+                                                HB_TAG ('w', 'g', 'h', 't'),
+                                                0, 1, 0.1f));
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  g_assert_nonnull (subset);
+
+  /* All 200 regions are used, so compaction cannot hide the large store. */
+  hb_blob_t *cff2 = hb_face_reference_table (subset, HB_TAG ('C', 'F', 'F', '2'));
+  g_assert_cmpuint (hb_blob_get_length (cff2), >, 65535);
+  hb_blob_destroy (cff2);
+  hb_font_t *font = hb_font_create (subset);
+  hb_glyph_extents_t extents;
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 65, &glyph));
+  for (unsigned i = 0; i < 3; i++)
+  {
+    hb_variation_t variation = {HB_TAG ('w', 'g', 'h', 't'), i * 0.5f};
+    hb_font_set_variations (font, &variation, 1);
+    g_assert_true (hb_font_get_glyph_extents (font, glyph, &extents));
+    g_assert_cmpint (extents.width, >, 0);
+  }
+  hb_font_destroy (font);
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
 
 int
 main (int argc, char **argv)
@@ -131,6 +166,7 @@ main (int argc, char **argv)
   hb_test_add (test_instance_cff2);
   hb_test_add (test_instance_cff2_private_blend_overflow);
   hb_test_add (test_instance_cff2_empty_bounds);
+  hb_test_add (test_instance_cff2_large_store);
 
   return hb_test_run();
 }
