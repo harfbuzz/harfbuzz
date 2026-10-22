@@ -93,6 +93,9 @@ for op, args in operators.items():
 stem = blended([101, 23, 29, 31], [[1, 1, 1, 1], [0] * 4, [0] * 4, [0] * 4])
 programs["hinted"] = stem + ["hstemhm"] + stem + ["hintmask", b"\xf0"] + program
 programs["fractional"] = [10.25, 20.75, "rmoveto", 100.5, 0, 0, 100.5, -100.5, 0, "rlineto"]
+programs["fractional.blended"] = blended(
+    [10.25, 20.75], [[1, -1], [0, 0], [0, 0], [0, 0]]
+) + ["rmoveto", 100.5, 0, 0, 100.5, -100.5, 0, "rlineto"]
 
 order = list(programs)
 fb = FontBuilder(1000, isTTF=False)

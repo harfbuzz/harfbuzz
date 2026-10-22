@@ -240,6 +240,16 @@ check_rounding (hb_face_t *face, hb_face_t *subset, float weight, float slant,
       g_array_free (expected, TRUE);
       continue;
     }
+    if (!strcmp (name, "fractional.blended") &&
+	hb_ot_var_get_axis_count (subset) == 0)
+    {
+      rounding_command_t *line1 = &g_array_index (actual, rounding_command_t, 1);
+      rounding_command_t *line2 = &g_array_index (actual, rounding_command_t, 2);
+      g_assert_cmpint (line1->op, ==, 'L');
+      g_assert_cmpfloat (line1->points[0], ==, 111);
+      g_assert_cmpint (line2->op, ==, 'L');
+      g_assert_cmpfloat (line2->points[1], ==, 121);
+    }
     g_assert_cmpuint (expected->len, ==, actual->len);
     for (unsigned i = 0; i < expected->len; i++)
     {
