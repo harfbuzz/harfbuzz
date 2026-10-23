@@ -604,6 +604,23 @@ test_depend_varc (void)
   hb_face_destroy (face);
 }
 
+/* ContextSubst format 6 (beyond-64k) uses 24-bit Coverage offsets.
+ * Lookup 0 matches glyphs 1 2 and calls lookup 1 (SingleSubst 2 -> 3)
+ * at sequence index 1. */
+static void
+test_depend_context_format6 (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/context-format6.ttf");
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_nonnull (depend);
+
+  g_assert_true (find_dependency (depend, 2, 3, HB_OT_TAG_GSUB,
+				  NULL, NULL));
+
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -615,6 +632,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_math);
   hb_test_add (test_depend_varc);
   hb_test_add (test_depend_gsub_formats);
+  hb_test_add (test_depend_context_format6);
 
   return hb_test_run ();
 }

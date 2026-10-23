@@ -4057,7 +4057,7 @@ struct ContextFormat3_6
       nullptr   /* intersected_glyphs_cache */
     };
     context_depend_lookup (c,
-			   glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+			   glyphCount, coverageZ.arrayZ + 1,
 			   lookupCount, lookupRecord,
 			   this,
 			   coverageZ[0], lookup_context);
