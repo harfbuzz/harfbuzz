@@ -1618,6 +1618,64 @@ test_parse_double (void)
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 1);
   }
+  /* Zero mantissa with an overflowing exponent must yield zero, not a clamped DBL_MAX. */
+  {
+    const char str[] = "0e9999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && !std::signbit (pv));
+  }
+  /* Same, but the sign of zero must be preserved. */
+  {
+    const char str[] = "-0e9999999";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && std::signbit (pv));
+  }
+  /* 1000-digit integer part: value saturates to Infinity, parse still
+   * consumes everything and terminates in linear time. */
+  {
+    char str[1001 + 1];
+    memset (str, '9', 1000);
+    str[1000] = '\0';
+    const char *pp = str;
+    const char *end = str + 1000;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (std::isinf (pv) && pv > 0);
+    hb_always_assert (pp == end);
+  }
+  /* 1000-digit fraction: accumulator saturates, sticky/drop handles the
+   * rest, result is 1.0 (all nines). */
+  {
+    char str[2 + 1000 + 1];
+    str[0] = '0'; str[1] = '.';
+    memset (str + 2, '9', 1000);
+    str[2 + 1000] = '\0';
+    const char *pp = str;
+    const char *end = str + 2 + 1000;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 1.0);
+    hb_always_assert (pp == end);
+  }
+  /* 1000-digit exponent: exp_overflow fires, result is DBL_MAX/DBL_MIN. */
+  {
+    char str[2 + 1000 + 1];
+    str[0] = '1'; str[1] = 'e';
+    memset (str + 2, '9', 1000);
+    str[2 + 1000] = '\0';
+    const char *pp = str;
+    const char *end = str + 2 + 1000;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == DBL_MAX);
+    hb_always_assert (pp == end);
+  }
 }
 
 int
