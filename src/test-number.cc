@@ -43,6 +43,10 @@ test_parse_int ()
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 0);
     hb_always_assert (!*end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   {
@@ -56,6 +60,10 @@ test_parse_int ()
     hb_always_assert (pp - str == 4);
     hb_always_assert (end - pp == 0);
     hb_always_assert (!*end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Leading whitespace */
@@ -67,6 +75,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "\t123";
@@ -76,6 +88,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "\n123";
@@ -85,6 +101,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = " -123";
@@ -94,6 +114,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == -123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Leading '+' sign */
@@ -105,6 +129,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "+0";
@@ -114,6 +142,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Leading zeros are decimal, not octal (base is passed as 10) */
@@ -125,6 +157,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 7);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Negative zero */
@@ -136,6 +172,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Partial parse: stops at first non-digit */
@@ -147,6 +187,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == str + 3);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* INT_MAX / INT_MIN (fits in long on every supported platform) */
@@ -158,6 +202,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == 2147483647);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "-2147483648";
@@ -167,6 +215,10 @@ test_parse_int ()
     hb_always_assert (hb_parse_int (&pp, end, &pv));
     hb_always_assert (pv == -2147483647 - 1);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == strtol (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Failures: no digits */
@@ -264,26 +316,6 @@ test_parse_int ()
     hb_always_assert (pv == 99);
   }
 
-  /* INT_MAX / INT_MIN - exactly representable */
-  {
-    const char str[] = "2147483647";
-    const char *pp = str;
-    const char *end = str + ARRAY_LENGTH (str) - 1;
-    int pv;
-    hb_always_assert (hb_parse_int (&pp, end, &pv));
-    hb_always_assert (pv == 2147483647);
-    hb_always_assert (pp == end);
-  }
-  {
-    const char str[] = "-2147483648";
-    const char *pp = str;
-    const char *end = str + ARRAY_LENGTH (str) - 1;
-    int pv;
-    hb_always_assert (hb_parse_int (&pp, end, &pv));
-    hb_always_assert (pv == -2147483647 - 1);   /* not -2147483648, that's UB as an int literal */
-    hb_always_assert (pp == end);
-  }
-
   /* One past INT_MAX - must fail */
   {
     const char str[] = "2147483648";
@@ -338,17 +370,6 @@ test_parse_int ()
     hb_always_assert (pv == 99);
   }
 
-  /* Plus zero, for symmetry with the -0 case */
-  {
-    const char str[] = "+0";
-    const char *pp = str;
-    const char *end = str + ARRAY_LENGTH (str) - 1;
-    int pv = 99;
-    hb_always_assert (hb_parse_int (&pp, end, &pv));
-    hb_always_assert (pv == 0);
-    hb_always_assert (pp == end);
-  }
-
   /* Sign alone plus trailing whitespace still fails */
   {
     const char str[] = "-   ";
@@ -374,6 +395,10 @@ test_parse_uint ()
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 0);
     hb_always_assert (!*end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   {
@@ -387,6 +412,10 @@ test_parse_uint ()
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 0);
     hb_always_assert (!*end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
 
   {
@@ -401,6 +430,10 @@ test_parse_uint ()
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 1);
     hb_always_assert (!*end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
 
   {
@@ -440,6 +473,10 @@ test_parse_uint ()
     hb_always_assert (pv == 123);
     hb_always_assert (pp - str == 3);
     hb_always_assert (end - pp == 2);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   {
@@ -461,6 +498,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "\t123";
@@ -470,6 +511,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 123);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Leading zeros (still decimal when base is 10) */
@@ -481,6 +526,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 7);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "000";
@@ -490,6 +539,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* UINT_MAX */
@@ -501,6 +554,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 4294967295u);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Negative wraps in two's complement (matches strtoul on unsigned) */
@@ -512,6 +569,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 4294967295u);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "-0";
@@ -521,6 +582,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Base 2 */
@@ -532,6 +597,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 2));
     hb_always_assert (pv == 10);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 2));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "11111111";
@@ -541,6 +610,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 2));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 2));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "12";
@@ -551,6 +624,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 2));
     hb_always_assert (pv == 1);
     hb_always_assert (pp == str + 1);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 2));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Base 8 */
@@ -562,6 +639,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 8));
     hb_always_assert (pv == 511);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 8));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "010";
@@ -571,6 +652,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 8));
     hb_always_assert (pv == 8);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 8));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Base 16, with and without 0x prefix, mixed case */
@@ -582,6 +667,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "ff";
@@ -591,6 +680,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "Ff";
@@ -600,6 +693,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "0xFF";
@@ -609,6 +706,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "0XFF";
@@ -618,6 +719,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Base 36 */
@@ -629,6 +734,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 36));
     hb_always_assert (pv == 35);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 36));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "z";
@@ -638,6 +747,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 36));
     hb_always_assert (pv == 35);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 36));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "10";
@@ -647,6 +760,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 36));
     hb_always_assert (pv == 36);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 36));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Failures */
@@ -690,6 +807,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "0xff";
@@ -699,6 +820,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   {
     const char str[] = "0x0";
@@ -708,6 +833,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   /* "0x" alone: consume only the 0, leave the x */
   {
@@ -718,6 +847,11 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 16));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == str + 1);
+
+    // MSVCRT has a different behavior for "0x" alone, let's skip cross-check here.
+    // char *libc_end;
+    // hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    // hb_always_assert (pp == libc_end);
   }
   /* "0xG": 0 is consumed, xG left */
   {
@@ -728,6 +862,11 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 16));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == str + 1);
+
+    // MSVCRT has a different behavior for this, let's skip cross-check here.
+    // char *libc_end;
+    // hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    // hb_always_assert (pp == libc_end);
   }
   /* Negative with prefix */
   {
@@ -738,6 +877,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == (unsigned) -255);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   /* Prefix rule doesn't fire for base 10 */
   {
@@ -748,6 +891,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 10));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == str + 1);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
   {
     /* 10 digits > UINT_MAX.  The old strtol-based implementation silently
@@ -762,16 +909,6 @@ test_parse_uint ()
     hb_always_assert (pv == 99);
   }
 
-  /* UINT_MAX - exactly representable */
-  {
-    const char str[] = "4294967295";
-    const char *pp = str;
-    const char *end = str + ARRAY_LENGTH (str) - 1;
-    unsigned int pv;
-    hb_always_assert (hb_parse_uint (&pp, end, &pv));
-    hb_always_assert (pv == 4294967295u);
-    hb_always_assert (pp == end);
-  }
   /* One past UINT_MAX - must fail (currently truncates to 0) */
   {
     const char str[] = "4294967296";
@@ -813,6 +950,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 4294967295u);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
   /* 0x100000000 = UINT_MAX + 1 */
   {
@@ -866,6 +1007,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv));
     hb_always_assert (pv == 2147483648u);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 10));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Mixed case in base 36 */
@@ -877,6 +1022,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 36));
     hb_always_assert (pv == 10 * 36 + 35);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 36));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Whitespace between sign and digits is not allowed */
@@ -898,6 +1047,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, true, 16));
     hb_always_assert (pv == 16);
     hb_always_assert (pp == end);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
 
   /* A second "0x" is not consumed as a prefix */
@@ -909,6 +1062,10 @@ test_parse_uint ()
     hb_always_assert (hb_parse_uint (&pp, end, &pv, false, 16));
     hb_always_assert (pv == 0);
     hb_always_assert (pp == str + 3);
+
+    char *libc_end;
+    hb_always_assert (pv == (unsigned) strtoul (str, &libc_end, 16));
+    hb_always_assert (pp == libc_end);
   }
 
   /* Null byte stops the scan (end passed at NUL) */
@@ -945,6 +1102,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == 123);
     hb_always_assert (pp - str == 4);
     hb_always_assert (end - pp == 1);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -957,6 +1115,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == 123);
     hb_always_assert (pp - str == 5);
     hb_always_assert (end - pp == 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -969,6 +1128,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == 123);
     hb_always_assert (pp - str == 7);
     hb_always_assert (end - pp == 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -981,6 +1141,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == 123);
     hb_always_assert (pp - str == 6);
     hb_always_assert (end - pp == 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -993,6 +1154,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == 123);
     hb_always_assert (pp - str == 10);
     hb_always_assert (end - pp == 0);
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
 
   {
@@ -1005,7 +1167,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == -123);
     hb_always_assert (pp - str == 13);
     hb_always_assert (end - pp == 0);
-
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -1018,6 +1180,7 @@ test_parse_double (void)
     hb_always_assert ((int) roundf (pv * 1000.) == -123);
     hb_always_assert (pp - str == 8);
     hb_always_assert (end - pp == 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -1027,6 +1190,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (std::isinf (pv) && pv > 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e600";
@@ -1035,6 +1199,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (std::isinf (pv) && pv > 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e-512";
@@ -1043,6 +1208,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e-600";
@@ -1051,6 +1217,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -1060,6 +1227,12 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
+    /* Known 1-ULP divergence: the fraction accumulator keeps only
+     * ~15 significant digits, and 16 nines carry up to 1.0 through
+     * rounding.  strtod uses arbitrary-precision intermediates and
+     * returns the double below 1.0, which is genuinely closer to the
+     * true value.  Both are within 1 ULP. */
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
   {
     const char str[] = "0.499999999999999999";
@@ -1068,6 +1241,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.5);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -1078,6 +1252,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 1);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e+";
@@ -1087,6 +1262,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 1);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "-";
@@ -1112,6 +1288,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 1);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "-1e";
@@ -1121,6 +1298,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == -1.0);
     hb_always_assert (pp == str + 2);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "+";
@@ -1146,6 +1324,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == end);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1.abc";
@@ -1155,6 +1334,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 2); // at least "1." was consumed
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -1181,6 +1361,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 123.0);
     hb_always_assert (pp == end);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "-0.0";
@@ -1189,6 +1370,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.0 && std::signbit (pv));
+    hb_always_assert (std::signbit (pv) == std::signbit (strtod (str, nullptr)));
   }
   {
     const char str[] = "1.5E10";
@@ -1197,6 +1379,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 1.5e10);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1.5E+10";
@@ -1205,6 +1388,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 1.5e10);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e308";
@@ -1213,6 +1397,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv > 0 && pv <= DBL_MAX);
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
   {
     const char str[] = "1e309";
@@ -1221,6 +1406,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (std::isinf (pv) && pv > 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e-309";
@@ -1247,6 +1433,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 100000.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1E5";
@@ -1255,6 +1442,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 100000.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "123abc";
@@ -1264,6 +1452,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 123.0);
     hb_always_assert (pp == str + 3);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "123abc";
@@ -1279,6 +1468,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == -1.5);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1.5E-10";
@@ -1287,6 +1477,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (almost_equal (pv, 1.5e-10));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
   {
     const char str[] = "-.5";
@@ -1295,6 +1486,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == -0.5);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "500";
@@ -1303,6 +1495,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 500.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "-7.5";
@@ -1311,6 +1504,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == -7.5);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "123 ";
@@ -1326,6 +1520,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 123.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "+1";
@@ -1334,6 +1529,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 1.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "+1.5";
@@ -1342,6 +1538,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 1.5);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "--1";
@@ -1366,6 +1563,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 0.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1.5e";
@@ -1375,6 +1573,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.5);
     hb_always_assert (pp == str + 3);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1.5e+";
@@ -1384,6 +1583,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.5);
     hb_always_assert (pp == str + 3);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e9999999";
@@ -1428,6 +1628,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "007";
@@ -1436,6 +1637,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 7.0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "0.0";
@@ -1444,6 +1646,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 0.0 && !std::signbit (pv));
+    hb_always_assert (std::signbit (pv) == std::signbit (strtod (str, nullptr)));
   }
   {
     const char str[] = "NaN";
@@ -1469,6 +1672,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 2); // Don't consume ending ".5"
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1.5.5";
@@ -1478,6 +1682,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.5);
     hb_always_assert (pp == str + 3); // Don't consume ending ".5"
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   {
@@ -1506,6 +1711,13 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv >= DBL_MAX || std::isinf (pv));
     hb_always_assert (pp == end);
+    /* Known divergence: this literal has 17 significant digits, and our
+     * integer accumulator has no sticky bit, so the final product may
+     * round up past DBL_MAX and overflow to infinity.  strtod produces
+     * DBL_MAX.  Both are accepted here; matching strtod exactly would
+     * require sticky-bit rounding on the integer part (see the 20-nines
+     * test for the same issue at a smaller scale, where we relax to
+     * almost_equal). */
   }
   {
     const char str[] = "99999999999999999999"; // 20 nines
@@ -1515,6 +1727,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv >= 1e19 && pv <= 1.1e20);
     hb_always_assert (pp == end);
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
   {
     const char str[] = "1.e5";
@@ -1524,6 +1737,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 100000.0);
     hb_always_assert (pp == end);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
 
   /* Exponent with leading zeros */
@@ -1535,6 +1749,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 100000.0);
     hb_always_assert (pp == end);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e-005";
@@ -1544,6 +1759,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (almost_equal (pv, 1e-5));
     hb_always_assert (pp == end);
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
 
   /* Bare -0 (no decimal) preserves the sign, matching strtod */
@@ -1555,6 +1771,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv == 0.0 && std::signbit (pv));
     hb_always_assert (pp == end);
+    hb_always_assert (std::signbit (pv) == std::signbit (strtod (str, nullptr)));
   }
 
   /* Long mantissa followed by an exponent */
@@ -1566,6 +1783,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv, true));
     hb_always_assert (pv > 1.234e9 && pv < 1.235e9);
     hb_always_assert (pp == end);
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
   }
 
   /* whole_buffer failure must not touch *pv */
@@ -1599,6 +1817,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 100000.0);
     hb_always_assert (pp == str + 3);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   /* Same with a sign in the exponent */
   {
@@ -1609,6 +1828,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 100000.0);
     hb_always_assert (pp == str + 4);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   /* Malformed exponent followed by content: should stop at the 'e' */
   {
@@ -1619,6 +1839,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == str + 1);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   /* Zero mantissa with an overflowing exponent must yield zero, not a clamped DBL_MAX. */
   {
@@ -1628,6 +1849,7 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.0 && !std::signbit (pv));
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   /* Same, but the sign of zero must be preserved. */
   {
@@ -1637,6 +1859,8 @@ test_parse_double (void)
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 0.0 && std::signbit (pv));
+    hb_always_assert (pv == strtod (str, nullptr));
+    hb_always_assert (std::signbit (pv) == std::signbit (strtod (str, nullptr)));
   }
   /* 1000-digit integer part: value saturates to Infinity, parse still
    * consumes everything and terminates in linear time. */
@@ -1650,6 +1874,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (std::isinf (pv) && pv > 0);
     hb_always_assert (pp == end);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   /* 1000-digit fraction: accumulator saturates, sticky/drop handles the
    * rest, result is 1.0 (all nines). */
@@ -1664,6 +1889,7 @@ test_parse_double (void)
     hb_always_assert (hb_parse_double (&pp, end, &pv));
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == end);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   /* 1000-digit exponent: exp_overflow fires, result is +infinity */
   {
