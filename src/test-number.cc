@@ -1391,7 +1391,8 @@ test_parse_double (void)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (pv == DBL_MAX);
+    hb_always_assert (std::isinf (pv) && pv > 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "-1e9999999";
@@ -1399,7 +1400,8 @@ test_parse_double (void)
     const char *end = str + ARRAY_LENGTH (str) - 1;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (pv == -DBL_MAX);
+    hb_always_assert (std::isinf (pv) && pv < 0);
+    hb_always_assert (pv == strtod (str, nullptr));
   }
   {
     const char str[] = "1e-9999999";
@@ -1663,7 +1665,7 @@ test_parse_double (void)
     hb_always_assert (pv == 1.0);
     hb_always_assert (pp == end);
   }
-  /* 1000-digit exponent: exp_overflow fires, result is DBL_MAX/DBL_MIN. */
+  /* 1000-digit exponent: exp_overflow fires, result is +infinity */
   {
     char str[2 + 1000 + 1];
     str[0] = '1'; str[1] = 'e';
@@ -1673,7 +1675,8 @@ test_parse_double (void)
     const char *end = str + 2 + 1000;
     double pv;
     hb_always_assert (hb_parse_double (&pp, end, &pv));
-    hb_always_assert (pv == DBL_MAX);
+    hb_always_assert (std::isinf (pv) && pv > 0);
+    hb_always_assert (pv == strtod (str, nullptr));
     hb_always_assert (pp == end);
   }
 }

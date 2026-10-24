@@ -121,7 +121,7 @@ struct hb_number_parser_t
     {
       if (v == 0)  return v; /* preserves -0.0 for "-0e<overflow>" */
       if (exp_neg) return neg ? -.0 : .0;
-      return neg ? -DBL_MAX : DBL_MAX;
+      else         return neg ? -HUGE_VAL : HUGE_VAL;
     }
 
     if (exp)
