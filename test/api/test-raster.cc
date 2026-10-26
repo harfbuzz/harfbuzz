@@ -545,6 +545,51 @@ test_paint_reset (void)
   hb_raster_paint_destroy (fresh);
 }
 
+/* Changing extents while a paint is in progress must not shrink group
+ * surfaces below the root surface and initial clip they composite onto. */
+static void
+test_set_extents_while_painting (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+
+  hb_raster_extents_t big = {0, 0, 64, 64, 0};
+  hb_raster_extents_t small = {0, 0, 4, 4, 0};
+  hb_raster_paint_set_extents (paint, &big);
+  hb_paint_color (funcs, paint, true, HB_COLOR (255, 0, 0, 255));
+
+  hb_raster_paint_set_extents (paint, &small);
+  hb_paint_push_group (funcs, paint);
+  hb_paint_color (funcs, paint, true, HB_COLOR (0, 0, 255, 255));
+  hb_paint_pop_group (funcs, paint, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+
+  hb_raster_extents_t out_ext;
+  hb_raster_image_get_extents (img, &out_ext);
+  g_assert_cmpuint (out_ext.width, ==, big.width);
+  g_assert_cmpuint (out_ext.height, ==, big.height);
+
+  const uint8_t *buf = hb_raster_image_get_buffer (img);
+  for (unsigned y = 0; y < out_ext.height; y++)
+  {
+    const uint8_t *row = buf + (size_t) y * out_ext.stride;
+    for (unsigned x = 0; x < out_ext.width; x++)
+    {
+      const uint8_t *pixel = row + x * 4;
+      g_assert_cmphex (pixel[0], ==, 0x00); /* blue */
+      g_assert_cmphex (pixel[1], ==, 0x00); /* green */
+      g_assert_cmphex (pixel[2], ==, 0xff); /* red */
+      g_assert_cmphex (pixel[3], ==, 0xff); /* alpha */
+    }
+  }
+
+  hb_raster_image_destroy (img);
+  hb_raster_paint_destroy (paint);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -565,6 +610,7 @@ main (int argc, char **argv)
   hb_test_add (test_background_premultiplied);
   hb_test_add (test_background_stride);
   hb_test_add (test_paint_reset);
+  hb_test_add (test_set_extents_while_painting);
 
   return hb_test_run ();
 }

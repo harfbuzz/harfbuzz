@@ -196,7 +196,11 @@ struct hb_raster_paint_t
       if (unlikely (!img)) return nullptr;
     }
 
-    if (unlikely (!img->configure (HB_RASTER_FORMAT_BGRA32, fixed_extents)))
+    /* Group surfaces must match the root surface and initial clip; extents
+     * set while painting is in progress only take effect on the next render. */
+    const hb_raster_extents_t &extents = surface_stack.length ?
+					 surface_stack[0]->extents : fixed_extents;
+    if (unlikely (!img->configure (HB_RASTER_FORMAT_BGRA32, extents)))
     {
       hb_raster_image_destroy (img);
       return nullptr;
