@@ -472,8 +472,10 @@ struct MarkGlyphSetsFormat1
   {
      for (const auto &offset : coverage)
      {
+       if (unlikely (!sets.resize (sets.length + 1)))
+         return;
        const auto &cov = this+offset;
-       cov.collect_coverage (sets.push ());
+       cov.collect_coverage (&sets.tail ());
      }
   }
 
