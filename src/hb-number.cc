@@ -34,11 +34,18 @@
 bool
 hb_parse_double (const char **pp, const char *end, double *pv, bool whole_buffer)
 {
-  const char *pend = end;
-  double value = hb_strtod (*pp, &pend);
-  if (unlikely (*pp == pend)) return false;
-  if (unlikely (whole_buffer && end != pend)) return false;
-  *pv = value;
+  const char *p = *pp;
+  while (p < end && ISSPACE (*p)) p++;
+  const char *num_start = p;
+
+  hb_number_parser_t parser;
+  while (p < end && parser.consume (*p)) p++;
+
+  size_t length = parser.finish ();
+  if (unlikely (length == 0)) return false;
+  const char *pend = num_start + length;
+  if (unlikely (whole_buffer && pend != end)) return false;
+  *pv = parser.get_value ();
   *pp = pend;
   return true;
 }
