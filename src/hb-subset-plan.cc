@@ -501,7 +501,13 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   else
     plan->_glyphset.union_ (cur_glyphset);
 #ifndef HB_NO_SUBSET_CFF
-  if (!plan->accelerator || plan->accelerator->has_seac)
+  /* Component closure cannot add anything when all valid glyphs are already
+   * retained. A new accelerator still needs an accurate has_seac value for
+   * future partial subsets. */
+  bool all_glyphs_retained =
+    cur_glyphset.get_population () == plan->source->get_num_glyphs ();
+  if ((!all_glyphs_retained || plan->attach_accelerator_data) &&
+      (!plan->accelerator || plan->accelerator->has_seac))
   {
     bool has_seac = false;
     if (cff->is_valid ())
