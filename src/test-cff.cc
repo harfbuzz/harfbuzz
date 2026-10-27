@@ -24,6 +24,7 @@
 
 #include "hb.hh"
 #include "hb-ot-cff-common.hh"
+#include "hb-ot-cff1-table.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff-specializer.hh"
 
@@ -100,6 +101,34 @@ test_specialized_fractional_geometry ()
     }
 }
 
+static void
+test_charset1_splits_long_ranges ()
+{
+  hb_vector_t<CFF::code_pair_t> ranges;
+  ranges.push (CFF::code_pair_t {100, 511});
+  ranges.push (CFF::code_pair_t {1000, 0});
+
+  char buffer[10];
+  hb_serialize_context_t c (buffer, sizeof (buffer));
+  auto *charset = c.start_serialize<CFF::Charset> ();
+  hb_always_assert (charset->serialize (&c, 1, 514, ranges));
+  c.end_serialize ();
+  hb_always_assert (!c.in_error ());
+
+  const unsigned char expected[] = {
+    1, 0, 100, 255, 1, 100, 255, 3, 232, 0,
+  };
+  hb_bytes_t bytes = c.copy_bytes ();
+  hb_always_assert (bytes.length == sizeof (expected));
+  hb_always_assert (!hb_memcmp (bytes.arrayZ, expected, sizeof (expected)));
+  bytes.fini ();
+
+  for (unsigned int i = 0; i < 10; i++)
+    ranges.push (CFF::code_pair_t {2000 + i * 2, 0});
+  hb_always_assert (CFF::Charset::get_size_for_format1 (ranges) <
+		    CFF::Charset2::get_size_for_ranges (ranges.length));
+}
+
 template <typename GID, typename FD>
 static void
 test_fd_select_sentinel ()
@@ -131,6 +160,7 @@ main (int argc, char **argv)
 {
   test_specialized_line_geometry ();
   test_specialized_fractional_geometry ();
+  test_charset1_splits_long_ranges ();
   test_fd_select_sentinel<OT::HBUINT16, OT::HBUINT8> ();
   test_fd_select_sentinel<OT::HBUINT32, OT::HBUINT16> ();
 

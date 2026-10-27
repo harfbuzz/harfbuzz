@@ -495,6 +495,19 @@ typedef Charset_Range<HBUINT16> Charset2_Range;
 
 struct Charset
 {
+  static unsigned int get_format1_range_count (const hb_vector_t<code_pair_t>& sid_ranges)
+  {
+    unsigned int count = 0;
+    for (const auto &_ : sid_ranges)
+      count += _.glyph / 0x100 + 1;
+    return count;
+  }
+
+  static size_t get_size_for_format1 (const hb_vector_t<code_pair_t>& sid_ranges)
+  {
+    return Charset1::get_size_for_ranges (get_format1_range_count (sid_ranges));
+  }
+
   /* serialize a fullset Charset */
   bool serialize (hb_serialize_context_t *c, const Charset &src, unsigned int num_glyphs)
   {
@@ -530,18 +543,25 @@ struct Charset
 
     case 1:
     {
-      Charset1 *fmt1 = c->allocate_size<Charset1> (Charset1::get_size_for_ranges (sid_ranges.length), false);
+      Charset1 *fmt1 = c->allocate_size<Charset1> (get_size_for_format1 (sid_ranges), false);
       if (unlikely (!fmt1)) return_trace (false);
-      hb_codepoint_t all_glyphs = 0;
+      unsigned int j = 0;
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-        auto &_ = sid_ranges.arrayZ[i];
-        all_glyphs |= _.glyph;
-	fmt1->ranges[i].first = _.code;
-	fmt1->ranges[i].nLeft = _.glyph;
+        hb_codepoint_t sid = sid_ranges.arrayZ[i].code;
+        unsigned int left = sid_ranges.arrayZ[i].glyph;
+        for (;;)
+        {
+	  unsigned int chunk = hb_min (left, 0xFFu);
+	  fmt1->ranges[j].first = sid;
+	  fmt1->ranges[j].nLeft = chunk;
+	  j++;
+	  if (left <= 0xFF)
+	    break;
+	  sid += 0x100;
+	  left -= 0x100;
+	}
       }
-      if (unlikely (!(all_glyphs <= 0xFF)))
-	return_trace (false);
     }
     break;
 

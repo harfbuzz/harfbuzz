@@ -591,17 +591,16 @@ struct cff1_subset_plan
       }
     }
 
-    bool two_byte = subset_charset_ranges.complete (num_glyphs);
+    subset_charset_ranges.complete (num_glyphs);
 
     size0 = Charset0::get_size (plan->num_output_glyphs ());
-    if (!two_byte)
-      size_ranges = Charset1::get_size_for_ranges (subset_charset_ranges.length);
-    else
-      size_ranges = Charset2::get_size_for_ranges (subset_charset_ranges.length);
+    unsigned int size1 = Charset::get_size_for_format1 (subset_charset_ranges);
+    unsigned int size2 = Charset2::get_size_for_ranges (subset_charset_ranges.length);
+    size_ranges = hb_min (size1, size2);
 
     if (size0 < size_ranges)
       subset_charset_format = 0;
-    else if (!two_byte)
+    else if (size1 <= size2)
       subset_charset_format = 1;
     else
       subset_charset_format = 2;
