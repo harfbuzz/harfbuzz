@@ -101,9 +101,7 @@ struct cff2_cs_rounding_t
       case OpCode_flex:
 	if (unlikely (n != 13 || !alternating (args.sub_array (0, 12), k)))
 	  return false;
-	args[12].number_t::set_real (floor (args[12].to_real () + .5));
-	for (auto &d : args[12].deltas) d.set_real (floor (d.to_real () + .5));
-	return true;
+	return coordinate_t {}.round (args[12], k);
 
       case OpCode_hflex:
       case OpCode_hflex1:
@@ -138,7 +136,7 @@ struct cff2_cs_rounding_t
       }
 
       default:
-	return true;
+	return false;
     }
   }
 
