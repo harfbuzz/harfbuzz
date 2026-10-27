@@ -1040,6 +1040,17 @@ struct subr_subsetter_t
     return encode_subrs ((*parsed_local_subrs)[fd], remaps.local_remaps[fd], fd, buffArray);
   }
 
+  bool has_identity_global_remap () const
+  {
+    return remaps.global_remap.get_population () == acc.globalSubrs->count;
+  }
+
+  bool has_identity_local_remap (unsigned int fd) const
+  {
+    return remaps.local_remaps[fd].get_population () ==
+	   acc.privateDicts[fd].localSubrs->count;
+  }
+
   protected:
   struct drop_hints_param_t
   {

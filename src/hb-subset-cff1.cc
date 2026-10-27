@@ -627,6 +627,51 @@ struct cff1_subset_plan
     return true;
   }
 
+  bool can_copy_programs (const OT::cff1::accelerator_subset_t &acc,
+			  const hb_subset_plan_t *plan) const
+  {
+    if (drop_hints || desubroutinize || plan->inprogress_accelerator ||
+	!(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE) ||
+	num_glyphs != acc.num_glyphs ||
+	plan->new_to_old_gid_list.length != num_glyphs)
+      return false;
+
+    for (const auto &_ : plan->new_to_old_gid_list)
+      if (_.first != _.second)
+	return false;
+    return true;
+  }
+
+  template <typename INDEX>
+  static bool copy_index (const INDEX &index, str_buff_vec_t &output)
+  {
+    if (unlikely (!output.resize_exact (index.count)))
+      return false;
+    for (unsigned int i = 0; i < index.count; i++)
+    {
+      hb_ubytes_t str = index[i];
+      output[i].set_storage (const_cast<unsigned char *> (str.arrayZ), str.length);
+    }
+    return true;
+  }
+
+  bool copy_programs (const OT::cff1::accelerator_subset_t &acc)
+  {
+    if (!copy_index (*acc.charStrings, subset_charstrings) ||
+	!copy_index (*acc.globalSubrs, subset_globalsubrs) ||
+	unlikely (!subset_localsubrs.resize (orig_fdcount)))
+      return false;
+
+    for (unsigned int fd = 0; fd < orig_fdcount; fd++)
+    {
+      subset_localsubrs[fd].init ();
+      if (fdmap.has (fd) &&
+	  !copy_index (*acc.privateDicts[fd].localSubrs, subset_localsubrs[fd]))
+	return false;
+    }
+    return true;
+  }
+
   bool create (const OT::cff1::accelerator_subset_t &acc,
 	       hb_subset_plan_t *plan)
   {
@@ -722,23 +767,43 @@ struct cff1_subset_plan
       if (!subr_subsetter.subset ())
 	return false;
 
-      /* encode charstrings, global subrs, local subrs with new subroutine numbers */
-      if (!subr_subsetter.encode_charstrings (subset_charstrings))
-	return false;
+      bool copy = can_copy_programs (acc, plan) &&
+		  subr_subsetter.has_identity_global_remap ();
+      if (copy)
+	for (unsigned int fd = 0; fd < orig_fdcount; fd++)
+	  if (fdmap.has (fd) && !subr_subsetter.has_identity_local_remap (fd))
+	  {
+	    copy = false;
+	    break;
+	  }
 
-      if (!subr_subsetter.encode_globalsubrs (subset_globalsubrs))
-	return false;
-
-      /* local subrs */
-      if (!subset_localsubrs.resize (orig_fdcount))
-	return false;
-      for (unsigned int fd = 0; fd < orig_fdcount; fd++)
+      if (copy)
       {
-	subset_localsubrs[fd].init ();
-	if (fdmap.has (fd))
+	/* Calls and their biases remain valid.  Reuse source bytes instead of
+	 * re-encoding every charstring and retained subroutine. */
+	if (!copy_programs (acc))
+	  return false;
+      }
+      else
+      {
+	/* encode charstrings, global subrs, local subrs with new subroutine numbers */
+	if (!subr_subsetter.encode_charstrings (subset_charstrings))
+	  return false;
+
+	if (!subr_subsetter.encode_globalsubrs (subset_globalsubrs))
+	  return false;
+
+	/* local subrs */
+	if (!subset_localsubrs.resize (orig_fdcount))
+	  return false;
+	for (unsigned int fd = 0; fd < orig_fdcount; fd++)
 	{
-	  if (!subr_subsetter.encode_localsubrs (fd, subset_localsubrs[fd]))
-	    return false;
+	  subset_localsubrs[fd].init ();
+	  if (fdmap.has (fd))
+	  {
+	    if (!subr_subsetter.encode_localsubrs (fd, subset_localsubrs[fd]))
+	      return false;
+	  }
 	}
       }
     }
