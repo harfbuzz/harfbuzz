@@ -478,6 +478,30 @@ test_hb_ot_color_png (void)
   hb_font_destroy (cbdt_font);
 }
 
+#if !defined(HB_NO_VAR) && !defined(HB_NO_PAINT)
+static void
+test_hb_ot_color_clip_extents_overflow (void)
+{
+  /* Glyph 1 has a ClipBoxFormat2 whose deltas saturate every edge to
+   * INT32_MAX at wght=1.  Scaling those extents must clamp them instead
+   * of converting an out-of-range float to int. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-var-overflow.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_variation_t var = {HB_TAG ('w','g','h','t'), 1.f};
+  hb_glyph_extents_t extents;
+
+  hb_font_set_variations (font, &var, 1);
+  g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+  g_assert_cmpint (extents.x_bearing, ==, G_MAXINT32);
+  g_assert_cmpint (extents.y_bearing, ==, G_MAXINT32);
+  g_assert_cmpint (extents.width, ==, 0);
+  g_assert_cmpint (extents.height, ==, 0);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -506,6 +530,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_glyph_get_layers);
   hb_test_add (test_hb_ot_color_has_data);
   hb_test_add (test_hb_ot_color_png);
+#if !defined(HB_NO_VAR) && !defined(HB_NO_PAINT)
+  hb_test_add (test_hb_ot_color_clip_extents_overflow);
+#endif
 #ifndef HB_NO_SVG
   hb_test_add (test_hb_ot_color_svg);
 #endif
