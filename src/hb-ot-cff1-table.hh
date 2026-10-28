@@ -205,6 +205,7 @@ struct Encoding
 
     case 1:
     {
+      if (unlikely (code_ranges.length > 0xFF)) return_trace (false);
       Encoding1 *fmt1 = c->allocate_size<Encoding1> (Encoding1::min_size + Encoding1_Range::static_size * code_ranges.length);
       if (unlikely (!fmt1)) return_trace (false);
       fmt1->nRanges () = code_ranges.length;

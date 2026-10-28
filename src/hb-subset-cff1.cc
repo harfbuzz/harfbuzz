@@ -487,11 +487,12 @@ struct cff1_subset_plan
 
     subset_enc_code_ranges.complete (glyph);
 
-    assert (subset_enc_num_codes <= 0xFF);
     size0 = Encoding0::min_size + HBUINT8::static_size * subset_enc_num_codes;
     size1 = Encoding1::min_size + Encoding1_Range::static_size * subset_enc_code_ranges.length;
 
-    if (size0 < size1)
+    /* Format 0 holds at most 255 codes; a format 1 source encoding
+     * can give codes to more glyphs than that. */
+    if (subset_enc_num_codes <= 0xFF && size0 < size1)
       subset_enc_format = 0;
     else
       subset_enc_format = 1;
