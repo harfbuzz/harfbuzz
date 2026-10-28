@@ -269,6 +269,31 @@ test_subset_cff1_seac (void)
 }
 
 static void
+test_subset_cff1_seac_precheck (void)
+{
+  const char *fonts[] = {
+    "fonts/cff1_seac_dotsection.otf",
+    "fonts/cff1_seac_subr_endchar.otf",
+  };
+
+  for (unsigned int i = 0; i < G_N_ELEMENTS (fonts); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[i]);
+    hb_set_t *codepoints = hb_set_create ();
+    hb_set_add (codepoints, 0xC1);  /* Aacute */
+    hb_face_t *subset = hb_subset_test_create_subset (face,
+                                                       hb_subset_test_create_input (codepoints));
+    hb_set_destroy (codepoints);
+
+    /* .notdef, Aacute and both seac components. */
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 4);
+
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_subset_cff1_dotsection (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_dotsect.otf");
@@ -459,6 +484,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_j_desubr_strip_hints);
   hb_test_add (test_subset_cff1_expert);
   hb_test_add (test_subset_cff1_seac);
+  hb_test_add (test_subset_cff1_seac_precheck);
   hb_test_add (test_subset_cff1_dotsection);
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
