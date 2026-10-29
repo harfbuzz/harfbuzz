@@ -340,6 +340,30 @@ test_subset_cff1_retaingids (void)
 }
 
 static void
+test_subset_cff1_encoding_many_codes_retaingids (void)
+{
+  /* A format 1 encoding gives codes to 768 glyphs; with retain-gids
+   * the subset keeps more than 255 of them, too many for format 0. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_encoding_many_codes.otf");
+  hb_face_t *face_expected = hb_test_open_font_file ("fonts/cff1_encoding_many_codes.300.retaingids.otf");
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_subset;
+  hb_set_add (glyphs, 300);
+  input = hb_subset_test_create_input_from_glyphs (glyphs);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+  face_subset = hb_subset_test_create_subset (face, input);
+  hb_set_destroy (glyphs);
+
+  hb_subset_test_check (face_expected, face_subset, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+  hb_face_destroy (face_expected);
+}
+
+static void
 test_subset_cff1_j_retaingids (void)
 {
   hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
@@ -489,6 +513,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_dotsection);
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
+  hb_test_add (test_subset_cff1_encoding_many_codes_retaingids);
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
 
