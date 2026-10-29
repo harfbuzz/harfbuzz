@@ -1039,6 +1039,15 @@ if get_option('tests').enabled()
       args: [meson.project_source_root() / 'test/api/fonts/NotoColorEmoji.subset.multiple_size_tables.ttf'],
       suite: ['src', 'subset'])
   endif
+
+  if not get_option('raster').disabled()
+    test('test-raster-paint', executable('test-raster-paint', 'test-raster-paint.cc',
+      include_directories: incconfig,
+      cpp_args: cpp_args + ['-UNDEBUG'],
+      dependencies: libharfbuzz_raster_dep,
+      install: false,
+    ), suite: ['src', 'raster'])
+  endif
 endif
 
 pkgmod.generate(libharfbuzz,

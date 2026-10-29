@@ -788,7 +788,8 @@ hb_raster_paint_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   ensure_initialized (c);
 
   /* acquire_surface() clears a full surface; charge its area. */
-  if (unlikely (!c->charge_work ((int64_t) c->fixed_extents.width * c->fixed_extents.height)))
+  const hb_raster_extents_t &extents = c->get_surface_extents ();
+  if (unlikely (!c->charge_work ((int64_t) extents.width * extents.height)))
     return;
 
   hb_raster_image_t *new_surf = c->acquire_surface ();
@@ -2152,6 +2153,10 @@ hb_raster_paint_get_scale_factor (const hb_raster_paint_t *paint,
  * @extents: the desired output extents
  *
  * Sets the output image extents (pixel rectangle).
+ *
+ * Changing extents after painting starts does not resize the active image.
+ * The extents are cleared by hb_raster_paint_render(), so set them again
+ * before painting the next image.
  *
  * Call this before hb_font_paint_glyph() for each render.
  * A common pattern is:
