@@ -364,6 +364,35 @@ test_subset_cff1_encoding_many_codes_retaingids (void)
 }
 
 static void
+test_subset_cff1_encoding_range_overflow (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_encoding_many_codes.otf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t *glyphs = hb_subset_input_glyph_set (input);
+
+  /* Keep 256 codes in 255 ranges, the format 1 range limit. */
+  for (unsigned i = 1; i < 511; i += 2)
+    hb_set_add (glyphs, i);
+  hb_set_add (glyphs, 510);
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 257);
+  hb_blob_t *cff = hb_face_reference_table (subset, HB_TAG ('C','F','F',' '));
+  g_assert_cmpuint (hb_blob_get_length (cff), >, 0);
+  hb_blob_destroy (cff);
+  hb_face_destroy (subset);
+
+  /* A 256th range must fail instead of silently dropping the CFF table. */
+  hb_set_del (glyphs, 510);
+  hb_set_add (glyphs, 511);
+  subset = hb_subset_or_fail (face, input);
+  g_assert_null (subset);
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_cff1_j_retaingids (void)
 {
   hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
@@ -514,6 +543,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
   hb_test_add (test_subset_cff1_encoding_many_codes_retaingids);
+  hb_test_add (test_subset_cff1_encoding_range_overflow);
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
 
