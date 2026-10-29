@@ -31,7 +31,7 @@ main ()
   hb_always_assert (paint);
   hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
   hb_raster_extents_t root = {0, 0, 64, 64, 0};
-  hb_raster_extents_t small = {0, 0, 4, 4, 0};
+  hb_raster_extents_t small_extents = {0, 0, 4, 4, 0};
   hb_raster_extents_t large = {0, 0, 8192, 8192, 0};
 
   hb_raster_paint_set_extents (paint, &root);
@@ -40,7 +40,7 @@ main ()
   hb_always_assert (paint->surface_stack.length == 1);
   int64_t initial_budget = paint->pixel_remaining;
 
-  hb_raster_paint_set_extents (paint, &small);
+  hb_raster_paint_set_extents (paint, &small_extents);
   for (unsigned i = 0; i < 2; i++)
   {
     /* Both a newly allocated group and a cached group clear the root area. */
