@@ -654,6 +654,10 @@ _cff1_charstring_may_end_in_seac (const hb_ubytes_t &str,
   if (end >= 5 && str[end - 5] == OpCode_fixedcs)
     return true;
 
+  /* A subroutine can leave the seac operands on the shared stack. */
+  if (last == OpCode_callsubr || last == OpCode_callgsubr)
+    return true;
+
   /* Escaped operators include stack-preserving dotsection. */
   return end >= 2 && str[end - 2] == OpCode_escape;
 }

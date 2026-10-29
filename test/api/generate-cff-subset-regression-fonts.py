@@ -4,6 +4,7 @@ from pathlib import Path
 from fontTools.fontBuilder import FontBuilder
 from fontTools.misc.psCharStrings import T2CharString
 from fontTools.cffLib import SubrsIndex, FDSelect
+from fontTools.ttLib import TTFont
 
 OUT = Path(__file__).parent / "fonts"
 
@@ -90,3 +91,11 @@ f.setupCFF2(
 private = f.font["CFF2"].cff.topDictIndex[0].FDArray[0].Private
 private.BlueValues = [[i] + [0] * 40 for i in range(14)]
 f.save(OUT / "cff2_long_private_blends.otf")
+
+# A local subroutine can leave seac operands on the shared stack before the
+# glyph's own endchar.
+f = TTFont(OUT / "cff1_seac_subr_endchar.otf")
+top = f["CFF "].cff.topDictIndex[0]
+top.Private.Subrs[0].setProgram([0, 0, 65, 194, "return"])
+top.CharStrings["Aacute"].setProgram([-107, "callsubr", "endchar"])
+f.save(OUT / "cff1_seac_subr_operands.otf")

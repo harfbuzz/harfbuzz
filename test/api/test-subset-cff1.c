@@ -274,6 +274,7 @@ test_subset_cff1_seac_precheck (void)
   const char *fonts[] = {
     "fonts/cff1_seac_dotsection.otf",
     "fonts/cff1_seac_subr_endchar.otf",
+    "fonts/cff1_seac_subr_operands.otf",
   };
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (fonts); i++)
