@@ -520,10 +520,26 @@ test_subset_cff1_caller_supplied_subr (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_cff1_index_count_overflow (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,4C2E.otf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 1);
+  /* The output CharStrings count must fit in a CFF1 INDEX. */
+  hb_map_set (hb_subset_input_old_to_new_glyph_mapping (input), 1, 70000);
+
+  g_assert_null (hb_subset_or_fail (face, input));
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+  hb_test_add (test_subset_cff1_index_count_overflow);
 
   hb_test_add (test_subset_cff1_caller_supplied_subr);
 

@@ -155,9 +155,33 @@ test_fd_select_sentinel ()
   c.end_processing ();
 }
 
+static void
+test_index_count_limits ()
+{
+  char buffer[65550];
+  for (unsigned count : {0u, 65535u, 65536u, 65537u})
+  {
+    auto items = hb_range (count) | hb_map ([] (unsigned) { return hb_bytes_t (); });
+    hb_serialize_context_t c (buffer, sizeof (buffer));
+    auto *index = c.start_serialize<OT::CFF1Index> ();
+    bool success = index->serialize_header (&c, +items, 0);
+    hb_always_assert (success == (count <= 65535u));
+    if (success)
+      hb_always_assert (index->count == count);
+    else
+      hb_always_assert (c.in_error ());
+
+    hb_serialize_context_t c2 (buffer, sizeof (buffer));
+    auto *index2 = c2.start_serialize<OT::CFF2Index> ();
+    hb_always_assert (index2->serialize_header (&c2, +items, 0));
+    hb_always_assert (index2->count == count);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
+  test_index_count_limits ();
   test_specialized_line_geometry ();
   test_specialized_fractional_geometry ();
   test_charset1_splits_long_ranges ();
