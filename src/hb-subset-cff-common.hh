@@ -856,6 +856,19 @@ struct subr_subsetter_t
       parsed_global_subrs = &cff_accelerator->parsed_global_subrs;
       parsed_local_subrs = &cff_accelerator->parsed_local_subrs;
     } else {
+      /* Font DICTs can share a Private DICT and its Subrs, so the size of
+       * the table does not bound the sum of their counts.  Every subroutine
+       * of a font that does not share them takes at least one byte of the
+       * table; _hb_subset_table_try() would not serialize more than this
+       * anyway.  Over the limit the subset fails, as any CFF planning
+       * failure has since dde7da182e. */
+      uint64_t num_subrs = acc.globalSubrs->count;
+      for (unsigned int i = 0; i < acc.fdCount; i++)
+	num_subrs += acc.privateDicts[i].localSubrs->count;
+      if (unlikely (num_subrs * sizeof (parsed_cs_str_t) >
+		    (uint64_t) acc.get_blob ()->length * 256))
+	return false;
+
       parsed_charstrings.resize_exact (plan->num_output_glyphs ());
       parsed_global_subrs_storage.resize_exact (acc.globalSubrs->count);
 

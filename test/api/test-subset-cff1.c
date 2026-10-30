@@ -507,6 +507,88 @@ test_subset_cff1_j_identity_charset (void)
   hb_face_destroy (face_41_4c2e);
 }
 
+/* Subsets a CID-keyed font of 16 Font DICTs, 1000 empty local subroutines and
+ * two empty glyphs, and returns whether the CFF table was subsetted. */
+static hb_bool_t
+subset_cff1_many_font_dicts (hb_bool_t share_private_dict)
+{
+  static const unsigned char maxp[] = {0x00, 0x00, 0x50, 0x00, 0x00, 0x02};
+  static const unsigned char prefix[] = {
+    0x01, 0x00, 0x04, 0x04,			/*  0: header */
+    0x00, 0x01, 0x01, 0x01, 0x02, 'X',		/*  4: Name INDEX */
+    0x00, 0x01, 0x01, 0x01, 0x18,		/* 10: Top DICT INDEX */
+    0x8b, 0x8b, 0x8b, 0x0c, 0x1e,		/*     ROS */
+    0x1c, 0x00, 0x2a, 0x0f,			/*     charset */
+    0x1c, 0x00, 0x32, 0x11,			/*     CharStrings */
+    0x1c, 0x00, 0x3e, 0x0c, 0x24,		/*     FDArray */
+    0x1c, 0x00, 0x2f, 0x0c, 0x25,		/*     FDSelect */
+    0x00, 0x00,					/* 38: String INDEX */
+    0x00, 0x00,					/* 40: Global Subr INDEX */
+    0x02, 0x00, 0x01, 0x00, 0x00,		/* 42: charset */
+    0x00, 0x00, 0x00,				/* 47: FDSelect */
+    0x00, 0x02, 0x01, 0x01, 0x02, 0x03, 0x0e, 0x0e, /* 50: CharStrings INDEX */
+    0x1c, 0x00, 0x68, 0x13,			/* 58: Private DICT: Subrs */
+    0x00, 0x10, 0x01,				/* 62: FDArray INDEX */
+  };
+  unsigned char cff[1166], *p = cff;
+
+  memcpy (p, prefix, sizeof (prefix));
+  p += sizeof (prefix);
+  for (unsigned i = 0; i <= 16; i++)
+    *p++ = 1 + 5 * i;
+  for (unsigned i = 0; i < 16; i++)
+  {
+    /* Private: size and offset. */
+    *p++ = !i || share_private_dict ? 0x8f : 0x8b;
+    *p++ = 0x1c; *p++ = 0x00; *p++ = 0x3a;
+    *p++ = 0x12;
+  }
+  /* 162: Local Subr INDEX */
+  *p++ = 0x03; *p++ = 0xe8; *p++ = 0x01;
+  memset (p, 0x01, 1001);
+  p += 1001;
+  g_assert_true (p == cff + sizeof (cff));
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ((const char *) maxp, sizeof (maxp),
+				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) cff, sizeof (cff),
+			 HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('C','F','F',' '), blob);
+  hb_blob_destroy (blob);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+
+  /* Whether the subset was produced with a (non-empty) CFF table. */
+  hb_bool_t ret = 0;
+  if (subset)
+  {
+    blob = hb_face_reference_table (subset, HB_TAG ('C','F','F',' '));
+    ret = hb_blob_get_length (blob) != 0;
+    hb_blob_destroy (blob);
+    hb_face_destroy (subset);
+  }
+
+  hb_face_destroy (face);
+  return ret;
+}
+
+static void
+test_subset_cff1_shared_local_subrs (void)
+{
+  /* Subroutines bounded by the table subset fine. */
+  g_assert_true (subset_cff1_many_font_dicts (false));
+  /* With every Font DICT sharing the one Subrs INDEX, each would get its
+   * own parsed copy, out of proportion to the table; the subset fails
+   * instead (a planning failure, as for other unsupported CFF input). */
+  g_assert_true (!subset_cff1_many_font_dicts (true));
+}
+
 static void
 test_subset_cff1_preprocess_glyph_map_holes (void)
 {
@@ -640,6 +722,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_encoding_range_overflow);
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
+  hb_test_add (test_subset_cff1_shared_local_subrs);
   hb_test_add (test_subset_cff1_preprocess_glyph_map_holes);
 
 #ifdef HB_EXPERIMENTAL_API
