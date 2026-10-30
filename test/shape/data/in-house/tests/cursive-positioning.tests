@@ -14,3 +14,8 @@
 ../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
 ../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=rtl1,ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
 ../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,rtl1,ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
+
+# Cursive lookups with different flags close an attachment cycle
+# (A -> B -> C -> A); a following mark attachment used to loop forever
+# in resolve_cross_offset().  https://github.com/harfbuzz/harfbuzz/pull/6492
+../fonts/cb6c536a0446aa9772672f0e1f872e47e9cb3915.ttf;;U+0041,U+0042,U+0043,U+0044;[A=0+100|B=1@-100,0+0|C=2@-100,0+400|D=3@-500,0+0]
