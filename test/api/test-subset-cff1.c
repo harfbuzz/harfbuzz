@@ -269,6 +269,28 @@ test_subset_cff1_seac (void)
 }
 
 static void
+test_subset_cff1_cid_seac (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_cid_seac.otf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 3);
+
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+  g_assert_nonnull (plan);
+  const hb_map_t *mapping = hb_subset_plan_old_to_new_glyph_mapping (plan);
+  /* The CID charset entries 34 and 125 are not seac components. */
+  g_assert_cmpuint (hb_map_get_population (mapping), ==, 2);
+  g_assert_true (hb_map_has (mapping, 0));
+  g_assert_true (hb_map_has (mapping, 3));
+  g_assert_false (hb_map_has (mapping, 1));
+  g_assert_false (hb_map_has (mapping, 2));
+
+  hb_subset_plan_destroy (plan);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_cff1_seac_precheck (void)
 {
   const char *fonts[] = {
@@ -586,6 +608,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_j_desubr_strip_hints);
   hb_test_add (test_subset_cff1_expert);
   hb_test_add (test_subset_cff1_seac);
+  hb_test_add (test_subset_cff1_cid_seac);
   hb_test_add (test_subset_cff1_seac_precheck);
   hb_test_add (test_subset_cff1_dotsection);
   hb_test_add (test_subset_cff1_retaingids);

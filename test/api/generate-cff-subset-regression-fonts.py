@@ -3,7 +3,7 @@
 from pathlib import Path
 from fontTools.fontBuilder import FontBuilder
 from fontTools.misc.psCharStrings import T2CharString
-from fontTools.cffLib import SubrsIndex, FDSelect
+from fontTools.cffLib import SubrsIndex, FDSelect, FDArrayIndex, FontDict
 from fontTools.ttLib import TTFont
 
 OUT = Path(__file__).parent / "fonts"
@@ -99,3 +99,24 @@ top = f["CFF "].cff.topDictIndex[0]
 top.Private.Subrs[0].setProgram([0, 0, 65, 194, "return"])
 top.CharStrings["Aacute"].setProgram([-107, "callsubr", "endchar"])
 f.save(OUT / "cff1_seac_subr_operands.otf")
+
+# A CID charset contains CIDs, not the standard SIDs needed by seac. Deliberately
+# use CIDs 34 and 125, which collide with the SIDs for A and acute, so interpreting
+# the invalid seac in CID 1000 would incorrectly retain those unrelated glyphs.
+f = builder()
+glyphs = [".notdef", "cid00034", "cid00125", "cid01000"]
+f.setupGlyphOrder(glyphs)
+f.setupCharacterMap({0x41: glyphs[1], 0x301: glyphs[2], 0xC1: glyphs[3]})
+f.setupHorizontalMetrics({g: (500, 0) for g in glyphs})
+cs = {g: T2CharString(program=["endchar"]) for g in glyphs}
+cs["cid01000"].setProgram([0, 0, 65, 194, "endchar"])
+f.setupCFF("CIDSeacRegression", {"ROS": ("Adobe", "Identity", 0), "CIDCount": 1001}, cs, {})
+top = f.font["CFF "].cff.topDictIndex[0]
+fd = FontDict()
+fd.Private = top.Private
+top.FDArray = FDArrayIndex()
+top.FDArray.append(fd)
+top.FDSelect = FDSelect(format=0)
+top.FDSelect.gidArray = [0] * len(glyphs)
+del top.Private
+f.save(OUT / "cff1_cid_seac.otf")
