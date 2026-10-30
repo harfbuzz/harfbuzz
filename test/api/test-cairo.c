@@ -213,6 +213,54 @@ test_hb_cairo_glyphs_from_buffer_clusters (void)
     }
 }
 
+/* One clip glyph of 300 points with 15830 solid paints under it.  Cairo
+ * rasterizes the clip path anew for every paint, so the paints must be
+ * charged to the glyph budget or this takes over a minute.  The test has
+ * no discriminating assertion; it guards against reintroduction through
+ * the meson test timeout, finishing in about a second once the paints
+ * are charged. */
+static void
+test_hb_cairo_paint_budget (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-clip-paint-budget.ttf");
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_face (face);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 256, 256);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 256);
+
+  cairo_glyph_t glyph = {1, 0, 256};
+  cairo_show_glyphs (cr, &glyph, 1);
+  cairo_surface_flush (surface);
+
+  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+  g_assert_cmpint (cairo_surface_status (surface), ==, CAIRO_STATUS_SUCCESS);
+
+  /* The budget truncates the repeated paints but keeps the first ones. */
+  const unsigned char *data = cairo_image_surface_get_data (surface);
+  int stride = cairo_image_surface_get_stride (surface);
+  gboolean painted = FALSE;
+  for (int y = 0; y < 256 && !painted; y++)
+    for (int x = 0; x < 256; x++)
+      if (data[y * stride + x * 4 + 3])
+      {
+	painted = TRUE;
+	break;
+      }
+  g_assert_true (painted);
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+  cairo_font_face_destroy (cairo_face);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -221,6 +269,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
+  hb_test_add (test_hb_cairo_paint_budget);
 
   return hb_test_run ();
 }

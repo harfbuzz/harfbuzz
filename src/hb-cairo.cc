@@ -55,7 +55,7 @@ hb_cairo_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		  void *user_data HB_UNUSED)
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) draw_data;
-  if (unlikely (!c->spend (HB_BUDGET_1)))
+  if (unlikely (!c->spend_segment ()))
     return;
 
   cairo_move_to (c->cr, (double) to_x, (double) to_y);
@@ -69,7 +69,7 @@ hb_cairo_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		  void *user_data HB_UNUSED)
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) draw_data;
-  if (unlikely (!c->spend (HB_BUDGET_1)))
+  if (unlikely (!c->spend_segment ()))
     return;
 
   cairo_line_to (c->cr, (double) to_x, (double) to_y);
@@ -85,7 +85,7 @@ hb_cairo_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		   void *user_data HB_UNUSED)
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) draw_data;
-  if (unlikely (!c->spend (HB_BUDGET_1)))
+  if (unlikely (!c->spend_segment ()))
     return;
 
   cairo_curve_to (c->cr,
@@ -101,7 +101,7 @@ hb_cairo_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		     void *user_data HB_UNUSED)
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) draw_data;
-  if (unlikely (!c->spend (HB_BUDGET_1)))
+  if (unlikely (!c->spend_segment ()))
     return;
 
   cairo_close_path (c->cr);
@@ -220,7 +220,8 @@ hb_cairo_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), c);
   cairo_close_path (cr);
   _hb_cairo_set_source_color (c, use_foreground, color);
-  cairo_fill (cr);
+  if (likely (c->spend_paint ()))
+    cairo_fill (cr);
 
   cairo_restore (cr);
 }
@@ -258,6 +259,7 @@ hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   cairo_close_path (cr);
   cairo_clip (cr);
+  c->push_clip ();
 }
 
 static void
@@ -274,6 +276,13 @@ hb_cairo_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
                    (double) xmin, (double) ymin,
                    (double) (xmax - xmin), (double) (ymax - ymin));
   cairo_clip (cr);
+
+  /* Cairo keeps an axis-aligned rectangle as a box, not as a path. */
+  cairo_matrix_t m;
+  cairo_get_matrix (cr, &m);
+  if (m.xy || m.yx)
+    c->path_segments += 4;
+  c->push_clip ();
 }
 
 static hb_draw_funcs_t *
@@ -301,6 +310,7 @@ hb_cairo_push_clip_path_end (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   cairo_close_path (cr);
   cairo_clip (cr);
+  c->push_clip ();
 }
 
 static void
@@ -312,6 +322,7 @@ hb_cairo_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
   cairo_t *cr = c->cr;
 
   cairo_restore (cr);
+  c->pop_clip ();
 }
 
 static void
@@ -337,7 +348,8 @@ hb_cairo_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   cairo_pop_group_to_source (cr);
   cairo_set_operator (cr, _hb_paint_composite_mode_to_cairo (mode));
-  cairo_paint (cr);
+  if (likely (c->spend_paint ()))
+    cairo_paint (cr);
 
   cairo_restore (cr);
 }
@@ -351,6 +363,9 @@ hb_cairo_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
   cairo_t *cr = c->cr;
+
+  if (unlikely (!c->spend_paint ()))
+    return;
 
   _hb_cairo_set_source_color (c, use_foreground, color);
   cairo_paint (cr);
@@ -383,6 +398,9 @@ hb_cairo_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
+  if (unlikely (!c->spend_paint (HB_BUDGET_1024)))
+    return;
+
   _hb_cairo_paint_linear_gradient (c, color_line, x0, y0, x1, y1, x2, y2);
 }
 
@@ -396,6 +414,9 @@ hb_cairo_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
+  if (unlikely (!c->spend_paint (HB_BUDGET_1024)))
+    return;
+
   _hb_cairo_paint_radial_gradient (c, color_line, x0, y0, r0, x1, y1, r1);
 }
 
@@ -408,6 +429,10 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+
+  /* The sweep is a mesh pattern, which cairo rasterizes per paint. */
+  if (unlikely (!c->spend_paint (HB_BUDGET_8192)))
+    return;
 
   _hb_cairo_paint_sweep_gradient (c, color_line, x0, y0, start_angle, end_angle);
 }

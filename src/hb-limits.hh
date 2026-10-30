@@ -188,6 +188,7 @@
 #define HB_BUDGET_256	256u
 #define HB_BUDGET_512	512u
 #define HB_BUDGET_1024	1024u
+#define HB_BUDGET_8192	8192u
 
 /* The common finite default for one top-level glyph rendering session.
  * Nested outline and paint work shares the same live counter. */
