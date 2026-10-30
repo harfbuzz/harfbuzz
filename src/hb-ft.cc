@@ -1841,6 +1841,12 @@ hb_ft_face_create_from_blob_or_fail (hb_blob_t    *blob,
 void
 hb_ft_font_set_funcs (hb_font_t *font)
 {
+  /* hb_font_set_funcs() is a no-op on an immutable font and destroys the
+   * hb_ft_font_t (and the FT_Face) handed to it; bail out early so we
+   * don't create a face only to use it after it has been freed. */
+  if (hb_object_is_immutable (font))
+    return;
+
   int load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
   if (font->destroy == (hb_destroy_func_t) _hb_ft_font_destroy && font->user_data)
   {

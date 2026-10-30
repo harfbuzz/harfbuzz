@@ -136,6 +136,35 @@ test_native_ft_set_funcs_preserves_load_flags (void)
 }
 
 static void
+test_native_ft_set_funcs_immutable (void)
+{
+  FT_Face ft_face;
+  hb_font_t *font;
+  hb_glyph_extents_t extents;
+
+  init_freetype ();
+
+  ft_face = get_ft_face ("fonts/Cantarell.A.otf");
+  g_assert_nonnull (ft_face);
+
+  font = hb_ft_font_create_referenced (ft_face);
+  g_assert_nonnull (font);
+
+  /* Setters must fail silently on an immutable font; this used to
+   * create a new FT_Face, free it, and then use it. */
+  hb_font_make_immutable (font);
+  hb_ft_font_set_funcs (font);
+
+  g_assert_true (hb_ft_font_get_ft_face (font) == ft_face);
+  g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+
+  hb_font_destroy (font);
+  FT_Done_Face (ft_face);
+
+  cleanup_freetype ();
+}
+
+static void
 test_native_ft_glyph_name_zero_size_probe (void)
 {
   static const char *files[] = {
@@ -576,6 +605,7 @@ main (int argc, char **argv)
   hb_test_add (test_native_ft_basic);
   hb_test_add (test_ft_paint_bitmap_multithreaded);
   hb_test_add (test_native_ft_set_funcs_preserves_load_flags);
+  hb_test_add (test_native_ft_set_funcs_immutable);
   hb_test_add (test_native_ft_set_funcs_stream_face_no_deadlock);
   hb_test_add (test_native_ft_glyph_name_zero_size_probe);
   hb_test_add (test_native_ft_create_invalid_blob_no_leak);
