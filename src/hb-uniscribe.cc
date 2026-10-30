@@ -491,6 +491,11 @@ populate_log_font (LOGFONTW  *lf,
 hb_uniscribe_font_data_t *
 _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 {
+  /* Face data creation may have failed, eg. if GDI rejected the font.
+   * populate_log_font() dereferences it, so bail out before that. */
+  if (unlikely (!font->face->data.uniscribe))
+    return nullptr;
+
   hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) hb_calloc (1, sizeof (hb_uniscribe_font_data_t));
   if (unlikely (!data))
     return nullptr;
