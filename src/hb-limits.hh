@@ -92,6 +92,14 @@
 #define HB_MAX_LOOKUP_VISIT_COUNT 35000
 #endif
 
+/* Distinct lookup recursion paths the dependency graph builder interns
+ * over a whole GSUB; building the graph fails when it needs more.
+ * Lookups that invoke each other in every order make a factorial number
+ * of them.  The most among the test fonts is 744 (NotoNastaliqUrdu-Bold). */
+#ifndef HB_MAX_DEPEND_RECURSE_PATHS
+#define HB_MAX_DEPEND_RECURSE_PATHS 35000
+#endif
+
 /* Subtables of one kern, kerx, mort, or morx table; the table is rejected
  * when it declares more.  The table's accelerator keeps glyph sets for
  * each, which can take far more memory than the subtable has bytes. */
