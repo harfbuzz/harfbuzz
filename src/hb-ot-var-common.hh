@@ -2262,9 +2262,11 @@ struct item_variations_t
     unsigned start_row = 0;
     hb_vector_t<delta_row_encoding_t> encoding_objs;
 
-    /* delta_rows map, used for filtering out duplicate rows */
-    hb_vector_t<const hb_vector_t<int> *> major_rows;
-    hb_hashmap_t<const hb_vector_t<int>*, unsigned> delta_rows_map;
+    /* Candidate rows (non-all-zero) in major/minor order, with a parallel
+     * major index.  Duplicates are dropped below by sorting, not by a
+     * content-keyed hashmap a crafted font can flood with hash collisions. */
+    hb_vector_t<const hb_vector_t<int> *> all_rows;
+    hb_vector_t<unsigned> all_rows_major;
     for (unsigned major = 0; major < vars.length; major++)
     {
       /* deltas are stored in tuples(column based), convert them back into items
@@ -2295,52 +2297,81 @@ struct item_variations_t
         }
       }
 
-      major_rows.reset ();
       for (unsigned minor = 0; minor < num_rows; minor++)
       {
-	const hb_vector_t<int>& row = delta_rows[start_row + minor];
-	if (use_no_variation_idx)
-	{
-	  bool all_zeros = true;
-	  for (int delta : row)
-	  {
-	    if (delta != 0)
-	    {
-	      all_zeros = false;
-	      break;
-	    }
-	  }
-	  if (all_zeros)
-	    continue;
-	}
+        const hb_vector_t<int>& row = delta_rows[start_row + minor];
+        if (use_no_variation_idx)
+        {
+          bool all_zeros = true;
+          for (int delta : row)
+          {
+            if (delta != 0)
+            {
+              all_zeros = false;
+              break;
+            }
+          }
+          if (all_zeros)
+            continue;
+        }
 
-	if (!front_mapping.set ((major<<16) + minor, &row))
-	  return false;
+        if (!front_mapping.set ((major<<16) + minor, &row))
+          return false;
 
-	/* Duplicate rows may only be dropped when optimizing: without a
-	 * varidx_map the caller relies on original VariationIndex values
-	 * staying valid (e.g. HVAR/VVAR with an implicit advance mapping). */
-	if (optimize)
-	{
-	  if (delta_rows_map.has (&row))
-	    continue;
-
-	  delta_rows_map.set (&row, 1);
-	}
-
-	major_rows.push (&row);
-      }
-
-      if (unlikely (major_rows.in_error () || delta_rows_map.in_error ()))
-        return false;
-      if (major_rows)
-      {
-	auto *encoding = encoding_objs.push (std::move (major_rows), num_cols);
-	if (unlikely (encoding_objs.in_error () || encoding->in_error ()))
-	  return false;
+        all_rows.push (&row);
+        all_rows_major.push (major);
       }
 
       start_row += num_rows;
+    }
+
+    if (unlikely (all_rows.in_error () || all_rows_major.in_error () ||
+                  front_mapping.in_error ()))
+      return false;
+
+    /* Drop duplicate rows (same content as an earlier one), keeping the
+     * first occurrence in major/minor order.  Sort an index of the rows by
+     * content, ties broken by position, then flag each row equal to its
+     * predecessor.  O(n log n) and independent of the row hash, unlike the
+     * content-keyed map this replaces.  Duplicates may only be dropped when
+     * optimizing: without a varidx_map the caller relies on the original
+     * VariationIndex values staying valid (e.g. HVAR/VVAR implicit map). */
+    hb_vector_t<bool> dropped;
+    if (optimize)
+    {
+      hb_vector_t<row_sort_t> order;
+      if (!order.resize (all_rows.length) || !dropped.resize (all_rows.length))
+        return false;
+      for (unsigned i = 0; i < all_rows.length; i++)
+      {
+        order.arrayZ[i].row = all_rows.arrayZ[i];
+        order.arrayZ[i].index = i;
+      }
+      order.qsort (_cmp_row_sort);
+      for (unsigned k = 1; k < order.length; k++)
+        if (_cmp_row_contents (order.arrayZ[k - 1].row, order.arrayZ[k].row) == 0)
+          dropped.arrayZ[order.arrayZ[k].index] = true;
+    }
+
+    /* Build one encoding per major from the kept rows, in original order. */
+    hb_vector_t<const hb_vector_t<int> *> major_rows;
+    unsigned ridx = 0;
+    for (unsigned major = 0; major < vars.length; major++)
+    {
+      major_rows.reset ();
+      while (ridx < all_rows.length && all_rows_major.arrayZ[ridx] == major)
+      {
+        if (!optimize || !dropped.arrayZ[ridx])
+          major_rows.push (all_rows.arrayZ[ridx]);
+        ridx++;
+      }
+      if (unlikely (major_rows.in_error ())) return false;
+      if (major_rows)
+      {
+        auto *encoding = encoding_objs.push (std::move (major_rows), num_cols);
+        if (unlikely (encoding_objs.in_error () || encoding->in_error ()))
+          return false;
+      }
     }
 
     /* return directly if no optimization, maintain original VariationIndex so
@@ -2446,8 +2477,9 @@ struct item_variations_t
   /* compile varidx_map for one VarData subtable (index specified by major) */
   bool compile_varidx_map (const hb_hashmap_t<unsigned, const hb_vector_t<int>*>& front_mapping)
   {
-    /* full encoding_row -> new VarIdxes mapping */
-    hb_hashmap_t<const hb_vector_t<int>*, unsigned> back_mapping;
+    /* full encoding_row -> new VarIdx mapping, collected for a sort-based
+     * lookup instead of a content-keyed hashmap (collision-immune). */
+    hb_vector_t<row_sort_t> back_mapping;
     hb_vector_t<delta_row_encoding_t> split_encodings;
 
     for (unsigned i = 0; i < encodings.length; i++)
@@ -2476,8 +2508,7 @@ struct item_variations_t
         {
           const hb_vector_t<int> *row = encoding.items.arrayZ[start + minor];
           rows.push (row);
-          if (!back_mapping.set (row, (major << 16) + minor))
-            return false;
+          back_mapping.push (row_sort_t {row, (major << 16) + minor});
         }
 
         auto *split = split_encodings.push (std::move (rows), num_cols);
@@ -2490,16 +2521,36 @@ struct item_variations_t
     if (encodings.in_error () || back_mapping.in_error ())
       return false;
 
+    /* Match each front-mapping row to its new VarIdx by binary search on the
+     * row contents, instead of probing a content-keyed map a crafted font can
+     * flood with hash collisions. */
+    back_mapping.qsort (_cmp_row_sort);
     for (auto _ : front_mapping.iter ())
     {
       unsigned old_varidx = _.first;
-      unsigned *new_varidx;
-      if (back_mapping.has (_.second, &new_varidx))
-        varidx_map.set (old_varidx, *new_varidx);
-      else
-        varidx_map.set (old_varidx, HB_OT_LAYOUT_NO_VARIATIONS_INDEX);
+      const row_sort_t *match = _bsearch_row (back_mapping, _.second);
+      varidx_map.set (old_varidx,
+                      match ? match->index : HB_OT_LAYOUT_NO_VARIATIONS_INDEX);
     }
     return !varidx_map.in_error ();
+  }
+
+  /* A row pointer tagged with an index, sortable by row content. */
+  struct row_sort_t
+  {
+    const hb_vector_t<int> *row;
+    unsigned index;
+  };
+
+  /* Lexicographic comparison of two rows by content. */
+  static int _cmp_row_contents (const hb_vector_t<int> *a, const hb_vector_t<int> *b)
+  {
+    unsigned na = a->length, nb = b->length;
+    unsigned n = hb_min (na, nb);
+    for (unsigned i = 0; i < n; i++)
+      if (a->arrayZ[i] != b->arrayZ[i])
+        return a->arrayZ[i] < b->arrayZ[i] ? -1 : 1;
+    return na < nb ? -1 : na > nb ? 1 : 0;
   }
 
   static int _cmp_row (const void *pa, const void *pb)
@@ -2507,15 +2558,35 @@ struct item_variations_t
     /* compare pointers of vectors(const hb_vector_t<int>*) that represent a row */
     const hb_vector_t<int>** a = (const hb_vector_t<int>**) pa;
     const hb_vector_t<int>** b = (const hb_vector_t<int>**) pb;
+    return _cmp_row_contents (*a, *b);
+  }
 
-    for (unsigned i = 0; i < (*b)->length; i++)
+  /* Sort row_sort_t by content, ties broken by index so the first occurrence
+   * (smallest index) sorts first within a group of equal rows. */
+  static int _cmp_row_sort (const void *pa, const void *pb)
+  {
+    const row_sort_t *a = (const row_sort_t *) pa;
+    const row_sort_t *b = (const row_sort_t *) pb;
+    int c = _cmp_row_contents (a->row, b->row);
+    if (c) return c;
+    return a->index < b->index ? -1 : a->index > b->index ? 1 : 0;
+  }
+
+  /* Binary search a by-content-sorted row_sort_t vector for a row equal to
+   * key; returns the matching entry or nullptr. */
+  static const row_sort_t *_bsearch_row (const hb_vector_t<row_sort_t> &sorted,
+                                         const hb_vector_t<int> *key)
+  {
+    unsigned lo = 0, hi = sorted.length;
+    while (lo < hi)
     {
-      int va = (*a)->arrayZ[i];
-      int vb = (*b)->arrayZ[i];
-      if (va != vb)
-        return va < vb ? -1 : 1;
+      unsigned mid = lo + (hi - lo) / 2;
+      int c = _cmp_row_contents (sorted.arrayZ[mid].row, key);
+      if (c < 0) lo = mid + 1;
+      else if (c > 0) hi = mid;
+      else return &sorted.arrayZ[mid];
     }
-    return 0;
+    return nullptr;
   }
 };
 
