@@ -298,7 +298,12 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
     return true;
   }
 
-  (void) buffer->ensure (glyph_count);
+  if (unlikely (!buffer->ensure (glyph_count)))
+  {
+    if (feats) gr_featureval_destroy (feats);
+    gr_seg_destroy (seg);
+    return false;
+  }
   scratch = buffer->get_scratch_buffer (&scratch_size);
   while ((DIV_CEIL (sizeof (hb_graphite2_cluster_t) * buffer->len, sizeof (*scratch)) +
 	  DIV_CEIL (sizeof (hb_graphite2_glyph_t) * glyph_count, sizeof (*scratch))) > scratch_size)
