@@ -42,8 +42,8 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix<SmallTypes>
     if (unlikely (vertex_len < AnchorMatrix::min_size)) return Err(SANITIZE_FAILURE);
     hb_barrier ();
 
-    if (unlikely (vertex_len < AnchorMatrix::min_size +
-                  OT::Offset16::static_size * class_count * this->rows))
+    if (unlikely (vertex_len - AnchorMatrix::min_size <
+                  hb_unsigned_mul_saturate (OT::Offset16::static_size, class_count, this->rows)))
       return Err(SANITIZE_FAILURE);
     return Ok();
   }

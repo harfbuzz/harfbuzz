@@ -3094,12 +3094,70 @@ static void test_invalid_link_add_and_move ()
   free (buffer);
 }
 
+static void test_anchor_matrix_sanitize_size_overflow ()
+{
+  // 2 * 46341 * 46341 wraps around to 9266 in 32-bit arithmetic.
+  const unsigned count = 46341;
+  std::string buffer (graph::AnchorMatrix::min_size + 2 * count, '\0');
+  auto* matrix = reinterpret_cast<graph::AnchorMatrix*> (&buffer[0]);
+  matrix->rows = count;
+  graph_t::vertex_t vertex;
+  vertex.set_buffer (&buffer[0], &buffer[0] + buffer.size ());
+
+  hb_always_assert (matrix->sanitize (vertex, 1).is_ok ());
+  hb_always_assert (!matrix->sanitize (vertex, 2).is_ok ());
+  hb_always_assert (!matrix->sanitize (vertex, count).is_ok ());
+
+  matrix->rows = 0;
+  hb_always_assert (matrix->sanitize (vertex, count).is_ok ());
+  vertex.set_buffer (&buffer[0], &buffer[0] + graph::AnchorMatrix::min_size - 1);
+  hb_always_assert (!matrix->sanitize (vertex, count).is_ok ());
+}
+
+static void test_pair_pos_format_2_sanitize_size_overflow ()
+{
+  // 32769 * 65535 * 4 wraps around to 131068 in 32-bit arithmetic.
+  struct pair_pos_t : graph::PairPosFormat2
+  {
+    using graph::PairPosFormat2::valueFormat1;
+    using graph::PairPosFormat2::valueFormat2;
+    using graph::PairPosFormat2::class1Count;
+    using graph::PairPosFormat2::class2Count;
+  };
+  const unsigned min_size = pair_pos_t::min_size;
+  std::string buffer (min_size + 131068, '\0');
+  auto* pair_pos = reinterpret_cast<pair_pos_t*> (&buffer[0]);
+  pair_pos->valueFormat1 = 1;
+  pair_pos->valueFormat2 = 1;
+  pair_pos->class1Count = 32769;
+  pair_pos->class2Count = 65535;
+  graph_t::vertex_t vertex;
+  vertex.set_buffer (&buffer[0], &buffer[0] + buffer.size ());
+
+  hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
+
+  pair_pos->class1Count = 3;
+  pair_pos->class2Count = 2;
+  vertex.set_buffer (&buffer[0], &buffer[0] + min_size + 3 * 2 * 4);
+  hb_always_assert (pair_pos->sanitize (vertex).is_ok ());
+  vertex.shrink_buffer (1);
+  hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
+
+  pair_pos->class1Count = 0;
+  vertex.set_buffer (&buffer[0], &buffer[0] + min_size);
+  hb_always_assert (pair_pos->sanitize (vertex).is_ok ());
+  vertex.shrink_buffer (1);
+  hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
 int
 main (int argc, char **argv)
 {
+  test_anchor_matrix_sanitize_size_overflow ();
+  test_pair_pos_format_2_sanitize_size_overflow ();
   test_invalid_link_objidx ();
   test_invalid_link_add_and_move ();
   test_serialize ();
