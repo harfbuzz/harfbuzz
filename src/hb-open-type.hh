@@ -1322,7 +1322,8 @@ struct CFFIndex
 
     /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    this->count = hb_len (it);
+    if (unlikely (!c->check_assign (this->count, hb_len (it), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW)))
+      return_trace (false);
     if (!this->count) return_trace (true);
     if (unlikely (!c->extend (this->offSize))) return_trace (false);
     this->offSize = off_size;
