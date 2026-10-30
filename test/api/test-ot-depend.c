@@ -353,6 +353,86 @@ test_depend_colr (void)
   hb_face_destroy (face);
 }
 
+static hb_bool_t
+colr_depend_succeeds (const unsigned char *colr, unsigned int length, unsigned int num_glyphs)
+{
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create_or_fail ((const char *) colr, length, HB_MEMORY_MODE_DUPLICATE, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('C','O','L','R'), blob);
+  hb_blob_destroy (blob);
+  hb_face_set_glyph_count (face, num_glyphs);
+
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  hb_bool_t ret = depend != NULL;
+
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+  return ret;
+}
+
+/* Test that COLR work repeated for every base glyph is bounded */
+static void
+test_depend_colr_budget (void)
+{
+  {
+    /* COLRv0: every base glyph uses all of the layers. */
+    enum { NUM_GLYPHS = 2048, LAYERS = 14 + NUM_GLYPHS * 6 };
+    static unsigned char colr[LAYERS + NUM_GLYPHS * 4];
+    colr[7] = 14;
+    colr[10] = LAYERS >> 8;
+    colr[11] = LAYERS & 0xFF;
+    colr[12] = NUM_GLYPHS >> 8;
+    for (unsigned i = 0; i < NUM_GLYPHS; i++)
+    {
+      unsigned char *record = colr + 14 + i * 6;
+      record[0] = i >> 8;
+      record[1] = i & 0xFF;
+      record[4] = NUM_GLYPHS >> 8;
+    }
+
+    colr[3] = 1;
+    g_assert_true (colr_depend_succeeds (colr, sizeof (colr), NUM_GLYPHS));
+    colr[2] = NUM_GLYPHS >> 8;
+    colr[3] = 0;
+    g_assert_false (colr_depend_succeeds (colr, sizeof (colr), NUM_GLYPHS));
+  }
+
+  {
+    /* COLRv1: 255 PaintColrLayers that each list all 255 of them as layers,
+     * and every base glyph uses the first one. */
+    enum { NUM_GLYPHS = 64, NUM_PAINTS = 255,
+           BASE_GLYPHS = 34,
+           LAYERS = BASE_GLYPHS + 4 + NUM_GLYPHS * 6,
+           PAINTS = LAYERS + 4 + NUM_PAINTS * 4 };
+    static unsigned char colr[PAINTS + NUM_PAINTS * 6];
+    colr[1] = 1;
+    colr[17] = BASE_GLYPHS;
+    colr[20] = LAYERS >> 8;
+    colr[21] = LAYERS & 0xFF;
+    for (unsigned i = 0; i < NUM_GLYPHS; i++)
+    {
+      unsigned char *record = colr + BASE_GLYPHS + 4 + i * 6;
+      record[1] = i;
+      record[4] = (PAINTS - BASE_GLYPHS) >> 8;
+      record[5] = (PAINTS - BASE_GLYPHS) & 0xFF;
+    }
+    colr[LAYERS + 3] = NUM_PAINTS;
+    for (unsigned i = 0; i < NUM_PAINTS; i++)
+    {
+      unsigned offset = PAINTS - LAYERS + i * 6;
+      colr[LAYERS + 4 + i * 4 + 2] = offset >> 8;
+      colr[LAYERS + 4 + i * 4 + 3] = offset & 0xFF;
+      colr[PAINTS + i * 6] = 1;
+      colr[PAINTS + i * 6 + 1] = NUM_PAINTS;
+    }
+
+    colr[BASE_GLYPHS + 3] = 1;
+    g_assert_true (colr_depend_succeeds (colr, sizeof (colr), NUM_GLYPHS));
+    colr[BASE_GLYPHS + 3] = NUM_GLYPHS;
+    g_assert_false (colr_depend_succeeds (colr, sizeof (colr), NUM_GLYPHS));
+  }
+}
+
 /* Test MATH (mathematical variants) dependency extraction */
 static void
 test_depend_math (void)
@@ -631,6 +711,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_glyf);
   hb_test_add (test_depend_cff);
   hb_test_add (test_depend_colr);
+  hb_test_add (test_depend_colr_budget);
   hb_test_add (test_depend_math);
   hb_test_add (test_depend_varc);
   hb_test_add (test_depend_gsub_formats);

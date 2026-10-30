@@ -242,6 +242,9 @@ struct hb_colrv1_depend_context_t :
   template <typename T>
   return_t dispatch (const T &obj)
   {
+    if (unlikely (!spend_ops ()))
+      return hb_empty_t ();
+
     if (unlikely (nesting_level_left == 0))
       return hb_empty_t ();
 
@@ -267,6 +270,20 @@ struct hb_colrv1_depend_context_t :
     return false;
   }
 
+  /* Layers and paints shared between base glyphs are walked again for each
+   * of them, which sanitize does not charge for.  Bound the total work and
+   * fail, rather than return a graph with edges missing. */
+  bool spend_ops (unsigned count = 1)
+  {
+    max_ops -= (int) count;
+    if (unlikely (max_ops < 0))
+    {
+      max_ops = -1;
+      return depend_data->fail ();
+    }
+    return true;
+  }
+
   const COLR* get_colr_table () const
   { return colr; }
 
@@ -274,14 +291,19 @@ struct hb_colrv1_depend_context_t :
   const COLR *colr;
   hb_depend_data_builder_t *depend_data;
   hb_set_t visited_paint;
+  int max_ops;
   unsigned nesting_level_left;
   hb_codepoint_t source_gid;
 
   hb_colrv1_depend_context_t (const COLR *colr_,
+                              unsigned colr_length,
                               hb_depend_data_builder_t *depend_data_,
                               unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
                           colr (colr_),
                           depend_data (depend_data_),
+                          max_ops ((int) hb_clamp ((uint64_t) colr_length * HB_SANITIZE_MAX_OPS_FACTOR,
+                                                   (uint64_t) HB_SANITIZE_MAX_OPS_MIN,
+                                                   (uint64_t) HB_SANITIZE_MAX_OPS_MAX)),
                           nesting_level_left (nesting_level_left_),
                           source_gid (0)
   {}
@@ -2601,7 +2623,7 @@ struct COLR
     void depend (hb_depend_data_builder_t *depend_data) const
     {
       if (!has_data ()) return;
-      colr->depend (depend_data);
+      colr->depend (depend_data, colr.get_length ());
     }
 
     void closure_glyphs (const hb_set_t *glyphs,
@@ -2665,14 +2687,18 @@ struct COLR
     mutable hb_atomic_t<hb_colr_scratch_t *> cached_scratch;
   };
 
-  void depend (hb_depend_data_builder_t *depend_data) const
+  void depend (hb_depend_data_builder_t *depend_data, unsigned table_length) const
   {
+    hb_colrv1_depend_context_t c (this, table_length, depend_data);
+
     // v0
     hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
     for (const BaseGlyphRecord &record : baseGlyphs)
     {
       auto glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record.firstLayerIdx,
                                                                          record.numLayers);
+      if (unlikely (!c.spend_ops (glyph_layers.length)))
+        return;
       for (const LayerRecord layer : glyph_layers)
         depend_data->add_depend(record.glyphId, HB_OT_TAG_COLR, layer.glyphId);
     }
@@ -2681,11 +2707,13 @@ struct COLR
       return;
 
     // v1
-    hb_colrv1_depend_context_t c (this, depend_data);
     const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
 
     for (const BaseGlyphPaintRecord &baseglyph_paintrecord: baseglyph_paintrecords.iter ())
     {
+      if (unlikely (!depend_data->successful))
+        return;
+
       c.source_gid = baseglyph_paintrecord.glyphId;
       c.visited_paint.clear ();
 
