@@ -94,6 +94,27 @@ test_ot_metrics_get_with_fallback (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_metrics_get_position_with_fallback_null (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cpal-v0.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_position_t value;
+
+  /* position may be NULL whether the metric is found, found but zero, or synthesized. */
+  g_assert_true (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, NULL));
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, NULL);
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_UNDERLINE_SIZE, NULL);
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_VERTICAL_ASCENDER, NULL);
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_X_HEIGHT, NULL);
+
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &value);
+  g_assert_cmpint (value, ==, 1000);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -101,5 +122,6 @@ main (int argc, char **argv)
   hb_test_add (test_ot_metrics_get_no_var);
   hb_test_add (test_ot_metrics_get_var);
   hb_test_add (test_ot_metrics_get_with_fallback);
+  hb_test_add (test_ot_metrics_get_position_with_fallback_null);
   return hb_test_run ();
 }

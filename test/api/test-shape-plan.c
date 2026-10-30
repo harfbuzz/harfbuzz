@@ -318,6 +318,75 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult (void)
   hb_face_destroy (face);
 }
 
+static void
+test_shape_plan_execute_buffer_limits (void)
+{
+  /* A GSUB whose 'ccmp' feature multiplies the glyph of 'a' by 400, twice.
+   * 160000 glyphs is more than a single character is allowed to grow to
+   * (HB_BUFFER_MAX_LEN_MIN), so shaping stops after the first lookup. */
+  enum { FACTOR = 400, LOOKUP_LEN = 12 + FACTOR };
+  uint16_t words[26 + 2 * LOOKUP_LEN] = {
+    1, 0, 10, 30, 46, /* GSUB header */
+    1, 0x4446, 0x4C54, 8, 4, 0, 0, 0xFFFF, 1, 0, /* ScriptList: DFLT */
+    1, 0x6363, 0x6D70, 8, 0, 2, 0, 1, /* FeatureList: ccmp */
+    2, 6, 6 + 2 * LOOKUP_LEN, /* LookupList */
+  };
+  for (unsigned i = 0; i < 2; i++)
+  {
+    const uint16_t lookup[12] = {
+      2, 0, 1, 8, /* Lookup: MultipleSubst */
+      1, 8, 1, 14, /* MultipleSubstFormat1 */
+      1, 1, 1 + i, /* Coverage */
+      FACTOR, /* Sequence */
+    };
+    uint16_t *p = words + 26 + i * LOOKUP_LEN;
+    memcpy (p, lookup, sizeof (lookup));
+    for (unsigned j = 0; j < FACTOR; j++)
+      p[12 + j] = 2 + i;
+  }
+  char gsub[sizeof (words)];
+  for (unsigned i = 0; i < G_N_ELEMENTS (words); i++)
+  {
+    gsub[2 * i] = words[i] >> 8;
+    gsub[2 * i + 1] = words[i] & 0xFF;
+  }
+  const char cmap[] = {
+    0, 0, 0, 1, 0, 3, 0, 1, 0, 0, 0, 12,
+    0, 6, 0, 12, 0, 0, 0, 'a', 0, 1, 0, 1, /* format 6: 'a' -> glyph 1 */
+  };
+  const char maxp[] = {0, 0, 0x50, 0, 0, 4};
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "GSUB", gsub);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap);
+  HB_FACE_ADD_TABLE (face, "maxp", maxp);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
+  props.script = HB_SCRIPT_LATIN;
+  props.direction = HB_DIRECTION_LTR;
+
+  hb_buffer_t *expected = hb_buffer_create ();
+  hb_buffer_set_segment_properties (expected, &props);
+  hb_buffer_add_utf8 (expected, "a", -1, 0, -1);
+  hb_shape (font, expected, NULL, 0);
+  g_assert_cmpuint (hb_buffer_get_length (expected), ==, FACTOR);
+
+  /* Executing a plan directly is subject to the same limits as hb_shape(). */
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_set_segment_properties (buffer, &props);
+  hb_buffer_add_utf8 (buffer, "a", -1, 0, -1);
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create (face, &props, NULL, 0, NULL);
+  g_assert_true (hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0));
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, hb_buffer_get_length (expected));
+
+  hb_shape_plan_destroy (shape_plan);
+  hb_buffer_destroy (buffer);
+  hb_buffer_destroy (expected);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 #ifndef HB_NO_VAR
 static void
 test_ot_shape_plan_default_condition_deltas (void)
@@ -447,6 +516,7 @@ main (int argc, char **argv)
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disable);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablepartial);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult);
+  hb_test_add (test_shape_plan_execute_buffer_limits);
 #ifndef HB_NO_VAR
   hb_test_add (test_ot_shape_plan_default_condition_deltas);
   hb_test_add (test_ot_shape_plan_lookup_variations_cache);

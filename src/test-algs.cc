@@ -40,6 +40,69 @@ struct A
   void a () {}
 };
 
+/* McIlroy's "killer adversary" for quicksort: hands out keys lazily,
+ * always giving the sort's current pivot candidate the smallest key
+ * left, so every partition splits off almost nothing.  Drives any
+ * deterministic quicksort without a depth limit to O(n^2). */
+struct qsort_adversary_t
+{
+  qsort_adversary_t (unsigned n) : n (n)
+  {
+    keys.resize (n);
+    for (unsigned i = 0; i < n; i++)
+      keys[i] = n; /* Unassigned; compares greater than any key. */
+  }
+
+  int operator () (const unsigned &a, const unsigned &b)
+  {
+    if (keys[a] == n && keys[b] == n)
+      keys[a == candidate ? a : b] = next++;
+    if (keys[a] == n) candidate = a;
+    else if (keys[b] == n) candidate = b;
+    return (int) keys[a] - (int) keys[b];
+  }
+
+  unsigned n;
+  hb_vector_t<unsigned> keys;
+  unsigned candidate = 0;
+  unsigned next = 0;
+};
+
+static void
+test_qsort_adversary ()
+{
+  const unsigned n = 1u << 15;
+  hb_vector_t<unsigned> items;
+  items.resize (n);
+  for (unsigned i = 0; i < n; i++)
+    items[i] = i;
+
+  /* First run: let the adversary pick the worst order for our sort. */
+  qsort_adversary_t adversary (n);
+  hb_qsort_inline (items.arrayZ, items.length,
+		   [&] (const unsigned &a, const unsigned &b) { return adversary (a, b); });
+  for (unsigned i = 0; i < n; i++)
+    if (adversary.keys[i] == n)
+      adversary.keys[i] = adversary.next++;
+
+  /* Second run: the same input, now with the keys the adversary chose. */
+  for (unsigned i = 0; i < n; i++)
+    items[i] = i;
+  size_t comparisons = 0;
+  hb_qsort_inline (items.arrayZ, items.length,
+		   [&] (const unsigned &a, const unsigned &b)
+		   {
+		     comparisons++;
+		     return (int) adversary.keys[a] - (int) adversary.keys[b];
+		   });
+  for (unsigned i = 1; i < n; i++)
+    hb_always_assert (adversary.keys[items[i - 1]] < adversary.keys[items[i]]);
+
+  /* Introsort: stays within a small multiple of n log n; a plain
+   * quicksort would take about n^2 / 4 comparisons here. */
+  hb_always_assert (comparisons < 16 * (size_t) n * hb_bit_storage (n));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -153,6 +216,8 @@ main (int argc, char **argv)
   hb_always_assert (hb_hash (set1) == hb_hash (&set1));
   hb_always_assert (hb_hash (set1) == hb_hash (hb::shared_ptr<hb_set_t> {hb_set_reference (&set1)}));
   hb_always_assert (hb_hash (set1) == hb_hash (hb::unique_ptr<hb_set_t> {hb_set_reference (&set1)}));
+
+  test_qsort_adversary ();
 
   return 0;
 }
