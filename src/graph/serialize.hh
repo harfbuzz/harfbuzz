@@ -35,23 +35,6 @@ struct overflow_record_t
 {
   unsigned parent;
   unsigned child;
-
-  bool operator != (const overflow_record_t o) const
-  { return !(*this == o); }
-
-  inline bool operator == (const overflow_record_t& o) const
-  {
-    return parent == o.parent &&
-        child == o.child;
-  }
-
-  inline uint32_t hash () const
-  {
-    uint32_t current = 0;
-    current = current * 31 + hb_hash (parent);
-    current = current * 31 + hb_hash (child);
-    return current;
-  }
 };
 
 inline
@@ -113,10 +96,15 @@ will_overflow (graph_t& graph,
   if (overflows) overflows->clear ();
   graph.update_positions ();
 
-  hb_hashmap_t<overflow_record_t, bool> record_set;
+  // Each parent is visited once (ordering_ is a permutation of the vertices),
+  // so duplicate records can only come from two links of the same parent to the
+  // same child. A per-parent set of children avoids hashing (parent, child)
+  // records, whose hash a font can make collide.
+  hb_set_t overflowing_children;
   const auto& vertices = graph.vertices_;
   for (unsigned parent_idx : graph.ordering_)
   {
+    overflowing_children.clear ();
     // Don't need to check virtual links for overflow
     for (const auto& link : vertices.arrayZ[parent_idx].obj ().real_links)
     {
@@ -129,14 +117,14 @@ will_overflow (graph_t& graph,
       overflow_record_t r;
       r.parent = parent_idx;
       r.child = link.objidx;
-      if (record_set.has(r)) continue; // don't keep duplicate overflows.
+      if (overflowing_children.has (r.child)) continue; // don't keep duplicate overflows.
 
       overflows->push (r);
-      record_set.set (r, true);
+      overflowing_children.add (r.child);
     }
   }
 
-  TRY (graph_result_t<void>::from (record_set, ALLOCATION_FAILURE));
+  TRY (graph_result_t<void>::from (overflowing_children, ALLOCATION_FAILURE));
   if (overflows)
     TRY (graph_result_t<void>::from (*overflows, ALLOCATION_FAILURE));
 

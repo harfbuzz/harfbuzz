@@ -2187,6 +2187,48 @@ static void test_will_overflow_3 ()
   free (buffer);
 }
 
+static void test_will_overflow_records ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  std::string large_string(70000, 'a');
+  c.start_serialize<char> ();
+
+  unsigned obj_leaf = add_object ("d", 1, &c);
+  unsigned obj_large = add_object (large_string.c_str(), 70000, &c);
+
+  start_object ("c", 1, &c);
+  add_offset (obj_leaf, &c);
+  add_offset (obj_leaf, &c);
+  unsigned obj_c = c.pop_pack (false);
+
+  start_object ("b", 1, &c);
+  add_offset (obj_leaf, &c);
+  add_offset (obj_leaf, &c);
+  unsigned obj_b = c.pop_pack (false);
+
+  start_object ("a", 1, &c);
+  add_offset (obj_b, &c);
+  add_offset (obj_c, &c);
+  add_offset (obj_large, &c);
+  c.pop_pack (false);
+
+  c.end_serialize();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+
+  // One record per overflowing (parent, child) pair, even if linked more than once.
+  hb_vector_t<graph::overflow_record_t> overflows;
+  hb_always_assert (graph::will_overflow (graph, &overflows).value ());
+  hb_always_assert (overflows.length == 2);
+  hb_always_assert (overflows[0].parent != overflows[1].parent);
+  hb_always_assert (overflows[0].child == overflows[1].child);
+
+  free (buffer);
+}
+
 static void test_resolve_overflows_via_sort ()
 {
   size_t buffer_size = 160000;
@@ -3262,6 +3304,7 @@ main (int argc, char **argv)
   test_will_overflow_1 ();
   test_will_overflow_2 ();
   test_will_overflow_3 ();
+  test_will_overflow_records ();
   test_resolve_overflows_via_sort ();
   test_resolve_overflows_via_duplication ();
   test_resolve_overflows_via_multiple_duplications ();
