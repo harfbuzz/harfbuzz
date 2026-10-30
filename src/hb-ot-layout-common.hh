@@ -1972,21 +1972,18 @@ struct ClassDefFormat2_4
       /* Match if there's any glyph that is not listed! */
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
       hb_codepoint_t last = HB_SET_VALUE_INVALID;
-      auto it = hb_iter (rangeRecord);
-      for (auto &range : it)
+      for (auto &range : rangeRecord)
       {
-        if (it->first == last + 1)
+	/* Only probe for a glyph in the gap before this range; a range
+	 * starting right after the previous one (or at glyph 0) has none. */
+	if (range.first != last + 1)
 	{
-	  it++;
-	  continue;
+	  if (!glyphs->next (&g))
+	    break;
+	  if (g < range.first)
+	    return true;
 	}
-
-	if (!glyphs->next (&g))
-	  break;
-	if (g < range.first)
-	  return true;
-	g = range.last;
-	last = g;
+	g = last = range.last;
       }
       if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
 	return true;
