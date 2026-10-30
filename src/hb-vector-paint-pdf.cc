@@ -252,7 +252,10 @@ struct hb_pdf_resources_t
 	smask_obj.append_str (" >>\nstream\n");
 	smask_obj.append_len (smask_stream.arrayZ, smask_stream.length);
 	smask_obj.append_str ("\nendstream");
-	smask_id = add_object (std::move (smask_obj));
+	/* A mask that tripped the document cap has an empty stream; embed the
+	 * image without it rather than reference a truncated object. */
+	if (likely (!smask_obj.in_error ()))
+	  smask_id = add_object (std::move (smask_obj));
       }
     }
 
@@ -608,12 +611,19 @@ hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
   /* Guard the size arithmetic below against 32-bit overflow.  width/height come
    * from the attacker-controlled PNG IHDR; without this, (width + 1) * height or
    * width * height can wrap and under-size buffers that are then indexed per
-   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]). */
+   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]).
+   *
+   * The mask is emitted uncompressed into a document-capped hb_vector_buf_t,
+   * so one larger than HB_VECTOR_MAX_DOCUMENT_SIZE can never be appended:
+   * reject it here, before inflating and un-filtering width * height bytes
+   * (4 GB from a ~4 MB font) that would only be dropped afterwards.  This also
+   * bounds raw_len, which is mask_len + height. */
   unsigned raw_len, mask_len;
   if (!width || !height ||
       width == 0xFFFFFFFFu ||
       hb_unsigned_mul_overflows (width + 1, height, &raw_len) ||
-      hb_unsigned_mul_overflows (width, height, &mask_len))
+      hb_unsigned_mul_overflows (width, height, &mask_len) ||
+      mask_len > HB_VECTOR_MAX_DOCUMENT_SIZE)
     return false;
 
   /* Decompress IDAT (zlib). */

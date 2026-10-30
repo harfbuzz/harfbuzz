@@ -27,6 +27,7 @@
 #endif
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <hb.h>
 #include <hb-vector.h>
@@ -129,6 +130,128 @@ test_document_cap (void)
   hb_vector_paint_destroy (paint);
 }
 
+/* Minimal LSB-first bit writer, enough to hand-roll a zlib stream. */
+typedef struct { unsigned char *data; unsigned len; unsigned bits; unsigned nbits; } bit_writer_t;
+
+static void
+put_bits (bit_writer_t *w, unsigned value, unsigned n)
+{
+  w->bits |= value << w->nbits;
+  w->nbits += n;
+  while (w->nbits >= 8)
+  {
+    w->data[w->len++] = (unsigned char) w->bits;
+    w->bits >>= 8;
+    w->nbits -= 8;
+  }
+}
+
+/* Huffman codes are packed most-significant bit first. */
+static void
+put_code (bit_writer_t *w, unsigned code, unsigned n)
+{
+  unsigned rev = 0;
+  for (unsigned i = 0; i < n; i++)
+    rev |= ((code >> i) & 1u) << (n - 1 - i);
+  put_bits (w, rev, n);
+}
+
+/* zlib-wrap n zero bytes as one fixed-Huffman deflate block: a literal 0
+ * followed by <length 258, distance 1> copies, so ~13 bits per 258 bytes. */
+static unsigned
+zlib_zeros (unsigned char *out, unsigned n)
+{
+  bit_writer_t w = {out, 0, 0, 0};
+  put_bits (&w, 0x78, 8); put_bits (&w, 0x01, 8); /* CMF, FLG */
+  put_bits (&w, 1, 1);                            /* BFINAL */
+  put_bits (&w, 1, 2);                            /* BTYPE: fixed Huffman */
+  unsigned done = 0;
+  if (done < n) { put_code (&w, 0x30, 8); done++; }            /* literal 0 */
+  for (; n - done >= 258; done += 258)
+  {
+    put_code (&w, 0xC5, 8);                       /* length 258 (symbol 285) */
+    put_code (&w, 0, 5);                          /* distance 1 (symbol 0) */
+  }
+  for (; done < n; done++) put_code (&w, 0x30, 8);             /* literal 0 */
+  put_code (&w, 0, 7);                            /* end of block (symbol 256) */
+  put_bits (&w, 0, (8 - w.nbits) % 8);
+  unsigned adler = ((n % 65521u) << 16) | 1u;     /* adler32 of n zero bytes */
+  for (int i = 3; i >= 0; i--) put_bits (&w, (adler >> (8 * i)) & 0xFF, 8);
+  return w.len;
+}
+
+static void
+png_u32 (unsigned char *p, unsigned v)
+{
+  p[0] = v >> 24; p[1] = v >> 16; p[2] = v >> 8; p[3] = v;
+}
+
+/* Append a PNG chunk; the PDF backend does not verify chunk CRCs. */
+static unsigned
+png_chunk (unsigned char *out, const char *type, const unsigned char *data, unsigned len)
+{
+  png_u32 (out, len);
+  memcpy (out + 4, type, 4);
+  if (len) memcpy (out + 8, data, len);
+  memset (out + 8 + len, 0, 4);
+  return 12 + len;
+}
+
+/* The PDF backend decodes an indexed PNG with tRNS into an uncompressed soft
+ * mask of width * height bytes, which is bounded by the document-size cap
+ * like everything else it emits.  A mask that cannot fit must be refused up
+ * front, not inflated from a tiny IDAT into gigabytes and dropped afterwards;
+ * and an image whose mask was dropped must not reference the empty object. */
+static void
+test_indexed_smask_cap (void)
+{
+  unsigned width = 4097, height = 4096; /* 16 MB + 4 KB, just past the cap */
+  unsigned raw_len = (width + 1) * height;
+  unsigned char *idat = (unsigned char *) malloc (raw_len / 258 * 2 + 1024);
+  assert (idat);
+  unsigned idat_len = zlib_zeros (idat, raw_len);
+
+  unsigned char *png = (unsigned char *) malloc (idat_len + 128);
+  assert (png);
+  static const unsigned char png_sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+  unsigned char ihdr[13] = {0};
+  png_u32 (ihdr, width);
+  png_u32 (ihdr + 4, height);
+  ihdr[8] = 8; /* bit depth */
+  ihdr[9] = 3; /* indexed */
+  static const unsigned char plte[3] = {0, 0, 0};
+  static const unsigned char trns[1] = {0};
+  unsigned len = 0;
+  memcpy (png, png_sig, 8); len += 8;
+  len += png_chunk (png + len, "IHDR", ihdr, sizeof (ihdr));
+  len += png_chunk (png + len, "PLTE", plte, sizeof (plte));
+  len += png_chunk (png + len, "tRNS", trns, sizeof (trns));
+  len += png_chunk (png + len, "IDAT", idat, idat_len);
+  len += png_chunk (png + len, "IEND", NULL, 0);
+  free (idat);
+  hb_blob_t *image = hb_blob_create ((char *) png, len, HB_MEMORY_MODE_READONLY, png, free);
+
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_PDF);
+  hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
+  hb_glyph_extents_t ext = {0, 100, 100, -100};
+  hb_vector_paint_set_glyph_extents (paint, &ext);
+  hb_paint_image (funcs, paint, image, width, height,
+		  HB_PAINT_IMAGE_FORMAT_PNG, 0.f, &ext);
+  hb_blob_t *out = hb_vector_paint_render (paint);
+  assert (out);
+
+  /* The image is embedded (its IDAT is small), but without a soft mask. */
+  unsigned out_len;
+  const char *out_data = hb_blob_get_data (out, &out_len);
+  assert (out_len > len);
+  for (unsigned i = 0; i + 6 <= out_len; i++)
+    assert (memcmp (out_data + i, "/SMask", 6) != 0);
+
+  hb_blob_destroy (out);
+  hb_blob_destroy (image);
+  hb_vector_paint_destroy (paint);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -141,6 +264,7 @@ main (int argc, char **argv)
   test_format (HB_VECTOR_FORMAT_SVG, font);
   test_format (HB_VECTOR_FORMAT_PDF, font);
   test_document_cap ();
+  test_indexed_smask_cap ();
 
   hb_font_destroy (font);
   hb_face_destroy (face);
