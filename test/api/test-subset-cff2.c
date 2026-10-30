@@ -161,6 +161,79 @@ test_subset_cff2_retaingids (void)
   hb_face_destroy (face_ac);
 }
 
+static void
+test_subset_cff2_fdselect_format4 (void)
+{
+  /* Three glyphs and two Font DICTs: glyphs 0-1 use FD 0, glyph 2 uses FD 1 and
+   * draws one line through FD 1's local subr 0.  The two tables differ only in
+   * the FDSelect encoding: format 3, or the CFF2-only format 4. */
+  static const char maxp_data[] = {0, 0, 0x50, 0, 0, 3};
+  static const char cff2_fdselect3_data[] = {
+    0x02, 0, 0x05, 0, 0x14, /* CFF2 header */
+    0x1D, 0, 0, 0, 0x1D, 0x11, 0x1D, 0, 0, 0, 0x6D, 0x0C, 0x24, 0x1D, 0, 0, 0, 0x62, 0x0C, 0x25, /* Top DICT: CharStrings, FDArray, FDSelect */
+    0, 0, 0, 0, /* Global Subrs INDEX (empty) */
+    0, 0, 0, 0x03, 0x01, 0x01, 0x16, 0x2B, 0x3D, /* CharStrings INDEX */
+    0x1C, 0, 0, 0x1C, 0, 0, 0x15, 0x1C, 0, 0x0A, 0x1C, 0, 0, 0x05, 0x1C, 0, 0, 0x1C, 0, 0x0A, 0x05, /*   .notdef */
+    0x1C, 0, 0x32, 0x1C, 0, 0, 0x15, 0x1C, 0x01, (char) 0xC2, 0x1C, 0, 0, 0x05, 0x1C, 0, 0, 0x1C, 0x02, (char) 0xBC, 0x05, /*   glyph 1 */
+    0x1C, 0, 0x64, 0x1C, (char) 0xFF, 0x38, 0x15, 0x1C, (char) 0xFF, (char) 0x95, 0x0A, 0x1C, 0, 0, 0x1C, 0x01, 0x2C, 0x05, /*   glyph 2: calls FD 1's local subr 0 */
+    0x03, 0, 0x02, 0, 0, 0, 0, 0x02, 0x01, 0, 0x03, /* FDSelect format 3: glyphs 0-1 -> FD 0, glyph 2 -> FD 1 */
+    0, 0, 0, 0x02, 0x01, 0x01, 0x0A, 0x13, /* FDArray INDEX */
+    0x1C, 0, 0x04, 0x1D, 0, 0, 0, (char) 0x87, 0x12, /*   Font DICT 0 */
+    0x1C, 0, 0x0A, 0x1D, 0, 0, 0, (char) 0x8B, 0x12, /*   Font DICT 1 */
+    0x1C, 0, 0x32, 0x0A, /* Private DICT 0 */
+    0x1C, 0, 0x50, 0x0A, 0x1D, 0, 0, 0, 0x0A, 0x13, /* Private DICT 1: Subrs */
+    0, 0, 0, 0x01, 0x01, 0x01, 0x08, 0x1C, 0, 0x64, 0x1C, 0, 0x64, 0x05, /* FD 1 local Subrs INDEX */
+  };
+  static const char cff2_fdselect4_data[] = {
+    0x02, 0, 0x05, 0, 0x14, /* CFF2 header */
+    0x1D, 0, 0, 0, 0x1D, 0x11, 0x1D, 0, 0, 0, 0x77, 0x0C, 0x24, 0x1D, 0, 0, 0, 0x62, 0x0C, 0x25, /* Top DICT: CharStrings, FDArray, FDSelect */
+    0, 0, 0, 0, /* Global Subrs INDEX (empty) */
+    0, 0, 0, 0x03, 0x01, 0x01, 0x16, 0x2B, 0x3D, /* CharStrings INDEX */
+    0x1C, 0, 0, 0x1C, 0, 0, 0x15, 0x1C, 0, 0x0A, 0x1C, 0, 0, 0x05, 0x1C, 0, 0, 0x1C, 0, 0x0A, 0x05, /*   .notdef */
+    0x1C, 0, 0x32, 0x1C, 0, 0, 0x15, 0x1C, 0x01, (char) 0xC2, 0x1C, 0, 0, 0x05, 0x1C, 0, 0, 0x1C, 0x02, (char) 0xBC, 0x05, /*   glyph 1 */
+    0x1C, 0, 0x64, 0x1C, (char) 0xFF, 0x38, 0x15, 0x1C, (char) 0xFF, (char) 0x95, 0x0A, 0x1C, 0, 0, 0x1C, 0x01, 0x2C, 0x05, /*   glyph 2: calls FD 1's local subr 0 */
+    0x04, 0, 0, 0, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x02, 0, 0x01, 0, 0, 0, 0x03, /* FDSelect format 4: glyphs 0-1 -> FD 0, glyph 2 -> FD 1 */
+    0, 0, 0, 0x02, 0x01, 0x01, 0x0A, 0x13, /* FDArray INDEX */
+    0x1C, 0, 0x04, 0x1D, 0, 0, 0, (char) 0x91, 0x12, /*   Font DICT 0 */
+    0x1C, 0, 0x0A, 0x1D, 0, 0, 0, (char) 0x95, 0x12, /*   Font DICT 1 */
+    0x1C, 0, 0x32, 0x0A, /* Private DICT 0 */
+    0x1C, 0, 0x50, 0x0A, 0x1D, 0, 0, 0, 0x0A, 0x13, /* Private DICT 1: Subrs */
+    0, 0, 0, 0x01, 0x01, 0x01, 0x08, 0x1C, 0, 0x64, 0x1C, 0, 0x64, 0x05, /* FD 1 local Subrs INDEX */
+  };
+
+  hb_face_t *face_fdselect3 = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face_fdselect3, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face_fdselect3, "CFF2", cff2_fdselect3_data);
+
+  hb_face_t *face_fdselect4 = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face_fdselect4, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face_fdselect4, "CFF2", cff2_fdselect4_data);
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_face_t *face_fdselect3_subset, *face_fdselect4_subset;
+  hb_set_add_range (glyphs, 0, 2);
+  face_fdselect3_subset = hb_subset_test_create_subset (face_fdselect3, hb_subset_test_create_input_from_glyphs (glyphs));
+  face_fdselect4_subset = hb_subset_test_create_subset (face_fdselect4, hb_subset_test_create_input_from_glyphs (glyphs));
+  hb_set_destroy (glyphs);
+
+  /* Both retain FD 1; the format-4 source must not have been planned as FD 0 only. */
+  hb_subset_test_check (face_fdselect3_subset, face_fdselect4_subset, HB_TAG ('C','F','F','2'));
+
+  hb_font_t *font = hb_font_create (face_fdselect4_subset);
+  hb_glyph_extents_t extents;
+  g_assert_true (hb_font_get_glyph_extents (font, 2, &extents));
+  g_assert_cmpint (extents.x_bearing, ==, 100);
+  g_assert_cmpint (extents.y_bearing, ==, 200);
+  g_assert_cmpint (extents.width, ==, 100);
+  g_assert_cmpint (extents.height, ==, -400);
+  hb_font_destroy (font);
+
+  hb_face_destroy (face_fdselect4_subset);
+  hb_face_destroy (face_fdselect3_subset);
+  hb_face_destroy (face_fdselect4);
+  hb_face_destroy (face_fdselect3);
+}
+
 #ifdef HB_EXPERIMENTAL_API
 static void
 test_subset_cff2_iftb_requirements (void)
@@ -264,6 +337,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff2_desubr);
   hb_test_add (test_subset_cff2_desubr_strip_hints);
   hb_test_add (test_subset_cff2_retaingids);
+  hb_test_add (test_subset_cff2_fdselect_format4);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_cff2_iftb_requirements);

@@ -1322,7 +1322,7 @@ struct cff2_subset_plan
     {
       if (unlikely (!hb_plan_subset_cff_fdselect (plan,
 						  orig_fdcount,
-						  *(const FDSelect *)acc.fdSelect,
+						  *acc.fdSelect,
 						  acc.num_glyphs,
 						  subset_fdcount,
 						  subset_fdselect_size,
@@ -1637,6 +1637,10 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
   // CFF2 makes it optional when there's only one FD
   if (acc.fdSelect != &Null (CFF2FDSelect))
   {
+    // CFF1 has no FDSelect format 4; more than 256 FDs cannot be represented
+    if (unlikely (plan.subset_fdselect_format == 4))
+      return_trace (false);
+
     c->push ();
     if (likely (hb_serialize_cff_fdselect (c, plan.num_glyphs,
                                           *(const FDSelect *)acc.fdSelect,
