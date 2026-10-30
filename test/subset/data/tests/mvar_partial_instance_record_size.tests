@@ -1,0 +1,16 @@
+FONTS:
+NotoSans-VF.abc.mvar_record_size_12.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=300:600
+
+OPTIONS:
+no_fonttools
+# Same font as mvar_partial_instance, with MVAR value records padded to 12 bytes.
+# TODO: re-enable fonttools once rounding issues are fixed (https://github.com/harfbuzz/harfbuzz/issues/4642)
