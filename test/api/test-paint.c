@@ -1221,6 +1221,77 @@ test_hb_paint_color_stops_budget (void)
   hb_face_destroy (face);
 }
 
+typedef struct {
+  unsigned tiles;
+  float covered;
+  hb_color_t c0, c1;
+} sweep_tiles_data_t;
+
+static void
+check_sweep_tile (float a0, hb_color_t c0,
+		  float a1, hb_color_t c1,
+		  void *user_data)
+{
+  sweep_tiles_data_t *data = (sweep_tiles_data_t *) user_data;
+
+  g_assert_cmpfloat (a0, >=, 0.f);
+  g_assert_cmpfloat (a0, <=, a1);
+  g_assert_cmpfloat (a1, <=, (float) (2 * G_PI));
+  data->tiles++;
+  data->covered += a1 - a0;
+  data->c0 = c0;
+  data->c1 = c1;
+}
+
+static void
+test_hb_paint_sweep_gradient_tiles_clipped (void)
+{
+  /* Variation deltas can put the angles far outside the circle.  The
+   * tiles must still cover 0..2π, and nothing else. */
+  static const struct {
+    hb_paint_extend_t extend;
+    unsigned n_stops;
+    float start_angle, end_angle;
+  } tests[] = {
+    { HB_PAINT_EXTEND_PAD,     1,  1e6f,  1e6f },
+    { HB_PAINT_EXTEND_PAD,     1, -1e6f, -1e6f },
+    { HB_PAINT_EXTEND_PAD,     1,  1e6f,  2e6f },
+    { HB_PAINT_EXTEND_PAD,     2,  1e6f,  2e6f },
+    { HB_PAINT_EXTEND_PAD,     2, -2e6f, -1e6f },
+    { HB_PAINT_EXTEND_PAD,     2, -1e6f,  1e6f },
+    { HB_PAINT_EXTEND_PAD,     2,  1e6f, -1e6f },
+    { HB_PAINT_EXTEND_PAD,     2,    1.f,  1e6f },
+    { HB_PAINT_EXTEND_REPEAT,  2, -1e6f,  1e6f },
+    { HB_PAINT_EXTEND_REPEAT,  2,  1e6f,  3e6f },
+    { HB_PAINT_EXTEND_REPEAT,  2,  1e20f, 3e20f },
+    { HB_PAINT_EXTEND_REFLECT, 2, -1e6f,  1e6f },
+    { HB_PAINT_EXTEND_REFLECT, 2, -3e6f, -1e6f },
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    hb_color_stop_t stops[2] = {
+      { 0.f, FALSE, HB_COLOR (0, 0, 0, 255) },
+      { 1.f, FALSE, HB_COLOR (255, 255, 255, 255) },
+    };
+    sweep_tiles_data_t data = {0, 0.f, 0, 0};
+
+    hb_paint_sweep_gradient_tiles (stops, tests[i].n_stops, tests[i].extend,
+				   tests[i].start_angle, tests[i].end_angle,
+				   check_sweep_tile, &data);
+
+    g_assert_cmpuint (data.tiles, >=, 1);
+    g_assert_cmpuint (data.tiles, <=, 3);
+    g_assert_cmpfloat (data.covered, >, (float) (2 * G_PI) - 1e-3f);
+    g_assert_cmpfloat (data.covered, <, (float) (2 * G_PI) + 1e-3f);
+    if (tests[i].n_stops == 1)
+    {
+      g_assert_cmphex (data.c0, ==, stops[0].color);
+      g_assert_cmphex (data.c1, ==, stops[0].color);
+    }
+  }
+}
+
 
 int
 main (int argc, char **argv)
@@ -1237,6 +1308,7 @@ main (int argc, char **argv)
   hb_test_add (test_color_glyph_user_data);
   hb_test_add (test_hb_paint_budget);
   hb_test_add (test_hb_paint_color_stops_budget);
+  hb_test_add (test_hb_paint_sweep_gradient_tiles_clipped);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {
