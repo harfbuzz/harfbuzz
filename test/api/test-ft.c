@@ -596,6 +596,85 @@ out:
 #endif
 }
 
+typedef struct
+{
+  hb_position_t v_advance;
+  hb_position_t origin_x, origin_y;
+} v_metrics_t;
+
+static void
+get_v_metrics (hb_font_t *font, hb_codepoint_t glyph, v_metrics_t *m)
+{
+  memset (m, 0, sizeof (*m));
+  m->v_advance = hb_font_get_glyph_v_advance (font, glyph);
+  g_assert_true (hb_font_get_glyph_v_origin (font, glyph, &m->origin_x, &m->origin_y));
+}
+
+static void
+assert_v_metrics_equal (const v_metrics_t *a, const v_metrics_t *b)
+{
+  g_assert_cmpint (a->v_advance, ==, b->v_advance);
+  g_assert_cmpint (a->origin_x, ==, b->origin_x);
+  g_assert_cmpint (a->origin_y, ==, b->origin_y);
+}
+
+static void
+test_native_ft_v_metrics_cache (void)
+{
+  /* hb-ft caches the vertical advance and origin it gets from FreeType, so
+   * that a glyph that is slow to load is not loaded again for every
+   * occurrence in the text.  Repeated queries must return what the first one
+   * did, and a change of scale or load flags must not serve stale values. */
+  FT_Face ft_face;
+  hb_font_t *font, *fresh;
+  hb_codepoint_t glyph = 0;
+  v_metrics_t first, again, expected;
+  int x_scale, y_scale;
+
+  init_freetype ();
+
+  ft_face = get_ft_face ("fonts/SourceSansPro-Regular.otf");
+  g_assert_nonnull (ft_face);
+
+  font = hb_ft_font_create_referenced (ft_face);
+  g_assert_nonnull (font);
+  hb_font_get_scale (font, &x_scale, &y_scale);
+
+  g_assert_true (hb_font_get_nominal_glyph (font, 'A', &glyph));
+
+  get_v_metrics (font, glyph, &first);
+  get_v_metrics (font, glyph, &again);
+  assert_v_metrics_equal (&first, &again);
+
+  /* Doubling the scale changes the metrics; the cache must be refreshed. */
+  hb_font_set_scale (font, 2 * x_scale, 2 * y_scale);
+  get_v_metrics (font, glyph, &again);
+  g_assert_cmpint (again.v_advance, !=, first.v_advance);
+  g_assert_cmpint (again.origin_y, !=, first.origin_y);
+
+  fresh = hb_ft_font_create_referenced (ft_face);
+  hb_font_set_scale (fresh, 2 * x_scale, 2 * y_scale);
+  get_v_metrics (fresh, glyph, &expected);
+  assert_v_metrics_equal (&again, &expected);
+  hb_font_destroy (fresh);
+
+  /* So must a change of load flags; FT_LOAD_NO_SCALE gives font units. */
+  hb_ft_font_set_load_flags (font, FT_LOAD_NO_SCALE);
+  get_v_metrics (font, glyph, &again);
+  g_assert_cmpint (again.origin_y, !=, expected.origin_y);
+
+  fresh = hb_ft_font_create_referenced (ft_face);
+  hb_font_set_scale (fresh, 2 * x_scale, 2 * y_scale);
+  hb_ft_font_set_load_flags (fresh, FT_LOAD_NO_SCALE);
+  get_v_metrics (fresh, glyph, &expected);
+  assert_v_metrics_equal (&again, &expected);
+  hb_font_destroy (fresh);
+
+  hb_font_destroy (font);
+  FT_Done_Face (ft_face);
+
+  cleanup_freetype ();
+}
 
 int
 main (int argc, char **argv)
@@ -612,6 +691,7 @@ main (int argc, char **argv)
   hb_test_add (test_native_ft_create_unsanitizable_font);
   hb_test_add (test_native_ft_create_from_blob_table_outlives_face);
   hb_test_add (test_static_ft_library_multithreaded);
+  hb_test_add (test_native_ft_v_metrics_cache);
 
   return hb_test_run ();
 }

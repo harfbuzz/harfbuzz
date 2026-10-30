@@ -88,6 +88,58 @@
 
 using hb_ft_advance_cache_t = hb_cache_t<16, 24, 8, false>;
 
+/* Direct-mapped per-glyph cache for the vertical metrics, which FreeType has
+ * to load (for CFF: interpret) the whole glyph for.  Unlike hb_cache_t it
+ * holds values wider than an integer, failures included, so that a glyph that
+ * is slow for FreeType to load is not loaded again for every occurrence in
+ * the text.  Only accessed under hb_ft_font_t::lock. */
+template <typename T>
+struct hb_ft_glyph_cache_t
+{
+  hb_ft_glyph_cache_t () { clear (); }
+
+  void clear ()
+  {
+    for (auto &item : items)
+      item.glyph = HB_CODEPOINT_INVALID;
+  }
+
+  bool get (hb_codepoint_t glyph, T *value) const
+  {
+    const item_t &item = items[glyph & (ARRAY_LENGTH (items) - 1)];
+    if (item.glyph != glyph || glyph == HB_CODEPOINT_INVALID)
+      return false;
+    *value = item.value;
+    return true;
+  }
+
+  void set (hb_codepoint_t glyph, const T &value)
+  {
+    if (unlikely (glyph == HB_CODEPOINT_INVALID))
+      return;
+    item_t &item = items[glyph & (ARRAY_LENGTH (items) - 1)];
+    item.glyph = glyph;
+    item.value = value;
+  }
+
+  private:
+  struct item_t
+  {
+    hb_codepoint_t glyph;
+    T value;
+  };
+  item_t items[256];
+};
+
+struct hb_ft_v_origin_t
+{
+  bool found; /* Whether FT_Load_Glyph() succeeded. */
+  hb_position_t x, y;
+};
+
+using hb_ft_v_advance_cache_t = hb_ft_glyph_cache_t<hb_position_t>;
+using hb_ft_v_origin_cache_t = hb_ft_glyph_cache_t<hb_ft_v_origin_t>;
+
 static void _hb_ft_face_destroy_static (void *data);
 
 struct hb_ft_font_t
@@ -102,6 +154,15 @@ struct hb_ft_font_t
   FT_Face ft_face;
   mutable hb_atomic_t<unsigned> cached_serial;
   mutable hb_ft_advance_cache_t advance_cache;
+  mutable hb_ft_v_advance_cache_t v_advance_cache;
+  mutable hb_ft_v_origin_cache_t v_origin_cache;
+
+  void clear_caches () const
+  {
+    advance_cache.clear ();
+    v_advance_cache.clear ();
+    v_origin_cache.clear ();
+  }
 };
 
 static hb_ft_font_t *
@@ -120,6 +181,8 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref, bool static_librar
 
   ft_font->cached_serial = UINT_MAX;
   new (&ft_font->advance_cache) hb_ft_advance_cache_t;
+  new (&ft_font->v_advance_cache) hb_ft_v_advance_cache_t;
+  new (&ft_font->v_origin_cache) hb_ft_v_origin_cache_t;
 
   return ft_font;
 }
@@ -243,7 +306,7 @@ _hb_ft_hb_font_check_changed (hb_font_t *font,
   {
     hb_lock_t lock (ft_font->lock);
     _hb_ft_hb_font_changed (font, ft_font->ft_face);
-    ft_font->advance_cache.clear ();
+    ft_font->clear_caches ();
     ft_font->cached_serial.set_release (font->serial.get_acquire ());
     return true;
   }
@@ -278,6 +341,9 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
   hb_ft_font_t *ft_font = (hb_ft_font_t *) font->user_data;
 
   ft_font->load_flags = load_flags;
+  /* The load flags go into both vertical FreeType calls, so any cached
+   * value is now stale; this also refreshes the horizontal advance_cache. */
+  ft_font->clear_caches ();
 }
 
 /**
@@ -563,6 +629,10 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   _hb_ft_hb_font_check_changed (font, ft_font);
 
   hb_lock_t lock (ft_font->lock);
+  hb_position_t ret;
+  if (ft_font->v_advance_cache.get (glyph, &ret))
+    return ret;
+
   FT_Fixed v;
   float y_mult;
 #ifdef HAVE_FT_GET_TRANSFORM
@@ -579,14 +649,20 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
     y_mult = font->y_scale < 0 ? -1 : +1;
   }
 
+  /* Without vmtx this loads the whole glyph; cache the failure too. */
   if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags | FT_LOAD_VERTICAL_LAYOUT, &v)))
-    return 0;
+    ret = 0;
+  else
+  {
+    /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
+     * have a Y growing upward.  Hence the extra negation. */
+    double advance = floor ((-(double) v + (1<<9)) / (1<<10));
 
-  /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
-   * have a Y growing upward.  Hence the extra negation. */
-  double advance = floor ((-(double) v + (1<<9)) / (1<<10));
+    ret = hb_clamp_to<hb_position_t> ((double) y_mult * advance);
+  }
+  ft_font->v_advance_cache.set (glyph, ret);
 
-  return hb_clamp_to<hb_position_t> ((double) y_mult * advance);
+  return ret;
 }
 #endif
 
@@ -603,6 +679,16 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
   _hb_ft_hb_font_check_changed (font, ft_font);
 
   hb_lock_t lock (ft_font->lock);
+  hb_ft_v_origin_t cached;
+  if (ft_font->v_origin_cache.get (glyph, &cached))
+  {
+    if (unlikely (!cached.found))
+      return false;
+    *x = cached.x;
+    *y = cached.y;
+    return true;
+  }
+
   FT_Face ft_face = ft_font->ft_face;
   float x_mult, y_mult;
 #ifdef HAVE_FT_GET_TRANSFORM
@@ -622,8 +708,12 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
     y_mult = font->y_scale < 0 ? -1 : +1;
   }
 
+  /* Cache the failure too. */
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
+  {
+    ft_font->v_origin_cache.set (glyph, {false, 0, 0});
     return false;
+  }
 
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
@@ -633,6 +723,7 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
   *y = hb_clamp_to<hb_position_t> ((double) y_mult *
 				   ((double) ft_face->glyph->metrics.horiBearingY +
 				    ft_face->glyph->metrics.vertBearingY));
+  ft_font->v_origin_cache.set (glyph, {true, *x, *y});
 
   return true;
 }
@@ -1473,7 +1564,7 @@ hb_ft_font_changed (hb_font_t *font)
   }
 #endif
 
-  ft_font->advance_cache.clear ();
+  ft_font->clear_caches ();
   ft_font->cached_serial = font->serial;
 }
 
