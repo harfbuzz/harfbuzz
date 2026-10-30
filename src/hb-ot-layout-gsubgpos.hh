@@ -6363,7 +6363,10 @@ struct GSUBGPOS
 				 subset_lookup_list2_offset<TLookup> (),
 				 this, c);
       else
-	serialize_subset_offset (c->subset_context, out->lookupList2,
+	/* LookupList2 entries are 32-bit; a 16-bit source list stays
+	 * behind the 16-bit lookupList, which readers fall back to when
+	 * lookupList2 is null. */
+	serialize_subset_offset (c->subset_context, out->lookupList,
 				 subset_lookup_list_offset<TLookup> (),
 				 this, c);
 
@@ -6384,6 +6387,12 @@ struct GSUBGPOS
     else
 #endif
     {
+      /* Written with the v1.0/v1.1 layout, whose header has none of the
+       * 32-bit v1.2 offsets; a v1.2 source must be recorded as v1.1 so
+       * the header matches what is actually serialized. */
+      if (version.to_int () >= 0x00010002u)
+	out->version.minor = 1;
+
       out->subset_lookup_list_offset<TLookup> ()
 	  .serialize_subset (c->subset_context,
 			     subset_lookup_list_offset<TLookup> (),
@@ -6406,7 +6415,7 @@ struct GSUBGPOS
     if (version.to_int () >= 0x00010001u)
     {
       auto snapshot = c->subset_context->serializer->snapshot ();
-      if (version.to_int () < 0x00010002u &&
+      if (out->version.to_int () < 0x00010002u &&
 	  !c->subset_context->serializer->extend_min (&out->featureVars))
         return_trace (false);
 
@@ -6416,7 +6425,7 @@ struct GSUBGPOS
       if (!ret)
       {
         out->featureVars = 0;
-	if (version.to_int () < 0x00010002u)
+	if (out->version.to_int () < 0x00010002u)
 	{
 	  c->subset_context->serializer->revert (snapshot);
 	  out->version.major = 1;
