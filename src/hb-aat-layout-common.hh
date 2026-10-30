@@ -948,7 +948,8 @@ struct StateTable
     const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
-    unsigned int entry = states[state * n_classes + klass];
+    /* State can be negative; see sanitize().  Keep the index signed. */
+    unsigned int entry = states[state * (int) n_classes + (int) klass];
     DEBUG_MSG (APPLY, nullptr, "e%u", entry);
 
     return entries[entry];
@@ -997,16 +998,17 @@ struct StateTable
       if (min_state < state_neg)
       {
 	/* Negative states. */
-	if (unlikely (hb_unsigned_mul_overflows (min_state, num_classes)))
+	unsigned int num_neg_states = -min_state;
+	if (unlikely (hb_unsigned_mul_overflows (num_neg_states, num_classes)))
 	  return_trace (false);
-	if (unlikely (!c->check_range (&states[min_state * num_classes],
-				       -min_state,
+	if (unlikely (!c->check_range (states - num_neg_states * num_classes,
+				       num_neg_states,
 				       row_stride)))
 	  return_trace (false);
 	if ((c->max_ops -= state_neg - min_state) <= 0)
 	  return_trace (false);
 	{ /* Sweep new states. */
-	  const HBUSHORT *stop = &states[min_state * num_classes];
+	  const HBUSHORT *stop = states - num_neg_states * num_classes;
 	  if (unlikely (stop > states))
 	    return_trace (false);
 	  for (const HBUSHORT *p = states; stop < p; p--)
