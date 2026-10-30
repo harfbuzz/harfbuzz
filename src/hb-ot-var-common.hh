@@ -1027,7 +1027,8 @@ struct TupleVariationData
                                      const hb_vector_t<unsigned> &shared_indices,
                                      const hb_array_t<const F2DOT14> shared_tuples,
 				     hb_alloc_pool_t *pool = nullptr,
-                                     bool is_composite_glyph = false)
+                                     bool is_composite_glyph = false,
+                                     int64_t *budget = nullptr)
     {
       hb_vector_t<unsigned> private_indices;
       hb_vector_t<int> deltas_x;
@@ -1065,6 +1066,11 @@ struct TupleVariationData
                         !TupleVariationData::decompile_deltas (p, deltas_y, end)))
             return false;
         }
+
+        /* Every tuple is expanded to point_count entries, however few
+         * points it names; charge that to the table budget, if any. */
+        if (budget && unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, point_count)))
+          return false;
 
         tuple_delta_t var;
         var.axis_tuples = std::move (axis_tuples);
@@ -1753,7 +1759,8 @@ struct TupleVariationData
                                    const hb_array_t<const F2DOT14> shared_tuples,
                                    tuple_variations_t& tuple_variations, /* OUT */
 				   hb_alloc_pool_t *pool = nullptr,
-                                   bool is_composite_glyph = false) const
+                                   bool is_composite_glyph = false,
+                                   int64_t *budget = nullptr) const
   {
     return tuple_variations.create_from_tuple_var_data (iterator, tupleVarCount,
                                                         point_count, is_gvar,
@@ -1761,7 +1768,8 @@ struct TupleVariationData
                                                         shared_indices,
                                                         shared_tuples,
 							pool,
-                                                        is_composite_glyph);
+                                                        is_composite_glyph,
+                                                        budget);
   }
 
   bool serialize (hb_serialize_context_t *c,
