@@ -1026,12 +1026,17 @@ hb_ft_paint_glyph_or_fail (hb_font_t *font,
       if (bitmap.pitch != (signed) bitmap.width * 4)
         return ret;
 
-      ft_font->lock.unlock ();
+      /* The glyph slot can be replaced as soon as we release the lock. */
+      hb_blob_t *blob = hb_blob_create_or_fail ((const char *) bitmap.buffer,
+						bitmap.pitch * bitmap.rows,
+						HB_MEMORY_MODE_DUPLICATE,
+						nullptr, nullptr);
+      if (unlikely (!blob))
+	return false;
+      unsigned width = bitmap.width;
+      unsigned rows = bitmap.rows;
 
-      hb_blob_t *blob = hb_blob_create ((const char *) bitmap.buffer,
-					bitmap.pitch * bitmap.rows,
-					HB_MEMORY_MODE_DUPLICATE,
-					nullptr, nullptr);
+      ft_font->lock.unlock ();
 
       hb_glyph_extents_t extents;
       if (!font->get_glyph_extents (gid, &extents, false))
@@ -1039,8 +1044,8 @@ hb_ft_paint_glyph_or_fail (hb_font_t *font,
 
       if (paint_funcs->image (paint_data,
 			      blob,
-			      bitmap.width,
-			      bitmap.rows,
+			      width,
+			      rows,
 			      HB_PAINT_IMAGE_FORMAT_BGRA,
 			      0.f,
 			      &extents))
