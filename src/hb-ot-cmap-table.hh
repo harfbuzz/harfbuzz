@@ -615,10 +615,16 @@ struct CmapSubtableFormat4
       unsigned int count = this->segCount;
       if (count && this->startCount[count - 1] == 0xFFFFu)
 	count--; /* Skip sentinel segment. */
+      hb_codepoint_t next = 0;
       for (unsigned int i = 0; i < count; i++)
       {
-	hb_codepoint_t start = this->startCount[i];
+	/* Segments must be sorted and disjoint; never walk a codepoint twice,
+	 * so that the total work is bounded regardless of segment count. */
+	hb_codepoint_t start = hb_max ((hb_codepoint_t) this->startCount[i], next);
 	hb_codepoint_t end = this->endCount[i];
+	if (unlikely (start > end))
+	  continue;
+	next = end + 1;
 	unsigned int rangeOffset = this->idRangeOffset[i];
         out->add_range(start, end);
 	if (rangeOffset == 0)
@@ -656,10 +662,16 @@ struct CmapSubtableFormat4
       unsigned count = this->segCount;
       if (count && this->startCount[count - 1] == 0xFFFFu)
 	count--; /* Skip sentinel segment. */
+      hb_codepoint_t next = 0;
       for (unsigned i = 0; i < count; i++)
       {
-	hb_codepoint_t start = this->startCount[i];
+	/* Segments must be sorted and disjoint; never walk a codepoint twice,
+	 * so that the total work is bounded regardless of segment count. */
+	hb_codepoint_t start = hb_max ((hb_codepoint_t) this->startCount[i], next);
 	hb_codepoint_t end = this->endCount[i];
+	if (unlikely (start > end))
+	  continue;
+	next = end + 1;
 	unsigned rangeOffset = this->idRangeOffset[i];
 	if (rangeOffset == 0)
 	{
