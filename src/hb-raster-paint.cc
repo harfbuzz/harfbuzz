@@ -629,7 +629,9 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
       /* Precompute edge normals for point-in-quad test.
        * Edge i goes from corner i to corner (i+1)%4.
-       * Normal = (dy, -dx); inside test: dot(normal, p-corner) >= 0 */
+       * Normal = (dy, -dx) points inward for a clockwise quad, so the
+       * inside test is dot(normal, p-corner) >= 0; a reflected transform
+       * yields a counter-clockwise quad and flips the sign. */
 	      float enx[4], eny[4], ed[4];
 	      for (unsigned i = 0; i < 4; i++)
 	      {
@@ -658,7 +660,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		    for (unsigned i = 0; i < 4; i++)
 		    {
 		      float d = enx[i] * px_f + eny[i] * py_f;
-		      if (ccw ? d < ed[i] : d > ed[i])
+		      if (ccw ? d > ed[i] : d < ed[i])
 		      {
 			inside = false;
 			break;
@@ -688,7 +690,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		    for (unsigned i = 0; i < 4; i++)
 		    {
 		      float d = enx[i] * px_f + eny[i] * py_f;
-		      if (ccw ? d < ed[i] : d > ed[i])
+		      if (ccw ? d > ed[i] : d < ed[i])
 		      {
 			inside = false;
 			break;
