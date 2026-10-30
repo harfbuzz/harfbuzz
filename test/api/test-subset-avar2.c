@@ -197,6 +197,39 @@ reference_table_with_empty_avar2_store (hb_face_t *face HB_UNUSED,
   return copy;
 }
 
+/* Point the test font's gvar offsets of glyphs 0 and 2 at glyph 1's
+ * variation data (and glyph 1 at nothing), so that the retained glyphs'
+ * data add up to more than the table. */
+static hb_blob_t *
+reference_table_with_aliased_gvar_data (hb_face_t *face HB_UNUSED,
+					hb_tag_t tag,
+					void *user_data)
+{
+  hb_blob_t *table = hb_face_reference_table ((hb_face_t *) user_data, tag);
+  if (tag != HB_TAG ('g','v','a','r'))
+    return table;
+
+  hb_blob_t *copy = hb_blob_copy_writable_or_fail (table);
+  hb_blob_destroy (table);
+  g_assert_nonnull (copy);
+
+  unsigned length;
+  unsigned char *data = (unsigned char *) hb_blob_get_data_writable (copy, &length);
+  g_assert_nonnull (data);
+  g_assert_cmpuint (length, >=, 28);
+  g_assert_cmpuint (read_uint16_be (data + 12), ==, 3); /* glyphCount */
+  g_assert_cmpuint (read_uint16_be (data + 14) & 1, ==, 0); /* short offsets */
+  g_assert_cmpuint (read_uint16_be (data + 24), >, read_uint16_be (data + 22)); /* glyph 1 has data */
+
+  unsigned char start[2] = {data[22], data[23]};
+  unsigned char end[2] = {data[24], data[25]};
+  data[20] = start[0]; data[21] = start[1]; /* glyph 0: [start, end) */
+  data[22] = end[0];   data[23] = end[1];   /* glyph 1: [end, start): nothing */
+  data[24] = start[0]; data[25] = start[1]; /* glyph 2: [start, end) */
+  data[26] = end[0];   data[27] = end[1];
+  return copy;
+}
+
 static hb_face_t *
 instance_n (hb_face_t *face, hb_subset_input_t *input, unsigned expected_axes)
 {
@@ -607,6 +640,26 @@ test_avar2_empty_varstore (void)
   hb_face_destroy (source);
 }
 
+/* Culling parses every retained glyph's variation data; a table whose
+ * offsets point many glyphs at the same data must be rejected, not
+ * parsed and copied once per glyph. */
+static void
+test_avar2_culling_aliased_gvar_data (void)
+{
+  hb_face_t *source = open_original ();
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_aliased_gvar_data,
+					       source, NULL);
+  hb_subset_input_t *input = create_input ();
+  /* Keep glyph 0's data in the pass too: with glyph 2 it exceeds the table. */
+  hb_subset_input_set_flags (input, hb_subset_input_get_flags (input) | HB_SUBSET_FLAGS_NOTDEF_OUTLINE);
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 300.f, 500.f, 400.f));
+  g_assert_null (hb_subset_or_fail (face, input));
+  hb_subset_input_destroy (input);
+
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 /* Move opsz's default from near the axis minimum (14) far up the axis:
  * the retained negative-side avar v1 segment becomes very steep in the
  * new space and offset compensation is quantization-limited. The
@@ -649,6 +702,7 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_restrict_both_shared);
   hb_test_add (test_avar2_culling);
   hb_test_add (test_avar2_empty_varstore);
+  hb_test_add (test_avar2_culling_aliased_gvar_data);
   hb_test_add (test_avar2_restrict_steep);
   hb_test_add (test_avar2_restrict_steep_no_varidx);
 
