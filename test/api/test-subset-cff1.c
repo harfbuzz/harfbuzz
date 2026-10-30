@@ -317,6 +317,28 @@ test_subset_cff1_seac_precheck (void)
 }
 
 static void
+test_subset_cff1_encoding_supplement (void)
+{
+  /* Dropping "first" renumbers the custom glyph-name SIDs; the Encoding
+   * supplement (code 98 -> "second") must follow them. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_encoding_supplement.otf");
+  hb_face_t *face_subset = hb_test_open_font_file ("fonts/cff1_encoding_supplement.42,43.otf");
+  hb_face_t *face_test;
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 0x42);  /* B */
+  hb_set_add (codepoints, 0x43);  /* C */
+  face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_test);
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_cff1_dotsection (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_dotsect.otf");
@@ -610,6 +632,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_seac);
   hb_test_add (test_subset_cff1_cid_seac);
   hb_test_add (test_subset_cff1_seac_precheck);
+  hb_test_add (test_subset_cff1_encoding_supplement);
   hb_test_add (test_subset_cff1_dotsection);
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
