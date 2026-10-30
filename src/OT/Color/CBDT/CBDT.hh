@@ -128,10 +128,13 @@ _copy_data_to_cbdt (hb_vector_t<char> *cbdt_prime,
 		    const void        *data,
 		    unsigned           length)
 {
-  unsigned int new_len = cbdt_prime->length + length;
-  if (unlikely (!cbdt_prime->alloc (new_len))) return false;
-  hb_memcpy (cbdt_prime->arrayZ + cbdt_prime->length, data, length);
-  cbdt_prime->length = new_len;
+  unsigned int old_len = cbdt_prime->length;
+  unsigned int new_len;
+  if (unlikely (hb_unsigned_add_overflows (old_len, length, &new_len) ||
+                new_len > INT_MAX ||
+                !cbdt_prime->resize_dirty ((int) new_len)))
+    return false;
+  hb_memcpy (cbdt_prime->arrayZ + old_len, data, length);
   return true;
 }
 
