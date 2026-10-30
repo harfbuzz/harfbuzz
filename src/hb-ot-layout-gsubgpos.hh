@@ -670,10 +670,22 @@ struct hb_depend_context_t :
   void finish_recurse (const recurse_key_t &key)
   { depend_data->check_success (completed_recursions.set (key, true)); }
 
+  /* hb_hashmap_t::clear() walks the whole table and keeps its storage.
+   * Keep the storage only if the lookup that just finished made use of it.
+   * Otherwise one lookup that grew the table would make every later lookup
+   * pay for its full capacity, however little that lookup recursed. */
+  template <typename Map>
+  static void clear_or_release (Map &map)
+  {
+    if (map.size () > 64 && map.get_population () < map.size () / 8)
+      map = Map ();  /* Swaps in fresh storage; a no-op in error state. */
+    map.clear ();
+  }
+
   void reset_recurse_cache ()
   {
-    completed_recursions.clear ();
-    recurse_path_to_index.clear ();
+    clear_or_release (completed_recursions);
+    clear_or_release (recurse_path_to_index);
     recurse_path = 0;
   }
 
