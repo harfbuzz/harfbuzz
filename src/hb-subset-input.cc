@@ -1160,6 +1160,8 @@ hb_subset_preprocess (hb_face_t *source)
  * If this map is left empty then glyph ids will be automatically mapped to new
  * values by the subsetter. If populated, the mapping must be unique. That
  * is no two original glyph ids can be mapped to the same new id.
+ * Glyph id 0 (.notdef) always stays at 0, so no other glyph can be mapped to 0.
+ * The resulting glyph count, including unmapped glyphs, must fit in 24 bits.
  * Additionally, if a mapping is provided then the retain gids option cannot
  * be enabled.
  *
