@@ -116,6 +116,137 @@ test_aat_has (void)
   hb_face_destroy (trak);
 }
 
+
+static hb_bool_t
+count_started_subtables (hb_buffer_t *buffer HB_UNUSED,
+			 hb_font_t   *font HB_UNUSED,
+			 const char  *message,
+			 void        *user_data)
+{
+  if (!strncmp (message, "start subtable ", 15) ||
+      !strncmp (message, "start chainsubtable ", 20))
+    (*(unsigned *) user_data)++;
+  return true;
+}
+
+/* Shapes "aa" with a two-glyph font that has the table, which is
+ * freed; returns the number of its subtables that were applied.
+ * A table with more than HB_AAT_MAX_SUBTABLES subtables is rejected
+ * by sanitize, so none of them is. */
+static unsigned
+count_applied_subtables (hb_tag_t tag, char *table, unsigned length)
+{
+  static const char maxp[] = {0x00, 0x00, 0x50, 0x00, 0x00, 0x02};
+  static const char cmap[] = {0, 0, 0, 1,  0, 3, 0, 10, 0, 0, 0, 12,
+			      0, 12, 0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+			      0, 0, 0, 'a',  0, 0, 0, 'a',  0, 0, 0, 1};
+
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (maxp, sizeof (maxp), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (cmap, sizeof (cmap), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('c','m','a','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (table, length, HB_MEMORY_MODE_READONLY, table, free);
+  hb_face_builder_add_table (builder, tag, blob);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_blob (builder);
+  hb_face_destroy (builder);
+  hb_face_t *limit_face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  hb_font_t *font = hb_font_create (limit_face);
+  hb_face_destroy (limit_face);
+
+  unsigned started = 0;
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "aa", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_buffer_set_message_func (buffer, count_started_subtables, &started, NULL);
+  hb_shape (font, buffer, NULL, 0);
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+
+  return started;
+}
+
+/* A kern table of format-3 subtables. */
+static char *
+make_kern_table (unsigned num_subtables, unsigned *length)
+{
+  *length = 4 + 14 * num_subtables;
+  char *kern = (char *) calloc (*length, 1);
+  kern[2] = (char) (num_subtables >> 8);
+  kern[3] = (char) (num_subtables & 0xFF);
+  for (unsigned i = 0; i < num_subtables; i++)
+  {
+    char *subtable = kern + 4 + 14 * i;
+    subtable[3] = 14; /* length */
+    subtable[4] = 3;  /* format */
+    subtable[5] = 1;  /* coverage: horizontal */
+    subtable[7] = 1;  /* glyphCount */
+  }
+  return kern;
+}
+
+static void
+test_aat_kern_subtable_limit (void)
+{
+  unsigned length;
+  char *kern;
+
+  kern = make_kern_table (1024, &length);
+  g_assert_cmpuint (1024, ==, count_applied_subtables (HB_TAG ('k','e','r','n'), kern, length));
+
+  kern = make_kern_table (1025, &length);
+  g_assert_cmpuint (0, ==, count_applied_subtables (HB_TAG ('k','e','r','n'), kern, length));
+}
+
+/* A morx table of chains of five noncontextual subtables each. */
+static char *
+make_morx_table (unsigned num_chains, unsigned *length)
+{
+  *length = 8 + (16 + 5 * 20) * num_chains;
+  char *morx = (char *) calloc (*length, 1);
+  morx[1] = 2; /* version */
+  morx[6] = (char) (num_chains >> 8);
+  morx[7] = (char) (num_chains & 0xFF);
+  for (unsigned i = 0; i < num_chains; i++)
+  {
+    char *chain = morx + 8 + (16 + 5 * 20) * i;
+    chain[3] = 1;              /* defaultFlags */
+    chain[7] = 16 + 5 * 20;    /* length */
+    chain[15] = 5;             /* subtableCount */
+    for (unsigned j = 0; j < 5; j++)
+    {
+      char *subtable = chain + 16 + 20 * j;
+      subtable[3] = 20;   /* length */
+      subtable[4] = 0x20; /* coverage: all directions */
+      subtable[7] = 4;    /* type */
+      subtable[11] = 1;   /* subFeatureFlags */
+      subtable[13] = 8;   /* lookup format */
+      subtable[15] = 1;   /* firstGlyph */
+      subtable[17] = 1;   /* glyphCount */
+      subtable[19] = 1;   /* value */
+    }
+  }
+  return morx;
+}
+
+static void
+test_aat_morx_subtable_limit (void)
+{
+  unsigned length;
+  char *morx;
+
+  morx = make_morx_table (204, &length); /* 1020 subtables */
+  g_assert_cmpuint (1020, ==, count_applied_subtables (HB_TAG ('m','o','r','x'), morx, length));
+
+  morx = make_morx_table (205, &length); /* 1025 subtables */
+  g_assert_cmpuint (0, ==, count_applied_subtables (HB_TAG ('m','o','r','x'), morx, length));
+}
+
 #endif
 
 int
@@ -128,6 +259,8 @@ main (int argc, char **argv)
   hb_test_add (test_aat_get_feature_types);
   hb_test_add (test_aat_get_feature_selectors);
   hb_test_add (test_aat_has);
+  hb_test_add (test_aat_kern_subtable_limit);
+  hb_test_add (test_aat_morx_subtable_limit);
 #endif
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");

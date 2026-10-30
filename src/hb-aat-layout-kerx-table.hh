@@ -1141,6 +1141,9 @@ struct KerxTable
 
     const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
+    /* The accelerator keeps two glyph sets per subtable. */
+    if (unlikely (count > HB_AAT_MAX_SUBTABLES))
+      return_trace (false);
     for (unsigned int i = 0; i < count; i++)
     {
       if (unlikely (!st->u.header.sanitize (c)))

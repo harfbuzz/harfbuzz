@@ -92,6 +92,13 @@
 #define HB_MAX_LOOKUP_VISIT_COUNT 35000
 #endif
 
+/* Subtables of one kern, kerx, mort, or morx table; the table is rejected
+ * when it declares more.  The table's accelerator keeps glyph sets for
+ * each, which can take far more memory than the subtable has bytes. */
+#ifndef HB_AAT_MAX_SUBTABLES
+#define HB_AAT_MAX_SUBTABLES 1024
+#endif
+
 #ifndef HB_MAX_GRAPH_EDGE_COUNT
 #define HB_MAX_GRAPH_EDGE_COUNT 16384
 #endif
