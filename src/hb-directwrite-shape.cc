@@ -67,6 +67,11 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 {
   IDWriteFontFace *fontFace = (IDWriteFontFace *) (const void *) font->face->data.directwrite;
 
+  /* Face data creation may have failed, eg. for a font DirectWrite rejected;
+   * we dereference fontFace below, so bail out first. */
+  if (unlikely (!fontFace))
+    return nullptr;
+
   /*
    * Set up variations.
    */
