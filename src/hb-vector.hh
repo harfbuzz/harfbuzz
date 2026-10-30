@@ -558,11 +558,20 @@ struct hb_vector_t
     if (unlikely (in_error ()))
       return false;
 
+    if (exact)
+      size = hb_max (size, length);
+
+    /* allocated is signed; neither requests nor growth may exceed INT_MAX. */
+    if (unlikely (size > INT_MAX))
+    {
+      set_error ();
+      return false;
+    }
+
     unsigned int new_allocated;
     if (exact)
     {
       /* If exact was specified, we allow shrinking the storage. */
-      size = hb_max (size, length);
       if (size <= (unsigned) allocated &&
 	  size >= (unsigned) allocated >> 2)
 	return true;
@@ -577,6 +586,7 @@ struct hb_vector_t
       new_allocated = allocated;
       while (size > new_allocated)
 	new_allocated += (new_allocated >> 1) + 8;
+      new_allocated = hb_min (new_allocated, (unsigned) INT_MAX);
     }
 
     /* Reallocate */

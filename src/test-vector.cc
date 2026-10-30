@@ -23,17 +23,50 @@
  *
  */
 
+#define hb_realloc vector_test_realloc
+
 #include "hb.hh"
 #include "hb-vector.hh"
 #include "hb-set.hh"
 #include "hb-map.hh"
 #include <string>
 
+static size_t allocation_limit = SIZE_MAX;
+static size_t last_reallocation;
+
+extern "C" void *
+vector_test_realloc (void *ptr, size_t size)
+{
+  last_reallocation = size;
+  return size > allocation_limit ? nullptr : realloc (ptr, size);
+}
+
 
 int
 main (int argc, char **argv)
 {
   hb_always_assert (sizeof (hb_vector_t<int>) == sizeof (hb_sorted_vector_t<int>));
+
+  /* Exercise large requests without allocating large buffers. */
+  allocation_limit = 4096;
+  for (bool exact : {false, true})
+    for (unsigned size : {(unsigned) INT_MAX + 1u, UINT_MAX})
+    {
+      hb_vector_t<char> v {'x'};
+      last_reallocation = 0;
+      hb_always_assert (!v.alloc (size, exact));
+      hb_always_assert (v.in_error ());
+      hb_always_assert (!last_reallocation);
+      hb_always_assert (v.length == 1 && v[0] == 'x');
+    }
+  {
+    hb_vector_t<char> v;
+    hb_always_assert (!v.alloc (INT_MAX));
+    hb_always_assert (v.in_error ());
+    /* Geometric growth must stay representable in the signed capacity. */
+    hb_always_assert (last_reallocation == INT_MAX);
+  }
+  allocation_limit = SIZE_MAX;
 
   /* Test copy constructor. */
   {
