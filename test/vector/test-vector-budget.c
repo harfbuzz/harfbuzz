@@ -252,6 +252,71 @@ test_indexed_smask_cap (void)
   hb_vector_paint_destroy (paint);
 }
 
+#define LEVELS 30
+#define FAN_OUT 3
+
+static void
+put (char *p, unsigned size, unsigned value)
+{
+  while (size--)
+  {
+    p[size] = (char) (value & 255);
+    value >>= 8;
+  }
+}
+
+/* A chain of COLRv1 glyphs that draw nothing, each referring to the next
+ * one FAN_OUT times.  The graph limits of the top-level glyph must cover the
+ * nested glyphs as well, or this takes FAN_OUT ^ LEVELS steps. */
+static void
+test_nested_color_glyphs (hb_vector_format_t format)
+{
+  enum {
+    BASE_GLYPH_LIST = 34,
+    COLR_LAYERS = 4 + (LEVELS + 1) * 6, /* From BaseGlyphList. */
+    LAYER_LIST = BASE_GLYPH_LIST + COLR_LAYERS + (LEVELS + 1) * 6,
+    COLR_GLYPHS = 4 + LEVELS * FAN_OUT * 4, /* From LayerList. */
+    SIZE = LAYER_LIST + COLR_GLYPHS + LEVELS * 3
+  };
+  char colr[SIZE] = {0};
+  char *base_glyph_list = colr + BASE_GLYPH_LIST;
+  char *layer_list = colr + LAYER_LIST;
+
+  put (colr + 0, 2, 1); /* version */
+  put (colr + 14, 4, BASE_GLYPH_LIST);
+  put (colr + 18, 4, LAYER_LIST);
+  put (base_glyph_list, 4, LEVELS + 1);
+  put (layer_list, 4, LEVELS * FAN_OUT);
+  for (unsigned i = 0; i <= LEVELS; i++)
+  {
+    put (base_glyph_list + 4 + i * 6, 2, i);
+    put (base_glyph_list + 4 + i * 6 + 2, 4, COLR_LAYERS + i * 6);
+    put (base_glyph_list + COLR_LAYERS + i * 6, 1, 1); /* PaintColrLayers */
+    if (i == LEVELS)
+      break; /* The last glyph has no layers. */
+    put (base_glyph_list + COLR_LAYERS + i * 6 + 1, 1, FAN_OUT);
+    put (base_glyph_list + COLR_LAYERS + i * 6 + 2, 4, i * FAN_OUT);
+    for (unsigned j = 0; j < FAN_OUT; j++)
+      put (layer_list + 4 + (i * FAN_OUT + j) * 4, 4, COLR_GLYPHS + i * 3);
+    put (layer_list + COLR_GLYPHS + i * 3, 1, 11); /* PaintColrGlyph */
+    put (layer_list + COLR_GLYPHS + i * 3 + 1, 2, i + 1);
+  }
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (colr, SIZE, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('C','O','L','R'), blob);
+  hb_blob_destroy (blob);
+  hb_face_set_glyph_count (face, LEVELS + 1);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (format);
+  assert (hb_vector_paint_glyph_or_fail (paint, font, 0, HB_VECTOR_EXTENTS_MODE_NONE));
+  hb_vector_paint_destroy (paint);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -265,6 +330,8 @@ main (int argc, char **argv)
   test_format (HB_VECTOR_FORMAT_PDF, font);
   test_document_cap ();
   test_indexed_smask_cap ();
+  test_nested_color_glyphs (HB_VECTOR_FORMAT_SVG);
+  test_nested_color_glyphs (HB_VECTOR_FORMAT_PDF);
 
   hb_font_destroy (font);
   hb_face_destroy (face);

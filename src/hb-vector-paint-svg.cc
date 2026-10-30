@@ -879,30 +879,17 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
 
 static hb_bool_t
 hb_vector_paint_color_glyph (hb_paint_funcs_t *,
-                             void *paint_data,
-                             hb_codepoint_t glyph,
-                             hb_font_t *font,
+                             void *,
+                             hb_codepoint_t,
+                             hb_font_t *,
                              void *)
 {
-  auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!paint->ensure_initialized ()))
-    return false;
-  if (unlikely (paint->color_glyph_depth >= HB_MAX_NESTING_LEVEL))
-    return false;
-  if (unlikely (hb_set_has (paint->active_color_glyphs, glyph)))
-    return false;
-
-  paint->color_glyph_depth++;
-  hb_set_add (paint->active_color_glyphs, glyph);
-
-  hb_font_paint_glyph (font, glyph,
-		       hb_vector_paint_svg_funcs_get (),
-		       paint,
-		       paint->palette,
-		       paint->foreground);
-  hb_set_del (paint->active_color_glyphs, glyph);
-  paint->color_glyph_depth--;
-  return true;
+  /* Painting the nested glyph from here would re-enter
+   * hb_font_paint_glyph(), with fresh cycle, depth, and edge limits
+   * for every reference to it, so a DAG with fan-out f over n levels is
+   * walked f^n times.  Decline, as hb-raster and the PDF backend do, so
+   * the caller paints it inline under the limits of the current walk. */
+  return false;
 }
 
 
