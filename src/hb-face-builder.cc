@@ -48,6 +48,7 @@ struct face_table_info_t
 struct hb_face_builder_data_t
 {
   hb_hashmap_t<hb_tag_t, face_table_info_t> tables;
+  hb_vector_t<hb_tag_t> sorted_tags; /* Keys of tables, kept sorted. */
 };
 
 static int compare_entries (const void* pa, const void* pb)
@@ -74,6 +75,7 @@ _hb_face_builder_data_create ()
     return nullptr;
 
   data->tables.init ();
+  data->sorted_tags.init ();
 
   return data;
 }
@@ -87,6 +89,7 @@ _hb_face_builder_data_destroy (void *user_data)
     hb_blob_destroy (info.data);
 
   data->tables.fini ();
+  data->sorted_tags.fini ();
 
   hb_free (data);
 }
@@ -182,18 +185,8 @@ _hb_face_builder_get_table_tags (const hb_face_t *face HB_UNUSED,
     return population;
   }
 
-  // Sort the tags.
-  hb_vector_t<hb_tag_t> sorted_tags;
-  data->tables.keys () | hb_sink (sorted_tags);
-  if (unlikely (sorted_tags.in_error ()))
-  {
-    // Not much to do...
-  }
-  sorted_tags.qsort ([] (const hb_tag_t &a, const hb_tag_t &b) {
-    return (a > b) - (a < b);
-  });
-
-  auto array = sorted_tags.as_array ().sub_array (start_offset, table_count);
+  // Tags are kept sorted by hb_face_builder_add_table().
+  auto array = data->sorted_tags.as_array ().sub_array (start_offset, table_count);
   if (table_tags)
   {
     auto out = hb_array (table_tags, *table_count);
@@ -259,9 +252,20 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
 
+  // Keep the tags sorted here, such that get_table_tags() does not
+  // have to sort them on every call.
+  auto &sorted_tags = data->sorted_tags;
+  unsigned i;
+  bool is_new = !hb_bsearch_impl (&i, tag,
+				  sorted_tags.arrayZ, sorted_tags.length,
+				  sizeof (hb_tag_t),
+				  _hb_cmp_operator<hb_tag_t, hb_tag_t>);
+
   /* numTables in the font file's table directory is 16bit. */
-  if (unlikely (data->tables.get_population () >= 0xFFFFu &&
-		!data->tables.has (tag)))
+  if (unlikely (is_new && data->tables.get_population () >= 0xFFFFu))
+    return false;
+
+  if (is_new && unlikely (!sorted_tags.alloc (sorted_tags.length + 1)))
     return false;
 
   hb_blob_t* previous = data->tables.get (tag).data;
@@ -269,6 +273,15 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
   {
     hb_blob_destroy (blob);
     return false;
+  }
+
+  if (is_new)
+  {
+    sorted_tags.resize (sorted_tags.length + 1); // Cannot fail; allocated above.
+    memmove (sorted_tags.arrayZ + i + 1,
+	     sorted_tags.arrayZ + i,
+	     (sorted_tags.length - 1 - i) * sorted_tags.item_size);
+    sorted_tags.arrayZ[i] = tag;
   }
 
   hb_blob_destroy (previous);
