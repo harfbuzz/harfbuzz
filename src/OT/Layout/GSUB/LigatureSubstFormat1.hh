@@ -57,6 +57,7 @@ struct LigatureSubstFormat1_2
 
   void closure (hb_closure_context_t *c) const
   {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, ligatureSet.len))) return;
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)

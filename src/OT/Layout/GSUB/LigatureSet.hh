@@ -48,6 +48,7 @@ struct LigatureSet
 
   void closure (hb_closure_context_t *c) const
   {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, ligature.len))) return;
     + hb_iter (ligature)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const Ligature<Types> &_) { _.closure (c); })

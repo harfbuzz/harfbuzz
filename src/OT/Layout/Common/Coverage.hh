@@ -139,6 +139,20 @@ struct Coverage
     }
   }
 
+  /* Number of glyph or range records; what walking the table costs. */
+  unsigned get_record_count () const
+  {
+    switch (u.format.v) {
+    case 1: hb_barrier (); return u.format1.glyphArray.len;
+    case 2: hb_barrier (); return u.format2.rangeRecord.len;
+#ifndef HB_NO_BEYOND_64K
+    case 3: hb_barrier (); return u.format3.glyphArray.len;
+    case 4: hb_barrier (); return u.format4.rangeRecord.len;
+#endif
+    default:return 0;
+    }
+  }
+
   template <typename Iterator,
       hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
