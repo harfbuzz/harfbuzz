@@ -133,11 +133,16 @@ struct cff2_instancing_plan_t
     /* Instance each VarData with identity delta rows; the surviving tuples'
      * delta columns are the old-region → new-region transform. */
     OT::optimize_scratch_t scratch;
+    int64_t budget = HB_BUDGET_SUBSET_CFF2_CELLS;
     for (unsigned m = 0; m < major_count; m++)
     {
       const OT::VarData &var_data = varStore.get_sub_table (m);
       unsigned k = var_data.get_region_index_count ();
       vardata_transform_t &t = transforms.arrayZ[m];
+
+      /* k identity tuples of k cells each; neither k nor the number of
+       * VarDatas is otherwise bounded, and offsets may alias one VarData. */
+      if (unlikely (!hb_budget_spend (budget, k, k))) return false;
 
       if (!t.gains.resize_exact (k)) return false;
       varStore.get_region_scalars (m, plan->normalized_coords.arrayZ,
@@ -164,6 +169,10 @@ struct cff2_instancing_plan_t
 
       if (!tuples.instantiate (plan->axes_location, plan->axes_triple_distances, scratch))
 	return false;
+
+      /* The solver can split a region into several; the surviving tuples'
+       * columns are kept for the rest of the table. */
+      if (unlikely (!hb_budget_spend (budget, tuples.tuple_vars.length, k))) return false;
 
       for (auto &tuple : tuples.tuple_vars)
       {

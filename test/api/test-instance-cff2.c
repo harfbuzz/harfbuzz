@@ -87,6 +87,33 @@ test_instance_cff2_private_blend_overflow (void)
   hb_face_destroy (face);
 }
 
+static void
+test_instance_cff2_vardata_budget (void)
+{
+  /* 40 VarData offsets aliasing one 800-region VarData no blend uses:
+   * partial instancing must not build a k×k region transform for each
+   * of them.  Over budget, create() fails, so the partial instance fails
+   * safely like any other CFF2 planning failure instead of exhausting
+   * memory. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/CFF2.vardata-budget.otf");
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_set_add_range (glyphs, 0, 1);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_union (hb_subset_input_glyph_set (input), glyphs);
+  hb_set_destroy (glyphs);
+  g_assert_true (hb_subset_input_set_axis_range (input, face,
+						 HB_TAG ('w', 'g', 'h', 't'),
+						 200, 600, 400));
+
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  g_assert_null (subset);
+
+  hb_face_destroy (face);
+}
+
 
 static void
 test_instance_cff2_empty_bounds (void)
@@ -376,6 +403,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_instance_cff2);
   hb_test_add (test_instance_cff2_private_blend_overflow);
+  hb_test_add (test_instance_cff2_vardata_budget);
   hb_test_add (test_instance_cff2_empty_bounds);
   hb_test_add (test_instance_cff2_large_store);
   hb_test_add (test_instance_cff2_absolute_rounding);

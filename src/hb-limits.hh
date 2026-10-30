@@ -205,6 +205,14 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
+/* Partially instancing one CFF2 table in the subsetter, in cells of the
+ * old-region to new-region matrices built for its VarDatas.  A VarData
+ * with k regions costs k * k cells for 2 * k bytes of font, and many
+ * offsets can share one VarData.  Exceeding the budget fails the table. */
+#ifndef HB_BUDGET_SUBSET_CFF2_CELLS
+#define HB_BUDGET_SUBSET_CFF2_CELLS ((int64_t) 1 << 24)
+#endif
+
 /* The flat pixel-work floor for one raster paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
  * the common outline budget above. */
