@@ -587,6 +587,59 @@ test_subset_colr_var_overflow (void)
   hb_face_destroy (face);
 }
 
+static hb_face_t *
+subset_overlapping_palettes (unsigned num_palettes)
+{
+  /* Glyph 1 uses all 300 colors. Palette i starts at color record i. */
+  const char maxp_data[] = {0, 0, 0x50, 0, 0, 3};
+  char colr_data[14 + 6 + 300 * 4] = {0, 0, 0, 1, 0, 0, 0, 14, 0, 0, 0, 20, 300 >> 8, 300 & 0xFF,
+				      0, 1, 0, 0, 300 >> 8, 300 & 0xFF};
+  char cpal_data[12 + 300 * 2 + 600 * 4] = {0, 0, 300 >> 8, 300 & 0xFF, 0, 0, 600 >> 8, 600 & 0xFF,
+					    0, 0, 612 >> 8, 612 & 0xFF};
+  cpal_data[4] = (char) (num_palettes >> 8);
+  cpal_data[5] = (char) (num_palettes & 0xFF);
+  for (unsigned i = 0; i < 300; i++)
+  {
+    colr_data[20 + i * 4 + 1] = 2;
+    colr_data[20 + i * 4 + 2] = cpal_data[12 + i * 2] = (char) (i >> 8);
+    colr_data[20 + i * 4 + 3] = cpal_data[12 + i * 2 + 1] = (char) (i & 0xFF);
+  }
+  for (unsigned i = 0; i < 600; i++)
+  {
+    cpal_data[612 + i * 4] = (char) (i >> 8);
+    cpal_data[612 + i * 4 + 1] = (char) (i & 0xFF);
+  }
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "COLR", colr_data);
+  HB_FACE_ADD_TABLE (face, "CPAL", cpal_data);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 1);
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  return subset;
+}
+
+static void
+test_subset_cpal_overlapping_palettes (void)
+{
+  /* Each palette gets its own color records, of which there can be 65535. */
+  hb_face_t *subset = subset_overlapping_palettes (218);
+  g_assert_nonnull (subset);
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','P','A','L'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, ==, 12 + 218 * 2 + 218 * 300 * 4);
+  g_assert_cmpuint (read_uint_be (data + 6, 2), ==, 218 * 300);
+  hb_blob_destroy (blob);
+  hb_face_destroy (subset);
+
+  g_assert_null (subset_overlapping_palettes (219));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -603,6 +656,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_affine_values);
   hb_test_add (test_subset_colr_sentinel_map_without_variations);
   hb_test_add (test_subset_colr_var_overflow);
+  hb_test_add (test_subset_cpal_overlapping_palettes);
 
   return hb_test_run();
 }
