@@ -334,7 +334,9 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
       env.set_error ();
       return;
     }
-    if (unlikely (!env.spend_budget (HB_BUDGET_1, total - n)))
+    /* Charge the default values too: with no regions there are no deltas to
+     * pop, so the same operands can be blended over and over. */
+    if (unlikely (!env.spend_budget (HB_BUDGET_1, total)))
     {
       env.set_error ();
       return;
