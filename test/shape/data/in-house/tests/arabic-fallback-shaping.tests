@@ -14,3 +14,5 @@
 ../fonts/TradArabicTest.ttf;;U+0639,U+0644,U+0649;[fnalefmaqsurah=2+1198|midlam=1+403|inain=0+976]
 ../fonts/TradArabicTest.ttf;;U+0644,U+0649;[f295=0+1470]
 ../fonts/TradArabicTest.ttf;;U+062E,U+0627,U+0646,U+0647,U+0654;[.notdef=3@49,1064+0|fnha=3+776|innoon=2+389|fnalef=1+468|inkhaa=0+1341]
+../fonts/arabic-fallback-missing-component.ttf;;U+0644,U+0645,U+0644,U+0647;[heh.fina=3+600|lam.medi=2+600|meem.medi=1+600|lam.init=0+600]
+../fonts/arabic-fallback-missing-component.ttf;;U+0644,U+0644,U+0647;[lellah=0+600]
