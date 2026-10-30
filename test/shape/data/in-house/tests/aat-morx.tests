@@ -5,3 +5,4 @@
 ../fonts/007e2c13e6baf28a7f1e8f981c2db0cb850b1f1f.ttf;--no-glyph-names;U+0061,U+0062,U+0063,U+0063;[3=0+600|5=2+600|4=3+600]
 ../fonts/7fb6608532fe39dd993eb3fc74e84256bd2d547e.ttf;--font-funcs=ot --no-glyph-names --no-positions --no-clusters;U+0061,U+0062;[2|2]
 ../fonts/7fb6608532fe39dd993eb3fc74e84256bd2d547e.ttf;--font-funcs=ot --no-glyph-names --no-positions --no-clusters;U+0061,U+0062,U+0063;[2|2|1]
+../fonts/3503b8963831c2381809884633f483b7361baa97.ttf;--font-funcs=ot;U+0062,U+0062,U+0062,U+0062;[gid3=0+500|gid3=1+500|gid3=2+500|gid3=3+500]
