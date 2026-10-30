@@ -34,7 +34,9 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
     else
     {
       unsigned klass1 = class_def1.get (cp);
-      class1_set.add (klass1);
+      /* Classes outside the matrix have no values; apply() ignores them too. */
+      if (klass1 < class1_count)
+        class1_set.add (klass1);
     }
   }
 
@@ -42,7 +44,8 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
   for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
   {
     unsigned klass2 = class_def2.get (cp);
-    class2_set.add (klass2);
+    if (klass2 < class2_count)
+      class2_set.add (klass2);
   }
 
   if (class1_set.is_empty ()
