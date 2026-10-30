@@ -1678,10 +1678,9 @@ static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, 
 }
 
 
-static inline void intersected_glyph (const hb_set_t *glyphs HB_UNUSED, const void *data, unsigned value, hb_set_t *intersected_glyphs, HB_UNUSED void *cache)
+static inline void intersected_glyph (const hb_set_t *glyphs HB_UNUSED, const void *data HB_UNUSED, unsigned value, hb_set_t *intersected_glyphs, HB_UNUSED void *cache)
 {
-  unsigned g = reinterpret_cast<const HBUINT16 *>(data)[value];
-  intersected_glyphs->add (g);
+  intersected_glyphs->add (value);
 }
 
 using intersected_class_cache_t = hb_hashmap_t<unsigned, hb_set_t>;
@@ -2396,17 +2395,10 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
         }
       }
       else
-      {
-        const void *input_data = input.data;
-        unsigned input_value = seqIndex - 1;
-        if (context_format != ContextFormat::SimpleContext)
-        {
-          input_data = data;
-          input_value = input[seqIndex - 1];
-        }
-
-        intersected_glyphs_func (c->glyphs, input_data, input_value, &pos_glyphs, cache);
-      }
+        /* input is a width-erased glyph_data_t view, so input[seqIndex - 1]
+         * resolves the value at the right width for every format (glyph id
+         * for glyph-based rules, class/coverage index otherwise). */
+        intersected_glyphs_func (c->glyphs, data, input[seqIndex - 1], &pos_glyphs, cache);
     }
 
     covered_seq_indicies.add (seqIndex);
@@ -2664,17 +2656,10 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
         }
       }
       else
-      {
-        const void *input_data = input.data;
-        unsigned input_value = seqIndex - 1;
-        if (context_format != ContextFormat::SimpleContext)
-        {
-          input_data = data;
-          input_value = input[seqIndex - 1];
-        }
-
-        intersected_glyphs_func (c->glyphs, input_data, input_value, &pos_glyphs, cache);
-      }
+        /* input is a width-erased glyph_data_t view, so input[seqIndex - 1]
+         * resolves the value at the right width for every format (glyph id
+         * for glyph-based rules, class/coverage index otherwise). */
+        intersected_glyphs_func (c->glyphs, data, input[seqIndex - 1], &pos_glyphs, cache);
     }
 
     covered_seq_indices.add (seqIndex);

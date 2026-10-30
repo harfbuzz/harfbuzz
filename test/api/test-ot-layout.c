@@ -105,6 +105,61 @@ test_ot_layout_gdef_1_4_offset2 (void)
 
   hb_face_destroy (face);
 }
+
+static void
+test_ot_layout_lookups_substitute_closure_context_format4 (void)
+{
+  /* Lookup 0 is a SequenceContextFormat4 (24-bit glyph ids) with the
+   * single rule "1 2", applying lookup 1 at position 1.  Lookup 1 is a
+   * SingleSubst 2 -> 3.  Closing over {1, 2} must add glyph 3. */
+  const char gsub[] = {
+    0x00, 0x01, 0x00, 0x00, /* version 1.0 */
+    0x00, 0x0A,             /* scriptListOffset */
+    0x00, 0x0C,             /* featureListOffset */
+    0x00, 0x0E,             /* lookupListOffset */
+    0x00, 0x00,             /* ScriptList: no scripts */
+    0x00, 0x00,             /* FeatureList: no features */
+    0x00, 0x02, 0x00, 0x06, 0x00, 0x2F, /* LookupList: two lookups */
+    0x00, 0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x08, /* Lookup 0: type 5, one subtable */
+    0x00, 0x04,             /* SequenceContextFormat4 */
+    0x00, 0x00, 0x00, 0x0C, /* coverageOffset */
+    0x00, 0x00, 0x01,       /* ruleSetCount */
+    0x00, 0x00, 0x12,       /* ruleSetOffsets[0] */
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x01, /* Coverage format 1, glyph 1 */
+    0x00, 0x01, 0x00, 0x04, /* RuleSet: one rule */
+    0x00, 0x02, 0x00, 0x01, /* Rule: inputCount 2, lookupCount 1 */
+    0x00, 0x00, 0x02,       /* input[1] = glyph 2 */
+    0x00, 0x01, 0x00, 0x01, /* LookupRecord: sequenceIndex 1, lookup 1 */
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x08, /* Lookup 1: type 1, one subtable */
+    0x00, 0x01, 0x00, 0x06, 0x00, 0x01, /* SingleSubstFormat1, delta +1 */
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x02, /* Coverage format 1, glyph 2 */
+  };
+  const char maxp[] = {0x00, 0x00, 0x50, 0x00, 0x00, 0x04}; /* version 0.5, 4 glyphs */
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gsub, sizeof (gsub),
+				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_set_t *lookups = hb_set_create ();
+  hb_set_t *glyphs = hb_set_create ();
+
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GSUB, blob));
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (maxp, sizeof (maxp),
+			 HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob));
+  hb_blob_destroy (blob);
+
+  hb_set_add (lookups, 0);
+  hb_set_add (glyphs, 1);
+  hb_set_add (glyphs, 2);
+  hb_ot_layout_lookups_substitute_closure (face, lookups, glyphs);
+
+  g_assert_true (hb_set_has (glyphs, 3));
+  g_assert_cmpuint (hb_set_get_population (glyphs), ==, 3);
+
+  hb_set_destroy (glyphs);
+  hb_set_destroy (lookups);
+  hb_face_destroy (face);
+}
 #endif
 
 static void
@@ -334,6 +389,7 @@ main (int argc, char **argv)
 #endif
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_ot_layout_gdef_1_4_offset2);
+  hb_test_add (test_ot_layout_lookups_substitute_closure_context_format4);
 #endif
   hb_test_add (test_ot_layout_table_get_script_tags);
   hb_test_add (test_ot_layout_table_find_script);
