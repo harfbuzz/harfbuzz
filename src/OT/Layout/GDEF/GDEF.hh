@@ -453,6 +453,10 @@ struct MarkGlyphSetsFormat1
   bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
+  unsigned get_count () const { return coverage.len; }
+  const Coverage &get_coverage (unsigned int set_index) const
+  { return this+coverage[set_index]; }
+
   void collect_used_mark_sets (const hb_set_t& glyph_set,
                                hb_set_t& used_mark_sets /* OUT */) const
   {
@@ -464,18 +468,6 @@ struct MarkGlyphSetsFormat1
          used_mark_sets.add (i);
 
        i++;
-     }
-  }
-
-  template <typename set_t>
-  void collect_coverage (hb_vector_t<set_t> &sets) const
-  {
-     for (const auto &offset : coverage)
-     {
-       if (unlikely (!sets.resize (sets.length + 1)))
-         return;
-       const auto &cov = this+offset;
-       cov.collect_coverage (&sets.tail ());
      }
   }
 
@@ -539,12 +531,19 @@ struct MarkGlyphSets
     }
   }
 
-  template <typename set_t>
-  void collect_coverage (hb_vector_t<set_t> &sets) const
+  unsigned get_count () const
   {
     switch (u.format.v) {
-    case 1: hb_barrier (); u.format1.collect_coverage (sets); return;
-    default:return;
+    case 1: hb_barrier (); return u.format1.get_count ();
+    default:return 0;
+    }
+  }
+
+  const Coverage &get_coverage (unsigned int set_index) const
+  {
+    switch (u.format.v) {
+    case 1: hb_barrier (); return u.format1.get_coverage (set_index);
+    default:return Null (Coverage);
     }
   }
 
@@ -991,39 +990,74 @@ struct GDEF
       /* Flatten each mark set whose glyphs span fewer than PAGE_BITS
        * gids into a single bit-page biased at its first glyph, for
        * O(1) exact answers.  Wider sets, or on allocation failure,
-       * fall back to the table. */
+       * fall back to the table.
+       *
+       * Fill each entry straight from its Coverage table, so the work
+       * is proportional to the coverage records the sanitizer budgeted
+       * for, not to the glyphs they span: materializing an hb_set_t per
+       * set and walking it glyph by glyph let a 256kb font with 65535
+       * all-glyph sets cost ~1GB and billions of iterations here. */
       {
-	hb_vector_t<hb_set_t> sets;
-	table->get_mark_glyph_sets ().collect_coverage (sets);
-	if (!sets.in_error () &&
-	    mark_glyph_set_bitmaps.resize (sets.length))
-	  for (unsigned i = 0; i < sets.length; i++)
+	const auto &mark_sets = table->get_mark_glyph_sets ();
+	unsigned count = mark_sets.get_count ();
+	if (mark_glyph_set_bitmaps.resize (count))
+	  for (unsigned i = 0; i < count; i++)
 	  {
 	    auto &bitmap = mark_glyph_set_bitmaps.arrayZ[i];
 	    bitmap.bias = HB_SET_VALUE_INVALID;
-	    const auto &set = sets.arrayZ[i];
-	    if (unlikely (set.in_error ())) continue;
-	    hb_codepoint_t min_gid = HB_SET_VALUE_INVALID;
-	    hb_codepoint_t max_gid = HB_SET_VALUE_INVALID;
-	    hb_set_next (&set, &min_gid);
-	    hb_set_previous (&set, &max_gid);
-	    if (max_gid == HB_SET_VALUE_INVALID)
+	    const Coverage &cov = mark_sets.get_coverage (i);
+	    mark_glyph_set_extents_t extents;
+	    cov.collect_coverage (&extents);
+	    if (extents.min_gid == HB_SET_VALUE_INVALID)
 	      continue;
-	    if (max_gid - min_gid >= hb_bit_page_t::PAGE_BITS)
+	    if (extents.max_gid - extents.min_gid >= hb_bit_page_t::PAGE_BITS)
 	    {
 	      /* Too wide for one page; a digest pre-filter instead. */
-	      for (hb_codepoint_t gid : set)
-		bitmap.u.digest.add (gid);
+	      cov.collect_coverage (&bitmap.u.digest);
 	      continue;
 	    }
-	    bitmap.bias = min_gid;
-	    for (hb_codepoint_t gid : set)
-	      bitmap.u.page.add (gid - min_gid);
+	    bitmap.bias = extents.min_gid;
+	    mark_glyph_set_page_t page {bitmap.u.page, extents.min_gid};
+	    cov.collect_coverage (&page);
 	  }
       }
 #endif
     }
     ~accelerator_t () { table.destroy (); }
+
+#ifndef HB_NO_GDEF_CACHE
+    /* Sinks for Coverage::collect_coverage(): the gid extents of a
+     * coverage, and a bit-page filled with gids relative to a bias
+     * (which must be the coverage's min gid, with max - min < PAGE_BITS). */
+    struct mark_glyph_set_extents_t
+    {
+      void add (hb_codepoint_t g)
+      {
+	min_gid = hb_min (min_gid, g);
+	max_gid = hb_max (max_gid, g);
+      }
+      bool add_range (hb_codepoint_t a, hb_codepoint_t b)
+      { if (a <= b) { add (a); add (b); } return true; }
+      template <typename T>
+      bool add_sorted_array (const hb_sorted_array_t<const T>& arr)
+      { for (const auto &g : arr) add (g); return true; }
+
+      hb_codepoint_t min_gid = HB_SET_VALUE_INVALID;
+      hb_codepoint_t max_gid = 0;
+    };
+    struct mark_glyph_set_page_t
+    {
+      void add (hb_codepoint_t g) { page.add (g - bias); }
+      bool add_range (hb_codepoint_t a, hb_codepoint_t b)
+      { if (a <= b) page.add_range (a - bias, b - bias); return true; }
+      template <typename T>
+      bool add_sorted_array (const hb_sorted_array_t<const T>& arr)
+      { for (const auto &g : arr) add (g); return true; }
+
+      hb_bit_page_t &page;
+      hb_codepoint_t bias;
+    };
+#endif
 
     unsigned int get_glyph_props (hb_codepoint_t glyph) const
     {

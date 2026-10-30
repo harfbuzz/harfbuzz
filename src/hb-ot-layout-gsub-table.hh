@@ -131,53 +131,49 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
   if (!builder->init_lookup_features (num_lookups))
     return;
 
+  /* Query all tags at once, and then visit each feature, substitute and
+   * lookup variation once.  Repeating any of that per tag or per feature
+   * multiplies work that sanitize() bounds only for a single pass. */
   hb_vector_t<hb_tag_t> feature_query_v;
-  feature_query_v.resize (2);
-  feature_query_v[1] = 0;
-
-  hb_set_t seen_features;
-  hb_set_t feature_indexes, lookup_indexes;
-
+  if (!builder->check_success (feature_query_v.alloc (num_features + 1)))
+    return;
   for (auto ft : feature_tags)
+    if (ft) /* Zero terminates the query. */
+      feature_query_v.push (ft);
+  feature_query_v.push (0);
+
+  hb_set_t feature_indexes, lookup_indexes;
+  hb_ot_layout_collect_features (face, HB_OT_TAG_GSUB, nullptr, nullptr,
+                                 feature_query_v.arrayZ, &feature_indexes);
+
+  auto add_feature_lookups = [&] (unsigned feature_index, const Feature &feature)
   {
-    if (seen_features.has (ft)) continue;
-    seen_features.add (ft);
-    feature_query_v[0] = ft;
-    feature_indexes.reset ();
-    hb_ot_layout_collect_features (face, HB_OT_TAG_GSUB, nullptr, nullptr,
-                                   feature_query_v.arrayZ, &feature_indexes);
     lookup_indexes.reset ();
-    for (auto feature_index : feature_indexes)
-      this->table->get_feature (feature_index).add_lookup_indexes_to (&lookup_indexes);
-
+    feature.add_lookup_indexes_to (&lookup_indexes);
     for (auto lookup_index : lookup_indexes)
-      if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
-	return;
+      if (unlikely (!builder->add_lookup_feature (lookup_index, feature_tags[feature_index])))
+	return false;
+    return true;
+  };
 
-    auto &fv = this->table->get_feature_variations ();
-    auto fi_count = fv.record_count ();
-    for (unsigned i = 0; i < fi_count; i++)
-    {
-      lookup_indexes.reset ();
-      for (auto feature_index : feature_indexes)
-      {
-	auto feature_ptr = fv.find_substitute (i, feature_index);
-	if (feature_ptr != nullptr)
-	  feature_ptr->add_lookup_indexes_to (&lookup_indexes);
-      }
-      for (auto lookup_index : lookup_indexes)
-	if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
-	  return;
-    }
+  for (auto feature_index : feature_indexes)
+    if (unlikely (!add_feature_lookups (feature_index, this->table->get_feature (feature_index))))
+      return;
+
+  auto &fv = this->table->get_feature_variations ();
+  if (unlikely (!fv.visit_substitutes (&feature_indexes, add_feature_lookups)))
+    return;
 
 #ifndef HB_NO_VAR
+  for (const auto &record : fv.get_lookup_variation_records ())
+  {
     lookup_indexes.reset ();
-    fv.collect_lookup_variation_lookups (&feature_indexes, &lookup_indexes);
+    record.collect_lookups (&fv, &feature_indexes, &lookup_indexes);
     for (auto lookup_index : lookup_indexes)
-      if (unlikely (!builder->add_lookup_feature (lookup_index, ft)))
+      if (unlikely (!builder->add_lookup_feature (lookup_index, feature_tags[record.get_feature_index ()])))
 	return;
-#endif
   }
+#endif
 
   if (unlikely (!builder->finish_lookup_features ()))
     return;
