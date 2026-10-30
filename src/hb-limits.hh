@@ -230,6 +230,15 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_SUBSET_TABLE ((int64_t) 1 << 26)
 #endif
 
+/* One dependency graph build.  A few bytes of Coverage or ClassDef range
+ * can name any number of glyphs, so the glyph sets built from them are
+ * charged per page: for the work of expanding them, and for the memory
+ * they hold once the graph keeps a copy.  Exceeding the budget fails the
+ * build. */
+#ifndef HB_BUDGET_DEPEND
+#define HB_BUDGET_DEPEND ((int64_t) 1 << 26)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500

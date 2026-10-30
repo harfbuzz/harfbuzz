@@ -666,6 +666,9 @@ struct hb_depend_context_t :
       return true;
     }
 
+    if (unlikely (!depend_data->charge_set (set)))
+      return false;
+
     hb_set_t *copy = hb_object_create<hb_set_t> ();
     if (unlikely (!copy))
       return depend_data->fail ();
@@ -1745,13 +1748,29 @@ hb_depend_context_t::find_or_create_glyph_set (const void *data,
     return nullptr;
   }
 
-  if (type == GLYPH_SET_COVERAGE)
-    collect_coverage (set, value, data);
-  else if (type == GLYPH_SET_CLASS)
-    collect_class (set, value, data);
-  else
+  /* A coverage or class range can name far more glyphs than the face has,
+   * and these sets are copied into the graph.  Expand into a temporary,
+   * charged as work, and keep only the face's glyphs in a set sized for
+   * them, charged as memory. */
+  hb_set_t expanded;
+  if (type == GLYPH_SET_SINGLE)
     set->add (value);
-  if (unlikely (set->in_error ()))
+  else
+  {
+    if (type == GLYPH_SET_COVERAGE)
+      collect_coverage (&expanded, value, data);
+    else
+      collect_class (&expanded, value, data);
+    if (unlikely (!depend_data->charge_set (expanded, HB_BUDGET_4)))
+    {
+      hb_set_destroy (set);
+      return nullptr;
+    }
+    expanded.intersect (*glyphs);
+    set->set (expanded);
+  }
+  if (unlikely (set->in_error () || expanded.in_error () ||
+		!depend_data->charge_set (*set)))
   {
     hb_set_destroy (set);
     depend_data->fail ();
