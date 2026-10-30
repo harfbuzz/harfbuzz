@@ -268,6 +268,17 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
 #endif
 
+/* Compiling one AAT feature map: morx/mort chains and chain feature
+ * records visited for each range of the text with its own set of
+ * features, plus extra for each range a chain keeps rather than merges
+ * into the previous one, since those are what the map stores.  The
+ * ranges come from the caller's features and the chains from the font,
+ * so neither input bounds their product.  Once exhausted, the last
+ * range compiled extends to the end of the text. */
+#ifndef HB_BUDGET_AAT_MAP
+#define HB_BUDGET_AAT_MAP ((int64_t) 1 << 24)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
