@@ -458,6 +458,9 @@ struct hb_hashmap_t
   void update (const hb_hashmap_t &other)
   {
     if (unlikely (!successful)) return;
+    /* other.iter () walks other's items array, which set () may free
+     * if it grows the table.  Merging into ourselves changes nothing. */
+    if (unlikely (&other == this)) return;
 
     hb_copy (other, *this);
   }

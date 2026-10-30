@@ -102,6 +102,18 @@ test_map_copy_equal_hash_update (void)
   assert_map_has (copy, 44, 404);
   assert_map_has (m, 22, 202);
 
+  /* Updating a map from itself is a no-op; 5 entries put the table at
+   * its growth threshold. */
+  hb_map_set (copy, 55, 505);
+  hb_map_set (copy, 66, 606);
+  hb_map_update (copy, copy);
+  g_assert_cmpint (hb_map_get_population (copy), ==, 5);
+  assert_map_has (copy, 11, 101);
+  assert_map_has (copy, 22, 222);
+  assert_map_has (copy, 44, 404);
+  assert_map_has (copy, 55, 505);
+  assert_map_has (copy, 66, 606);
+
   hb_map_destroy (updated);
   hb_map_destroy (copy);
   hb_map_destroy (m);

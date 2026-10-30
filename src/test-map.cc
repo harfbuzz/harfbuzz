@@ -331,6 +331,28 @@ main (int argc, char **argv)
     hb_always_assert (m1[1] == 3);
     hb_always_assert (m1[2] == 4);
   }
+  /* Test update with self, with the table at its growth threshold so
+   * that set () would reallocate the items being iterated. */
+  {
+    hb_map_t m;
+    for (unsigned i = 0; i < 5; i++)
+      m.set (i, i * 2);
+
+    m.update (m);
+    hb_always_assert (m.get_population () == 5);
+    for (unsigned i = 0; i < 5; i++)
+      hb_always_assert (m[i] == i * 2);
+
+    for (unsigned i = 5; i < 42; i++)
+      m.set (i, i * 2);
+    for (unsigned i = 0; i < 32; i++)
+      m.del (i);
+
+    m.update (m);
+    hb_always_assert (m.get_population () == 10);
+    for (unsigned i = 32; i < 42; i++)
+      hb_always_assert (m[i] == i * 2);
+  }
   /* Test keys / values */
   {
     hb_map_t m;
