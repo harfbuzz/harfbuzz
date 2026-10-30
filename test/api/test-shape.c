@@ -362,6 +362,120 @@ test_shape_rule_set_budget (void)
 }
 
 static void
+put16 (char *p, unsigned v)
+{
+  p[0] = (char) (v >> 8);
+  p[1] = (char) v;
+}
+
+static hb_face_t *
+create_aliased_lookups_face (unsigned lookup_count)
+{
+  /* A GSUB whose one 'ccmp' feature lists lookup_count lookups, all of them
+   * the same 20-byte single substitution of glyph 1 by itself. */
+  unsigned feature_len = 2 + 6 + 4 + 2 * lookup_count;
+  unsigned lookup_list_len = 2 + 2 * lookup_count + 20;
+  unsigned gsub_len = 10 + 20 + feature_len + lookup_list_len;
+  char *gsub = calloc (gsub_len, 1);
+  char *p = gsub;
+  unsigned i;
+
+  /* Header */
+  put16 (p, 1);
+  put16 (p + 4, 10);
+  put16 (p + 6, 10 + 20);
+  put16 (p + 8, 10 + 20 + feature_len);
+  p += 10;
+  /* ScriptList: 'DFLT' with a default LangSys using feature 0 */
+  put16 (p, 1);
+  memcpy (p + 2, "DFLT", 4);
+  put16 (p + 6, 8);
+  put16 (p + 8, 4);
+  put16 (p + 10, 0);
+  put16 (p + 12, 0);
+  put16 (p + 14, 0xFFFF);
+  put16 (p + 16, 1);
+  put16 (p + 18, 0);
+  p += 20;
+  /* FeatureList: 'ccmp' listing every lookup */
+  put16 (p, 1);
+  memcpy (p + 2, "ccmp", 4);
+  put16 (p + 6, 8);
+  put16 (p + 8, 0);
+  put16 (p + 10, lookup_count);
+  for (i = 0; i < lookup_count; i++)
+    put16 (p + 12 + 2 * i, i);
+  p += feature_len;
+  /* LookupList: every offset points at the one lookup after the offsets */
+  put16 (p, lookup_count);
+  for (i = 0; i < lookup_count; i++)
+    put16 (p + 2 + 2 * i, 2 + 2 * lookup_count);
+  p += 2 + 2 * lookup_count;
+  put16 (p, 1);      /* Lookup: type 1 */
+  put16 (p + 2, 0);  /* flag */
+  put16 (p + 4, 1);  /* one subtable */
+  put16 (p + 6, 8);
+  put16 (p + 8, 1);  /* SingleSubstFormat1 */
+  put16 (p + 10, 6); /* coverage */
+  put16 (p + 12, 0); /* deltaGlyphID */
+  put16 (p + 14, 1); /* CoverageFormat1 */
+  put16 (p + 16, 1);
+  put16 (p + 18, 1); /* glyph 1 */
+
+  /* cmap: format 12, 'a' -> glyph 1 */
+  static const char cmap_data[] = {0, 0, 0, 1,  0, 3, 0, 10,  0, 0, 0, 12,
+				   0, 12, 0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+				   0, 0, 0, 'a',  0, 0, 0, 'a',  0, 0, 0, 1};
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create_or_fail (gsub, gsub_len, HB_MEMORY_MODE_WRITABLE, gsub, free);
+  hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+  hb_face_set_glyph_count (face, 2);
+  return face;
+}
+
+static void
+test_shape_lookup_budget (void)
+{
+  /* Lookups and features can alias the same bytes, so a small font can make
+   * the shaper walk the whole buffer thousands of times.  Those passes must
+   * be charged to the buffer's work budget and cut off when it runs out. */
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_buffer_t *buffer;
+  unsigned i;
+
+  face = create_aliased_lookups_face (16);
+  font = hb_font_create (face);
+  buffer = hb_buffer_create ();
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  for (i = 0; i < 1024; i++)
+    hb_buffer_add (buffer, 'a', i);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, NULL, 0);
+  g_assert_true (hb_buffer_allocation_successful (buffer));
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 1024);
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  face = create_aliased_lookups_face (8192);
+  font = hb_font_create (face);
+  buffer = hb_buffer_create ();
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  for (i = 0; i < 1024; i++)
+    hb_buffer_add (buffer, 'a', i);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, NULL, 0);
+  g_assert_false (hb_buffer_allocation_successful (buffer));
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_shape_list (void)
 {
   const char **shapers = hb_shape_list_shapers ();
@@ -382,6 +496,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
+  hb_test_add (test_shape_lookup_budget);
   hb_test_add (test_shape_overlong_context_scan);
   hb_test_add (test_shape_rule_set_budget);
   /* TODO test fallback shaper */
