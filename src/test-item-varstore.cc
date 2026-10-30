@@ -347,6 +347,38 @@ test_multi_instancer_budget ()
 }
 
 static void
+test_condition_budget ()
+{
+  static const unsigned char store_data[] = {
+    0, 1,  0, 0, 0, 12,  0, 1,  0, 0, 0, 26,	/* MultiItemVariationStore */
+    0, 0, 0, 2,  0, 0, 0, 12,  0, 0, 0, 12,	/* SparseVarRegionList */
+    0, 0,					/* SparseVariationRegion */
+    1,  0, 2,  0, 0,  0, 1,  0, 0, 0, 11,	/* MultiVarData */
+    0, 0, 0, 1,  1,  1, 4,  1, 1, 2,		/* TupleList */
+  };
+  static const unsigned char condition_data[] = {
+    0, 3,  3,  0, 0, 12,  0, 0, 12,  0, 0, 12,	/* ConditionAnd */
+    0, 2,  0xFF, 0xFE,  0, 0, 0, 0,		/* ConditionValue */
+  };
+  const auto &store = *reinterpret_cast<const OT::MultiItemVariationStore *> (store_data);
+  const auto &condition = *reinterpret_cast<const OT::Condition *> (condition_data);
+
+  OT::MultiItemVarStoreInstancer unbudgeted (&store, nullptr, hb_array_t<const int> ());
+  hb_always_assert (unbudgeted.get_condition_delta (0) == 3.);
+  hb_always_assert (condition.evaluate (nullptr, 0, &unbudgeted));
+
+  // Every node visited is charged one unit, even when the And's three
+  // children share one subtree; each value leaf fetches a delta charged per
+  // region its MultiVarData sums over ((1 + out.length) x 2 regions).
+  int64_t budget = 1 + 3 * (1 + (1 + 1) * 2);
+  OT::MultiItemVarStoreInstancer instancer (&store, nullptr, hb_array_t<const int> (), nullptr, &budget);
+  hb_always_assert (condition.evaluate (nullptr, 0, &instancer));
+  hb_always_assert (budget == 0);
+  hb_always_assert (!condition.evaluate (nullptr, 0, &instancer));
+  hb_always_assert (budget < 0);
+}
+
+static void
 test_failed_encoding ()
 {
   hb_vector_t<int> row;
@@ -377,4 +409,5 @@ main (int argc, char **argv)
   test_accumulated_delta_widths ();
   test_condition_delta_precision ();
   test_multi_instancer_budget ();
+  test_condition_budget ();
 }

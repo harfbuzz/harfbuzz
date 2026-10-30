@@ -4226,6 +4226,10 @@ struct ItemVarStoreInstancer
   double get_condition_delta (uint32_t varIdx) const
   { return get_delta<double> (varIdx); }
 
+  /* FeatureVariations conditions are evaluated once while building a shape
+   * or subset plan, not under a rendering work budget. */
+  bool charge_condition () const { return true; }
+
   template <typename Float = float>
   Float get_delta (uint32_t varIdx, unsigned short offset = 0) const
   {
@@ -4263,6 +4267,11 @@ struct MultiItemVarStoreInstancer
 
   double get_condition_delta (uint32_t varIdx) const
   { return (double) (*this)[varIdx]; }
+
+  /* Condition trees are evaluated per VARC component visit, so they draw
+   * on the renderer's live work budget when one is attached. */
+  bool charge_condition () const
+  { return !budget || hb_budget_spend (*budget, HB_BUDGET_1); }
 
   double operator[] (uint32_t varIdx) const
   {
@@ -4672,6 +4681,11 @@ struct Condition
   bool evaluate (const int *coords, unsigned int coord_len,
 		 Instancer *instancer) const
   {
+    /* And/Or children are offsets that may all share one subtree, so the
+     * evaluated size of a condition tree is not tied to its encoded size.
+     * Charge every node visited; the guard keeps a null instancer safe. */
+    if (unlikely (instancer && !instancer->charge_condition ())) return false;
+
     switch (u.format.v) {
     /* A null condition offset resolves to the nil Condition, whose reserved
      * format 0 represents the True condition required by the specification. */
