@@ -1,0 +1,12 @@
+# https://github.com/harfbuzz/harfbuzz/issues/6461
+# Synthetic kerx format 2 table: 3x3 matrix, row width 6 bytes.
+# Left offsets: 0,6,12,0,0; right offsets: 0,0,2,4,0.
+# Matrix: [0,0,0], [0,-80,30], [0,-50,-20]. Glyph E is unmapped.
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0041,U+0042;[A=0+560|B=1@-40,0+560]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0041,U+0043;[A=0+615|C=1@15,0+615]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0042,U+0043;[B=0+590|C=1@-10,0+590]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0044,U+0043;[D=0+600|C=1+600]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0042,U+0044;[B=0+600|D=1+600]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0045,U+0042;[E=0+600|B=1+600]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;;U+0041,U+0045;[A=0+600|E=1+600]
+../fonts/9f0def61bfa49ffb44ba45c8703eee567c5bb816.ttf;--features=-kern;U+0041,U+0042;[A=0+600|B=1+600]
