@@ -744,6 +744,42 @@ populate_serializer_with_multiple_dedup_overflow (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_with_unresolvable_priority_overflow (hb_serialize_context_t* c)
+{
+  // One parent larger than 64kb with thousands of distinct leaf children, a few of which
+  // are shared with a small parent that packs before it. No 16 bit offset from the large
+  // parent can reach past it, so this can't be packed; but it shouldn't take long to find
+  // that out.
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  constexpr unsigned num_leaves = 10000;
+  constexpr unsigned num_shared = 40;
+  hb_vector_t<unsigned> leaves;
+  for (unsigned i = 0; i < num_leaves; i++) {
+    char leaf[3] = {'l', (char) (i >> 8), (char) i};
+    leaves.push (add_object (leaf, 3, c));
+  }
+
+  start_object ("s", 1, c);
+  for (unsigned i = 0; i < num_shared; i++)
+    add_offset (leaves[i], c);
+  unsigned small_parent = c->pop_pack (false);
+
+  start_object (large_string.c_str (), 70000, c);
+  for (unsigned i = 0; i < num_leaves; i++)
+    add_offset (leaves[i], c);
+  unsigned large_parent = c->pop_pack (false);
+
+  start_object ("r", 1, c);
+  add_offset (small_parent, c);
+  add_offset (large_parent, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_with_isolation_overflow (hb_serialize_context_t* c)
 {
   std::string large_string(70000, 'a');
@@ -1552,6 +1588,56 @@ populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c,
   c->end_serialize();
 }
 
+// One PairPosFormat1 with num_pair_set PairSet offsets which all point at one
+// of num_shared small PairSets. PairSet i points at shared PairSet i % num_shared.
+template<int num_pair_set, int num_shared>
+static void
+populate_serializer_with_shared_pair_pos_1 (hb_serialize_context_t* c)
+{
+  c->start_serialize<char> ();
+
+  unsigned pair_set[num_shared];
+  for (int i = num_shared - 1; i >= 0; i--)
+  {
+    char pair_set_table[] = {
+      0, 1, // count
+      0, (char) i, // second glyph
+    };
+    pair_set[i] = add_object (pair_set_table, 4, c);
+  }
+
+  unsigned coverage = add_coverage (0, num_pair_set - 1, c);
+
+  char format[] = {
+    0, 1
+  };
+  start_object (format, 2, c);
+  add_offset (coverage, c);
+
+  char value_format[] = {
+    0, 0,
+    0, 0,
+    (char) ((num_pair_set >> 8) & 0xFF),
+    (char) (num_pair_set & 0xFF),
+  };
+  extend (value_format, 6, c);
+
+  for (int i = 0; i < num_pair_set; i++)
+    add_offset (pair_set[i % num_shared], c);
+
+  unsigned pair_pos_1 = c->pop_pack (false);
+
+  start_lookup (2, 1, c);
+  add_offset (pair_pos_1, c);
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
 template<int num_pair_pos_2, int num_class_1, int num_class_2>
 static void
 populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
@@ -2187,6 +2273,48 @@ static void test_will_overflow_3 ()
   free (buffer);
 }
 
+static void test_will_overflow_records ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  std::string large_string(70000, 'a');
+  c.start_serialize<char> ();
+
+  unsigned obj_leaf = add_object ("d", 1, &c);
+  unsigned obj_large = add_object (large_string.c_str(), 70000, &c);
+
+  start_object ("c", 1, &c);
+  add_offset (obj_leaf, &c);
+  add_offset (obj_leaf, &c);
+  unsigned obj_c = c.pop_pack (false);
+
+  start_object ("b", 1, &c);
+  add_offset (obj_leaf, &c);
+  add_offset (obj_leaf, &c);
+  unsigned obj_b = c.pop_pack (false);
+
+  start_object ("a", 1, &c);
+  add_offset (obj_b, &c);
+  add_offset (obj_c, &c);
+  add_offset (obj_large, &c);
+  c.pop_pack (false);
+
+  c.end_serialize();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+
+  // One record per overflowing (parent, child) pair, even if linked more than once.
+  hb_vector_t<graph::overflow_record_t> overflows;
+  hb_always_assert (graph::will_overflow (graph, &overflows).value ());
+  hb_always_assert (overflows.length == 2);
+  hb_always_assert (overflows[0].parent != overflows[1].parent);
+  hb_always_assert (overflows[0].child == overflows[1].child);
+
+  free (buffer);
+}
+
 static void test_resolve_overflows_via_sort ()
 {
   size_t buffer_size = 160000;
@@ -2538,6 +2666,69 @@ static void test_resolve_with_extension_pair_pos_1_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_shared_pair_set_pair_pos_1_split ()
+{
+  // A PairPosFormat1 whose offset array alone is over the 16 bit limit, so it
+  // has to be split, and whose PairSets are all shared. Splitting must keep
+  // the PairSets in order and must not be quadratic in the number of PairSets.
+  constexpr int num_pair_set = 40000;
+  constexpr int num_shared = 4;
+
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  hb_always_assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_shared_pair_pos_1 <num_pair_set, num_shared>(&c);
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  auto context = graph::gsubgpos_graph_context_t::create (HB_TAG ('G', 'P', 'O', 'S'),
+                                                          graph).value ();
+  hb_always_assert (context.lookups.get_population () == 1);
+  unsigned lookup_index = *context.lookups.keys ();
+  graph::Lookup* lookup = context.lookups.get (lookup_index);
+  hb_always_assert (lookup->split_subtables_if_needed (context, lookup_index).is_ok ());
+
+  const auto& lookup_vertex = graph.vertices_[lookup_index];
+  const char* lookup_table = lookup_vertex.obj ().head;
+  unsigned subtable_count = *(const OT::HBUINT16*) (lookup_table + 4);
+  hb_always_assert (subtable_count > 1);
+  hb_always_assert (lookup_vertex.obj ().real_links.length == subtable_count);
+  auto subtables = lookup_vertex.position_to_index_map ().value ();
+
+  unsigned pair_set_count = 0;
+  for (unsigned i = 0; i < subtable_count; i++)
+  {
+    unsigned subtable_position = 6 + 2 * i;
+    hb_always_assert (subtables.has (subtable_position));
+    unsigned subtable_index = subtables.get (subtable_position);
+
+    const auto& subtable_vertex = graph.vertices_[subtable_index];
+    const char* subtable = subtable_vertex.obj ().head;
+    hb_always_assert (subtable_vertex.table_size () >= 10);
+    hb_always_assert (*(const OT::HBUINT16*) subtable == 1); // format
+    unsigned count = *(const OT::HBUINT16*) (subtable + 8); // pairSetCount
+    hb_always_assert (count > 0);
+    hb_always_assert (subtable_vertex.table_size () == 10 + 2 * count);
+    // coverage + one link per PairSet
+    hb_always_assert (subtable_vertex.obj ().real_links.length == count + 1);
+
+    auto pair_sets = subtable_vertex.position_to_index_map ().value ();
+    hb_always_assert (pair_sets.has (2)); // coverage
+    for (unsigned j = 0; j < count; j++)
+    {
+      unsigned pair_set_position = 10 + 2 * j;
+      hb_always_assert (pair_sets.has (pair_set_position));
+      const auto& pair_set = graph.object (pair_sets.get (pair_set_position));
+      hb_always_assert (pair_set.tail - pair_set.head == 4);
+      hb_always_assert (pair_set.head[3] == (char) ((pair_set_count + j) % num_shared));
+    }
+    pair_set_count += count;
+  }
+  hb_always_assert (pair_set_count == num_pair_set);
+
+  free (buffer);
+}
+
 static void test_resolve_with_basic_pair_pos_2_split ()
 {
   size_t buffer_size = 300000;
@@ -2827,6 +3018,21 @@ static void test_resolve_overflows_via_priority ()
   free (expected_buffer);
 }
 
+static void test_unresolvable_priority_overflow ()
+{
+  size_t buffer_size = 300000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_unresolvable_priority_overflow (&c);
+
+  // Once every child of the large parent is at max priority further overflows
+  // from it must not re-walk all of its links, in every round.
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
+  hb_always_assert (!out);
+
+  free (buffer);
+}
+
 
 static void test_virtual_link ()
 {
@@ -2985,6 +3191,79 @@ test_deep_graph_traversal ()
 }
 
 static void
+test_duplicate_subgraph_vertex_limit ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaf = add_object ("leaf", 4, &c);
+  start_object ("root", 4, &c);
+  add_offset (leaf, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  while (graph.vertices_.length < HB_REPACKER_MAX_VERTICES - 1)
+    hb_always_assert (graph.new_node (nullptr, nullptr).is_ok ());
+
+  // There's only room left for one of the two nodes, the failure must be reported.
+  hb_map_t index_map;
+  auto result = graph.duplicate_subgraph (graph.root_idx (), index_map);
+  hb_always_assert (result.is_err ());
+  hb_always_assert (result.error () == graph::LIMIT_EXCEEDED);
+
+  free (buffer);
+}
+
+static void
+test_resolve_shared_overflow_vertex_limit ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaf = add_object ("leaf", 4, &c);
+
+  start_object ("a", 4, &c);
+  add_offset (leaf, &c);
+  unsigned a = c.pop_pack (false);
+
+  start_object ("b", 4, &c);
+  add_offset (leaf, &c);
+  unsigned b = c.pop_pack (false);
+
+  start_object ("root", 4, &c);
+  add_offset (a, &c);
+  add_offset (b, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  while (graph.vertices_.length < HB_REPACKER_MAX_VERTICES)
+    hb_always_assert (graph.new_node (nullptr, nullptr).is_ok ());
+
+  // 'a' (1) is not shared so it can't be duplicated, other resolution options may be tried.
+  hb_vector_t<graph::overflow_record_t> overflows;
+  overflows.push (graph::overflow_record_t {3, 1});
+  auto result = _resolve_shared_overflow (overflows, 0, graph);
+  hb_always_assert (result.is_ok ());
+  hb_always_assert (!*result);
+
+  // 'leaf' (0) is shared by 'a' (1) and 'b' (2), but there's no room left to duplicate it.
+  // The limit must be reported instead of continuing the overflow resolution.
+  overflows.reset ();
+  overflows.push (graph::overflow_record_t {1, 0});
+  result = _resolve_shared_overflow (overflows, 0, graph);
+  hb_always_assert (result.is_err ());
+  hb_always_assert (result.error () == graph::LIMIT_EXCEEDED);
+
+  free (buffer);
+}
+
+static void
 test_32bit_roots_traversal ()
 {
   size_t buffer_size = 1000;
@@ -3050,6 +3329,74 @@ test_32bit_roots_traversal ()
   hb_always_assert (roots2.get_population () == 1);
   hb_always_assert (roots2.has (a - 1));
   hb_always_assert (!roots2.has (b - 1));
+
+  free (buffer);
+}
+
+static void
+test_isolate_subgraph_shared_wide_parents ()
+{
+  // Several parents each have 32 bit links to the same set of leaves, as
+  // FeatureVariations ConditionSets do. One leaf also has a 16 bit link from
+  // outside the subgraph, so isolating the leaves must duplicate that leaf only.
+  //
+  // root -16-> p1, p2, p3
+  // root -16-> l1
+  // p1, p2, p3 -32-> l1, l2, l3
+  constexpr unsigned num_parents = 3;
+  constexpr unsigned num_leaves = 3;
+
+  size_t buffer_size = 1000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaves[num_leaves];
+  for (unsigned i = 0; i < num_leaves; i++)
+    leaves[i] = add_object ("leaf", 4, &c);
+
+  unsigned parents[num_parents];
+  for (unsigned i = 0; i < num_parents; i++)
+  {
+    start_object ("parent", 6, &c);
+    for (unsigned j = 0; j < num_leaves; j++)
+      add_wide_offset (leaves[j], &c);
+    parents[i] = c.pop_pack (false);
+  }
+
+  start_object ("root", 4, &c);
+  for (unsigned i = 0; i < num_parents; i++)
+    add_offset (parents[i], &c);
+  add_offset (leaves[0], &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  unsigned num_vertices = graph.vertices_.length;
+  hb_always_assert (num_vertices == 1 + num_parents + num_leaves);
+
+  hb_set_t roots;
+  for (unsigned i = 0; i < num_leaves; i++)
+    roots.add (leaves[i] - 1);
+
+  // leaves[0] has an incoming 16 bit edge from root, so it's duplicated.
+  hb_always_assert (graph.isolate_subgraph (roots).value ());
+  hb_always_assert (graph.vertices_.length == num_vertices + 1);
+  hb_always_assert (roots.get_population () == num_leaves);
+  hb_always_assert (!roots.has (leaves[0] - 1));
+  hb_always_assert (roots.has (num_vertices));
+  for (unsigned i = 1; i < num_leaves; i++)
+    hb_always_assert (roots.has (leaves[i] - 1));
+
+  hb_always_assert (graph.update_parents ().is_ok ());
+  hb_always_assert (graph.vertices_[leaves[0] - 1].incoming_edges () == 1);
+  hb_always_assert (graph.vertices_[num_vertices].incoming_edges () == num_parents);
+  for (unsigned i = 1; i < num_leaves; i++)
+    hb_always_assert (graph.vertices_[leaves[i] - 1].incoming_edges () == num_parents);
+
+  // Now that all incoming edges to the roots are 32 bit, nothing is left to isolate.
+  hb_always_assert (!graph.isolate_subgraph (roots).value ());
+  hb_always_assert (graph.vertices_.length == num_vertices + 1);
 
   free (buffer);
 }
@@ -3150,6 +3497,29 @@ static void test_pair_pos_format_2_sanitize_size_overflow ()
   hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
 }
 
+static void test_invalid_link_position ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_simple (&c);
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+
+  // Poison a link position so that position + width wraps around in
+  // 32 bit arithmetic. Serialization must reject it rather than write
+  // outside of the output buffer.
+  auto links = graph.vertices_[graph.root_idx ()].real_links_writer();
+  links->position = (unsigned) -1;
+  hb_always_assert (!graph::serialize (graph).is_ok ());
+
+  // The same poisoned link must be rejected when building the graph.
+  c.object_graph ().tail ()->real_links[0].position = (unsigned) -1;
+  hb_always_assert (!graph_t::create (c.object_graph ()).is_ok ());
+
+  free (buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -3160,15 +3530,18 @@ main (int argc, char **argv)
   test_pair_pos_format_2_sanitize_size_overflow ();
   test_invalid_link_objidx ();
   test_invalid_link_add_and_move ();
+  test_invalid_link_position ();
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
   test_will_overflow_2 ();
   test_will_overflow_3 ();
+  test_will_overflow_records ();
   test_resolve_overflows_via_sort ();
   test_resolve_overflows_via_duplication ();
   test_resolve_overflows_via_multiple_duplications ();
   test_resolve_overflows_via_priority ();
+  test_unresolvable_priority_overflow ();
   test_resolve_overflows_via_space_assignment ();
   test_resolve_overflows_via_isolation ();
   test_resolve_overflows_via_isolation_with_recursive_duplication ();
@@ -3191,6 +3564,7 @@ main (int argc, char **argv)
   test_resolve_with_repeated_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
   test_resolve_with_extension_pair_pos_1_split ();
+  test_resolve_with_shared_pair_set_pair_pos_1_split ();
   test_resolve_with_basic_pair_pos_2_split ();
   test_resolve_with_pair_pos_2_split_with_device_tables ();
   test_resolve_with_close_to_limit_pair_pos_2_split ();
@@ -3203,7 +3577,10 @@ main (int argc, char **argv)
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();
   test_deep_graph_traversal ();
+  test_duplicate_subgraph_vertex_limit ();
+  test_resolve_shared_overflow_vertex_limit ();
   test_32bit_roots_traversal ();
+  test_isolate_subgraph_shared_wide_parents ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.
