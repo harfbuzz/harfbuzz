@@ -730,9 +730,8 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   if (!draw->has_extents)
     return nullptr;
 
-  /* Collect the content stream.  The path coordinates are in
-   * SVG space (Y-down).  Prepend a CTM that flips Y so the
-   * PDF page (Y-up) renders correctly. */
+  /* Collect the content stream.  Extents and path coordinates are
+   * both in Y-up (font) space, same as the PDF page. */
   float ex = draw->extents.x;
   float ey = draw->extents.y;
   float ew = draw->extents.width;
@@ -758,7 +757,7 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
     stream.append_str (" rg\n");
     stream.append_num (ex);
     stream.append_c (' ');
-    stream.append_num (-(ey + eh));
+    stream.append_num (ey);
     stream.append_c (' ');
     stream.append_num (ew);
     stream.append_c (' ');
@@ -787,17 +786,16 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   offsets[1] = out.length;
   out.append_str ("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
-  /* Object 3: Page.  Extents are in SVG space (y = -font_y).
-   * Convert back: font Y range = [-(ey+eh) .. -ey]. */
+  /* Object 3: Page */
   offsets[2] = out.length;
   out.append_str ("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [");
   out.append_num (ex);
   out.append_c (' ');
-  out.append_num (-(ey + eh));
+  out.append_num (ey);
   out.append_c (' ');
   out.append_num (ex + ew);
   out.append_c (' ');
-  out.append_num (-ey);
+  out.append_num (ey + eh);
   out.append_str ("] /Contents 4 0 R");
   if (draw->pdf_extgstate_dict.length)
   {
