@@ -1040,6 +1040,17 @@ if get_option('tests').enabled()
       suite: ['src', 'subset'])
   endif
 
+  if not cpp_is_microsoft_compiler and conf.get('HAVE_GRAPHITE2', 0) == 1
+    test('test-graphite2-buffer', executable('test-graphite2-buffer', ['test-graphite2-buffer.cc', 'hb-static.cc'],
+      include_directories: incconfig,
+      cpp_args: cpp_args + ['-UNDEBUG'],
+      dependencies: libharfbuzz_dep,
+      install: false,
+    ),
+      args: [meson.project_source_root() / 'test/api/fonts/graphite2-expansion.ttf'],
+      suite: ['src', 'shape'])
+  endif
+
   if not get_option('raster').disabled()
     test('test-raster-paint', executable('test-raster-paint', 'test-raster-paint.cc',
       include_directories: incconfig,
