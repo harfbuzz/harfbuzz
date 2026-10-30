@@ -227,6 +227,19 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_REPACKER_MAX_ITERATIONS 500
 #endif
 
+/* Work budget of one repacker graph, per vertex and link it starts out
+ * with.  Each overflow-resolution pass walks every vertex and link, and an
+ * isolating pass does not count as a round, so the limits on iterations and
+ * vertices bound neither their product nor the number of links, which node
+ * duplication copies freely.  Sized like HB_SANITIZE_MAX_OPS, proportional
+ * to the input with a floor. */
+#ifndef HB_BUDGET_REPACKER_FACTOR
+#define HB_BUDGET_REPACKER_FACTOR 256
+#endif
+#ifndef HB_BUDGET_REPACKER_MIN
+#define HB_BUDGET_REPACKER_MIN ((int64_t) 1 << 22)
+#endif
+
 #ifndef HB_REPACKER_MAX_VERTICES
 #define HB_REPACKER_MAX_VERTICES 800000
 #endif

@@ -636,6 +636,9 @@ struct graph_t
     }
     TRY(r);
 
+    g.max_ops_ = hb_max ((int64_t) g.total_vertices_and_links () * HB_BUDGET_REPACKER_FACTOR,
+                         (int64_t) HB_BUDGET_REPACKER_MIN);
+
     return Ok (std::move (g));
   }
 
@@ -1357,6 +1360,10 @@ public:
       return Err(LIMIT_EXCEEDED);
     }
 
+    // The vertex limit doesn't bound the number of links, which the clone gets a copy of.
+    TRY (charge_ops (1 + vertices_[node_idx].obj ().real_links.length
+                       + vertices_[node_idx].obj ().virtual_links.length));
+
     positions_invalid = true;
     distance_invalid = true;
 
@@ -1744,6 +1751,27 @@ public:
     return total_size;
   }
 
+  size_t total_vertices_and_links () const {
+    size_t total = vertices_.length;
+    for (const auto& v : vertices_)
+      total += v.obj ().real_links.length + v.obj ().virtual_links.length;
+    return total;
+  }
+
+  /*
+   * Charges vertices and links that are about to be walked or added
+   * against the work budget of this graph.
+   */
+  graph_result_t<void> charge_ops (size_t ops)
+  {
+    if (likely (hb_budget_spend (max_ops_, HB_BUDGET_1, (unsigned) ops)))
+      return Ok();
+
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "work on the graph exceeds its HB_BUDGET_REPACKER budget.");
+    return Err(LIMIT_EXCEEDED);
+  }
+
 
  private:
 
@@ -2049,6 +2077,7 @@ public:
   bool parents_invalid = true;
   bool distance_invalid = true;
   bool positions_invalid = true;
+  int64_t max_ops_ = 0;
   hb_vector_t<unsigned> num_roots_for_space_;
   hb_vector_t<char*> buffers;
 };
