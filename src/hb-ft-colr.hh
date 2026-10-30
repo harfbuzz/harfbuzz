@@ -230,6 +230,7 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
          //
          // reset the iterator for next time
         cl->color_stop_iterator = iter;
+        *count = 0;
         return cl->color_stop_iterator.num_color_stops;
       }
     }

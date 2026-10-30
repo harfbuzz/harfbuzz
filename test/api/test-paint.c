@@ -391,6 +391,7 @@ typedef struct {
 #define TEST_GLYPHS_VF "fonts/test_glyphs-glyf_colr_1_variable.ttf"
 #define BAD_COLRV1  "fonts/bad_colrv1.ttf"
 #define ROCHER_ABC  "fonts/RocherColorGX.abc.ttf"
+#define SHORT_COLORLINE "fonts/colr-short-colorline.ttf"
 
 /* To verify the rendering visually, use
  *
@@ -688,6 +689,78 @@ test_color_stops_ft (void)
     test_color_stops (1);
   else
     g_test_skip ("FreeType COLRv1 support not present");
+}
+
+static void
+scrutinize_short_color_line (hb_paint_funcs_t *funcs HB_UNUSED,
+                             void *paint_data,
+                             hb_color_line_t *color_line,
+                             float x0 HB_UNUSED, float y0 HB_UNUSED,
+                             float x1 HB_UNUSED, float y1 HB_UNUSED,
+                             float x2 HB_UNUSED, float y2 HB_UNUSED,
+                             void *user_data HB_UNUSED)
+{
+  hb_bool_t *result = paint_data;
+  hb_color_stop_t stops[2];
+  hb_color_stop_t unwritten;
+  unsigned int len, start, count, i;
+
+  *result = FALSE;
+
+  len = hb_color_line_get_color_stops (color_line, 0, NULL, NULL);
+
+  /* Page through the stops; every stop counted as returned must have
+   * been written, even when the backend cannot produce any. */
+  memset (&unwritten, 0xAA, sizeof (unwritten));
+  for (start = 0; start < len; start += G_N_ELEMENTS (stops))
+  {
+    memset (stops, 0xAA, sizeof (stops));
+    count = G_N_ELEMENTS (stops);
+    hb_color_line_get_color_stops (color_line, start, &count, stops);
+    g_assert_cmpuint (count, <=, G_N_ELEMENTS (stops));
+    for (i = 0; i < count; i++)
+      if (memcmp (&stops[i], &unwritten, sizeof (unwritten)) == 0)
+        return;
+  }
+
+  *result = TRUE;
+}
+
+/* The font's ColorLine declares more stops than the COLR table holds.
+ * FreeType reports the declared count but refuses to iterate the stops;
+ * a request starting past the first stop must then report zero stops
+ * rather than leave the caller's buffer uninitialized. */
+static void
+test_color_stops_short_ft (void)
+{
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_paint_funcs_t *funcs;
+  hb_bool_t result = FALSE;
+
+  if (!have_ft_colrv1 ())
+  {
+    g_test_skip ("FreeType COLRv1 support not present");
+    return;
+  }
+
+  face = hb_test_open_font_file (SHORT_COLORLINE);
+  font = hb_font_create (face);
+
+#ifdef HB_HAS_FREETYPE
+  hb_ft_font_set_funcs (font);
+#endif
+
+  funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_linear_gradient_func (funcs, scrutinize_short_color_line, NULL, NULL);
+
+  hb_font_paint_glyph (font, 1, funcs, &result, 0, HB_COLOR (0, 0, 0, 255));
+
+  g_assert_true (result);
+
+  hb_paint_funcs_destroy (funcs);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
 }
 
 
@@ -1193,6 +1266,7 @@ main (int argc, char **argv)
   hb_test_add (test_color_stops_ot);
   hb_test_add (test_color_stops_ft);
   hb_test_add (test_ft_reentrant_paint);
+  hb_test_add (test_color_stops_short_ft);
 
   status = hb_test_run();
 
