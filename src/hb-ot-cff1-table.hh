@@ -32,6 +32,7 @@
 #include "hb-subset-cff-common.hh"
 #include "hb-draw.hh"
 #include "hb-paint.hh"
+#include "hb-cache.hh"
 
 #define HB_STRING_ARRAY_NAME cff1_std_strings
 #define HB_STRING_ARRAY_LIST "hb-ot-cff1-std-str.hh"
@@ -1259,7 +1260,18 @@ struct cff1
 	return 0;
 
       if (charset != &Null (Charset))
-	return charset->get_glyph (sid, num_glyphs);
+      {
+	/* Charset::get_glyph() is a linear scan of the charset, and seac
+	 * charstrings look their components up on every load.  Remember
+	 * the answer per StandardEncoding code; the key space is 256 codes
+	 * so the cache never collides. */
+	unsigned int glyph;
+	if (std_code_to_glyph_cache.get (code, &glyph))
+	  return glyph;
+	glyph = charset->get_glyph (sid, num_glyphs);
+	std_code_to_glyph_cache.set (code, glyph);
+	return glyph;
+      }
       else if ((topDict.CharsetOffset == ISOAdobeCharset)
 	      && (code <= 228 /*zcaron*/)) return sid;
       return 0;
@@ -1381,6 +1393,9 @@ struct cff1
 
     unsigned int	     num_glyphs = 0;
     unsigned int	     num_charset_entries = 0;
+
+    private:
+    mutable hb_cache_t<8, 16, 8> std_code_to_glyph_cache;
   };
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
