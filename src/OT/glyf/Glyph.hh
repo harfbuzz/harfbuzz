@@ -500,7 +500,7 @@ struct Glyph
 	  return false;
 	}
 
-	if (comp_points) // Empty in case of phantom_only
+	if (!phantom_only)
 	{
 	  float matrix[4];
 	  contour_point_t default_trans;
@@ -524,7 +524,10 @@ struct Glyph
 	  }
 	}
 
-	all_points.resize (all_points.length - PHANTOM_COUNT);
+	/* In phantom_only mode the component's contour points are reserved
+	 * but never loaded, and its phantoms are copied above. Drop them all,
+	 * so they are not carried to, and processed at, every level up. */
+	all_points.resize (phantom_only ? old_count : all_points.length - PHANTOM_COUNT);
 
 	if (all_points.length > HB_GLYF_MAX_POINTS)
 	{
@@ -559,7 +562,7 @@ struct Glyph
        * Shift points horizontally by the updated left side bearing
        */
       if (shift)
-        for (auto &point : all_points)
+        for (auto &point : all_points.as_array ().sub_array (phantom_only ? all_points.length - PHANTOM_COUNT : 0))
 	  point.x -= shift;
     }
 
