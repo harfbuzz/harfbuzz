@@ -1248,7 +1248,19 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
     hb_memcpy (override_name, name_str, str_len);
     name_bytes = hb_bytes_t (override_name, str_len);
   }
-  input->name_table_overrides.set (hb_ot_name_record_ids_t (platform_id, encoding_id, language_id, name_id), name_bytes);
+
+  hb_ot_name_record_ids_t record_ids (platform_id, encoding_id, language_id, name_id);
+
+  /* Overriding the same record again replaces the previous string; free it. */
+  hb_bytes_t *old_bytes;
+  if (input->name_table_overrides.has (record_ids, &old_bytes))
+    old_bytes->fini ();
+
+  if (unlikely (!input->name_table_overrides.set (record_ids, name_bytes)))
+  {
+    name_bytes.fini ();
+    return false;
+  }
   return true;
 }
 #endif
