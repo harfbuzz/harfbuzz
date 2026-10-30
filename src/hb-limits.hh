@@ -230,6 +230,22 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #endif
 
 
+/* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
+ * one int per (row, region) pair.  In the font a row only pays for the
+ * regions of its own VarData, so a small font can ask for a huge matrix.
+ * These are flat ceilings on that one allocation: a proportional bound
+ * would reject legitimate optimizer output, where several VarData use
+ * disjoint region subsets so the dense matrix is much wider than any one
+ * VarData.  Exceeding either limit fails instancing of that store. */
+#ifndef HB_SUBSET_MAX_VARSTORE_ROWS
+#define HB_SUBSET_MAX_VARSTORE_ROWS (1u << 21)
+#endif
+
+#ifndef HB_SUBSET_MAX_VARSTORE_DELTAS
+#define HB_SUBSET_MAX_VARSTORE_DELTAS ((uint64_t) 1 << 26)
+#endif
+
+
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
 #endif

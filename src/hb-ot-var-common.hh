@@ -2222,10 +2222,17 @@ struct item_variations_t
     for (unsigned major = 0; major < var_data_num_rows.length; major++)
       total_rows += var_data_num_rows[major];
 
+    /* Every row is allocated as wide as the whole region list, while in the
+     * font a row only pays for the regions of its own VarData (possibly none).
+     * Bound the matrix before allocating it. */
+    if (unlikely (total_rows > HB_SUBSET_MAX_VARSTORE_ROWS ||
+		  (uint64_t) total_rows * num_cols > HB_SUBSET_MAX_VARSTORE_DELTAS))
+      return false;
+
     if (!delta_rows.resize (total_rows)) return false;
     /* init all rows to [0]*num_cols */
     for (unsigned i = 0; i < total_rows; i++)
-      if (!(delta_rows[i].resize (num_cols))) return false;
+      if (!(delta_rows[i].resize_exact (num_cols))) return false;
 
     /* old VarIdxes -> full encoding_row mapping */
     hb_hashmap_t<unsigned, const hb_vector_t<int>*> front_mapping;

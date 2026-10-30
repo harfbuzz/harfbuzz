@@ -382,6 +382,43 @@ test_failed_encoding ()
   hb_always_assert (!item_vars.compile_varidx_map_for_testing (front_mapping));
 }
 
+static void
+test_delta_matrix_limits ()
+{
+  const unsigned num_rows = 0xFFFFu;
+
+  /* One row using every region plus many rows using only the first one: the
+   * dense matrix is rows x regions while the store only pays for the deltas. */
+  const unsigned region_counts[] = {2, (unsigned) (HB_SUBSET_MAX_VARSTORE_DELTAS / num_rows) + 1};
+  for (unsigned num_regions : region_counts)
+  {
+    OT::item_variations_t item_vars;
+    unsigned wide = item_vars.add_vardata (1);
+    for (unsigned i = 0; i < num_regions; i++)
+    {
+      hb_hashmap_t<hb_tag_t, Triple> region;
+      region.set (HB_TAG ('T','E','S','T'), Triple (0, (i + 1.) / num_regions, 1));
+      item_vars.add_tuple (wide, std::move (region), 0, 1, 1);
+    }
+    unsigned tall = item_vars.add_vardata (num_rows);
+    hb_hashmap_t<hb_tag_t, Triple> region;
+    region.set (HB_TAG ('T','E','S','T'), Triple (0, 1. / num_regions, 1));
+    item_vars.add_tuple (tall, std::move (region), 0, 1, num_rows);
+    hb_always_assert (item_vars.build_region_list ());
+    hb_always_assert (item_vars.get_region_list ().length == num_regions);
+    hb_always_assert (item_vars.as_item_varstore () == (num_regions == 2));
+  }
+
+  /* Rows of a VarData without regions take no space in the font at all. */
+  OT::item_variations_t item_vars;
+  unsigned outer = item_vars.add_vardata (1);
+  item_vars.add_tuple (outer, hb_hashmap_t<hb_tag_t, Triple> (), 0, 1, 1);
+  for (unsigned i = 0; i < HB_SUBSET_MAX_VARSTORE_ROWS / num_rows + 1; i++)
+    item_vars.add_vardata (num_rows);
+  hb_always_assert (item_vars.build_region_list ());
+  hb_always_assert (!item_vars.as_item_varstore ());
+}
+
 int
 main (int argc, char **argv)
 {
@@ -394,4 +431,5 @@ main (int argc, char **argv)
   test_accumulated_delta_widths ();
   test_condition_delta_precision ();
   test_repeated_region_index ();
+  test_delta_matrix_limits ();
 }
