@@ -45,8 +45,24 @@ struct LigatureSubstFormat1_2
 
   void depend (hb_depend_context_t *c) const
   {
-    + hb_zip (this+coverage, ligatureSet)
-    | hb_filter (c->parent_active_glyphs (), hb_first)
+    auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
+    if (ligatureSet.len > glyph_set.get_population () * 4)
+    {
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= ligatureSet.len)
+	  continue;
+	(this+ligatureSet.arrayZ[i]).depend (c, g);
+      }
+
+      return;
+    }
+
+    + hb_zip (cov, ligatureSet)
+    | hb_filter (glyph_set, hb_first)
     | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const typename Types::template OffsetTo<LigatureSet<Types>>&> &_)
                 {
                   const LigatureSet<Types>& ls = this+_.second;
@@ -57,8 +73,24 @@ struct LigatureSubstFormat1_2
 
   void closure (hb_closure_context_t *c) const
   {
-    + hb_zip (this+coverage, ligatureSet)
-    | hb_filter (c->parent_active_glyphs (), hb_first)
+    auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
+    if (ligatureSet.len > glyph_set.get_population () * 4)
+    {
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= ligatureSet.len)
+	  continue;
+	(this+ligatureSet.arrayZ[i]).closure (c);
+      }
+
+      return;
+    }
+
+    + hb_zip (cov, ligatureSet)
+    | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const LigatureSet<Types> &_) { _.closure (c); })

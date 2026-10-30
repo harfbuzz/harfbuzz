@@ -3589,6 +3589,22 @@ struct ContextFormat1_4
       nullptr
     };
 
+    if (ruleSet.len > c->previous_parent_active_glyphs ().get_population () * 4)
+    {
+      /* Recursion can reallocate the stack; fetch the set afresh each time. */
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
+      while (c->previous_parent_active_glyphs ().next (&g))
+      {
+	unsigned i = get_coverage ().get_coverage (g);
+	if (i == NOT_COVERED || i >= ruleSet.len)
+	  continue;
+	(this+ruleSet.arrayZ[i]).closure (c, g, lookup_context);
+      }
+
+      c->pop_cur_done_glyphs ();
+      return;
+    }
+
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
     | hb_filter ([&] (hb_codepoint_t _) {
       return c->previous_parent_active_glyphs ().has (_);
@@ -5231,6 +5247,22 @@ struct ChainContextFormat1_4
       ContextFormat::SimpleContext,
       {nullptr, nullptr, nullptr}
     };
+
+    if (ruleSet.len > c->previous_parent_active_glyphs ().get_population () * 4)
+    {
+      /* Recursion can reallocate the stack; fetch the set afresh each time. */
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
+      while (c->previous_parent_active_glyphs ().next (&g))
+      {
+	unsigned i = get_coverage ().get_coverage (g);
+	if (i == NOT_COVERED || i >= ruleSet.len)
+	  continue;
+	(this+ruleSet.arrayZ[i]).closure (c, g, lookup_context);
+      }
+
+      c->pop_cur_done_glyphs ();
+      return;
+    }
 
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
     | hb_filter ([&] (hb_codepoint_t _) {
