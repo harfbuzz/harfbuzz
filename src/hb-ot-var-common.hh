@@ -145,7 +145,9 @@ struct TupleVariationHeader
 	  shared_tuple_scalar_cache->length &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
       {
-        if (has_interm && (scalar != 0 && scalar != 1.f))
+        /* Intermediate regions can extend past the shared peak, where the
+         * default region's scalar is zero. Only a cached one is reusable. */
+        if (has_interm && scalar != 1.f)
 	  shared_tuple_scalar_cache = nullptr;
 	else
 	  return scalar;
