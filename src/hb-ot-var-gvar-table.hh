@@ -76,6 +76,9 @@ struct glyph_variations_t
 
   hb_alloc_pool_t pool;
 
+  /* points all tuples of this table may still be expanded to */
+  int64_t budget = 0;
+
   public:
   unsigned compiled_shared_tuples_count () const
   { return shared_tuples_count; }
@@ -92,10 +95,14 @@ struct glyph_variations_t
   bool create_from_glyphs_var_data (unsigned axis_count,
                                     const hb_array_t<const F2DOT14> shared_tuples,
                                     const hb_subset_plan_t *plan,
-                                    const hb_hashmap_t<hb_codepoint_t, hb_bytes_t>& new_gid_var_data_map)
+                                    const hb_hashmap_t<hb_codepoint_t, hb_bytes_t>& new_gid_var_data_map,
+                                    unsigned table_length)
   {
     if (unlikely (!glyph_variations.alloc_exact (plan->new_to_old_gid_list.length)))
       return false;
+
+    budget = hb_max ((int64_t) table_length * HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR,
+                     HB_BUDGET_SUBSET_TUPLE_POINTS_MIN);
 
     auto it = hb_iter (plan->new_to_old_gid_list);
     for (auto &_ : it)
@@ -132,7 +139,8 @@ struct glyph_variations_t
                                           shared_indices, shared_tuples,
                                           tuple_vars, /* OUT */
 					  &pool,
-                                          is_composite_glyph))
+                                          is_composite_glyph,
+                                          &budget))
         return false;
       glyph_variations.push (std::move (tuple_vars));
     }
@@ -363,7 +371,8 @@ struct gvar_GVAR
     if (new_gid_var_data_map.in_error ()) return false;
 
     hb_array_t<const F2DOT14> shared_tuples = (this+sharedTuples).as_array ((unsigned) sharedTupleCount * (unsigned) axisCount);
-    return glyph_vars.create_from_glyphs_var_data (axisCount, shared_tuples, c->plan, new_gid_var_data_map);
+    return glyph_vars.create_from_glyphs_var_data (axisCount, shared_tuples, c->plan, new_gid_var_data_map,
+                                                   c->source_blob->length);
   }
 
   template<typename Iterator,
