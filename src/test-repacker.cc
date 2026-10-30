@@ -744,6 +744,42 @@ populate_serializer_with_multiple_dedup_overflow (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_with_unresolvable_priority_overflow (hb_serialize_context_t* c)
+{
+  // One parent larger than 64kb with thousands of distinct leaf children, a few of which
+  // are shared with a small parent that packs before it. No 16 bit offset from the large
+  // parent can reach past it, so this can't be packed; but it shouldn't take long to find
+  // that out.
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  constexpr unsigned num_leaves = 10000;
+  constexpr unsigned num_shared = 40;
+  hb_vector_t<unsigned> leaves;
+  for (unsigned i = 0; i < num_leaves; i++) {
+    char leaf[3] = {'l', (char) (i >> 8), (char) i};
+    leaves.push (add_object (leaf, 3, c));
+  }
+
+  start_object ("s", 1, c);
+  for (unsigned i = 0; i < num_shared; i++)
+    add_offset (leaves[i], c);
+  unsigned small_parent = c->pop_pack (false);
+
+  start_object (large_string.c_str (), 70000, c);
+  for (unsigned i = 0; i < num_leaves; i++)
+    add_offset (leaves[i], c);
+  unsigned large_parent = c->pop_pack (false);
+
+  start_object ("r", 1, c);
+  add_offset (small_parent, c);
+  add_offset (large_parent, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_with_isolation_overflow (hb_serialize_context_t* c)
 {
   std::string large_string(70000, 'a');
@@ -2869,6 +2905,21 @@ static void test_resolve_overflows_via_priority ()
   free (expected_buffer);
 }
 
+static void test_unresolvable_priority_overflow ()
+{
+  size_t buffer_size = 300000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_unresolvable_priority_overflow (&c);
+
+  // Once every child of the large parent is at max priority further overflows
+  // from it must not re-walk all of its links, in every round.
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
+  hb_always_assert (!out);
+
+  free (buffer);
+}
+
 
 static void test_virtual_link ()
 {
@@ -3309,6 +3360,7 @@ main (int argc, char **argv)
   test_resolve_overflows_via_duplication ();
   test_resolve_overflows_via_multiple_duplications ();
   test_resolve_overflows_via_priority ();
+  test_unresolvable_priority_overflow ();
   test_resolve_overflows_via_space_assignment ();
   test_resolve_overflows_via_isolation ();
   test_resolve_overflows_via_isolation_with_recursive_duplication ();

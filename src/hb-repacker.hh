@@ -334,10 +334,11 @@ graph_result_t<bool> _process_overflows (const hb_vector_t<graph::overflow_recor
       //                     Since in that case moving the parent will cause a smaller increase in
       //                     the length of other offsets.
       TRY_ASSIGN (bool raised, sorted_graph.raise_childrens_priority (r.parent));
-      if (raised) {
-        priority_bumped_parents.add (r.parent);
+      // Record the parent even if nothing was raised: another attempt in this round can't
+      // do any better, and would walk all of the parent's links again for each overflow.
+      priority_bumped_parents.add (r.parent);
+      if (raised)
         resolution_attempted = true;
-      }
       continue;
     }
 
