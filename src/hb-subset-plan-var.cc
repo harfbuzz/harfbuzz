@@ -755,7 +755,8 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
         _hmtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb);
       }
       plan->hmtx_map.set (new_gid, hb_pair ((unsigned) hori_aw, lsb));
-      plan->bounds_width_vec[new_gid] = extents.width;
+      if (has_bounds_info)
+        plan->bounds_width_vec[new_gid] = extents.width;
     }
 
     if (_vmtx.has_data ())
@@ -777,7 +778,8 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       }
 
       plan->vmtx_map.set (new_gid, hb_pair ((unsigned) vert_aw, tsb));
-      plan->bounds_height_vec[new_gid] = extents.height;
+      if (has_bounds_info)
+        plan->bounds_height_vec[new_gid] = hb_saturate_neg (extents.height);
     }
   }
   /* No glyph contributed bounds: do not serialize the accumulator's
