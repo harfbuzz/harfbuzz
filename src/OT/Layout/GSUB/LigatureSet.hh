@@ -96,6 +96,9 @@ struct LigatureSet
 
     unsigned int num_ligs = ligature.len;
 
+    /* Walking the ligatures is cheap; those tried in full are charged there. */
+    if (unlikely (!c->charge_ops (num_ligs / 8))) return_trace (false);
+
 #ifndef HB_NO_OT_RULESETS_FAST_PATH
     if (HB_OPTIMIZE_SIZE_VAL || num_ligs <= 1)
 #endif

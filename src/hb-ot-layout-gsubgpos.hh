@@ -1181,6 +1181,22 @@ struct hb_ot_apply_context_t :
     return ret;
   }
 
+  /* Charge work that does not move glyphs, like walking the rules of a
+   * RuleSet, to the buffer's work budget.  Offsets can share their
+   * targets, so the number of rules (or ligatures) tried at one glyph
+   * is not bounded by the size of the font. */
+  bool charge_ops (unsigned int count)
+  {
+    if (unlikely (buffer->max_ops < (int) count))
+    {
+      buffer->max_ops = -1;
+      buffer->successful = false;
+      return false;
+    }
+    buffer->max_ops -= (int) count;
+    return true;
+  }
+
   skipping_iterator_t<hb_ot_apply_context_t> iter_input, iter_context;
 
   unsigned int table_index; /* GSUB/GPOS */
@@ -3189,6 +3205,7 @@ struct Rule
 	      const ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
+    if (unlikely (!c->charge_ops (1 + inputCount / 16))) return_trace (false);
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 					   (inputZ.as_array (inputCount ? inputCount - 1 : 0));
     return_trace (context_apply_lookup (c, inputCount, inputZ.arrayZ, lookupCount, lookupRecord.arrayZ, lookup_context));
@@ -3354,6 +3371,9 @@ struct RuleSetOf
     TRACE_APPLY (this);
 
     unsigned num_rules = rule.len;
+
+    /* Walking the rules is cheap; those tried in full are charged there. */
+    if (unlikely (!c->charge_ops (num_rules / 8))) return_trace (false);
 
 #ifndef HB_NO_OT_RULESETS_FAST_PATH
     if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 4)
@@ -4776,6 +4796,7 @@ struct ChainRule
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    if (unlikely (!c->charge_ops (1 + (backtrack.len + input.lenP1 + lookahead.len) / 16))) return_trace (false);
     return_trace (chain_context_apply_lookup (c,
 					      backtrack.len, backtrack.arrayZ,
 					      input.lenP1, input.arrayZ,
@@ -4997,6 +5018,9 @@ struct ChainRuleSetOf
     TRACE_APPLY (this);
 
     unsigned num_rules = rule.len;
+
+    /* Walking the rules is cheap; those tried in full are charged there. */
+    if (unlikely (!c->charge_ops (num_rules / 8))) return_trace (false);
 
 #ifndef HB_NO_OT_RULESETS_FAST_PATH
     if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 4)
