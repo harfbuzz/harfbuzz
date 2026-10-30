@@ -249,7 +249,8 @@ inline graph_result_t<hb_blob_t*> serialize (const graph_t& graph)
 
   if (!size) return Ok(hb_blob_get_empty ());
 
-  if (unlikely (!buffer.alloc (size))) {
+  // The output blob cannot represent a larger size; check before alloc () narrows it.
+  if (unlikely (size > INT_MAX || !buffer.alloc (size))) {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Unable to allocate output buffer.");
     return Err(ALLOCATION_FAILURE);
   }
