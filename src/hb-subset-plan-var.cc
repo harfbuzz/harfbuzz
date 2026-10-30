@@ -36,11 +36,13 @@
 
  #ifndef HB_NO_VAR
 
+ template<typename ItemVarStore>
  void
- generate_varstore_inner_maps (const hb_set_t& varidx_set,
-                               unsigned subtable_count,
+ generate_varstore_inner_maps (const ItemVarStore &var_store,
+                               const hb_set_t& varidx_set,
                                hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */)
  {
+   unsigned subtable_count = var_store.get_sub_table_count ();
    if (varidx_set.is_empty () || subtable_count == 0) return;
 
    if (unlikely (!inner_maps.resize (subtable_count))) return;
@@ -49,11 +51,19 @@
      uint16_t major = idx >> 16;
      uint16_t minor = idx & 0xFFFF;
 
-     if (major >= subtable_count)
+     /* Runtime treats out-of-range delta-set indices as zero; don't
+      * retain rows the store doesn't have. */
+     if (!var_store.has_delta_set (idx))
        continue;
      inner_maps[major].add (minor);
    }
  }
+
+ template
+ void
+ generate_varstore_inner_maps<OT::ItemVariationStore> (const OT::ItemVariationStore &var_store,
+                               const hb_set_t& varidx_set,
+                               hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */);
 
  /* Evaluate a variation-region tent at v, mirroring VarRegionAxis::evaluate
   * (invalid regions evaluate as constant 1). */
@@ -392,7 +402,7 @@
    auto *store_cache = var_store.create_cache ();
 
    unsigned new_major = 0, new_minor = 0;
-   unsigned last_major = (variation_indices.get_min ()) >> 16;
+   unsigned last_major = (unsigned) -1;
    for (unsigned idx : variation_indices)
    {
      int delta = 0;
@@ -408,7 +418,15 @@
 
      uint16_t major = idx >> 16;
      if (major >= subtable_count) break;
-     if (major != last_major)
+     /* Keep in sync with generate_varstore_inner_maps (): rows the store
+      * doesn't have are not retained, so such an index keeps its runtime
+      * meaning (no delta) instead of consuming a new row. */
+     if (!var_store.has_delta_set (idx))
+     {
+       variation_idx_delta_map.set (idx, hb_pair_t<unsigned, int> (HB_OT_LAYOUT_NO_VARIATIONS_INDEX, delta));
+       continue;
+     }
+     if (last_major != (unsigned) -1 && major != last_major)
      {
        new_minor = 0;
        ++new_major;
@@ -445,15 +463,13 @@
    hb_set_t varidx_set;
    base->collect_variation_indices (plan, varidx_set);
    const OT::ItemVariationStore &var_store = base->get_var_store ();
-   unsigned subtable_count = var_store.get_sub_table_count ();
-
 
    remap_variation_indices (var_store, varidx_set,
                              plan->normalized_coords,
                              !plan->pinned_at_default,
                              plan->all_axes_pinned,
                              plan->base_variation_idx_map);
-   generate_varstore_inner_maps (varidx_set, subtable_count, plan->base_varstore_inner_maps);
+   generate_varstore_inner_maps (var_store, varidx_set, plan->base_varstore_inner_maps);
 
    base.destroy ();
  }
