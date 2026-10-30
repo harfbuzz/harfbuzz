@@ -76,8 +76,32 @@ struct hb_pdf_resources_t
   unsigned shading_count = 0;
   unsigned xobject_count = 0;
 
+  /* Every object is a buffer of its own, so the per-buffer document cap
+   * bounds each object but not their number.  Charge all objects against the
+   * same cap with a running total, and make the overflow sticky like
+   * hb_vector_buf_t::overflowed, so a COLRv1 font that paints one large
+   * gradient thousands of times cannot allocate gigabytes of objects that
+   * would only be refused when they are concatenated at render time. */
+  unsigned objects_size = 0;
+  bool overflowed = false;
+
+  bool in_error () const
+  { return objects.in_error () || overflowed; }
+
   unsigned add_object (hb_vector_buf_t &&obj_data)
   {
+    /* Per-object framing emitted at render time: "N 0 obj\n", "\nendobj\n",
+     * and the xref entry.  Neither operand can exceed the cap, so the sum
+     * cannot wrap. */
+    const unsigned framing = 17 + 8 + 20;
+    if (unlikely (in_error () || obj_data.in_error () ||
+		  objects_size + obj_data.length + framing > HB_VECTOR_MAX_DOCUMENT_SIZE))
+    {
+      overflowed = true;
+      return 0; /* Never a valid object id. */
+    }
+    objects_size += obj_data.length + framing;
+
     unsigned id = 5 + objects.length; /* objects 1-4 are fixed */
     hb_pdf_obj_t obj;
     obj.data = std::move (obj_data);
@@ -735,7 +759,8 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return false;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return false;
 
   unsigned len = 0;
@@ -1046,7 +1071,8 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return;
 
   /* Fetch, normalize stops to [0,1], and adjust coordinates. */
@@ -1149,7 +1175,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return;
 
   /* Fetch, normalize stops to [0,1], and adjust coordinates. */
@@ -1440,7 +1467,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return;
 
   /* Get and sort color stops. */
@@ -1676,6 +1704,9 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 
   hb_vector_buf_t &content = paint->group_stack.arrayZ[0];
   hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
+  /* Over the document cap: the content stream refers to dropped objects. */
+  if (unlikely (res && res->in_error ()))
+    return nullptr;
 
   float ex = paint->extents.x;
   float ey = paint->extents.y;

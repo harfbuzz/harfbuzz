@@ -317,6 +317,54 @@ test_nested_color_glyphs (hb_vector_format_t format)
   hb_face_destroy (face);
 }
 
+#define GRADIENT_STOPS 1000
+
+static unsigned
+gradient_color_stops (hb_color_line_t *cl, void *cl_data,
+		      unsigned start, unsigned *count,
+		      hb_color_stop_t *stops, void *user_data)
+{
+  if (count && stops)
+  {
+    unsigned n = 0;
+    for (; n < *count && start + n < GRADIENT_STOPS; n++)
+    {
+      stops[n].offset = (float) (start + n) / (GRADIENT_STOPS - 1);
+      stops[n].is_foreground = 0;
+      stops[n].color = HB_COLOR ((start + n) & 0xFF, 0, 0, 255);
+    }
+    *count = n;
+  }
+  return GRADIENT_STOPS;
+}
+
+static hb_paint_extend_t
+gradient_extend (hb_color_line_t *cl, void *cl_data, void *user_data)
+{ return HB_PAINT_EXTEND_PAD; }
+
+/* The PDF backend emits one function object per pair of color stops for
+ * every gradient paint, each object a buffer of its own.  The document cap
+ * must bound their total, or a COLRv1 font that paints one large gradient
+ * thousands of times allocates gigabytes that are only refused at render. */
+static void
+test_pdf_objects_cap (void)
+{
+  hb_color_line_t color_line = {0};
+  color_line.get_color_stops = gradient_color_stops;
+  color_line.get_extend = gradient_extend;
+
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_PDF);
+  hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
+  hb_glyph_extents_t ext = {0, 100, 100, -100};
+  hb_vector_paint_set_glyph_extents (paint, &ext);
+  for (unsigned i = 0; i < 500; i++)
+    hb_paint_linear_gradient (funcs, paint, &color_line, 0, 0, 100, 0, 0, 100);
+  /* ~500k function objects, far over the cap in total: render must refuse
+   * rather than return a document built from objects that were dropped. */
+  assert (!hb_vector_paint_render (paint));
+  hb_vector_paint_destroy (paint);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -332,6 +380,7 @@ main (int argc, char **argv)
   test_indexed_smask_cap ();
   test_nested_color_glyphs (HB_VECTOR_FORMAT_SVG);
   test_nested_color_glyphs (HB_VECTOR_FORMAT_PDF);
+  test_pdf_objects_cap ();
 
   hb_font_destroy (font);
   hb_face_destroy (face);

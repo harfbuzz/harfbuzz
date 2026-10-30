@@ -845,7 +845,11 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  if (unlikely (!paint->group_stack.push_or_fail (hb_vector_buf_t {})))
+  /* The group is appended to the enclosing body when popped, so it shares
+   * the document cap with everything already held by the open groups. */
+  hb_vector_buf_t group;
+  group.base = paint->current_body ().base + paint->current_body ().length;
+  if (unlikely (!paint->group_stack.push_or_fail (std::move (group))))
     return;
 }
 
