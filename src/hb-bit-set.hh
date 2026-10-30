@@ -327,7 +327,6 @@ struct hb_bit_set_t
 	  page_map.arrayZ[write_index++] = page_map.arrayZ[i];
       }
       compact (compact_workspace, write_index);
-      resize (write_index);
     }
   }
 
@@ -510,6 +509,9 @@ struct hb_bit_set_t
   /*
    * workspace should be a pre-sized vector allocated to hold at exactly pages.length
    * elements.
+   *
+   * Truncates page_map and pages to length, which cannot fail, so that the set
+   * stays well-formed even if the caller then fails to grow it.
    */
   void compact (hb_vector_t<unsigned>& workspace,
                 unsigned int length)
@@ -522,6 +524,9 @@ struct hb_bit_set_t
       old_index_to_page_map_index[page_map[i].index] =  i;
 
     compact_pages (old_index_to_page_map_index);
+
+    page_map.shrink (length, false);
+    pages.shrink (length, false);
   }
   void compact_pages (const hb_vector_t<unsigned>& old_index_to_page_map_index)
   {

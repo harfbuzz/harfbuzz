@@ -281,5 +281,34 @@ main (int argc, char **argv)
     hb_always_assert (*it == HB_SET_VALUE_INVALID - 2);
   }
 
+  /* Test that a set stays well-formed if growing it fails after its pages
+   * have been compacted (process_() for union/intersect/subtract against an
+   * inverted set, and del_range()). */
+  for (unsigned test = 0; test < 2; test++)
+  {
+    hb_bit_set_t s, o;
+    for (unsigned i = 8; i--;)
+      s.add (i * hb_bit_set_t::page_t::PAGE_BITS);
+    for (unsigned i = 4; i < 64; i++)
+      o.add (i * hb_bit_set_t::page_t::PAGE_BITS);
+
+    s.pages.set_error (); /* Simulate allocation failure. */
+    if (test)
+      s.del_range (0, 4 * hb_bit_set_t::page_t::PAGE_BITS - 1);
+    else
+    {
+      s.process (hb_bitwise_lt, o);
+      hb_always_assert (s.in_error ());
+    }
+
+    hb_always_assert (s.pages.length == 4);
+    hb_always_assert (s.page_map.length == 4);
+    for (unsigned i = 0; i < 4; i++)
+    {
+      hb_always_assert (s.page_map[i].major == 4 + i);
+      hb_always_assert (s.page_map[i].index == 3 - i);
+    }
+  }
+
   return 0;
 }
