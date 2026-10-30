@@ -152,6 +152,45 @@ struct hb_ft_paint_context_t
   int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
 };
 
+static void
+_hb_ft_get_solid_color (hb_ft_paint_context_t *c,
+			const FT_ColorIndex &color_index,
+			hb_bool_t *is_foreground,
+			hb_color_t *color)
+{
+  *is_foreground = color_index.palette_index == 0xFFFF;
+
+  if (*is_foreground)
+  {
+    *color = HB_COLOR (hb_color_get_blue (c->foreground),
+		       hb_color_get_green (c->foreground),
+		       hb_color_get_red (c->foreground),
+		       _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
+					   color_index.alpha));
+    return;
+  }
+
+  c->ft_font->lock.unlock ();
+  bool custom = c->funcs->custom_palette_color (c->data, color_index.palette_index, color);
+  c->ft_font->lock.lock ();
+  if (custom)
+  {
+    *color = HB_COLOR (hb_color_get_blue (*color),
+		       hb_color_get_green (*color),
+		       hb_color_get_red (*color),
+		       _hb_ft_color_alpha (hb_color_get_alpha (*color),
+					   color_index.alpha));
+    return;
+  }
+
+  FT_Color ft_color = c->palette ? c->palette[color_index.palette_index] : FT_Color {};
+  *color = HB_COLOR (ft_color.blue,
+		     ft_color.green,
+		     ft_color.red,
+		     _hb_ft_color_alpha (ft_color.alpha,
+					 color_index.alpha));
+}
+
 static unsigned
 _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 				   void *color_line_data,
@@ -160,11 +199,15 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 				   hb_color_stop_t *color_stops,
 				   void *user_data)
 {
-  FT_ColorLine *cl = (FT_ColorLine *) color_line_data;
+  /* Keep iteration local: a palette callback can query this color line again. */
+  FT_ColorLine line = *(FT_ColorLine *) color_line_data;
+  FT_ColorLine *cl = &line;
   hb_ft_paint_context_t *c = (hb_ft_paint_context_t *) user_data;
 
   if (count && color_stops)
   {
+    /* Gradient callbacks run without the face lock. */
+    hb_lock_t lock (c->ft_font->lock);
     FT_ColorStop stop;
     unsigned wrote = 0;
     FT_ColorStopIterator iter = cl->color_stop_iterator;
@@ -202,36 +245,8 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
       else
 	color_stops->offset = stop.stop_offset / 65536.f;
 
-      color_stops->is_foreground = stop.color.palette_index == 0xFFFF;
-      if (color_stops->is_foreground)
-	color_stops->color = HB_COLOR (hb_color_get_blue (c->foreground),
-				       hb_color_get_green (c->foreground),
-				       hb_color_get_red (c->foreground),
-				       _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
-							   stop.color.alpha));
-      else
-      {
-	hb_color_t color;
-        if (c->funcs->custom_palette_color (c->data, stop.color.palette_index, &color))
-	{
-	  color_stops->color = HB_COLOR (hb_color_get_blue (color),
-					 hb_color_get_green (color),
-					 hb_color_get_red (color),
-					 _hb_ft_color_alpha (hb_color_get_alpha (color),
-							     stop.color.alpha));
-	}
-	else if (c->palette)
-	{
-	  FT_Color ft_color = c->palette[stop.color.palette_index];
-	  color_stops->color = HB_COLOR (ft_color.blue,
-					 ft_color.green,
-					 ft_color.red,
-					 _hb_ft_color_alpha (ft_color.alpha,
-							     stop.color.alpha));
-	}
-	else
-	  color_stops->color = HB_COLOR (0, 0, 0, 0);
-      }
+      _hb_ft_get_solid_color (c, stop.color,
+			      &color_stops->is_foreground, &color_stops->color);
 
       color_stops++;
       wrote++;
@@ -258,42 +273,6 @@ _hb_ft_color_line_get_extend (hb_color_line_t *color_line,
     case FT_COLR_PAINT_EXTEND_REPEAT:  return HB_PAINT_EXTEND_REPEAT;
     case FT_COLR_PAINT_EXTEND_REFLECT: return HB_PAINT_EXTEND_REFLECT;
   }
-}
-
-static void
-_hb_ft_get_solid_color (hb_ft_paint_context_t *c,
-			const FT_ColorIndex &color_index,
-			hb_bool_t *is_foreground,
-			hb_color_t *color)
-{
-  *is_foreground = color_index.palette_index == 0xFFFF;
-
-  if (*is_foreground)
-  {
-    *color = HB_COLOR (hb_color_get_blue (c->foreground),
-		       hb_color_get_green (c->foreground),
-		       hb_color_get_red (c->foreground),
-		       _hb_ft_color_alpha (hb_color_get_alpha (c->foreground),
-					   color_index.alpha));
-    return;
-  }
-
-  if (c->funcs->custom_palette_color (c->data, color_index.palette_index, color))
-  {
-    *color = HB_COLOR (hb_color_get_blue (*color),
-		       hb_color_get_green (*color),
-		       hb_color_get_red (*color),
-		       _hb_ft_color_alpha (hb_color_get_alpha (*color),
-					   color_index.alpha));
-    return;
-  }
-
-  FT_Color ft_color = c->palette[color_index.palette_index];
-  *color = HB_COLOR (ft_color.blue,
-		     ft_color.green,
-		     ft_color.red,
-		     _hb_ft_color_alpha (ft_color.alpha,
-					 color_index.alpha));
 }
 
 void
@@ -329,7 +308,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       hb_bool_t is_foreground;
       hb_color_t color;
       _hb_ft_get_solid_color (c, paint.u.solid.color, &is_foreground, &color);
+      c->ft_font->lock.unlock ();
       c->funcs->color (c->data, is_foreground, color);
+      c->ft_font->lock.lock ();
     }
     break;
     case FT_COLR_PAINTFORMAT_LINEAR_GRADIENT:
@@ -340,6 +321,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 	_hb_ft_color_line_get_extend, nullptr
       };
 
+      c->ft_font->lock.unlock ();
       c->funcs->linear_gradient (c->data, &cl,
 				 paint.u.linear_gradient.p0.x / 65536.f,
 				 paint.u.linear_gradient.p0.y / 65536.f,
@@ -347,6 +329,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 				 paint.u.linear_gradient.p1.y / 65536.f,
 				 paint.u.linear_gradient.p2.x / 65536.f,
 				 paint.u.linear_gradient.p2.y / 65536.f);
+      c->ft_font->lock.lock ();
     }
     break;
     case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT:
@@ -357,6 +340,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 	_hb_ft_color_line_get_extend, nullptr
       };
 
+      c->ft_font->lock.unlock ();
       c->funcs->radial_gradient (c->data, &cl,
 				 paint.u.radial_gradient.c0.x / 65536.f,
 				 paint.u.radial_gradient.c0.y / 65536.f,
@@ -364,6 +348,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 				 paint.u.radial_gradient.c1.x / 65536.f,
 				 paint.u.radial_gradient.c1.y / 65536.f,
 				 paint.u.radial_gradient.r1 / 65536.f);
+      c->ft_font->lock.lock ();
     }
     break;
     case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT:
@@ -374,11 +359,13 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 	_hb_ft_color_line_get_extend, nullptr
       };
 
+      c->ft_font->lock.unlock ();
       c->funcs->sweep_gradient (c->data, &cl,
 				paint.u.sweep_gradient.center.x / 65536.f,
 				paint.u.sweep_gradient.center.y / 65536.f,
 				(paint.u.sweep_gradient.start_angle / 65536.f + 1) * HB_PI,
 				(paint.u.sweep_gradient.end_angle / 65536.f + 1) * HB_PI);
+      c->ft_font->lock.lock ();
     }
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
@@ -572,6 +559,13 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        FT_COLOR_NO_ROOT_TRANSFORM,
 			        &paint))
   {
+    /* Callbacks may select another palette on the same face. */
+    hb_vector_t<FT_Color> palette_copy;
+    palette_copy.extend (palette_array);
+    if (unlikely (palette_copy.in_error ()))
+      return false;
+    palette_array = palette_copy.as_array ();
+
     hb_ft_paint_context_t c (ft_font, font,
 			     paint_funcs, paint_data,
 			     palette_array, palette_index, foreground);
