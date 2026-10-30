@@ -85,6 +85,8 @@ public:
   hb_decycler_t layers_decycler;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
+  int64_t local_budget = HB_BUDGET_GLYPH;
+  int64_t *budget;
 
   hb_paint_context_t (const void *base_,
 		      hb_paint_funcs_t *funcs_,
@@ -104,8 +106,12 @@ public:
 #endif
     ),
     foreground (foreground_),
-    instancer (instancer_)
+    instancer (instancer_),
+    budget (funcs->get_budget_remaining_ptr (data))
   {
+    if (!budget)
+      budget = &local_budget;
+
     if (font->is_synthetic)
     {
       font = hb_font_create_sub_font (font);
@@ -606,6 +612,10 @@ struct ColorLine
       for (i = 0; i < *count && start + i < len; i++)
         stops[start + i].get_color_stop (c, &color_stops[i], instancer);
       *count = i;
+
+      /* A gradient is one graph edge however long its color line is, and
+       * color lines can be shared.  recurse() stops once this runs out. */
+      hb_budget_spend (*c->budget, HB_BUDGET_16, i);
     }
 
     return len;
@@ -3266,7 +3276,7 @@ struct COLR_accelerator_t : COLR::accelerator_t {
 void
 hb_paint_context_t::recurse (const Paint &paint)
 {
-  if (unlikely (depth_left <= 0 || edge_count <= 0)) return;
+  if (unlikely (depth_left <= 0 || edge_count <= 0 || *budget < 0)) return;
   depth_left--;
   edge_count--;
   paint.dispatch (this);
