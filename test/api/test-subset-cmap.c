@@ -352,6 +352,115 @@ test_subset_DMAP (void)
   hb_face_destroy (face);
 }
 
+/* Many encoding records sharing one format 12 subtable whose group spans
+ * all of Unicode: the subsetter must collect the subtable once, and only
+ * up to the font's glyph count, instead of once per record. */
+static void
+test_subset_cmap_shared_subtable_many_records (void)
+{
+  const unsigned num_records = 4000;
+  const char maxp_data[] = {
+    0, 0, 0x50, 0, 0, 3,
+  };
+  unsigned cmap_len = 4 + 8 * num_records + 16 + 12;
+  char *cmap_data = calloc (1, cmap_len);
+  g_assert_nonnull (cmap_data);
+
+  char *p = cmap_data;
+  *p++ = 0; *p++ = 0;                                  /* version */
+  *p++ = num_records >> 8; *p++ = num_records & 0xFF;  /* numTables */
+  unsigned subtable_offset = 4 + 8 * num_records;
+  for (unsigned i = 0; i < num_records; i++)
+  {
+    *p++ = 0; *p++ = 3; *p++ = 0; *p++ = 10;           /* platform 3, encoding 10 */
+    *p++ = subtable_offset >> 24; *p++ = subtable_offset >> 16;
+    *p++ = subtable_offset >> 8;  *p++ = subtable_offset;
+  }
+  const char subtable[] = {
+    0, 12, 0, 0, 0, 0, 0, 28,                          /* format 12 header */
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 'A', 0, 0x10, 0xFF, 0xFF, 0, 0, 0, 1,     /* U+0041..U+10FFFF -> 1... */
+  };
+  memcpy (p, subtable, sizeof (subtable));
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  hb_blob_t *cmap_blob = hb_blob_create_or_fail (cmap_data, cmap_len,
+						 HB_MEMORY_MODE_WRITABLE,
+						 cmap_data, free);
+  hb_face_builder_add_table (face, HB_TAG ('c','m','a','p'), cmap_blob);
+  hb_blob_destroy (cmap_blob);
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'A');
+  hb_face_t *subset = hb_subset_test_create_subset (face,
+						    hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_font_t *font = hb_font_create (subset);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'A', &glyph));
+  g_assert_cmpuint (glyph, ==, 1);
+  g_assert_false (hb_font_get_nominal_glyph (font, 'B', &glyph));
+  hb_font_destroy (font);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
+/* Several encoding records that repeat one (platformID, encodingID) pair,
+ * two sharing a subtable and one with its own copy: the subset must keep
+ * only the first record of the pair, so the output cmap has a single
+ * encoding record and still maps the retained code point. */
+static void
+test_subset_cmap_repeated_encoding_records (void)
+{
+  const char maxp_data[] = {
+    0, 0, 0x50, 0, 0, 3,
+  };
+  const char cmap_data[] = {
+    0, 0, 0, 3,                                    /* version, numTables = 3 */
+    0, 3, 0, 10, 0, 0, 0, 28,                      /* (3,10) -> subtable A */
+    0, 3, 0, 10, 0, 0, 0, 28,                      /* (3,10) -> subtable A */
+    0, 3, 0, 10, 0, 0, 0, 56,                      /* (3,10) -> subtable B */
+    /* subtable A at 28 */
+    0, 12, 0, 0, 0, 0, 0, 28,
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 'A', 0, 0x10, 0xFF, 0xFF, 0, 0, 0, 1,
+    /* subtable B at 56 */
+    0, 12, 0, 0, 0, 0, 0, 28,
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 'A', 0, 0x10, 0xFF, 0xFF, 0, 0, 0, 1,
+  };
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'A');
+  hb_face_t *subset = hb_subset_test_create_subset (face,
+						    hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_blob_t *out = hb_face_reference_table (subset, HB_TAG ('c','m','a','p'));
+  unsigned out_len = 0;
+  const char *out_data = hb_blob_get_data (out, &out_len);
+  g_assert_cmpuint (out_len, >=, 4);
+  unsigned num_tables = ((unsigned char) out_data[2] << 8) | (unsigned char) out_data[3];
+  g_assert_cmpuint (num_tables, ==, 1);
+  hb_blob_destroy (out);
+
+  hb_font_t *font = hb_font_create (subset);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'A', &glyph));
+  g_assert_cmpuint (glyph, ==, 1);
+  hb_font_destroy (font);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
 #ifndef HB_NO_BEYOND_64K
 static void
 test_subset_cmap_format15 (void)
@@ -424,6 +533,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cmap_noto_color_emoji_noop);
   hb_test_add (test_subset_cmap_noto_color_emoji_non_consecutive_glyphs);
   hb_test_add (test_subset_DMAP);
+  hb_test_add (test_subset_cmap_shared_subtable_many_records);
+  hb_test_add (test_subset_cmap_repeated_encoding_records);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_cmap_format15);
   hb_test_add (test_subset_cmap15_default_uvs_range_limit);
