@@ -1021,7 +1021,10 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   else if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
 #ifdef HAVE_PNG
-    if (!decoded_png.deserialize_from_png (blob))
+    /* The image size is font data and the decoder allocates and fills all
+     * of it before it can be charged below; bound it like other surfaces
+     * sized from font data. */
+    if (!decoded_png.deserialize_from_png (blob, HB_RASTER_MAX_AUTO_DIMENSION))
       return false;
     src_width = decoded_png.extents.width;
     src_height = decoded_png.extents.height;

@@ -645,6 +645,59 @@ test_clip_rectangle_transformed (void)
     }
 }
 
+/* Paint the middle of an opaque PNG image of the given width onto a 1x1
+ * surface; returns the resulting alpha, or -1 if built without PNG. */
+static int
+paint_png_image (unsigned width)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+
+  hb_raster_extents_t ext = {0, 0, width, 4, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_paint_color (funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  hb_blob_t *png = hb_raster_image_serialize_to_png_or_fail (img);
+  hb_raster_image_destroy (img);
+  if (!png)
+  {
+    hb_raster_paint_destroy (paint);
+    return -1;
+  }
+
+  ext.width = ext.height = 1;
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_glyph_extents_t gext = {-2, 2, 4, -4};
+  hb_paint_image (funcs, paint, png, width, 4,
+		  HB_PAINT_IMAGE_FORMAT_PNG, 0.f, &gext);
+  img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  int alpha = hb_raster_image_get_buffer (img)[3];
+  hb_raster_image_destroy (img);
+
+  hb_blob_destroy (png);
+  hb_raster_paint_destroy (paint);
+  return alpha;
+}
+
+/* The size of an embedded PNG is font data and the whole image is decoded
+ * whatever the size of the surface; one past the cap for surfaces sized
+ * from font data is not decoded at all. */
+static void
+test_image_png_size (void)
+{
+  int alpha = paint_png_image (4096);
+  if (alpha == -1)
+  {
+    g_test_skip ("Built without PNG support.");
+    return;
+  }
+  g_assert_cmpint (alpha, ==, 255);
+  g_assert_cmpint (paint_png_image (4097), ==, 0);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -667,6 +720,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_reset);
   hb_test_add (test_set_extents_while_painting);
   hb_test_add (test_clip_rectangle_transformed);
+  hb_test_add (test_image_png_size);
 
   return hb_test_run ();
 }

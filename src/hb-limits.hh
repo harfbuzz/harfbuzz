@@ -154,7 +154,8 @@
 #endif
 
 /* Maximum surface dimension (pixels per side) when extents are derived
- * from font data (glyph extents or accumulated outline bounds).  Bounds
+ * from font data (glyph extents, accumulated outline bounds, or the header
+ * of an embedded PNG image about to be decoded).  Bounds
  * attacker-controlled allocations; extents set explicitly through
  * hb_raster_{draw,paint}_set_extents() are not limited. */
 #ifndef HB_RASTER_MAX_AUTO_DIMENSION
