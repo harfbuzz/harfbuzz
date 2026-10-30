@@ -251,6 +251,24 @@ test_budget (void)
 }
 
 static void
+test_budget_cubic (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
+  hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
+
+  /* A cubic that fits no quadratic at any depth must not be subdivided
+   * once the budget is spent; the subdivision itself is charged. */
+  g_assert_true (hb_draw_set_budget (draw_funcs, draw, 0));
+  hb_draw_move_to (draw_funcs, draw, &draw_state, 0.f, 0.f);
+  hb_draw_cubic_to (draw_funcs, draw, &draw_state,
+		    1e9f, 3e8f, 1e9f, -7e8f, 3.f, 3e9f);
+  g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), ==, -1);
+
+  hb_gpu_draw_destroy (draw);
+}
+
+static void
 test_draw_funcs (void)
 {
   hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (nullptr);
@@ -1061,6 +1079,7 @@ main (int argc, char **argv)
   hb_test_add (test_encode_glyph);
   hb_test_add (test_reset);
   hb_test_add (test_budget);
+  hb_test_add (test_budget_cubic);
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
   hb_test_add (test_encode_quantizes_extents_outward);
