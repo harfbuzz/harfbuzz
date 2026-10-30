@@ -51,6 +51,14 @@ test_ot_layout_font_extents (void)
 						  &extents));
   g_assert_cmpint (extents.ascender, ==, 3000);
 
+  /* NULL extents is allowed on both the hit and the miss path. */
+  g_assert_true (hb_ot_layout_get_font_extents2 (font, HB_DIRECTION_LTR,
+						 HB_SCRIPT_LATIN, HB_LANGUAGE_INVALID,
+						 NULL));
+  g_assert_true (!hb_ot_layout_get_font_extents2 (font, HB_DIRECTION_LTR,
+						  HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID,
+						  NULL));
+
   hb_font_destroy (font);
   hb_face_destroy (face);
 }

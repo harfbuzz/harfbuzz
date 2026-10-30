@@ -2197,16 +2197,16 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
 			       hb_tag_t           language_tag,
 			       hb_font_extents_t *extents)
 {
+  hb_font_extents_t unused;
+  if (!extents) extents = &unused;
+
   hb_position_t min = 0, max = 0;
   if (font->face->table.BASE->get_min_max (font, direction, script_tag, language_tag, HB_TAG_NONE,
 					   &min, &max))
   {
-    if (extents)
-    {
-      extents->ascender  = max;
-      extents->descender = min;
-      extents->line_gap  = 0;
-    }
+    extents->ascender  = max;
+    extents->descender = min;
+    extents->line_gap  = 0;
     return true;
   }
 

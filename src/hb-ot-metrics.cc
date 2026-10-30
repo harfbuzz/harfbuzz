@@ -266,11 +266,14 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 void
 hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,
 					  hb_ot_metrics_tag_t  metrics_tag,
-					  hb_position_t       *position     /* OUT */)
+					  hb_position_t       *position     /* OUT.  May be NULL. */)
 {
   hb_font_extents_t font_extents;
   hb_codepoint_t glyph;
   hb_glyph_extents_t extents;
+
+  hb_position_t unused;
+  if (!position) position = &unused;
 
   if (hb_ot_metrics_get_position (font, metrics_tag, position))
     {
