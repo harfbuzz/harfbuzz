@@ -1115,9 +1115,17 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     ash.append_str (">>");
     unsigned alpha_sh_id = res->add_object (std::move (ash));
 
+    /* An axial shading is not confined to the rectangle spanned by its axis:
+     * it extends perpendicular to the axis, and along it with /Extend, and the
+     * RGB fill relies on that.  The soft-mask form clips the alpha shading to
+     * its /BBox, so give it a large box covering the whole painted area (as
+     * the sweep gradient does) instead of the axis box, which is zero-area for
+     * a horizontal or vertical gradient and otherwise crops the fill. */
+    const float R = 32767.f;
+    float scx = paint->sx (gx0), scy = paint->sy (gy0);
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
-						paint->sx (gx0), paint->sy (gy0),
-						paint->sx (gx1 - gx0), paint->sy (gy1 - gy0),
+						scx - R - 1, scy - R - 1,
+						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
     body.append_str ("/GS");
     body.append_unsigned (gs_idx);
@@ -1215,13 +1223,17 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     ash.append_str (">>");
     unsigned alpha_sh_id = res->add_object (std::move (ash));
 
-    /* BBox: enclosing square of the outer circle. */
+    /* The alpha shading extends beyond the circles with /Extend, and the RGB
+     * fill relies on that, so the soft-mask form must cover the whole painted
+     * area rather than just the enclosing square of the outer circle (which
+     * crops the padded region).  Use a large box as the sweep gradient does. */
+    const float R = 32767.f;
     float cx = (gr1 >= gr0) ? gx1 : gx0;
     float cy = (gr1 >= gr0) ? gy1 : gy0;
-    float rr = hb_max (gr0, gr1);
+    float scx = paint->sx (cx), scy = paint->sy (cy);
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
-						paint->sx (cx - rr), paint->sy (cy - rr),
-						paint->sx (2 * rr), paint->sy (2 * rr),
+						scx - R - 1, scy - R - 1,
+						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
     body.append_str ("/GS");
     body.append_unsigned (gs_idx);
