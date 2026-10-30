@@ -860,9 +860,12 @@ retry:
       for (hb_codepoint_t u = HB_SET_VALUE_INVALID;
 	   hb_set_next (unicodes, &u);)
       {
+	/* A Default UVS range may list a codepoint that has no nominal
+	 * mapping, and a Non-Default UVS mapping may point to glyph 0;
+	 * both are collected above but do not resolve to a glyph. */
 	hb_codepoint_t gid = 0;
-	HB_UNUSED bool b = hb_font_get_variation_glyph (font, u, vs, &gid);
-	assert (b);
+	if (!hb_font_get_variation_glyph (font, u, vs, &gid))
+	  continue;
 
 	char glyphname[128];
 	hb_font_glyph_to_string (font, gid,
