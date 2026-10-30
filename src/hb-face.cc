@@ -745,7 +745,9 @@ hb_face_reference_blob (hb_face_t *face)
         }
       }
 
-      blob = hb_face_reference_blob (builder);
+      // Serialize the builder directly; going through hb_face_reference_blob()
+      // again would recurse if the builder cannot produce a blob either.
+      blob = builder->reference_table (HB_TAG_NONE);
       hb_face_destroy (builder);
     }
   }

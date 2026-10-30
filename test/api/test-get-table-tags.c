@@ -98,6 +98,75 @@ test_get_table_tags_builder (void)
   hb_face_destroy (face);
 }
 
+static void
+test_get_table_tags_builder_limit (void)
+{
+  /* A font file's table directory cannot hold more than 65535 tables. */
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ("test", 4, HB_MEMORY_MODE_READONLY, NULL, NULL);
+
+  for (unsigned i = 1; i <= 0xFFFFu; i++)
+    g_assert_true (hb_face_builder_add_table (face, i, blob));
+  g_assert_false (hb_face_builder_add_table (face, 0x10000u, blob));
+  /* Replacing a table is still fine. */
+  g_assert_true (hb_face_builder_add_table (face, 1, blob));
+  g_assert_cmpuint (0xFFFFu, ==, hb_face_get_table_tags (face, 0, NULL, NULL));
+
+  hb_blob_t *file = hb_face_reference_blob (face);
+  g_assert_cmpuint (12 + 0xFFFFu * (16 + 4), ==, hb_blob_get_length (file));
+
+  hb_blob_destroy (file);
+  hb_blob_destroy (blob);
+  hb_face_destroy (face);
+}
+
+static void
+test_get_table_tags_builder_unsorted (void)
+{
+  /* Tags added out of order, one of them twice; must come back
+   * sorted, each once, with any page size. */
+  static const hb_tag_t added[] = {
+    HB_TAG ('m','a','x','p'),
+    HB_TAG ('G','S','U','B'),
+    HB_TAG ('h','e','a','d'),
+    HB_TAG ('z','z','z','z'),
+    HB_TAG ('h','e','a','d'),
+    HB_TAG ('c','m','a','p'),
+    HB_TAG ('G','D','E','F'),
+  };
+  static const hb_tag_t expected[] = {
+    HB_TAG ('G','D','E','F'),
+    HB_TAG ('G','S','U','B'),
+    HB_TAG ('c','m','a','p'),
+    HB_TAG ('h','e','a','d'),
+    HB_TAG ('m','a','x','p'),
+    HB_TAG ('z','z','z','z'),
+  };
+  const unsigned num_expected = sizeof (expected) / sizeof (expected[0]);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ("test", 4, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  for (unsigned i = 0; i < sizeof (added) / sizeof (added[0]); i++)
+    g_assert_true (hb_face_builder_add_table (face, added[i], blob));
+  hb_blob_destroy (blob);
+
+  g_assert_cmpuint (num_expected, ==, hb_face_get_table_tags (face, 0, NULL, NULL));
+
+  hb_tag_t tags[4];
+  unsigned offset = 0, count = sizeof (tags) / sizeof (tags[0]);
+  while (((void) hb_face_get_table_tags (face, offset, &count, tags), count))
+  {
+    g_assert_cmpuint (offset + count, <=, num_expected);
+    for (unsigned i = 0; i < count; i++)
+      g_assert_cmpuint (tags[i], ==, expected[offset + i]);
+    offset += count;
+    count = sizeof (tags) / sizeof (tags[0]);
+  }
+  g_assert_cmpuint (offset, ==, num_expected);
+
+  hb_face_destroy (face);
+}
+
 #ifdef HAVE_FREETYPE
 static void
 test_get_table_tags_ft (void)
@@ -231,6 +300,8 @@ main (int argc, char **argv)
 
   hb_test_add (test_get_table_tags_default);
   hb_test_add (test_get_table_tags_builder);
+  hb_test_add (test_get_table_tags_builder_limit);
+  hb_test_add (test_get_table_tags_builder_unsorted);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_get_table_tags_ft);
   hb_test_add (test_get_table_tags_ft_stream);
