@@ -151,19 +151,36 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
   if (unlikely (glyphset->in_error ()))
     return false;
 
-  hb_set_t pending = *glyphset;
+  /* Use a work stack rather than popping the minimum of an hb_set_t:
+   * del() never drops the page it empties, so get_min()/del() rescan every
+   * emptied page on each pop, which is quadratic in the number of pages a
+   * font can spread the queue over with 24-bit component gids.  glyphset
+   * itself records which gids have been seen, so nothing is queued twice. */
+  hb_vector_t<hb_codepoint_t> pending;
+  pending.alloc (glyphset->get_population ());
+  for (hb_codepoint_t gid : *glyphset)
+    pending.push (gid);
   if (unlikely (pending.in_error ()))
     return false;
 
+  /* Each glyph is visited once, and the records of a well-formed font do
+   * not overlap, so together they cannot outgrow their INDEX.  A font with
+   * overlapping glyphRecords offsets, or Coverage ranges sharing an index,
+   * can otherwise make many gids resolve to one large record. */
+  const CFF2Index &records = this+glyphRecords;
+  size_t records_size = records.get_size ();
+
   while (pending)
   {
-    hb_codepoint_t gid = pending.get_min ();
-    pending.del (gid);
+    hb_codepoint_t gid = pending.pop ();
 
     unsigned index = (this+coverage).get_coverage (gid);
     if (index == NOT_COVERED) continue;
 
-    hb_ubytes_t record = (this+glyphRecords)[index];
+    hb_ubytes_t record = records[index];
+    if (unlikely (record.length > records_size))
+      return false;
+    records_size -= record.length;
     while (record)
     {
       VarComponent::record_t component;
@@ -175,7 +192,7 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
 	glyphset->add (component.gid);
 	if (unlikely (glyphset->in_error ()))
 	  return false;
-	pending.add (component.gid);
+	pending.push (component.gid);
 	if (unlikely (pending.in_error ()))
 	  return false;
       }
@@ -189,11 +206,18 @@ void
 VARC::depend (hb_depend_data_builder_t *depend_data) const
 {
   const CFF2Index &records = this+glyphRecords;
+  size_t records_size = records.get_size (); /* As in closure_glyphs(). */
   for (auto _ : + hb_zip (this+coverage,
 			  hb_range ((unsigned) records.count)))
   {
     hb_codepoint_t gid = _.first;
     hb_ubytes_t record = records[_.second];
+    if (unlikely (record.length > records_size))
+    {
+      depend_data->fail ();
+      return;
+    }
+    records_size -= record.length;
     while (record)
     {
 	VarComponent::record_t component;
@@ -367,8 +391,10 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   if (flags & (unsigned) flags_t::HAVE_CONDITION)
   {
     const auto &condition = (&VARC+VARC.conditionList)[component.condition_index];
-    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache);
+    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache, &c.budget);
     show = condition.evaluate (coords.arrayZ, coords.length, &instancer);
+    if (unlikely (c.budget < 0))
+      return hb_ubytes_t ();
   }
 
   // Axis values
@@ -377,11 +403,10 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
       show && !axisValues.in_error ())
   {
-    if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
-				    coords.length)))
-      return hb_ubytes_t ();
     varStore.get_delta (component.axis_values_var_idx, coords,
-			axisValues.as_array (), cache);
+			axisValues.as_array (), cache, &c.budget);
+    if (unlikely (c.budget < 0))
+      return hb_ubytes_t ();
   }
 
   auto component_coords = coords;
@@ -417,10 +442,9 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 	    transformValues[numTransformValues++] = (double) transform.name;
       VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
-      if (unlikely (!hb_budget_spend (c.budget, numTransformValues,
-				      coords.length)))
+      varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache, &c.budget);
+      if (unlikely (c.budget < 0))
 	return hb_ubytes_t ();
-      varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
       numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \

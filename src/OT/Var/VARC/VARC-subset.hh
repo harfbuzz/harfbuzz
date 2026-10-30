@@ -26,6 +26,11 @@ struct varc_subset_plan_t
   bool collect_glyphs ()
   {
     const hb_set_t &glyphset = subset_context->plan->_glyphset_varced;
+    /* The records of a well-formed font do not overlap, so together they
+     * cannot outgrow their INDEX.  As in VARC::closure_glyphs().  This also
+     * keeps the running total exact: a single saturating check after the
+     * loop can be bypassed by the sum truncating into unsigned data_size. */
+    size_t records_size = source_records.get_size ();
     for (auto _ : + hb_zip (source_coverage,
 			    hb_range ((unsigned) source_records.count)))
     {
@@ -39,13 +44,15 @@ struct varc_subset_plan_t
 	  return false;
 	old_indices.push (index);
 	new_gids.push (new_gid);
-	data_size = hb_unsigned_add_saturate (data_size,
-					      source_records[index].length);
+	unsigned length = source_records[index].length;
+	if (unlikely (length > records_size))
+	  return false;
+	records_size -= length;
+	data_size += length;
       }
     }
 
-    return !old_indices.in_error () && !new_gids.in_error () &&
-	   data_size != UINT_MAX;
+    return !old_indices.in_error () && !new_gids.in_error ();
   }
 
   bool collect_indices ()
