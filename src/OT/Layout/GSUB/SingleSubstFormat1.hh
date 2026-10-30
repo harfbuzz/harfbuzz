@@ -192,7 +192,7 @@ struct SingleSubstFormat1_3
     hb_codepoint_t mask = get_mask ();
 
     + hb_iter (this+coverage)
-    | hb_map ([d, mask] (hb_codepoint_t g) { return hb_pair (g, (g + d) & mask); })
+    | hb_map ([d, mask] (hb_codepoint_t g) { return hb_codepoint_pair_t (g, (g + d) & mask); })
     | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> &p) -> void
 		{ _hb_collect_glyph_alternates_add (p.first, p.second,
 						    alternate_count, alternate_glyphs); })

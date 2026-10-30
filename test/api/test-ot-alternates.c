@@ -44,10 +44,56 @@ test_ot_layout_lookup_get_glyph_alternates (void)
   hb_face_destroy (face);
 }
 
+/* Collect one lookup and cross-check every entry against the per-glyph getter. */
+static void
+test_ot_layout_lookup_collect_glyph_alternates (gconstpointer user_data)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
+  unsigned lookup_index = GPOINTER_TO_UINT (user_data);
+  hb_map_t *alternate_count = hb_map_create ();
+  hb_map_t *alternate_glyphs = hb_map_create ();
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  unsigned collected = 0;
+  unsigned covered = 0;
+
+  hb_ot_layout_lookup_collect_glyph_alternates (face, lookup_index,
+						alternate_count, alternate_glyphs);
+
+  for (hb_codepoint_t gid = 0; gid < glyph_count; gid++)
+  {
+    hb_codepoint_t alternates[16];
+    unsigned count = 16;
+    unsigned total = hb_ot_layout_lookup_get_glyph_alternates (face, lookup_index, gid, 0, &count, alternates);
+
+    g_assert_cmpuint (total, ==, count);
+    if (!count)
+    {
+      g_assert_false (hb_map_has (alternate_count, gid));
+      continue;
+    }
+    g_assert_cmpuint (count, ==, hb_map_get (alternate_count, gid));
+    for (unsigned i = 0; i < count; i++)
+      g_assert_cmpuint (alternates[i], ==, hb_map_get (alternate_glyphs, gid + (i << 24)));
+    collected += count;
+    covered++;
+  }
+
+  g_assert_cmpuint (collected, ==, hb_map_get_population (alternate_glyphs));
+  g_assert_cmpuint (covered, ==, hb_map_get_population (alternate_count));
+
+  hb_map_destroy (alternate_count);
+  hb_map_destroy (alternate_glyphs);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_layout_lookup_get_glyph_alternates);
+  hb_test_add_data_flavor (GUINT_TO_POINTER (0), "single-format2", test_ot_layout_lookup_collect_glyph_alternates);
+  hb_test_add_data_flavor (GUINT_TO_POINTER (1), "alternate", test_ot_layout_lookup_collect_glyph_alternates);
+  hb_test_add_data_flavor (GUINT_TO_POINTER (2), "single-format1", test_ot_layout_lookup_collect_glyph_alternates);
+  hb_test_add_data_flavor (GUINT_TO_POINTER (18), "single-format1-many", test_ot_layout_lookup_collect_glyph_alternates);
   return hb_test_run ();
 }
