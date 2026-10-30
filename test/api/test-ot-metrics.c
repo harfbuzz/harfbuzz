@@ -68,11 +68,38 @@ test_ot_metrics_get_var (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_metrics_get_with_fallback (void)
+{
+  /* No vhea table: vertical metrics are synthesized. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_font_extents_t extents;
+  hb_position_t value;
+
+  g_assert_false (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_VERTICAL_ASCENDER, &value));
+  g_assert_false (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_VERTICAL_DESCENDER, &value));
+
+  hb_font_get_extents_for_direction (font, HB_DIRECTION_TTB, &extents);
+  g_assert_cmpint (extents.ascender, !=, extents.descender);
+
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_VERTICAL_ASCENDER, &value);
+  g_assert_cmpint (value, ==, extents.ascender);
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_VERTICAL_DESCENDER, &value);
+  g_assert_cmpint (value, ==, extents.descender);
+  hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_VERTICAL_LINE_GAP, &value);
+  g_assert_cmpint (value, ==, extents.line_gap);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_metrics_get_no_var);
   hb_test_add (test_ot_metrics_get_var);
+  hb_test_add (test_ot_metrics_get_with_fallback);
   return hb_test_run ();
 }

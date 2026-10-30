@@ -301,7 +301,7 @@ hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,
 
   case HB_OT_METRICS_TAG_VERTICAL_DESCENDER:
     hb_font_get_extents_for_direction (font, HB_DIRECTION_TTB, &font_extents);
-    *position = font_extents.ascender;
+    *position = font_extents.descender;
     break;
 
   case HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP:
