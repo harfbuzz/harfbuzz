@@ -807,6 +807,9 @@ hb_buffer_create_similar (const hb_buffer_t *src)
 {
   hb_buffer_t *buffer = hb_buffer_create ();
 
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return buffer;
+
   buffer->similar (*src);
 
   return buffer;
@@ -1428,6 +1431,9 @@ void
 hb_buffer_set_not_found_variation_selector_glyph (hb_buffer_t    *buffer,
 						  hb_codepoint_t  not_found_variation_selector)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->not_found_variation_selector = not_found_variation_selector;
 }
 
@@ -1810,6 +1816,9 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 void
 hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->guess_segment_properties ();
 }
 
