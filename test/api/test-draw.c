@@ -1194,6 +1194,72 @@ test_hb_draw_glyf_composite_budget (void)
 }
 
 static void
+test_hb_draw_cff2_blend_region_budget (void)
+{
+  /* A CFF2 font whose only charstring blends one value over 256 region
+   * indices, all naming the one region of a 16-axis region list.  Evaluating
+   * the region scalars must be charged for every (region index, axis) pair,
+   * independently of the blend's own operand count. */
+  char cff2_data[938] = {0};
+  cff2_data[0] = 2;
+  cff2_data[2] = 5;
+  cff2_data[4] = 19;
+  /* Top DICT: CharStrings at 28, vstore at 296, FDArray at 928. */
+  cff2_data[5] = 0x1d;  cff2_data[9] = 28;   cff2_data[10] = 17;
+  cff2_data[11] = 0x1d; cff2_data[14] = 1;   cff2_data[15] = 40;  cff2_data[16] = 24;
+  cff2_data[17] = 0x1d; cff2_data[20] = 3;   cff2_data[21] = (char) 160;
+  cff2_data[22] = 12;   cff2_data[23] = 36;
+  /* Empty Global Subr INDEX at 24; CharStrings INDEX at 28: one 259-byte
+   * charstring: 257 zeros, 1, blend. */
+  cff2_data[31] = 1;    cff2_data[32] = 2;
+  cff2_data[34] = 1;    cff2_data[35] = 1;   cff2_data[36] = 4;
+  for (unsigned i = 0; i < 257; i++)
+    cff2_data[37 + i] = (char) 139;
+  cff2_data[294] = (char) 140;
+  cff2_data[295] = 16;
+  /* VariationStore at 296: 630 bytes; region list at +12, one VarData at +112. */
+  cff2_data[296] = 2;   cff2_data[297] = 118;
+  cff2_data[299] = 1;   cff2_data[303] = 12;  cff2_data[305] = 1;  cff2_data[309] = 112;
+  cff2_data[311] = 16;  cff2_data[313] = 1;
+  for (unsigned i = 0; i < 16; i++)
+    cff2_data[314 + i * 6 + 2] = cff2_data[314 + i * 6 + 4] = 0x40;
+  cff2_data[414] = 1;
+  /* FDArray INDEX at 928: one FD with an empty Private DICT. */
+  cff2_data[931] = 1;   cff2_data[932] = 1;   cff2_data[933] = 1;  cff2_data[934] = 4;
+  cff2_data[935] = (char) 139;
+  cff2_data[936] = (char) 139;
+  cff2_data[937] = 18;
+  /* One axis; the font is moved off its default so that drawing blends. */
+  const char fvar_data[] = {0, 1, 0, 0, 0, 16, 0, 2, 0, 1, 0, 20, 0, 0, 0, 8,
+			    'w', 'g', 'h', 't', 0, 100, 0, 0, 1, 144, 0, 0, 3, 132, 0, 0, 0, 0, 1, 0};
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "CFF2", cff2_data);
+  HB_FACE_ADD_TABLE (face, "fvar", fvar_data);
+  hb_face_set_glyph_count (face, 1);
+  hb_font_t *font = hb_font_create (face);
+  hb_variation_t variation = {HB_TAG ('w','g','h','t'), 800};
+  hb_font_set_variations (font, &variation, 1);
+
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 0};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 100000));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (100000 - data.live, >=, 256 * 16);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 2048));
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (data.live, <, 0);
+
+  hb_draw_funcs_destroy (draw_funcs);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_hb_draw_budget (void)
 {
   draw_budget_data_t data = {HB_BUDGET_DEFAULT, 1234};
@@ -1362,6 +1428,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_budget);
   hb_test_add (test_hb_draw_cff_budget);
   hb_test_add (test_hb_draw_glyf_composite_budget);
+  hb_test_add (test_hb_draw_cff2_blend_region_budget);
 
   const char **font_funcs = hb_font_list_funcs ();
   for (const char **font_funcs_name = font_funcs; *font_funcs_name; font_funcs_name++)
