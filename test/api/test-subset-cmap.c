@@ -461,6 +461,85 @@ test_subset_cmap_repeated_encoding_records (void)
   hb_face_destroy (face);
 }
 
+static void
+write_be (unsigned char *p, unsigned int value, unsigned int size)
+{
+  while (size--)
+  {
+    p[size] = value & 0xFF;
+    value >>= 8;
+  }
+}
+
+static void
+test_subset_DMAP_shared_default_uvs (void)
+{
+  /* 20000 variation selectors sharing one Default UVS table whose ranges
+   * cover U+0000..U+A7FF, plus an empty DMAP so the subsetter takes the
+   * DMAP closure path.  Only the first selector has a non-default mapping.
+   * The glyph closure must not resolve every covered codepoint for every
+   * selector; that used to take tens of seconds. */
+  static const char maxp_data[] = {0, 0, 0x50, 0, 0, 3};
+  static const char dmap_data[] = {0, 0, 0, 0};
+  static const unsigned char cmap_start[] = {
+    0, 0, 0, 2,                              /* cmap header */
+    0, 0, 0, 5, 0, 0, 0, 48,                /* UVS encoding record */
+    0, 3, 0, 10, 0, 0, 0, 20,               /* nominal encoding record */
+    0, 13, 0, 0, 0, 0, 0, 28,               /* format 13 header */
+    0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 0, 0, 0, 0xA8, 0, 0, 0, 0, 1,  /* U+0000..U+A800 -> glyph 1 */
+  };
+  const unsigned int num_selectors = 20000;
+  const unsigned int num_ranges = 0xA8;
+  const unsigned int default_uvs = 10 + 11 * num_selectors;
+  const unsigned int non_default_uvs = default_uvs + 4 + 4 * num_ranges;
+  const unsigned int format14_length = non_default_uvs + 4 + 5;
+  const unsigned int cmap_length = sizeof (cmap_start) + format14_length;
+  unsigned char *cmap_data = g_malloc0 (cmap_length);
+  unsigned char *format14 = cmap_data + sizeof (cmap_start);
+  memcpy (cmap_data, cmap_start, sizeof (cmap_start));
+
+  write_be (format14 + 0, 14, 2);                      /* format 14 header */
+  write_be (format14 + 2, format14_length, 4);
+  write_be (format14 + 6, num_selectors, 4);
+  for (unsigned int i = 0; i < num_selectors; i++)
+  {
+    unsigned char *record = format14 + 10 + 11 * i;   /* variation selector */
+    write_be (record + 0, 0xE0100 + i, 3);
+    write_be (record + 3, default_uvs, 4);
+    write_be (record + 7, i ? 0 : non_default_uvs, 4);
+  }
+  write_be (format14 + default_uvs, num_ranges, 4);    /* default UVS */
+  for (unsigned int i = 0; i < num_ranges; i++)
+  {
+    write_be (format14 + default_uvs + 4 + 4 * i, i << 8, 3);
+    write_be (format14 + default_uvs + 4 + 4 * i + 3, 0xFF, 1);
+  }
+  write_be (format14 + non_default_uvs, 1, 4);         /* non-default UVS */
+  write_be (format14 + non_default_uvs + 4, 0xA800, 3);
+  write_be (format14 + non_default_uvs + 7, 2, 2);
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "DMAP", dmap_data);
+  hb_blob_t *blob = hb_blob_create ((const char *) cmap_data, cmap_length,
+				    HB_MEMORY_MODE_WRITABLE, cmap_data, g_free);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('c','m','a','p'), blob));
+  hb_blob_destroy (blob);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_invert (hb_subset_input_unicode_set (input));
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+  g_assert_nonnull (plan);
+  /* notdef, the nominal glyph and the one non-default variant. */
+  g_assert_cmpuint (hb_map_get_population (hb_subset_plan_old_to_new_glyph_mapping (plan)), ==, 3);
+  g_assert_true (hb_map_has (hb_subset_plan_old_to_new_glyph_mapping (plan), 2));
+  hb_subset_plan_destroy (plan);
+  hb_subset_input_destroy (input);
+
+  hb_face_destroy (face);
+}
+
 #ifndef HB_NO_BEYOND_64K
 static void
 test_subset_cmap_format15 (void)
@@ -535,6 +614,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_DMAP);
   hb_test_add (test_subset_cmap_shared_subtable_many_records);
   hb_test_add (test_subset_cmap_repeated_encoding_records);
+  hb_test_add (test_subset_DMAP_shared_default_uvs);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_cmap_format15);
   hb_test_add (test_subset_cmap15_default_uvs_range_limit);
