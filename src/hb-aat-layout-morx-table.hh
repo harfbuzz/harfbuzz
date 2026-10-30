@@ -976,7 +976,7 @@ struct hb_accelerate_subtables_context_t :
   template <typename T>
   return_t dispatch (const T &obj)
   {
-    hb_applicable_t *entry = &array[i++];
+    hb_applicable_t *entry = &array[i];
 
     entry->init (obj, num_glyphs);
 
@@ -992,7 +992,7 @@ struct hb_accelerate_subtables_context_t :
 
   hb_applicable_t *array;
   unsigned num_glyphs;
-  unsigned i = 0;
+  unsigned i = 0; /* Index of the subtable being accelerated; set by Chain::accelerate(). */
 };
 
 struct hb_aat_layout_chain_accelerator_t
@@ -1025,7 +1025,7 @@ struct hb_aat_layout_chain_accelerator_t
     thiz->count = count;
 
     hb_accelerate_subtables_context_t c_accelerate_subtables (thiz->subtables, num_glyphs);
-    chain.dispatch (&c_accelerate_subtables);
+    chain.accelerate (&c_accelerate_subtables);
 
     return thiz;
   }
@@ -1259,6 +1259,22 @@ struct Chain
   }
 
   size_t get_size () const { return length; }
+
+  /* Fills one accelerator entry per subtable, indexed by subtable position
+   * so that apply() can look them up by position.  Subtables of unknown
+   * type are skipped by ChainSubtable::dispatch() and keep their zeroed
+   * entry, which is fine since apply() does not run them either. */
+  void accelerate (hb_accelerate_subtables_context_t *c) const
+  {
+    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types>> (featureZ.as_array (featureCount));
+    unsigned int count = subtableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      c->i = i;
+      subtable->dispatch (c);
+      subtable = &StructAfter<ChainSubtable<Types>> (*subtable);
+    }
+  }
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
