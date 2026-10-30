@@ -27,6 +27,8 @@
 #include "hb-test.h"
 #include "hb-subset-test.h"
 
+#include <math.h>
+
 /* Unit tests for hb-subset-glyf.h */
 
 static void
@@ -649,6 +651,63 @@ test_subset_create_for_tables_face_MAXP (void)
 }
 #endif
 
+static void
+test_subset_axis_range_from_string (void)
+{
+  float min, max, def;
+
+  /* An explicit len must bound the parse: bytes after len are not part of
+   * the string and must be neither read nor interpreted. */
+  g_assert_true (hb_subset_axis_range_from_string ("100:200:", 3, &min, &max, &def));
+  g_assert_cmpfloat (min, ==, 100.f);
+  g_assert_cmpfloat (def, ==, 100.f);
+  g_assert_cmpfloat (max, ==, 100.f);
+
+  g_assert_true (hb_subset_axis_range_from_string ("100:200:", 7, &min, &max, &def));
+  g_assert_cmpfloat (min, ==, 100.f);
+  g_assert_true (isnan (def));
+  g_assert_cmpfloat (max, ==, 200.f);
+
+  g_assert_true (hb_subset_axis_range_from_string ("100:200,wdth=75:100", 7, &min, &max, &def));
+  g_assert_cmpfloat (min, ==, 100.f);
+  g_assert_true (isnan (def));
+  g_assert_cmpfloat (max, ==, 200.f);
+
+  g_assert_true (hb_subset_axis_range_from_string ("100:300:200,", 11, &min, &max, &def));
+  g_assert_cmpfloat (min, ==, 100.f);
+  g_assert_cmpfloat (def, ==, 300.f);
+  g_assert_cmpfloat (max, ==, 200.f);
+
+  g_assert_true (hb_subset_axis_range_from_string (":300:,", 5, &min, &max, &def));
+  g_assert_true (isnan (min));
+  g_assert_cmpfloat (def, ==, 300.f);
+  g_assert_true (isnan (max));
+
+  g_assert_true (hb_subset_axis_range_from_string ("drop,wdth=75", 4, &min, &max, &def));
+  g_assert_true (isnan (min));
+  g_assert_true (isnan (def));
+  g_assert_true (isnan (max));
+
+  g_assert_true (hb_subset_axis_range_from_string ("dropped", 4, &min, &max, &def));
+  g_assert_true (isnan (min));
+  g_assert_false (hb_subset_axis_range_from_string ("dropped", -1, &min, &max, &def));
+  g_assert_false (hb_subset_axis_range_from_string ("drop", 3, &min, &max, &def));
+  g_assert_false (hb_subset_axis_range_from_string ("", 0, &min, &max, &def));
+
+  /* NUL-terminated input behaves as before. */
+  g_assert_true (hb_subset_axis_range_from_string ("100:200", -1, &min, &max, &def));
+  g_assert_cmpfloat (min, ==, 100.f);
+  g_assert_true (isnan (def));
+  g_assert_cmpfloat (max, ==, 200.f);
+
+  g_assert_true (hb_subset_axis_range_from_string ("drop", -1, &min, &max, &def));
+  g_assert_true (isnan (min));
+  g_assert_true (isnan (def));
+  g_assert_true (isnan (max));
+
+  g_assert_false (hb_subset_axis_range_from_string ("abc", -1, &min, &max, &def));
+}
+
 #ifdef HB_EXPERIMENTAL_API
 const uint8_t CFF2[226] = {
   // From https://learn.microsoft.com/en-us/typography/opentype/spec/cff2
@@ -1043,6 +1102,7 @@ main (int argc, char **argv)
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_create_for_tables_face_MAXP);
 #endif
+  hb_test_add (test_subset_axis_range_from_string);
 
   #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_input_to_string);

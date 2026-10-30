@@ -627,11 +627,11 @@ hb_subset_axis_range_from_string (const char *str, int len,
     len = strlen (str);
 
   const char *end = str + len;
-  const char* part = strpbrk (str, ":");
+  const char* part = (const char *) memchr (str, ':', end - str);
   if (!part)
   {
     // Single value.
-    if (strcmp (str, "drop") == 0)
+    if (len == 4 && 0 == hb_memcmp (str, "drop", 4))
     {
       *axis_min_value = NAN;
       *axis_def_value = NAN;
@@ -652,13 +652,13 @@ hb_subset_axis_range_from_string (const char *str, int len,
   int count = 0;
   for (int i = 0; i < 3; i++) {
     count++;
-    if (!*str || part == str)
+    if (str == end || part == str)
     {
       values[i] = NAN;
 
       if (part == NULL) break;
       str = part + 1;
-      part = strpbrk (str, ":");
+      part = (const char *) memchr (str, ':', end - str);
       continue;
     }
 
@@ -669,7 +669,7 @@ hb_subset_axis_range_from_string (const char *str, int len,
 
     if (part == NULL) break;
     str = part + 1;
-    part = strpbrk (str, ":");
+    part = (const char *) memchr (str, ':', end - str);
   }
 
   if (count == 2)
