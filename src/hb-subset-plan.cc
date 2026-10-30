@@ -143,8 +143,7 @@ static void _colr_closure (hb_subset_plan_t* plan,
   {
     const OT::ItemVariationStore &var_store = colr.get_var_store ();
     // generated inner_maps is used by ItemVariationStore serialize(), which is subset only
-    unsigned subtable_count = var_store.get_sub_table_count ();
-    generate_varstore_inner_maps (variation_indices, subtable_count, plan->colrv1_varstore_inner_maps);
+    generate_varstore_inner_maps (var_store, variation_indices, plan->colrv1_varstore_inner_maps);
 
     if (!plan->all_axes_pinned)
       remap_variation_indices (var_store,

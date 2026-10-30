@@ -577,8 +577,7 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
                            plan->all_axes_pinned,
                            plan->layout_variation_idx_delta_map);
 
-  unsigned subtable_count = gdef->get_var_store ().get_sub_table_count ();
-  generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
+  generate_varstore_inner_maps (gdef->get_var_store (), varidx_set, plan->gdef_varstore_inner_maps);
   plan->check_success (!plan->layout_condition_values.in_error ());
 
   gdef.destroy ();
