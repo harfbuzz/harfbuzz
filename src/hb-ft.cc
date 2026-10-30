@@ -1210,6 +1210,14 @@ _hb_ft_get_table_tags (const hb_face_t *face HB_UNUSED,
   return population;
 }
 
+static hb_user_data_key_t ft_face_blob_key = {0};
+
+static void
+_destroy_blob (void *p)
+{
+  hb_blob_destroy ((hb_blob_t *) p);
+}
+
 
 /**
  * hb_ft_face_create:
@@ -1244,14 +1252,28 @@ hb_ft_face_create (FT_Face           ft_face,
   if (!ft_face->stream->read) {
     hb_blob_t *blob;
 
-    blob = hb_blob_create ((const char *) ft_face->stream->base,
-			   (unsigned int) ft_face->stream->size,
-			   HB_MEMORY_MODE_READONLY,
-			   ft_face, destroy);
+    blob = hb_blob_create_or_fail ((const char *) ft_face->stream->base,
+				   (unsigned int) ft_face->stream->size,
+				   HB_MEMORY_MODE_READONLY,
+				   ft_face, destroy);
+    if (unlikely (!blob))
+      return hb_face_get_empty ();
+
     face = hb_face_create (blob, ft_face->face_index);
-    hb_blob_destroy (blob);
+
+    /* hb_face_create() does not hold on to the blob if it fails to sanitize.
+     * Hook the blob to the face, such that @destroy is not called before the
+     * face is destroyed. */
+    if (unlikely (!hb_face_set_user_data (face, &ft_face_blob_key, blob, _destroy_blob, true)))
+    {
+      hb_blob_destroy (blob);
+      hb_face_destroy (face);
+      return hb_face_get_empty ();
+    }
   } else {
     face = hb_face_create_for_tables (_hb_ft_reference_table, ft_face, destroy);
+    if (unlikely (hb_face_is_immutable (face)))
+      return face;
     hb_face_set_get_table_tags_func (face, _hb_ft_get_table_tags, ft_face, nullptr);
   }
 
@@ -1373,10 +1395,13 @@ hb_ft_font_create (FT_Face           ft_face,
   hb_face_t *face;
 
   face = hb_ft_face_create (ft_face, destroy);
+  /* If face creation failed, @destroy has already been called. */
+  if (unlikely (hb_face_is_immutable (face)))
+    return hb_font_get_empty ();
   font = hb_font_create (face);
-  hb_face_destroy (face);
   _hb_ft_font_set_funcs (font, ft_face, false);
   hb_ft_font_changed (font);
+  hb_face_destroy (face);
   return font;
 }
 
@@ -1686,12 +1711,12 @@ hb_ft_face_create_from_file_or_fail (const char   *file_name,
     return nullptr;
   }
 
+  ft_face->generic.data = ft_library;
+  ft_face->generic.finalizer = finalize_ft_library;
+
   FT_Reference_Face (ft_face);
   hb_face_t *face = hb_ft_face_create (ft_face, _hb_ft_face_destroy_static);
   _hb_ft_face_destroy_static (ft_face);
-
-  ft_face->generic.data = ft_library;
-  ft_face->generic.finalizer = finalize_ft_library;
 
   if (hb_face_is_immutable (face))
     return nullptr;
@@ -1699,12 +1724,22 @@ hb_ft_face_create_from_file_or_fail (const char   *file_name,
   return face;
 }
 
-static hb_user_data_key_t ft_blob_key = {0};
+static void
+_release_blob (void *arg)
+{
+  FT_Face ft_face = (FT_Face) arg;
+  hb_blob_destroy ((hb_blob_t *) ft_face->generic.data);
+}
 
 static void
-_destroy_blob (void *p)
+_hb_ft_face_destroy_static_with_blob (void *data)
 {
-  hb_blob_destroy ((hb_blob_t *) p);
+  FT_Face ft_face = (FT_Face) data;
+
+  /* See _hb_ft_font_destroy() for why the extra blob reference. */
+  hb_blob_t *blob = hb_blob_reference ((hb_blob_t *) ft_face->generic.data);
+  _hb_ft_face_destroy_static (ft_face);
+  hb_blob_destroy (blob);
 }
 
 /**
@@ -1750,33 +1785,26 @@ hb_ft_face_create_from_blob_or_fail (hb_blob_t    *blob,
     return nullptr;
   }
 
-  FT_Reference_Face (ft_face);
-  hb_face_t *face = hb_ft_face_create (ft_face, _hb_ft_face_destroy_static);
-  _hb_ft_face_destroy_static (ft_face);
+  // Table blobs can outlive the hb_face_t, so keep the input on the FT_Face.
+  ft_face->generic.data = hb_blob_reference (blob);
+  ft_face->generic.finalizer = _release_blob;
 
-  ft_face->generic.data = ft_library;
-  ft_face->generic.finalizer = finalize_ft_library;
+  // And the FT_Library on the blob, as in hb_ft_font_set_funcs().
+  if (unlikely (!hb_blob_set_user_data (blob, &ft_library_key, ft_library, destroy_ft_library, true)))
+  {
+    _hb_ft_face_destroy_static_with_blob (ft_face);
+    destroy_ft_library (ft_library);
+    return nullptr;
+  }
+
+  FT_Reference_Face (ft_face);
+  hb_face_t *face = hb_ft_face_create (ft_face, _hb_ft_face_destroy_static_with_blob);
+  _hb_ft_face_destroy_static_with_blob (ft_face);
 
   if (hb_face_is_immutable (face))
     return nullptr;
 
-  // Hook the blob to the hb_face_t, since FT_Face still needs it.
-  hb_blob_reference (blob);
-  if (!hb_face_set_user_data (face, &ft_blob_key, blob, _destroy_blob, true))
-  {
-    hb_blob_destroy (blob);
-    hb_face_destroy (face);
-    return nullptr;
-  }
-
   return face;
-}
-
-static void
-_release_blob (void *arg)
-{
-  FT_Face ft_face = (FT_Face) arg;
-  hb_blob_destroy ((hb_blob_t *) ft_face->generic.data);
 }
 
 /**
