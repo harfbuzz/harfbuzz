@@ -423,7 +423,10 @@ struct Glyph
 							  gvar_cache,
 							  phantom_only && type == SIMPLE,
 							  budget))
+      {
+        points.resize (old_length);
         return false;
+      }
     }
 #endif
 

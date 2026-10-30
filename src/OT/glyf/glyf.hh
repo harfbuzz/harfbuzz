@@ -297,6 +297,9 @@ struct glyf_accelerator_t
 
     auto &all_points = scratch.all_points;
     all_points.clear ();
+    /* The scratch is cached across loads; don't let a failed one leave
+     * component points behind. */
+    scratch.comp_points.clear ();
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
     if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache, 0, nullptr, budget)))
