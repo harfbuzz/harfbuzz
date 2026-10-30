@@ -3220,6 +3220,74 @@ test_32bit_roots_traversal ()
   free (buffer);
 }
 
+static void
+test_isolate_subgraph_shared_wide_parents ()
+{
+  // Several parents each have 32 bit links to the same set of leaves, as
+  // FeatureVariations ConditionSets do. One leaf also has a 16 bit link from
+  // outside the subgraph, so isolating the leaves must duplicate that leaf only.
+  //
+  // root -16-> p1, p2, p3
+  // root -16-> l1
+  // p1, p2, p3 -32-> l1, l2, l3
+  constexpr unsigned num_parents = 3;
+  constexpr unsigned num_leaves = 3;
+
+  size_t buffer_size = 1000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaves[num_leaves];
+  for (unsigned i = 0; i < num_leaves; i++)
+    leaves[i] = add_object ("leaf", 4, &c);
+
+  unsigned parents[num_parents];
+  for (unsigned i = 0; i < num_parents; i++)
+  {
+    start_object ("parent", 6, &c);
+    for (unsigned j = 0; j < num_leaves; j++)
+      add_wide_offset (leaves[j], &c);
+    parents[i] = c.pop_pack (false);
+  }
+
+  start_object ("root", 4, &c);
+  for (unsigned i = 0; i < num_parents; i++)
+    add_offset (parents[i], &c);
+  add_offset (leaves[0], &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  unsigned num_vertices = graph.vertices_.length;
+  hb_always_assert (num_vertices == 1 + num_parents + num_leaves);
+
+  hb_set_t roots;
+  for (unsigned i = 0; i < num_leaves; i++)
+    roots.add (leaves[i] - 1);
+
+  // leaves[0] has an incoming 16 bit edge from root, so it's duplicated.
+  hb_always_assert (graph.isolate_subgraph (roots).value ());
+  hb_always_assert (graph.vertices_.length == num_vertices + 1);
+  hb_always_assert (roots.get_population () == num_leaves);
+  hb_always_assert (!roots.has (leaves[0] - 1));
+  hb_always_assert (roots.has (num_vertices));
+  for (unsigned i = 1; i < num_leaves; i++)
+    hb_always_assert (roots.has (leaves[i] - 1));
+
+  hb_always_assert (graph.update_parents ().is_ok ());
+  hb_always_assert (graph.vertices_[leaves[0] - 1].incoming_edges () == 1);
+  hb_always_assert (graph.vertices_[num_vertices].incoming_edges () == num_parents);
+  for (unsigned i = 1; i < num_leaves; i++)
+    hb_always_assert (graph.vertices_[leaves[i] - 1].incoming_edges () == num_parents);
+
+  // Now that all incoming edges to the roots are 32 bit, nothing is left to isolate.
+  hb_always_assert (!graph.isolate_subgraph (roots).value ());
+  hb_always_assert (graph.vertices_.length == num_vertices + 1);
+
+  free (buffer);
+}
+
 static void test_invalid_link_objidx ()
 {
   size_t buffer_size = 100;
@@ -3398,6 +3466,7 @@ main (int argc, char **argv)
   test_duplicate_subgraph_vertex_limit ();
   test_resolve_shared_overflow_vertex_limit ();
   test_32bit_roots_traversal ();
+  test_isolate_subgraph_shared_wide_parents ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.
