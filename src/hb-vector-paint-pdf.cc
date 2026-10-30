@@ -1039,7 +1039,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 			      hb_color_line_t *color_line,
 			      float x0, float y0,
 			      float x1, float y1,
-			      float x2 HB_UNUSED, float y2 HB_UNUSED,
+			      float x2, float y2,
 			      void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
@@ -1056,10 +1056,15 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
-  float gx0 = x0 + mn * (x1 - x0);
-  float gy0 = y0 + mn * (y1 - y0);
-  float gx1 = x0 + mx * (x1 - x0);
-  float gy1 = y0 + mx * (y1 - y0);
+  /* Reduce COLR's 3-anchor (P0, P1, P2) to the 2-point axis of a Type 2
+   * (axial) shading, as the SVG, raster, GPU and cairo backends do. */
+  float lx0, ly0, lx1, ly1;
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2,
+				  &lx0, &ly0, &lx1, &ly1);
+  float gx0 = lx0 + mn * (lx1 - lx0);
+  float gy0 = ly0 + mn * (ly1 - ly0);
+  float gx1 = lx0 + mx * (lx1 - lx0);
+  float gy1 = ly0 + mx * (ly1 - ly0);
 
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
