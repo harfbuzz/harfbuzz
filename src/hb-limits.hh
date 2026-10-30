@@ -128,6 +128,15 @@
 #define HB_SUBSET_CBDT_MAX_COPY_FACTOR 64
 #endif
 
+/* Entries the CBDT accelerator builds to answer find_table() by glyph
+ * without walking a strike's IndexSubtableRecord array per query.  The
+ * record count is a 32-bit field bounded only by the table length; a strike
+ * whose records would push the shared index past this keeps the linear
+ * walk, so the index stays bounded whatever the font claims. */
+#ifndef HB_CBDT_MAX_INDEX_ENTRIES
+#define HB_CBDT_MAX_INDEX_ENTRIES 65536
+#endif
+
 /* Total bytes of sub-blobs (gradient color stops, clip outlines) in one
  * hb_gpu_paint_t walk; exceeding it makes the paint unsupported. */
 #ifndef HB_GPU_PAINT_MAX_SUB_BYTES

@@ -200,6 +200,78 @@ test_subset_cbdt_overlapping_images (void)
   hb_face_destroy (face);
 }
 
+static void
+put_u16 (uint8_t *p, unsigned v) { p[0] = v >> 8; p[1] = v; }
+
+static void
+put_u32 (uint8_t *p, unsigned v) { put_u16 (p, v >> 16); put_u16 (p + 2, v); }
+
+static void
+test_subset_cbdt_many_records (void)
+{
+  /* 64 strikes that all point at one array of 16384 IndexSubtableRecords,
+   * none of which covers a glyph of the 65535-glyph font.  Keeping every
+   * glyph used to search the whole array once per glyph and strike; the
+   * subsetter now walks the records once per strike, so this must finish
+   * quickly rather than spin. */
+  const unsigned num_glyphs = 65535;
+  const unsigned num_strikes = 64;
+  const unsigned num_records = 16384;
+  const unsigned strike_size = 48;
+  const unsigned record_size = 8;
+  const unsigned array_offset = 8 + num_strikes * strike_size;
+  const unsigned cblc_length = array_offset + num_records * record_size;
+  const uint8_t maxp_data[6] = { 0x00, 0x00, 0x50, 0x00, 0xFF, 0xFF };
+  const uint8_t cbdt_data[4] = { 0x00, 0x03, 0x00, 0x00 };
+  uint8_t *cblc_data = calloc (cblc_length, 1);
+  uint8_t *p;
+  unsigned i;
+
+  put_u32 (cblc_data, 0x00030000); /* version */
+  put_u32 (cblc_data + 4, num_strikes);
+  for (i = 0; i < num_strikes; i++)
+  {
+    p = cblc_data + 8 + i * strike_size;
+    put_u32 (p, array_offset);	/* indexSubtableArrayOffset */
+    put_u32 (p + 8, num_records);	/* numberOfIndexSubtables */
+    put_u16 (p + 40, 0);		/* startGlyphIndex */
+    put_u16 (p + 42, num_glyphs - 1);	/* endGlyphIndex */
+    p[44] = p[45] = 32;		/* ppemX, ppemY */
+    p[46] = 32;			/* bitDepth */
+    p[47] = 1;			/* flags */
+  }
+  for (i = 0; i < num_records; i++)
+  {
+    p = cblc_data + array_offset + i * record_size;
+    put_u16 (p, 0xFFFF);		/* firstGlyphIndex */
+    put_u16 (p + 2, 0xFFFF);	/* lastGlyphIndex */
+    put_u32 (p + 4, 0);		/* offsetToSubtable */
+  }
+
+  hb_blob_t *maxp = hb_blob_create ((const char *) maxp_data, sizeof (maxp_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_blob_t *cblc = hb_blob_create ((const char *) cblc_data, cblc_length, HB_MEMORY_MODE_WRITABLE, cblc_data, free);
+  hb_blob_t *cbdt = hb_blob_create ((const char *) cbdt_data, sizeof (cbdt_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_face_builder_add_table (builder, HB_TAG ('m','a','x','p'), maxp);
+  hb_face_builder_add_table (builder, HB_TAG ('C','B','L','C'), cblc);
+  hb_face_builder_add_table (builder, HB_TAG ('C','B','D','T'), cbdt);
+  hb_blob_t *face_blob = hb_face_reference_blob (builder);
+  hb_face_t *face = hb_face_create (face_blob, 0);
+  g_assert_cmpuint (hb_face_get_glyph_count (face), ==, num_glyphs);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_subset_input_keep_everything (input);
+  hb_face_t *face_subset = hb_subset_test_create_subset (face, input);
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+  hb_blob_destroy (face_blob);
+  hb_face_destroy (builder);
+  hb_blob_destroy (cbdt);
+  hb_blob_destroy (cblc);
+  hb_blob_destroy (maxp);
+}
+
 // TODO: add support/tests for index formats 2,4,5 (image formats are treated as
 // opaque blobs when subsetting so don't need to be tested separately).
 // TODO: add a test that keeps no codepoints.
@@ -219,6 +291,7 @@ main (int argc, char **argv)
   // is resolved.
   hb_test_add (test_subset_cbdt_index_format_3);
   hb_test_add (test_subset_cbdt_overlapping_images);
+  hb_test_add (test_subset_cbdt_many_records);
 
   return hb_test_run();
 }

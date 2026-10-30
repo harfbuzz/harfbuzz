@@ -603,6 +603,24 @@ struct IndexSubtableArray
 		hb_vector_t<hb_pair_t<hb_codepoint_t,
 		const IndexSubtableRecord*>> *lookup /* OUT */) const
   {
+    /* Map each retained glyph to the first record covering it, as
+     * find_table () would, by walking the records once instead of once
+     * per glyph: the records are not necessarily sorted or disjoint, and a
+     * font can make every search fail (numTables is a 32-bit field). */
+    hb_set_t glyphs (*c->plan->glyphset ());
+    hb_map_t record_map;
+    for (unsigned int i = 0; i < bitmap_size_context->num_tables; i++)
+    {
+      hb_codepoint_t first = indexSubtablesZ[i].firstGlyphIndex;
+      hb_codepoint_t last = indexSubtablesZ[i].lastGlyphIndex;
+      if (!glyphs.intersects (first, last)) continue;
+      for (hb_codepoint_t old_gid = first - 1;
+	   glyphs.next (&old_gid) && old_gid <= last;)
+	record_map.set (old_gid, i);
+      glyphs.del_range (first, last);
+    }
+    if (unlikely (!c->serializer->propagate_error (glyphs, record_map))) return;
+
     bool start_glyph_is_set = false;
     unsigned num_glyphs = c->plan->num_output_glyphs ();
     for (hb_codepoint_t new_gid = 0; new_gid < num_glyphs; new_gid++)
@@ -610,8 +628,9 @@ struct IndexSubtableArray
       hb_codepoint_t old_gid;
       if (unlikely (!c->plan->old_gid_for_new_gid (new_gid, &old_gid))) continue;
 
-      const IndexSubtableRecord* record = find_table (old_gid, bitmap_size_context->num_tables);
-      if (unlikely (!record)) continue;
+      hb_codepoint_t record_idx = record_map.get (old_gid);
+      if (record_idx == HB_MAP_VALUE_INVALID) continue;
+      const IndexSubtableRecord* record = &indexSubtablesZ[record_idx];
 
       // Don't add gaps to the lookup. The best way to determine if a glyph is a
       // gap is that it has no image data.
@@ -681,6 +700,10 @@ struct IndexSubtableArray
     }
     return nullptr;
   }
+
+  /* The caller must bound i by the strike's sanitized numberOfIndexSubtables. */
+  const IndexSubtableRecord &get_record (unsigned int i) const
+  { return indexSubtablesZ[i]; }
 
   protected:
   UnsizedArrayOf<IndexSubtableRecord>	indexSubtablesZ;
@@ -866,9 +889,18 @@ struct CBDT
 
       upem = hb_face_get_upem (face);
 
-      /* Index strikes by ppem, such that choose_strike() doesn't have to
-       * walk them all.  Of those with equal ppem the first one wins. */
+      /* Index the strikes by ppem and their records by glyph once, such that
+       * choose_strike() and find_table() don't walk the table's arrays on
+       * every query.  Both counts are 32-bit and only bounded by the table
+       * length.  Of the strikes with equal ppem the first one wins, and a
+       * glyph belongs to the first record that covers it.
+       *
+       * The record index is capped at HB_CBDT_MAX_INDEX_ENTRIES: a strike
+       * whose records would overflow it (or hit an allocation failure)
+       * keeps the linear walk through walk_ppems, so the index stays
+       * bounded no matter how many records the sanitizer accepted. */
       unsigned count = cblc->sizeTables.len;
+      bool index_full = false;
       for (unsigned int i = 0; i < count; i++)
       {
 	const BitmapSizeTable &strike = cblc->sizeTables[i];
@@ -876,7 +908,46 @@ struct CBDT
 	if (strike_ppems.has (ppem)) continue;
 	strike_ppems.add (ppem);
 	strike_for_ppem.set (ppem, i);
+
+	/* A strike with a zero ppem is never used by a query (get_extents()
+	 * and reference_png() reject it), so leave it out of the index; a
+	 * lookup for it finds nothing and returns no bitmap, as before. */
+	if (!strike.ppemX || !strike.ppemY) continue;
+	if (index_full) { walk_ppems.add (ppem); continue; }
+
+	const IndexSubtableArray &records = cblc+strike.indexSubtableArrayOffset;
+	unsigned int num_records = strike.numberOfIndexSubtables;
+	unsigned int start = glyph_ranges.length;
+	hb_set_t glyphs; /* Glyphs not covered by an earlier record. */
+	glyphs.add_range (0, 0xFFFFu);
+	bool overflow = false;
+	for (unsigned int j = 0; j < num_records && !glyphs.is_empty (); j++)
+	{
+	  const IndexSubtableRecord &record = records.get_record (j);
+	  hb_codepoint_t first = record.firstGlyphIndex;
+	  hb_codepoint_t last = record.lastGlyphIndex;
+	  if (!glyphs.intersects (first, last)) continue;
+
+	  for (hb_codepoint_t a = first - 1, b = first - 1;
+	       glyphs.next_range (&a, &b) && a <= last;)
+	    glyph_ranges.push (glyph_range_t {ppem << 16 | a,
+					      ppem << 16 | hb_min (b, last), j});
+	  glyphs.del_range (first, last);
+
+	  if (glyph_ranges.length > HB_CBDT_MAX_INDEX_ENTRIES)
+	  { overflow = true; break; }
+	}
+	/* glyphs.in_error() matters: a failed add_range() leaves it empty,
+	 * which would otherwise look like a fully-indexed strike with no
+	 * records and silently drop its bitmaps instead of walking. */
+	if (unlikely (overflow || glyph_ranges.in_error () || glyphs.in_error ()))
+	{
+	  glyph_ranges.shrink (start);
+	  walk_ppems.add (ppem);
+	  index_full = true;
+	}
       }
+      glyph_ranges.qsort ();
     }
     ~accelerator_t ()
     {
@@ -889,7 +960,7 @@ struct CBDT
     {
       const void *base;
       const BitmapSizeTable &strike = choose_strike (font);
-      const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
+      const IndexSubtableRecord *subtable_record = find_table (strike, glyph, &base);
       if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return false;
 
@@ -942,7 +1013,7 @@ struct CBDT
     {
       const void *base;
       const BitmapSizeTable &strike = choose_strike (font);
-      const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
+      const IndexSubtableRecord *subtable_record = find_table (strike, glyph, &base);
       if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return hb_blob_get_empty ();
 
@@ -1036,6 +1107,38 @@ struct CBDT
       return cblc->sizeTables[strike_for_ppem.get (ppem)];
     }
 
+    /* strike must come from choose_strike(), as the index is keyed by ppem. */
+    const IndexSubtableRecord *
+    find_table (const BitmapSizeTable &strike, hb_codepoint_t glyph, const void **out_base) const
+    {
+      unsigned int ppem = hb_max (strike.ppemX, strike.ppemY);
+      if (unlikely (walk_ppems.has (ppem)))
+	/* This strike's records overflowed the index; walk them. */
+	return strike.find_table (glyph, cblc, out_base);
+
+      const IndexSubtableArray &records = cblc+strike.indexSubtableArrayOffset;
+      *out_base = &records;
+      if (unlikely (glyph > 0xFFFFu)) return nullptr;
+      const glyph_range_t *range = glyph_ranges.bsearch (ppem << 16 | glyph);
+      return range ? &records.get_record (range->record) : nullptr;
+    }
+
+    struct glyph_range_t
+    {
+      hb_codepoint_t first, last; /* ppem << 16 | glyph, inclusive. */
+      unsigned int record; /* Index into the strike's records. */
+
+      int cmp (hb_codepoint_t key) const
+      { return key < first ? -1 : key <= last ? 0 : +1; }
+
+      HB_INTERNAL static int cmp (const void *pa, const void *pb)
+      {
+	const glyph_range_t *a = (const glyph_range_t *) pa;
+	const glyph_range_t *b = (const glyph_range_t *) pb;
+	return a->first < b->first ? -1 : a->first > b->first ? +1 : 0;
+      }
+    };
+
     private:
     hb_blob_ptr_t<CBLC> cblc;
     hb_blob_ptr_t<CBDT> cbdt;
@@ -1043,6 +1146,8 @@ struct CBDT
     unsigned int upem;
     hb_set_t strike_ppems;
     hb_map_t strike_for_ppem;
+    hb_set_t walk_ppems;
+    hb_sorted_vector_t<glyph_range_t> glyph_ranges;
   };
 
   bool sanitize (hb_sanitize_context_t *c) const
