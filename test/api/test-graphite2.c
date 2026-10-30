@@ -193,6 +193,58 @@ test_graphite2_all_glyphs_deleted (void)
   hb_font_destroy (font);
 }
 
+static unsigned int silf_requests;
+
+static hb_blob_t *
+reference_table_with_rejected_silf (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+{
+  /* Version 1.0 is too old for Graphite2. */
+  static const char silf[20] = {0, 1, 0, 0};
+
+  if (tag != HB_TAG ('S','i','l','f'))
+    return hb_face_reference_table ((hb_face_t *) user_data, tag);
+
+  silf_requests++;
+  return hb_blob_create (silf, sizeof (silf), HB_MEMORY_MODE_READONLY, NULL, NULL);
+}
+
+static void
+destroy_face (void *data)
+{
+  hb_face_destroy ((hb_face_t *) data);
+}
+
+static void
+test_graphite2_failed_face_load_is_remembered (void)
+{
+  hb_face_t *source, *face;
+  hb_font_t *font;
+  unsigned int first_shape_requests = 0;
+
+  source = hb_test_open_font_file ("../shape/data/in-house/fonts/2f652d30fd15eea6be23fd9bdc1099836975aa83.ttf");
+  face = hb_face_create_for_tables (reference_table_with_rejected_silf, source, destroy_face);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    hb_buffer_t *buffer = hb_buffer_create ();
+    hb_buffer_add_utf8 (buffer, "1", -1, 0, -1);
+    hb_buffer_guess_segment_properties (buffer);
+    hb_shape (font, buffer, NULL, 0);
+    g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 1);
+    hb_buffer_destroy (buffer);
+
+    if (!i)
+      first_shape_requests = silf_requests;
+  }
+
+  g_assert_cmpuint (first_shape_requests, >, 0);
+  g_assert_cmpuint (silf_requests, ==, first_shape_requests);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -201,6 +253,7 @@ main (int argc, char **argv)
   hb_test_add (test_graphite2_repeated_clusters);
   hb_test_add (test_graphite2_inserted_glyph_masks);
   hb_test_add (test_graphite2_all_glyphs_deleted);
+  hb_test_add (test_graphite2_failed_face_load_is_remembered);
 
   return hb_test_run ();
 }

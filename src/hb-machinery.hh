@@ -273,7 +273,8 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   /* When tag_null is set, a failed create () is cached as get_null () with
    * its low bit set, and destroy recognizes it by that bit rather than by
    * address.  Needed when get_null () is a per-library Null object: another
-   * library sharing the object would not recognize its address. */
+   * library sharing the object would not recognize its address.  Also needed
+   * when get_null () is nullptr, which otherwise reads as not-yet-created. */
   static constexpr bool tag_null = false;
   static bool is_tagged_null (Stored *p)
   { return Funcs::tag_null && ((uintptr_t) (void *) p & 1); }
