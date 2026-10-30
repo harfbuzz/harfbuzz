@@ -361,6 +361,29 @@ test_subset_cff1_dotsection (void)
 }
 
 static void
+test_subset_cff1_subr_loop (void)
+{
+  /* CID-keyed font whose parsed subrs, shared between font dicts, form a
+   * call cycle that the charstrings never execute. Dropping hints used to
+   * recurse over it without end. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_subr_loop.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_subset;
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'b');
+  input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+  face_subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  hb_set_destroy (codepoints);
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_cff1_retaingids (void)
 {
   hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
@@ -837,6 +860,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_seac_precheck);
   hb_test_add (test_subset_cff1_encoding_supplement);
   hb_test_add (test_subset_cff1_dotsection);
+  hb_test_add (test_subset_cff1_subr_loop);
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
   hb_test_add (test_subset_cff1_encoding_many_codes_retaingids);
