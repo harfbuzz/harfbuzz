@@ -1401,6 +1401,7 @@ struct mortmorx
 
 	if (unlikely (!accels[chain_index].cmpexch (nullptr, accel)))
 	{
+	  accel->destroy ();
 	  hb_free (accel);
 	  goto retry;
 	}
