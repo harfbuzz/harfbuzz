@@ -120,6 +120,14 @@
 #define HB_GPU_DRAW_MAX_CURVES 65536
 #endif
 
+/* Bytes the CBDT subsetter may copy out of the source CBDT table, as a
+ * multiple of that table's length.  Image blocks of different glyphs or
+ * strikes may overlap or repeat, so bounds-checking each block against the
+ * table does not bound their sum. */
+#ifndef HB_SUBSET_CBDT_MAX_COPY_FACTOR
+#define HB_SUBSET_CBDT_MAX_COPY_FACTOR 64
+#endif
+
 /* Total bytes of sub-blobs (gradient color stops, clip outlines) in one
  * hb_gpu_paint_t walk; exceeding it makes the paint unsupported. */
 #ifndef HB_GPU_PAINT_MAX_SUB_BYTES

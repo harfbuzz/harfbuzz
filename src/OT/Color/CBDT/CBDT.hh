@@ -105,6 +105,11 @@ struct cbdt_dedup_context_t
   hb_hashmap_t<uint64_t, unsigned int> map;
   hb_vector_t<entry_t> entries;
   hb_vector_t<unsigned int> lengths; /* Concatenated per-entry lengths. */
+
+  /* Bytes that may still be copied out of the source CBDT table, shared
+   * across strikes.  Blocks of different glyphs may overlap or repeat, so
+   * checking each against the table length does not bound their sum. */
+  int64_t budget = hb_int_max (int64_t);
 };
 
 struct cblc_bitmap_size_subset_context_t
@@ -447,6 +452,9 @@ struct IndexSubtableRecord
 	return_trace (false);
       if (unlikely (offset > bitmap_size_context->cbdt_length ||
 		    bitmap_size_context->cbdt_length - offset < length))
+	return_trace (false);
+      if (unlikely (bitmap_size_context->dedup &&
+		    !hb_budget_spend (bitmap_size_context->dedup->budget, length)))
 	return_trace (false);
       if (unlikely (!c->serializer->check_success (
 			_copy_data_to_cbdt (&data,
@@ -1075,6 +1083,7 @@ CBLC::subset (hb_subset_context_t *c) const
   _copy_data_to_cbdt (&cbdt_prime, cbdt, CBDT::min_size);
 
   cbdt_dedup_context_t dedup;
+  dedup.budget = (int64_t) cbdt_length * HB_SUBSET_CBDT_MAX_COPY_FACTOR;
   for (const BitmapSizeTable& table : + sizeTables.iter ())
     subset_size_table (c, table, (const char *) cbdt, cbdt_length, cblc_prime, &cbdt_prime, &dedup);
 
