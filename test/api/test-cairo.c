@@ -151,6 +151,68 @@ test_hb_cairo_face_lifecycle (void)
   g_assert_true (destroyed);
 }
 
+static void
+test_hb_cairo_glyphs_from_buffer_clusters (void)
+{
+  /* Non-monotone clusters come out of hb_shape() for some inputs
+   * (HB_BUFFER_CLUSTER_LEVEL_CHARACTERS, shaping that fails midway,
+   * shaper bugs).  Cairo can only represent monotone clusters; make
+   * sure such buffers map to one cluster instead of aborting. */
+  static const struct {
+    hb_direction_t direction;
+    unsigned clusters[4];
+    unsigned num_clusters;
+  } tests[] = {
+    {HB_DIRECTION_LTR, {0, 1, 1, 3}, 3},
+    {HB_DIRECTION_RTL, {3, 1, 1, 0}, 3},
+    /* Not monotone. */
+    {HB_DIRECTION_LTR, {0, 2, 0, 0}, 1},
+    {HB_DIRECTION_LTR, {3, 1, 1, 0}, 1},
+    {HB_DIRECTION_RTL, {0, 0, 2, 0}, 1},
+    {HB_DIRECTION_RTL, {0, 1, 1, 3}, 1},
+  };
+  const char *utf8 = "abcd";
+
+  for (unsigned t = 0; t < G_N_ELEMENTS (tests); t++)
+    for (unsigned utf8_clusters = 0; utf8_clusters < 2; utf8_clusters++)
+    {
+      hb_buffer_t *buffer = hb_buffer_create ();
+      hb_buffer_set_direction (buffer, tests[t].direction);
+      for (unsigned i = 0; i < 4; i++)
+	hb_buffer_add (buffer, i, tests[t].clusters[i]);
+
+      cairo_glyph_t *glyphs = NULL;
+      unsigned num_glyphs = 0;
+      cairo_text_cluster_t *clusters = NULL;
+      unsigned num_clusters = 0;
+      cairo_text_cluster_flags_t cluster_flags;
+      hb_cairo_glyphs_from_buffer (buffer, utf8_clusters,
+				   1., 1., 0., 0.,
+				   utf8, -1,
+				   &glyphs, &num_glyphs,
+				   &clusters, &num_clusters,
+				   &cluster_flags);
+
+      g_assert_cmpuint (num_glyphs, ==, 4);
+      g_assert_cmpuint (num_clusters, ==, tests[t].num_clusters);
+
+      int total_bytes = 0, total_glyphs = 0;
+      for (unsigned i = 0; i < num_clusters; i++)
+      {
+	g_assert_cmpint (clusters[i].num_bytes, >=, 0);
+	g_assert_cmpint (clusters[i].num_glyphs, >, 0);
+	total_bytes += clusters[i].num_bytes;
+	total_glyphs += clusters[i].num_glyphs;
+      }
+      g_assert_cmpint (total_bytes, ==, 4);
+      g_assert_cmpint (total_glyphs, ==, 4);
+
+      cairo_glyph_free (glyphs);
+      cairo_text_cluster_free (clusters);
+      hb_buffer_destroy (buffer);
+    }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -158,6 +220,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_cairo_budget);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
+  hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
 
   return hb_test_run ();
 }

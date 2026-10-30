@@ -1068,6 +1068,10 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * If the value @clusters points at has changed after the call, the caller
  * will free the allocated cluster array using cairo_text_cluster_free().
  *
+ * Cairo can only represent monotone clusters.  If the cluster values in
+ * @buffer are not monotone in the buffer's direction, a single cluster
+ * mapping all of @utf8 to all of the glyphs is returned.
+ *
  * See hb_cairo_font_face_set_scale_factor() for the details of
  * the @scale_factor argument.
  *
@@ -1102,13 +1106,26 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   if (orig_num_glyphs < *num_glyphs + 1)
     *glyphs = cairo_glyph_allocate (*num_glyphs + 1);
 
+  hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
+  bool monotone = true;
   if (clusters && utf8)
   {
     unsigned orig_num_clusters = *num_clusters;
     *num_clusters = *num_glyphs ? 1 : 0;
     for (unsigned int i = 1; i < *num_glyphs; i++)
       if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
+      {
+	if (unlikely ((hb_glyph[i].cluster < hb_glyph[i-1].cluster) != (bool) backward))
+	{
+	  /* Cairo can only represent monotone clusters.  Non-monotone
+	   * cluster levels, shaper bugs, or shaping that failed midway
+	   * can all get us here.  Map all of the text to all of the glyphs. */
+	  monotone = false;
+	  *num_clusters = 1;
+	  break;
+	}
 	(*num_clusters)++;
+      }
     if (orig_num_clusters < *num_clusters)
       *clusters = cairo_text_cluster_allocate (*num_clusters);
   }
@@ -1134,12 +1151,16 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   if (clusters && *num_clusters && utf8)
   {
     hb_memset ((void *) *clusters, 0, *num_clusters * sizeof ((*clusters)[0]));
-    hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
     *cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
     unsigned int cluster = 0;
     const char *start = utf8, *end;
     (*clusters)[cluster].num_glyphs++;
-    if (backward)
+    if (unlikely (!monotone))
+    {
+      (*clusters)[cluster].num_glyphs = *num_glyphs;
+      (*clusters)[cluster].num_bytes = utf8_len;
+    }
+    else if (backward)
     {
       for (i = *num_glyphs - 2; i >= 0; i--)
       {
