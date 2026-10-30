@@ -315,6 +315,116 @@ test_native_ft_create_invalid_blob_no_leak (void)
   }
 }
 
+static unsigned int ft_face_destroy_count;
+
+static void
+count_ft_face_destroy (void *data HB_UNUSED)
+{
+  ft_face_destroy_count++;
+}
+
+static void
+test_native_ft_create_unsanitizable_font (void)
+{
+  /* A font that FreeType opens but HarfBuzz fails to sanitize: numTables
+   * claims more table records than the file has room for.  hb_face_create()
+   * drops the blob then, but the destroy callback handed to hb_ft_face_create()
+   * must still not run before the hb_face_t / hb_font_t is destroyed. */
+  init_freetype ();
+
+#if GLIB_CHECK_VERSION(2,37,2)
+  char *path = g_test_build_filename (G_TEST_DIST, "fonts/Roboto-Regular.abc.ttf", NULL);
+#else
+  char *path = g_strdup ("fonts/Roboto-Regular.abc.ttf");
+#endif
+
+  gchar *contents;
+  gsize length;
+  GError *error = NULL;
+  g_assert_true (g_file_get_contents (path, &contents, &length, &error));
+  g_free (path);
+
+  contents[4] = contents[5] = (gchar) 0xFF;
+
+  FT_Face ft_face;
+  g_assert_cmpint (FT_New_Memory_Face (ft_library, (const FT_Byte *) contents, length, 0, &ft_face), ==, 0);
+  g_assert_cmpint (FT_Set_Char_Size (ft_face, 2000, 1000, 0, 0), ==, 0);
+
+  ft_face_destroy_count = 0;
+  hb_face_t *face = hb_ft_face_create (ft_face, count_ft_face_destroy);
+  g_assert_cmpuint (ft_face_destroy_count, ==, 0);
+  hb_face_destroy (face);
+  g_assert_cmpuint (ft_face_destroy_count, ==, 1);
+
+  ft_face_destroy_count = 0;
+  hb_font_t *font = hb_ft_font_create (ft_face, count_ft_face_destroy);
+  g_assert_cmpuint (ft_face_destroy_count, ==, 0);
+  hb_font_destroy (font);
+  g_assert_cmpuint (ft_face_destroy_count, ==, 1);
+
+  /* The font holds its own FT_Face reference; releasing ours must be fine. */
+  font = hb_ft_font_create_referenced (ft_face);
+  FT_Done_Face (ft_face);
+
+  hb_font_extents_t extents;
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_h_extents (font, &extents));
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+
+  hb_font_destroy (font);
+  g_free (contents);
+
+  cleanup_freetype ();
+}
+
+static unsigned int ft_blob_destroy_count;
+
+static void
+count_ft_blob_destroy (void *data)
+{
+  ft_blob_destroy_count++;
+  g_free (data);
+}
+
+static void
+test_native_ft_create_from_blob_table_outlives_face (void)
+{
+  /* Table blobs of a face created by hb_ft_face_create_from_blob_or_fail()
+   * point into the caller's blob data; they must keep that data alive on
+   * their own, after both the face and the caller's blob reference are gone. */
+#if GLIB_CHECK_VERSION(2,37,2)
+  char *path = g_test_build_filename (G_TEST_DIST, "fonts/Roboto-Regular.abc.ttf", NULL);
+#else
+  char *path = g_strdup ("fonts/Roboto-Regular.abc.ttf");
+#endif
+
+  gchar *contents;
+  gsize length;
+  GError *error = NULL;
+  g_assert_true (g_file_get_contents (path, &contents, &length, &error));
+  g_free (path);
+
+  ft_blob_destroy_count = 0;
+  hb_blob_t *blob = hb_blob_create (contents, length, HB_MEMORY_MODE_READONLY,
+				    contents, count_ft_blob_destroy);
+  hb_face_t *face = hb_ft_face_create_from_blob_or_fail (blob, 0);
+  g_assert_nonnull (face);
+  hb_blob_destroy (blob);
+
+  hb_blob_t *head = hb_face_reference_table (face, HB_TAG ('h','e','a','d'));
+  hb_face_destroy (face);
+  g_assert_cmpuint (ft_blob_destroy_count, ==, 0);
+
+  unsigned int head_length;
+  const char *head_data = hb_blob_get_data (head, &head_length);
+  g_assert_cmpuint (head_length, ==, 54);
+  /* head.magicNumber */
+  g_assert_cmpmem (head_data + 12, 4, "\x5F\x0F\x3C\xF5", 4);
+
+  hb_blob_destroy (head);
+  g_assert_cmpuint (ft_blob_destroy_count, ==, 1);
+}
+
 static gpointer
 create_static_ft_faces (gpointer data)
 {
@@ -370,6 +480,8 @@ main (int argc, char **argv)
   hb_test_add (test_native_ft_set_funcs_stream_face_no_deadlock);
   hb_test_add (test_native_ft_glyph_name_zero_size_probe);
   hb_test_add (test_native_ft_create_invalid_blob_no_leak);
+  hb_test_add (test_native_ft_create_unsanitizable_font);
+  hb_test_add (test_native_ft_create_from_blob_table_outlives_face);
   hb_test_add (test_static_ft_library_multithreaded);
 
   return hb_test_run ();
