@@ -158,12 +158,15 @@ count_applied_subtables (hb_tag_t tag, char *table, unsigned length)
   hb_font_t *font = hb_font_create (limit_face);
   hb_face_destroy (limit_face);
 
+  /* This exercises the OT/AAT shaper; other shapers (e.g. HarfRust) do not
+   * implement AAT, so pin it. */
+  static const char *shaper_list[] = {"ot", NULL};
   unsigned started = 0;
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf8 (buffer, "aa", -1, 0, -1);
   hb_buffer_guess_segment_properties (buffer);
   hb_buffer_set_message_func (buffer, count_started_subtables, &started, NULL);
-  hb_shape (font, buffer, NULL, 0);
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
 
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
@@ -324,7 +327,10 @@ shape_ranged_features (hb_face_t *morx_face, unsigned int length, unsigned int p
   }
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
   hb_buffer_guess_segment_properties (buffer);
-  hb_shape (font, buffer, features, length);
+  /* AAT morx is the OT/AAT shaper only; other shapers (e.g. HarfRust) do not
+   * implement it, so pin it. */
+  static const char *shaper_list[] = {"ot", NULL};
+  hb_shape_full (font, buffer, features, length, shaper_list);
   g_assert_cmpuint (length, ==, hb_buffer_get_length (buffer));
 
   free (features);
