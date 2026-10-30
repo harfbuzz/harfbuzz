@@ -1471,11 +1471,16 @@ struct mortmorx
 
     const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
+    unsigned int subtable_count = 0;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!chain->sanitize (c, version))
 	return_trace (false);
       hb_barrier ();
+      /* The accelerator keeps a glyph set per subtable. */
+      subtable_count += chain->get_subtable_count ();
+      if (unlikely (subtable_count > HB_AAT_MAX_SUBTABLES))
+	return_trace (false);
       chain = &StructAfter<Chain<Types>> (*chain);
     }
 
