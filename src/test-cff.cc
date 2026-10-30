@@ -102,6 +102,39 @@ test_specialized_fractional_geometry ()
 }
 
 static void
+test_specialized_many_commands ()
+{
+  /* Combining lines must not get slower with the number of commands that
+   * follow them, and must leave those commands alone. */
+  const unsigned n = 100000;
+  hb_vector_t<CFF::cs_command_t> commands;
+  for (unsigned i = 0; i < n; i++)
+  {
+    CFF::cs_command_t cmd (OpCode_rlineto);
+    CFF::number_t dx, dy;
+    dx.set_int ((i & 1) ? 0 : 1);
+    dy.set_int ((i & 1) ? 1 : 0);
+    cmd.args.push (dx);
+    cmd.args.push (dy);
+    commands.push (std::move (cmd));
+  }
+  for (unsigned i = 0; i < n; i++)
+    commands.push (CFF::cs_command_t (OpCode_hhcurveto));
+  CFF::specialize_commands (commands);
+  unsigned num_lines = (n + 46) / 47;
+  hb_always_assert (commands.length == num_lines + n);
+  unsigned num_args = 0;
+  for (unsigned i = 0; i < num_lines; i++)
+  {
+    hb_always_assert (commands[i].op == ((num_args & 1) ? OpCode_vlineto : OpCode_hlineto));
+    num_args += commands[i].args.length;
+  }
+  hb_always_assert (num_args == n);
+  for (unsigned i = num_lines; i < commands.length; i++)
+    hb_always_assert (commands[i].op == OpCode_hhcurveto && !commands[i].args.length);
+}
+
+static void
 test_charset1_splits_long_ranges ()
 {
   hb_vector_t<CFF::code_pair_t> ranges;
@@ -186,6 +219,7 @@ main (int argc, char **argv)
   test_index_count_limits ();
   test_specialized_line_geometry ();
   test_specialized_fractional_geometry ();
+  test_specialized_many_commands ();
   test_charset1_splits_long_ranges ();
   test_fd_select_sentinel<OT::HBUINT16, OT::HBUINT8> ();
   test_fd_select_sentinel<OT::HBUINT32, OT::HBUINT16> ();
