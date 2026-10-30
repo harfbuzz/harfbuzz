@@ -1326,6 +1326,9 @@ struct VariationSelectorRecord
     (base+nonDefaultUVS).collect_unicodes (out);
   }
 
+  void collect_non_default_unicodes (hb_set_t *out, const void *base) const
+  { (base+nonDefaultUVS).collect_unicodes (out); }
+
   void collect_mapping (const void *base,
 			hb_set_t *unicodes, /* OUT */
 			hb_map_t *mapping /* OUT */) const
@@ -1413,6 +1416,9 @@ struct CmapSubtableFormat14_15
   void collect_variation_unicodes (hb_codepoint_t variation_selector,
 				   hb_set_t *out) const
   { record.bsearch (variation_selector).collect_unicodes (out, this); }
+  void collect_variation_non_default_unicodes (hb_codepoint_t variation_selector,
+					       hb_set_t *out) const
+  { record.bsearch (variation_selector).collect_non_default_unicodes (out, this); }
 
   void serialize (hb_serialize_context_t *c,
 		  const hb_set_t *unicodes,
@@ -1589,6 +1595,18 @@ struct CmapSubtable
     case 14: hb_barrier (); u.format14.collect_variation_unicodes (variation_selector, out); return;
 #ifndef HB_NO_BEYOND_64K
     case 15: hb_barrier (); u.format15.collect_variation_unicodes (variation_selector, out); return;
+#endif
+    default: return;
+    }
+  }
+
+  void collect_variation_non_default_unicodes (hb_codepoint_t variation_selector,
+					       hb_set_t *out) const
+  {
+    switch (u.format.v) {
+    case 14: hb_barrier (); u.format14.collect_variation_non_default_unicodes (variation_selector, out); return;
+#ifndef HB_NO_BEYOND_64K
+    case 15: hb_barrier (); u.format15.collect_variation_non_default_unicodes (variation_selector, out); return;
 #endif
     default: return;
     }
@@ -2392,6 +2410,9 @@ struct cmap
     void collect_variation_unicodes (hb_codepoint_t variation_selector,
 				     hb_set_t *out) const
     { subtable_uvs->collect_variation_unicodes (variation_selector, out); }
+    void collect_variation_non_default_unicodes (hb_codepoint_t variation_selector,
+						 hb_set_t *out) const
+    { subtable_uvs->collect_variation_non_default_unicodes (variation_selector, out); }
 
     protected:
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
@@ -2670,8 +2691,14 @@ struct cmap_accelerator_t
       if (!unicodes->has (variation_selector))
 	continue;
 
+      /* As in CmapSubtableFormat14_15::closure_glyphs(), only non-default
+       * mappings can add glyphs: a default mapping resolves to the nominal
+       * glyph, which the caller retains with the unicode itself.  Expanding
+       * the Default UVS ranges instead would cost work proportional to the
+       * codepoints they cover, for every selector that shares them. */
       hb_set_t variation_unicodes;
-      collect_variation_unicodes (variation_selector, &variation_unicodes);
+      base.collect_variation_non_default_unicodes (variation_selector, &variation_unicodes);
+      dmap.collect_variation_non_default_unicodes (variation_selector, &variation_unicodes);
       for (hb_codepoint_t unicode : variation_unicodes)
       {
 	if (!unicodes->has (unicode))
