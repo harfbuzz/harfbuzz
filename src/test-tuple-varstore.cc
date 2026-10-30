@@ -152,8 +152,48 @@ test_decompile_cvar ()
     hb_always_assert (tuple_variations.tuple_vars[1].compiled_deltas.arrayZ[i] == compiled_deltas_2[i]);
 }
 
+static void
+test_shared_tuple_scalar_cache ()
+{
+  const unsigned char plain_data[] = {0, 0, 0, 0};
+  const unsigned char intermediate_data[] = {0, 0, 0x40, 0, 0, 0, 0x40, 0};
+  const unsigned char peak_data[] = {0x20, 0};
+  const auto &plain = *reinterpret_cast<const OT::TupleVariationHeader *> (plain_data);
+  const auto &intermediate = *reinterpret_cast<const OT::TupleVariationHeader *> (intermediate_data);
+  auto peaks = hb_array (reinterpret_cast<const OT::F2DOT14 *> (peak_data), 1);
+
+  /* The two tuples share a peak at 0.5, but the intermediate region ends
+   * at 1.0. A cached default-region scalar must not suppress its deltas. */
+  for (int coord : {0, 4096, 8192, 12288, 16384})
+    for (bool intermediate_first : {false, true})
+    {
+      auto coords = hb_array (&coord, 1);
+      float plain_scalar = plain.calculate_scalar (coords, 1, peaks);
+      float intermediate_scalar = intermediate.calculate_scalar (coords, 1, peaks);
+      if (coord == 12288)
+      {
+        hb_always_assert (plain_scalar == 0.f);
+        hb_always_assert (intermediate_scalar == 0.5f);
+      }
+
+      OT::hb_scalar_cache_t scratch;
+      auto *cache = OT::hb_scalar_cache_t::create (1, &scratch);
+      if (intermediate_first)
+      {
+        hb_always_assert (intermediate.calculate_scalar (coords, 1, peaks, cache) == intermediate_scalar);
+        hb_always_assert (plain.calculate_scalar (coords, 1, peaks, cache) == plain_scalar);
+      }
+      else
+      {
+        hb_always_assert (plain.calculate_scalar (coords, 1, peaks, cache) == plain_scalar);
+        hb_always_assert (intermediate.calculate_scalar (coords, 1, peaks, cache) == intermediate_scalar);
+      }
+    }
+}
+
 int
 main (int argc, char **argv)
 {
+  test_shared_tuple_scalar_cache ();
   test_decompile_cvar ();
 }
