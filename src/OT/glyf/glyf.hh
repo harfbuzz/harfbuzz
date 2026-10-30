@@ -641,6 +641,7 @@ struct glyf_accelerator_t
   }
 
   unsigned int get_num_glyphs () const { return num_glyphs; }
+  unsigned int get_table_length () const { return glyf_table.get_length (); }
   hb_blob_t *reference_glyf_table () const
   { return hb_blob_reference (glyf_table.get_blob ()); }
 

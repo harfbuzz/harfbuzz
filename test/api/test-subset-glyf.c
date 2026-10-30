@@ -624,6 +624,50 @@ test_subset_glyf_recompute_default_instance_bounds (void)
   hb_face_destroy (source);
 }
 
+static void
+test_subset_glyf_aliased_loca (void)
+{
+  /* A loca of 0, 16, 0, 16, ...: every even glyph is the same 16 bytes and
+   * every odd one starts after its end, so reads as empty. */
+  enum { num_glyphs = 101 };
+  static const char maxp_data[] = {0x00, 0x00, 0x50, 0x00, 0x00, num_glyphs};
+  static const char head_data[54] = {
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x5F, 0x0F, 0x3C, (char) 0xF5, 0x00, 0x00, 0x03, (char) 0xE8,
+  };
+  static const char glyf_data[16] = {
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x31,
+  };
+  char loca_data[2 * (num_glyphs + 1)] = {0};
+  for (unsigned i = 1; i <= num_glyphs; i += 2)
+    loca_data[2 * i + 1] = sizeof (glyf_data) / 2;
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "head", head_data);
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+
+  /* A few glyphs sharing the same bytes are each copied out. */
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 4);
+  hb_face_t *subset = hb_subset_test_create_subset (face, input);
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 2 * sizeof (glyf_data));
+  hb_blob_destroy (blob);
+  hb_face_destroy (subset);
+
+  /* Enough of them to add up to many times the table are rejected. */
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, num_glyphs - 1);
+  g_assert_null (hb_subset_plan_create_or_fail (face, input));
+  g_assert_null (hb_subset_or_fail (face, input));
+  hb_subset_input_destroy (input);
+
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -647,6 +691,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_retain_gids_truncates);
   hb_test_add (test_subset_glyf_zero_contour_instructions);
   hb_test_add (test_subset_glyf_recompute_default_instance_bounds);
+  hb_test_add (test_subset_glyf_aliased_loca);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_glyf_iftb_requirements);

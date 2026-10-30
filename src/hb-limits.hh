@@ -112,6 +112,14 @@
 #define HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH 64
 #endif
 
+/* Source bytes of all the glyphs the subsetter retains, as a multiple of
+ * the glyf table length; exceeding it fails the plan.  A monotonic loca
+ * never needs more than one; a loca that aliases the same bytes to many
+ * glyph IDs makes trimming and hint dropping cost that many table scans. */
+#ifndef HB_SUBSET_GLYF_MAX_BYTES_FACTOR
+#define HB_SUBSET_GLYF_MAX_BYTES_FACTOR 16
+#endif
+
 #ifndef HB_SVG_MAX_PATH_SEGMENTS
 #define HB_SVG_MAX_PATH_SEGMENTS 262144
 #endif

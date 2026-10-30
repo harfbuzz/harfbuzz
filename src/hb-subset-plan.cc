@@ -392,6 +392,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 			    hb_codepoint_t gid,
 			    hb_set_t *gids_to_retain,
 			    int operation_count,
+			    int64_t &bytes_budget,
 			    unsigned depth = 0)
 {
   /* Check if is already visited */
@@ -399,10 +400,16 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 
   gids_to_retain->add (gid);
 
+  auto glyph = glyf.glyph_for_gid (gid);
+
+  /* Every retained glyph is walked here and again when glyf is subset.
+   * Charge its untrimmed bytes before the operation count can bail out,
+   * so that a glyph retained past that point is still paid for. */
+  if (unlikely (!hb_budget_spend (bytes_budget, HB_BUDGET_1, glyph.get_bytes ().length)))
+    return operation_count;
+
   if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return operation_count;
   if (unlikely (--operation_count < 0)) return operation_count;
-
-  auto glyph = glyf.glyph_for_gid (gid);
 
   for (auto &item : glyph.get_composite_iterator ())
     operation_count =
@@ -410,6 +417,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 				  item.get_gid (glyph.is_extended ()),
 				  gids_to_retain,
 				  operation_count,
+				  bytes_budget,
 				  depth);
 
   return operation_count;
@@ -495,9 +503,19 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   /* Populate a full set of glyphs to retain by adding all referenced
    * composite glyphs. */
   if (glyf.has_data ())
+  {
+    /* With a monotonic loca the retained glyphs add up to at most the
+     * table; loca need not be monotonic though, and any number of glyph
+     * IDs may alias the same bytes, each of them trimmed separately. */
+    int64_t bytes_budget = (int64_t) glyf.get_table_length () *
+			   HB_SUBSET_GLYF_MAX_BYTES_FACTOR;
     for (hb_codepoint_t gid : cur_glyphset)
       _glyf_add_gid_and_children (glyf, gid, &plan->_glyphset,
-				  cur_glyphset.get_population () * HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH);
+				  cur_glyphset.get_population () * HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH,
+				  bytes_budget);
+    if (unlikely (!plan->check_success (bytes_budget >= 0)))
+      return;
+  }
   else
     plan->_glyphset.union_ (cur_glyphset);
 #ifndef HB_NO_SUBSET_CFF
