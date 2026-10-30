@@ -532,7 +532,13 @@ struct hb_depend_context_t :
      *
      * lookups_seen is pre-seeded with the top-level lookup index in
      * GSUB_accelerator_t::depend before the direct depend() call, so
-     * that indirect cycles of the form A→B→A are also caught here. */
+     * that indirect cycles of the form A→B→A are also caught here.
+     *
+     * lookups_seen only cuts cycles; a chain of distinct lookups would
+     * otherwise recurse once per lookup in the table, so also apply the
+     * same nesting limit the closure contexts use.  Shaping never applies
+     * lookups nested deeper than this, so no reachable edge is lost. */
+    if (unlikely (!nesting_level_left || !depend_data->successful)) return;
     if (lookups_seen.has (lookup_idx)) return;
     lookups_seen.add (lookup_idx);
 
@@ -546,7 +552,14 @@ struct hb_depend_context_t :
     if (!recurse_path_to_index.has (path_key, &path))
     {
       path_index = recurse_path_to_index.get_population () + 1;
-      if (unlikely (!recurse_path_to_index.set (path_key, path_index)))
+      /* Every distinct path is walked and memoized separately, so lookups
+       * that invoke each other in every order intern a factorial number of
+       * them.  reset_recurse_cache() clears recurse_path_to_index per
+       * top-level lookup, so bound the paths over the whole table with a
+       * separate counter and report the incomplete graph as a failure
+       * rather than emit it. */
+      if (unlikely (++total_recurse_paths > HB_MAX_LOOKUP_VISIT_COUNT ||
+		    !recurse_path_to_index.set (path_key, path_index)))
       {
 	depend_data->fail ();
 	lookups_seen.del (lookup_idx);
@@ -556,7 +569,9 @@ struct hb_depend_context_t :
     else
       path_index = *path;
     recurse_path = path_index;
+    nesting_level_left--;
     recurse_func (this, lookup_idx, covered_seq_indices, seq_index, end_index);
+    nesting_level_left++;
     recurse_path = parent_path;
     lookups_seen.del (lookup_idx);
   }
@@ -790,6 +805,10 @@ struct hb_depend_context_t :
   hb_vector_t<active_glyphs_frame_t> active_glyphs_stack;
   unsigned active_glyphs_stack_depth = 0;
   recurse_func_t recurse_func;
+  unsigned nesting_level_left = HB_MAX_NESTING_LEVEL;
+  /* Distinct recursion paths interned over the whole table (not cleared by
+   * reset_recurse_cache), bounding the factorial path blow-up. */
+  unsigned total_recurse_paths = 0;
   hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
   hb_bit_set_t lookups_seen;
   hb_vector_t<hb::unique_ptr<hb_set_t>> recurse_sets;
