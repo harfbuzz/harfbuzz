@@ -623,6 +623,120 @@ test_depend_context_format6 (void)
 }
 #endif
 
+static void
+append_uint16 (GByteArray *array, unsigned value)
+{
+  guint8 bytes[2] = { value >> 8, value & 0xFF };
+  g_byte_array_append (array, bytes, 2);
+}
+
+/* Build a face whose GSUB has one AlternateSubst lookup in which covered
+ * glyphs 1..N all share one AlternateSet of glyphs 1..M, selected by F
+ * distinct feature tags.  The dependency graph of such a font has N*M*F
+ * edges while the font itself grows with only N+M+F. */
+static hb_face_t *
+create_fanout_face (unsigned covered_glyphs, unsigned alternates, unsigned features)
+{
+  GByteArray *gsub = g_byte_array_new ();
+  unsigned script_list_len = 18 + 2 * features;
+  unsigned feature_list_len = 8 + 6 * features;
+  unsigned i;
+
+  /* Header */
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 10);
+  append_uint16 (gsub, 10 + script_list_len);
+  append_uint16 (gsub, 10 + script_list_len + feature_list_len);
+
+  /* ScriptList: DFLT, whose default LangSys enables every feature */
+  append_uint16 (gsub, 1);
+  g_byte_array_append (gsub, (const guint8 *) "DFLT", 4);
+  append_uint16 (gsub, 8);
+  append_uint16 (gsub, 4);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 0xFFFF);
+  append_uint16 (gsub, features);
+  for (i = 0; i < features; i++)
+    append_uint16 (gsub, i);
+
+  /* FeatureList: F records that all point at one Feature selecting lookup 0 */
+  append_uint16 (gsub, features);
+  for (i = 0; i < features; i++)
+  {
+    guint8 tag[4] = { 'f', '0' + i / 100 % 10, '0' + i / 10 % 10, '0' + i % 10 };
+    g_byte_array_append (gsub, tag, 4);
+    append_uint16 (gsub, 2 + 6 * features);
+  }
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 0);
+
+  /* LookupList: one AlternateSubstFormat1 lookup */
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 4);
+  append_uint16 (gsub, 3);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 8);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 6 + 2 * covered_glyphs);
+  append_uint16 (gsub, covered_glyphs);
+  for (i = 0; i < covered_glyphs; i++)
+    append_uint16 (gsub, 6 + 2 * covered_glyphs + 10);
+  /* Coverage format 2: one range, glyphs 1..N */
+  append_uint16 (gsub, 2);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, covered_glyphs);
+  append_uint16 (gsub, 0);
+  /* The shared AlternateSet: glyphs 1..M */
+  append_uint16 (gsub, alternates);
+  for (i = 1; i <= alternates; i++)
+    append_uint16 (gsub, i);
+
+  GByteArray *maxp = g_byte_array_new ();
+  append_uint16 (maxp, 0);
+  append_uint16 (maxp, 0x5000);
+  append_uint16 (maxp, MAX (covered_glyphs, alternates) + 1);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ((const char *) gsub->data, gsub->len,
+				    HB_MEMORY_MODE_READONLY, gsub, (hb_destroy_func_t) g_byte_array_unref);
+  hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) maxp->data, maxp->len,
+			 HB_MEMORY_MODE_READONLY, maxp, (hb_destroy_func_t) g_byte_array_unref);
+  hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+/* Test that graph construction fails instead of storing an unbounded number
+ * of edges when a small font fans out into a huge dependency graph. */
+static void
+test_depend_edge_limit (void)
+{
+  /* A modest fan-out is recorded in full: 16 * 16 * 4 edges. */
+  hb_face_t *face = create_fanout_face (16, 16, 4);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_nonnull (depend);
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 16, 0, NULL, NULL), ==, 16 * 4);
+  hb_tag_t layout_tag = HB_TAG ('f','0','0','3');
+  g_assert_true (find_dependency (depend, 16, 1, HB_TAG ('G','S','U','B'),
+				  &layout_tag, NULL));
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+
+  /* 256 * 256 * 512 edges, from a font of about five kilobytes. */
+  face = create_fanout_face (256, 256, 512);
+  depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_null (depend);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -634,6 +748,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_math);
   hb_test_add (test_depend_varc);
   hb_test_add (test_depend_gsub_formats);
+  hb_test_add (test_depend_edge_limit);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_depend_context_format6);
 #endif

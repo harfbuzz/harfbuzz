@@ -96,6 +96,14 @@
 #define HB_MAX_GRAPH_EDGE_COUNT 16384
 #endif
 
+/* Maximum number of edges stored in one glyph dependency graph.  GSUB
+ * edges are keyed by (source, target, feature tag), so a lookup reached
+ * by many feature tags multiplies its substitutions by the tag count and
+ * a small table can describe a graph of hundreds of millions of edges. */
+#ifndef HB_DEPEND_MAX_EDGES
+#define HB_DEPEND_MAX_EDGES (1u << 22)
+#endif
+
 #ifndef HB_VAR_COMPOSITE_MAX_AXES
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
