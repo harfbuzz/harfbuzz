@@ -16,7 +16,11 @@ resolve_cross_offset (const hb_glyph_position_t *pos,
 {
   bool horizontal = HB_DIRECTION_IS_HORIZONTAL (direction);
   hb_position_t offset = horizontal ? pos[glyph_pos].y_offset : pos[glyph_pos].x_offset;
-  while (pos[glyph_pos].attach_type() & ATTACH_TYPE_CURSIVE)
+  /* An acyclic chain has at most len - 1 links.  Cursive lookups with
+   * different flags can form a cycle, so bound the walk by the glyph count. */
+  for (unsigned int count = 1;
+       count < len && (pos[glyph_pos].attach_type() & ATTACH_TYPE_CURSIVE);
+       count++)
   {
     int chain = pos[glyph_pos].attach_chain();
     if (!chain)
