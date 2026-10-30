@@ -62,10 +62,11 @@ hb_subset_accelerator_t::~hb_subset_accelerator_t ()
 static inline bool
 _add_cff_seac_components (const OT::cff1::accelerator_subset_t &cff,
 			  hb_codepoint_t gid,
-			  hb_set_t *gids_to_retain)
+			  hb_set_t *gids_to_retain,
+			  int64_t *budget)
 {
   hb_codepoint_t base_gid, accent_gid;
-  if (cff.get_seac_components (gid, &base_gid, &accent_gid))
+  if (cff.get_seac_components (gid, &base_gid, &accent_gid, budget))
   {
     gids_to_retain->add (base_gid);
     gids_to_retain->add (accent_gid);
@@ -528,9 +529,13 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   {
     bool has_seac = false;
     if (cff->is_valid ())
+    {
+      int64_t budget = CFF::get_subset_budget (cff->get_blob ());
       for (hb_codepoint_t gid : cur_glyphset)
-	if (_add_cff_seac_components (*cff, gid, &plan->_glyphset))
+	if (_add_cff_seac_components (*cff, gid, &plan->_glyphset, &budget))
 	  has_seac = true;
+      plan->check_success (budget > 0);
+    }
     plan->has_seac = has_seac;
   }
 #endif
