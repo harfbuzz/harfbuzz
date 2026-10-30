@@ -558,12 +558,14 @@ struct cff1_subset_plan
 	/* Retain the SID for the old missing glyph ID */
 	old_glyph = glyph;
       }
+      /* Missing output glyphs can lie beyond the source glyph map. */
+      bool in_map = glyph_to_sid_map && old_glyph < glyph_to_sid_map->length;
       unsigned sid;
       if (identity_charset)
 	sid = glyph;
       else
       {
-	sid = glyph_to_sid_map ?
+	sid = in_map ?
 		       glyph_to_sid_map->arrayZ[old_glyph].code :
 		       acc.glyph_to_sid (old_glyph, &glyph_to_sid_cache);
 
@@ -574,7 +576,7 @@ struct cff1_subset_plan
       if (sid != last_sid + 1)
 	subset_charset_ranges.push (code_pair_t {sid, glyph});
 
-      if (glyph == old_glyph && skip)
+      if (glyph == old_glyph && skip && in_map)
       {
 	glyph = hb_min (_.first - 1, glyph_to_sid_map->arrayZ[old_glyph].glyph);
 	sid += glyph - old_glyph;

@@ -463,6 +463,38 @@ test_subset_cff1_j_identity_charset (void)
   hb_face_destroy (face_41_4c2e);
 }
 
+static void
+test_subset_cff1_preprocess_glyph_map_holes (void)
+{
+  const char *fonts[] = {
+    "fonts/SourceSansPro-Regular.abc.otf",
+    "fonts/SourceHanSans-Regular.41,4C2E.otf",
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (fonts); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (fonts[i]);
+    hb_face_t *preprocessed = hb_subset_preprocess (face);
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_glyph_set (input), 1);
+    hb_set_add (hb_subset_input_glyph_set (input), 2);
+    hb_map_t *mapping = hb_subset_input_old_to_new_glyph_mapping (input);
+    hb_map_set (mapping, 1, 7);
+    hb_map_set (mapping, 2, 20);
+
+    hb_face_t *expected = hb_subset_or_fail (face, input);
+    hb_face_t *actual = hb_subset_or_fail (preprocessed, input);
+    g_assert_nonnull (expected);
+    g_assert_nonnull (actual);
+    hb_subset_test_check (expected, actual, HB_TAG ('C','F','F',' '));
+
+    hb_face_destroy (actual);
+    hb_face_destroy (expected);
+    hb_subset_input_destroy (input);
+    hb_face_destroy (preprocessed);
+    hb_face_destroy (face);
+  }
+}
+
 #ifdef HB_EXPERIMENTAL_API
 static void
 test_subset_cff1_iftb_requirements (void)
@@ -562,6 +594,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_encoding_range_overflow);
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
+  hb_test_add (test_subset_cff1_preprocess_glyph_map_holes);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_cff1_iftb_requirements);
