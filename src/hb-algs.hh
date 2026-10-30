@@ -1462,6 +1462,39 @@ hb_bsearch (const K& key, V* base,
 }
 
 
+/* Heapsort: O(n log n) worst case.  Used by hb_qsort_loop below
+ * as the fallback when quicksort partitioning degenerates. */
+template <typename T, typename Compar>
+static inline void
+hb_heapsort_sift_down (T *base, size_t root, size_t end, Compar compar)
+{
+  for (size_t child; (child = 2 * root + 1) < end; root = child)
+  {
+    if (child + 1 < end && compar (base[child], base[child + 1]) < 0)
+      child++;
+    if (compar (base[root], base[child]) >= 0)
+      break;
+    hb_swap (base[root], base[child]);
+  }
+}
+template <typename T, typename Compar>
+static inline void
+hb_heapsort_inline (T *base, size_t nel, Compar compar)
+{
+  if (nel < 2) return;
+
+  /* Build a max-heap. */
+  for (size_t i = nel / 2; i--;)
+    hb_heapsort_sift_down (base, i, nel, compar);
+
+  /* Pop the maximum to the end, one at a time. */
+  for (size_t end = nel; --end;)
+  {
+    hb_swap (base[0], base[end]);
+    hb_heapsort_sift_down (base, 0, end, compar);
+  }
+}
+
 /* Quicksort partitioning loop: median-of-three pivot, two-way
  * Hoare partition, tail-call elimination on the larger side.
  * Stops partitioning when subranges shrink below the threshold;
@@ -1475,15 +1508,26 @@ hb_bsearch (const K& key, V* base,
  * Stops partitioning when subranges shrink below the threshold;
  * a single insertion-sort pass over the whole array (run by
  * hb_qsort_inline below) finishes the job.  Same shape libstdc++
- * uses for std::sort.
+ * uses for std::sort, including the introsort depth limit: once
+ * a range has been partitioned depth_limit times without
+ * finishing, it is handed to heapsort instead.  Without that an
+ * input ordered against the pivot selection (which a font can
+ * arrange, e.g. the lookup indices of a Feature) costs O(n^2).
  *
  * Not stable; equivalent values may be swapped. */
 template <typename T, typename Compar>
 static inline void
-hb_qsort_loop (T *base, size_t nel, Compar compar)
+hb_qsort_loop (T *base, size_t nel, Compar compar, unsigned depth_limit)
 {
   while (nel > 24)
   {
+    if (unlikely (!depth_limit))
+    {
+      hb_heapsort_inline (base, nel, compar);
+      return;
+    }
+    depth_limit--;
+
     T *last = base + nel - 1;
     T *mid = base + nel / 2;
 
@@ -1516,13 +1560,13 @@ hb_qsort_loop (T *base, size_t nel, Compar compar)
     size_t right = nel - left - 1;
     if (left < right)
     {
-      hb_qsort_loop (base, left, compar);
+      hb_qsort_loop (base, left, compar, depth_limit);
       base = i + 1;
       nel  = right;
     }
     else
     {
-      hb_qsort_loop (i + 1, right, compar);
+      hb_qsort_loop (i + 1, right, compar, depth_limit);
       nel  = left;
     }
   }
@@ -1532,7 +1576,7 @@ template <typename T, typename Compar>
 static inline void
 hb_qsort_inline (T *base, size_t nel, Compar compar)
 {
-  hb_qsort_loop (base, nel, compar);
+  hb_qsort_loop (base, nel, compar, 2 * hb_bit_storage (nel));
 
   /* Single final insertion sort over the whole array.  After
    * the partitioning loop, every element is within the threshold
