@@ -227,31 +227,18 @@ hb_cairo_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 static hb_bool_t
 hb_cairo_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
-			    void *paint_data,
-			    hb_codepoint_t glyph,
-			    hb_font_t *font,
+			    void *paint_data HB_UNUSED,
+			    hb_codepoint_t glyph HB_UNUSED,
+			    hb_font_t *font HB_UNUSED,
 			    void *user_data HB_UNUSED)
 {
-  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
-  cairo_t *cr = c->cr;
-
-  if (unlikely (!c->spend (HB_BUDGET_1)))
-    return true;
-
-  cairo_save (cr);
-
-  hb_position_t x_scale, y_scale;
-  hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_scale (cr, x_scale, -y_scale);
-
-  cairo_glyph_t cairo_glyph = { glyph, 0, 0 };
-  cairo_set_scaled_font (cr, c->scaled_font);
-  cairo_set_font_size (cr, 1);
-  cairo_show_glyphs (cr, &cairo_glyph, 1);
-
-  cairo_restore (cr);
-
-  return true;
+  /* Showing the nested glyph through cairo_show_glyphs() would re-enter
+   * hb_font_paint_glyph() on a scaled font of its own, with a fresh paint
+   * context: the glyph decycler, nesting depth and work limits of the
+   * walk in progress do not carry over, so two glyphs painting each other
+   * recurse until the stack is exhausted.  Decline, and let the caller
+   * paint the nested glyph inline under the limits of the current walk. */
+  return false;
 }
 
 static void

@@ -67,11 +67,53 @@ test_hb_cairo_budget (void)
   hb_face_destroy (face);
 }
 
+static void
+test_hb_cairo_color_glyph_cycle (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+
+  /* Two COLRv1 glyphs that paint each other with PaintColrGlyph.  The
+   * color_glyph callback used to show the nested glyph through cairo,
+   * re-entering hb_font_paint_glyph() without the cycle and depth
+   * guards of the paint walk in progress. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/test_glyphs-glyf_colr_1.ttf");
+  hb_font_t *font = hb_font_create (face);
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 30);
+
+  /* paintcolrglyph_cycle_first, paintcolrglyph_cycle_second */
+  for (hb_codepoint_t u = 0xF1100; u <= 0xF1101; u++)
+  {
+    hb_codepoint_t gid;
+    g_assert_true (hb_font_get_nominal_glyph (font, u, &gid));
+
+    cairo_glyph_t glyph = {gid, 0, 30};
+    cairo_show_glyphs (cr, &glyph, 1);
+  }
+
+  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+  g_assert_cmpint (cairo_surface_status (surface), ==, CAIRO_STATUS_SUCCESS);
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+  cairo_font_face_destroy (cairo_face);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_budget);
+  hb_test_add (test_hb_cairo_color_glyph_cycle);
 
   return hb_test_run ();
 }

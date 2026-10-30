@@ -34,7 +34,7 @@
 struct hb_cairo_budget_t
 {
   /* Cairo serializes glyph-cache population for a scaled font.  Keeping the
-   * owner there lets recursive color-glyph callbacks share one session. */
+   * owner there lets the draw and paint callbacks share one session. */
   int64_t budget = HB_BUDGET_DEFAULT;
   int64_t budget_remaining = HB_BUDGET_GLYPH;
   unsigned int active = 0;
