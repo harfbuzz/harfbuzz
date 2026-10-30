@@ -638,7 +638,8 @@ struct hb_vector_t
     {
       assert (!length && !allocated);
       arrayZ = (Type *) allocator->alloc (size * sizeof (Type), alignof (Type));
-      if (unlikely (!arrayZ))
+      /* The pool returns nullptr for a zero-size request; that is not a failure. */
+      if (unlikely (size && !arrayZ))
       {
 	set_error ();
 	return false;

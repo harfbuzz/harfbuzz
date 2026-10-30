@@ -27,6 +27,7 @@
 
 #include "hb.hh"
 #include "hb-vector.hh"
+#include "hb-alloc-pool.hh"
 #include "hb-set.hh"
 #include "hb-map.hh"
 #include <string>
@@ -312,6 +313,19 @@ main (int argc, char **argv)
     hb_vector_t<hb_map_t> v;
     hb_map_t m;
     v.push (m);
+  }
+
+  /* An empty allocation from a pool with no open chunk is not a failure. */
+  {
+    hb_alloc_pool_t pool;
+    hb_vector_t<int> v, empty;
+    hb_always_assert (v.allocate_from_pool (&pool, 0));
+    hb_always_assert (!v.in_error ());
+    hb_always_assert (v.duplicate_vector_from_pool (&pool, empty));
+    hb_always_assert (!v.in_error ());
+    hb_always_assert (v.allocate_from_pool (&pool, 2));
+    hb_always_assert (!v.in_error ());
+    hb_always_assert (v.length == 2);
   }
 
   return 0;

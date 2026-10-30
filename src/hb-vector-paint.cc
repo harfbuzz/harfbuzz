@@ -56,7 +56,6 @@ hb_vector_paint_create_or_fail (hb_vector_format_t format)
     return nullptr;
   paint->format = format;
 
-  paint->active_color_glyphs = hb_set_create ();
   paint->defs.alloc (4096);
   paint->path.alloc (2048);
   paint->captured_scratch.alloc (4096);
@@ -98,7 +97,6 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
   if (paint->format == HB_VECTOR_FORMAT_PDF)
     hb_vector_paint_pdf_free_resources (paint);
   hb_blob_destroy (paint->recycled_blob);
-  hb_set_destroy (paint->active_color_glyphs);
   hb_free (paint->id_prefix);
   hb_object_actually_destroy (paint);
   hb_free (paint);
@@ -746,9 +744,7 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->clip_path_counter = 0;
   paint->recharge_budget ();
   paint->gradient_counter = 0;
-  paint->color_glyph_depth = 0;
   paint->path_def_count = 0;
-  hb_set_clear (paint->active_color_glyphs);
   paint->color_stops_scratch.clear ();
   paint->captured_scratch.clear ();
 }

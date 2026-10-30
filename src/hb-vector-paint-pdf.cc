@@ -76,8 +76,32 @@ struct hb_pdf_resources_t
   unsigned shading_count = 0;
   unsigned xobject_count = 0;
 
+  /* Every object is a buffer of its own, so the per-buffer document cap
+   * bounds each object but not their number.  Charge all objects against the
+   * same cap with a running total, and make the overflow sticky like
+   * hb_vector_buf_t::overflowed, so a COLRv1 font that paints one large
+   * gradient thousands of times cannot allocate gigabytes of objects that
+   * would only be refused when they are concatenated at render time. */
+  unsigned objects_size = 0;
+  bool overflowed = false;
+
+  bool in_error () const
+  { return objects.in_error () || overflowed; }
+
   unsigned add_object (hb_vector_buf_t &&obj_data)
   {
+    /* Per-object framing emitted at render time: "N 0 obj\n", "\nendobj\n",
+     * and the xref entry.  Neither operand can exceed the cap, so the sum
+     * cannot wrap. */
+    const unsigned framing = 17 + 8 + 20;
+    if (unlikely (in_error () || obj_data.in_error () ||
+		  objects_size + obj_data.length + framing > HB_VECTOR_MAX_DOCUMENT_SIZE))
+    {
+      overflowed = true;
+      return 0; /* Never a valid object id. */
+    }
+    objects_size += obj_data.length + framing;
+
     unsigned id = 5 + objects.length; /* objects 1-4 are fixed */
     hb_pdf_obj_t obj;
     obj.data = std::move (obj_data);
@@ -252,7 +276,10 @@ struct hb_pdf_resources_t
 	smask_obj.append_str (" >>\nstream\n");
 	smask_obj.append_len (smask_stream.arrayZ, smask_stream.length);
 	smask_obj.append_str ("\nendstream");
-	smask_id = add_object (std::move (smask_obj));
+	/* A mask that tripped the document cap has an empty stream; embed the
+	 * image without it rather than reference a truncated object. */
+	if (likely (!smask_obj.in_error ()))
+	  smask_id = add_object (std::move (smask_obj));
       }
     }
 
@@ -608,12 +635,19 @@ hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
   /* Guard the size arithmetic below against 32-bit overflow.  width/height come
    * from the attacker-controlled PNG IHDR; without this, (width + 1) * height or
    * width * height can wrap and under-size buffers that are then indexed per
-   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]). */
+   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]).
+   *
+   * The mask is emitted uncompressed into a document-capped hb_vector_buf_t,
+   * so one larger than HB_VECTOR_MAX_DOCUMENT_SIZE can never be appended:
+   * reject it here, before inflating and un-filtering width * height bytes
+   * (4 GB from a ~4 MB font) that would only be dropped afterwards.  This also
+   * bounds raw_len, which is mask_len + height. */
   unsigned raw_len, mask_len;
   if (!width || !height ||
       width == 0xFFFFFFFFu ||
       hb_unsigned_mul_overflows (width + 1, height, &raw_len) ||
-      hb_unsigned_mul_overflows (width, height, &mask_len))
+      hb_unsigned_mul_overflows (width, height, &mask_len) ||
+      mask_len > HB_VECTOR_MAX_DOCUMENT_SIZE)
     return false;
 
   /* Decompress IDAT (zlib). */
@@ -725,7 +759,8 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return false;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return false;
 
   unsigned len = 0;
@@ -1029,14 +1064,15 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 			      hb_color_line_t *color_line,
 			      float x0, float y0,
 			      float x1, float y1,
-			      float x2 HB_UNUSED, float y2 HB_UNUSED,
+			      float x2, float y2,
 			      void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return;
 
   /* Fetch, normalize stops to [0,1], and adjust coordinates. */
@@ -1046,10 +1082,15 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
-  float gx0 = x0 + mn * (x1 - x0);
-  float gy0 = y0 + mn * (y1 - y0);
-  float gx1 = x0 + mx * (x1 - x0);
-  float gy1 = y0 + mx * (y1 - y0);
+  /* Reduce COLR's 3-anchor (P0, P1, P2) to the 2-point axis of a Type 2
+   * (axial) shading, as the SVG, raster, GPU and cairo backends do. */
+  float lx0, ly0, lx1, ly1;
+  hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2,
+				  &lx0, &ly0, &lx1, &ly1);
+  float gx0 = lx0 + mn * (lx1 - lx0);
+  float gy0 = ly0 + mn * (ly1 - ly0);
+  float gx1 = lx0 + mx * (lx1 - lx0);
+  float gy1 = ly0 + mx * (ly1 - ly0);
 
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
@@ -1100,9 +1141,17 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
     ash.append_str (">>");
     unsigned alpha_sh_id = res->add_object (std::move (ash));
 
+    /* An axial shading is not confined to the rectangle spanned by its axis:
+     * it extends perpendicular to the axis, and along it with /Extend, and the
+     * RGB fill relies on that.  The soft-mask form clips the alpha shading to
+     * its /BBox, so give it a large box covering the whole painted area (as
+     * the sweep gradient does) instead of the axis box, which is zero-area for
+     * a horizontal or vertical gradient and otherwise crops the fill. */
+    const float R = 32767.f;
+    float scx = paint->sx (gx0), scy = paint->sy (gy0);
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
-						paint->sx (gx0), paint->sy (gy0),
-						paint->sx (gx1 - gx0), paint->sy (gy1 - gy0),
+						scx - R - 1, scy - R - 1,
+						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
     body.append_str ("/GS");
     body.append_unsigned (gs_idx);
@@ -1126,7 +1175,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return;
 
   /* Fetch, normalize stops to [0,1], and adjust coordinates. */
@@ -1200,13 +1250,17 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
     ash.append_str (">>");
     unsigned alpha_sh_id = res->add_object (std::move (ash));
 
-    /* BBox: enclosing square of the outer circle. */
+    /* The alpha shading extends beyond the circles with /Extend, and the RGB
+     * fill relies on that, so the soft-mask form must cover the whole painted
+     * area rather than just the enclosing square of the outer circle (which
+     * crops the padded region).  Use a large box as the sweep gradient does. */
+    const float R = 32767.f;
     float cx = (gr1 >= gr0) ? gx1 : gx0;
     float cy = (gr1 >= gr0) ? gy1 : gy0;
-    float rr = hb_max (gr0, gr1);
+    float scx = paint->sx (cx), scy = paint->sy (cy);
     unsigned gs_idx = res->add_extgstate_smask (alpha_sh_id,
-						paint->sx (cx - rr), paint->sy (cy - rr),
-						paint->sx (2 * rr), paint->sy (2 * rr),
+						scx - R - 1, scy - R - 1,
+						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
     body.append_str ("/GS");
     body.append_unsigned (gs_idx);
@@ -1413,7 +1467,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   auto *res = hb_pdf_get_resources (paint);
-  if (unlikely (!res))
+  /* Over the document cap: stop emitting resource-backed content. */
+  if (unlikely (!res || res->in_error ()))
     return;
 
   /* Get and sort color stops. */
@@ -1649,6 +1704,9 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 
   hb_vector_buf_t &content = paint->group_stack.arrayZ[0];
   hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
+  /* Over the document cap: the content stream refers to dropped objects. */
+  if (unlikely (res && res->in_error ()))
+    return nullptr;
 
   float ex = paint->extents.x;
   float ey = paint->extents.y;
