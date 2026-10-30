@@ -1738,6 +1738,12 @@ static inline void collect_class (hb_set_t *glyphs, unsigned value, const void *
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   class_def.collect_class (glyphs, value);
 }
+static inline void collect_classes (hb_set_t *glyphs, const hb_set_t &classes, const ClassDef &class_def)
+{
+  if (unlikely (classes.in_error ()))
+    glyphs->err ();
+  class_def.collect_classes (glyphs, classes);
+}
 static inline void collect_coverage (hb_set_t *glyphs, unsigned value, const void *data)
 {
   Offset32To<Coverage> coverage;
@@ -3139,7 +3145,7 @@ struct Rule
   }
 
   void collect_second_glyphs (hb_set_digest_t *digest,
-			      const ClassDef *class_def = nullptr) const
+			      hb_set_t *classes = nullptr) const
   {
     if (inputCount <= 1)
     {
@@ -3148,12 +3154,12 @@ struct Rule
     }
 
     unsigned second = inputZ.arrayZ[0];
-    if (!class_def)
+    if (!classes)
       digest->add (second);
     else if (!second)
       *digest = hb_set_digest_t::full ();
     else
-      class_def->collect_class (digest, second);
+      classes->add (second);
   }
 
   bool would_apply (hb_would_apply_context_t *c,
@@ -3309,11 +3315,11 @@ struct RuleSetOf
   }
 
   void collect_second_glyphs (hb_set_digest_t *digest,
-			      const ClassDef *class_def = nullptr) const
+			      hb_set_t *classes = nullptr) const
   {
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([=] (const RuleType &_) { _.collect_second_glyphs (digest, class_def); })
+    | hb_apply ([=] (const RuleType &_) { _.collect_second_glyphs (digest, classes); })
     ;
   }
 
@@ -3849,25 +3855,40 @@ struct ContextFormat2_5
   {
     (this+coverage).collect_coverage (c->input);
 
-    const ClassDef &class_def = this+classDef;
+    /* Rules repeat classes, and can be shared.  Collect the class values
+     * first, such that the ClassDef is walked once instead of per value. */
+    hb_set_t input_classes;
+    hb_set_t *input = c->input;
+    c->input = &input_classes;
+
     struct ContextCollectGlyphsLookupContext lookup_context = {
-      {collect_class},
-      &class_def
+      {collect_glyph},
+      nullptr
     };
 
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_apply ([&] (const RuleSet &_) { _.collect_glyphs (c, lookup_context); })
     ;
+
+    c->input = input;
+
+    collect_classes (c->input, input_classes, this+classDef);
   }
 
   void collect_second_glyphs (hb_set_digest_t *digest) const
   {
-    const ClassDef &class_def = this+classDef;
+    /* Ditto. */
+    hb_set_t classes;
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
-    | hb_apply ([=, &class_def] (const RuleSet &_) { _.collect_second_glyphs (digest, &class_def); })
+    | hb_apply ([=, &classes] (const RuleSet &_) { _.collect_second_glyphs (digest, &classes); })
     ;
+
+    if (unlikely (classes.in_error ()))
+      *digest = hb_set_digest_t::full ();
+    else
+      (this+classDef).collect_classes (digest, classes);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
@@ -4671,23 +4692,23 @@ struct ChainRule
   }
 
   void collect_second_glyphs (hb_set_digest_t *digest,
-			      const ClassDef *input_class_def = nullptr,
-			      const ClassDef *lookahead_class_def = nullptr) const
+			      hb_set_t *input_classes = nullptr,
+			      hb_set_t *lookahead_classes = nullptr) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
 
     unsigned second;
-    const ClassDef *class_def;
+    hb_set_t *classes;
     if (input.lenP1 > 1)
     {
       second = input.arrayZ[0];
-      class_def = input_class_def;
+      classes = input_classes;
     }
     else if (lookahead.len)
     {
       second = lookahead.arrayZ[0];
-      class_def = lookahead_class_def;
+      classes = lookahead_classes;
     }
     else
     {
@@ -4695,12 +4716,12 @@ struct ChainRule
       return;
     }
 
-    if (!class_def)
+    if (!classes)
       digest->add (second);
     else if (!second)
       *digest = hb_set_digest_t::full ();
     else
-      class_def->collect_class (digest, second);
+      classes->add (second);
   }
 
   bool would_apply (hb_would_apply_context_t *c,
@@ -4911,13 +4932,13 @@ struct ChainRuleSetOf
   }
 
   void collect_second_glyphs (hb_set_digest_t *digest,
-			      const ClassDef *input_class_def = nullptr,
-			      const ClassDef *lookahead_class_def = nullptr) const
+			      hb_set_t *input_classes = nullptr,
+			      hb_set_t *lookahead_classes = nullptr) const
   {
     + hb_iter (rule)
     | hb_map (hb_add (this))
     | hb_apply ([=] (const ChainRuleType &_)
-		{ _.collect_second_glyphs (digest, input_class_def, lookahead_class_def); })
+		{ _.collect_second_glyphs (digest, input_classes, lookahead_classes); })
     ;
   }
 
@@ -5491,32 +5512,52 @@ struct ChainContextFormat2_5
   {
     (this+coverage).collect_coverage (c->input);
 
-    const ClassDef &backtrack_class_def = this+backtrackClassDef;
-    const ClassDef &input_class_def = this+inputClassDef;
-    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+    /* Rules repeat classes, and can be shared.  Collect the class values
+     * first, such that each ClassDef is walked once instead of per value. */
+    hb_set_t backtrack_classes, input_classes, lookahead_classes;
+    hb_set_t *before = c->before;
+    hb_set_t *input  = c->input;
+    hb_set_t *after  = c->after;
+    c->before = &backtrack_classes;
+    c->input  = &input_classes;
+    c->after  = &lookahead_classes;
 
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
-      {collect_class},
-      {&backtrack_class_def,
-       &input_class_def,
-       &lookahead_class_def}
+      {collect_glyph},
+      {nullptr, nullptr, nullptr}
     };
 
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_apply ([&] (const ChainRuleSet &_) { _.collect_glyphs (c, lookup_context); })
     ;
+
+    c->before = before;
+    c->input  = input;
+    c->after  = after;
+
+    collect_classes (c->before, backtrack_classes, this+backtrackClassDef);
+    collect_classes (c->input, input_classes, this+inputClassDef);
+    collect_classes (c->after, lookahead_classes, this+lookaheadClassDef);
   }
 
   void collect_second_glyphs (hb_set_digest_t *digest) const
   {
-    const ClassDef &input_class_def = this+inputClassDef;
-    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+    /* Ditto. */
+    hb_set_t input_classes, lookahead_classes;
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
-    | hb_apply ([digest, &input_class_def, &lookahead_class_def] (const ChainRuleSet &_)
-		{ _.collect_second_glyphs (digest, &input_class_def, &lookahead_class_def); })
+    | hb_apply ([digest, &input_classes, &lookahead_classes] (const ChainRuleSet &_)
+		{ _.collect_second_glyphs (digest, &input_classes, &lookahead_classes); })
     ;
+
+    if (unlikely (input_classes.in_error () || lookahead_classes.in_error ()))
+    {
+      *digest = hb_set_digest_t::full ();
+      return;
+    }
+    (this+inputClassDef).collect_classes (digest, input_classes);
+    (this+lookaheadClassDef).collect_classes (digest, lookahead_classes);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
