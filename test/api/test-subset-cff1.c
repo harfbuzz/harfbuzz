@@ -589,6 +589,127 @@ test_subset_cff1_shared_local_subrs (void)
   g_assert_true (!subset_cff1_many_font_dicts (true));
 }
 
+static hb_face_t *
+create_shared_subrs_face (unsigned num_glyphs, hb_bool_t endchar_in_subr)
+{
+  /* Global subrs 1, 2 and 3 call the previous one ten times each, so a call
+   * of subr 3 executes a little under HB_CFF_MAX_OPS operators and operands.
+   * Every glyph is such a call. */
+  static const unsigned char prefix[] = {
+    1, 0, 4, 4, /* header */
+    0, 1, 1, 1, 2, 'A', /* Name INDEX */
+    0, 1, 1, 1, 24, /* Top DICT INDEX */
+    29, 0, 0, 1, 62, 15, /* charset */
+    29, 0, 0, 1, 67, 17, /* CharStrings */
+    29, 0, 0, 0, 0, 29, 0, 0, 0, 4, 18, /* Private, empty */
+    0, 0, /* String INDEX */
+    0, 5, 2, 0, 1, 0, 198, 0, 219, 0, 240, 1, 5, 1, 8, /* Global Subr INDEX */
+  };
+  const unsigned char rlineto = 5, return_ = 11, endchar = 14, callgsubr = 29, bias = 139 - 107;
+  unsigned charstring_length = endchar_in_subr ? 2 : 3;
+  unsigned length = sizeof (prefix) + 263 + 5 + 3 + 2 * (num_glyphs + 1) + charstring_length * num_glyphs;
+  unsigned char *cff = (unsigned char *) calloc (length, 1);
+  g_assert_nonnull (cff);
+  unsigned char *p = cff;
+
+  memcpy (p, prefix, sizeof (prefix));
+  p += sizeof (prefix);
+  for (unsigned i = 0; i < 4; i++)
+  {
+    memset (p, 140, 48);
+    p += 48;
+    *p++ = rlineto;
+  }
+  *p++ = return_;
+  for (unsigned subr = 1; subr <= 3; subr++)
+  {
+    for (unsigned i = 0; i < 10; i++)
+    {
+      *p++ = bias + subr - 1;
+      *p++ = callgsubr;
+    }
+    *p++ = return_;
+  }
+  *p++ = bias + 3;
+  *p++ = callgsubr;
+  *p++ = endchar;
+
+  /* charset */
+  *p++ = 2;
+  *p++ = 0;
+  *p++ = 1;
+  *p++ = (num_glyphs - 2) >> 8;
+  *p++ = (num_glyphs - 2) & 0xFF;
+
+  /* CharStrings INDEX */
+  *p++ = num_glyphs >> 8;
+  *p++ = num_glyphs & 0xFF;
+  *p++ = 2;
+  for (unsigned i = 0; i <= num_glyphs; i++)
+  {
+    *p++ = (1 + charstring_length * i) >> 8;
+    *p++ = (1 + charstring_length * i) & 0xFF;
+  }
+  for (unsigned i = 0; i < num_glyphs; i++)
+  {
+    *p++ = bias + (endchar_in_subr ? 4 : 3);
+    *p++ = callgsubr;
+    if (!endchar_in_subr)
+      *p++ = endchar;
+  }
+  g_assert_cmpuint (p - cff, ==, length);
+
+  char maxp[] = {0, 0, 0x50, 0, (char) (num_glyphs >> 8), (char) (num_glyphs & 0xFF)};
+  hb_face_t *builder = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (builder, "maxp", maxp);
+  hb_blob_t *blob = hb_blob_create_or_fail ((const char *) cff, length,
+					    HB_MEMORY_MODE_READONLY, cff, free);
+  g_assert_nonnull (blob);
+  hb_face_builder_add_table (builder, HB_TAG ('C','F','F',' '), blob);
+  hb_blob_destroy (blob);
+
+  /* maxp does not outlive this function. */
+  blob = hb_face_reference_blob (builder);
+  hb_face_destroy (builder);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  return face;
+}
+
+static void
+test_subset_cff1_shared_subrs (void)
+{
+  /* The work is limited over all glyphs, not only per glyph.  With endchar
+   * in the glyph the seac closure interprets the charstrings as well. */
+  for (unsigned endchar_in_subr = 0; endchar_in_subr < 2; endchar_in_subr++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_subset_input_keep_everything (input);
+
+    hb_face_t *face = create_shared_subrs_face (4, endchar_in_subr);
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_nonnull (subset);
+    hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','F','F',' '));
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    hb_blob_destroy (blob);
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+
+    /* Enough of them exhaust the shared work budget; the subset fails
+     * instead of interpreting num_glyphs x HB_CFF_MAX_OPS, and so does the
+     * dependency builder that walks the same seac closure. */
+    face = create_shared_subrs_face (100, endchar_in_subr);
+    subset = hb_subset_or_fail (face, input);
+    g_assert_null (subset);
+#ifndef HB_NO_SUBSET_DEPEND
+    g_assert_null (hb_subset_depend_from_face_or_fail (face));
+#endif
+    hb_face_destroy (face);
+
+    hb_subset_input_destroy (input);
+  }
+}
+
 static void
 test_subset_cff1_preprocess_glyph_map_holes (void)
 {
@@ -723,6 +844,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
   hb_test_add (test_subset_cff1_shared_local_subrs);
+  hb_test_add (test_subset_cff1_shared_subrs);
   hb_test_add (test_subset_cff1_preprocess_glyph_map_holes);
 
 #ifdef HB_EXPERIMENTAL_API

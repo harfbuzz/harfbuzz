@@ -1213,6 +1213,7 @@ struct cff2_subset_plan
 	hb_vector_t<bool> round_charstrings;
 	if (unlikely (!round_charstrings.resize (num_glyphs))) return false;
 	hb_set_t used_fds;
+	int64_t budget = CFF::get_subset_budget (acc.get_blob ());
 	for (unsigned int i = 0; i < num_glyphs; i++)
 	{
 	  hb_codepoint_t glyph;
@@ -1230,7 +1231,7 @@ struct cff2_subset_plan
 	  cff2_usage_param_t param;
 	  param.instancing = partial_instancing ? &instancing : nullptr;
 	  param.drop_hints = drop_hints;
-	  if (unlikely (!interp.interpret (param)))
+	  if (unlikely (!interp.interpret (param, &budget)))
 	    return false;
 	  round_charstrings.arrayZ[i] = param.has_blend && !param.has_flex1;
 	}
@@ -1262,6 +1263,7 @@ struct cff2_subset_plan
 	  return false;
 	if (capture_commands && !charstring_commands.resize_exact (num_glyphs))
 	  return false;
+	budget = CFF::get_subset_budget (acc.get_blob ());
 	for (unsigned int i = 0; i < num_glyphs; i++)
 	{
 	  hb_codepoint_t glyph;
@@ -1286,7 +1288,7 @@ struct cff2_subset_plan
 	  cff2_cs_rounding_t rounding;
 	  if (round_charstrings.arrayZ[i]) param.rounding = &rounding;
 	  param.instancer = partial_instancing ? &instancing : nullptr;
-	  if (unlikely (!interp.interpret (param)))
+	  if (unlikely (!interp.interpret (param, &budget)))
 	    return false;
 	}
       }

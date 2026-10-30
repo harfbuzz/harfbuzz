@@ -1543,7 +1543,7 @@ struct cff1
     HB_INTERNAL bool subset (hb_subset_context_t *c) const;
     HB_INTERNAL bool serialize (hb_serialize_context_t *c,
 				struct cff1_subset_plan &plan) const;
-    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
+    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent, int64_t *budget = nullptr) const;
 
     mutable CFF::cff_subset_accelerator_t* cff_accelerator = nullptr;
     bool subrs_may_end_in_seac = false;
@@ -1579,15 +1579,18 @@ struct cff1_subset_accelerator_t : cff1::accelerator_subset_t {
   void depend (hb_depend_data_builder_t *builder) const
   {
     if (!is_valid ()) return;
+    int64_t budget = CFF::get_subset_budget (blob);
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t base_gid, accent_gid;
-      if (get_seac_components (gid, &base_gid, &accent_gid))
+      if (get_seac_components (gid, &base_gid, &accent_gid, &budget))
       {
         builder->add_depend (gid, HB_TAG('C','F','F',' '), base_gid);
         builder->add_depend (gid, HB_TAG('C','F','F',' '), accent_gid);
       }
     }
+    if (unlikely (budget <= 0))
+      builder->fail ();
   }
 };
 

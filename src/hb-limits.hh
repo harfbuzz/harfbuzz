@@ -205,6 +205,21 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
+/* The flat floor for one pass of the subsetter over the charstrings of
+ * a CFF or CFF2 table, in operators and operands interpreted.  Glyphs
+ * can share subroutines, so neither HB_CFF_MAX_OPS per glyph nor the
+ * table size bounds that work.  Running out fails the charstring being
+ * interpreted, as exceeding HB_CFF_MAX_OPS does. */
+#ifndef HB_BUDGET_SUBSET_CFF
+#define HB_BUDGET_SUBSET_CFF ((int64_t) 1 << 24)
+#endif
+
+/* Very large CFF and CFF2 tables still get several operations per byte;
+ * subroutinized fonts interpret a few operations per table byte. */
+#ifndef HB_BUDGET_SUBSET_CFF_PER_BYTE
+#define HB_BUDGET_SUBSET_CFF_PER_BYTE 32
+#endif
+
 /* Partially instancing one CFF2 table in the subsetter, in cells of the
  * old-region to new-region matrices built for its VarDatas.  A VarData
  * with k regions costs k * k cells for 2 * k bytes of font, and many
