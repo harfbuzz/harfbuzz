@@ -163,6 +163,13 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
   if (unlikely (pending.in_error ()))
     return false;
 
+  /* Each glyph is visited once, and the records of a well-formed font do
+   * not overlap, so together they cannot outgrow their INDEX.  A font with
+   * overlapping glyphRecords offsets, or Coverage ranges sharing an index,
+   * can otherwise make many gids resolve to one large record. */
+  const CFF2Index &records = this+glyphRecords;
+  size_t records_size = records.get_size ();
+
   while (pending)
   {
     hb_codepoint_t gid = pending.pop ();
@@ -170,7 +177,10 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
     unsigned index = (this+coverage).get_coverage (gid);
     if (index == NOT_COVERED) continue;
 
-    hb_ubytes_t record = (this+glyphRecords)[index];
+    hb_ubytes_t record = records[index];
+    if (unlikely (record.length > records_size))
+      return false;
+    records_size -= record.length;
     while (record)
     {
       VarComponent::record_t component;
@@ -196,11 +206,18 @@ void
 VARC::depend (hb_depend_data_builder_t *depend_data) const
 {
   const CFF2Index &records = this+glyphRecords;
+  size_t records_size = records.get_size (); /* As in closure_glyphs(). */
   for (auto _ : + hb_zip (this+coverage,
 			  hb_range ((unsigned) records.count)))
   {
     hb_codepoint_t gid = _.first;
     hb_ubytes_t record = records[_.second];
+    if (unlikely (record.length > records_size))
+    {
+      depend_data->fail ();
+      return;
+    }
+    records_size -= record.length;
     while (record)
     {
 	VarComponent::record_t component;
