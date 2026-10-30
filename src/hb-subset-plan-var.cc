@@ -823,6 +823,15 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
 
   OT::glyf_accelerator_t glyf (plan->source);
 
+  /* The decoded points of every retained glyph stay alive in the plan.
+   * Bound their total by the source glyf size: loca entries may share
+   * glyph data and repeated flags need no bytes per point, so the glyph
+   * count alone does not bound it. */
+  hb_blob_t *glyf_blob = glyf.reference_glyf_table ();
+  int64_t budget = hb_max (HB_BUDGET_SUBSET_CONTOUR_POINTS,
+			   (int64_t) hb_blob_get_length (glyf_blob));
+  hb_blob_destroy (glyf_blob);
+
   for (auto &_ : plan->new_to_old_gid_list)
   {
     hb_codepoint_t new_gid = _.first;
@@ -837,6 +846,8 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
     hb_codepoint_t old_gid = _.second;
     auto glyph = glyf.glyph_for_gid (old_gid);
     if (unlikely (!glyph.get_all_points_without_var (plan->source, all_points)))
+      return false;
+    if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, all_points.length)))
       return false;
     if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
       return false;

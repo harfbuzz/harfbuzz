@@ -174,6 +174,102 @@ test_subset_GVAR_all_axes_pinned (void)
 }
 #endif
 
+static void
+test_subset_gvar_shared_glyph_data (void)
+{
+  /* Every even glyph is the same bytes of glyf, which hold 65536 points: a
+   * simple glyph of repeated flags, or a composite glyph.  Partial instancing
+   * keeps the points of all the retained glyphs in the plan; the plan must
+   * fail instead of holding ~150 MB for this 400 KB font. */
+  enum { NUM_GLYPHS = 200, NUM_POINTS = 65536 };
+  static char head[54] = {
+    0, 1, 0, 0,                 /* version 1.0 */
+    0, 0, 0, 0,                 /* fontRevision */
+    0, 0, 0, 0,                 /* checksumAdjustment */
+    0x5F, 0x0F, 0x3C, (char) 0xF5, /* magicNumber */
+    0, 0,                       /* flags */
+    0x03, (char) 0xE8,          /* unitsPerEm */
+    /* ... indexToLocFormat set below */
+  };
+  static const char maxp[] = {
+    0, 0, 0x50, 0,              /* version 0.5 */
+    0, (char) NUM_GLYPHS,       /* numGlyphs */
+  };
+  static const char fvar[] = {
+    0, 1, 0, 0,                 /* version 1.0 */
+    0, 16,                      /* axesArrayOffset */
+    0, 2,                       /* reserved */
+    0, 2,                       /* axisCount */
+    0, 20,                      /* axisSize */
+    0, 0,                       /* instanceCount */
+    0, 12,                      /* instanceSize */
+    'w', 'g', 'h', 't', 0, 100, 0, 0, 1, (char) 144, 0, 0, 3, (char) 132, 0, 0, 0, 0, 1, 0,
+    'w', 'd', 't', 'h', 0, 50, 0, 0, 0, 100, 0, 0, 0, (char) 200, 0, 0, 0, 0, 1, 1,
+  };
+  static char loca[4 * (NUM_GLYPHS + 1)];
+  static char glyf[10 + 6 * NUM_POINTS];
+
+  head[51] = 1; /* indexToLocFormat: long */
+
+  for (unsigned composite = 0; composite < 2; composite++)
+  {
+    unsigned length = 0;
+    memset (glyf, 0, sizeof (glyf));
+    if (composite)
+    {
+      glyf[0] = glyf[1] = (char) 0xFF; /* numberOfContours = -1 */
+      for (length = 10; length < sizeof (glyf); length += 6)
+      {
+	glyf[length + 1] = 0x20; /* flags: MORE_COMPONENTS */
+	glyf[length + 3] = 1;    /* glyphIndex */
+      }
+      glyf[length - 5] = 0; /* last component */
+    }
+    else
+    {
+      glyf[1] = 1; /* numberOfContours */
+      glyf[10] = glyf[11] = (char) 0xFF; /* endPtsOfContours[0] */
+      for (length = 14; length < 14 + 2 * NUM_POINTS / 256; length += 2)
+      {
+	glyf[length] = 0x39; /* ON_CURVE | REPEAT | X_SAME | Y_SAME */
+	glyf[length + 1] = (char) 0xFF; /* repeat count */
+      }
+    }
+    /* loca alternates 0, length: even glyphs share the data, odd are empty. */
+    for (unsigned i = 1; i <= NUM_GLYPHS; i += 2)
+    {
+      loca[4 * i + 1] = (char) (length >> 16);
+      loca[4 * i + 2] = (char) (length >> 8);
+      loca[4 * i + 3] = (char) length;
+    }
+
+    hb_face_t *face = hb_face_builder_create ();
+    HB_FACE_ADD_TABLE (face, "head", head);
+    HB_FACE_ADD_TABLE (face, "maxp", maxp);
+    HB_FACE_ADD_TABLE (face, "fvar", fvar);
+    HB_FACE_ADD_TABLE (face, "loca", loca);
+    HB_FACE_ADD_TABLE (face, "glyf", glyf);
+
+    for (unsigned all = 0; all < 2; all++)
+    {
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add_range (hb_subset_input_glyph_set (input), 0, all ? NUM_GLYPHS - 1 : 4);
+      g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 500));
+
+      hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+      if (all)
+	g_assert_null (plan);
+      else
+	g_assert_nonnull (plan);
+
+      hb_subset_plan_destroy (plan);
+      hb_subset_input_destroy (input);
+    }
+
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -182,6 +278,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_gvar_noop);
   hb_test_add (test_subset_gvar);
   hb_test_add (test_subset_gvar_retaingids);
+  hb_test_add (test_subset_gvar_shared_glyph_data);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_GVAR_header);
   hb_test_add (test_subset_GVAR_all_axes_pinned);
