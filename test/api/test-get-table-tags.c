@@ -98,6 +98,28 @@ test_get_table_tags_builder (void)
   hb_face_destroy (face);
 }
 
+static void
+test_get_table_tags_builder_limit (void)
+{
+  /* A font file's table directory cannot hold more than 65535 tables. */
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ("test", 4, HB_MEMORY_MODE_READONLY, NULL, NULL);
+
+  for (unsigned i = 1; i <= 0xFFFFu; i++)
+    g_assert_true (hb_face_builder_add_table (face, i, blob));
+  g_assert_false (hb_face_builder_add_table (face, 0x10000u, blob));
+  /* Replacing a table is still fine. */
+  g_assert_true (hb_face_builder_add_table (face, 1, blob));
+  g_assert_cmpuint (0xFFFFu, ==, hb_face_get_table_tags (face, 0, NULL, NULL));
+
+  hb_blob_t *file = hb_face_reference_blob (face);
+  g_assert_cmpuint (12 + 0xFFFFu * (16 + 4), ==, hb_blob_get_length (file));
+
+  hb_blob_destroy (file);
+  hb_blob_destroy (blob);
+  hb_face_destroy (face);
+}
+
 #ifdef HAVE_FREETYPE
 static void
 test_get_table_tags_ft (void)
@@ -231,6 +253,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_get_table_tags_default);
   hb_test_add (test_get_table_tags_builder);
+  hb_test_add (test_get_table_tags_builder_limit);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_get_table_tags_ft);
   hb_test_add (test_get_table_tags_ft_stream);

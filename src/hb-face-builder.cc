@@ -234,7 +234,8 @@ hb_face_builder_create ()
  * @blob: The blob containing the table data to add
  *
  * Add table for @tag with data provided by @blob to the face.  @face must
- * be created using hb_face_builder_create().
+ * be created using hb_face_builder_create().  A face can hold at most
+ * 65535 tables; adding more fails.
  *
  * Since: 1.9.0
  **/
@@ -248,6 +249,11 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
     return false;
 
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
+
+  /* numTables in the font file's table directory is 16bit. */
+  if (unlikely (data->tables.get_population () >= 0xFFFFu &&
+		!data->tables.has (tag)))
+    return false;
 
   hb_blob_t* previous = data->tables.get (tag).data;
   if (!data->tables.set (tag, face_table_info_t {hb_blob_reference (blob), (unsigned) -1}))
