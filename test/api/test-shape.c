@@ -206,6 +206,85 @@ test_shape_overlong_mark_cluster (void)
   hb_face_destroy (face);
 }
 
+static hb_bool_t
+soft_hyphen_glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+			hb_codepoint_t unicode,
+			hb_codepoint_t *glyph,
+			void *user_data HB_UNUSED)
+{
+  if (unicode != 0x00ADu)
+    return FALSE;
+  *glyph = 1;
+  return TRUE;
+}
+
+static void
+test_shape_overlong_context_scan (void)
+{
+  /* A 'calt' lookup of type 8 (reverse chaining single substitution) that
+   * lists the same subtable 1000 times.  The subtable covers glyph 1 and has
+   * one backtrack Coverage, for glyph 2, which never occurs in the buffer.
+   * Glyph 1 is a default-ignorable, so the backtrack scan of every subtable
+   * at every position walks back over all the glyphs before it. */
+  static const char gsub_head[] = {
+    0x00, 0x01, 0x00, 0x00,		/* version 1.0 */
+    0x00, 0x0A, 0x00, 0x1E, 0x00, 0x2C,	/* ScriptList, FeatureList, LookupList */
+    /* ScriptList: DFLT, default LangSys with feature 0 */
+    0x00, 0x01, 'D', 'F', 'L', 'T', 0x00, 0x08,
+    0x00, 0x04, 0x00, 0x00,
+    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x01, 0x00, 0x00,
+    /* FeatureList: calt with lookup 0 */
+    0x00, 0x01, 'c', 'a', 'l', 't', 0x00, 0x08,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+    /* LookupList: one lookup of type 8 with 1000 subtables at offset 2006 */
+    0x00, 0x01, 0x00, 0x04,
+    0x00, 0x08, 0x00, 0x00, 0x03, 0xE8,
+  };
+  static const char subtable[] = {
+    0x00, 0x01, 0x00, 0x0E,		/* format 1, Coverage */
+    0x00, 0x01, 0x00, 0x14,		/* one backtrack Coverage */
+    0x00, 0x00,				/* no lookahead */
+    0x00, 0x01, 0x00, 0x01,		/* substitute glyph 1 */
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x01,	/* Coverage: glyph 1 */
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x02,	/* Coverage: glyph 2 */
+  };
+  char gsub[sizeof (gsub_head) + 2 * 1000 + sizeof (subtable)];
+
+  memcpy (gsub, gsub_head, sizeof (gsub_head));
+  for (unsigned i = 0; i < 1000; i++)
+  {
+    gsub[sizeof (gsub_head) + 2 * i] = 0x07;
+    gsub[sizeof (gsub_head) + 2 * i + 1] = 0xD6;
+  }
+  memcpy (gsub + sizeof (gsub_head) + 2 * 1000, subtable, sizeof (subtable));
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gsub, sizeof (gsub), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob));
+  hb_blob_destroy (blob);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyph_func (ffuncs, soft_hyphen_glyph_func, NULL, NULL);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_funcs_destroy (ffuncs);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  for (unsigned i = 0; i < 10000; i++)
+    hb_buffer_add (buffer, 0x00ADu, i);
+  hb_buffer_guess_segment_properties (buffer);
+
+  hb_shape (font, buffer, NULL, 0);
+
+  /* The scans are charged to the buffer's work budget, which runs out. */
+  g_assert_false (hb_buffer_allocation_successful (buffer));
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 
 static void
 test_shape_list (void)
@@ -228,6 +307,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
+  hb_test_add (test_shape_overlong_context_scan);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);

@@ -2025,7 +2025,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
   }
-  while ((int) buffer->idx >= 0);
+  while ((int) buffer->idx >= 0 && buffer->successful);
   return ret;
 }
 
