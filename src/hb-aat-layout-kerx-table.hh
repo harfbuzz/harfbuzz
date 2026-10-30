@@ -570,6 +570,10 @@ struct KerxSubTableFormat4
 	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
 	    if (!c->sanitizer.check_array (data, 2)) return;
 	    hb_barrier ();
+	    /* Font functions may load the whole glyph outline to find a contour
+	     * point, and a non-advancing transition can repeat that at will.
+	     * Charge the two lookups to the buffer's work budget. */
+	    if (unlikely ((buffer->max_ops -= 2 * HB_BUDGET_256) <= 0)) return;
 	    unsigned int markControlPoint = *data++;
 	    unsigned int currControlPoint = *data++;
 	    hb_position_t markX = 0;

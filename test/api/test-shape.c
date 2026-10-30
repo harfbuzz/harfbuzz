@@ -207,6 +207,88 @@ test_shape_overlong_mark_cluster (void)
 }
 
 
+
+#ifndef HB_NO_AAT
+static hb_bool_t
+count_contour_point_calls (hb_font_t      *font HB_UNUSED,
+			   void           *font_data,
+			   hb_codepoint_t  glyph HB_UNUSED,
+			   unsigned int    point_index HB_UNUSED,
+			   hb_position_t  *x,
+			   hb_position_t  *y,
+			   void           *user_data HB_UNUSED)
+{
+  (*(unsigned *) font_data)++;
+  *x = *y = 0;
+  return TRUE;
+}
+
+static void
+test_shape_kerx_control_point_actions_are_charged (void)
+{
+  /* A two-glyph font whose kerx format-4 subtable loops on the letter 'a'
+   * in state 1 without advancing, performing a control-point action on
+   * every transition.  Each action asks the font for two contour points,
+   * which may load a whole glyph outline, so shaping must charge them to
+   * the buffer's work budget. */
+  static const char maxp[] = {0x00, 0x00, 0x50, 0x00,  0x00, 0x02};
+  static const char cmap[] = {0, 0,  0, 1,  0, 3,  0, 10,  0, 0, 0, 12,
+			      0, 12,  0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+			      0, 0, 0, 'a',  0, 0, 0, 'a',  0, 0, 0, 1};
+  static const unsigned char kerx[] = {
+    0, 2, 0, 0,  0, 0, 0, 1,			/* version 2, one subtable */
+    0, 0, 0, 82,  0, 0, 0, 4,  0, 0, 0, 0,	/* length, format 4, tupleCount */
+    0, 0, 0, 5,  0, 0, 0, 20,  0, 0, 0, 28,  0, 0, 0, 48, /* nClasses, class, state, entry offsets */
+    0, 0, 0, 66,				/* action type 0, control points at 66 */
+    0, 8,  0, 1,  0, 1,  0, 4,			/* class lookup format 8: glyph 1 is class 4 */
+    0, 0,  0, 0,  0, 0,  0, 0,  0, 1,		/* state 0: class 4 takes entry 1 */
+    0, 0,  0, 0,  0, 0,  0, 0,  0, 2,		/* state 1: class 4 takes entry 2 */
+    0, 0,  0x00, 0,  0xFF, 0xFF,		/* entry 0: to state 0 */
+    0, 1,  0xC0, 0,  0xFF, 0xFF,		/* entry 1: to state 1, Mark, DontAdvance */
+    0, 1,  0x40, 0,  0, 0,			/* entry 2: to state 1, DontAdvance, action 0 */
+    0, 0,  0, 0					/* action 0: mark point 0, current point 0 */
+  };
+  static const char *shapers[] = {"ot", NULL};
+
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (maxp, sizeof (maxp), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (cmap, sizeof (cmap), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('c','m','a','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) kerx, sizeof (kerx), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('k','e','r','x'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_blob (builder);
+  hb_face_destroy (builder);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+
+  unsigned calls = 0;
+  hb_font_t *parent = hb_font_create (face);
+  hb_font_t *font = hb_font_create_sub_font (parent);
+  hb_font_funcs_t *funcs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_contour_point_func (funcs, count_contour_point_calls, NULL, NULL);
+  hb_font_set_funcs (font, funcs, &calls, NULL);
+  hb_font_funcs_destroy (funcs);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "aa", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape_full (font, buffer, NULL, 0, shapers);
+
+  /* 131074 before the budget was charged. */
+  g_assert_cmpuint (calls, >=, 2);
+  g_assert_cmpuint (calls, <=, 256);
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_font_destroy (parent);
+  hb_face_destroy (face);
+}
+#endif
+
 static void
 test_shape_list (void)
 {
@@ -228,6 +310,9 @@ main (int argc, char **argv)
   hb_test_add (test_shape);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
+#ifndef HB_NO_AAT
+  hb_test_add (test_shape_kerx_control_point_actions_are_charged);
+#endif
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);
