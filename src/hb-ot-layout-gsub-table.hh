@@ -187,7 +187,7 @@ GSUB_accelerator_t::depend (hb_depend_data_builder_t *builder, hb_face_t *face) 
 
   hb_depend_context_t c (builder, face, &all_glyphs);
 
-  for (unsigned i = 0; i < num_lookups; i++)
+  for (unsigned i = 0; i < num_lookups && builder->successful; i++)
   {
     auto features = builder->get_lookup_features (i);
     if (!features)
