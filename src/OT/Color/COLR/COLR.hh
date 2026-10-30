@@ -890,6 +890,10 @@ struct PaintRadialGradient
                                const ItemVarStoreInstancer &instancer) const
   {
     if (c->plan->has_avar2) return false;
+    /* The answer depends on the table and the plan only, but shared paints
+     * are visited once per reference, so compute it once per plan. */
+    int &constant = c->plan->colrv1_constant_after_pinning;
+    if (constant >= 0) return constant;
     const auto &regions = instancer.varStore->get_region_list ();
     for (unsigned i = 0; i < regions.regionCount; i++)
     {
@@ -904,10 +908,10 @@ struct PaintRadialGradient
         Triple *limit;
         if (!c->plan->user_axes_location.has (axis.first, &limit) ||
             limit->minimum != limit->maximum)
-          return false;
+          return (constant = false);
       }
     }
-    return true;
+    return (constant = true);
   }
 
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
@@ -1052,9 +1056,8 @@ struct PaintRadialGradient
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
-    if (instancer && !c->plan->pinned_at_default &&
+    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION &&
         (c->plan->all_axes_pinned || constant_after_pinning (c, instancer)) &&
-        varIdxBase != VarIdx::NO_VARIATION &&
         (radius0 + (double) roundf (instancer (varIdxBase, 2)) < 0 ||
          radius1 + (double) roundf (instancer (varIdxBase, 5)) < 0))
       return_trace (subset_nonnegative (c, instancer, varIdxBase));

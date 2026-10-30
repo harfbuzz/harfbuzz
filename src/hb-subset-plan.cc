@@ -695,6 +695,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   all_axes_pinned = false;
   pinned_at_default = true;
   has_gdef_varstore = false;
+  colrv1_constant_after_pinning = -1;
   has_avar2 = false;
 
 #ifdef HB_EXPERIMENTAL_API
