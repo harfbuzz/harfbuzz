@@ -1314,6 +1314,26 @@ struct hb_ot_apply_context_t :
     return buffer->random_state;
   }
 
+  /* Evaluating a variation Device walks the whole delta-set row of its
+   * VarData, and the font chooses how long that row is (up to 65535
+   * region indices, which need not be distinct).  Charge that walk to
+   * the buffer's work budget before doing it.  Sixteen region scalars
+   * count as one op, so ordinary rows are nearly free. */
+  bool charge_device (const Device &device)
+  {
+    unsigned int varidx = device.get_variation_index ();
+    if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      return true;
+
+    buffer->max_ops -= var_store.get_region_index_count (varidx >> 16) / 16;
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
+      return false;
+    }
+    return true;
+  }
+
   static void buffer_changed_trampoline (hb_buffer_t *buffer HB_UNUSED, void *user_data)
   {
     ((hb_ot_apply_context_t *) user_data)->buffer_changed ();
