@@ -99,6 +99,35 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
   return true;
 }
 
+/* foreach_syllable() cuts syllables longer than HB_MAX_SYLLABLE_LENGTH,
+ * but the cut is computed from the current glyph positions and is not
+ * recorded, so walks before and after substitutions see different pieces.
+ * Record the cut in syllable(), which substituted glyphs inherit, by giving
+ * each piece its own serial.  The pieces are not syllables on their own and
+ * text must not be broken between them, so keep them in one cluster. */
+HB_INTERNAL void
+hb_syllabic_limit_syllable_length (hb_buffer_t *buffer)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int syllable_serial = 1;
+  unsigned int first_piece = 0;
+  foreach_syllable (buffer, start, end)
+  {
+    unsigned int syllable = info[start].syllable();
+    if (likely (end == buffer->len || info[end].syllable() != syllable))
+    {
+      /* Last piece of this syllable. */
+      if (unlikely (first_piece < start))
+	buffer->merge_clusters (first_piece, end);
+      first_piece = end;
+    }
+    for (unsigned int i = start; i < end; i++)
+      info[i].syllable() = (syllable_serial << 4) | (syllable & 0x0F);
+    syllable_serial++;
+    if (syllable_serial == 16) syllable_serial = 1;
+  }
+}
+
 HB_INTERNAL bool
 hb_syllabic_clear_var (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,

@@ -300,6 +300,7 @@ setup_syllables_use (const hb_ot_shape_plan_t *plan,
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
   find_syllables_use (buffer);
+  hb_syllabic_limit_syllable_length (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);
   setup_rphf_mask (plan, buffer);
