@@ -1588,6 +1588,56 @@ populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c,
   c->end_serialize();
 }
 
+// One PairPosFormat1 with num_pair_set PairSet offsets which all point at one
+// of num_shared small PairSets. PairSet i points at shared PairSet i % num_shared.
+template<int num_pair_set, int num_shared>
+static void
+populate_serializer_with_shared_pair_pos_1 (hb_serialize_context_t* c)
+{
+  c->start_serialize<char> ();
+
+  unsigned pair_set[num_shared];
+  for (int i = num_shared - 1; i >= 0; i--)
+  {
+    char pair_set_table[] = {
+      0, 1, // count
+      0, (char) i, // second glyph
+    };
+    pair_set[i] = add_object (pair_set_table, 4, c);
+  }
+
+  unsigned coverage = add_coverage (0, num_pair_set - 1, c);
+
+  char format[] = {
+    0, 1
+  };
+  start_object (format, 2, c);
+  add_offset (coverage, c);
+
+  char value_format[] = {
+    0, 0,
+    0, 0,
+    (char) ((num_pair_set >> 8) & 0xFF),
+    (char) (num_pair_set & 0xFF),
+  };
+  extend (value_format, 6, c);
+
+  for (int i = 0; i < num_pair_set; i++)
+    add_offset (pair_set[i % num_shared], c);
+
+  unsigned pair_pos_1 = c->pop_pack (false);
+
+  start_lookup (2, 1, c);
+  add_offset (pair_pos_1, c);
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
 template<int num_pair_pos_2, int num_class_1, int num_class_2>
 static void
 populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
@@ -2616,6 +2666,69 @@ static void test_resolve_with_extension_pair_pos_1_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_shared_pair_set_pair_pos_1_split ()
+{
+  // A PairPosFormat1 whose offset array alone is over the 16 bit limit, so it
+  // has to be split, and whose PairSets are all shared. Splitting must keep
+  // the PairSets in order and must not be quadratic in the number of PairSets.
+  constexpr int num_pair_set = 40000;
+  constexpr int num_shared = 4;
+
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  hb_always_assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_shared_pair_pos_1 <num_pair_set, num_shared>(&c);
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  auto context = graph::gsubgpos_graph_context_t::create (HB_TAG ('G', 'P', 'O', 'S'),
+                                                          graph).value ();
+  hb_always_assert (context.lookups.get_population () == 1);
+  unsigned lookup_index = *context.lookups.keys ();
+  graph::Lookup* lookup = context.lookups.get (lookup_index);
+  hb_always_assert (lookup->split_subtables_if_needed (context, lookup_index).is_ok ());
+
+  const auto& lookup_vertex = graph.vertices_[lookup_index];
+  const char* lookup_table = lookup_vertex.obj ().head;
+  unsigned subtable_count = *(const OT::HBUINT16*) (lookup_table + 4);
+  hb_always_assert (subtable_count > 1);
+  hb_always_assert (lookup_vertex.obj ().real_links.length == subtable_count);
+  auto subtables = lookup_vertex.position_to_index_map ().value ();
+
+  unsigned pair_set_count = 0;
+  for (unsigned i = 0; i < subtable_count; i++)
+  {
+    unsigned subtable_position = 6 + 2 * i;
+    hb_always_assert (subtables.has (subtable_position));
+    unsigned subtable_index = subtables.get (subtable_position);
+
+    const auto& subtable_vertex = graph.vertices_[subtable_index];
+    const char* subtable = subtable_vertex.obj ().head;
+    hb_always_assert (subtable_vertex.table_size () >= 10);
+    hb_always_assert (*(const OT::HBUINT16*) subtable == 1); // format
+    unsigned count = *(const OT::HBUINT16*) (subtable + 8); // pairSetCount
+    hb_always_assert (count > 0);
+    hb_always_assert (subtable_vertex.table_size () == 10 + 2 * count);
+    // coverage + one link per PairSet
+    hb_always_assert (subtable_vertex.obj ().real_links.length == count + 1);
+
+    auto pair_sets = subtable_vertex.position_to_index_map ().value ();
+    hb_always_assert (pair_sets.has (2)); // coverage
+    for (unsigned j = 0; j < count; j++)
+    {
+      unsigned pair_set_position = 10 + 2 * j;
+      hb_always_assert (pair_sets.has (pair_set_position));
+      const auto& pair_set = graph.object (pair_sets.get (pair_set_position));
+      hb_always_assert (pair_set.tail - pair_set.head == 4);
+      hb_always_assert (pair_set.head[3] == (char) ((pair_set_count + j) % num_shared));
+    }
+    pair_set_count += count;
+  }
+  hb_always_assert (pair_set_count == num_pair_set);
+
+  free (buffer);
+}
+
 static void test_resolve_with_basic_pair_pos_2_split ()
 {
   size_t buffer_size = 300000;
@@ -3451,6 +3564,7 @@ main (int argc, char **argv)
   test_resolve_with_repeated_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
   test_resolve_with_extension_pair_pos_1_split ();
+  test_resolve_with_shared_pair_set_pair_pos_1_split ();
   test_resolve_with_basic_pair_pos_2_split ();
   test_resolve_with_pair_pos_2_split_with_device_tables ();
   test_resolve_with_close_to_limit_pair_pos_2_split ();
