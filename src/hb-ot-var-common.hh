@@ -1081,6 +1081,7 @@ struct TupleVariationData
                                     const hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>>& regions,
                                     const hb_map_t& axes_old_index_tag_map,
                                     unsigned& item_count,
+                                    unsigned& num_tuple_axes,
                                     const hb_inc_bimap_t* inner_map = nullptr)
     {
       /* NULL offset, to keep original varidx valid, just return */
@@ -1095,8 +1096,31 @@ struct TupleVariationData
       unsigned row_size = var_data.get_row_size ();
       const HBUINT8 *delta_bytes = var_data.get_delta_bytes ();
 
+      /* region index -> index of its tuple in tuple_vars */
+      hb_map_t region_tuple_map;
       for (unsigned r = 0; r < num_regions; r++)
       {
+        unsigned region_index = var_data.get_region_index (r);
+        if (region_index >= regions.length) return false;
+
+        /* A region the VarData references again adds its deltas to the
+         * tuple it already has, as merge_tuple_variations () would do,
+         * instead of getting another copy of the region's axes. */
+        unsigned *tuple_index;
+        if (region_tuple_map.has (region_index, &tuple_index))
+        {
+          tuple_delta_t& tuple = tuple_vars.arrayZ[*tuple_index];
+          for (unsigned i = 0; i < item_count; i++)
+            tuple.deltas_x.arrayZ[i] += var_data.get_item_delta_fast (inner_map ? inner_map->backward (i) : i,
+                                                                      r, delta_bytes, row_size);
+          continue;
+        }
+
+        /* Each tuple copies its region's axes; charge them before copying. */
+        const hb_hashmap_t<hb_tag_t, Triple>& region = regions.arrayZ[region_index];
+        num_tuple_axes += region.get_population ();
+        if (unlikely (num_tuple_axes > HB_VARSTORE_MAX_TUPLE_AXES)) return false;
+
         /* In VarData, deltas are organized in rows, convert them into
          * column(region) based tuples, resize deltas_x first */
         tuple_delta_t tuple;
@@ -1111,10 +1135,9 @@ struct TupleVariationData
                                                                    r, delta_bytes, row_size);
         }
 
-        unsigned region_index = var_data.get_region_index (r);
-        if (region_index >= regions.length) return false;
-        tuple.axis_tuples = regions.arrayZ[region_index];
+        tuple.axis_tuples = region;
 
+        if (unlikely (!region_tuple_map.set (region_index, tuple_vars.length))) return false;
         tuple_vars.push (std::move (tuple));
       }
       return !tuple_vars.in_error ();
@@ -1994,6 +2017,7 @@ struct item_variations_t
     if (!vars.alloc (num_var_data) ||
         !var_data_num_rows.alloc (num_var_data)) return false;
 
+    unsigned num_tuple_axes = 0;
     for (unsigned i = 0; i < num_var_data; i++)
     {
       if (inner_maps && !inner_maps.arrayZ[i].get_population ())
@@ -2004,6 +2028,7 @@ struct item_variations_t
                                                       orig_region_list,
                                                       axes_old_index_tag_map,
                                                       item_count,
+                                                      num_tuple_axes,
                                                       inner_maps ? &(inner_maps.arrayZ[i]) : nullptr))
         return false;
 

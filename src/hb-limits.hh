@@ -100,6 +100,14 @@
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
 
+/* Region axes copied into tuples when one ItemVariationStore is converted
+ * for instancing, summed over its VarData subtables.  Every region a
+ * VarData references gets its own copy of that region's axes, and the
+ * font pays a few bytes per reference however many axes the region has. */
+#ifndef HB_VARSTORE_MAX_TUPLE_AXES
+#define HB_VARSTORE_MAX_TUPLE_AXES (1u << 20)
+#endif
+
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif

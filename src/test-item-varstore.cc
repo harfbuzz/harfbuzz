@@ -317,6 +317,53 @@ test_condition_delta_precision ()
 }
 
 static void
+test_repeated_region_index ()
+{
+  /* One axis, two regions, and a VarData whose region indices are {0, 1, 0}:
+   * the repeated region's two delta columns must be summed into one tuple. */
+  const char store_data[] =
+    "\x00\x01\x00\x00\x00\x0c\x00\x01\x00\x00\x00\x1c"	// ItemVariationStore
+    "\x00\x01\x00\x02"					// VarRegionList: 1 axis, 2 regions
+    "\x00\x00\x40\x00\x40\x00"				// region 0: (0, 1, 1)
+    "\xc0\x00\xc0\x00\x00\x00"				// region 1: (-1, -1, 0)
+    "\x00\x02\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00"	// VarData: 2 items, regions {0, 1, 0}
+    "\x01\x02\x03"					// item 0
+    "\x0a\x14\x1e";					// item 1
+  const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (store_data);
+  hb_map_t axis_map;
+  axis_map.set (0, HB_TAG ('T','E','S','T'));
+
+  hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> regions;
+  hb_always_assert (store.get_region_list ().get_var_regions (axis_map, regions));
+  OT::tuple_variations_t tuples;
+  unsigned item_count = 0, num_tuple_axes = 0;
+  hb_always_assert (tuples.create_from_item_var_data (store.get_sub_table (0), regions, axis_map,
+                                                      item_count, num_tuple_axes));
+  hb_always_assert (item_count == 2 && num_tuple_axes == 2);
+  hb_always_assert (tuples.tuple_vars.length == 2);
+  hb_always_assert (tuples.tuple_vars[0].deltas_x[0] == 4.f && tuples.tuple_vars[0].deltas_x[1] == 40.f);
+  hb_always_assert (tuples.tuple_vars[1].deltas_x[0] == 2.f && tuples.tuple_vars[1].deltas_x[1] == 20.f);
+
+  /* The region axes copied for one store are capped. */
+  OT::tuple_variations_t capped;
+  num_tuple_axes = HB_VARSTORE_MAX_TUPLE_AXES - 1;
+  hb_always_assert (!capped.create_from_item_var_data (store.get_sub_table (0), regions, axis_map,
+                                                       item_count, num_tuple_axes));
+
+  OT::item_variations_t item_vars;
+  hb_always_assert (item_vars.create_from_item_varstore (store, axis_map));
+  hb_hashmap_t<hb_tag_t, Triple> locations;
+  hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+  hb_always_assert (item_vars.instantiate_tuple_vars (locations, distances));
+  hb_always_assert (item_vars.as_item_varstore (false));
+  hb_always_assert (item_vars.get_region_list ().length == 2);
+  const auto &items = item_vars.get_vardata_encodings ()[0].items;
+  hb_always_assert (items.length == 2);
+  hb_always_assert ((*items[0])[0] == 4 && (*items[0])[1] == 2);
+  hb_always_assert ((*items[1])[0] == 40 && (*items[1])[1] == 20);
+}
+
+static void
 test_failed_encoding ()
 {
   hb_vector_t<int> row;
@@ -346,4 +393,5 @@ main (int argc, char **argv)
   test_failed_encoding ();
   test_accumulated_delta_widths ();
   test_condition_delta_precision ();
+  test_repeated_region_index ();
 }
