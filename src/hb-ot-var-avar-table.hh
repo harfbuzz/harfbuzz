@@ -940,6 +940,14 @@ struct avar
     /* All axes share the budget.  A retry with a larger buffer, which the
      * added regions make likely, starts afresh. */
     int64_t estimate_budget = HB_BUDGET_SUBSET_TABLE;
+    /* Every offset-compensation tuple holds a delta for each row of its
+     * VarData, whereas a knot takes four bytes of the table and a VarData
+     * without regions stores its rows in no bytes at all, so the table
+     * size does not bound the tuples.  Charge each tuple's item_count
+     * deltas to a budget derived from the table, and fail rather than
+     * quietly drop the table when it runs out. */
+    int64_t delta_budget = hb_max ((int64_t) HB_AVAR2_MAX_DELTAS_MIN,
+                                   (int64_t) HB_AVAR2_MAX_DELTAS_FACTOR * c->source_blob->length);
     for (unsigned i = 0; i < axisCount; i++)
     {
       hb_tag_t *axis_tag_ptr;
@@ -991,6 +999,8 @@ struct avar
         int bias = d_int + (int) roundf (default_deltas[i]);
         if (bias != 0)
         {
+          if (unlikely (!hb_budget_spend (delta_budget, HB_BUDGET_1, item_count)))
+            return c->serializer->check_success (false);
           hb_hashmap_t<hb_tag_t, Triple> empty_region;
           item_vars.add_tuple (outer, std::move (empty_region),
                                inner, bias, item_count);
@@ -1134,6 +1144,8 @@ struct avar
               upper = knots.arrayZ[k + 1].z;
               lower = k > 0 ? knots.arrayZ[k - 1].z : z;
             }
+            if (unlikely (!hb_budget_spend (delta_budget, HB_BUDGET_1, item_count)))
+              return c->serializer->check_success (false);
             hb_hashmap_t<hb_tag_t, Triple> region;
             if (unlikely (!region.set (axis_tag, Triple (lower, z, upper))))
               return false;
@@ -1161,6 +1173,8 @@ struct avar
         if (dd != 0)
         {
           unsigned item_count = item_vars.get_item_count (outer);
+          if (unlikely (!hb_budget_spend (delta_budget, HB_BUDGET_1, item_count)))
+            return c->serializer->check_success (false);
           hb_hashmap_t<hb_tag_t, Triple> empty_region;
           item_vars.add_tuple (outer, std::move (empty_region),
                                inner, dd, item_count);

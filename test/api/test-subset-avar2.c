@@ -230,6 +230,57 @@ reference_table_with_aliased_gvar_data (hb_face_t *face HB_UNUSED,
   return copy;
 }
 
+static unsigned char *
+write_uint16_be (unsigned char *p, unsigned v)
+{
+  *p++ = (v >> 8) & 0xFF;
+  *p++ = v & 0xFF;
+  return p;
+}
+
+/* Replace the test font's avar table with one that gives wght hundreds of
+ * avar v1 breakpoints and, through the implicit VarIdxMap, keeps the axes'
+ * delta sets in a VarData of 65535 rows but no regions: rows that take no
+ * bytes.  Few enough breakpoints that the quadratic estimator budget is not
+ * the one that trips. */
+static hb_blob_t *
+reference_table_with_avar2_empty_rows (hb_face_t *face HB_UNUSED,
+				       hb_tag_t tag,
+				       void *user_data)
+{
+  if (tag != HB_TAG ('a','v','a','r'))
+    return hb_face_reference_table ((hb_face_t *) user_data, tag);
+
+  const unsigned axis_count = 6, map_count = 513;
+  unsigned tail = 8 + 2 * axis_count + 4 * map_count;
+  unsigned length = tail + 8 + 12 + 4 + 6;
+  unsigned char *data = (unsigned char *) calloc (length, 1);
+  g_assert_nonnull (data);
+
+  unsigned char *p = data;
+  p = write_uint16_be (p, 2); /* majorVersion; minorVersion, reserved */
+  p = write_uint16_be (p + 4, axis_count);
+  p = write_uint16_be (p, map_count); /* wght: identity breakpoints */
+  for (int v = -16384; v <= 16384; v += 64)
+  {
+    p = write_uint16_be (p, (unsigned) v);
+    p = write_uint16_be (p, (unsigned) v);
+  }
+  g_assert_true (p + 2 * (axis_count - 1) == data + tail); /* no maps */
+
+  p = write_uint16_be (data + tail + 6, tail + 8); /* NULL VarIdxMap; VarStore */
+  p = write_uint16_be (p, 1); /* format */
+  p = write_uint16_be (p + 2, 12); /* VarRegionList */
+  p = write_uint16_be (p, 1); /* VarDataCount */
+  p = write_uint16_be (p + 2, 12 + 4); /* VarData */
+  p = write_uint16_be (p, axis_count); /* no regions */
+  p = write_uint16_be (p + 2, 65535); /* itemCount; no region indices */
+  g_assert_true (p + 4 == data + length);
+
+  return hb_blob_create ((const char *) data, length,
+			 HB_MEMORY_MODE_WRITABLE, data, free);
+}
+
 static hb_face_t *
 instance_n (hb_face_t *face, hb_subset_input_t *input, unsigned expected_axes)
 {
@@ -759,6 +810,24 @@ test_avar2_restrict_many_breakpoints (void)
   hb_face_destroy (source);
 }
 
+/* Every retained breakpoint adds an offset-compensation tuple with a delta
+ * per row of the VarData. For this table that is far more than the glyph
+ * has points, so instancing must fail instead of allocating it. */
+static void
+test_avar2_empty_rows (void)
+{
+  hb_face_t *source = open_original ();
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_avar2_empty_rows,
+					       source, NULL);
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  g_assert_null (hb_subset_or_fail (face, input));
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -781,6 +850,7 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_restrict_steep);
   hb_test_add (test_avar2_restrict_steep_no_varidx);
   hb_test_add (test_avar2_restrict_many_breakpoints);
+  hb_test_add (test_avar2_empty_rows);
 
   return hb_test_run ();
 }

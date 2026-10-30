@@ -100,6 +100,20 @@
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
 
+/* Deltas that instancing an avar version 2 table may add to its variation
+ * store as offset-compensation tuples.  Each tuple holds a delta for every
+ * row of the VarData it is added to, but the breakpoint it encodes costs
+ * four bytes of the table and a VarData without regions stores its rows in
+ * no bytes at all, so the table size does not bound that memory.  The
+ * budget is this many deltas per byte of the table, but no less than the
+ * minimum; exceeding it fails the table. */
+#ifndef HB_AVAR2_MAX_DELTAS_FACTOR
+#define HB_AVAR2_MAX_DELTAS_FACTOR 128
+#endif
+#ifndef HB_AVAR2_MAX_DELTAS_MIN
+#define HB_AVAR2_MAX_DELTAS_MIN 65536
+#endif
+
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif
