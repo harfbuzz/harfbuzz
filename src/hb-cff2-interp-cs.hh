@@ -151,7 +151,12 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
 	region_count = varStore->varStore.get_region_index_count (get_ivs ());
 	if (do_blend)
 	{
-	  if (unlikely (!scalars->resize_exact (region_count)))
+	  /* Evaluating the scalars walks up to axisCount axes for each region
+	   * index, both font-controlled 16-bit counts.  Charge that before
+	   * doing it, so a blend which then fails its operand check has paid. */
+	  unsigned int axis_count = varStore->varStore.get_region_list ().axisCount;
+	  if (unlikely (!SUPER::spend_budget (region_count, hb_max (1u, axis_count)) ||
+			!scalars->resize_exact (region_count)))
 	    SUPER::set_error ();
 	  else
 	    varStore->varStore.get_region_scalars (get_ivs (), coords, num_coords,
