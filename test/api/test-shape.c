@@ -275,7 +275,8 @@ test_shape_overlong_context_scan (void)
     hb_buffer_add (buffer, 0x00ADu, i);
   hb_buffer_guess_segment_properties (buffer);
 
-  hb_shape (font, buffer, NULL, 0);
+  const char *shaper_list[] = {"ot", NULL};
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
 
   /* The scans are charged to the buffer's work budget, which runs out. */
   g_assert_false (hb_buffer_allocation_successful (buffer));
@@ -351,7 +352,8 @@ test_shape_rule_set_budget (void)
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
   hb_buffer_guess_segment_properties (buffer);
 
-  hb_shape (font, buffer, NULL, 0);
+  const char *shaper_list[] = {"ot", NULL};
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
 
   g_assert_false (hb_buffer_allocation_successful (buffer));
 
@@ -446,6 +448,7 @@ test_shape_lookup_budget (void)
   hb_font_t *font;
   hb_buffer_t *buffer;
   unsigned i;
+  const char *shaper_list[] = {"ot", NULL};
 
   face = create_aliased_lookups_face (16);
   font = hb_font_create (face);
@@ -454,7 +457,7 @@ test_shape_lookup_budget (void)
   for (i = 0; i < 1024; i++)
     hb_buffer_add (buffer, 'a', i);
   hb_buffer_guess_segment_properties (buffer);
-  hb_shape (font, buffer, NULL, 0);
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
   g_assert_true (hb_buffer_allocation_successful (buffer));
   g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 1024);
   hb_buffer_destroy (buffer);
@@ -468,7 +471,7 @@ test_shape_lookup_budget (void)
   for (i = 0; i < 1024; i++)
     hb_buffer_add (buffer, 'a', i);
   hb_buffer_guess_segment_properties (buffer);
-  hb_shape (font, buffer, NULL, 0);
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
   g_assert_false (hb_buffer_allocation_successful (buffer));
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
@@ -549,7 +552,8 @@ test_shape_gpos_device_budget (void)
     hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
     hb_buffer_guess_segment_properties (buffer);
 
-    hb_shape (font, buffer, NULL, 0);
+    const char *shaper_list[] = {"ot", NULL};
+    hb_shape_full (font, buffer, NULL, 0, shaper_list);
 
     unsigned len;
     hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, &len);

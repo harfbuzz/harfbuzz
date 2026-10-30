@@ -488,7 +488,8 @@ test_ot_layout_gpos_mark_base_rescan_budget (void)
     hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
     hb_buffer_guess_segment_properties (buffer);
 
-    hb_shape (font, buffer, NULL, 0);
+    const char *shaper_list[] = {"ot", NULL};
+    hb_shape_full (font, buffer, NULL, 0, shaper_list);
 
     if (out_of_order)
       g_assert_true (!hb_buffer_allocation_successful (buffer));
