@@ -105,13 +105,25 @@ test_ot_layout_base_with_fallback (void)
   font = hb_font_create (face);
 
   hb_ot_layout_get_baseline_with_fallback (font, HB_OT_LAYOUT_BASELINE_TAG_HANGING, HB_DIRECTION_LTR,
-					   HB_SCRIPT_BENGALI,
+					   HB_TAG ('b','e','n','g'),
 					   HB_TAG ('E','N','G',' '),
 					   &position);
   g_assert_cmpint (622, ==, position);
 
   hb_ot_layout_get_baseline_with_fallback (font, HB_OT_LAYOUT_BASELINE_TAG_HANGING, HB_DIRECTION_LTR,
-					   HB_SCRIPT_TIBETAN,
+					   HB_TAG ('b','n','g','2'),
+					   HB_TAG ('E','N','G',' '),
+					   &position);
+  g_assert_cmpint (622, ==, position);
+
+  hb_ot_layout_get_baseline_with_fallback2 (font, HB_OT_LAYOUT_BASELINE_TAG_HANGING, HB_DIRECTION_LTR,
+					    HB_SCRIPT_BENGALI,
+					    hb_language_from_string ("bn", -1),
+					    &position);
+  g_assert_cmpint (622, ==, position);
+
+  hb_ot_layout_get_baseline_with_fallback (font, HB_OT_LAYOUT_BASELINE_TAG_HANGING, HB_DIRECTION_LTR,
+					   HB_TAG ('t','i','b','t'),
 					   HB_TAG ('E','N','G',' '),
 					   &position);
   g_assert_cmpint (600, ==, position);

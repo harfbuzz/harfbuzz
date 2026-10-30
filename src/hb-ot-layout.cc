@@ -2520,7 +2520,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
       hb_glyph_extents_t extents;
 
       /* Keep in sync with hb_ot_layout_get_horizontal_baseline_for_script */
-      switch ((int) script_tag)
+      switch ((int) hb_ot_tag_to_script (script_tag))
       {
       /* Unicode-1.1 additions */
       case HB_SCRIPT_BENGALI:          ch = 0x0995u; break;
