@@ -66,12 +66,59 @@ test_graphite2_repeated_clusters (void)
   hb_font_destroy (font);
 }
 
+static void
+test_graphite2_inserted_glyph_masks (void)
+{
+  const char *ot_shapers[] = {"ot", NULL};
+  const char *graphite2_shapers[] = {"graphite2", NULL};
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_buffer_t *buffer;
+  hb_glyph_info_t *info;
+  unsigned int length;
+
+  face = hb_test_open_font_file ("../subset/data/fonts/Harmattan-Regular.ttf");
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  buffer = hb_buffer_create ();
+
+  /* Leave stale masks in the buffer storage beyond its length: the OpenType
+   * shaper sets every mask during shaping and only cleans the glyphs that
+   * survive, so a removed default-ignorable leaves its mask behind. */
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_set_flags (buffer, HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES);
+  hb_buffer_add (buffer, 0x0628, 0);
+  hb_buffer_add (buffer, 0x200B, 1);
+  hb_buffer_guess_segment_properties (buffer);
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, ot_shapers));
+  info = hb_buffer_get_glyph_infos (buffer, &length);
+  g_assert_cmpuint (length, ==, 1);
+
+  /* Now let Graphite produce more glyphs than there were characters; the
+   * added glyphs must come back with nothing but glyph flags in their mask. */
+  hb_buffer_clear_contents (buffer);
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_set_flags (buffer, HB_BUFFER_FLAG_DEFAULT);
+  hb_buffer_add (buffer, 0x0622, 0);
+  hb_buffer_guess_segment_properties (buffer);
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, graphite2_shapers));
+  info = hb_buffer_get_glyph_infos (buffer, &length);
+  g_assert_cmpuint (length, ==, 2);
+  for (unsigned int i = 0; i < length; i++)
+    g_assert_cmphex (info[i].mask & ~HB_GLYPH_FLAG_DEFINED, ==, 0);
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_graphite2_repeated_clusters);
+  hb_test_add (test_graphite2_inserted_glyph_masks);
 
   return hb_test_run ();
 }
