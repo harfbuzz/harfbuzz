@@ -178,8 +178,10 @@ struct varc_subset_plan_t
 	}
 	auto &data = axis_indices_data[i];
 	/* One control byte and at most four data bytes per value. */
-	unsigned size = hb_unsigned_mul_saturate (indices.length, 5u);
-	if (unlikely (size == UINT_MAX || !data.resize_dirty (size))) return false;
+	unsigned size;
+	if (unlikely (hb_unsigned_mul_overflows (indices.length, 5u, &size) ||
+		      !data.resize_dirty (size)))
+	  return false;
 	data.shrink (TupleValues::compile_unsafe (indices.as_array (), data.arrayZ));
 	bytes = data.as_array ();
       }
