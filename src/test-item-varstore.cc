@@ -419,6 +419,24 @@ test_delta_matrix_limits ()
   hb_always_assert (!item_vars.as_item_varstore ());
 }
 
+static void
+test_tuple_split_budget ()
+{
+  /* A tent inside the new range with the new default on its slope splits
+   * into six, so the region below would become 6^16 tuples. */
+  hb_hashmap_t<hb_tag_t, Triple> region, locations;
+  hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+  for (unsigned i = 0; i < 16; i++)
+  {
+    region.set (HB_TAG ('A','A','A','A') + i, Triple (0.3, 0.5, 0.7));
+    locations.set (HB_TAG ('A','A','A','A') + i, Triple (0.2, 0.45, 0.8));
+  }
+  OT::item_variations_t item_vars;
+  unsigned outer = item_vars.add_vardata (1);
+  item_vars.add_tuple (outer, std::move (region), 0, 100, 1);
+  hb_always_assert (!item_vars.instantiate_tuple_vars (locations, distances));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -432,4 +450,5 @@ main (int argc, char **argv)
   test_condition_delta_precision ();
   test_repeated_region_index ();
   test_delta_matrix_limits ();
+  test_tuple_split_budget ();
 }

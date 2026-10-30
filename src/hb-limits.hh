@@ -230,6 +230,19 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #endif
 
 
+/* One instancing session: all the tuple variations of one table.
+ * Limiting an axis splits every tuple that uses it into up to six, so
+ * tuples multiply with each limited axis.  The copies are charged to a
+ * budget that starts at MIN and earns FACTOR times each source tuple,
+ * in tuple_delta_t::get_cost () units of roughly eight bytes. */
+#ifndef HB_BUDGET_INSTANCER_FACTOR
+#define HB_BUDGET_INSTANCER_FACTOR 64
+#endif
+#ifndef HB_BUDGET_INSTANCER_MIN
+#define HB_BUDGET_INSTANCER_MIN ((int64_t) 1 << 22)
+#endif
+
+
 /* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
  * one int per (row, region) pair.  In the font a row only pays for the
  * regions of its own VarData, so a small font can ask for a huge matrix.

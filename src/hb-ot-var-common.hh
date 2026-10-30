@@ -271,6 +271,9 @@ struct optimize_scratch_t
   hb_vector_t<unsigned char> point_data;
   hb_vector_t<unsigned char> deltas_data;
   hb_vector_t<int> rounded_deltas;
+
+  /* What splitting tuples may still cost; see HB_BUDGET_INSTANCER_*. */
+  int64_t budget = HB_BUDGET_INSTANCER_MIN;
 };
 
 struct tuple_delta_t
@@ -331,6 +334,10 @@ struct tuple_delta_t
     compiled_peak_coords.duplicate_vector_from_pool (pool, o.compiled_peak_coords);
     compiled_interm_coords.duplicate_vector_from_pool (pool, o.compiled_interm_coords);
   }
+
+  /* Budget cost of a copy of this tuple. */
+  unsigned get_cost () const
+  { return HB_BUDGET_32 + HB_BUDGET_8 * axis_tuples.get_population () + HB_BUDGET_1 * indices.length; }
 
   void remove_axis (hb_tag_t axis_tag)
   { axis_tuples.del (axis_tag); }
@@ -1153,8 +1160,13 @@ struct TupleVariationData
 
     bool change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+					      int64_t &budget,
 					      hb_alloc_pool_t *pool = nullptr)
     {
+      /* Splitting below may grow the tuples this much. */
+      for (const tuple_delta_t& var : tuple_vars)
+	budget += (int64_t) var.get_cost () * HB_BUDGET_INSTANCER_FACTOR;
+
       /* sort axis_tag/axis_limits, make result deterministic */
       hb_vector_t<hb_tag_t> axis_tags;
       if (!axis_tags.alloc (normalized_axes_location.get_population ()))
@@ -1182,6 +1194,9 @@ struct TupleVariationData
 	  // This may move var out.
 	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch, pool);
           if (!out) continue;
+
+	  if (unlikely (!hb_budget_spend (budget, out.arrayZ[0].get_cost (), out.length - 1)))
+	    return false;
 
           unsigned new_len = new_vars.length + out.length;
 
@@ -1342,7 +1357,7 @@ struct TupleVariationData
                       bool optimize = false)
     {
       if (!tuple_vars) return true;
-      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, pool))
+      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, scratch.budget, pool))
         return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)
