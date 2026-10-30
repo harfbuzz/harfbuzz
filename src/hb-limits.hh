@@ -258,6 +258,15 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #endif
 
 
+/* Decoded glyf points a subset plan keeps for partially instancing gvar:
+ * one per byte of the source glyf table, but no fewer than this.  Repeated
+ * flags and loca entries that share glyph data let a font declare far more
+ * points than it has bytes.  Exceeding the budget fails the plan. */
+#ifndef HB_BUDGET_SUBSET_CONTOUR_POINTS
+#define HB_BUDGET_SUBSET_CONTOUR_POINTS ((int64_t) 1 << 22)
+#endif
+
+
 /* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
  * one int per (row, region) pair.  In the font a row only pays for the
  * regions of its own VarData, so a small font can ask for a huge matrix.
