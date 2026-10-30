@@ -280,7 +280,7 @@ struct FDSelect3_4
   {
     auto *range = hb_bsearch (glyph, &ranges[0], nRanges () - 1, sizeof (ranges[0]), _cmp_range);
     unsigned fd = range ? range->fd : ranges[nRanges () - 1].fd;
-    hb_codepoint_t end = range ? range[1].first : ranges[nRanges () - 1].first;
+    hb_codepoint_t end = range ? range[1].first : sentinel ();
     return {fd, end};
   }
 
