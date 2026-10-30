@@ -364,17 +364,8 @@ static const struct supported_face_loaders_t {
 
 static const char *get_default_loader_name ()
 {
-  static hb_atomic_t<const char *> static_loader_name;
-  const char *loader_name = static_loader_name.get_acquire ();
-  if (!loader_name)
-  {
-    loader_name = getenv ("HB_FACE_LOADER");
-    if (!loader_name)
-      loader_name = "";
-    if (!static_loader_name.cmpexch (nullptr, loader_name))
-      loader_name = static_loader_name.get_acquire ();
-  }
-  return loader_name;
+  const char *loader_name = getenv ("HB_FACE_LOADER");
+  return loader_name ? loader_name : "";
 }
 
 /**
