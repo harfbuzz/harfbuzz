@@ -182,6 +182,11 @@ struct PairPosFormat2_4 : ValueBase
     return_trace (c->check_range ((const void *) values,
                                   count,
                                   stride) &&
+		  /* Records of two empty ValueFormats take no bytes, so the
+		   * range check neither bounds count nor charges for it.
+		   * Manually modify the sanitizer max ops to take this into
+		   * account. */
+		  (likely (stride) || c->check_ops (count)) &&
 		  (c->lazy_some_gpos ||
 		   (valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
 		    valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride))));

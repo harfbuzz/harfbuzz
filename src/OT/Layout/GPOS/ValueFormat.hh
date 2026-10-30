@@ -419,6 +419,12 @@ struct ValueFormat : HBUINT16
 
     if (!c->check_range (values, count, size)) return_trace (false);
 
+    /* Records of an empty ValueFormat take no bytes, so the range check
+     * neither bounds count nor charges for it, while later code (eg. the
+     * subsetter) still walks count records.  Manually modify the sanitizer
+     * max ops to take this into account. */
+    if (unlikely (!size && !c->check_ops (count))) return_trace (false);
+
     if (c->lazy_some_gpos)
       return_trace (true);
 
