@@ -193,6 +193,7 @@ setup_syllables_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
   find_syllables_khmer (buffer);
+  hb_syllabic_limit_syllable_length (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);
   return false;
