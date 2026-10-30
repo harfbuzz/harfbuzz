@@ -240,7 +240,8 @@ struct Glyph
                                   hb_font_t *font,
                                   const glyf_accelerator_t &glyf,
                                   hb_bytes_t &dest_start,  /* IN/OUT */
-                                  hb_bytes_t &dest_end /* OUT */)
+                                  hb_bytes_t &dest_end, /* OUT */
+                                  int64_t *budget /* IN/OUT */)
   {
     contour_point_vector_t all_points, points_with_deltas;
     unsigned composite_contours = 0;
@@ -257,7 +258,8 @@ struct Glyph
     }
 
     hb_glyf_scratch_t scratch;
-    if (!get_points (font, glyf, all_points, scratch, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false))
+    if (!get_points (font, glyf, all_points, scratch, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false,
+		     false, hb_array_t<const int> (), nullptr, 0, nullptr, budget))
       return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for
