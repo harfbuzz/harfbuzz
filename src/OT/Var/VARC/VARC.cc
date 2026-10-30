@@ -151,14 +151,21 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
   if (unlikely (glyphset->in_error ()))
     return false;
 
-  hb_set_t pending = *glyphset;
+  /* Use a work stack rather than popping the minimum of an hb_set_t:
+   * del() never drops the page it empties, so get_min()/del() rescan every
+   * emptied page on each pop, which is quadratic in the number of pages a
+   * font can spread the queue over with 24-bit component gids.  glyphset
+   * itself records which gids have been seen, so nothing is queued twice. */
+  hb_vector_t<hb_codepoint_t> pending;
+  pending.alloc (glyphset->get_population ());
+  for (hb_codepoint_t gid : *glyphset)
+    pending.push (gid);
   if (unlikely (pending.in_error ()))
     return false;
 
   while (pending)
   {
-    hb_codepoint_t gid = pending.get_min ();
-    pending.del (gid);
+    hb_codepoint_t gid = pending.pop ();
 
     unsigned index = (this+coverage).get_coverage (gid);
     if (index == NOT_COVERED) continue;
@@ -175,7 +182,7 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
 	glyphset->add (component.gid);
 	if (unlikely (glyphset->in_error ()))
 	  return false;
-	pending.add (component.gid);
+	pending.push (component.gid);
 	if (unlikely (pending.in_error ()))
 	  return false;
       }
