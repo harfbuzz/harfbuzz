@@ -3150,6 +3150,29 @@ static void test_pair_pos_format_2_sanitize_size_overflow ()
   hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
 }
 
+static void test_invalid_link_position ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_simple (&c);
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+
+  // Poison a link position so that position + width wraps around in
+  // 32 bit arithmetic. Serialization must reject it rather than write
+  // outside of the output buffer.
+  auto links = graph.vertices_[graph.root_idx ()].real_links_writer();
+  links->position = (unsigned) -1;
+  hb_always_assert (!graph::serialize (graph).is_ok ());
+
+  // The same poisoned link must be rejected when building the graph.
+  c.object_graph ().tail ()->real_links[0].position = (unsigned) -1;
+  hb_always_assert (!graph_t::create (c.object_graph ()).is_ok ());
+
+  free (buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -3160,6 +3183,7 @@ main (int argc, char **argv)
   test_pair_pos_format_2_sanitize_size_overflow ();
   test_invalid_link_objidx ();
   test_invalid_link_add_and_move ();
+  test_invalid_link_position ();
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();

@@ -188,7 +188,8 @@ serialize_link_of_type (const hb_serialize_context_t::object_t::link_t& link,
                         hb_serialize_context_t* c)
 {
   // A link must never write outside the bounds of its parent object.
-  if (unlikely (link.position + link.width > size))
+  // Compare without summing so a large position can't wrap around.
+  if (unlikely (link.position > size || size - link.position < link.width))
   {
     c->err (HB_SERIALIZE_ERROR_OTHER);
     return;

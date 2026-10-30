@@ -185,7 +185,8 @@ struct graph_t
           return Err(INVALID_ARGUMENT);
         }
 
-        if (unlikely (end >= table_size ()))
+        // end < start means start + width wrapped around.
+        if (unlikely (end < start || end >= table_size ()))
         {
           DEBUG_MSG (SUBSET_REPACK, nullptr,
                      "Invalid graph. Link position is out of bounds.");
