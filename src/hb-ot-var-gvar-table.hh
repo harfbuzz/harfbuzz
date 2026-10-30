@@ -470,6 +470,13 @@ struct gvar_GVAR
       hb_array_t<const F2DOT14> shared_tuples_array =
 	  (this+sharedTuples).as_array ((unsigned) sharedTupleCount * (unsigned) axisCount);
       if (unlikely (!culled_vars.resize (num_glyphs))) return_trace (false);
+      /* The glyph data regions of a well-formed table are disjoint, so the
+       * retained glyphs' data add up to no more than the table.  Offsets are
+       * used as they are, though, and malformed ones can point every glyph
+       * at one region; charge each glyph's data to the table size so this
+       * pass, and the rewritten copies it keeps, cannot cost glyph count
+       * times table size. */
+      int64_t budget = c->source_blob->length;
       auto cull_it = hb_iter (c->plan->new_to_old_gid_list);
       if (cull_it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
 	cull_it++;
@@ -477,6 +484,12 @@ struct gvar_GVAR
       {
 	hb_bytes_t var_data_bytes = get_glyph_var_data_bytes (c->source_blob, glyph_count, _.second);
 	if (var_data_bytes.length < GlyphVariationData::min_size) continue;
+	if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, var_data_bytes.length)))
+	{
+	  /* Fail the table rather than let the serializer retry it. */
+	  c->serializer->err (HB_SERIALIZE_ERROR_OTHER);
+	  return_trace (false);
+	}
 	bool changed = false;
 	if (unlikely (!var_data_bytes.as<GlyphVariationData> ()
 		      ->cull_tuple_variations (var_data_bytes, axisCount,
