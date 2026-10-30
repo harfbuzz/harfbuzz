@@ -375,6 +375,144 @@ test_shape_harfrust_budget (void)
 
 
 static void
+put16 (char *p, unsigned v)
+{
+  p[0] = (char) (v >> 8);
+  p[1] = (char) v;
+}
+
+static hb_face_t *
+create_aliased_lookups_face (unsigned lookup_count)
+{
+  /* A GSUB whose one 'ccmp' feature lists two lookups that each replace
+   * glyph 1 by 255 copies of it, growing one 'a' to 65025 glyphs, and then
+   * lookup_count lookups, all of them the same 20-byte single substitution
+   * of glyph 1 by itself. */
+  unsigned total = 2 + lookup_count;
+  unsigned feature_len = 2 + 6 + 4 + 2 * total;
+  unsigned multiple_len = 8 + 8 + 6 + 2 + 2 * 255;
+  unsigned lookup_list_len = 2 + 2 * total + 20 + multiple_len;
+  unsigned gsub_len = 10 + 20 + feature_len + lookup_list_len;
+  char *gsub = calloc (gsub_len, 1);
+  char *p = gsub;
+  unsigned i;
+
+  /* Header */
+  put16 (p, 1);
+  put16 (p + 4, 10);
+  put16 (p + 6, 10 + 20);
+  put16 (p + 8, 10 + 20 + feature_len);
+  p += 10;
+  /* ScriptList: 'DFLT' with a default LangSys using feature 0 */
+  put16 (p, 1);
+  memcpy (p + 2, "DFLT", 4);
+  put16 (p + 6, 8);
+  put16 (p + 8, 4);
+  put16 (p + 10, 0);
+  put16 (p + 12, 0);
+  put16 (p + 14, 0xFFFF);
+  put16 (p + 16, 1);
+  put16 (p + 18, 0);
+  p += 20;
+  /* FeatureList: 'ccmp' listing every lookup */
+  put16 (p, 1);
+  memcpy (p + 2, "ccmp", 4);
+  put16 (p + 6, 8);
+  put16 (p + 8, 0);
+  put16 (p + 10, total);
+  for (i = 0; i < total; i++)
+    put16 (p + 12 + 2 * i, i);
+  p += feature_len;
+  /* LookupList: lookups 0 and 1 point at the multiple substitution, the
+   * others at the single substitution, both after the offsets. */
+  unsigned single_offset = 2 + 2 * total;
+  unsigned multiple_offset = single_offset + 20;
+  put16 (p, total);
+  for (i = 0; i < total; i++)
+    put16 (p + 2 + 2 * i, i < 2 ? multiple_offset : single_offset);
+  p += single_offset;
+  put16 (p, 1);      /* Lookup: type 1 */
+  put16 (p + 2, 0);  /* flag */
+  put16 (p + 4, 1);  /* one subtable */
+  put16 (p + 6, 8);
+  put16 (p + 8, 1);  /* SingleSubstFormat1 */
+  put16 (p + 10, 6); /* coverage */
+  put16 (p + 12, 0); /* deltaGlyphID */
+  put16 (p + 14, 1); /* CoverageFormat1 */
+  put16 (p + 16, 1);
+  put16 (p + 18, 1); /* glyph 1 */
+  p += 20;
+  put16 (p, 2);      /* Lookup: type 2 */
+  put16 (p + 2, 0);  /* flag */
+  put16 (p + 4, 1);  /* one subtable */
+  put16 (p + 6, 8);
+  put16 (p + 8, 1);  /* MultipleSubstFormat1 */
+  put16 (p + 10, 8); /* coverage */
+  put16 (p + 12, 1); /* one sequence */
+  put16 (p + 14, 14);
+  put16 (p + 16, 1); /* CoverageFormat1 */
+  put16 (p + 18, 1);
+  put16 (p + 20, 1); /* glyph 1 */
+  put16 (p + 22, 255); /* Sequence: 255 times glyph 1 */
+  for (i = 0; i < 255; i++)
+    put16 (p + 24 + 2 * i, 1);
+
+  /* cmap: format 12, 'a' -> glyph 1 */
+  static const char cmap_data[] = {0, 0, 0, 1,  0, 3, 0, 10,  0, 0, 0, 12,
+				   0, 12, 0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+				   0, 0, 0, 'a',  0, 0, 0, 'a',  0, 0, 0, 1};
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create_or_fail (gsub, gsub_len, HB_MEMORY_MODE_WRITABLE, gsub, free);
+  hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+  hb_face_set_glyph_count (face, 2);
+  return face;
+}
+
+static void
+test_shape_lookup_budget (void)
+{
+  /* Lookups and features can alias the same bytes, and a lookup can grow
+   * the buffer far beyond the text, so a small font can make the shaper
+   * walk a long buffer thousands of times for one character.  Those passes
+   * must be charged to the buffer's work budget, which one character sizes
+   * at 65536, and cut off when it runs out; each costs 65025 / 16. */
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_buffer_t *buffer;
+  const char *shaper_list[] = {"ot", NULL};
+
+  face = create_aliased_lookups_face (4);
+  font = hb_font_create (face);
+  buffer = hb_buffer_create ();
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_add (buffer, 'a', 0);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
+  g_assert_true (hb_buffer_allocation_successful (buffer));
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 65025);
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  face = create_aliased_lookups_face (2000);
+  font = hb_font_create (face);
+  buffer = hb_buffer_create ();
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_add (buffer, 'a', 0);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
+  g_assert_false (hb_buffer_allocation_successful (buffer));
+  /* The glyphs made so far are kept. */
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 65025);
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_shape_list (void)
 {
   const char **shapers = hb_shape_list_shapers ();
@@ -428,6 +566,7 @@ main (int argc, char **argv)
 #ifndef HB_NO_AAT
   hb_test_add (test_shape_kerx_control_point_actions_are_charged);
 #endif
+  hb_test_add (test_shape_lookup_budget);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);

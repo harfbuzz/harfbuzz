@@ -2035,6 +2035,19 @@ apply_string (OT::hb_ot_apply_context_t *c,
   if (unlikely (!buffer->len || !c->lookup_mask))
     return false;
 
+  /* Lookups can share subtables, features can share lookups, each stage
+   * applies its lookups anew, and an earlier lookup can grow the buffer far
+   * beyond the text the budget was sized for.  Charge each pass for walking
+   * the buffer, even if it applies at no glyph.  Skipping a glyph is cheap,
+   * hence the division; applying at one is charged only through the buffer
+   * operations and nested lookups it does. */
+  buffer->max_ops -= buffer->len / 16;
+  if (unlikely (buffer->max_ops < 0))
+  {
+    buffer->successful = false;
+    return false;
+  }
+
   bool ret = false;
 
   c->set_lookup_props (lookup.get_props ());
@@ -2080,7 +2093,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
     const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->last_lookup; i++)
+    for (; i < stage->last_lookup && buffer->successful; i++)
     {
       auto &lookup = lookups[table_index][i];
 
