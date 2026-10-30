@@ -295,6 +295,8 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
   hb_set_t variable_features;
   if (!all_axes_pinned)
     g.get_feature_variations ().collect_feature_indices (&variable_features);
+  /* Lookup variations are instanced, not dropped, when all axes are pinned. */
+  g.get_feature_variations ().collect_lookup_variation_feature_indices (&variable_features);
   if (unlikely (variable_features.in_error ())) return;
 #endif
   hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_set_t>> unique_features;
@@ -320,9 +322,7 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
     {
 #ifndef HB_NO_VAR
       /* Matching base lookups do not imply matching alternate behavior. */
-      if (variable_features.has (i) || variable_features.has (other_f_index) ||
-          g.get_feature_variations ().has_lookup_variations (i) ||
-	  g.get_feature_variations ().has_lookup_variations (other_f_index))
+      if (variable_features.has (i) || variable_features.has (other_f_index))
 	continue;
 #endif
 

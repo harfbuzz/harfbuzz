@@ -6092,16 +6092,10 @@ struct FeatureVariations
       (this+record.substitutions).collect_feature_indices (feature_indices);
   }
 
-  bool has_lookup_variations (unsigned feature_index) const
+  void collect_lookup_variation_feature_indices (hb_set_t *feature_indices) const
   {
     for (const LookupVariationRecord &record : get_lookup_variation_records ())
-    {
-      if (record.featureIndex == feature_index)
-	return true;
-      if (record.featureIndex > feature_index)
-	break;
-    }
-    return false;
+      feature_indices->add (record.featureIndex);
   }
 
   bool subset (hb_subset_context_t *c,
