@@ -2929,10 +2929,15 @@ _hb_avar2_region_is_dead (const hb_hashmap_t<hb_tag_t, Triple> &axis_tuples,
 
 struct SparseVariationRegion
 {
-  float evaluate (const int *coords, unsigned int coord_len) const
+  float evaluate (const int *coords, unsigned int coord_len,
+		  int64_t *budget = nullptr) const
   {
     float v = 1.f;
     unsigned int count = axes.len;
+    /* Each region is walked per uncached delta; charge its axis records. */
+    if (budget &&
+	unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, count)))
+      return 0.;
     for (unsigned int i = 0; i < count; i++)
     {
       float factor = (this+axes[i]).evaluate (coords, coord_len);
@@ -2973,7 +2978,8 @@ struct SparseVarRegionList
   HB_ALWAYS_INLINE
   float evaluate (unsigned int region_index,
 		  const int *coords, unsigned int coord_len,
-		  hb_scalar_cache_t *cache = nullptr) const
+		  hb_scalar_cache_t *cache = nullptr,
+		  int64_t *budget = nullptr) const
   {
     if (unlikely (region_index >= regions.len))
       return 0.;
@@ -2984,7 +2990,7 @@ struct SparseVarRegionList
 
     const SparseVariationRegion &region = this+regions[region_index];
 
-    v = region.evaluate (coords, coord_len);
+    v = region.evaluate (coords, coord_len, budget);
     if (cache)
       cache->set (region_index, v);
 
@@ -3428,18 +3434,24 @@ struct MultiVarData
 		  const int *coords, unsigned int coord_count,
 		  const SparseVarRegionList &regions,
 		  hb_array_t<double> out,
-		  hb_scalar_cache_t *cache = nullptr) const
+		  hb_scalar_cache_t *cache = nullptr,
+		  int64_t *budget = nullptr) const
   {
     auto &deltaSets = get_delta_sets ();
 
     auto values_iter = deltaSets.fetcher (inner);
     unsigned regionCount = regionIndices.len;
+    /* Every listed region is visited, and can add to every value. */
+    if (budget &&
+	unlikely (!hb_budget_spend (*budget, HB_BUDGET_1 + out.length,
+				    regionCount)))
+      return;
     unsigned skip = 0;
     for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
 				       coords, coord_count,
-				       cache);
+				       cache, budget);
       // We skip lazily. Helps with the tail end.
       if (scalar == 0.0f)
         skip += out.length;
@@ -3854,7 +3866,8 @@ struct MultiItemVariationStore
   void get_delta (unsigned int outer, unsigned int inner,
 		  const int *coords, unsigned int coord_count,
 		  hb_array_t<double> out,
-		  hb_scalar_cache_t *cache = nullptr) const
+		  hb_scalar_cache_t *cache = nullptr,
+		  int64_t *budget = nullptr) const
   {
 #ifdef HB_NO_VAR
     return;
@@ -3867,28 +3880,32 @@ struct MultiItemVariationStore
 					     coords, coord_count,
 					     this+regions,
 					     out,
-					     cache);
+					     cache, budget);
   }
 
   public:
+  /* If BUDGET is given, the work is charged to it; once it is exhausted
+   * (negative), OUT is unspecified and the caller should bail out. */
   void get_delta (unsigned int index,
 		  const int *coords, unsigned int coord_count,
 		  hb_array_t<double> out,
-		  hb_scalar_cache_t *cache = nullptr) const
+		  hb_scalar_cache_t *cache = nullptr,
+		  int64_t *budget = nullptr) const
   {
     unsigned int outer = index >> 16;
     unsigned int inner = index & 0xFFFF;
-    get_delta (outer, inner, coords, coord_count, out, cache);
+    get_delta (outer, inner, coords, coord_count, out, cache, budget);
   }
   void get_delta (unsigned int index,
 		  hb_array_t<const int> coords,
 		  hb_array_t<double> out,
-		  hb_scalar_cache_t *cache = nullptr) const
+		  hb_scalar_cache_t *cache = nullptr,
+		  int64_t *budget = nullptr) const
   {
     return get_delta (index,
 		      coords.arrayZ, coords.length,
 		      out,
-		      cache);
+		      cache, budget);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -4233,8 +4250,10 @@ struct MultiItemVarStoreInstancer
   MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
 			      const DeltaSetIndexMap *varIdxMap,
 			      hb_array_t<const int> coords,
-			      hb_scalar_cache_t *cache = nullptr) :
-    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
+			      hb_scalar_cache_t *cache = nullptr,
+			      int64_t *budget = nullptr) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache),
+    budget (budget)
   {
     if (!varStore)
       varStore = &Null(MultiItemVariationStore);
@@ -4260,7 +4279,7 @@ struct MultiItemVarStoreInstancer
       varIdx += offset;
       if (varIdxMap)
 	varIdx = varIdxMap->map (varIdx);
-      varStore->get_delta (varIdx, coords, out, cache);
+      varStore->get_delta (varIdx, coords, out, cache, budget);
     }
     else
       for (unsigned i = 0; i < out.length; i++)
@@ -4271,6 +4290,7 @@ struct MultiItemVarStoreInstancer
   const DeltaSetIndexMap *varIdxMap;
   hb_array_t<const int> coords;
   hb_scalar_cache_t *cache;
+  int64_t *budget;
 };
 
 

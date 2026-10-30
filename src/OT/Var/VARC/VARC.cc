@@ -391,8 +391,10 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   if (flags & (unsigned) flags_t::HAVE_CONDITION)
   {
     const auto &condition = (&VARC+VARC.conditionList)[component.condition_index];
-    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache);
+    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache, &c.budget);
     show = condition.evaluate (coords.arrayZ, coords.length, &instancer);
+    if (unlikely (c.budget < 0))
+      return hb_ubytes_t ();
   }
 
   // Axis values
@@ -401,11 +403,10 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   if ((flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION) &&
       show && !axisValues.in_error ())
   {
-    if (unlikely (!hb_budget_spend (c.budget, axisValues.length,
-				    coords.length)))
-      return hb_ubytes_t ();
     varStore.get_delta (component.axis_values_var_idx, coords,
-			axisValues.as_array (), cache);
+			axisValues.as_array (), cache, &c.budget);
+    if (unlikely (c.budget < 0))
+      return hb_ubytes_t ();
   }
 
   auto component_coords = coords;
@@ -441,10 +442,9 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 	    transformValues[numTransformValues++] = (double) transform.name;
       VARC_PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
-      if (unlikely (!hb_budget_spend (c.budget, numTransformValues,
-				      coords.length)))
+      varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache, &c.budget);
+      if (unlikely (c.budget < 0))
 	return hb_ubytes_t ();
-      varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
       numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
