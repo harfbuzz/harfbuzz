@@ -602,11 +602,27 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
         continue;
       }
 
+      if (unlikely (!*new_gid))
+      {
+        DEBUG_MSG (SUBSET, nullptr, "Glyph id 0 is reserved for .notdef.");
+        return false;
+      }
+
       if (*new_gid > max_glyph)
         max_glyph = *new_gid;
       new_to_old_gid_list->push (hb_pair (*new_gid, old_gid));
     }
     new_to_old_gid_list->qsort ();
+
+    // MAXP has the widest glyph-count field, HBUINT24. Include the unmapped
+    // glyphs and the initial .notdef slot before assigning their ids below.
+    constexpr unsigned max_num_glyphs = (1u << (8 * OT::HBUINT24::static_size)) - 1;
+    if (unlikely (max_glyph >= max_num_glyphs ||
+                  remaining.get_population () > max_num_glyphs - (max_glyph + 1)))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "The provided custom glyph mapping is out of range.");
+      return false;
+    }
 
     // Anything that wasn't mapped by the requested mapping should
     // be placed after the requested mapping.
