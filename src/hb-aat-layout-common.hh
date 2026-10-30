@@ -166,6 +166,19 @@ struct hb_aat_apply_context_t :
     buffer_is_reversed = !buffer_is_reversed;
   }
 
+  /* Applying a subtable walks the whole buffer.  The font controls the
+   * number of subtables, so charge each pass to the buffer's work budget. */
+  HB_NODISCARD bool charge_buffer_pass ()
+  {
+    buffer->max_ops -= buffer->len;
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
+      return false;
+    }
+    return true;
+  }
+
   void setup_buffer_glyph_set ()
   {
     using_buffer_glyph_set = buffer->len >= 4 && buffer_glyph_set;
