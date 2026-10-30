@@ -576,17 +576,16 @@ hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
   unsigned pfx_len = paint->id_prefix_length;
   unsigned clip_id = paint->clip_path_counter++;
 
-  /* The accumulated path is in font Y-up coords (the
-   * convention used inside per-glyph <use scale(_,-sy)>
-   * wrappers); this clip is emitted at base body level
-   * (free-form between glyphs), so flip its geometry inside
-   * the clipPath via the path's own transform attribute,
-   * keeping the body's <g clip-path> at body Y-down. */
+  /* The accumulated path is in font Y-up coords, the same
+   * space as the body's <g clip-path> that references it:
+   * the whole body is wrapped in a single scale(1,-1) at
+   * render time, so no per-clip flip here (matches the
+   * glyph and rectangle clips above). */
   paint->defs.append_str ("<clipPath id=\"");
   paint->defs.append_len (pfx, pfx_len);
   paint->defs.append_str ("cp");
   paint->defs.append_unsigned (clip_id);
-  paint->defs.append_str ("\"><path transform=\"scale(1,-1)\" d=\"");
+  paint->defs.append_str ("\"><path d=\"");
   paint->defs.append_len (paint->path.arrayZ, paint->path.length);
   paint->defs.append_str ("\"/></clipPath>\n");
 
