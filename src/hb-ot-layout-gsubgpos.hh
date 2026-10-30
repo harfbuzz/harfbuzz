@@ -1638,19 +1638,11 @@ static inline bool intersects_glyph (const hb_set_t *glyphs, unsigned value, con
 {
   return glyphs->has (value);
 }
-static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, const void *data, void *cache)
+static inline bool intersects_class (const hb_set_t *glyphs HB_UNUSED, unsigned value, const void *data HB_UNUSED, void *cache)
 {
-  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
-  hb_map_t *map = (hb_map_t *) cache;
-
-  hb_codepoint_t *cached_v;
-  if (map->has (value, &cached_v))
-    return *cached_v;
-
-  bool v = class_def.intersects_class (glyphs, value);
-  map->set (value, v);
-
-  return v;
+  /* ClassDef::intersects_class() walks the whole ClassDef, so callers collect
+   * ClassDef::intersected_classes() of glyphs into the cache upfront, once. */
+  return reinterpret_cast<const hb_set_t *> (cache)->has (value);
 }
 static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data, void *cache HB_UNUSED)
 {
@@ -3718,7 +3710,8 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
-    hb_map_t cache;
+    hb_set_t cache;
+    class_def.intersected_classes (glyphs, &cache);
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
@@ -3738,8 +3731,7 @@ struct ContextFormat2_5
     | hb_map (hb_add (this))
     | hb_enumerate
     | hb_map ([&] (const hb_pair_t<unsigned, const RuleSet &> p)
-	      { return class_def.intersects_class (glyphs, p.first) &&
-		       coverage_glyph_classes.has (p.first) &&
+	      { return coverage_glyph_classes.has (p.first) &&
 		       p.second.intersects (glyphs, lookup_context); })
     | hb_any
     ;
@@ -3759,7 +3751,8 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
-    hb_map_t cache;
+    hb_set_t cache;
+    class_def.intersected_classes (c->glyphs, &cache);
     intersected_class_cache_t intersected_cache;
     ContextDependLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
@@ -3769,10 +3762,11 @@ struct ContextFormat2_5
       &intersected_cache
     };
 
+    hb_set_t active_classes;
+    class_def.intersected_classes (&c->parent_active_glyphs (), &active_classes);
+
     + hb_enumerate (ruleSet)
-    | hb_filter ([&] (unsigned _)
-    { return class_def.intersects_class (&c->parent_active_glyphs (), _); },
-		 hb_first)
+    | hb_filter (active_classes, hb_first)
     | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<RuleSet>&> _)
                 {
                   const RuleSet& rule_set = this+_.second;
@@ -3795,7 +3789,8 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
-    hb_map_t cache;
+    hb_set_t cache;
+    class_def.intersected_classes (c->glyphs, &cache);
     intersected_class_cache_t intersected_cache;
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
@@ -3805,10 +3800,11 @@ struct ContextFormat2_5
       &intersected_cache
     };
 
+    hb_set_t active_classes;
+    class_def.intersected_classes (&c->parent_active_glyphs (), &active_classes);
+
     + hb_enumerate (ruleSet)
-    | hb_filter ([&] (unsigned _)
-    { return class_def.intersects_class (&c->parent_active_glyphs (), _); },
-		 hb_first)
+    | hb_filter (active_classes, hb_first)
     | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<RuleSet>&> _)
                 {
                   const RuleSet& rule_set = this+_.second;
@@ -3826,7 +3822,8 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
-    hb_map_t cache;
+    hb_set_t cache;
+    class_def.intersected_classes (c->glyphs, &cache);
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
@@ -3837,8 +3834,7 @@ struct ContextFormat2_5
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_enumerate
-    | hb_filter ([&] (const hb_pair_t<unsigned, const RuleSet &> p)
-    { return class_def.intersects_class (c->glyphs, p.first); })
+    | hb_filter (cache, hb_first)
     | hb_map (hb_second)
     | hb_apply ([&] (const RuleSet & _)
     { _.closure_lookups (c, lookup_context); });
@@ -5376,7 +5372,10 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    hb_map_t caches[3] = {};
+    hb_set_t caches[3] = {};
+    backtrack_class_def.intersected_classes (glyphs, &caches[0]);
+    input_class_def.intersected_classes (glyphs, &caches[1]);
+    lookahead_class_def.intersected_classes (glyphs, &caches[2]);
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
@@ -5397,8 +5396,7 @@ struct ChainContextFormat2_5
     | hb_map (hb_add (this))
     | hb_enumerate
     | hb_map ([&] (const hb_pair_t<unsigned, const ChainRuleSet &> p)
-	      { return input_class_def.intersects_class (glyphs, p.first) &&
-		       coverage_glyph_classes.has (p.first) &&
+	      { return coverage_glyph_classes.has (p.first) &&
 		       p.second.intersects (glyphs, lookup_context); })
     | hb_any
     ;
@@ -5420,7 +5418,10 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    hb_map_t caches[3] = {};
+    hb_set_t caches[3] = {};
+    backtrack_class_def.intersected_classes (c->glyphs, &caches[0]);
+    input_class_def.intersected_classes (c->glyphs, &caches[1]);
+    lookahead_class_def.intersected_classes (c->glyphs, &caches[2]);
     intersected_class_cache_t intersected_cache;
     ChainContextDependLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
@@ -5432,10 +5433,11 @@ struct ChainContextFormat2_5
       &intersected_cache
     };
 
+    hb_set_t active_classes;
+    input_class_def.intersected_classes (&c->parent_active_glyphs (), &active_classes);
+
     + hb_enumerate (ruleSet)
-    | hb_filter ([&] (unsigned _)
-    { return input_class_def.intersects_class (&c->parent_active_glyphs (), _); },
-		 hb_first)
+    | hb_filter (active_classes, hb_first)
     | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<ChainRuleSet>&> _)
                 {
                   const ChainRuleSet& chainrule_set = this+_.second;
@@ -5460,7 +5462,10 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    hb_map_t caches[3] = {};
+    hb_set_t caches[3] = {};
+    backtrack_class_def.intersected_classes (c->glyphs, &caches[0]);
+    input_class_def.intersected_classes (c->glyphs, &caches[1]);
+    lookahead_class_def.intersected_classes (c->glyphs, &caches[2]);
     intersected_class_cache_t intersected_cache;
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
@@ -5472,10 +5477,11 @@ struct ChainContextFormat2_5
       &intersected_cache
     };
 
+    hb_set_t active_classes;
+    input_class_def.intersected_classes (&c->parent_active_glyphs (), &active_classes);
+
     + hb_enumerate (ruleSet)
-    | hb_filter ([&] (unsigned _)
-    { return input_class_def.intersects_class (&c->parent_active_glyphs (), _); },
-		 hb_first)
+    | hb_filter (active_classes, hb_first)
     | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<ChainRuleSet>&> _)
                 {
                   const ChainRuleSet& chainrule_set = this+_.second;
@@ -5495,7 +5501,10 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    hb_map_t caches[3] = {};
+    hb_set_t caches[3] = {};
+    backtrack_class_def.intersected_classes (c->glyphs, &caches[0]);
+    input_class_def.intersected_classes (c->glyphs, &caches[1]);
+    lookahead_class_def.intersected_classes (c->glyphs, &caches[2]);
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
@@ -5508,8 +5517,7 @@ struct ChainContextFormat2_5
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_enumerate
-    | hb_filter([&] (unsigned klass)
-    { return input_class_def.intersects_class (c->glyphs, klass); }, hb_first)
+    | hb_filter (caches[1], hb_first)
     | hb_map (hb_second)
     | hb_apply ([&] (const ChainRuleSet &_)
     { _.closure_lookups (c, lookup_context); })
