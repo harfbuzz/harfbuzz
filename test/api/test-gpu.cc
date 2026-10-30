@@ -810,6 +810,111 @@ test_paint_gradient_overflow_transform (void)
   hb_gpu_paint_destroy (p);
 }
 
+static void
+test_paint_empty_clip (void)
+{
+  /* A clip glyph with no ink (a space, or a glyf glyph with zero
+   * contours) draws fine but encodes to the empty blob.  No layer op
+   * may be emitted under it: a zero-length sub-blob gets the texel
+   * offset of whatever follows it, and the shader would decode that
+   * -- the next sub-blob, or texels past the end of the blob -- as
+   * the clip outline. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
+  g_assert_nonnull (face);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_codepoint_t space, a;
+  g_assert_true (hb_font_get_nominal_glyph (font, ' ', &space));
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &a));
+
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+  hb_paint_funcs_t *pf = hb_gpu_paint_get_funcs (p);
+
+  /* No ink at all: the empty blob and zero extents, like
+   * hb_gpu_draw_encode(). */
+  hb_gpu_paint_glyph (p, font, space);
+  hb_glyph_extents_t ext = {1, 2, 3, 4};
+  hb_blob_t *blob = hb_gpu_paint_encode (p, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  g_assert_cmpint (ext.x_bearing, ==, 0);
+  g_assert_cmpint (ext.y_bearing, ==, 0);
+  g_assert_cmpint (ext.width, ==, 0);
+  g_assert_cmpint (ext.height, ==, 0);
+  hb_blob_destroy (blob);
+
+  /* Same when only group ops are left after the layers are skipped. */
+  hb_paint_push_group (pf, p);
+  hb_paint_push_clip_glyph (pf, p, space, font);
+  hb_paint_color (pf, p, false, HB_COLOR (0, 0, 255, 255));
+  hb_paint_pop_clip (pf, p);
+  hb_paint_pop_group (pf, p, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+  ext = {1, 2, 3, 4};
+  blob = hb_gpu_paint_encode (p, &ext);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+  g_assert_cmpint (ext.width, ==, 0);
+  g_assert_cmpint (ext.height, ==, 0);
+  hb_blob_destroy (blob);
+
+  /* Next to a layer with ink, only that layer is encoded: one op, and
+   * the extents are the inked glyph's. */
+  hb_color_line_t cl = {};
+  cl.get_color_stops = repro_color_stops;
+  cl.get_extend = repro_color_extend;
+
+  hb_paint_push_clip_glyph (pf, p, space, font);
+  hb_paint_color (pf, p, false, HB_COLOR (0, 0, 255, 255));
+  hb_paint_linear_gradient (pf, p, &cl, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f);
+  hb_paint_radial_gradient (pf, p, &cl, 0.f, 0.f, 1.f, 0.f, 0.f, 2.f);
+  hb_paint_sweep_gradient (pf, p, &cl, 0.f, 0.f, 0.f, 1.f);
+  hb_paint_pop_clip (pf, p);
+
+  /* A path clip with nothing drawn into it is empty too. */
+  void *draw_data = nullptr;
+  g_assert_nonnull (hb_paint_push_clip_path_start (pf, p, &draw_data));
+  hb_paint_push_clip_path_end (pf, p);
+  hb_paint_color (pf, p, false, HB_COLOR (0, 0, 255, 255));
+  hb_paint_linear_gradient (pf, p, &cl, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f);
+  hb_paint_pop_clip (pf, p);
+
+  /* Popping an empty clip must leave the slot usable for ink. */
+  hb_paint_push_clip_glyph (pf, p, a, font);
+  hb_paint_color (pf, p, false, HB_COLOR (255, 0, 0, 255));
+  hb_paint_pop_clip (pf, p);
+
+  hb_glyph_extents_t a_ext;
+  g_assert_true (hb_font_get_glyph_extents (font, a, &a_ext));
+
+  blob = hb_gpu_paint_encode (p, &ext);
+  g_assert_nonnull (blob);
+  unsigned texel_count;
+  const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
+  g_assert_cmpuint (texel_count, >, 6);
+  g_assert_cmpint (texels[0].r, ==, 1); /* num_ops */
+  g_assert_cmpint (texels[3].r, ==, 0); /* LAYER_SOLID */
+  /* The layer references a real outline after the op stream. */
+  unsigned clip_offset = (uint16_t) texels[3].a;
+  g_assert_cmpuint (clip_offset, ==, 6);
+  g_assert_cmpuint (clip_offset + 2, <, texel_count);
+  g_assert_cmpint (texels[clip_offset + 1].r, >, 0); /* horizontal bands */
+  g_assert_cmpint (texels[clip_offset + 1].g, >, 0); /* vertical bands */
+  hb_blob_t *outline = hb_blob_create_sub_blob (blob, clip_offset * 8,
+                                              (texel_count - clip_offset) * 8);
+  assert_band_membership (outline);
+  hb_blob_destroy (outline);
+  g_assert_cmpint (ext.x_bearing, ==, a_ext.x_bearing);
+  g_assert_cmpint (ext.y_bearing, ==, a_ext.y_bearing);
+  g_assert_cmpint (ext.width, ==, a_ext.width);
+  g_assert_cmpint (ext.height, ==, a_ext.height);
+  hb_blob_destroy (blob);
+
+  hb_gpu_paint_destroy (p);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 
 static void
 test_shapes (void)
@@ -929,6 +1034,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_recycle_blob);
   hb_test_add (test_paint_clip_path_depth_overflow);
   hb_test_add (test_paint_gradient_overflow_transform);
+  hb_test_add (test_paint_empty_clip);
 
   return hb_test_run ();
 }

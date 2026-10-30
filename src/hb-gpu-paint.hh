@@ -317,7 +317,8 @@ struct hb_gpu_paint_t
      * time; glyph clips are encoded lazily on first consuming layer
      * and cached.  sub_blob_index is -1 until the encode happens,
      * then holds the index into c->sub_blobs and ext_* hold the
-     * design-unit extents. */
+     * design-unit extents, or HB_GPU_PAINT_CLIP_EMPTY if the outline
+     * has no ink and layers under it are to be skipped. */
     int                   sub_blob_index;
     int                   ext_x0, ext_y0, ext_x1, ext_y1;
   };
