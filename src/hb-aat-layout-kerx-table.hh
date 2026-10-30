@@ -570,6 +570,10 @@ struct KerxSubTableFormat4
 	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
 	    if (!c->sanitizer.check_array (data, 2)) return;
 	    hb_barrier ();
+	    /* Font functions may load the whole glyph outline to find a contour
+	     * point, and a non-advancing transition can repeat that at will.
+	     * Charge the two lookups to the buffer's work budget. */
+	    if (unlikely ((buffer->max_ops -= 2 * HB_BUDGET_256) <= 0)) return;
 	    unsigned int markControlPoint = *data++;
 	    unsigned int currControlPoint = *data++;
 	    hb_position_t markX = 0;
@@ -1037,6 +1041,9 @@ struct KerxTable
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
+      if (unlikely (!c->charge_buffer_pass ()))
+	break;
+
       if (!c->buffer->message (c->font, "start subtable %u", c->lookup_index))
 	goto skip;
 
@@ -1068,6 +1075,8 @@ struct KerxTable
 
       (void) c->buffer->message (c->font, "end subtable %u", c->lookup_index);
 
+      if (unlikely (!c->buffer->successful)) break;
+
     skip:
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
@@ -1091,6 +1100,9 @@ struct KerxTable
 
     const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
+    /* The accelerator keeps two glyph sets per subtable. */
+    if (unlikely (count > HB_AAT_MAX_SUBTABLES))
+      return_trace (false);
     for (unsigned int i = 0; i < count; i++)
     {
       if (unlikely (!st->u.header.sanitize (c)))

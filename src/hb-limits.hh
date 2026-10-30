@@ -92,6 +92,13 @@
 #define HB_MAX_LOOKUP_VISIT_COUNT 35000
 #endif
 
+/* Subtables of one kern, kerx, mort, or morx table; the table is rejected
+ * when it declares more.  The table's accelerator keeps glyph sets for
+ * each, which can take far more memory than the subtable has bytes. */
+#ifndef HB_AAT_MAX_SUBTABLES
+#define HB_AAT_MAX_SUBTABLES 1024
+#endif
+
 #ifndef HB_MAX_GRAPH_EDGE_COUNT
 #define HB_MAX_GRAPH_EDGE_COUNT 16384
 #endif
@@ -220,6 +227,17 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 /* One raster draw session, in accumulated non-horizontal edges. */
 #ifndef HB_RASTER_MAX_DRAW_EDGES
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
+#endif
+
+/* Compiling one AAT feature map: morx/mort chains and chain feature
+ * records visited for each range of the text with its own set of
+ * features, plus extra for each range a chain keeps rather than merges
+ * into the previous one, since those are what the map stores.  The
+ * ranges come from the caller's features and the chains from the font,
+ * so neither input bounds their product.  Once exhausted, the last
+ * range compiled extends to the end of the text. */
+#ifndef HB_BUDGET_AAT_MAP
+#define HB_BUDGET_AAT_MAP ((int64_t) 1 << 24)
 #endif
 
 
