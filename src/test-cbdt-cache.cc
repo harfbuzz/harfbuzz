@@ -157,6 +157,25 @@ main (int argc, char **argv)
     hb_always_assert (actual_data.as_bytes () == expected_data.as_bytes ());
   }
 
+  /* Reject nonrepresentable append lengths before allocating or copying.
+   * Simulate the boundary using a tiny vector instead of a large font. */
+  {
+    char bytes[2] = {0, 0};
+    for (unsigned old_length : {(unsigned) INT_MAX, UINT_MAX - 1})
+    {
+      hb_vector_t<char> data;
+      hb_always_assert (OT::_copy_data_to_cbdt (&data, bytes, 1));
+      data.length = old_length;
+      allocation_count = 0;
+      fail_after = 1; /* Keep an unfixed implementation from allocating gigabytes. */
+      bool copied = OT::_copy_data_to_cbdt (&data, bytes, old_length == INT_MAX ? 1 : 2);
+      data.length = 1;
+      hb_always_assert (!copied);
+      hb_always_assert (!allocation_count);
+      fail_after = 0;
+    }
+  }
+
   for (hb_blob_t *expected_blob : expected)
     hb_blob_destroy (expected_blob);
   cbdt.destroy ();
