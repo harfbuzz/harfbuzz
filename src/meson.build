@@ -1016,6 +1016,9 @@ if get_option('tests').enabled()
     'test-jstf': ['test-jstf.cc', 'hb-static.cc'],
     'test-unicode-ranges': ['test-unicode-ranges.cc'],
   }
+  if conf.get('HAVE_UNISCRIBE', 0) == 1
+    compiled_tests += {'test-uniscribe': ['test-uniscribe.cc']}
+  endif
   foreach name, source : compiled_tests
     if cpp_is_microsoft_compiler and source.contains('hb-static.cc')
       # TODO: Microsoft compilers cannot link tests using hb-static.cc, fix them
