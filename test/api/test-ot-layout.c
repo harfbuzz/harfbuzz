@@ -380,6 +380,90 @@ test_ot_layout_collect_lookup_variations (void)
 }
 #endif
 
+static char *
+write_be16 (char *p, unsigned v)
+{
+  *p++ = (char) (v >> 8);
+  *p++ = (char) v;
+  return p;
+}
+
+static void
+test_ot_layout_lookups_substitute_closure_large_coverage_one (unsigned lookup_type)
+{
+  /* Lookup 0 is a ContextSubst covering NUM_GLYPHS glyphs; every rule recurses
+   * into lookup 1, a MultipleSubst or AlternateSubst covering the same glyphs
+   * and mapping each to OUT1 and OUT2.  Closure visits lookup 1 once per glyph
+   * with a single active glyph, so the cost of a visit must not scale with the
+   * size of lookup 1's coverage. */
+  enum { NUM_GLYPHS = 16000, OUT1 = NUM_GLYPHS + 1, OUT2 = NUM_GLYPHS + 2 };
+  const unsigned context_len = 6 + 2 * NUM_GLYPHS + 4 + 8 + 10;
+  const unsigned subst_len = 6 + 2 * NUM_GLYPHS + 6 + 10;
+  const unsigned gsub_len = 10 + 6 + 16 + context_len + subst_len;
+  char *gsub = g_malloc0 (gsub_len);
+  char *p = gsub;
+  unsigned i;
+
+  p = write_be16 (p, 1); p = write_be16 (p, 0);		/* version 1.0 */
+  p = write_be16 (p, 0); p = write_be16 (p, 0);		/* no ScriptList, no FeatureList */
+  p = write_be16 (p, 10);				/* LookupList */
+
+  p = write_be16 (p, 2);				/* lookupCount */
+  p = write_be16 (p, 6); p = write_be16 (p, 14);	/* Lookup offsets */
+  p = write_be16 (p, 5); p = write_be16 (p, 0);		/* ContextSubst, no flags */
+  p = write_be16 (p, 1); p = write_be16 (p, 16);	/* one subtable */
+  p = write_be16 (p, lookup_type); p = write_be16 (p, 0);
+  p = write_be16 (p, 1); p = write_be16 (p, 8 + context_len);
+
+  /* ContextSubstFormat1: all rule sets share one rule applying lookup 1 at 0. */
+  p = write_be16 (p, 1); p = write_be16 (p, context_len - 10);
+  p = write_be16 (p, NUM_GLYPHS);
+  for (i = 0; i < NUM_GLYPHS; i++)
+    p = write_be16 (p, 6 + 2 * NUM_GLYPHS);
+  p = write_be16 (p, 1); p = write_be16 (p, 4);		/* RuleSet */
+  p = write_be16 (p, 1); p = write_be16 (p, 1);		/* Rule: glyphCount, lookupCount */
+  p = write_be16 (p, 0); p = write_be16 (p, 1);		/* SequenceLookupRecord */
+  p = write_be16 (p, 2); p = write_be16 (p, 1);		/* CoverageFormat2, one range */
+  p = write_be16 (p, 1); p = write_be16 (p, NUM_GLYPHS); p = write_be16 (p, 0);
+
+  /* MultipleSubstFormat1 / AlternateSubstFormat1: all glyphs share one
+   * Sequence / AlternateSet. */
+  p = write_be16 (p, 1); p = write_be16 (p, subst_len - 10);
+  p = write_be16 (p, NUM_GLYPHS);
+  for (i = 0; i < NUM_GLYPHS; i++)
+    p = write_be16 (p, 6 + 2 * NUM_GLYPHS);
+  p = write_be16 (p, 2); p = write_be16 (p, OUT1); p = write_be16 (p, OUT2);
+  p = write_be16 (p, 2); p = write_be16 (p, 1);		/* CoverageFormat2, one range */
+  p = write_be16 (p, 1); p = write_be16 (p, NUM_GLYPHS); p = write_be16 (p, 0);
+
+  g_assert_cmpuint (p - gsub, ==, gsub_len);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gsub, gsub_len, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GSUB, blob));
+  hb_blob_destroy (blob);
+  hb_face_set_glyph_count (face, OUT2 + 1);
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_set_add_range (glyphs, 1, NUM_GLYPHS);
+  hb_ot_layout_lookups_substitute_closure (face, NULL, glyphs);
+
+  g_assert_cmpuint (hb_set_get_population (glyphs), ==, NUM_GLYPHS + 2);
+  g_assert_true (hb_set_has (glyphs, OUT1));
+  g_assert_true (hb_set_has (glyphs, OUT2));
+
+  hb_set_destroy (glyphs);
+  hb_face_destroy (face);
+  g_free (gsub);
+}
+
+static void
+test_ot_layout_lookups_substitute_closure_large_coverage (void)
+{
+  test_ot_layout_lookups_substitute_closure_large_coverage_one (2); /* MultipleSubst */
+  test_ot_layout_lookups_substitute_closure_large_coverage_one (3); /* AlternateSubst */
+}
+
 int
 main (int argc, char **argv)
 {
@@ -399,5 +483,6 @@ main (int argc, char **argv)
 #ifndef HB_NO_VAR
   hb_test_add (test_ot_layout_collect_lookup_variations);
 #endif
+  hb_test_add (test_ot_layout_lookups_substitute_closure_large_coverage);
   return hb_test_run ();
 }
