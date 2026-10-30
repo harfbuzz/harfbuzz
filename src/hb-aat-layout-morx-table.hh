@@ -1140,6 +1140,9 @@ struct Chain
     hb_mask_t flags = defaultFlags;
     {
       unsigned int count = featureCount;
+      /* Charge the chain and its feature records; the map builder stops
+       * compiling further ranges once its budget is exhausted. */
+      hb_budget_spend (map->budget, HB_BUDGET_1, 1 + count);
       for (unsigned i = 0; i < count; i++)
       {
 	const Feature &feature = featureZ[i];
@@ -1429,9 +1432,22 @@ struct mortmorx
       return;
     for (unsigned int i = 0; i < count; i++)
     {
-      map->chain_flags[i].push (hb_aat_map_t::range_flags_t {chain->compile_flags (mapper),
-							     mapper->range_first,
-							     mapper->range_last});
+      hb_mask_t flags = chain->compile_flags (mapper);
+      auto &ranges = map->chain_flags[i];
+      /* Ranges are compiled in order and are contiguous.  Extend the last
+       * one instead of starting a new one if this chain does not tell the
+       * two apart; the map would otherwise hold one entry per chain per
+       * range, a product the font and the caller's features do not bound. */
+      if (ranges.length && ranges.tail ().flags == flags)
+	ranges.tail ().cluster_last = mapper->range_last;
+      else
+      {
+	/* Stored ranges cost memory; charge them more than visited ones. */
+	hb_budget_spend (mapper->budget, HB_BUDGET_16);
+	ranges.push (hb_aat_map_t::range_flags_t {flags,
+						  mapper->range_first,
+						  mapper->range_last});
+      }
       chain = &StructAfter<Chain<Types>> (*chain);
     }
   }

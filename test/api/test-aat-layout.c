@@ -247,6 +247,121 @@ test_aat_morx_subtable_limit (void)
   g_assert_cmpuint (0, ==, count_applied_subtables (HB_TAG ('m','o','r','x'), morx, length));
 }
 
+
+/* A font mapping 'a' and 'b' to glyphs 1 and 2.  Its first morx chain turns
+ * glyph 1 into glyph 2 where common ligatures are on; they are off by default.
+ * That chain is followed by empty_chains chains that have nothing in them. */
+static hb_face_t *
+create_morx_face (unsigned int empty_chains)
+{
+  static const unsigned char cmap[] = {
+    0x00,0x00, 0x00,0x01, 0x00,0x03, 0x00,0x0A, 0x00,0x00,0x00,0x0C,
+    0x00,0x0C, 0x00,0x00, 0x00,0x00,0x00,0x1C, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x01,
+    0x00,0x00,0x00,0x61, 0x00,0x00,0x00,0x62, 0x00,0x00,0x00,0x01,
+  };
+  static const unsigned char maxp[] = {0x00,0x00,0x50,0x00, 0x00,0x03};
+  static const unsigned char feat[] = {
+    0x00,0x01,0x00,0x00, 0x00,0x01, 0x00,0x00, 0x00,0x00,0x00,0x00,
+    0x00,0x01, 0x00,0x02, 0x00,0x00,0x00,0x18, 0x00,0x00, 0x01,0x00,
+    0x00,0x02, 0x01,0x00, 0x00,0x03, 0x01,0x00,
+  };
+  static const unsigned char chain[] = {
+    0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x3C, 0x00,0x00,0x00,0x02, 0x00,0x00,0x00,0x01,
+    0x00,0x01, 0x00,0x02, 0x00,0x00,0x00,0x01, 0xFF,0xFF,0xFF,0xFF,
+    0x00,0x01, 0x00,0x03, 0x00,0x00,0x00,0x00, 0xFF,0xFF,0xFF,0xFE,
+    0x00,0x00,0x00,0x14, 0x20,0x00,0x00,0x04, 0x00,0x00,0x00,0x01,
+    0x00,0x08, 0x00,0x01, 0x00,0x01, 0x00,0x02,
+  };
+  unsigned int chain_count = 1 + empty_chains;
+  unsigned int morx_length = 8 + sizeof (chain) + 16 * empty_chains;
+  unsigned char *morx = (unsigned char *) calloc (1, morx_length);
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_blob_t *blob;
+
+  g_assert_nonnull (morx);
+  morx[1] = 2;
+  morx[4] = chain_count >> 24;
+  morx[5] = chain_count >> 16;
+  morx[6] = chain_count >> 8;
+  morx[7] = chain_count;
+  memcpy (morx + 8, chain, sizeof (chain));
+  for (unsigned int i = 0; i < empty_chains; i++)
+    morx[8 + sizeof (chain) + 16 * i + 7] = 16;
+
+  blob = hb_blob_create ((const char *) cmap, sizeof (cmap), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (builder, HB_TAG ('c','m','a','p'), blob));
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) maxp, sizeof (maxp), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (builder, HB_TAG ('m','a','x','p'), blob));
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) feat, sizeof (feat), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (builder, HB_TAG ('f','e','a','t'), blob));
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) morx, morx_length, HB_MEMORY_MODE_READONLY, morx, free);
+  g_assert_true (hb_face_builder_add_table (builder, HB_TAG ('m','o','r','x'), blob));
+  hb_blob_destroy (blob);
+
+  return builder;
+}
+
+/* Shapes a run of 'a' that has ligatures on in every character whose index
+ * is not a multiple of period, each character having its own feature range. */
+static hb_buffer_t *
+shape_ranged_features (hb_face_t *morx_face, unsigned int length, unsigned int period)
+{
+  hb_font_t *font = hb_font_create (morx_face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_feature_t *features = (hb_feature_t *) calloc (length, sizeof (hb_feature_t));
+
+  g_assert_nonnull (features);
+  for (unsigned int i = 0; i < length; i++)
+  {
+    hb_buffer_add (buffer, 'a', i);
+    features[i].tag = HB_TAG ('l','i','g','a');
+    features[i].value = i % period != 0;
+    features[i].start = i;
+    features[i].end = i + 1;
+  }
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, features, length);
+  g_assert_cmpuint (length, ==, hb_buffer_get_length (buffer));
+
+  free (features);
+  hb_font_destroy (font);
+  return buffer;
+}
+
+static void
+test_aat_ranged_features (void)
+{
+  hb_face_t *morx_face = create_morx_face (1);
+  hb_buffer_t *buffer = shape_ranged_features (morx_face, 100, 3);
+  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+
+  for (unsigned int i = 0; i < 100; i++)
+    g_assert_cmpuint (i % 3 ? 2 : 1, ==, info[i].codepoint);
+
+  hb_buffer_destroy (buffer);
+  hb_face_destroy (morx_face);
+}
+
+static void
+test_aat_ranged_features_many_chains (void)
+{
+  /* The number of chains times the number of ranges is what must not
+   * be paid for, in time or memory.  The first ranges still work. */
+  hb_face_t *morx_face = create_morx_face (20000);
+  hb_buffer_t *buffer = shape_ranged_features (morx_face, 5000, 2);
+  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+
+  for (unsigned int i = 0; i < 100; i++)
+    g_assert_cmpuint (i % 2 ? 2 : 1, ==, info[i].codepoint);
+
+  hb_buffer_destroy (buffer);
+  hb_face_destroy (morx_face);
+}
+
 #endif
 
 int
@@ -261,6 +376,8 @@ main (int argc, char **argv)
   hb_test_add (test_aat_has);
   hb_test_add (test_aat_kern_subtable_limit);
   hb_test_add (test_aat_morx_subtable_limit);
+  hb_test_add (test_aat_ranged_features);
+  hb_test_add (test_aat_ranged_features_many_chains);
 #endif
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");
