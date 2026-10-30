@@ -5476,6 +5476,18 @@ struct FeatureTableSubstitution
     return nullptr;
   }
 
+  /* Calls visit (feature_index, substitute) until it returns false. */
+  template <typename Visitor>
+  bool visit_substitutes (const hb_set_t *feature_indexes,
+			  Visitor       &visit) const
+  {
+    for (const FeatureTableSubstitutionRecord &record : substitutions)
+      if (feature_indexes->has (record.featureIndex) &&
+	  !visit (record.featureIndex, this+record.feature))
+	return false;
+    return true;
+  }
+
   void collect_lookups (const hb_set_t *feature_indexes,
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
@@ -5997,6 +6009,16 @@ struct FeatureVariations
   {
     const FeatureVariationRecord &record = varRecords[variations_index];
     return (this+record.substitutions).find_substitute (feature_index);
+  }
+
+  template <typename Visitor>
+  bool visit_substitutes (const hb_set_t *feature_indexes,
+			  Visitor       &visit) const
+  {
+    for (const FeatureVariationRecord &record : varRecords)
+      if (!(this+record.substitutions).visit_substitutes (feature_indexes, visit))
+	return false;
+    return true;
   }
 
   bool collect_lookup_conditions (const int *coords,
