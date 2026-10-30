@@ -1809,11 +1809,14 @@ struct SubtableUnicodesCache {
   hb_blob_ptr_t<cmap> base_blob;
   const char* base;
   unsigned int table_length;
+  unsigned int num_glyphs;
+  /* Keyed by subtable offset: several encoding records may share one subtable. */
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> cached_unicodes;
 
  public:
 
-  static SubtableUnicodesCache* create (hb_blob_ptr_t<cmap> source_table)
+  static SubtableUnicodesCache* create (hb_blob_ptr_t<cmap> source_table,
+					unsigned int num_glyphs)
   {
     SubtableUnicodesCache* cache =
         (SubtableUnicodesCache*) hb_malloc (sizeof(SubtableUnicodesCache));
@@ -1821,7 +1824,7 @@ struct SubtableUnicodesCache {
     if (unlikely (!cache))
       return nullptr;
 
-    new (cache) SubtableUnicodesCache (source_table);
+    new (cache) SubtableUnicodesCache (source_table, num_glyphs);
     return cache;
   }
 
@@ -1834,17 +1837,21 @@ struct SubtableUnicodesCache {
   }
 
   SubtableUnicodesCache(const void* cmap_base,
-			unsigned int table_length_ = 0)
+			unsigned int table_length_ = 0,
+			unsigned int num_glyphs_ = UINT_MAX)
       : base_blob(),
         base ((const char*) cmap_base),
         table_length (table_length_),
+        num_glyphs (num_glyphs_),
         cached_unicodes ()
   {}
 
-  SubtableUnicodesCache(hb_blob_ptr_t<cmap> base_blob_)
+  SubtableUnicodesCache(hb_blob_ptr_t<cmap> base_blob_,
+			unsigned int num_glyphs_ = UINT_MAX)
       : base_blob(base_blob_),
         base ((const char *) base_blob.get()),
         table_length (base_blob.get_length ()),
+        num_glyphs (num_glyphs_),
         cached_unicodes ()
   {}
 
@@ -1861,15 +1868,15 @@ struct SubtableUnicodesCache {
   const hb_set_t* set_for (const EncodingRecord* record,
                            SubtableUnicodesCache& mutable_cache) const
   {
-    if (cached_unicodes.has ((unsigned) ((const char *) record - base)))
-      return cached_unicodes.get ((unsigned) ((const char *) record - base));
+    if (cached_unicodes.has ((unsigned) record->subtable))
+      return cached_unicodes.get ((unsigned) record->subtable);
 
     return mutable_cache.set_for (record);
   }
 
   const hb_set_t* set_for (const EncodingRecord* record)
   {
-    if (!cached_unicodes.has ((unsigned) ((const char *) record - base)))
+    if (!cached_unicodes.has ((unsigned) record->subtable))
     {
       hb_set_t *s = hb_set_create ();
       if (unlikely (s->in_error ()))
@@ -1878,14 +1885,14 @@ struct SubtableUnicodesCache {
       unsigned int subtable_data_size = record->subtable < table_length
 					? table_length - (unsigned int) record->subtable
 					: 0;
-      (base+record->subtable).collect_unicodes (s, UINT_MAX, subtable_data_size);
+      (base+record->subtable).collect_unicodes (s, num_glyphs, subtable_data_size);
 
-      if (unlikely (!cached_unicodes.set ((unsigned) ((const char *) record - base), hb::unique_ptr<hb_set_t> {s})))
+      if (unlikely (!cached_unicodes.set ((unsigned) record->subtable, hb::unique_ptr<hb_set_t> {s})))
         return hb_set_get_empty ();
 
       return s;
     }
-    return cached_unicodes.get ((unsigned) ((const char *) record - base));
+    return cached_unicodes.get ((unsigned) record->subtable);
   }
 
 };
@@ -1910,7 +1917,8 @@ struct cmap
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
 
 
-  static SubtableUnicodesCache* create_filled_cache(hb_blob_ptr_t<cmap> source_table) {
+  static SubtableUnicodesCache* create_filled_cache(hb_blob_ptr_t<cmap> source_table,
+						    unsigned int num_glyphs) {
     const cmap* cmap = source_table.get();
     auto it =
     + hb_iter (cmap->encodingRecord)
@@ -1919,13 +1927,15 @@ struct cmap
     })
     ;
 
-    SubtableUnicodesCache* cache = SubtableUnicodesCache::create(source_table);
+    SubtableUnicodesCache* cache = SubtableUnicodesCache::create(source_table, num_glyphs);
 
     if (unlikely (!cache))
       return nullptr;
 
+    hb_set_t seen_encodings;
     for (const EncodingRecord& _ : it)
-      cache->set_for(&_); // populate the cache for this encoding record.
+      if (cmap::is_first_record_for_encoding (cmap, _, seen_encodings))
+	cache->set_for(&_); // populate the cache for this encoding record.
 
     return cache;
   }
@@ -1949,7 +1959,8 @@ struct cmap
 #endif
     auto snap = c->snapshot ();
 
-    SubtableUnicodesCache local_unicodes_cache (base, source_table_length);
+    SubtableUnicodesCache local_unicodes_cache (base, source_table_length,
+						plan->source->get_num_glyphs ());
     const SubtableUnicodesCache* unicodes_cache = &local_unicodes_cache;
 
     if (plan->accelerator &&
@@ -1957,6 +1968,7 @@ struct cmap
         plan->accelerator->cmap_cache->same_base (base))
       unicodes_cache = plan->accelerator->cmap_cache;
 
+    hb_set_t seen_encodings;
     for (const EncodingRecord& _ : encodingrec_iter)
     {
       if (c->in_error ())
@@ -1968,6 +1980,8 @@ struct cmap
 	  && format != 15
 #endif
 	 ) continue;
+
+      if (!is_first_record_for_encoding (base, _, seen_encodings)) continue;
 
       const hb_set_t* unicodes_set = unicodes_cache->set_for (&_, local_unicodes_cache);
 
@@ -2520,6 +2534,26 @@ struct cmap
         (_.platformID == 3 && _.encodingID == 1) ||
         (_.platformID == 3 && _.encodingID == 10) ||
         (cmap + _.subtable).is_variation_selector ();
+  }
+
+  /* Only the first encoding record of each (platformID, encodingID) pair is
+   * used: lookup binary-searches the records and sees one per pair, and
+   * EncodingRecord::copy already links later records of a format to the first
+   * serialized subtable.  Collapsing them here bounds the number of per-record
+   * unicode sets the subsetter builds (and the _can_drop walk) regardless of
+   * how many records a malformed font repeats.  Variation-selector records are
+   * exempt, so a font with both a format 14 and a format 15 subtable keeps
+   * both. */
+  static bool is_first_record_for_encoding (const void *base,
+					    const EncodingRecord& _,
+					    hb_set_t& seen_encodings)
+  {
+    if ((base+_.subtable).is_variation_selector ()) return true;
+
+    hb_codepoint_t encoding = ((unsigned) _.platformID << 16) | _.encodingID;
+    if (seen_encodings.has (encoding)) return false;
+    seen_encodings.add (encoding);
+    return true;
   }
 
   protected:
