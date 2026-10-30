@@ -140,19 +140,6 @@ struct TupleVariationHeader
     }
     else
     {
-      float scalar;
-      if (!plain_shared_tuple &&
-	  shared_tuple_scalar_cache->length &&
-	  shared_tuple_scalar_cache->get (index, &scalar))
-      {
-        /* Intermediate regions can extend past the shared peak, where the
-         * default region's scalar is zero. Only a cached one is reusable. */
-        if (has_interm && scalar != 1.f)
-	  shared_tuple_scalar_cache = nullptr;
-	else
-	  return scalar;
-      }
-
       if (unlikely ((index + 1) * coord_count > shared_tuples.length))
         return 0.f;
       peak_tuple = shared_tuples.arrayZ + (coord_count * index);
@@ -164,6 +151,8 @@ struct TupleVariationHeader
 
     if (has_interm)
     {
+      /* Intermediate regions belong to this tuple, not the shared peak. */
+      shared_tuple_scalar_cache = nullptr;
       start_tuple = get_start_tuple (coord_count);
       end_tuple = get_end_tuple (coord_count);
     }
@@ -199,7 +188,6 @@ struct TupleVariationHeader
 
       if (has_interm)
       {
-	shared_tuple_scalar_cache = nullptr;
         int start = start_tuple[i].to_int ();
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
