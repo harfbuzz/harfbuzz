@@ -325,6 +325,14 @@ struct hb_gpu_paint_t
   pending_clip_t clip_stack[3];
   unsigned       clip_depth = 0;
 
+  /* Rectangle clips are not encoded (see "Out of scope for v1"),
+   * but their pop_clip must not pop the glyph/path clip below them.
+   * rect_clips[d] counts the rectangle clips pushed while clip_depth
+   * was d; the paint walk pops them before anything at depth d, so
+   * a non-zero count at the current depth identifies a rectangle
+   * pop.  The last slot collects everything pushed past the cap. */
+  unsigned       rect_clips[3 + 1] = {};
+
   /* Carries the cur_transform captured at push_clip_path_start
    * through to push_clip_path_end, where the encoded clip is
    * committed to clip_stack. */

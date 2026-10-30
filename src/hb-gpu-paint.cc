@@ -104,7 +104,33 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
 		       void             *user_data HB_UNUSED)
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+
+  /* A rectangle clip pushed at this depth is popped before the
+   * glyph/path clip below it; its pop leaves clip_depth alone. */
+  unsigned &rects = c->rect_clips[hb_min (c->clip_depth, (unsigned) HB_GPU_PAINT_MAX_CLIP_DEPTH)];
+  if (rects)
+  {
+    rects--;
+    return;
+  }
+
   if (likely (c->clip_depth > 0)) c->clip_depth--;
+}
+
+/* Clip rectangles are not encoded in v1 (see the design notes in
+ * hb-gpu-paint.hh).  Only count the push so that the matching
+ * pop_clip does not pop the glyph/path clip below it. */
+static void
+hb_gpu_paint_push_clip_rectangle (hb_paint_funcs_t *funcs HB_UNUSED,
+				  void             *paint_data,
+				  float             xmin HB_UNUSED,
+				  float             ymin HB_UNUSED,
+				  float             xmax HB_UNUSED,
+				  float             ymax HB_UNUSED,
+				  void             *user_data HB_UNUSED)
+{
+  hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+  c->rect_clips[hb_min (c->clip_depth, (unsigned) HB_GPU_PAINT_MAX_CLIP_DEPTH)]++;
 }
 
 /* Arbitrary-path clip: hand the caller the same hb_gpu_draw
@@ -1084,6 +1110,7 @@ static struct hb_gpu_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_push_transform_func        (funcs, hb_gpu_paint_push_transform,        nullptr, nullptr);
     hb_paint_funcs_set_pop_transform_func         (funcs, hb_gpu_paint_pop_transform,         nullptr, nullptr);
     hb_paint_funcs_set_push_clip_glyph_func       (funcs, hb_gpu_paint_push_clip_glyph,       nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_rectangle_func   (funcs, hb_gpu_paint_push_clip_rectangle,   nullptr, nullptr);
     hb_paint_funcs_set_push_clip_path_start_func  (funcs, hb_gpu_paint_push_clip_path_start,  nullptr, nullptr);
     hb_paint_funcs_set_push_clip_path_end_func    (funcs, hb_gpu_paint_push_clip_path_end,    nullptr, nullptr);
     hb_paint_funcs_set_pop_clip_func              (funcs, hb_gpu_paint_pop_clip,              nullptr, nullptr);
@@ -1646,6 +1673,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
   paint->sub_blobs.reset ();
   paint->sub_bytes = 0;
   paint->clip_depth = 0;
+  hb_memset (paint->rect_clips, 0, sizeof (paint->rect_clips));
   paint->pending_clip_path = false;
   paint->unsupported = false;
   paint->recharge_budget ();

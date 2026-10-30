@@ -741,6 +741,53 @@ test_paint_clip_path_depth_overflow (void)
   hb_gpu_paint_destroy (p);
 }
 
+static void
+test_paint_clip_rectangle_pop_balance (void)
+{
+  /* Rectangle clips are not encoded, but their pop_clip must not
+   * pop the glyph clip below them.  COLRv1 emits such a pair around
+   * every PaintColrGlyph that has a ClipBox; when that sits inside a
+   * PaintGlyph, an unbalanced pop un-clipped (or dropped) the sibling
+   * layers that followed. */
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  g_assert_nonnull (face);
+  hb_font_t *font = hb_font_create (face);
+
+  hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+  g_assert_nonnull (p);
+  hb_gpu_paint_set_scale (p, 1000, 1000);
+
+  hb_paint_funcs_t *pf = hb_gpu_paint_get_funcs (p);
+
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+
+  hb_paint_push_clip_glyph (pf, p, gid, font);
+  hb_paint_push_clip_rectangle (pf, p, 0.f, 0.f, 100.f, 100.f);
+  hb_paint_pop_clip (pf, p);
+
+  /* Still inside the glyph clip: this layer must be emitted. */
+  hb_paint_color (pf, p, false, HB_COLOR (0, 0, 255, 255));
+
+  hb_paint_pop_clip (pf, p);
+
+  /* Outside every clip: this layer must be dropped. */
+  hb_paint_color (pf, p, false, HB_COLOR (255, 0, 0, 255));
+
+  hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+  g_assert_nonnull (blob);
+  unsigned texel_count;
+  const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
+  g_assert_cmpuint (texel_count, >, 0);
+  /* Header texel 0 .r holds num_ops. */
+  g_assert_cmpint (texels[0].r, ==, 1);
+  hb_blob_destroy (blob);
+
+  hb_gpu_paint_destroy (p);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static unsigned
 repro_color_stops (hb_color_line_t *cl HB_UNUSED, void *cl_data HB_UNUSED,
 		   unsigned start, unsigned *count,
@@ -1033,6 +1080,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_reset);
   hb_test_add (test_paint_recycle_blob);
   hb_test_add (test_paint_clip_path_depth_overflow);
+  hb_test_add (test_paint_clip_rectangle_pop_balance);
   hb_test_add (test_paint_gradient_overflow_transform);
   hb_test_add (test_paint_empty_clip);
 
