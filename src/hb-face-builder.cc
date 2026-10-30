@@ -99,7 +99,16 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   unsigned int face_length = table_count * 16 + 12;
 
   for (auto info : data->tables.values())
-    face_length += hb_ceil_to_4 (hb_blob_get_length (info.data));
+    if (unlikely (hb_unsigned_add_overflows (face_length,
+					     hb_ceil_to_4 (hb_blob_get_length (info.data)),
+					     &face_length)))
+      return nullptr;
+
+  /* hb_blob_create() refuses such a length; do not assemble the font
+   * only to throw it away.  Tables referenced from a font file can
+   * overlap in it, so the sum is not bounded by the size of that file. */
+  if (unlikely (face_length >= 1u << 31))
+    return nullptr;
 
   char *buf = (char *) hb_malloc (face_length);
   if (unlikely (!buf))
