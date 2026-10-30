@@ -29,6 +29,8 @@
 
 #include "../../../hb-open-type.hh"
 #include "../../../hb-paint.hh"
+#include "../../../hb-map.hh"
+#include "../../../hb-set.hh"
 
 /*
  * CBLC -- Color Bitmap Location
@@ -837,33 +839,6 @@ struct CBLC
   HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
   protected:
-  const BitmapSizeTable &choose_strike (hb_font_t *font) const
-  {
-    unsigned count = sizeTables.len;
-    if (unlikely (!count))
-      return Null (BitmapSizeTable);
-
-    unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
-    if (!requested_ppem)
-      requested_ppem = 1<<30; /* Choose largest strike. */
-    unsigned int best_i = 0;
-    unsigned int best_ppem = hb_max (sizeTables[0].ppemX, sizeTables[0].ppemY);
-
-    for (unsigned int i = 1; i < count; i++)
-    {
-      unsigned int ppem = hb_max (sizeTables[i].ppemX, sizeTables[i].ppemY);
-      if ((requested_ppem <= ppem && ppem < best_ppem) ||
-	  (requested_ppem > best_ppem && ppem > best_ppem))
-      {
-	best_i = i;
-	best_ppem = ppem;
-      }
-    }
-
-    return sizeTables[best_i];
-  }
-
-  protected:
   FixedVersion<>		version;
   Array32Of<BitmapSizeTable>	sizeTables;
   public:
@@ -882,6 +857,18 @@ struct CBDT
       this->cbdt = hb_sanitize_context_t ().reference_table<CBDT> (face);
 
       upem = hb_face_get_upem (face);
+
+      /* Index strikes by ppem, such that choose_strike() doesn't have to
+       * walk them all.  Of those with equal ppem the first one wins. */
+      unsigned count = cblc->sizeTables.len;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	const BitmapSizeTable &strike = cblc->sizeTables[i];
+	unsigned int ppem = hb_max (strike.ppemX, strike.ppemY);
+	if (strike_ppems.has (ppem)) continue;
+	strike_ppems.add (ppem);
+	strike_for_ppem.set (ppem, i);
+      }
     }
     ~accelerator_t ()
     {
@@ -893,7 +880,7 @@ struct CBDT
     get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents, bool scale = true) const
     {
       const void *base;
-      const BitmapSizeTable &strike = this->cblc->choose_strike (font);
+      const BitmapSizeTable &strike = choose_strike (font);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
       if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return false;
@@ -946,7 +933,7 @@ struct CBDT
     reference_png (hb_font_t *font, hb_codepoint_t glyph) const
     {
       const void *base;
-      const BitmapSizeTable &strike = this->cblc->choose_strike (font);
+      const BitmapSizeTable &strike = choose_strike (font);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
       if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return hb_blob_get_empty ();
@@ -1023,10 +1010,31 @@ struct CBDT
     }
 
     private:
+
+    const BitmapSizeTable &choose_strike (hb_font_t *font) const
+    {
+      if (unlikely (strike_ppems.is_empty ()))
+	return Null (BitmapSizeTable);
+
+      unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
+      if (!requested_ppem)
+	requested_ppem = 1<<30; /* Choose largest strike. */
+
+      /* Smallest strike that is large enough, or otherwise the largest. */
+      hb_codepoint_t ppem = requested_ppem - 1;
+      if (!strike_ppems.next (&ppem))
+	ppem = strike_ppems.get_max ();
+
+      return cblc->sizeTables[strike_for_ppem.get (ppem)];
+    }
+
+    private:
     hb_blob_ptr_t<CBLC> cblc;
     hb_blob_ptr_t<CBDT> cbdt;
 
     unsigned int upem;
+    hb_set_t strike_ppems;
+    hb_map_t strike_for_ppem;
   };
 
   bool sanitize (hb_sanitize_context_t *c) const
