@@ -287,6 +287,81 @@ test_shape_overlong_context_scan (void)
 
 
 static void
+test_shape_rule_set_budget (void)
+{
+  /* A 'liga' lookup whose 20 subtable offsets share one ContextSubstFormat2
+   * subtable, whose RuleSet has 32700 Rule offsets that all point at one
+   * Rule that never matches.  Trying all of those at every glyph must
+   * exhaust the buffer's work budget instead of running to completion. */
+  static const char cmap[] =
+    "\0\0\0\1\0\3\0\12\0\0\0\14" /* One format 12 subtable. */
+    "\0\14\0\0\0\0\0\34\0\0\0\0\0\0\0\1"
+    "\0\0\0\141\0\0\0\141\0\0\0\1"; /* 'a' -> glyph 1 */
+  static const char maxp[] = "\0\0\120\0\0\3";
+  static const uint16_t header[] = {
+    1, 0, 10, 30, 44,
+    1, 0x4446, 0x4C54, 8, 4, 0, 0, 0xFFFF, 1, 0, /* ScriptList: DFLT */
+    1, 0x6C69, 0x6761, 8, 0, 1, 0, /* FeatureList: liga */
+    1, 4, /* LookupList */
+  };
+  static const uint16_t subtable[] = {
+    2, 12, 18, 2, 0, 26,
+    1, 1, 1, /* Coverage: glyph 1 */
+    1, 1, 1, 1, /* ClassDef: glyph 1 has class 1 */
+  };
+  static const uint16_t rule[] = {3, 0, 1, 2}; /* Classes 1, 2: never matches. */
+  const unsigned num_subtables = 20, num_rules = 32700;
+  unsigned length = sizeof (header) + 6 + 2 * num_subtables +
+		    sizeof (subtable) + 2 + 2 * num_rules + sizeof (rule);
+  char *GSUB = (char *) malloc (length), *p = GSUB;
+  g_assert_nonnull (GSUB);
+
+#define PUT(v) (*p++ = (char) ((v) >> 8), *p++ = (char) (v))
+  for (unsigned i = 0; i < G_N_ELEMENTS (header); i++)
+    PUT (header[i]);
+  PUT (5); PUT (0); PUT (num_subtables); /* Lookup type 5 */
+  for (unsigned i = 0; i < num_subtables; i++)
+    PUT (6 + 2 * num_subtables);
+  for (unsigned i = 0; i < G_N_ELEMENTS (subtable); i++)
+    PUT (subtable[i]);
+  PUT (num_rules);
+  for (unsigned i = 0; i < num_rules; i++)
+    PUT (2 + 2 * num_rules);
+  for (unsigned i = 0; i < G_N_ELEMENTS (rule); i++)
+    PUT (rule[i]);
+#undef PUT
+  g_assert_cmpuint (p - GSUB, ==, length);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob;
+  blob = hb_blob_create (cmap, sizeof (cmap) - 1, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('c','m','a','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (maxp, sizeof (maxp) - 1, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (GSUB, length, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  for (unsigned i = 0; i < 64; i++)
+    hb_buffer_add (buffer, 'a', i);
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  hb_buffer_guess_segment_properties (buffer);
+
+  hb_shape (font, buffer, NULL, 0);
+
+  g_assert_false (hb_buffer_allocation_successful (buffer));
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  free (GSUB);
+}
+
+static void
 test_shape_list (void)
 {
   const char **shapers = hb_shape_list_shapers ();
@@ -308,6 +383,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
   hb_test_add (test_shape_overlong_context_scan);
+  hb_test_add (test_shape_rule_set_budget);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);
