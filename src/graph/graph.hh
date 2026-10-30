@@ -1338,6 +1338,7 @@ public:
       index_map.set (child, *r);
       return true;
     }));
+    TRY (result);
 
     return graph_result_t<void>::from(index_map, ALLOCATION_FAILURE);
   }

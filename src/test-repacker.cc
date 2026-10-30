@@ -2985,6 +2985,79 @@ test_deep_graph_traversal ()
 }
 
 static void
+test_duplicate_subgraph_vertex_limit ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaf = add_object ("leaf", 4, &c);
+  start_object ("root", 4, &c);
+  add_offset (leaf, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  while (graph.vertices_.length < HB_REPACKER_MAX_VERTICES - 1)
+    hb_always_assert (graph.new_node (nullptr, nullptr).is_ok ());
+
+  // There's only room left for one of the two nodes, the failure must be reported.
+  hb_map_t index_map;
+  auto result = graph.duplicate_subgraph (graph.root_idx (), index_map);
+  hb_always_assert (result.is_err ());
+  hb_always_assert (result.error () == graph::LIMIT_EXCEEDED);
+
+  free (buffer);
+}
+
+static void
+test_resolve_shared_overflow_vertex_limit ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned leaf = add_object ("leaf", 4, &c);
+
+  start_object ("a", 4, &c);
+  add_offset (leaf, &c);
+  unsigned a = c.pop_pack (false);
+
+  start_object ("b", 4, &c);
+  add_offset (leaf, &c);
+  unsigned b = c.pop_pack (false);
+
+  start_object ("root", 4, &c);
+  add_offset (a, &c);
+  add_offset (b, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  while (graph.vertices_.length < HB_REPACKER_MAX_VERTICES)
+    hb_always_assert (graph.new_node (nullptr, nullptr).is_ok ());
+
+  // 'a' (1) is not shared so it can't be duplicated, other resolution options may be tried.
+  hb_vector_t<graph::overflow_record_t> overflows;
+  overflows.push (graph::overflow_record_t {3, 1});
+  auto result = _resolve_shared_overflow (overflows, 0, graph);
+  hb_always_assert (result.is_ok ());
+  hb_always_assert (!*result);
+
+  // 'leaf' (0) is shared by 'a' (1) and 'b' (2), but there's no room left to duplicate it.
+  // The limit must be reported instead of continuing the overflow resolution.
+  overflows.reset ();
+  overflows.push (graph::overflow_record_t {1, 0});
+  result = _resolve_shared_overflow (overflows, 0, graph);
+  hb_always_assert (result.is_err ());
+  hb_always_assert (result.error () == graph::LIMIT_EXCEEDED);
+
+  free (buffer);
+}
+
+static void
 test_32bit_roots_traversal ()
 {
   size_t buffer_size = 1000;
@@ -3227,6 +3300,8 @@ main (int argc, char **argv)
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();
   test_deep_graph_traversal ();
+  test_duplicate_subgraph_vertex_limit ();
+  test_resolve_shared_overflow_vertex_limit ();
   test_32bit_roots_traversal ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
