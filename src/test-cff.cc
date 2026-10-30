@@ -148,6 +148,8 @@ test_fd_select_sentinel ()
   select->sentinel () = 4;
   hb_always_assert (select->sanitize (&c, 1, 3));
   hb_always_assert (select->sanitize (&c, 1));
+  /* The last range ends at the sentinel. */
+  hb_always_assert (select->get_fd_range (2).second == 4);
   select->sentinel () = 2;
   hb_always_assert (!select->sanitize (&c, 1, 3));
   select->sentinel () = 5;
