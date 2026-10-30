@@ -507,6 +507,9 @@ struct hb_depend_data_builder_t
 
   bool add_edge (hb_codepoint_t source, const hb_depend_edge_t &record)
   {
+    if (unlikely (!successful))
+      return false;
+
     /* Store only a source and per-glyph edge index in each bucket.  The edge
      * itself already lives in the output vector, where it can be compared to
      * resolve hash collisions exactly.  Adding one to the encoded source
@@ -528,6 +531,9 @@ struct hb_depend_data_builder_t
 	return false;
       slot = (slot + ++step) & (edge_slots.length - 1);
     }
+
+    if (unlikely (edge_population >= HB_DEPEND_MAX_EDGES))
+      return fail ();
 
     auto &dependencies = data.glyph_dependencies[source].dependencies;
     unsigned int index = dependencies.length;
@@ -561,6 +567,8 @@ struct hb_depend_data_builder_t
                         hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                         hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
+    if (unlikely (!successful))
+      return false;
     if (context_set == HB_CODEPOINT_INVALID)
       context_set = current_context_set_index;
     hb_subset_depend_edge_flags_t flags = current_edge_flags;
