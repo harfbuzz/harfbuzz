@@ -267,6 +267,16 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #endif
 
 
+/* One avar2 partial-instancing plan, in region tents visited to bound the
+ * final coordinates each axis can reach.  A delta-set row can list a region
+ * any number of times and axes can share a row, so the table size does not
+ * bound that work.  An axis whose exact bounds do not fit what is left gets
+ * the looser interval bounds; once exhausted, axes are left unconstrained. */
+#ifndef HB_BUDGET_SUBSET_AVAR2_RANGES
+#define HB_BUDGET_SUBSET_AVAR2_RANGES ((int64_t) 1 << 26)
+#endif
+
+
 /* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
  * one int per (row, region) pair.  In the font a row only pays for the
  * regions of its own VarData, so a small font can ask for a huge matrix.
