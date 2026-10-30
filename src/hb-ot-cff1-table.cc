@@ -665,6 +665,8 @@ _cff1_charstring_may_end_in_seac (const hb_ubytes_t &str,
 bool OT::cff1::accelerator_subset_t::get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const
 {
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
+  /* seac uses StandardEncoding names and is not defined in CID-keyed fonts. */
+  if (is_CID ()) return false;
 
   unsigned int fd = fdSelect->get_fd (glyph);
   const hb_ubytes_t str = (*charStrings)[glyph];
