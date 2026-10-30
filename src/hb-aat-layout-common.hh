@@ -382,16 +382,44 @@ struct LookupFormat2
   template <typename set_t>
   void collect_glyphs (set_t &glyphs) const
   {
-    unsigned count = segments.get_length ();
-    for (unsigned int i = 0; i < count; i++)
-      segments[i].collect_glyphs (glyphs);
+    collect_glyphs_filtered (glyphs, [] (const T &) { return true; });
   }
   template <typename set_t, typename filter_t>
   void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
   {
+    /* Segments are supposed to be sorted and disjoint, in which case adding
+     * them one by one touches each page of the set at most once.  The
+     * sanitizer does not check that, and a malformed table can repeat a
+     * segment spanning the whole glyph range thousands of times, each
+     * costing a full pass over the set.  So once a segment is out of order,
+     * add the rest as a single range; that is a superset of the glyphs,
+     * which is fine for a set that is only used as a pre-filter. */
     unsigned count = segments.get_length ();
-    for (unsigned int i = 0; i < count; i++)
-      segments[i].collect_glyphs_filtered (glyphs, filter);
+    hb_codepoint_t next = 0; /* One past the last glyph added. */
+    unsigned i;
+    for (i = 0; i < count; i++)
+    {
+      const auto &segment = segments[i];
+      if (segment.first < next) break; /* Not sorted and disjoint. */
+      if (segment.first == DELETED_GLYPH || segment.first > segment.last ||
+	  !filter (segment.value))
+	continue;
+      glyphs.add_range (segment.first, segment.last);
+      next = segment.last + 1;
+    }
+
+    hb_codepoint_t first = HB_CODEPOINT_INVALID, last = 0;
+    for (; i < count; i++)
+    {
+      const auto &segment = segments[i];
+      if (segment.first == DELETED_GLYPH || segment.first > segment.last ||
+	  !filter (segment.value))
+	continue;
+      first = hb_min (first, (hb_codepoint_t) segment.first);
+      last = hb_max (last, (hb_codepoint_t) segment.last);
+    }
+    if (first <= last)
+      glyphs.add_range (first, last);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
