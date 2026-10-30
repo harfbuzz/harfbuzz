@@ -624,6 +624,170 @@ test_subset_glyf_recompute_default_instance_bounds (void)
   hb_face_destroy (source);
 }
 
+static void
+test_subset_glyf_aliased_loca (void)
+{
+  /* A loca of 0, 16, 0, 16, ...: every even glyph is the same 16 bytes and
+   * every odd one starts after its end, so reads as empty. */
+  enum { num_glyphs = 101 };
+  static const char maxp_data[] = {0x00, 0x00, 0x50, 0x00, 0x00, num_glyphs};
+  static const char head_data[54] = {
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x5F, 0x0F, 0x3C, (char) 0xF5, 0x00, 0x00, 0x03, (char) 0xE8,
+  };
+  static const char glyf_data[16] = {
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x31,
+  };
+  char loca_data[2 * (num_glyphs + 1)] = {0};
+  for (unsigned i = 1; i <= num_glyphs; i += 2)
+    loca_data[2 * i + 1] = sizeof (glyf_data) / 2;
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "head", head_data);
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+
+  /* A few glyphs sharing the same bytes are each copied out. */
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 4);
+  hb_face_t *subset = hb_subset_test_create_subset (face, input);
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
+  g_assert_cmpuint (hb_blob_get_length (blob), ==, 2 * sizeof (glyf_data));
+  hb_blob_destroy (blob);
+  hb_face_destroy (subset);
+
+  /* Enough of them to add up to many times the table are rejected. */
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, num_glyphs - 1);
+  g_assert_null (hb_subset_plan_create_or_fail (face, input));
+  g_assert_null (hb_subset_or_fail (face, input));
+  hb_subset_input_destroy (input);
+
+  hb_face_destroy (face);
+}
+
+static unsigned
+add_composite_glyph (uint8_t *p, unsigned count, unsigned component)
+{
+  memset (p, 0, 10);
+  p[0] = p[1] = 0xFF; /* numberOfContours -1 */
+  for (unsigned i = 0; i < count; i++)
+  {
+    uint8_t *r = p + 10 + i * 6;
+    r[0] = 0;
+    r[1] = 0x02 | (i + 1 < count ? 0x20 : 0); /* ARGS_ARE_XY_VALUES [| MORE_COMPONENTS] */
+    r[2] = component >> 8;
+    r[3] = component & 0xFF;
+    r[4] = r[5] = 1;
+  }
+  return 10 + count * 6;
+}
+
+static void
+test_subset_glyf_instancing_budget (void)
+{
+  /* gid 1 is a simple glyph of 65536 points (or 4 for the control), gid 2
+   * uses it three times, gid 3..64 each wrap the previous glyph, and 100
+   * top-level glyphs wrap gid 64.  No glyph exceeds a per-glyph limit, but
+   * instancing loads the shared chain again for every top-level glyph, so
+   * the table as a whole must be bounded by one work budget. */
+  static const char maxp_data[] =
+    "\x00\x00\x50\x00" /* version */
+    "\x00\xA5" /* numGlyphs */
+    ;
+  static const char head_data[54] =
+    "\x00\x01\x00\x00" /* version */
+    "\x00\x00\x00\x00" /* fontRevision */
+    "\x00\x00\x00\x00" /* checkSumAdjustment */
+    "\x5F\x0F\x3C\xF5" /* magicNumber */
+    "\x00\x00" /* flags */
+    "\x03\xE8" /* unitsPerEm */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* created */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* modified */
+    "\x00\x00\x00\x00\x00\x00\x00\x00" /* bounds */
+    "\x00\x00" /* macStyle */
+    "\x00\x00" /* lowestRecPPEM */
+    "\x00\x00" /* fontDirectionHint */
+    "\x00\x01" /* indexToLocFormat */
+    "\x00\x00" /* glyphDataFormat */
+    ;
+  static const char fvar_data[] =
+    "\x00\x01\x00\x00" /* version */
+    "\x00\x10" /* axesArrayOffset */
+    "\x00\x02" /* reserved */
+    "\x00\x01" /* axisCount */
+    "\x00\x14" /* axisSize */
+    "\x00\x00" /* instanceCount */
+    "\x00\x08" /* instanceSize */
+    "wght" "\x00\x64\x00\x00" "\x01\x90\x00\x00" "\x03\x84\x00\x00" "\x00\x00" "\x01\x00"
+    ;
+  const unsigned num_glyphs = 165;
+
+  for (unsigned heavy = 0; heavy < 2; heavy++)
+  {
+    unsigned flag_pairs = heavy ? 256 : 1;
+    uint8_t *glyf_data = calloc (14 + 2 * flag_pairs + 28 + 62 * 16 + 100 * 16, 1);
+    uint8_t *loca_data = calloc (4 * (num_glyphs + 1), 1);
+    unsigned offset = 0;
+    for (unsigned gid = 0; gid < num_glyphs; gid++)
+    {
+      uint8_t *p = glyf_data + offset;
+      loca_data[gid * 4 + 2] = offset >> 8;
+      loca_data[gid * 4 + 3] = offset & 0xFF;
+      if (gid == 1)
+      {
+	p[1] = 1; /* numberOfContours */
+	p[10] = (flag_pairs * 256 - 1) >> 8; /* endPtsOfContours[0] */
+	p[11] = heavy ? 0xFF : 0x03;
+	for (unsigned i = 0; i < flag_pairs; i++)
+	{
+	  p[14 + i * 2] = 0x39; /* ON_CURVE | X_SAME | Y_SAME | REPEAT */
+	  p[15 + i * 2] = heavy ? 0xFF : 0x03;
+	}
+	offset += 14 + 2 * flag_pairs;
+      }
+      else if (gid == 2)
+	offset += add_composite_glyph (p, 3, 1);
+      else if (gid >= 3)
+	offset += add_composite_glyph (p, 1, gid <= 64 ? gid - 1 : 64);
+    }
+    loca_data[num_glyphs * 4 + 1] = offset >> 16;
+    loca_data[num_glyphs * 4 + 2] = offset >> 8;
+    loca_data[num_glyphs * 4 + 3] = offset & 0xFF;
+
+    hb_face_t *face = hb_face_builder_create ();
+    HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+    HB_FACE_ADD_TABLE (face, "head", head_data);
+    HB_FACE_ADD_TABLE (face, "fvar", fvar_data);
+    hb_blob_t *blob = hb_blob_create_or_fail ((const char *) glyf_data, offset,
+					      HB_MEMORY_MODE_WRITABLE, glyf_data, free);
+    hb_face_builder_add_table (face, HB_TAG ('g','l','y','f'), blob);
+    hb_blob_destroy (blob);
+    blob = hb_blob_create_or_fail ((const char *) loca_data, 4 * (num_glyphs + 1),
+				   HB_MEMORY_MODE_WRITABLE, loca_data, free);
+    hb_face_builder_add_table (face, HB_TAG ('l','o','c','a'), blob);
+    hb_blob_destroy (blob);
+
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, num_glyphs - 1);
+    g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 500.f));
+    hb_face_t *subset = hb_subset_test_create_subset (face, input);
+
+    /* Exhausting the budget drops glyf from the instance. */
+    blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
+    if (heavy)
+      g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
+    else
+      g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    hb_blob_destroy (blob);
+
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -647,6 +811,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_retain_gids_truncates);
   hb_test_add (test_subset_glyf_zero_contour_instructions);
   hb_test_add (test_subset_glyf_recompute_default_instance_bounds);
+  hb_test_add (test_subset_glyf_aliased_loca);
+  hb_test_add (test_subset_glyf_instancing_budget);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_glyf_iftb_requirements);

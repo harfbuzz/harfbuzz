@@ -240,7 +240,8 @@ struct Glyph
                                   hb_font_t *font,
                                   const glyf_accelerator_t &glyf,
                                   hb_bytes_t &dest_start,  /* IN/OUT */
-                                  hb_bytes_t &dest_end /* OUT */)
+                                  hb_bytes_t &dest_end, /* OUT */
+                                  int64_t *budget /* IN/OUT */)
   {
     contour_point_vector_t all_points, points_with_deltas;
     unsigned composite_contours = 0;
@@ -257,7 +258,8 @@ struct Glyph
     }
 
     hb_glyf_scratch_t scratch;
-    if (!get_points (font, glyf, all_points, scratch, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false))
+    if (!get_points (font, glyf, all_points, scratch, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false,
+		     false, hb_array_t<const int> (), nullptr, 0, nullptr, budget))
       return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for
@@ -423,7 +425,10 @@ struct Glyph
 							  gvar_cache,
 							  phantom_only && type == SIMPLE,
 							  budget))
+      {
+        points.resize (old_length);
         return false;
+      }
     }
 #endif
 
@@ -446,6 +451,17 @@ struct Glyph
     {
       hb_decycler_node_t decycler_node (scratch.decycler);
 
+      /* Each USE_MY_METRICS component overwrites the phantoms copied from
+       * the previous one, so when only phantoms are wanted the last such
+       * component is the only one worth descending into.  Ask the decycler
+       * here too, so we pick the same component the loop below would. */
+      const CompositeGlyphRecord *metrics_item = nullptr;
+      if (phantom_only && use_my_metrics)
+	for (auto &item : get_composite_iterator ())
+	  if (item.is_use_my_metrics () &&
+	      decycler_node.visit (item.get_gid (extended)))
+	    metrics_item = &item;
+
       unsigned int comp_index = 0;
       for (auto &item : get_composite_iterator ())
       {
@@ -457,10 +473,20 @@ struct Glyph
 	  continue;
 	}
 
+	bool copy_metrics = use_my_metrics && item.is_use_my_metrics () &&
+			    (!phantom_only || &item == metrics_item);
+
+	/* Nothing to take from this component; in particular don't
+	 * strip phantoms below that nobody pushed. */
+	if (phantom_only && !copy_metrics)
+	{
+	  comp_index++;
+	  continue;
+	}
+
 	unsigned old_count = all_points.length;
 
-	if (unlikely ((!phantom_only || (use_my_metrics && item.is_use_my_metrics ())) &&
-		      !glyf_accelerator.glyph_for_gid (item_gid)
+	if (unlikely (!glyf_accelerator.glyph_for_gid (item_gid)
 				       .get_points (font,
 						    glyf_accelerator,
 						    all_points,
@@ -487,7 +513,7 @@ struct Glyph
 	auto comp_points = all_points.as_array ().sub_array (old_count);
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
-	if (use_my_metrics && item.is_use_my_metrics ())
+	if (copy_metrics)
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
@@ -500,7 +526,7 @@ struct Glyph
 	  return false;
 	}
 
-	if (comp_points) // Empty in case of phantom_only
+	if (!phantom_only)
 	{
 	  float matrix[4];
 	  contour_point_t default_trans;
@@ -524,7 +550,10 @@ struct Glyph
 	  }
 	}
 
-	all_points.resize (all_points.length - PHANTOM_COUNT);
+	/* In phantom_only mode the component's contour points are reserved
+	 * but never loaded, and its phantoms are copied above. Drop them all,
+	 * so they are not carried to, and processed at, every level up. */
+	all_points.resize (phantom_only ? old_count : all_points.length - PHANTOM_COUNT);
 
 	if (all_points.length > HB_GLYF_MAX_POINTS)
 	{
@@ -559,7 +588,7 @@ struct Glyph
        * Shift points horizontally by the updated left side bearing
        */
       if (shift)
-        for (auto &point : all_points)
+        for (auto &point : all_points.as_array ().sub_array (phantom_only ? all_points.length - PHANTOM_COUNT : 0))
 	  point.x -= shift;
     }
 

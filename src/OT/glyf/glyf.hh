@@ -125,7 +125,7 @@ struct glyf
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     /* SubsetGlyphs borrow bytes from this blob until they are serialized. */
     hb_blob_t *source_glyf = nullptr;
-    if (!_populate_subset_glyphs (c->plan, font, glyphs, &source_glyf))
+    if (!_populate_subset_glyphs (c->plan, font, glyphs, &source_glyf, &c->budget_remaining))
     {
       hb_blob_destroy (source_glyf);
       hb_font_destroy (font);
@@ -173,7 +173,8 @@ struct glyf
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			   hb_font_t                *font,
 			   hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */,
-			   hb_blob_t               **source_glyf /* OUT */) const;
+			   hb_blob_t               **source_glyf /* OUT */,
+			   int64_t                  *budget /* IN/OUT */) const;
 
   hb_font_t *
   _create_font_for_instancing (const hb_subset_plan_t *plan) const;
@@ -297,6 +298,9 @@ struct glyf_accelerator_t
 
     auto &all_points = scratch.all_points;
     all_points.clear ();
+    /* The scratch is cached across loads; don't let a failed one leave
+     * component points behind. */
+    scratch.comp_points.clear ();
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
     if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache, 0, nullptr, budget)))
@@ -638,6 +642,7 @@ struct glyf_accelerator_t
   }
 
   unsigned int get_num_glyphs () const { return num_glyphs; }
+  unsigned int get_table_length () const { return glyf_table.get_length (); }
   hb_blob_t *reference_glyf_table () const
   { return hb_blob_reference (glyf_table.get_blob ()); }
 
@@ -663,7 +668,8 @@ inline bool
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_font_t *font,
 			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */,
-			       hb_blob_t **source_glyf /* OUT */) const
+			       hb_blob_t **source_glyf /* OUT */,
+			       int64_t *budget /* IN/OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
   if (!glyphs.alloc_exact (plan->new_to_old_gid_list.length)) return false;
@@ -695,7 +701,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 
     if (font)
     {
-      if (unlikely (!subset_glyph.compile_bytes_with_deltas (plan, font, glyf)))
+      if (unlikely (!subset_glyph.compile_bytes_with_deltas (plan, font, glyf, budget)))
       {
         _free_compiled_subset_glyphs (glyphs);
         return false;

@@ -270,6 +270,95 @@ test_advance_tt_var_hvar_long_deltas (void)
   hb_font_destroy (font);
 }
 
+static void
+test_advance_tt_var_comp_use_my_metrics (void)
+{
+  /* gid 0 is a composite of four USE_MY_METRICS copies of gid 1, a simple
+   * glyph declaring 65536 points (and no coordinate data; only the point
+   * count is read when fetching an advance).  Without HVAR the advance at a
+   * non-default location comes from the phantom points alone, so the
+   * components' unloaded contour points must not be transformed or kept
+   * around, let alone add up against HB_GLYF_MAX_POINTS. */
+  const char glyf_data[] =
+  {
+    /* gid 0: composite */
+    (char) 0xFF, (char) 0xFF, 0, 0, 0, 0, 0, 0, 0, 0, /* numberOfContours = -1, bbox */
+    0x02, 0x22, 0, 1, 0, 0, /* ARGS_ARE_XY_VALUES | MORE_COMPONENTS | USE_MY_METRICS, gid 1 */
+    0x02, 0x22, 0, 1, 0, 0,
+    0x02, 0x22, 0, 1, 0, 0,
+    0x02, 0x02, 0, 1, 0, 0,
+    /* gid 1: simple */
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, /* numberOfContours = 1, bbox */
+    (char) 0xFF, (char) 0xFF, /* endPtsOfContours[0] = 65535 */
+    0, 0, /* instructionLength */
+  };
+  const char loca_data[] = {0, 0, 0, 17, 0, 24}; /* short offsets: 0, 34, 48 */
+  char hhea_data[36] = {0, 1};
+  hhea_data[35] = 2; /* numberOfHMetrics */
+  const char hmtx_data[] = {0x02, 0x58, 0, 0, 0x02, 0x58, 0, 0}; /* advance 600 */
+  const char fvar_data[] =
+  {
+    0, 1, 0, 0, 0, 16, 0, 2, 0, 1, 0, 20, 0, 0, 0, 8,
+    'w', 'g', 'h', 't', 0, 100, 0, 0, 0x01, (char) 0x90, 0, 0, 0x03, (char) 0x84, 0, 0, 0, 0, 0x01, 0,
+  };
+  const char gvar_data[] =
+  {
+    0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 26, 0, 2, 0, 0, 0, 0, 0, 26,
+    0, 0, 0, 0, 0, 0, /* no variation data for either glyph */
+  };
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+  HB_FACE_ADD_TABLE (face, "hhea", hhea_data);
+  HB_FACE_ADD_TABLE (face, "hmtx", hmtx_data);
+  HB_FACE_ADD_TABLE (face, "fvar", fvar_data);
+  HB_FACE_ADD_TABLE (face, "gvar", gvar_data);
+  hb_face_set_glyph_count (face, 2);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 0), ==, 600);
+
+  float coords[1] = { 500.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 0), ==, 600);
+
+  hb_font_destroy (font);
+}
+
+static void
+test_advance_tt_var_comp_use_my_metrics_last (void)
+{
+  /* a80ae54f...ttf has composites with several USE_MY_METRICS components;
+   * each one overwrites the phantoms of the previous one, so HarfBuzz takes
+   * the advance of the last such component.  Regression for
+   * ANT-2026-DQGMHCLX, pinned to HarfBuzz's own glyph metrics: this cannot
+   * be a shape .tests line because that suite is also run under
+   * --font-funcs=fontations, which resolves these advances differently. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/a80ae54f8ad6577653d6bd370d6a81b37bdd7e79.ttf");
+  g_assert_true (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert_true (font);
+
+  /* Default instance; upem is 1000 so advances are in design units. */
+  static const int def_adv[6] = {700, 300, 500, 500, 500, 800};
+  for (unsigned gid = 1; gid <= 6; gid++)
+    g_assert_cmpint (hb_font_get_glyph_h_advance (font, gid), ==, def_adv[gid - 1]);
+
+  /* wght=900: the last USE_MY_METRICS component wins, and a component that
+   * is not descended into must not strip an earlier sibling's points (glyph
+   * 5's advance was 0 before the fix). */
+  hb_variation_t var = { HB_TAG ('w','g','h','t'), 900.0f };
+  hb_font_set_variations (font, &var, 1);
+  static const int adv[6] = {700, 300, 300, 700, 700, 800};
+  for (unsigned gid = 1; gid <= 6; gid++)
+    g_assert_cmpint (hb_font_get_glyph_h_advance (font, gid), ==, adv[gid - 1]);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -283,6 +372,8 @@ main (int argc, char **argv)
   hb_test_add (test_advance_tt_var_comp_v);
   hb_test_add (test_advance_tt_var_gvar_infer);
   hb_test_add (test_advance_tt_var_hvar_long_deltas);
+  hb_test_add (test_advance_tt_var_comp_use_my_metrics);
+  hb_test_add (test_advance_tt_var_comp_use_my_metrics_last);
 
   return hb_test_run ();
 }

@@ -112,6 +112,14 @@
 #define HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH 64
 #endif
 
+/* Source bytes of all the glyphs the subsetter retains, as a multiple of
+ * the glyf table length; exceeding it fails the plan.  A monotonic loca
+ * never needs more than one; a loca that aliases the same bytes to many
+ * glyph IDs makes trimming and hint dropping cost that many table scans. */
+#ifndef HB_SUBSET_GLYF_MAX_BYTES_FACTOR
+#define HB_SUBSET_GLYF_MAX_BYTES_FACTOR 16
+#endif
+
 #ifndef HB_SVG_MAX_PATH_SEGMENTS
 #define HB_SVG_MAX_PATH_SEGMENTS 262144
 #endif
@@ -221,6 +229,19 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   budget -= (int64_t) cost * mult;
   return budget >= 0;
 }
+
+/* One glyf instancing session in the subsetter.  It loads the outline of
+ * every retained glyph, and composite components are loaded again for each
+ * glyph that uses them, so the per-glyph budget (HB_BUDGET_GLYPH) would
+ * multiply by the glyph count.  This is one cumulative budget for the whole
+ * table instead; exhausting it fails the table.  Sized well above what real
+ * variable fonts spend -- the largest glyf variable font under test/
+ * (MPLUS1-Variable, 6,434 glyphs retained) uses ~1.2M units, and even a
+ * font at the 65,535-glyph maximum stays far below -- while keeping the
+ * adversarial worst case bounded. */
+#ifndef HB_BUDGET_SUBSET_GLYF
+#define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 28)
+#endif
 
 /* The flat pixel-work floor for one raster paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
