@@ -4856,6 +4856,10 @@ struct ChainRule
     if (unlikely (!lookahead.len.sanitize (c))) return_trace (false);
     hb_barrier ();
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    /* The length checks above don't charge max_ops for the arrays they
+     * skipped over; charge them here so that many offsets pointing at
+     * the same large rule cannot escape the sanitizer's work bound. */
+    if (unlikely (!c->check_ops ((const char *) &lookup - (const char *) this))) return_trace (false);
     return_trace (likely (lookup.sanitize (c)));
   }
 
