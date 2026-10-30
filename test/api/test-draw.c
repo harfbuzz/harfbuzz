@@ -1151,6 +1151,52 @@ test_hb_draw_cff_budget (void)
 }
 
 static void
+test_hb_draw_cff2_blend_budget (void)
+{
+  /* A charstring that pushes 100 numbers and then blends all of them 100
+   * times.  Its VarData has no regions, so a blend has no deltas to pop;
+   * walking the default values must consume budget all the same. */
+  char cff2_data[59 + 100 + 100 * 2] = {
+    2, 0, 5, 0, 7, /* header */
+    (char) (139 + 50), 17, (char) (139 + 16), 24, (char) (139 + 40), 12, 36, /* Top DICT */
+    0, 0, 0, 0, /* global subrs */
+    0, 22, 0, 1, 0, 0, 0, 12, 0, 1, 0, 0, 0, 16, /* vstore */
+    0, 1, 0, 0, /* region list */
+    0, 0, 0, 0, 0, 0, /* VarData */
+    0, 0, 0, 1, 1, 1, 4, (char) 139, (char) (139 + 50), 18, /* FDArray, empty Private DICT */
+    0, 0, 0, 1, 2, 0, 1, 0x01, 0x2D /* CharStrings */
+  };
+  memset (cff2_data + 59, 139, 100);
+  for (unsigned i = 0; i < 100; i++)
+  {
+    cff2_data[159 + i * 2] = (char) (139 + 100);
+    cff2_data[159 + i * 2 + 1] = 16; /* blend */
+  }
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "CFF2", cff2_data);
+  hb_face_set_glyph_count (face, 1);
+  hb_font_t *font = hb_font_create (face);
+
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 0};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 20000));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (data.live, <, 20000 - 100 * 100);
+
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 5000));
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+  g_assert_cmpint (data.live, <, 0);
+
+  hb_draw_funcs_destroy (draw_funcs);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_hb_draw_glyf_composite_budget (void)
 {
   /* A child composite whose 256 components all reference itself.  Preparing
@@ -1427,6 +1473,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_immutable);
   hb_test_add (test_hb_draw_budget);
   hb_test_add (test_hb_draw_cff_budget);
+  hb_test_add (test_hb_draw_cff2_blend_budget);
   hb_test_add (test_hb_draw_glyf_composite_budget);
   hb_test_add (test_hb_draw_cff2_blend_region_budget);
 
