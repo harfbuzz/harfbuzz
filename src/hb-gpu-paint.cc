@@ -611,7 +611,8 @@ emit_clip_sub_blob (hb_gpu_paint_t *c,
 /* Emit a sub-blob for every clip currently on the stack and return
  * their indices in @out (set to -1 for unused slots).  Returns
  * false if any clip's outline is empty (caller should skip the
- * layer entirely) or hb_gpu_draw_encode failed. */
+ * layer entirely), hb_gpu_draw_encode failed, or the session
+ * budget is exhausted. */
 static bool
 emit_all_clip_sub_blobs (hb_gpu_paint_t *c, int out[HB_GPU_PAINT_MAX_CLIP_DEPTH])
 {
@@ -622,6 +623,18 @@ emit_all_clip_sub_blobs (hb_gpu_paint_t *c, int out[HB_GPU_PAINT_MAX_CLIP_DEPTH]
     out[i] = emit_clip_sub_blob (c, c->clip_stack[i]);
     if (out[i] < 0)
       return false;
+
+    /* The memoized clip outline is encoded once however many layers
+     * share it, but the fragment shader walks its band tables again
+     * for every layer painted under it.  Charge each reference to the
+     * session budget, in RGBA16I texels, so the layer count cannot
+     * multiply with the clip size past it. */
+    unsigned texels = hb_blob_get_length (c->sub_blobs.arrayZ[out[i]]) / 8;
+    if (unlikely (!hb_budget_spend (c->budget_remaining, HB_BUDGET_1, texels)))
+    {
+      c->unsupported = true;
+      return false;
+    }
   }
   return true;
 }

@@ -806,6 +806,49 @@ test_paint_clip_rectangle_pop_balance (void)
   hb_face_destroy (face);
 }
 
+static void
+test_paint_layers_under_shared_clip (void)
+{
+  /* Layers painted under an already-encoded clip cost the encoder a
+   * cached index and 24 bytes of op stream each, but the fragment
+   * shader walks every clip outline again for every layer in every
+   * fragment.  A COLRv1 font can paint tens of thousands of layers
+   * under a few nested PaintGlyph clips; the encoder must bound the
+   * product of layers and clip size, not just each factor. */
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+
+  hb_gpu_paint_t *paint = hb_gpu_paint_create_or_fail ();
+  hb_paint_funcs_t *paint_funcs = hb_gpu_paint_get_funcs (paint);
+
+  /* A modest number of layers under three nested clips encodes. */
+  for (unsigned i = 0; i < 3; i++)
+    hb_paint_push_clip_glyph (paint_funcs, paint, gid, font);
+  for (unsigned i = 0; i < 100; i++)
+    hb_paint_color (paint_funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  for (unsigned i = 0; i < 3; i++)
+    hb_paint_pop_clip (paint_funcs, paint);
+  hb_blob_t *blob = hb_gpu_paint_encode (paint, nullptr);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  hb_blob_destroy (blob);
+
+  /* As many layers as the op count allows does not. */
+  for (unsigned i = 0; i < 3; i++)
+    hb_paint_push_clip_glyph (paint_funcs, paint, gid, font);
+  for (unsigned i = 0; i < 0x7fff; i++)
+    hb_paint_color (paint_funcs, paint, false, HB_COLOR (0, 0, 0, 255));
+  for (unsigned i = 0; i < 3; i++)
+    hb_paint_pop_clip (paint_funcs, paint);
+  g_assert_null (hb_gpu_paint_encode (paint, nullptr));
+
+  hb_gpu_paint_destroy (paint);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static unsigned
 repro_color_stops (hb_color_line_t *cl HB_UNUSED, void *cl_data HB_UNUSED,
 		   unsigned start, unsigned *count,
@@ -1100,6 +1143,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_recycle_blob);
   hb_test_add (test_paint_clip_path_depth_overflow);
   hb_test_add (test_paint_clip_rectangle_pop_balance);
+  hb_test_add (test_paint_layers_under_shared_clip);
   hb_test_add (test_paint_gradient_overflow_transform);
   hb_test_add (test_paint_empty_clip);
 

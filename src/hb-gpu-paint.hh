@@ -287,7 +287,8 @@ struct hb_gpu_paint_t
 
   /* Work budget for the current paint session; reset by
    * hb_gpu_paint_clear().  All the session's work is outline-derived
-   * (outline traversal and the curves generated from it -- the GPU
+   * (outline traversal, the curves generated from it, and the clip
+   * outline texels the fragment shader walks per layer -- the GPU
    * backend never rasterizes), so a single counter suffices.  It is the
    * public draw/paint budget: seeded into the scratch encoder through the
    * public draw-budget API before each glyph and read back afterwards. */
