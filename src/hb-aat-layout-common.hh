@@ -694,7 +694,7 @@ struct LookupFormat10
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  hb_barrier () &&
-		  valueSize <= 4 &&
+		  1 <= valueSize && valueSize <= 4 &&
 		  valueArrayZ.sanitize (c, glyphCount * valueSize));
   }
 

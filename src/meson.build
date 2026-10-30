@@ -989,6 +989,7 @@ if get_option('tests').enabled()
   endif
 
   compiled_tests = {
+    'test-aat': ['test-aat.cc', 'hb-static.cc'],
     'test-algs': ['test-algs.cc', 'hb-static.cc'],
     'test-array': ['test-array.cc'],
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
