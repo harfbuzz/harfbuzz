@@ -475,6 +475,105 @@ test_shape_lookup_budget (void)
   hb_face_destroy (face);
 }
 
+static hb_face_t *
+create_gpos_device_face (unsigned region_index_count)
+{
+  /* 'a'..'z' -> glyphs 1..26 */
+  static const char cmap_data[] = {
+    0, 0, 0, 1,  0, 3, 0, 10, 0, 0, 0, 12,
+    0, 12, 0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+    0, 0, 0, 'a',  0, 0, 0, 'z',  0, 0, 0, 1,
+  };
+  /* One 'wght' axis, 100..400..900 */
+  static const char fvar_data[] = {
+    0, 1, 0, 0,  0, 16, 0, 2,  0, 1, 0, 20,  0, 0, 0, 8,
+    'w', 'g', 'h', 't',  0, 100, 0, 0,  1, (char) 0x90, 0, 0,  3, (char) 0x84, 0, 0,  0, 0, 1, 0,
+  };
+  /* One 'kern' lookup: SinglePosFormat1 over glyphs 1..26 whose x placement,
+   * y placement and x advance all use one VariationIndex device for
+   * delta-set (0, 0). */
+  static const char gpos_data[] = {
+    0, 1, 0, 0,  0, 10,  0, 30,  0, 44,
+    0, 1, 'D', 'F', 'L', 'T', 0, 8,  0, 4, 0, 0,  0, 0, (char) 0xFF, (char) 0xFF, 0, 1, 0, 0,
+    0, 1, 'k', 'e', 'r', 'n', 0, 8,  0, 0, 0, 1, 0, 0,
+    0, 1, 0, 4,
+    0, 1, 0, 0, 0, 1, 0, 8,
+    0, 1, 0, 12, 0, 0x70, 0, 22, 0, 22, 0, 22,
+    0, 2, 0, 1, 0, 1, 0, 26, 0, 0,
+    0, 0, 0, 0, (char) 0x80, 0,
+  };
+  /* GDEF 1.3 with an ItemVariationStore of one region (peak at wght=900)
+   * and one VarData row of region_index_count entries that all name it;
+   * the row's deltas are 1, 0, 0, ... */
+  unsigned gdef_length = 46 + 3 * region_index_count;
+  char *gdef_data = calloc (gdef_length, 1);
+  const char gdef_header[] = {
+    0, 1, 0, 3,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 18,
+    0, 1,  0, 0, 0, 12,  0, 1,  0, 0, 0, 22,
+    0, 1, 0, 1,  0, 0, 0x40, 0, 0x40, 0,
+    0, 1,  0, 0,  (char) (region_index_count >> 8), (char) region_index_count,
+  };
+  memcpy (gdef_data, gdef_header, sizeof (gdef_header));
+  gdef_data[46 + 2 * region_index_count] = 1;
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "cmap", cmap_data);
+  HB_FACE_ADD_TABLE (face, "fvar", fvar_data);
+  HB_FACE_ADD_TABLE (face, "GPOS", gpos_data);
+  hb_blob_t *gdef_blob = hb_blob_create (gdef_data, gdef_length, HB_MEMORY_MODE_WRITABLE, gdef_data, free);
+  hb_face_builder_add_table (face, HB_TAG ('G', 'D', 'E', 'F'), gdef_blob);
+  hb_blob_destroy (gdef_blob);
+  hb_face_set_glyph_count (face, 27);
+
+  return face;
+}
+
+static void
+test_shape_gpos_device_budget (void)
+{
+  /* Each evaluation of a VariationIndex device walks the whole VarData row,
+   * whose length the font chooses.  A 65535-entry row naming one region
+   * over and over must be charged to the shaping work budget rather than
+   * cost the full walk for every device of every glyph of every lookup. */
+  unsigned region_index_counts[] = {1, 65535};
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *face = create_gpos_device_face (region_index_counts[i]);
+    hb_font_t *font = hb_font_create (face);
+    hb_variation_t wght = {HB_TAG ('w', 'g', 'h', 't'), 900.f};
+    hb_font_set_variations (font, &wght, 1);
+
+    hb_buffer_t *buffer = hb_buffer_create ();
+    for (unsigned j = 0; j < 64; j++)
+      hb_buffer_add (buffer, 'a' + j % 26, j);
+    hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+    hb_buffer_guess_segment_properties (buffer);
+
+    hb_shape (font, buffer, NULL, 0);
+
+    unsigned len;
+    hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, &len);
+    g_assert_cmpuint (len, ==, 64);
+    g_assert_cmpint (positions[0].x_offset, ==, 1);
+    g_assert_cmpint (positions[0].y_offset, ==, 1);
+    if (region_index_counts[i] == 1)
+    {
+      g_assert_true (hb_buffer_allocation_successful (buffer));
+      g_assert_cmpint (positions[len - 1].x_offset, ==, 1);
+    }
+    else
+    {
+      /* The budget runs out part way through the text. */
+      g_assert_false (hb_buffer_allocation_successful (buffer));
+      g_assert_cmpint (positions[len - 1].x_offset, ==, 0);
+    }
+
+    hb_buffer_destroy (buffer);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
 static void
 test_shape_list (void)
 {
@@ -496,6 +595,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
+  hb_test_add (test_shape_gpos_device_budget);
   hb_test_add (test_shape_lookup_budget);
   hb_test_add (test_shape_overlong_context_scan);
   hb_test_add (test_shape_rule_set_budget);

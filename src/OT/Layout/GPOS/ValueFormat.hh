@@ -132,26 +132,26 @@ struct ValueFormat : HBUINT16
     if (format & xPlaDevice)
     {
       if (use_x_device)
-	glyph_pos.x_offset = hb_saturate_add (glyph_pos.x_offset, get_device (values, &ret, base, c->sanitizer).get_x_delta (font, store, cache));
+	glyph_pos.x_offset = hb_saturate_add (glyph_pos.x_offset, get_device (values, &ret, base, c).get_x_delta (font, store, cache));
       values++;
     }
     if (format & yPlaDevice)
     {
       if (use_y_device)
-	glyph_pos.y_offset = hb_saturate_add (glyph_pos.y_offset, get_device (values, &ret, base, c->sanitizer).get_y_delta (font, store, cache));
+	glyph_pos.y_offset = hb_saturate_add (glyph_pos.y_offset, get_device (values, &ret, base, c).get_y_delta (font, store, cache));
       values++;
     }
     if (format & xAdvDevice)
     {
       if (horizontal && use_x_device)
-	glyph_pos.x_advance = hb_saturate_add (glyph_pos.x_advance, get_device (values, &ret, base, c->sanitizer).get_x_delta (font, store, cache));
+	glyph_pos.x_advance = hb_saturate_add (glyph_pos.x_advance, get_device (values, &ret, base, c).get_x_delta (font, store, cache));
       values++;
     }
     if (format & yAdvDevice)
     {
       /* y_advance values grow downward but font-space grows upward, hence negation */
       if (!horizontal && use_y_device)
-	glyph_pos.y_advance = hb_saturate_sub (glyph_pos.y_advance, get_device (values, &ret, base, c->sanitizer).get_y_delta (font, store, cache));
+	glyph_pos.y_advance = hb_saturate_sub (glyph_pos.y_advance, get_device (values, &ret, base, c).get_y_delta (font, store, cache));
       values++;
     }
     return ret;
@@ -167,6 +167,7 @@ struct ValueFormat : HBUINT16
     /* This is ugly... */
     hb_buffer_t buffer {};
     buffer.props.direction = direction;
+    buffer.max_ops = HB_BUFFER_MAX_OPS_DEFAULT;
     hb_ot_apply_context_t c (1, font, &buffer, table_blob);
 
     apply_value (&c, base, values, pos);
@@ -333,16 +334,20 @@ struct ValueFormat : HBUINT16
   static inline const Device& get_device (const Value* value,
 					  bool *worked,
 					  const ValueBase *base,
-					  hb_sanitize_context_t &c)
+					  hb_ot_apply_context_t *c)
   {
     if (worked) *worked |= bool (*value);
     auto &offset = *static_cast<const Offset16To<Device> *> (value);
 
-    if (unlikely (!offset.sanitize (&c, base)))
+    if (unlikely (!offset.sanitize (&c->sanitizer, base)))
       return Null(Device);
     hb_barrier ();
 
-    return base + offset;
+    const Device &device = base + offset;
+    if (unlikely (!c->charge_device (device)))
+      return Null(Device);
+
+    return device;
   }
 
   void add_delta_to_value (HBINT16 *value,
