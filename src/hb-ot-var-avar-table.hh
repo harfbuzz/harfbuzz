@@ -937,6 +937,9 @@ struct avar
      * Track processed (outer,inner) pairs to avoid adding duplicate biases
      * when multiple axes share the same varIdx. */
     hb_set_t processed_varidxes;
+    /* All axes share the budget.  A retry with a larger buffer, which the
+     * added regions make likely, starts afresh. */
+    int64_t estimate_budget = HB_BUDGET_SUBSET_TABLE;
     for (unsigned i = 0; i < axisCount; i++)
     {
       hb_tag_t *axis_tag_ptr;
@@ -1032,6 +1035,19 @@ struct avar
           z_old = (double) roundf ((float) (z_old * 16384.0)) / 16384.0;
           if (-1.0 < z_old && z_old < 1.0)
             _avar2_add_knot (knots, z_old, -z_old);
+
+          /* From here on every breakpoint, and every sample of the error
+           * estimator, which takes a few per breakpoint on top of its
+           * uniform grid, is looked up in the old mapping, the new mapping
+           * and the knots by linear search.  Charge that quadratic work
+           * before doing it; failing the table fails the subset, which
+           * beats silently dropping avar from an avar2-instanced font. */
+          unsigned breakpoints = old_seg_maps[i]->len + new_mapping.length;
+          if (unlikely (!c->serializer->check_success (
+                           hb_budget_spend (estimate_budget,
+                                            HB_BUDGET_256 + breakpoints,
+                                            HB_BUDGET_8 * breakpoints))))
+            return false;
 
           /* Interior avar v1 breakpoints inside the retained range each put
            * a kink in offset(z). Sampling only {-1, 0, +1, z_old} would

@@ -205,6 +205,13 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
+/* The work one table may spend on being subset beyond what is proportional
+ * to its size.  Limiting an axis of an avar2 font is charged the square of
+ * the axis's avar breakpoints. */
+#ifndef HB_BUDGET_SUBSET_TABLE
+#define HB_BUDGET_SUBSET_TABLE ((int64_t) 1 << 30)
+#endif
+
 /* The flat pixel-work floor for one raster paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
  * the common outline budget above. */

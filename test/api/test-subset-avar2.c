@@ -684,6 +684,81 @@ test_avar2_restrict_steep_no_varidx (void)
   hb_face_destroy (face);
 }
 
+/* Replace the test font's avar with a version 2 table that has no VarIdxMap
+ * and no VarStore, and gives the first axis, wght, an identity mapping with
+ * a breakpoint every step F2Dot14 units. */
+typedef struct
+{
+  hb_face_t *source;
+  unsigned step;
+} breakpoints_t;
+
+static hb_blob_t *
+reference_table_with_breakpoints (hb_face_t *face HB_UNUSED,
+				  hb_tag_t tag,
+				  void *user_data)
+{
+  const breakpoints_t *breakpoints = (const breakpoints_t *) user_data;
+  if (tag != HB_TAG ('a','v','a','r'))
+    return hb_face_reference_table (breakpoints->source, tag);
+
+  unsigned map_count = 2 * 16384 / breakpoints->step + 1;
+  unsigned length = 8 + (2 + map_count * 4) + 5 * 2 + 8;
+  unsigned char *data = (unsigned char *) calloc (length, 1);
+  g_assert_nonnull (data);
+
+  data[1] = 2; /* major version */
+  data[7] = 6; /* axisCount */
+  data[8] = map_count >> 8;
+  data[9] = map_count & 0xFF;
+  for (unsigned i = 0; i < map_count; i++)
+  {
+    unsigned char *p = data + 10 + i * 4;
+    unsigned coord = (unsigned) ((int) (i * breakpoints->step) - 16384);
+    p[0] = p[2] = (coord >> 8) & 0xFF;
+    p[1] = p[3] = coord & 0xFF;
+  }
+
+  return hb_blob_create ((const char *) data, length,
+			 HB_MEMORY_MODE_WRITABLE, data, free);
+}
+
+/* Offset compensation takes time quadratic in the breakpoints of the
+ * restricted axis. It must cope with hundreds of them, but give up on tens
+ * of thousands rather than spend a minute. */
+static void
+test_avar2_restrict_many_breakpoints (void)
+{
+  hb_face_t *source = open_original ();
+
+  breakpoints_t many = {source, 64};
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_breakpoints,
+					       &many, NULL);
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  hb_face_t *inst = instance (face, input);
+
+  for (unsigned i = 0; i < 9; i++)
+  {
+    hb_variation_t vars[1] = {{WGHT, lerp (200.f, 700.f, i, 9)}};
+    check_same_coords (face, inst, vars, 1, 2);
+  }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+
+  breakpoints_t too_many = {source, 1};
+  face = hb_face_create_for_tables (reference_table_with_breakpoints,
+				    &too_many, NULL);
+  input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  g_assert_null (hb_subset_or_fail (face, input));
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -705,6 +780,7 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_culling_aliased_gvar_data);
   hb_test_add (test_avar2_restrict_steep);
   hb_test_add (test_avar2_restrict_steep_no_varidx);
+  hb_test_add (test_avar2_restrict_many_breakpoints);
 
   return hb_test_run ();
 }
