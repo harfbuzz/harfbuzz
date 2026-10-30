@@ -719,11 +719,15 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
   if (_vmtx.has_data () && _vmtx.var_table.get_length ())
     vvar_store_cache = _vmtx.var_table->get_var_store ().create_cache ();
 
+  int64_t budget = CFF::get_subset_budget (cff2.get_blob ());
   for (auto p : *plan->glyph_map)
   {
     hb_codepoint_t old_gid = p.first;
     hb_codepoint_t new_gid = p.second;
-    if (!cff2.get_extents (font, old_gid, &extents)) continue;
+    if (!cff2.get_extents_at (font, old_gid, &extents,
+			      hb_array (font->coords, font->num_coords),
+			      &budget))
+      continue;
     bool has_bounds_info = true;
     if (extents.x_bearing == 0 && extents.width == 0 &&
         extents.height == 0 && extents.y_bearing == 0)
@@ -782,6 +786,7 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
         plan->bounds_height_vec[new_gid] = hb_saturate_neg (extents.height);
     }
   }
+  plan->check_success (budget > 0);
   /* No glyph contributed bounds: do not serialize the accumulator's
    * inverted sentinels into head (or a downgraded CFF FontBBox). */
   if (plan->head_maxp_info.xMin > plan->head_maxp_info.xMax)

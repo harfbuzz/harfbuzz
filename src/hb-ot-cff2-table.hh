@@ -82,6 +82,19 @@ struct CFF2FDSelect
     default:return 0;
     }
   }
+  /* Returns pair of fd and one after last glyph in range. */
+  hb_pair_t<unsigned, hb_codepoint_t> get_fd_range (hb_codepoint_t glyph) const
+  {
+    if (this == &Null (CFF2FDSelect)) return {0, 1};
+
+    switch (format)
+    {
+    case 0: hb_barrier (); return u.format0.get_fd_range (glyph);
+    case 3: hb_barrier (); return u.format3.get_fd_range (glyph);
+    case 4: hb_barrier (); return u.format4.get_fd_range (glyph);
+    default:return {0, 1};
+    }
+  }
 
   bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount,
                  unsigned int charstring_count = HB_CODEPOINT_INVALID) const

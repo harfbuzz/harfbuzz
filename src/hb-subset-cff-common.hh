@@ -380,6 +380,7 @@ struct subr_flattener_t
     unsigned count = plan->num_output_glyphs ();
     if (!flat_charstrings.resize_exact (count))
       return false;
+    int64_t budget = get_subset_budget (acc.get_blob ());
     for (unsigned int i = 0; i < count; i++)
     {
       hb_codepoint_t  glyph;
@@ -404,7 +405,7 @@ struct subr_flattener_t
 	plan,
 	command_capture ? &(*command_capture)[i] : nullptr
       };
-      if (unlikely (!interp.interpret (param)))
+      if (unlikely (!interp.interpret (param, &budget)))
 	return false;
     }
     return true;
@@ -856,6 +857,19 @@ struct subr_subsetter_t
       parsed_global_subrs = &cff_accelerator->parsed_global_subrs;
       parsed_local_subrs = &cff_accelerator->parsed_local_subrs;
     } else {
+      /* Font DICTs can share a Private DICT and its Subrs, so the size of
+       * the table does not bound the sum of their counts.  Every subroutine
+       * of a font that does not share them takes at least one byte of the
+       * table; _hb_subset_table_try() would not serialize more than this
+       * anyway.  Over the limit the subset fails, as any CFF planning
+       * failure has since dde7da182e. */
+      uint64_t num_subrs = acc.globalSubrs->count;
+      for (unsigned int i = 0; i < acc.fdCount; i++)
+	num_subrs += acc.privateDicts[i].localSubrs->count;
+      if (unlikely (num_subrs * sizeof (parsed_cs_str_t) >
+		    (uint64_t) acc.get_blob ()->length * 256))
+	return false;
+
       parsed_charstrings.resize_exact (plan->num_output_glyphs ());
       parsed_global_subrs_storage.resize_exact (acc.globalSubrs->count);
 
@@ -885,6 +899,8 @@ struct subr_subsetter_t
      * instead of a separate compact() pass. */
     bool coalesce = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING) &&
 		    !plan->inprogress_accelerator;
+
+    int64_t budget = get_subset_budget (acc.get_blob ());
 
     /* phase 1 & 2 */
     for (auto _ : plan->new_to_old_gid_list)
@@ -921,7 +937,7 @@ struct subr_subsetter_t
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
                                   coalesce);
 
-      if (unlikely (!interp.interpret (param)))
+      if (unlikely (!interp.interpret (param, &budget)))
         return false;
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
@@ -937,13 +953,15 @@ struct subr_subsetter_t
 				    &closures.local_closures[fd],
 				    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
 
-	drop_hints_param_t  drop;
+	drop_hints_param_t  drop (&budget);
 	if (drop_hints_in_str (parsed_charstrings[new_glyph], param, drop))
 	{
 	  parsed_charstrings[new_glyph].set_hint_dropped ();
 	  if (drop.vsindex_dropped)
 	    parsed_charstrings[new_glyph].set_vsindex_dropped ();
 	}
+	if (unlikely (drop.in_error ()))
+	  return false;
       }
 
       /* Doing this here one by one instead of compacting all at the end
@@ -1052,18 +1070,31 @@ struct subr_subsetter_t
   }
 
   protected:
+  /* The walks over parsed strings below need not follow the path the
+   * interpreter took for the glyph at hand: a string is parsed on its first
+   * run only, global subrs are shared by font dicts with different local
+   * subrs, and endchar does not end a walk.  So the recorded call graph may
+   * nest deeper than the interpreter allows, or even be cyclic, and the walks
+   * enforce the interpreter's call-depth limit themselves.  The hint-dropping
+   * walk also charges its work to the subsetting pass budget. */
   struct drop_hints_param_t
   {
-    drop_hints_param_t ()
+    drop_hints_param_t (int64_t *budget_)
       : seen_moveto (false),
 	ends_in_hint (false),
 	all_dropped (false),
-	vsindex_dropped (false) {}
+	vsindex_dropped (false),
+	budget (budget_) {}
+
+    bool in_error () const { return *budget < 0; }
+    void set_error ()      { *budget = -1; }
 
     bool  seen_moveto;
     bool  ends_in_hint;
     bool  all_dropped;
     bool  vsindex_dropped;
+    unsigned depth = 0;
+    int64_t *budget;
   };
 
   bool drop_hints_in_subr (parsed_cs_str_t &str, unsigned int pos,
@@ -1071,7 +1102,14 @@ struct subr_subsetter_t
 			   const subr_subset_param_t &param, drop_hints_param_t &drop)
   {
     drop.ends_in_hint = false;
+    if (unlikely (drop.depth >= kMaxCallLimit))
+    {
+      drop.set_error ();
+      return false;
+    }
+    drop.depth++;
     bool has_hint = drop_hints_in_str (subrs[subr_num], param, drop);
+    drop.depth--;
 
     /* if this subr ends with a stem hint (i.e., not a number; potential argument for moveto),
      * then this entire subroutine must be a hint. drop its call. */
@@ -1097,6 +1135,8 @@ struct subr_subsetter_t
     bool  seen_hint = false;
 
     unsigned count = str.values.length;
+    if (unlikely (!hb_budget_spend (*drop.budget, count)))
+      return false;
     auto *values = str.values.arrayZ;
     for (unsigned int pos = 0; pos < count; pos++)
     {
@@ -1203,27 +1243,32 @@ struct subr_subsetter_t
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-      collect_subr_refs_in_str (get_parsed_charstring (new_glyph), param);
+      if (unlikely (!collect_subr_refs_in_str (get_parsed_charstring (new_glyph), param)))
+	return false;
     }
 
     return true;
   }
 
-  void collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
+  bool collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
-				  const subr_subset_param_t &param)
+				  const subr_subset_param_t &param,
+				  unsigned int depth)
   {
     if (closure->has (subr_num))
-      return;
+      return true;
+    if (unlikely (depth >= kMaxCallLimit))
+      return false;
     closure->add (subr_num);
-    collect_subr_refs_in_str (subrs[subr_num], param);
+    return collect_subr_refs_in_str (subrs[subr_num], param, depth + 1);
   }
 
-  void collect_subr_refs_in_str (const parsed_cs_str_t &str,
-                                 const subr_subset_param_t &param)
+  bool collect_subr_refs_in_str (const parsed_cs_str_t &str,
+                                 const subr_subset_param_t &param,
+                                 unsigned int depth = 0)
   {
     if (!str.has_calls ())
-      return;
+      return true;
 
     for (auto &opstr : str.values)
     {
@@ -1232,19 +1277,22 @@ struct subr_subsetter_t
 	switch (opstr.op)
 	{
 	  case OpCode_callsubr:
-	    collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_local_subrs,
-				       param.local_closure, param);
+	    if (unlikely (!collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_local_subrs,
+						      param.local_closure, param, depth)))
+	      return false;
 	    break;
 
 	  case OpCode_callgsubr:
-	    collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_global_subrs,
-				       param.global_closure, param);
+	    if (unlikely (!collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_global_subrs,
+						      param.global_closure, param, depth)))
+	      return false;
 	    break;
 
 	  default: break;
 	}
       }
     }
+    return true;
   }
 
   bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff, bool encode_prefix = true) const
@@ -1346,10 +1394,11 @@ struct subr_subsetter_t
 
 } /* namespace CFF */
 
+template <typename FDSELECT>
 HB_INTERNAL bool
 hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 			    unsigned int fdCount,
-			    const CFF::FDSelect &src, /* IN */
+			    const FDSELECT &src, /* IN */
 			    unsigned int src_num_glyphs,
 			    unsigned int &subset_fd_count /* OUT */,
 			    unsigned int &subset_fdselect_size /* OUT */,

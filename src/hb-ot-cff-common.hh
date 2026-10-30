@@ -56,6 +56,14 @@ static inline const Type& StructAtOffsetOrNull (const void *P, int offset, hb_sa
   return obj;
 }
 
+/* Work budget of one pass over the charstrings of the table in blob. */
+static inline int64_t
+get_subset_budget (const hb_blob_t *blob)
+{
+  return hb_max ((int64_t) HB_BUDGET_SUBSET_CFF,
+		 (int64_t) HB_BUDGET_SUBSET_CFF_PER_BYTE * blob->length);
+}
+
 
 struct code_pair_t
 {
@@ -280,7 +288,7 @@ struct FDSelect3_4
   {
     auto *range = hb_bsearch (glyph, &ranges[0], nRanges () - 1, sizeof (ranges[0]), _cmp_range);
     unsigned fd = range ? range->fd : ranges[nRanges () - 1].fd;
-    hb_codepoint_t end = range ? range[1].first : ranges[nRanges () - 1].first;
+    hb_codepoint_t end = range ? range[1].first : sentinel ();
     return {fd, end};
   }
 
