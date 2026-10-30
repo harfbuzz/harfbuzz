@@ -524,6 +524,46 @@ test_subset_varc_passthrough_requires_retained_gids (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_varc_overlapping_records (void)
+{
+  /* Three glyphs whose VARC records share bytes.  Walking every record a
+   * glyph resolves to must not cost more than the glyphRecords INDEX. */
+  static const char maxp_data[] = {0, 0, 0x50, 0, 0, 3};
+  static const char coverages[][10] = {
+    /* Format 2, glyphs 0..2 -> records 0..2: caught by the closure. */
+    {0, 2, 0, 1, 0, 0, 0, 2, 0, 0},
+    /* Format 1, glyph 0 three times: caught by the table subsetter. */
+    {0, 1, 0, 3, 0, 0, 0, 0, 0, 0},
+  };
+  char varc_data[] = {
+    0, 1, 0, 0,				/* version */
+    0, 0, 0, 24,			/* coverage */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* varStore, conditionList, axisIndicesList */
+    0, 0, 0, 34,			/* glyphRecords */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* coverage, filled in below */
+    0, 0, 0, 3, 1,			/* INDEX: count 3, offSize 1 */
+    1, 31, 1, 31,			/* records 0 and 2 are the same 30 bytes */
+    0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2,
+    0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2,
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (coverages); i++)
+  {
+    memcpy (varc_data + 24, coverages[i], sizeof (coverages[i]));
+    hb_face_t *face = hb_face_builder_create ();
+    HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+    HB_FACE_ADD_TABLE (face, "VARC", varc_data);
+
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 2);
+    g_assert_null (hb_subset_or_fail (face, input));
+
+    hb_subset_input_destroy (input);
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -540,5 +580,6 @@ main (int argc, char **argv)
   hb_test_add (test_subset_varc_instance_without_varc_glyphs);
   hb_test_add (test_subset_varc_can_be_explicitly_dropped_when_instancing);
   hb_test_add (test_subset_varc_passthrough_requires_retained_gids);
+  hb_test_add (test_subset_varc_overlapping_records);
   return hb_test_run ();
 }
