@@ -427,7 +427,7 @@ struct KerxSubTableFormat2
 
     const UnsizedArrayOf<FWORD> &arrayZ = this+array;
     unsigned int kern_idx = l + r;
-    kern_idx = Types::offsetToIndex (kern_idx, this, arrayZ.arrayZ);
+    kern_idx = Types::byteOffsetToIndex (kern_idx, this, arrayZ.arrayZ);
     const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
     hb_barrier ();

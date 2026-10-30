@@ -1,4 +1,5 @@
 in_house_tests = [
+  'aat-kerx.tests',
   'aat-morx.tests',
   'aat-trak.tests',
   'anchor-variations.tests',
