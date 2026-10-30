@@ -954,6 +954,7 @@ struct skipping_iterator_t
     match_glyph_data24 = nullptr;
 #endif
     matcher.init (c, context_match);
+    num_tested = 0;
   }
   void set_lookup_props (unsigned int lookup_props)
   {
@@ -983,12 +984,14 @@ struct skipping_iterator_t
     idx = start_index_;
     end = c->buffer->len;
     matcher.syllable = c->buffer->cur().syllable();
+    num_tested = 0;
   }
   void reset_back (unsigned int start_index_, bool from_out_buffer = false)
   {
     // For GSUB backward iterator
     idx = start_index_;
     matcher.syllable = c->buffer->cur().syllable();
+    num_tested = 0;
   }
 
 #ifndef HB_OPTIMIZE_SIZE
@@ -998,6 +1001,7 @@ struct skipping_iterator_t
   {
     // Doesn't set end or syllable. Used by GPOS which doesn't care / change.
     idx = start_index_;
+    num_tested = 0;
   }
 
 #ifndef HB_OPTIMIZE_SIZE
@@ -1020,6 +1024,21 @@ struct skipping_iterator_t
     matcher_t::may_skip_t skip = matcher.may_skip (c, info);
     if (unlikely (skip == matcher_t::SKIP_YES))
       return SKIP;
+
+    /* Glyphs the lookup flags skip are cheap, and as no lookup applies at
+     * them, a scan over a run of them stops at the next glyph the lookup
+     * does apply at.  Every other glyph is tested against the matcher.  A
+     * scan testing more glyphs than a sequence can hold is walking skipped
+     * default-ignorables, or an oversized backtrack / lookahead; repeated
+     * from every buffer position and for every subtable that is quadratic,
+     * so charge each further glyph to the work budget and end the scan
+     * when it runs out. */
+    if (unlikely (++num_tested > HB_MAX_CONTEXT_LENGTH) &&
+	unlikely (--c->buffer->max_ops < 0))
+    {
+      c->buffer->successful = false;
+      return NOT_MATCH;
+    }
 
     matcher_t::may_match_t match = matcher.may_match (info, get_glyph_data ());
     if (match == matcher_t::MATCH_YES ||
@@ -1122,6 +1141,7 @@ struct skipping_iterator_t
 #endif
 
   unsigned int end;
+  unsigned int num_tested; /* Glyphs tested against the matcher since the last reset. */
 };
 
 struct hb_ot_apply_context_t :
