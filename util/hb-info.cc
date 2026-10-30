@@ -1125,6 +1125,14 @@ retry:
 
 	for (unsigned feature_index = 0; feature_index < feature_count; feature_index++)
 	{
+	  hb_tag_t feature_tag = HB_TAG_NONE;
+	  unsigned f_count = 1;
+	  hb_ot_layout_table_get_feature_tags (face, table_tag,
+					       feature_array[feature_index],
+					       &f_count, &feature_tag);
+	  if (!f_count)
+	    continue; /* LangSys references a feature the FeatureList doesn't have. */
+
 	  hb_ot_name_id_t label_id;
 
 	  hb_ot_layout_feature_get_name_ids (face,
@@ -1145,11 +1153,6 @@ retry:
 
 	  printf ("	");
 	  if (verbose) printf ("Feature: ");
-	  hb_tag_t feature_tag;
-	  unsigned f_count = 1;
-	  hb_ot_layout_table_get_feature_tags (face, table_tag,
-					       feature_array[feature_index],
-					       &f_count, &feature_tag);
 	  printf ("%c%c%c%c", HB_UNTAG (feature_tag));
 
 	  if (*name)
