@@ -166,11 +166,12 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 	  break;
 	}
 
-	component_list[num_components++] = component_glyph;
+	component_list[num_components + j] = component_glyph;
       }
       if (!matched)
         continue;
 
+      num_components += component_count;
       component_count_list[num_ligatures] = 1 + component_count;
       ligature_list[num_ligatures] = ligature_glyph;
 
