@@ -118,8 +118,7 @@ static void _colr_closure (hb_subset_plan_t* plan,
   hb_set_t palette_indices, layer_indices;
   // Collect all glyphs referenced by COLRv0
   hb_set_t glyphset_colrv0;
-  for (hb_codepoint_t gid : *glyphs_colred)
-    colr.closure_glyphs (gid, &glyphset_colrv0);
+  colr.closure_glyphs (glyphs_colred, &glyphset_colrv0);
 
   glyphs_colred->union_ (glyphset_colrv0);
 

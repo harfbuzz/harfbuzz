@@ -2591,9 +2591,9 @@ struct COLR
       colr->depend (depend_data);
     }
 
-    void closure_glyphs (hb_codepoint_t glyph,
+    void closure_glyphs (const hb_set_t *glyphs,
 			 hb_set_t *related_ids /* OUT */) const
-    { colr->closure_glyphs (glyph, related_ids); }
+    { colr->closure_glyphs (glyphs, related_ids); }
 
     void closure_V0palette_indices (const hb_set_t *glyphs,
 				    hb_set_t *palettes /* OUT */) const
@@ -2681,16 +2681,33 @@ struct COLR
     }
   }
 
-  void closure_glyphs (hb_codepoint_t glyph,
+  /* Base glyphs may share layers.  The V0 closures collect the layer
+   * indices of all base glyphs first, so each layer is visited once. */
+  void collect_V0layer_indices (const BaseGlyphRecord &record,
+				hb_set_t *layer_indices /* OUT */) const
+  {
+    unsigned count = (this+layersZ).as_array (numLayers).sub_array (record.firstLayerIdx,
+								    record.numLayers).length;
+    if (!count) return;
+    layer_indices->add_range (record.firstLayerIdx, record.firstLayerIdx + count - 1);
+  }
+
+  void closure_glyphs (const hb_set_t *glyphs,
 		       hb_set_t *related_ids /* OUT */) const
   {
-    const BaseGlyphRecord *record = get_base_glyph_record (glyph);
-    if (!record) return;
+    if (!numBaseGlyphs || !numLayers) return;
+    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
 
-    auto glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record->firstLayerIdx,
-								       record->numLayers);
-    if (!glyph_layers.length) return;
-    related_ids->add_array (&glyph_layers[0].glyphId, glyph_layers.length, LayerRecord::min_size);
+    hb_set_t layer_indices;
+    for (hb_codepoint_t glyph : *glyphs)
+    {
+      const BaseGlyphRecord *record = get_base_glyph_record (glyph);
+      if (!record) continue;
+      collect_V0layer_indices (*record, &layer_indices);
+    }
+
+    for (unsigned idx : layer_indices)
+      related_ids->add (all_layers[idx].glyphId);
   }
 
   void closure_V0palette_indices (const hb_set_t *glyphs,
@@ -2700,14 +2717,15 @@ struct COLR
     hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
     hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
 
-    for (const BaseGlyphRecord record : baseGlyphs)
+    hb_set_t layer_indices;
+    for (const BaseGlyphRecord &record : baseGlyphs)
     {
       if (!glyphs->has (record.glyphId)) continue;
-      hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
-                                                                   record.numLayers);
-      for (const LayerRecord layer : glyph_layers)
-        palettes->add (layer.colorIdx);
+      collect_V0layer_indices (record, &layer_indices);
     }
+
+    for (unsigned idx : layer_indices)
+      palettes->add (all_layers[idx].colorIdx);
   }
 
   void closure_forV1 (hb_set_t *glyphset,
@@ -2979,6 +2997,16 @@ struct COLR
     | hb_filter (hb_first)
     | hb_map_retains_sorting (hb_second)
     ;
+
+    /* Base glyphs sharing layers each get their own copy in the output.
+     * Drop the table instead of expanding more layers than numLayers holds. */
+    unsigned num_layers = 0;
+    for (const BaseGlyphRecord record : + base_it)
+    {
+      num_layers += record.numLayers;
+      if (unlikely (num_layers > 0xFFFFu))
+	return_trace (false);
+    }
 
     auto layer_it =
     + hb_range (c->plan->num_output_glyphs ())
