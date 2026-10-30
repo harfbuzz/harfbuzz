@@ -701,6 +701,104 @@ test_depend_context_format6 (void)
   hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 }
+
+/* A GSUB with one ChainContextSubst format 3 under feature 'test': one input
+ * glyph, no lookahead, no lookup records, and num_coverages backtrack
+ * positions, each with its own Coverage format 4 holding the single range
+ * [position, last_glyph - position]. */
+static hb_face_t *
+create_chain_context_face (unsigned num_glyphs,
+			   unsigned num_coverages,
+			   unsigned last_glyph)
+{
+  unsigned coverages_offset = 12 + num_coverages * 2;
+  unsigned gsub_size = 10 + 20 + 14 + 12 + coverages_offset + 6 + num_coverages * 14;
+  unsigned char *gsub = g_malloc0 (gsub_size);
+  unsigned char *p = gsub;
+
+#define PUT16(v) (*p++ = (unsigned char) ((v) >> 8), *p++ = (unsigned char) (v))
+#define PUT24(v) (*p++ = (unsigned char) ((v) >> 16), PUT16 (v))
+  PUT16 (1); PUT16 (0); /* version */
+  PUT16 (10); PUT16 (10 + 20); PUT16 (10 + 20 + 14); /* scriptList, featureList, lookupList */
+
+  PUT16 (1); memcpy (p, "DFLT", 4); p += 4; PUT16 (8); /* ScriptList */
+  PUT16 (4); PUT16 (0); /* Script: defaultLangSys, langSysCount */
+  PUT16 (0); PUT16 (0xFFFF); PUT16 (1); PUT16 (0); /* LangSys */
+
+  PUT16 (1); memcpy (p, "test", 4); p += 4; PUT16 (8); /* FeatureList */
+  PUT16 (0); PUT16 (1); PUT16 (0); /* Feature */
+
+  PUT16 (1); PUT16 (4); /* LookupList */
+  PUT16 (6); PUT16 (0); PUT16 (1); PUT16 (8); /* Lookup */
+
+  PUT16 (3); /* ChainContextSubst format */
+  PUT16 (num_coverages); /* backtrackGlyphCount */
+  for (unsigned i = 0; i < num_coverages; i++)
+    PUT16 (coverages_offset + 6 + i * 14);
+  PUT16 (1); PUT16 (coverages_offset); /* inputGlyphCount, input coverage */
+  PUT16 (0); /* lookaheadGlyphCount */
+  PUT16 (0); /* seqLookupCount */
+
+  PUT16 (1); PUT16 (1); PUT16 (1); /* Coverage format 1: glyph 1 */
+  for (unsigned i = 0; i < num_coverages; i++)
+  {
+    PUT16 (4); PUT24 (1); /* Coverage format 4, rangeCount */
+    PUT24 (i); PUT24 (last_glyph - i); PUT24 (0); /* first, last, startCoverageIndex */
+  }
+#undef PUT24
+#undef PUT16
+  g_assert_true (p == gsub + gsub_size);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ((const char *) gsub, gsub_size,
+				    HB_MEMORY_MODE_READONLY, gsub, g_free);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob));
+  hb_blob_destroy (blob);
+  hb_face_set_glyph_count (face, num_glyphs);
+
+  return face;
+}
+
+/* Context sets hold no glyph the face does not have, however far the
+ * Coverage ranges that name them reach. */
+static void
+test_depend_gsub_context_set_glyphs (void)
+{
+  hb_face_t *face = create_chain_context_face (1000, 4, 0xFFFFFF);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_nonnull (depend);
+
+  hb_set_t *set = hb_set_create ();
+  unsigned num_sets = 0;
+  for (hb_codepoint_t index = 0; hb_subset_depend_lookup_set (depend, index, set); index++)
+  {
+    for (hb_codepoint_t g = HB_SET_VALUE_INVALID; hb_set_next (set, &g);)
+      if (!(g & 0x80000000u)) /* Not a reference to another context set. */
+	g_assert_cmpuint (g, <, 1000);
+    num_sets++;
+  }
+  g_assert_cmpuint (num_sets, >=, 4);
+
+  /* The backtrack set of the first position covers the whole face. */
+  g_assert_true (hb_subset_depend_lookup_set (depend, 0, set));
+  g_assert_cmpuint (hb_set_get_population (set), ==, 1000);
+  g_assert_cmpuint (hb_set_get_max (set), ==, 999);
+
+  hb_set_destroy (set);
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
+/* A face whose context glyph sets take far more work to expand than it has
+ * bytes exhausts the build's budget and is refused. */
+static void
+test_depend_gsub_set_budget (void)
+{
+  /* 600 ranges of 16,777,216 glyphs from under 10 KB of GSUB. */
+  hb_face_t *face = create_chain_context_face (1000, 600, 0xFFFFFF);
+  g_assert_null (hb_subset_depend_from_face_or_fail (face));
+  hb_face_destroy (face);
+}
 #endif
 
 int
@@ -717,6 +815,8 @@ main (int argc, char **argv)
   hb_test_add (test_depend_gsub_formats);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_depend_context_format6);
+  hb_test_add (test_depend_gsub_context_set_glyphs);
+  hb_test_add (test_depend_gsub_set_budget);
 #endif
 
   return hb_test_run ();
