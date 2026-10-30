@@ -530,19 +530,26 @@ hb_raster_draw_set_clip_box (hb_raster_draw_t *draw,
 }
 
 int64_t
-hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw,
-			       unsigned int max_rows,
-			       unsigned int max_cols)
+hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw)
 {
+  /* Auto-sized extents enclose every edge, up to the cap. */
+  int64_t max_rows = HB_RASTER_MAX_AUTO_DIMENSION;
+  int64_t max_cols = HB_RASTER_MAX_AUTO_DIMENSION;
+  if (draw->has_extents)
+  {
+    max_rows = draw->fixed_extents.height;
+    max_cols = draw->fixed_extents.width;
+  }
+
   int64_t work = 0;
   for (const auto &edge : draw->edges)
   {
     int64_t dx = (int64_t) edge.xH - edge.xL;
     if (dx < 0) dx = -dx;
     work += 1 + hb_min (((int64_t) edge.yH - edge.yL) >> HB_RASTER_PIXEL_BITS,
-			(int64_t) max_rows)
+			max_rows)
 	      + hb_min (dx >> HB_RASTER_PIXEL_BITS,
-			(int64_t) max_cols);
+			max_cols);
   }
   return work;
 }
@@ -1615,7 +1622,8 @@ sweep_row_to_alpha_wide (uint8_t *__restrict row_buf,
  *
  * Return value: (transfer full):
  * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration
- * failure. If no geometry was accumulated, returns an empty image.
+ * failure. If no geometry was accumulated, returns an empty image. If
+ * rasterizing the geometry would exceed the work budget, returns a blank image.
  *
  * Since: 13.0.0
  **/
@@ -1691,7 +1699,15 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   image->clear ();
 
   /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
-  if (draw->edges.length && ext.width && ext.height)
+  /* The sweep walks every edge once per row it spans, a product that
+     neither the edge cap nor the dimension cap bounds: skip it if over
+     the pixel budget.  An unlimited outline policy disables that too. */
+  if (draw->edges.length && ext.width && ext.height &&
+      likely (draw->budget == HB_BUDGET_UNLIMITED ||
+	      hb_raster_draw_get_pixel_work (draw) <=
+	      hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
+		      (int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
+		      ext.width * ext.height)))
   {
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))

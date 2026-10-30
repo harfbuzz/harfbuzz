@@ -206,7 +206,7 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
-/* The flat pixel-work floor for one raster paint session.  Pixel and
+/* The flat pixel-work floor for one raster draw or paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
  * the common outline budget above. */
 #ifndef HB_BUDGET_RASTER_PIXELS
