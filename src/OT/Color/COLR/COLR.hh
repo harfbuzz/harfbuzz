@@ -2179,17 +2179,17 @@ struct ClipList
 
     hb_map_t new_gid_offset_map;
     hb_set_t new_gids;
-    for (const ClipRecord& record : clips.iter ())
+    /* Look up each retained glyph the same way get_extents () does, instead of
+     * walking every gid of every record: records are not required to be
+     * disjoint, so that can cost num_records * num_glyphs. */
+    for (hb_codepoint_t gid : glyphset)
     {
-      unsigned start_gid = record.startGlyphID;
-      unsigned end_gid = record.endGlyphID;
-      for (unsigned gid = start_gid; gid <= end_gid; gid++)
-      {
-        if (!glyphset.has (gid) || !glyph_map.has (gid)) continue;
-        unsigned new_gid = glyph_map.get (gid);
-        new_gid_offset_map.set (new_gid, record.clipBox);
-        new_gids.add (new_gid);
-      }
+      const hb_codepoint_t *new_gid;
+      if (!glyph_map.has (gid, &new_gid)) continue;
+      const ClipRecord *record = clips.as_array ().bsearch (gid);
+      if (!record) continue;
+      new_gid_offset_map.set (*new_gid, record->clipBox);
+      new_gids.add (*new_gid);
     }
 
     unsigned count = serialize_clip_records (c, instancer, new_gids, new_gid_offset_map);
