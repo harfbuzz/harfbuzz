@@ -10,4 +10,3 @@
 ../fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf;--variations=TEST=.6;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[A.alt=0+600|B.alt=1+600|C.alt=2+600|D=3+600|E=4+610|F.alt=5+600]
 ../fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf;--variations=TEST=.8;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[A.alt=0+600|B.alt=1+600|C.alt=2+600|D.alt=3+600|E=4+610|F.alt=5+600]
 ../fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf;--variations=TEST=0;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[A.alt=0+600|B=1+600|C=2+600|D=3+600|E=4+610|F=5+600]
-../fonts/a80ae54f8ad6577653d6bd370d6a81b37bdd7e79.ttf;--variations=wght=900;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[gid1=0+700|gid2=1+300|gid3=2+300|gid4=3+700|gid5=4+700|gid6=5+800]

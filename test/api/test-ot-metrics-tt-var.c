@@ -327,6 +327,38 @@ test_advance_tt_var_comp_use_my_metrics (void)
   hb_font_destroy (font);
 }
 
+static void
+test_advance_tt_var_comp_use_my_metrics_last (void)
+{
+  /* a80ae54f...ttf has composites with several USE_MY_METRICS components;
+   * each one overwrites the phantoms of the previous one, so HarfBuzz takes
+   * the advance of the last such component.  Regression for
+   * ANT-2026-DQGMHCLX, pinned to HarfBuzz's own glyph metrics: this cannot
+   * be a shape .tests line because that suite is also run under
+   * --font-funcs=fontations, which resolves these advances differently. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/a80ae54f8ad6577653d6bd370d6a81b37bdd7e79.ttf");
+  g_assert_true (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert_true (font);
+
+  /* Default instance; upem is 1000 so advances are in design units. */
+  static const int def_adv[6] = {700, 300, 500, 500, 500, 800};
+  for (unsigned gid = 1; gid <= 6; gid++)
+    g_assert_cmpint (hb_font_get_glyph_h_advance (font, gid), ==, def_adv[gid - 1]);
+
+  /* wght=900: the last USE_MY_METRICS component wins, and a component that
+   * is not descended into must not strip an earlier sibling's points (glyph
+   * 5's advance was 0 before the fix). */
+  hb_variation_t var = { HB_TAG ('w','g','h','t'), 900.0f };
+  hb_font_set_variations (font, &var, 1);
+  static const int adv[6] = {700, 300, 300, 700, 700, 800};
+  for (unsigned gid = 1; gid <= 6; gid++)
+    g_assert_cmpint (hb_font_get_glyph_h_advance (font, gid), ==, adv[gid - 1]);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -341,6 +373,7 @@ main (int argc, char **argv)
   hb_test_add (test_advance_tt_var_gvar_infer);
   hb_test_add (test_advance_tt_var_hvar_long_deltas);
   hb_test_add (test_advance_tt_var_comp_use_my_metrics);
+  hb_test_add (test_advance_tt_var_comp_use_my_metrics_last);
 
   return hb_test_run ();
 }
