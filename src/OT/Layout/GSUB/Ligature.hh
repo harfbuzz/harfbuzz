@@ -34,6 +34,7 @@ struct Ligature
 
   void closure (hb_closure_context_t *c) const
   {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, component.lenP1))) return;
     if (!intersects (c->glyphs)) return;
     c->output->add (ligGlyph);
   }

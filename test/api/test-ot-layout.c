@@ -293,6 +293,121 @@ test_ot_layout_language_get_feature_tags (void)
   hb_face_destroy (face);
 }
 
+static char *
+put16 (char *p, unsigned v)
+{
+  *p++ = (char) (v >> 8);
+  *p++ = (char) v;
+  return p;
+}
+
+static void
+test_ot_layout_lookups_substitute_closure_budget (void)
+{
+  /* A GSUB whose glyph closure walks far more than the table's size per
+   * lookup visit: a LigatureSubst with SETS offsets to one LigatureSet of
+   * four offsets to one Ligature of COMPS components, all already in the
+   * closure.  CHAINS ContextSubst lookups each add one glyph to the
+   * closure through a SingleSubst and then recurse into the ligature
+   * lookup with every glyph active, so the memo of visited lookups is
+   * voided and the ligature lookup is walked again after each of them,
+   * in each closure round.  Unbudgeted, that is over a minute of work
+   * for a table the sanitizer accepts; the work budget must stop it. */
+  const unsigned CHAINS = 1000, STRIDE = 56, SETS = 9000, COMPS = 64;
+  const unsigned first_chain = 1;
+  const unsigned first_comp = first_chain + CHAINS * STRIDE;
+  const unsigned lig_glyph = first_comp + SETS;
+  const unsigned lookup_count = 2 + CHAINS;
+  const unsigned single_size = 8 + 6 + 4 + 6 * CHAINS;
+  const unsigned ligature_size = 8 + 6 + 2 * SETS + 10 + 10 + 4 + 2 * (COMPS - 1);
+  const unsigned context_size = 8 + 16 + 10;
+  const unsigned lookup_list = 14;
+  const unsigned table_size = lookup_list + 2 + 2 * lookup_count +
+			      single_size + ligature_size + CHAINS * context_size;
+  /* The sanitizer walks the aliased ligatures too, and allows 64 bytes
+   * of that per table byte. */
+  const unsigned gsub_size = table_size + 32768;
+  char *gsub = g_malloc0 (gsub_size);
+  char *p = gsub;
+  unsigned lookup, i;
+
+  p = put16 (p, 1); p = put16 (p, 0);		/* Version 1.0 */
+  p = put16 (p, 10); p = put16 (p, 12); p = put16 (p, lookup_list);
+  p = put16 (p, 0);				/* Empty ScriptList */
+  p = put16 (p, 0);				/* Empty FeatureList */
+  p = put16 (p, lookup_count);
+  lookup = 2 + 2 * lookup_count;
+  p = put16 (p, lookup); lookup += single_size;
+  p = put16 (p, lookup); lookup += ligature_size;
+  for (i = 0; i < CHAINS; i++)
+  {
+    p = put16 (p, lookup); lookup += context_size;
+  }
+
+  /* Lookup 0: SingleSubstFormat1 with delta +2 over each chain's range,
+   * so every chain gains one glyph per visit. */
+  p = put16 (p, 1); p = put16 (p, 0); p = put16 (p, 1); p = put16 (p, 8);
+  p = put16 (p, 1); p = put16 (p, 6); p = put16 (p, 2);
+  p = put16 (p, 2); p = put16 (p, CHAINS);
+  for (i = 0; i < CHAINS; i++)
+  {
+    unsigned start = first_chain + i * STRIDE;
+    p = put16 (p, start); p = put16 (p, start + STRIDE - 4); p = put16 (p, i * (STRIDE - 3));
+  }
+
+  /* Lookup 1: LigatureSubstFormat1 with SETS aliased LigatureSet offsets. */
+  p = put16 (p, 4); p = put16 (p, 0); p = put16 (p, 1); p = put16 (p, 8);
+  p = put16 (p, 1); p = put16 (p, 6 + 2 * SETS); p = put16 (p, SETS);
+  for (i = 0; i < SETS; i++)
+    p = put16 (p, 6 + 2 * SETS + 10);
+  p = put16 (p, 2); p = put16 (p, 1);
+  p = put16 (p, first_comp); p = put16 (p, first_comp + SETS - 1); p = put16 (p, 0);
+  p = put16 (p, 4);
+  for (i = 0; i < 4; i++)
+    p = put16 (p, 10);
+  p = put16 (p, lig_glyph); p = put16 (p, COMPS);
+  for (i = 1; i < COMPS; i++)
+    p = put16 (p, first_comp + i);
+
+  /* Lookups 2..: ContextSubstFormat3 over one chain, recursing into
+   * lookup 0 and then lookup 1 at sequence index 0. */
+  for (i = 0; i < CHAINS; i++)
+  {
+    unsigned start = first_chain + i * STRIDE;
+    p = put16 (p, 5); p = put16 (p, 0); p = put16 (p, 1); p = put16 (p, 8);
+    p = put16 (p, 3); p = put16 (p, 1); p = put16 (p, 2); p = put16 (p, 16);
+    p = put16 (p, 0); p = put16 (p, 0);
+    p = put16 (p, 0); p = put16 (p, 1);
+    p = put16 (p, 2); p = put16 (p, 1);
+    p = put16 (p, start); p = put16 (p, start + STRIDE - 1); p = put16 (p, 0);
+  }
+  g_assert_cmpuint (p - gsub, ==, table_size);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gsub, gsub_size, HB_MEMORY_MODE_READONLY, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GSUB, blob));
+  hb_blob_destroy (blob);
+  hb_face_set_glyph_count (face, lig_glyph + 1);
+  g_assert_cmpuint (hb_ot_layout_table_get_lookup_count (face, HB_OT_TAG_GSUB), ==, lookup_count);
+
+  hb_set_t *glyphs = hb_set_create ();
+  for (i = 0; i < CHAINS; i++)
+    hb_set_add (glyphs, first_chain + i * STRIDE);
+  hb_set_add_range (glyphs, first_comp, first_comp + SETS - 1);
+
+  hb_ot_layout_lookups_substitute_closure (face, NULL, glyphs);
+
+  /* Wherever the budget cut in, the first round's plain substitutions
+   * and the ligature were reached before it. */
+  for (i = 0; i < CHAINS; i++)
+    g_assert_true (hb_set_has (glyphs, first_chain + i * STRIDE + 2));
+  g_assert_true (hb_set_has (glyphs, lig_glyph));
+
+  hb_set_destroy (glyphs);
+  hb_face_destroy (face);
+  g_free (gsub);
+}
+
 #ifndef HB_NO_VAR
 static void
 test_ot_layout_collect_lookup_variations (void)
@@ -340,6 +455,7 @@ main (int argc, char **argv)
   hb_test_add (test_ot_layout_script_get_language_tags);
   hb_test_add (test_ot_layout_table_get_feature_tags);
   hb_test_add (test_ot_layout_language_get_feature_tags);
+  hb_test_add (test_ot_layout_lookups_substitute_closure_budget);
 #ifndef HB_NO_VAR
   hb_test_add (test_ot_layout_collect_lookup_variations);
 #endif
