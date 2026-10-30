@@ -108,12 +108,56 @@ test_hb_cairo_color_glyph_cycle (void)
   hb_face_destroy (face);
 }
 
+static void
+face_destroyed (void *user_data)
+{
+  *(hb_bool_t *) user_data = 1;
+}
+
+static void
+test_hb_cairo_face_lifecycle (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+
+  static hb_user_data_key_t key;
+  hb_bool_t destroyed = 0;
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_set_user_data (face, &key, &destroyed, face_destroyed, 1);
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_face (face);
+  hb_face_destroy (face);
+
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 30);
+
+  cairo_glyph_t glyph = {1, 0, 0};
+  cairo_show_glyphs (cr, &glyph, 1);
+
+  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+  cairo_font_face_destroy (cairo_face);
+
+  /* Cairo keeps unreferenced scaled fonts cached; flush them so the
+   * hb_font_t created for the scaled font, and with it the face, go away. */
+  cairo_debug_reset_static_data ();
+  g_assert_true (destroyed);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_budget);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
+  hb_test_add (test_hb_cairo_face_lifecycle);
 
   return hb_test_run ();
 }

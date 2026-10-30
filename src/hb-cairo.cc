@@ -577,7 +577,11 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
   hb_font_t *font = (hb_font_t *) cairo_font_face_get_user_data (font_face,
 								 &hb_cairo_font_user_data_key);
 
-  if (!font)
+  if (font)
+    /* Shared font owned by the cairo font face (the font-based
+     * constructor).  Take our own reference to hand to the scaled font. */
+    hb_font_reference (font);
+  else
   {
     hb_face_t *face = (hb_face_t *) cairo_font_face_get_user_data (font_face,
 								   &hb_cairo_face_user_data_key);
@@ -622,16 +626,28 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
     {
       void *user_data = cairo_font_face_get_user_data (font_face,
 						       &hb_cairo_font_init_user_data_user_data_key);
-      font = init_func (font, scaled_font, user_data);
+      hb_font_t *new_font = init_func (font, scaled_font, user_data);
+      /* Preserve the historical ownership behavior for a callback that
+       * returns a different font: reference it, rather than assuming it
+       * transfers ownership.  The font we created is the callback's to
+       * release, as before. */
+      if (new_font != font)
+	hb_font_reference (new_font);
+      font = new_font;
     }
 
     hb_font_make_immutable (font);
   }
 
-  cairo_scaled_font_set_user_data (scaled_font,
-				   &hb_cairo_font_user_data_key,
-				   (void *) hb_font_reference (font),
-				   hb_cairo_font_destroy);
+  /* The scaled font takes over our one reference to font. */
+  if (unlikely (CAIRO_STATUS_SUCCESS != cairo_scaled_font_set_user_data (scaled_font,
+									 &hb_cairo_font_user_data_key,
+									 (void *) font,
+									 hb_cairo_font_destroy)))
+  {
+    hb_font_destroy (font);
+    return CAIRO_STATUS_NO_MEMORY;
+  }
 
   hb_cairo_budget_t *budget = (hb_cairo_budget_t *) hb_malloc (sizeof (hb_cairo_budget_t));
   if (unlikely (!budget))
