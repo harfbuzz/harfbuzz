@@ -239,6 +239,65 @@ test_pdf_clear (void)
   hb_vector_draw_destroy (fresh);
 }
 
+static void
+test_recycle_blob_across_contexts (void)
+{
+  hb_vector_draw_t *draw[2];
+  hb_vector_paint_t *paint[2];
+  for (unsigned int i = 0; i < 2; i++)
+  {
+    hb_vector_format_t format = i ? HB_VECTOR_FORMAT_PDF : HB_VECTOR_FORMAT_SVG;
+    draw[i] = hb_vector_draw_create_or_fail (format);
+    paint[i] = hb_vector_paint_create_or_fail (format);
+    assert (draw[i] && paint[i]);
+  }
+
+  hb_vector_extents_t extents = {0, 0, 10, 10};
+  hb_blob_t *blob = NULL;
+  for (unsigned int round = 0; round < 2; round++)
+    for (unsigned int i = 0; i < 2; i++)
+    {
+      draw_triangle (draw[i]);
+      hb_vector_draw_recycle_blob (draw[i], blob);
+      blob = hb_vector_draw_render (draw[i]);
+      assert (blob && hb_blob_get_length (blob));
+
+      hb_vector_paint_set_extents (paint[i], &extents);
+      paint_rectangle (paint[i], HB_COLOR (0, 0, 255, 255));
+      hb_vector_paint_recycle_blob (paint[i], blob);
+      blob = hb_vector_paint_render (paint[i]);
+      assert (blob && hb_blob_get_length (blob));
+    }
+
+  hb_blob_destroy (blob);
+  blob = NULL;
+  for (unsigned int i = 0; i < 2; i++)
+  {
+    /* Repeated documents that fit the same buffer exercise in-place reuse. */
+    for (unsigned int j = 0; j < 2; j++)
+    {
+      draw_triangle (draw[i]);
+      hb_vector_draw_recycle_blob (draw[i], blob);
+      blob = hb_vector_draw_render (draw[i]);
+      assert (blob && hb_blob_get_length (blob));
+    }
+    hb_blob_destroy (blob);
+    blob = NULL;
+    for (unsigned int j = 0; j < 2; j++)
+    {
+      hb_vector_paint_set_extents (paint[i], &extents);
+      paint_rectangle (paint[i], HB_COLOR (0, 0, 255, 255));
+      hb_vector_paint_recycle_blob (paint[i], blob);
+      blob = hb_vector_paint_render (paint[i]);
+      assert (blob && hb_blob_get_length (blob));
+    }
+    hb_blob_destroy (blob);
+    blob = NULL;
+    hb_vector_paint_destroy (paint[i]);
+    hb_vector_draw_destroy (draw[i]);
+  }
+}
+
 int
 main (void)
 {
@@ -251,5 +310,6 @@ main (void)
   test_draw_render_failure (HB_VECTOR_FORMAT_PDF);
   test_paint_render_failure (HB_VECTOR_FORMAT_SVG);
   test_paint_render_failure (HB_VECTOR_FORMAT_PDF);
+  test_recycle_blob_across_contexts ();
   return 0;
 }

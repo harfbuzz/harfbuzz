@@ -26,8 +26,10 @@
 
 #include "hb.hh"
 
+#include "hb-geometry.hh"
 #include "hb-machinery.hh"
 #include "hb-vector-buf.hh"
+#include "hb-vector-internal.hh"
 
 /**
  * SECTION:hb-vector
@@ -73,6 +75,8 @@
  * overlapping regions will be composited separately rather than
  * painted as a single uniform layer.
  **/
+
+hb_user_data_key_t hb_vector_blob_meta_user_data_key = {};
 
 struct hb_vector_decimal_point_t
 {
