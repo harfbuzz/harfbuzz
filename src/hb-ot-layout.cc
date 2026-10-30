@@ -1539,6 +1539,23 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
   return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
 }
 
+/* Like hb_ot_layout_feature_with_variations_get_lookups(), but resolves the
+ * feature only once and returns all of its lookup indices.  Resolving a feature
+ * under a FeatureVariations record is a linear search of the record's
+ * FeatureTableSubstitution, so callers must not page through the lookups. */
+hb_array_t<const OT::Index>
+_hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
+						   hb_tag_t      table_tag,
+						   unsigned int  feature_index,
+						   unsigned int  variations_index)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  const OT::Feature &f = g.get_feature_variation (feature_index, variations_index);
+
+  return f.lookupIndex.as_array ();
+}
+
 
 /*
  * OT::GSUB
