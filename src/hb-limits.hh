@@ -230,6 +230,14 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
 #endif
 
+/* One dependency graph build, in occupied slots stepped over while looking
+ * for duplicate edges.  The edge hash is not keyed, so a font can still be
+ * crafted so that its edges collide, and each colliding edge then steps
+ * over every earlier one.  Exceeding the limit fails the build. */
+#ifndef HB_DEPEND_MAX_EDGE_PROBES
+#define HB_DEPEND_MAX_EDGE_PROBES ((int64_t) 1 << 26)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
