@@ -228,7 +228,11 @@ test_shape_overlong_cluster_remerge (void)
   hb_buffer_guess_segment_properties (buffer);
   hb_buffer_set_direction (buffer, HB_DIRECTION_RTL);
 
-  hb_shape (font, buffer, NULL, 0);
+  /* This exercises the native cluster re-merge op budget in hb-buffer.cc, so
+   * force the "ot" shaper: other shapers (e.g. harfrust) do their own cluster
+   * handling and never hit this path. */
+  const char *shaper_list[] = {"ot", NULL};
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
 
   g_assert_true (!hb_buffer_allocation_successful (buffer));
 
