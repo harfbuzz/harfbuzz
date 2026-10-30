@@ -222,6 +222,14 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
 #endif
 
+/* Subsetting one table, in glyphs visited while walking its Coverage and
+ * ClassDef tables.  A glyph range costs a few bytes and any number of
+ * offsets can share it, so neither the table size nor the sanitizer's
+ * budget bounds that work. */
+#ifndef HB_BUDGET_SUBSET_TABLE
+#define HB_BUDGET_SUBSET_TABLE ((int64_t) 1 << 26)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
