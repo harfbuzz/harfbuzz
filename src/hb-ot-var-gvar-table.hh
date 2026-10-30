@@ -470,6 +470,13 @@ struct gvar_GVAR
       hb_array_t<const F2DOT14> shared_tuples_array =
 	  (this+sharedTuples).as_array ((unsigned) sharedTupleCount * (unsigned) axisCount);
       if (unlikely (!culled_vars.resize (num_glyphs))) return_trace (false);
+      /* The glyph data regions of a well-formed table are disjoint, so the
+       * retained glyphs' data add up to no more than the table.  Offsets are
+       * used as they are, though, and malformed ones can point every glyph
+       * at one region; charge each glyph's data to the table size so this
+       * pass, and the rewritten copies it keeps, cannot cost glyph count
+       * times table size. */
+      int64_t budget = c->source_blob->length;
       auto cull_it = hb_iter (c->plan->new_to_old_gid_list);
       if (cull_it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
 	cull_it++;
@@ -477,6 +484,12 @@ struct gvar_GVAR
       {
 	hb_bytes_t var_data_bytes = get_glyph_var_data_bytes (c->source_blob, glyph_count, _.second);
 	if (var_data_bytes.length < GlyphVariationData::min_size) continue;
+	if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, var_data_bytes.length)))
+	{
+	  /* Fail the table rather than let the serializer retry it. */
+	  c->serializer->err (HB_SERIALIZE_ERROR_OTHER);
+	  return_trace (false);
+	}
 	bool changed = false;
 	if (unlikely (!var_data_bytes.as<GlyphVariationData> ()
 		      ->cull_tuple_variations (var_data_bytes, axisCount,
@@ -786,9 +799,14 @@ struct gvar_GVAR
       shared_indices.clear ();
 
       typename GlyphVariationData::tuple_iterator_t iterator;
-      if (!GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
-						   var_data_bytes.arrayZ,
-						   shared_indices, &iterator))
+      bool has_tuples = GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
+							       var_data_bytes.arrayZ,
+							       shared_indices, &iterator);
+      /* The shared point numbers are decoded on every load. */
+      if (budget &&
+	  unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, shared_indices.length)))
+	return false;
+      if (!has_tuples)
 	return true; /* so isn't applied at all */
 
       bool any_private_points = false;
@@ -816,6 +834,12 @@ struct gvar_GVAR
 
       do
       {
+	/* Evaluating a tuple's region walks the axes, whether or not the
+	 * tuple ends up applying. */
+	if (budget &&
+	    unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, 1 + num_coords)))
+	  return false;
+
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples,
 								 scalar_cache);
 
@@ -859,6 +883,11 @@ struct gvar_GVAR
 	    !GlyphVariationData::decompile_points (p, private_indices, end))
 	  return false;
 	const hb_array_t<unsigned int> &indices = has_private_points ? private_indices : shared_indices;
+
+	/* Point numbers can outnumber the points charged above. */
+	if (budget &&
+	    unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, indices.length)))
+	  return false;
 
 	bool apply_to_all = (indices.length == 0);
 	unsigned num_deltas = apply_to_all ? points.length : indices.length;

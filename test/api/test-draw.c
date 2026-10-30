@@ -1193,6 +1193,72 @@ test_hb_draw_glyf_composite_budget (void)
   hb_face_destroy (face);
 }
 
+static int64_t
+draw_gvar_budget_consumption (const char *var_data, unsigned var_data_size)
+{
+  /* One empty glyph and one axis.  The only shared tuple peaks at +1. */
+  const char glyf_data[10] = {0};
+  const char loca_data[] = {0, 0, 0, 5};
+  const char fvar_data[] = {
+    0, 1, 0, 0, 0, 16, 0, 2, 0, 1, 0, 20, 0, 0, 0, 8,
+    'w', 'g', 'h', 't', 0, 100, 0, 0, 1, (char) 0x90, 0, 0, 3, (char) 0x84, 0, 0, 0, 0, 1, 0
+  };
+  char gvar_data[26 + 1024] = {
+    0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 24, 0, 1, 0, 0, 0, 0, 0, 26,
+    0, 0, 2, 0, 0x40, 0
+  };
+  g_assert_cmpuint (var_data_size, <=, 1024);
+  memcpy (gvar_data + 26, var_data, var_data_size);
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "glyf", glyf_data);
+  HB_FACE_ADD_TABLE (face, "loca", loca_data);
+  HB_FACE_ADD_TABLE (face, "fvar", fvar_data);
+  HB_FACE_ADD_TABLE (face, "gvar", gvar_data);
+  hb_face_set_glyph_count (face, 1);
+  hb_font_t *font = hb_font_create (face);
+  hb_variation_t variation = {HB_TAG ('w','g','h','t'), 900};
+  hb_font_set_variations (font, &variation, 1);
+
+  const int64_t budget = 100000;
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 0};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, budget));
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 0, draw_funcs, &data));
+
+  hb_draw_funcs_destroy (draw_funcs);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  return budget - data.live;
+}
+
+static void
+test_hb_draw_gvar_budget (void)
+{
+  /* 100 tuples with an embedded peak of -1: none applies at wght=900, but
+   * the region of each has to be evaluated. */
+  char unapplied[4 + 100 * 6] = {0, 100, 0x02, 0x5C};
+  for (unsigned i = 0; i < 100; i++)
+  {
+    unapplied[4 + i * 6 + 2] = (char) 0x80;
+    unapplied[4 + i * 6 + 4] = (char) 0xC0;
+  }
+  g_assert_cmpint (draw_gvar_budget_consumption (unapplied, sizeof (unapplied)), >=, 200);
+
+  /* 64 shared point numbers, all of them point 0, and eight tuples that
+   * each apply 64 zero deltas to them: far more than the glyph has points. */
+  char points[4 + 8 * 4 + 2 + 64 + 8 * 2] = {(char) 0x80, 8, 0, 36};
+  for (unsigned i = 0; i < 8; i++)
+    points[4 + i * 4 + 1] = 2;
+  points[36] = 64;
+  points[37] = 63;
+  memset (points + 38 + 64, 0xBF, 8 * 2);
+  g_assert_cmpint (draw_gvar_budget_consumption (points, sizeof (points)), >=, 9 * 64);
+}
+
 static void
 test_hb_draw_budget (void)
 {
@@ -1362,6 +1428,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_budget);
   hb_test_add (test_hb_draw_cff_budget);
   hb_test_add (test_hb_draw_glyf_composite_budget);
+  hb_test_add (test_hb_draw_gvar_budget);
 
   const char **font_funcs = hb_font_list_funcs ();
   for (const char **font_funcs_name = font_funcs; *font_funcs_name; font_funcs_name++)

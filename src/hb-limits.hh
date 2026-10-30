@@ -100,6 +100,20 @@
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
 
+/* Deltas that instancing an avar version 2 table may add to its variation
+ * store as offset-compensation tuples.  Each tuple holds a delta for every
+ * row of the VarData it is added to, but the breakpoint it encodes costs
+ * four bytes of the table and a VarData without regions stores its rows in
+ * no bytes at all, so the table size does not bound that memory.  The
+ * budget is this many deltas per byte of the table, but no less than the
+ * minimum; exceeding it fails the table. */
+#ifndef HB_AVAR2_MAX_DELTAS_FACTOR
+#define HB_AVAR2_MAX_DELTAS_FACTOR 128
+#endif
+#ifndef HB_AVAR2_MAX_DELTAS_MIN
+#define HB_AVAR2_MAX_DELTAS_MIN 65536
+#endif
+
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif
@@ -221,6 +235,13 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   budget -= (int64_t) cost * mult;
   return budget >= 0;
 }
+
+/* The work one table may spend on being subset beyond what is proportional
+ * to its size.  Limiting an axis of an avar2 font is charged the square of
+ * the axis's avar breakpoints. */
+#ifndef HB_BUDGET_SUBSET_TABLE
+#define HB_BUDGET_SUBSET_TABLE ((int64_t) 1 << 30)
+#endif
 
 /* The flat pixel-work floor for one raster paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
