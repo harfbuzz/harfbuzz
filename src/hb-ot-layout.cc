@@ -2011,6 +2011,14 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     if (buffer->idx >= buffer->len)
       break;
 
+    /* Charge each lookup application, like recurse() does for nested ones. */
+    buffer->max_ops--;
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
+      break;
+    }
+
     if (accel.apply (c, use_hot_subtable_cache))
       ret = true;
     else
@@ -2035,7 +2043,16 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.digest.may_have (cur.codepoint) &&
 	(cur.mask & c->lookup_mask) &&
 	c->check_glyph_property (&cur, c->lookup_props))
+    {
+      /* Charge each lookup application, like recurse() does for nested ones. */
+      buffer->max_ops--;
+      if (unlikely (buffer->max_ops < 0))
+      {
+	buffer->successful = false;
+	break;
+      }
       ret |= accel.apply (c, false);
+    }
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
@@ -2054,6 +2071,18 @@ apply_string (OT::hb_ot_apply_context_t *c,
 
   if (unlikely (!buffer->len || !c->lookup_mask))
     return false;
+
+  /* Lookups can share subtables, features can share lookups, and each stage
+   * applies its lookups anew, so the number of passes over the buffer is not
+   * bounded by the font size.  Charge each pass for walking the buffer, even
+   * if it ends up applying at no glyph.  Skipping a glyph is cheap compared
+   * to applying at one; those are charged in full by apply_forward/backward. */
+  buffer->max_ops -= buffer->len / 16;
+  if (unlikely (buffer->max_ops < 0))
+  {
+    buffer->successful = false;
+    return false;
+  }
 
   bool ret = false;
 
@@ -2100,7 +2129,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
     const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->last_lookup; i++)
+    for (; i < stage->last_lookup && buffer->successful; i++)
     {
       auto &lookup = lookups[table_index][i];
 
