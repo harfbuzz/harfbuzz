@@ -133,8 +133,6 @@ hb_shape_full (hb_font_t          *font,
   if (unlikely (!buffer->len))
     return true;
 
-  buffer->enter ();
-
   hb_buffer_t *text_buffer = nullptr;
   if (buffer->flags & HB_BUFFER_FLAG_VERIFY)
   {
@@ -163,8 +161,6 @@ hb_shape_full (hb_font_t          *font,
       res = false;
     hb_buffer_destroy (text_buffer);
   }
-
-  buffer->leave ();
 
   return res;
 }

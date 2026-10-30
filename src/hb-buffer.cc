@@ -328,14 +328,22 @@ hb_buffer_t::enter ()
   deallocate_var_all ();
   serial = 0;
   scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
+  /* enter() now runs on every shape, including hb_shape_plan_execute().
+   * Compute the per-text limit as before, but if internal code has already
+   * narrowed a limit below the idle default (e.g. the fault injection in
+   * test-graphite2-buffer), keep the stricter value.  Public paths always
+   * arrive at the defaults (from hb_buffer_create() / leave()), so they get
+   * the computed per-text limit unchanged. */
   unsigned mul;
   if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_LEN_FACTOR, &mul)))
   {
-    max_len = hb_max (mul, (unsigned) HB_BUFFER_MAX_LEN_MIN);
+    unsigned limit = hb_max (mul, (unsigned) HB_BUFFER_MAX_LEN_MIN);
+    max_len = max_len < HB_BUFFER_MAX_LEN_DEFAULT ? hb_min (max_len, limit) : limit;
   }
   if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_OPS_FACTOR, &mul)))
   {
-    max_ops = hb_max (mul, (unsigned) HB_BUFFER_MAX_OPS_MIN);
+    int limit = (int) hb_max (mul, (unsigned) HB_BUFFER_MAX_OPS_MIN);
+    max_ops = max_ops < HB_BUFFER_MAX_OPS_DEFAULT ? hb_min (max_ops, limit) : limit;
   }
 }
 void

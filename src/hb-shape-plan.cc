@@ -428,10 +428,15 @@ _hb_shape_plan_execute_internal (hb_shape_plan_t    *shape_plan,
   assert (shape_plan->face_unsafe == font->face);
   assert (hb_segment_properties_equal (&shape_plan->key.props, &buffer->props));
 
+  /* Install the per-text work limits (max_len, max_ops) around the actual
+   * shaping, so that hb_shape_plan_execute() is as bounded as hb_shape(). */
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  return font->data.shaper && \
-		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
+	  buffer->enter (); \
+	  bool ret = font->data.shaper && \
+		     _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
+	  buffer->leave (); \
+	  return ret; \
 	} HB_STMT_END
 
   if (false)
