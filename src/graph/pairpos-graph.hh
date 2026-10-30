@@ -203,7 +203,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     hb_barrier ();
 
     const unsigned class1_count = class1Count;
-    if (unlikely (vertex_len < min_size + class1_count * get_class1_record_size ()))
+    if (unlikely (vertex_len - min_size <
+                  hb_unsigned_mul_saturate (class1_count, get_class1_record_size ())))
       return Err(SANITIZE_FAILURE);
     return Ok();
   }
