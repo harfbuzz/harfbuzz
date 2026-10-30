@@ -56,9 +56,17 @@ struct PairPosFormat1_3
 
     if (pairSet.len > glyphs->get_population () * hb_bit_storage ((unsigned) pairSet.len))
     {
+      unsigned next = 0;
       for (hb_codepoint_t g : glyphs->iter ())
       {
 	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED) continue;
+	/* Broken table. Skip. Important to avoid DoS.
+	 * Coverage indices must increase with glyph id, as the
+	 * Coverage iterator used below enforces; otherwise one
+	 * PairSet could be scanned once per glyph. */
+	if (unlikely (i < next)) continue;
+	next = i + 1;
 	if ((this+pairSet[i]).intersects (glyphs, valueFormat))
 	  return true;
       }
