@@ -291,19 +291,39 @@ struct hb_would_apply_context_t :
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
+  /* Subtable, rule and ligature offsets can alias each other, so a font can
+   * declare far more of them than it has bytes.  When running as part of
+   * shaping, charge walking them to the buffer's work budget, the way
+   * hb_ot_apply_context_t does. */
+  bool charge_ops (unsigned int count)
+  {
+    if (!buffer) return true;
+    if (unlikely (buffer->max_ops < (int) count))
+    {
+      buffer->max_ops = -1;
+      buffer->successful = false;
+      return false;
+    }
+    buffer->max_ops -= (int) count;
+    return true;
+  }
+
   hb_face_t *face;
   const hb_codepoint_t *glyphs;
   unsigned int len;
   bool zero_context;
+  hb_buffer_t *buffer; /* nullptr when called from the public API. */
 
   hb_would_apply_context_t (hb_face_t *face_,
 			    const hb_codepoint_t *glyphs_,
 			    unsigned int len_,
-			    bool zero_context_) :
+			    bool zero_context_,
+			    hb_buffer_t *buffer_ = nullptr) :
 			      face (face_),
 			      glyphs (glyphs_),
 			      len (len_),
-			      zero_context (zero_context_) {}
+			      zero_context (zero_context_),
+			      buffer (buffer_) {}
 };
 
 struct hb_collect_glyphs_context_t :
@@ -3315,6 +3335,7 @@ struct RuleSetOf
   bool would_apply (hb_would_apply_context_t *c,
 		    const ContextApplyLookupContext &lookup_context) const
   {
+    if (unlikely (!c->charge_ops (rule.len))) return false;
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
@@ -4918,6 +4939,7 @@ struct ChainRuleSetOf
   bool would_apply (hb_would_apply_context_t *c,
 		    const ChainContextApplyLookupContext &lookup_context) const
   {
+    if (unlikely (!c->charge_ops (rule.len))) return false;
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
