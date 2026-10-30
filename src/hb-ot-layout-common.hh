@@ -1668,6 +1668,15 @@ struct ClassDefFormat1_3
     return true;
   }
 
+  template <typename set_t>
+  bool collect_classes (set_t *glyphs, const hb_set_t &klasses) const
+  {
+    unsigned int count = classValue.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (klasses.has (classValue[i])) glyphs->add (startGlyph + i);
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     hb_codepoint_t start = startGlyph;
@@ -1939,6 +1948,18 @@ struct ClassDefFormat2_4
     for (auto &range : rangeRecord)
     {
       if (range.value == klass)
+	if (unlikely (!range.collect_coverage (glyphs)))
+	  return false;
+    }
+    return true;
+  }
+
+  template <typename set_t>
+  bool collect_classes (set_t *glyphs, const hb_set_t &klasses) const
+  {
+    for (auto &range : rangeRecord)
+    {
+      if (klasses.has (range.value))
 	if (unlikely (!range.collect_coverage (glyphs)))
 	  return false;
     }
@@ -2282,6 +2303,21 @@ struct ClassDef
 #ifndef HB_NO_BEYOND_64K
     case 3: hb_barrier (); return u.format3.collect_class (glyphs, klass);
     case 4: hb_barrier (); return u.format4.collect_class (glyphs, klass);
+#endif
+    default:return false;
+    }
+  }
+
+  /* Like collect_class(), for all of klasses in one walk of the table. */
+  template <typename set_t>
+  bool collect_classes (set_t *glyphs, const hb_set_t &klasses) const
+  {
+    switch (u.format.v) {
+    case 1: hb_barrier (); return u.format1.collect_classes (glyphs, klasses);
+    case 2: hb_barrier (); return u.format2.collect_classes (glyphs, klasses);
+#ifndef HB_NO_BEYOND_64K
+    case 3: hb_barrier (); return u.format3.collect_classes (glyphs, klasses);
+    case 4: hb_barrier (); return u.format4.collect_classes (glyphs, klasses);
 #endif
     default:return false;
     }

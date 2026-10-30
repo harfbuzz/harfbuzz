@@ -481,6 +481,107 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
   hb_set_destroy (output);
 }
 
+static uint8_t *
+put16 (uint8_t *p, unsigned v)
+{
+  *p++ = (uint8_t) (v >> 8);
+  *p++ = (uint8_t) v;
+  return p;
+}
+
+static void
+test_ot_layout_lookup_collect_glyphs_shared_class_rules (void)
+{
+  /* A ContextSubstFormat2 whose RuleSet offsets all point at one RuleSet,
+   * whose Rule offsets all point at one Rule with 64 class values, over a
+   * 65535-entry ClassDef.  The ClassDef must be walked once per subtable,
+   * not once per class value of every Rule visited; the latter takes
+   * about a minute. */
+  enum { RULESETS = 16, RULES = 1000, CLASSES = 64, GLYPHS = 65535 };
+  unsigned rule_len = 4 + 2 * CLASSES;
+  unsigned ruleset_len = 2 + 2 * RULES + rule_len;
+  unsigned coverage_len = 6;
+  unsigned classdef_len = 6 + 2 * GLYPHS;
+  unsigned ruleset_offset = 8 + 2 * RULESETS;
+  unsigned coverage_offset = ruleset_offset + ruleset_len;
+  unsigned classdef_offset = coverage_offset + coverage_len;
+  unsigned gsub_len = 10 + 2 + 2 + 4 + 8 + classdef_offset + classdef_len;
+  uint8_t *gsub = g_malloc0 (gsub_len);
+  uint8_t *p = gsub;
+
+  /* GSUB header, empty ScriptList and FeatureList, LookupList with one lookup. */
+  p = put16 (p, 1); p = put16 (p, 0);
+  p = put16 (p, 10); p = put16 (p, 12); p = put16 (p, 14);
+  p = put16 (p, 0);
+  p = put16 (p, 0);
+  p = put16 (p, 1); p = put16 (p, 4);
+  /* Lookup: type 5 (Context), one subtable right after. */
+  p = put16 (p, 5); p = put16 (p, 0); p = put16 (p, 1); p = put16 (p, 8);
+  /* ContextSubstFormat2 */
+  p = put16 (p, 2); p = put16 (p, coverage_offset); p = put16 (p, classdef_offset);
+  p = put16 (p, RULESETS);
+  for (unsigned i = 0; i < RULESETS; i++)
+    p = put16 (p, ruleset_offset);
+  /* RuleSet */
+  p = put16 (p, RULES);
+  for (unsigned i = 0; i < RULES; i++)
+    p = put16 (p, 2 + 2 * RULES);
+  /* Rule: classes 1 and 2, alternating. */
+  p = put16 (p, CLASSES + 1); p = put16 (p, 0);
+  for (unsigned i = 0; i < CLASSES; i++)
+    p = put16 (p, 1 + (i & 1));
+  /* Coverage: glyph 1. */
+  p = put16 (p, 1); p = put16 (p, 1); p = put16 (p, 1);
+  /* ClassDefFormat1: glyph i has class i % 3. */
+  p = put16 (p, 1); p = put16 (p, 0); p = put16 (p, GLYPHS);
+  for (unsigned i = 0; i < GLYPHS; i++)
+    p = put16 (p, i % 3);
+  g_assert_cmpuint (p - gsub, ==, gsub_len);
+
+  hb_blob_t *blob = hb_blob_create_or_fail ((const char *) gsub, gsub_len,
+					    HB_MEMORY_MODE_WRITABLE, gsub, g_free);
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_face_builder_add_table (builder, HB_OT_TAG_GSUB, blob);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_blob (builder);
+  hb_face_destroy (builder);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+
+  hb_set_t *before = hb_set_create();
+  hb_set_t *input = hb_set_create();
+  hb_set_t *after = hb_set_create();
+  hb_set_t *output = hb_set_create();
+  hb_codepoint_t g = HB_SET_VALUE_INVALID;
+
+  g_assert_cmpuint (1, ==, hb_ot_layout_table_get_lookup_count (face, HB_OT_TAG_GSUB));
+
+  BEGIN(HB_OT_TAG_GSUB, 0);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  /* Glyph 1 from the coverage, and every glyph of class 1 or 2. */
+  g_assert_cmpuint (2 * (GLYPHS / 3), ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert_true (hb_set_next (input, &g));
+  g_assert_cmpuint (1, ==, g);
+  g_assert_true (hb_set_next (input, &g));
+  g_assert_cmpuint (2, ==, g);
+  g_assert_true (hb_set_next (input, &g));
+  g_assert_cmpuint (4, ==, g);
+  g_assert_false (hb_set_has (input, 0));
+  g_assert_true (hb_set_has (input, GLYPHS - 1));
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+  g_assert_cmpuint (0, ==, hb_set_get_population (output));
+  END();
+
+  hb_face_destroy (face);
+  hb_set_destroy (before);
+  hb_set_destroy (input);
+  hb_set_destroy (after);
+  hb_set_destroy (output);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -488,5 +589,6 @@ main (int argc, char **argv)
   hb_test_add (test_ot_layout_lookup_collect_glyphs_source_sans);
   hb_test_add (test_ot_layout_lookup_collect_glyphs_noto_nastaliq);
   hb_test_add (test_ot_layout_lookup_collect_glyphs_qahiri);
+  hb_test_add (test_ot_layout_lookup_collect_glyphs_shared_class_rules);
   return hb_test_run ();
 }
