@@ -534,7 +534,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
       for (hb_codepoint_t gid : cur_glyphset)
 	if (_add_cff_seac_components (*cff, gid, &plan->_glyphset, &budget))
 	  has_seac = true;
-      plan->check_success (budget > 0);
+      plan->check_success (budget >= 0);
     }
     plan->has_seac = has_seac;
   }

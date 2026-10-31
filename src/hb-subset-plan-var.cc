@@ -786,7 +786,7 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
         plan->bounds_height_vec[new_gid] = hb_saturate_neg (extents.height);
     }
   }
-  plan->check_success (budget > 0);
+  plan->check_success (budget >= 0);
   /* No glyph contributed bounds: do not serialize the accumulator's
    * inverted sentinels into head (or a downgraded CFF FontBBox). */
   if (plan->head_maxp_info.xMin > plan->head_maxp_info.xMax)
