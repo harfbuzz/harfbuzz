@@ -189,8 +189,11 @@ struct hb_colrv1_closure_context_t :
 
   void add_layer_indices (unsigned first_layer_index, unsigned num_of_layers)
   {
-    if (num_of_layers == 0) return;
-    layer_indices->add_range (first_layer_index, first_layer_index + num_of_layers - 1);
+    if (!num_of_layers || first_layer_index == hb_set_t::INVALID) return;
+    uint64_t last = (uint64_t) first_layer_index + num_of_layers - 1;
+    if (unlikely (last >= hb_set_t::INVALID))
+      last = hb_set_t::INVALID - 1;
+    layer_indices->add_range (first_layer_index, (hb_codepoint_t) last);
   }
 
   void add_palette_index (unsigned palette_index)
@@ -199,7 +202,10 @@ struct hb_colrv1_closure_context_t :
   void add_var_idxes (unsigned first_var_idx, unsigned num_idxes)
   {
     if (!num_idxes || first_var_idx == VarIdx::NO_VARIATION) return;
-    variation_indices->add_range (first_var_idx, first_var_idx + num_idxes - 1);
+    uint64_t last = (uint64_t) first_var_idx + num_idxes - 1;
+    if (unlikely (last >= VarIdx::NO_VARIATION))
+      last = VarIdx::NO_VARIATION - 1;
+    variation_indices->add_range (first_var_idx, (hb_codepoint_t) last);
   }
 
   public:
@@ -1999,7 +2005,7 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
   }
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
-  { c->variation_indices->add_range (varIdxBase, varIdxBase + 3); }
+  { c->add_var_idxes (varIdxBase, 4); }
 };
 
 struct ClipBox

@@ -27,6 +27,36 @@
 
 #include <hb.h>
 #include <hb-ot.h>
+#include <string.h>
+#if defined(__SANITIZE_ADDRESS__)
+#include <sanitizer/allocator_interface.h>
+#define HB_HAS_HEAP_ALLOC_TRACKER 1
+static size_t
+get_current_heap_allocated_bytes (void)
+{
+  return __sanitizer_get_current_allocated_bytes ();
+}
+#elif defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#include <sanitizer/allocator_interface.h>
+#define HB_HAS_HEAP_ALLOC_TRACKER 1
+static size_t
+get_current_heap_allocated_bytes (void)
+{
+  return __sanitizer_get_current_allocated_bytes ();
+}
+#endif
+#endif
+#if !defined(HB_HAS_HEAP_ALLOC_TRACKER) && defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
+#include <malloc.h>
+#define HB_HAS_HEAP_ALLOC_TRACKER 1
+static size_t
+get_current_heap_allocated_bytes (void)
+{
+  struct mallinfo2 mi = mallinfo2 ();
+  return mi.uordblks + mi.hblkhd;
+}
+#endif
 
 typedef struct draw_data_t
 {
@@ -446,6 +476,175 @@ test_hb_draw_varc_budget (void)
   hb_draw_funcs_destroy (budget_funcs);
   hb_font_destroy (font);
 }
+
+static hb_face_t *
+build_varc_axis_tuple_test_face (const uint8_t *axis_indices_payload,
+                                 unsigned axis_indices_len,
+                                 const uint8_t *axis_values_payload,
+                                 unsigned axis_values_len)
+{
+  static const uint8_t head_data[54] = {
+    0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+    0x5F, 0x0F, 0x3C, 0xF5, 0, 0, 0x03, 0xE8
+  };
+  static const uint8_t maxp_data[32] = {
+    0, 1, 0, 0, 0, 2
+  };
+  static const uint8_t loca_data[6] = {
+    0, 0, 0, 9, 0, 9
+  };
+  /* Glyph 0: 1 contour, 2 on-curve points (0,0) -> (100,0). */
+  static const uint8_t glyf_data[18] = {
+    0, 1, 0, 0, 0, 0, 0, 100, 0, 100,
+    0, 1, 0, 0,
+    0x31, 0x33, 100, 0
+  };
+  static const uint8_t fvar_data[36] = {
+    0, 1, 0, 0, 0, 16, 0, 2, 0, 1, 0, 20, 0, 0, 0, 8,
+    'w', 'g', 'h', 't', 0, 100, 0, 0, 1, 0x90, 0, 0, 3, 0x84, 0, 0, 0, 0, 1, 0
+  };
+
+  unsigned axis_idx_table_size = 13 + axis_indices_len;
+  unsigned rec_len = 4 + axis_values_len;
+  unsigned glyph_rec_table_offset = 30 + axis_idx_table_size;
+  unsigned varc_len = glyph_rec_table_offset + 13 + rec_len;
+  uint8_t *varc = (uint8_t *) g_malloc0 (varc_len);
+
+  /* VARC header (24 bytes) */
+  varc[1] = 1;
+  varc[7] = 24; /* coverage */
+  varc[19] = 30; /* axisIndicesList */
+  varc[20] = (glyph_rec_table_offset >> 24) & 0xFF;
+  varc[21] = (glyph_rec_table_offset >> 16) & 0xFF;
+  varc[22] = (glyph_rec_table_offset >> 8) & 0xFF;
+  varc[23] = glyph_rec_table_offset & 0xFF;
+
+  /* CoverageFormat1 mapping glyph 1 -> record 0 */
+  varc[25] = 1;
+  varc[27] = 1;
+  varc[29] = 1;
+
+  /* axisIndicesList CFF2Index (count=1, offSize=4) */
+  varc[33] = 1;
+  varc[34] = 4;
+  varc[38] = 1;
+  unsigned end_off1 = 1 + axis_indices_len;
+  varc[39] = (end_off1 >> 24) & 0xFF;
+  varc[40] = (end_off1 >> 16) & 0xFF;
+  varc[41] = (end_off1 >> 8) & 0xFF;
+  varc[42] = end_off1 & 0xFF;
+  memcpy (varc + 43, axis_indices_payload, axis_indices_len);
+
+  /* glyphRecords CFF2Index (count=1, offSize=4) */
+  uint8_t *gr = varc + glyph_rec_table_offset;
+  gr[3] = 1;
+  gr[4] = 4;
+  gr[8] = 1;
+  unsigned end_off2 = 1 + rec_len;
+  gr[9] = (end_off2 >> 24) & 0xFF;
+  gr[10] = (end_off2 >> 16) & 0xFF;
+  gr[11] = (end_off2 >> 8) & 0xFF;
+  gr[12] = end_off2 & 0xFF;
+  gr[13] = 0x02; /* flags = HAVE_AXES */
+  gr[14] = 0x00; /* gid hi */
+  gr[15] = 0x00; /* gid lo */
+  gr[16] = 0x00; /* axis_indices_index = 0 */
+  memcpy (gr + 17, axis_values_payload, axis_values_len);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *b;
+  #define ADD_TBL(tag_str, ptr, sz, free_fn)     G_STMT_START {       b = hb_blob_create ((const char *) (ptr), (sz), HB_MEMORY_MODE_READONLY, (void *) (ptr), (free_fn));       hb_face_builder_add_table (face, HB_TAG (tag_str[0], tag_str[1], tag_str[2], tag_str[3]), b);       hb_blob_destroy (b);     } G_STMT_END
+  ADD_TBL ("head", head_data, sizeof (head_data), NULL);
+  ADD_TBL ("maxp", maxp_data, sizeof (maxp_data), NULL);
+  ADD_TBL ("loca", loca_data, sizeof (loca_data), NULL);
+  ADD_TBL ("glyf", glyf_data, sizeof (glyf_data), NULL);
+  ADD_TBL ("fvar", fvar_data, sizeof (fvar_data), NULL);
+  ADD_TBL ("VARC", varc, varc_len, g_free);
+  #undef ADD_TBL
+  return face;
+}
+
+static void
+test_hb_draw_varc_truncated_axes_run (void)
+{
+  /* Positive control: valid 1-zero axisIndices run (0x80) draws glyph 0. */
+  {
+    const uint8_t one_zero[1] = {0x80};
+    hb_face_t *face = build_varc_axis_tuple_test_face (one_zero, 1, one_zero, 1);
+    hb_font_t *font = hb_font_create (face);
+    draw_data_t draw_data = {0};
+    hb_font_draw_glyph (font, 1, funcs, &draw_data);
+    g_assert_cmpuint (draw_data.move_to_count, ==, 1);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+
+  /* Malformed truncated axisIndices run (control=0x41 claims 2 word values = 4B
+   * with only 1 payload byte 0x80 left) must fail cleanly instead of yielding
+   * a bogus zero from the failed run plus re-parsing 0x80 as a second 1-zero
+   * run (2 items total) and drawing. */
+  {
+    const uint8_t truncated_idx[2] = {0x41, 0x80};
+    const uint8_t two_zeros[1] = {0x81};
+    hb_face_t *face = build_varc_axis_tuple_test_face (truncated_idx, 2, two_zeros, 1);
+    hb_font_t *font = hb_font_create (face);
+    draw_data_t draw_data = {0};
+    hb_font_draw_glyph (font, 1, funcs, &draw_data);
+    g_assert_cmpuint (draw_data.move_to_count, ==, 0);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_hb_draw_varc_compressed_axes_preflight (void)
+{
+  /* Compressed zero-runs (65,536 * 64 = 4,194,304 values) must charge the
+   * draw budget BEFORE expanding into cached scratch vectors. */
+  const unsigned runs = 65536;
+  uint8_t *zeros = (uint8_t *) g_malloc (runs);
+  memset (zeros, 0xBF, runs); /* VALUES_ARE_ZEROS | 63 -> 64 zeros/byte */
+  hb_face_t *face = build_varc_axis_tuple_test_face (zeros, runs, zeros, runs);
+  g_free (zeros);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_draw_funcs_t *budget_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (budget_funcs, move_to, NULL, NULL);
+  hb_draw_funcs_set_line_to_func (budget_funcs, line_to, NULL, NULL);
+  hb_draw_funcs_set_close_path_func (budget_funcs, close_path, NULL, NULL);
+  hb_draw_funcs_set_set_budget_func (budget_funcs, set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_func (budget_funcs, get_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (budget_funcs, get_budget_remaining, NULL, NULL);
+  hb_draw_funcs_make_immutable (budget_funcs);
+
+  /* Warm up leaf glyph 0 first so accelerator setup is already accounted for. */
+  budget_draw_data_t draw_data = {{0}, HB_BUDGET_DEFAULT, 0};
+  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 1024));
+  hb_font_draw_glyph (font, 0, budget_funcs, &draw_data);
+  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 1);
+
+#ifdef HB_HAS_HEAP_ALLOC_TRACKER
+  size_t alloc_before = get_current_heap_allocated_bytes ();
+#endif
+
+  draw_data.draw = (draw_data_t) {0};
+  /* Budget 100,000 covers entering the 65 KiB record, but not 4,194,304 axes. */
+  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 100000));
+  hb_font_draw_glyph (font, 1, budget_funcs, &draw_data);
+  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 0);
+  g_assert_cmpint (draw_data.remaining, <, 0);
+
+#ifdef HB_HAS_HEAP_ALLOC_TRACKER
+  size_t alloc_after = get_current_heap_allocated_bytes ();
+  size_t retained = alloc_after > alloc_before ? alloc_after - alloc_before : 0;
+  /* Without pre-budget counting, cached_scratch retains 16 MiB (4M * 4B). */
+  g_assert_cmpuint (retained, <, 65536);
+#endif
+
+  hb_draw_funcs_destroy (budget_funcs);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
 #endif
 
 int
@@ -470,6 +669,8 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_varc_delta_precision);
   hb_test_add (test_hb_draw_varc_static_deltas);
   hb_test_add (test_hb_draw_varc_budget);
+  hb_test_add (test_hb_draw_varc_truncated_axes_run);
+  hb_test_add (test_hb_draw_varc_compressed_axes_preflight);
 #endif
   unsigned result = hb_test_run ();
 
