@@ -119,7 +119,7 @@ struct hb_bit_page_t
   void dirty () { population = UINT_MAX; }
 
   static inline constexpr unsigned len ()
-  { return ARRAY_LENGTH_CONST (v); }
+  { return ARRAY_LENGTH_UNCHECKED (v); }
 
   operator bool () const { return !is_empty (); }
   bool is_empty () const
