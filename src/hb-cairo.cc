@@ -272,6 +272,7 @@ hb_cairo_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   cairo_t *cr = c->cr;
 
   cairo_save (cr);
+  cairo_new_path (cr);
   cairo_rectangle (cr,
                    (double) xmin, (double) ymin,
                    (double) (xmax - xmin), (double) (ymax - ymin));
