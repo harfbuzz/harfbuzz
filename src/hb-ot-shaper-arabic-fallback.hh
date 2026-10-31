@@ -101,22 +101,23 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
   return ret && !c.in_error () ? c.copy<OT::SubstLookup> () : nullptr;
 }
 
-template <typename T, size_t table_length>
+template <typename T>
 static OT::SubstLookup *
 arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UNUSED,
 					    hb_font_t *font,
-					    const T (&ligature_table)[table_length],
+					    const T &ligature_table,
 					    unsigned lookup_flags)
 {
+  constexpr size_t table_length = std::extent<T>::value;
+  constexpr size_t ligature_count =
+      std::extent<decltype (ligature_table[0].ligatures)>::value;
+  constexpr size_t component_count =
+      std::extent<decltype (ligature_table[0].ligatures[0].components)>::value;
+
   OT::HBGlyphID16 first_glyphs[table_length];
   unsigned int first_glyphs_indirection[table_length];
   unsigned int ligature_per_first_glyph_count_list[table_length];
   unsigned int num_first_glyphs = 0;
-
-  constexpr unsigned int ligature_count =
-      std::extent<decltype (ligature_table[0].ligatures)>::value;
-  constexpr unsigned int component_count =
-      std::extent<decltype (ligature_table[0].ligatures[0].components)>::value;
 
   /* We know that all our ligatures have the same number of components. */
   OT::HBGlyphID16 ligature_list[table_length * ligature_count];
