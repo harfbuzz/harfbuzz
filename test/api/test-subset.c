@@ -94,6 +94,102 @@ test_subset_crash (void)
   hb_face_destroy (face);
 }
 
+static char *
+_put16 (char *p, unsigned v)
+{
+  *p++ = (char) (v >> 8);
+  *p++ = (char) (v & 0xFF);
+  return p;
+}
+
+/* A GSUB with one reverse-chaining lookup whose backtrack_count backtrack
+ * offsets all point at one Coverage holding the single range 0..range_last,
+ * in a face declaring 65535 glyphs.  Each offset costs two bytes but makes
+ * the subsetter walk the whole range. */
+static hb_face_t *
+_create_shared_coverage_face (unsigned backtrack_count, unsigned range_last)
+{
+  static const char cmap_data[] = {
+    0, 0, 0, 1,  0, 3, 0, 1,  0, 0, 0, 12,
+    0, 6,  0, 12,  0, 0,  0, 'a',  0, 1,  0, 1, /* format 6: 'a' -> glyph 1 */
+  };
+  static const char maxp_data[] = { 0, 0, 0x50, 0, (char) 0xFF, (char) 0xFF };
+
+  unsigned subtable_length = 12 + 2 * backtrack_count + 6 + 10;
+  unsigned gsub_length = 10 + 20 + 14 + 4 + 8 + subtable_length;
+  char *gsub = g_malloc (gsub_length);
+  char *p = gsub;
+
+  p = _put16 (p, 1); p = _put16 (p, 0);
+  p = _put16 (p, 10); p = _put16 (p, 30); p = _put16 (p, 44);
+  /* ScriptList: DFLT, default LangSys using feature 0. */
+  p = _put16 (p, 1); memcpy (p, "DFLT", 4); p += 4; p = _put16 (p, 8);
+  p = _put16 (p, 4); p = _put16 (p, 0);
+  p = _put16 (p, 0); p = _put16 (p, 0xFFFF); p = _put16 (p, 1); p = _put16 (p, 0);
+  /* FeatureList: calt, using lookup 0. */
+  p = _put16 (p, 1); memcpy (p, "calt", 4); p += 4; p = _put16 (p, 8);
+  p = _put16 (p, 0); p = _put16 (p, 1); p = _put16 (p, 0);
+  /* LookupList: one type 8 lookup with one subtable. */
+  p = _put16 (p, 1); p = _put16 (p, 4);
+  p = _put16 (p, 8); p = _put16 (p, 0); p = _put16 (p, 1); p = _put16 (p, 8);
+  /* ReverseChainSingleSubstFormat1 substituting glyph 1 by itself. */
+  p = _put16 (p, 1); p = _put16 (p, 12 + 2 * backtrack_count);
+  p = _put16 (p, backtrack_count);
+  for (unsigned i = 0; i < backtrack_count; i++)
+    p = _put16 (p, 12 + 2 * backtrack_count + 6);
+  p = _put16 (p, 0);
+  p = _put16 (p, 1); p = _put16 (p, 1);
+  p = _put16 (p, 1); p = _put16 (p, 1); p = _put16 (p, 1);
+  p = _put16 (p, 2); p = _put16 (p, 1); p = _put16 (p, 0); p = _put16 (p, range_last); p = _put16 (p, 0);
+  g_assert_cmpuint (p - gsub, ==, gsub_length);
+
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gsub, gsub_length, HB_MEMORY_MODE_WRITABLE, gsub, g_free);
+  hb_face_builder_add_table (builder, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+  HB_FACE_ADD_TABLE (builder, "cmap", cmap_data);
+  HB_FACE_ADD_TABLE (builder, "maxp", maxp_data);
+
+  blob = hb_face_reference_blob (builder);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  hb_face_destroy (builder);
+  return face;
+}
+
+static void
+test_subset_shared_coverage_budget (void)
+{
+  /* Walking 65535 glyphs per offset must run out of the per-table work
+   * budget (HB_BUDGET_SUBSET_TABLE) at 2048 offsets, but not at 256. */
+  static const struct { unsigned backtrack_count, range_last; hb_bool_t expected; } cases[] = {
+    { 2048, 1,     TRUE },
+    { 256,  65534, TRUE },
+    { 2048, 65534, FALSE },
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    hb_face_t *face = _create_shared_coverage_face (cases[i].backtrack_count, cases[i].range_last);
+
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_unicode_set (input), 'a');
+
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_true (!subset == !cases[i].expected);
+    if (subset)
+    {
+      hb_blob_t *gsub = hb_face_reference_table (subset, HB_TAG ('G','S','U','B'));
+      g_assert_cmpuint (hb_blob_get_length (gsub), >, 0);
+      hb_blob_destroy (gsub);
+    }
+
+    hb_subset_input_destroy (input);
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
+}
+
 #ifndef HB_NO_VAR
 static void
 assert_lookup_variations_shape (hb_face_t *face,
@@ -1087,6 +1183,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_32_tables);
   hb_test_add (test_subset_no_inf_loop);
   hb_test_add (test_subset_crash);
+  hb_test_add (test_subset_shared_coverage_budget);
 #ifndef HB_NO_VAR
   hb_test_add (test_subset_lookup_variations);
   hb_test_add (test_subset_lookup_variation_fractional_value);

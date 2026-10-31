@@ -3094,6 +3094,25 @@ static void test_invalid_link_add_and_move ()
   free (buffer);
 }
 
+static void test_work_budget ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_dedup_overflow (&c);
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+
+  // A small graph gets the minimum budget. Once that is used up nodes can't be
+  // duplicated and overflow resolution, which succeeds otherwise, gives up.
+  hb_always_assert (graph.charge_ops (HB_BUDGET_REPACKER_MIN).is_ok ());
+  auto dup = graph.duplicate (0);
+  hb_always_assert (dup.is_err () && dup.error () == graph::LIMIT_EXCEEDED);
+  auto res = hb_resolve_graph_overflows (HB_TAG_NONE, 32, false, graph);
+  hb_always_assert (res.is_err () && res.error () == graph::LIMIT_EXCEEDED);
+
+  free (buffer);
+}
+
 static void test_anchor_matrix_sanitize_size_overflow ()
 {
   // 2 * 46341 * 46341 wraps around to 9266 in 32-bit arithmetic.
@@ -3160,6 +3179,7 @@ main (int argc, char **argv)
   test_pair_pos_format_2_sanitize_size_overflow ();
   test_invalid_link_objidx ();
   test_invalid_link_add_and_move ();
+  test_work_budget ();
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();

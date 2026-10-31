@@ -66,6 +66,7 @@ struct SingleSubstFormat2_4
 
     if (substitute.len > glyph_set.get_population () * 4)
     {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
       for (auto g : glyph_set)
       {
 	unsigned i = cov.get_coverage (g);
@@ -77,6 +78,7 @@ struct SingleSubstFormat2_4
       return;
     }
 
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, substitute.len))) return;
     + hb_zip (cov, substitute)
     | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)

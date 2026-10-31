@@ -240,9 +240,48 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
 #endif
 
+/* Subsetting one table, in glyphs visited while walking its Coverage and
+ * ClassDef tables.  A glyph range costs a few bytes and any number of
+ * offsets can share it, so neither the table size nor the sanitizer's
+ * budget bounds that work. */
+#ifndef HB_BUDGET_SUBSET_TABLE
+#define HB_BUDGET_SUBSET_TABLE ((int64_t) 1 << 26)
+#endif
+
+/* One dependency graph build.  A few bytes of Coverage or ClassDef range
+ * can name any number of glyphs, so the glyph sets built from them are
+ * charged per page: for the work of expanding them, and for the memory
+ * they hold once the graph keeps a copy.  Exceeding the budget fails the
+ * build. */
+#ifndef HB_BUDGET_DEPEND
+#define HB_BUDGET_DEPEND ((int64_t) 1 << 26)
+#endif
+
+/* One GSUB glyph-closure session, in records (glyphs, offsets, ranges,
+ * rules) walked.  HB_MAX_LOOKUP_VISIT_COUNT bounds how many times lookups
+ * are entered per round, not what one visit walks: through shared offsets
+ * a subtable can walk many times the size of its table, and every glyph
+ * the closure gains makes all lookups visitable again. */
+#ifndef HB_BUDGET_LAYOUT_CLOSURE
+#define HB_BUDGET_LAYOUT_CLOSURE ((int64_t) 1 << 28)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
+#endif
+
+/* Work budget of one repacker graph, per vertex and link it starts out
+ * with.  Each overflow-resolution pass walks every vertex and link, and an
+ * isolating pass does not count as a round, so the limits on iterations and
+ * vertices bound neither their product nor the number of links, which node
+ * duplication copies freely.  Sized like HB_SANITIZE_MAX_OPS, proportional
+ * to the input with a floor. */
+#ifndef HB_BUDGET_REPACKER_FACTOR
+#define HB_BUDGET_REPACKER_FACTOR 256
+#endif
+#ifndef HB_BUDGET_REPACKER_MIN
+#define HB_BUDGET_REPACKER_MIN ((int64_t) 1 << 22)
 #endif
 
 #ifndef HB_REPACKER_MAX_VERTICES

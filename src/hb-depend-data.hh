@@ -306,9 +306,17 @@ struct hb_depend_data_builder_t
     check_success (free_set_list.push_or_fail (set_index));
   }
 
+  /* Charge a set for its pages: the memory it holds once stored, or, at a
+   * lower cost, the work of filling a temporary one. */
+  bool charge_set (const hb_set_t &set, unsigned cost = HB_BUDGET_32)
+  { return check_success (hb_budget_spend (budget_remaining, cost, 1 + set.get_page_count ())); }
+
   hb_codepoint_t new_set (const hb_set_t &set)
   {
     hb_codepoint_t set_index;
+
+    if (unlikely (!charge_set (set)))
+      return fail_invalid ();
 
     if (free_set_list.length > 0)
     {
@@ -656,6 +664,7 @@ struct hb_depend_data_builder_t
   hb_vector_t<unsigned> lookup_feature_offsets;
   hb_vector_t<uint64_t> edge_slots;
   unsigned int edge_population = 0;
+  int64_t budget_remaining = HB_BUDGET_DEPEND;
   hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
   hb_vector_t<hb_codepoint_t> free_set_list;
   hb_codepoint_t current_context_set_index;

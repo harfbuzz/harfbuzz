@@ -70,7 +70,13 @@ struct hb_closure_context_t :
 {
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index);
   template <typename T>
-  return_t dispatch (const T &obj) { obj.closure (this); return hb_empty_t (); }
+  return_t dispatch (const T &obj)
+  {
+    /* Every subtable visit walks its coverage at least once. */
+    if (likely (spend_budget (HB_BUDGET_1, 1 + obj.get_coverage ().get_record_count ())))
+      obj.closure (this);
+    return hb_empty_t ();
+  }
   static return_t default_return_value () { return hb_empty_t (); }
   void recurse (unsigned lookup_index, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index)
   {
@@ -86,11 +92,28 @@ struct hb_closure_context_t :
   { lookup_count = 0; }
 
   bool lookup_limit_exceeded ()
-  { return lookup_count > HB_MAX_LOOKUP_VISIT_COUNT; }
+  { return lookup_count > HB_MAX_LOOKUP_VISIT_COUNT || budget < 0; }
+
+  /* The visit count does not bound the work: a visit can walk many times
+   * the size of the table through shared offsets, and every glyph added to
+   * the closure makes all lookups visitable again.  closure() implementations
+   * charge what they walk here; once the budget is spent the closure stops,
+   * as it does at the visit limit. */
+  bool spend_budget (unsigned int cost, unsigned int mult = 1)
+  { return hb_budget_spend (budget, cost, mult); }
+
+  template <typename Base, typename Offsets>
+  bool spend_coverages (const Base *base, const Offsets &coverages)
+  {
+    for (const auto &offset : coverages)
+      if (unlikely (!spend_budget (HB_BUDGET_1, 1 + (base+offset).get_record_count ())))
+	return false;
+    return true;
+  }
 
   bool should_visit_lookup (unsigned int lookup_index)
   {
-    if (lookup_count++ > HB_MAX_LOOKUP_VISIT_COUNT)
+    if (lookup_count++ > HB_MAX_LOOKUP_VISIT_COUNT || budget < 0)
       return false;
 
     if (is_lookup_done (lookup_index))
@@ -200,6 +223,7 @@ struct hb_closure_context_t :
   hb_map_t *done_lookups_glyph_count;
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set;
   unsigned int lookup_count = 0;
+  int64_t budget = HB_BUDGET_LAYOUT_CLOSURE;
 };
 
 
@@ -685,6 +709,9 @@ struct hb_depend_context_t :
       *index = *existing;
       return true;
     }
+
+    if (unlikely (!depend_data->charge_set (set)))
+      return false;
 
     hb_set_t *copy = hb_object_create<hb_set_t> ();
     if (unlikely (!copy))
@@ -1765,13 +1792,29 @@ hb_depend_context_t::find_or_create_glyph_set (const void *data,
     return nullptr;
   }
 
-  if (type == GLYPH_SET_COVERAGE)
-    collect_coverage (set, value, data);
-  else if (type == GLYPH_SET_CLASS)
-    collect_class (set, value, data);
-  else
+  /* A coverage or class range can name far more glyphs than the face has,
+   * and these sets are copied into the graph.  Expand into a temporary,
+   * charged as work, and keep only the face's glyphs in a set sized for
+   * them, charged as memory. */
+  hb_set_t expanded;
+  if (type == GLYPH_SET_SINGLE)
     set->add (value);
-  if (unlikely (set->in_error ()))
+  else
+  {
+    if (type == GLYPH_SET_COVERAGE)
+      collect_coverage (&expanded, value, data);
+    else
+      collect_class (&expanded, value, data);
+    if (unlikely (!depend_data->charge_set (expanded, HB_BUDGET_4)))
+    {
+      hb_set_destroy (set);
+      return nullptr;
+    }
+    expanded.intersect (*glyphs);
+    set->set (expanded);
+  }
+  if (unlikely (set->in_error () || expanded.in_error () ||
+		!depend_data->charge_set (*set)))
   {
     hb_set_destroy (set);
     depend_data->fail ();
@@ -2920,6 +2963,8 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
 					   unsigned value, /* Index of first glyph in Coverage or Class value in ClassDef table */
 					   ContextClosureLookupContext &lookup_context)
 {
+  if (unlikely (!c->spend_budget (HB_BUDGET_1, inputCount + lookupCount))) return;
+
   if (context_intersects (c->glyphs,
 			  inputCount, input,
 			  lookup_context))
@@ -3295,6 +3340,7 @@ struct RuleSetOf
 		ContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, rule.len))) return;
 
     return
     + hb_iter (rule)
@@ -3588,6 +3634,8 @@ struct ContextFormat1_4
 
   void closure (hb_closure_context_t *c) const
   {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, ruleSet.len))) return;
+
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs)) return;
     get_coverage ().intersect_set (c->previous_parent_active_glyphs (), *cur_active_glyphs);
@@ -3802,12 +3850,15 @@ struct ContextFormat2_5
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
+    /* Filtering the rule sets walks the ClassDef once per set. */
+    const ClassDef &class_def = this+classDef;
+    if (unlikely (!c->spend_budget (ruleSet.len, 1 + class_def.get_record_count ())))
+      return;
+
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs)) return;
     get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
 				   *cur_active_glyphs);
-
-    const ClassDef &class_def = this+classDef;
 
     hb_map_t cache;
     intersected_class_cache_t intersected_cache;
@@ -4090,6 +4141,8 @@ struct ContextFormat3_6
   {
     if (!(this+coverageZ[0]).intersects (c->glyphs))
       return;
+    if (unlikely (!c->spend_coverages (this, coverageZ.as_array (glyphCount))))
+      return;
 
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs)) return;
@@ -4334,6 +4387,8 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 						 unsigned value,
 						 ChainContextClosureLookupContext &lookup_context)
 {
+  if (unlikely (!c->spend_budget (HB_BUDGET_1, backtrackCount + inputCount + lookaheadCount + lookupCount))) return;
+
   if (chain_context_intersects (c->glyphs,
 				backtrackCount, backtrack,
 				inputCount, input,
@@ -4897,6 +4952,7 @@ struct ChainRuleSetOf
   void closure (hb_closure_context_t *c, unsigned value, ChainContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, rule.len))) return;
 
     return
     + hb_iter (rule)
@@ -5215,6 +5271,8 @@ struct ChainContextFormat1_4
 
   void closure (hb_closure_context_t *c) const
   {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, ruleSet.len))) return;
+
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs)) return;
     get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
@@ -5435,14 +5493,17 @@ struct ChainContextFormat2_5
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
+    /* Filtering the rule sets walks the input ClassDef once per set. */
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
+    const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+    if (unlikely (!c->spend_budget (ruleSet.len, 1 + input_class_def.get_record_count ())))
+      return;
+
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs)) return;
     get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
 				   *cur_active_glyphs);
-
-    const ClassDef &backtrack_class_def = this+backtrackClassDef;
-    const ClassDef &input_class_def = this+inputClassDef;
-    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
     hb_map_t caches[3] = {};
     intersected_class_cache_t intersected_cache;
@@ -5834,14 +5895,19 @@ struct ChainContextFormat3
     if (!(this+input[0]).intersects (c->glyphs))
       return;
 
+    const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
+    const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    if (unlikely (!c->spend_coverages (this, backtrack) ||
+		  !c->spend_coverages (this, input) ||
+		  !c->spend_coverages (this, lookahead)))
+      return;
+
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
       return;
     get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
 				   *cur_active_glyphs);
 
-    const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
-    const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
       ContextFormat::CoverageBasedContext,

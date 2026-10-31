@@ -142,11 +142,15 @@ struct ReverseChainSingleSubstFormat1_2
 
   void closure (hb_closure_context_t *c) const
   {
-    if (!intersects (c->glyphs)) return;
-
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
 
+    if (unlikely (!c->spend_coverages (this, backtrack) ||
+		  !c->spend_coverages (this, lookahead)))
+      return;
+    if (!intersects (c->glyphs)) return;
+
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, substitute.len))) return;
     + hb_zip (this+coverage, substitute)
     | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)

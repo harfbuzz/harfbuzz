@@ -99,6 +99,7 @@ struct hb_bit_set_invertible_t
     previous (&v);
     return v;
   }
+  unsigned int get_page_count () const { return s.get_page_count (); }
   unsigned int get_population () const
   { return inverted ? INVALID - s.get_population () : s.get_population (); }
   bool get_singleton (hb_codepoint_t *codepoint) const
