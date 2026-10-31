@@ -85,6 +85,8 @@ public:
   hb_decycler_t layers_decycler;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
+  int64_t local_budget = HB_BUDGET_GLYPH;
+  int64_t *budget;
 
   hb_paint_context_t (const void *base_,
 		      hb_paint_funcs_t *funcs_,
@@ -104,8 +106,12 @@ public:
 #endif
     ),
     foreground (foreground_),
-    instancer (instancer_)
+    instancer (instancer_),
+    budget (funcs->get_budget_remaining_ptr (data))
   {
+    if (!budget)
+      budget = &local_budget;
+
     if (font->is_synthetic)
     {
       font = hb_font_create_sub_font (font);
@@ -236,6 +242,9 @@ struct hb_colrv1_depend_context_t :
   template <typename T>
   return_t dispatch (const T &obj)
   {
+    if (unlikely (!spend_ops ()))
+      return hb_empty_t ();
+
     if (unlikely (nesting_level_left == 0))
       return hb_empty_t ();
 
@@ -261,6 +270,20 @@ struct hb_colrv1_depend_context_t :
     return false;
   }
 
+  /* Layers and paints shared between base glyphs are walked again for each
+   * of them, which sanitize does not charge for.  Bound the total work and
+   * fail, rather than return a graph with edges missing. */
+  bool spend_ops (unsigned count = 1)
+  {
+    max_ops -= (int) count;
+    if (unlikely (max_ops < 0))
+    {
+      max_ops = -1;
+      return depend_data->fail ();
+    }
+    return true;
+  }
+
   const COLR* get_colr_table () const
   { return colr; }
 
@@ -268,14 +291,19 @@ struct hb_colrv1_depend_context_t :
   const COLR *colr;
   hb_depend_data_builder_t *depend_data;
   hb_set_t visited_paint;
+  int max_ops;
   unsigned nesting_level_left;
   hb_codepoint_t source_gid;
 
   hb_colrv1_depend_context_t (const COLR *colr_,
+                              unsigned colr_length,
                               hb_depend_data_builder_t *depend_data_,
                               unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
                           colr (colr_),
                           depend_data (depend_data_),
+                          max_ops ((int) hb_clamp ((uint64_t) colr_length * HB_SANITIZE_MAX_OPS_FACTOR,
+                                                   (uint64_t) HB_SANITIZE_MAX_OPS_MIN,
+                                                   (uint64_t) HB_SANITIZE_MAX_OPS_MAX)),
                           nesting_level_left (nesting_level_left_),
                           source_gid (0)
   {}
@@ -606,6 +634,10 @@ struct ColorLine
       for (i = 0; i < *count && start + i < len; i++)
         stops[start + i].get_color_stop (c, &color_stops[i], instancer);
       *count = i;
+
+      /* A gradient is one graph edge however long its color line is, and
+       * color lines can be shared.  recurse() stops once this runs out. */
+      hb_budget_spend (*c->budget, HB_BUDGET_16, i);
     }
 
     return len;
@@ -890,6 +922,10 @@ struct PaintRadialGradient
                                const ItemVarStoreInstancer &instancer) const
   {
     if (c->plan->has_avar2) return false;
+    /* The answer depends on the table and the plan only, but shared paints
+     * are visited once per reference, so compute it once per plan. */
+    int &constant = c->plan->colrv1_constant_after_pinning;
+    if (constant >= 0) return constant;
     const auto &regions = instancer.varStore->get_region_list ();
     for (unsigned i = 0; i < regions.regionCount; i++)
     {
@@ -904,10 +940,10 @@ struct PaintRadialGradient
         Triple *limit;
         if (!c->plan->user_axes_location.has (axis.first, &limit) ||
             limit->minimum != limit->maximum)
-          return false;
+          return (constant = false);
       }
     }
-    return true;
+    return (constant = true);
   }
 
   void dependv1 (hb_colrv1_depend_context_t* c) const {}
@@ -1052,9 +1088,8 @@ struct PaintRadialGradient
                uint32_t varIdxBase) const
   {
     TRACE_SUBSET (this);
-    if (instancer && !c->plan->pinned_at_default &&
+    if (instancer && !c->plan->pinned_at_default && varIdxBase != VarIdx::NO_VARIATION &&
         (c->plan->all_axes_pinned || constant_after_pinning (c, instancer)) &&
-        varIdxBase != VarIdx::NO_VARIATION &&
         (radius0 + (double) roundf (instancer (varIdxBase, 2)) < 0 ||
          radius1 + (double) roundf (instancer (varIdxBase, 5)) < 0))
       return_trace (subset_nonnegative (c, instancer, varIdxBase));
@@ -2179,17 +2214,17 @@ struct ClipList
 
     hb_map_t new_gid_offset_map;
     hb_set_t new_gids;
-    for (const ClipRecord& record : clips.iter ())
+    /* Look up each retained glyph the same way get_extents () does, instead of
+     * walking every gid of every record: records are not required to be
+     * disjoint, so that can cost num_records * num_glyphs. */
+    for (hb_codepoint_t gid : glyphset)
     {
-      unsigned start_gid = record.startGlyphID;
-      unsigned end_gid = record.endGlyphID;
-      for (unsigned gid = start_gid; gid <= end_gid; gid++)
-      {
-        if (!glyphset.has (gid) || !glyph_map.has (gid)) continue;
-        unsigned new_gid = glyph_map.get (gid);
-        new_gid_offset_map.set (new_gid, record.clipBox);
-        new_gids.add (new_gid);
-      }
+      const hb_codepoint_t *new_gid;
+      if (!glyph_map.has (gid, &new_gid)) continue;
+      const ClipRecord *record = clips.as_array ().bsearch (gid);
+      if (!record) continue;
+      new_gid_offset_map.set (*new_gid, record->clipBox);
+      new_gids.add (*new_gid);
     }
 
     unsigned count = serialize_clip_records (c, instancer, new_gids, new_gid_offset_map);
@@ -2588,12 +2623,12 @@ struct COLR
     void depend (hb_depend_data_builder_t *depend_data) const
     {
       if (!has_data ()) return;
-      colr->depend (depend_data);
+      colr->depend (depend_data, colr.get_length ());
     }
 
-    void closure_glyphs (hb_codepoint_t glyph,
+    void closure_glyphs (const hb_set_t *glyphs,
 			 hb_set_t *related_ids /* OUT */) const
-    { colr->closure_glyphs (glyph, related_ids); }
+    { colr->closure_glyphs (glyphs, related_ids); }
 
     void closure_V0palette_indices (const hb_set_t *glyphs,
 				    hb_set_t *palettes /* OUT */) const
@@ -2652,14 +2687,18 @@ struct COLR
     mutable hb_atomic_t<hb_colr_scratch_t *> cached_scratch;
   };
 
-  void depend (hb_depend_data_builder_t *depend_data) const
+  void depend (hb_depend_data_builder_t *depend_data, unsigned table_length) const
   {
+    hb_colrv1_depend_context_t c (this, table_length, depend_data);
+
     // v0
     hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
     for (const BaseGlyphRecord &record : baseGlyphs)
     {
       auto glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record.firstLayerIdx,
                                                                          record.numLayers);
+      if (unlikely (!c.spend_ops (glyph_layers.length)))
+        return;
       for (const LayerRecord layer : glyph_layers)
         depend_data->add_depend(record.glyphId, HB_OT_TAG_COLR, layer.glyphId);
     }
@@ -2668,11 +2707,13 @@ struct COLR
       return;
 
     // v1
-    hb_colrv1_depend_context_t c (this, depend_data);
     const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
 
     for (const BaseGlyphPaintRecord &baseglyph_paintrecord: baseglyph_paintrecords.iter ())
     {
+      if (unlikely (!depend_data->successful))
+        return;
+
       c.source_gid = baseglyph_paintrecord.glyphId;
       c.visited_paint.clear ();
 
@@ -2681,16 +2722,33 @@ struct COLR
     }
   }
 
-  void closure_glyphs (hb_codepoint_t glyph,
+  /* Base glyphs may share layers.  The V0 closures collect the layer
+   * indices of all base glyphs first, so each layer is visited once. */
+  void collect_V0layer_indices (const BaseGlyphRecord &record,
+				hb_set_t *layer_indices /* OUT */) const
+  {
+    unsigned count = (this+layersZ).as_array (numLayers).sub_array (record.firstLayerIdx,
+								    record.numLayers).length;
+    if (!count) return;
+    layer_indices->add_range (record.firstLayerIdx, record.firstLayerIdx + count - 1);
+  }
+
+  void closure_glyphs (const hb_set_t *glyphs,
 		       hb_set_t *related_ids /* OUT */) const
   {
-    const BaseGlyphRecord *record = get_base_glyph_record (glyph);
-    if (!record) return;
+    if (!numBaseGlyphs || !numLayers) return;
+    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
 
-    auto glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record->firstLayerIdx,
-								       record->numLayers);
-    if (!glyph_layers.length) return;
-    related_ids->add_array (&glyph_layers[0].glyphId, glyph_layers.length, LayerRecord::min_size);
+    hb_set_t layer_indices;
+    for (hb_codepoint_t glyph : *glyphs)
+    {
+      const BaseGlyphRecord *record = get_base_glyph_record (glyph);
+      if (!record) continue;
+      collect_V0layer_indices (*record, &layer_indices);
+    }
+
+    for (unsigned idx : layer_indices)
+      related_ids->add (all_layers[idx].glyphId);
   }
 
   void closure_V0palette_indices (const hb_set_t *glyphs,
@@ -2700,14 +2758,15 @@ struct COLR
     hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
     hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
 
-    for (const BaseGlyphRecord record : baseGlyphs)
+    hb_set_t layer_indices;
+    for (const BaseGlyphRecord &record : baseGlyphs)
     {
       if (!glyphs->has (record.glyphId)) continue;
-      hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
-                                                                   record.numLayers);
-      for (const LayerRecord layer : glyph_layers)
-        palettes->add (layer.colorIdx);
+      collect_V0layer_indices (record, &layer_indices);
     }
+
+    for (unsigned idx : layer_indices)
+      palettes->add (all_layers[idx].colorIdx);
   }
 
   void closure_forV1 (hb_set_t *glyphset,
@@ -2980,6 +3039,16 @@ struct COLR
     | hb_map_retains_sorting (hb_second)
     ;
 
+    /* Base glyphs sharing layers each get their own copy in the output.
+     * Drop the table instead of expanding more layers than numLayers holds. */
+    unsigned num_layers = 0;
+    for (const BaseGlyphRecord record : + base_it)
+    {
+      num_layers += record.numLayers;
+      if (unlikely (num_layers > 0xFFFFu))
+	return_trace (false);
+    }
+
     auto layer_it =
     + hb_range (c->plan->num_output_glyphs ())
     | hb_map (reverse_glyph_map)
@@ -3235,7 +3304,7 @@ struct COLR_accelerator_t : COLR::accelerator_t {
 void
 hb_paint_context_t::recurse (const Paint &paint)
 {
-  if (unlikely (depth_left <= 0 || edge_count <= 0)) return;
+  if (unlikely (depth_left <= 0 || edge_count <= 0 || *budget < 0)) return;
   depth_left--;
   edge_count--;
   paint.dispatch (this);

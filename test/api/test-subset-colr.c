@@ -587,6 +587,110 @@ test_subset_colr_var_overflow (void)
   hb_face_destroy (face);
 }
 
+/* A PaintColrLayers whose layer range lies past the end of the LayerList
+ * must not make the subsetter retain (and allocate mappings for) layers
+ * that do not exist. */
+static void
+test_subset_colr_layers_out_of_range (void)
+{
+  const uint8_t maxp_data[6] = {
+    0x00, 0x00, 0x50, 0x00,
+    0x00, 0x02 /* numGlyphs */
+  };
+  const uint8_t colr_data[73] = {
+    /* header: version 1, no COLRv0 records, BaseGlyphList @34, LayerList @50 */
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x22, 0x00, 0x00, 0x00, 0x32,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    /* BaseGlyphList: glyph 1 -> PaintColrLayers (numLayers 2, firstLayerIndex 0) */
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0A,
+    0x01, 0x02, 0x00, 0x00, 0x00, 0x00,
+    /* LayerList: PaintSolid, then PaintColrLayers (numLayers 255, firstLayerIndex 0xFFFFFF00) */
+    0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x11,
+    0x02, 0x00, 0x00, 0x40, 0x00,
+    0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+  };
+
+  hb_blob_t *colr = hb_blob_create ((const char *) colr_data, sizeof (colr_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_blob_t *maxp = hb_blob_create ((const char *) maxp_data, sizeof (maxp_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_face_builder_add_table (builder, HB_TAG ('C','O','L','R'), colr);
+  hb_face_builder_add_table (builder, HB_TAG ('m','a','x','p'), maxp);
+  hb_blob_t *face_blob = hb_face_reference_blob (builder);
+  hb_face_t *face = hb_face_create (face_blob, 0);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 1);
+  hb_face_t *subset = hb_subset_test_create_subset (face, input);
+
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 18, 4);
+  g_assert_cmpuint (list + 12, <=, length);
+  /* Only the two layers that exist are kept. */
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 2);
+  unsigned paint = list + read_uint_be (data + list + 8, 4);
+  g_assert_cmpuint (paint + 6, <=, length);
+  g_assert_cmpuint (data[paint], ==, 1);
+  g_assert_cmpuint (data[paint + 1], ==, 255);
+  /* The out-of-range range was not retained, so it has no mapping. */
+  g_assert_cmpuint (read_uint_be (data + paint + 2, 4), ==, 0xFFFFFFFFu);
+  hb_blob_destroy (blob);
+
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+  hb_blob_destroy (face_blob);
+  hb_face_destroy (builder);
+  hb_blob_destroy (maxp);
+  hb_blob_destroy (colr);
+}
+
+static void
+test_subset_colr_shared_layers (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-shared-layers.ttf");
+  /* Every base glyph claims all 256 layers.  Retaining 255 of them expands
+   * to 65280 layer records; one more does not fit numLayers. */
+  for (unsigned count = 255; count <= 256; count++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_unicode_set (input), 0xE000, 0xE000 + count - 1);
+    hb_face_t *subset = hb_subset_test_create_subset (face, input);
+
+    hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','O','L','R'));
+    unsigned length;
+    const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+    if (count == 256)
+    {
+      g_assert_cmpuint (length, ==, 0);
+      hb_blob_destroy (blob);
+      hb_face_destroy (subset);
+      continue;
+    }
+    g_assert_cmpuint (length, ==, 14 + count * 6 + count * 256 * 4);
+    g_assert_cmpuint (read_uint_be (data + 2, 2), ==, count);
+    g_assert_cmpuint (read_uint_be (data + 12, 2), ==, count * 256);
+    unsigned bases = read_uint_be (data + 4, 4), layers = read_uint_be (data + 8, 4);
+    for (unsigned i = 0; i < count; i++)
+    {
+      g_assert_cmpuint (read_uint_be (data + bases + i * 6, 2), ==, i + 1);
+      g_assert_cmpuint (read_uint_be (data + bases + i * 6 + 2, 2), ==, i * 256);
+      g_assert_cmpuint (read_uint_be (data + bases + i * 6 + 4, 2), ==, 256);
+      for (unsigned j = 0; j < 256; j++)
+      {
+        unsigned layer = layers + (i * 256 + j) * 4;
+        g_assert_cmpuint (read_uint_be (data + layer, 2), ==, count + 1 + j);
+        g_assert_cmpuint (read_uint_be (data + layer + 2, 2), ==, j % 2);
+      }
+    }
+    hb_blob_destroy (blob);
+    hb_face_destroy (subset);
+  }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -603,6 +707,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_affine_values);
   hb_test_add (test_subset_colr_sentinel_map_without_variations);
   hb_test_add (test_subset_colr_var_overflow);
+  hb_test_add (test_subset_colr_layers_out_of_range);
+  hb_test_add (test_subset_colr_shared_layers);
 
   return hb_test_run();
 }

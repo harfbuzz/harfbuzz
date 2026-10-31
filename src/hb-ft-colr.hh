@@ -113,8 +113,12 @@ struct hb_ft_paint_context_t
 			 hb_color_t foreground) :
     ft_font (ft_font_), font (font_),
     funcs (paint_funcs), data (paint_data),
-    palette (palette), palette_index (palette_index), foreground (foreground)
+    palette (palette), palette_index (palette_index), foreground (foreground),
+    budget (funcs->get_budget_remaining_ptr (data))
   {
+    if (!budget)
+      budget = &local_budget;
+
     if (font->is_synthetic)
     {
       font = hb_font_create_sub_font (font);
@@ -132,7 +136,7 @@ struct hb_ft_paint_context_t
 
   void recurse (FT_OpaquePaint paint)
   {
-    if (unlikely (depth_left <= 0 || edge_count <= 0)) return;
+    if (unlikely (depth_left <= 0 || edge_count <= 0 || *budget < 0)) return;
     depth_left--;
     edge_count--;
     _hb_ft_paint (this, paint);
@@ -150,6 +154,8 @@ struct hb_ft_paint_context_t
   hb_decycler_t layers_decycler;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
+  int64_t local_budget = HB_BUDGET_GLYPH;
+  int64_t *budget;
 };
 
 static void
@@ -210,7 +216,6 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
     hb_lock_t lock (c->ft_font->lock);
     FT_ColorStop stop;
     unsigned wrote = 0;
-    FT_ColorStopIterator iter = cl->color_stop_iterator;
 
     if (start >= cl->color_stop_iterator.num_color_stops)
     {
@@ -227,9 +232,6 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
          // FT_Get_Colorline_Stops can in some cases return 0, and
          // does not advance the iterator. So stop iteration to prevent
          // infinite loop here.
-         //
-         // reset the iterator for next time
-        cl->color_stop_iterator = iter;
         return cl->color_stop_iterator.num_color_stops;
       }
     }
@@ -253,8 +255,9 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
     }
 
     *count = wrote;
-    // reset the iterator for next time
-    cl->color_stop_iterator = iter;
+
+    // recurse() stops once this runs out
+    hb_budget_spend (*c->budget, HB_BUDGET_16, wrote);
   }
 
   return cl->color_stop_iterator.num_color_stops;

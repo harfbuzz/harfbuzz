@@ -1080,6 +1080,7 @@ hb_paint_normalize_color_line (hb_color_stop_t *stops,
  *
  * Iterates the full 0..2π sweep produced by a color-stop list,
  * invoking @emit_patch once per (start, end) angular segment.
+ * Segments are clipped to 0..2π, wherever the angles lie.
  * Handles #HB_PAINT_EXTEND_PAD, #HB_PAINT_EXTEND_REPEAT, and
  * #HB_PAINT_EXTEND_REFLECT.  Stops must be pre-sorted by
  * offset; use hb_paint_normalize_color_line() first if they
@@ -1098,14 +1099,31 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
 {
   if (!n_stops) return;
 
+  /* Variation deltas can put the angles any distance outside the
+   * circle.  Emit only the part of each tile that is within 0..2π;
+   * callers do work proportional to the width of the tile. */
+  auto emit = [&] (float a0, hb_color_t c0, float a1, hb_color_t c1)
+  {
+    float t0 = hb_max (a0, 0.f);
+    float t1 = hb_min (a1, HB_2_PI);
+    if (t0 > t1) return;
+    hb_color_t d0 = c0, d1 = c1;
+    if (c0 != c1)
+    {
+      if (t0 != a0) d0 = hb_color_lerp (c0, c1, (t0 - a0) / (a1 - a0));
+      if (t1 != a1) d1 = hb_color_lerp (c0, c1, (t1 - a0) / (a1 - a0));
+    }
+    emit_patch (t0, d0, t1, d1, user_data);
+  };
+
   if (start_angle == end_angle)
   {
     if (extend == HB_PAINT_EXTEND_PAD)
     {
       if (start_angle > 0.f)
-	emit_patch (0.f, stops[0].color, start_angle, stops[0].color, user_data);
+	emit (0.f, stops[0].color, start_angle, stops[0].color);
       if (end_angle < HB_2_PI)
-	emit_patch (end_angle, stops[n_stops - 1].color, HB_2_PI, stops[n_stops - 1].color, user_data);
+	emit (end_angle, stops[n_stops - 1].color, HB_2_PI, stops[n_stops - 1].color);
     }
     return;
   }
@@ -1168,26 +1186,26 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
     if (pos == n_stops)
     {
       color0 = colors[n_stops - 1];
-      emit_patch (0.f, color0, HB_2_PI, color0, user_data);
+      emit (0.f, color0, HB_2_PI, color0);
       goto done;
     }
-    emit_patch (0.f, color0, angles[pos], colors[pos], user_data);
+    emit (0.f, color0, angles[pos], colors[pos]);
     for (pos++; pos < n_stops; pos++)
     {
       if (angles[pos] <= HB_2_PI)
-	emit_patch (angles[pos - 1], colors[pos - 1], angles[pos], colors[pos], user_data);
+	emit (angles[pos - 1], colors[pos - 1], angles[pos], colors[pos]);
       else
       {
 	float f = (HB_2_PI - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
 	hb_color_t color1 = hb_color_lerp (colors[pos - 1], colors[pos], f);
-	emit_patch (angles[pos - 1], colors[pos - 1], HB_2_PI, color1, user_data);
+	emit (angles[pos - 1], colors[pos - 1], HB_2_PI, color1);
 	break;
       }
     }
     if (pos == n_stops)
     {
       color0 = colors[n_stops - 1];
-      emit_patch (angles[n_stops - 1], color0, HB_2_PI, color0, user_data);
+      emit (angles[n_stops - 1], color0, HB_2_PI, color0);
       goto done;
     }
   }
@@ -1217,7 +1235,7 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
 				 hb_clamp_to<uint8_t> ((double) g + 0.5),
 				 hb_clamp_to<uint8_t> ((double) r + 0.5),
 				 hb_clamp_to<uint8_t> ((double) a + 0.5));
-      emit_patch (0.f, avg, HB_2_PI, avg, user_data);
+      emit (0.f, avg, HB_2_PI, avg);
       goto done;
     }
 
@@ -1265,17 +1283,17 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
 	{
 	  float f = (0.f - a0_l) / (a1_l - a0_l);
 	  hb_color_t c = hb_color_lerp (col0, col1, f);
-	  emit_patch (0.f, c, a1_l, col1, user_data);
+	  emit (0.f, c, a1_l, col1);
 	}
 	else if (a1_l >= HB_2_PI)
 	{
 	  float f = (HB_2_PI - a0_l) / (a1_l - a0_l);
 	  hb_color_t c = hb_color_lerp (col0, col1, f);
-	  emit_patch (a0_l, col0, HB_2_PI, c, user_data);
+	  emit (a0_l, col0, HB_2_PI, c);
 	  goto done;
 	}
 	else
-	  emit_patch (a0_l, col0, a1_l, col1, user_data);
+	  emit (a0_l, col0, a1_l, col1);
       }
     }
   }
