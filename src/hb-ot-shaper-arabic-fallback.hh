@@ -113,15 +113,15 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   unsigned int ligature_per_first_glyph_count_list[table_length];
   unsigned int num_first_glyphs = 0;
 
-  #define ARRAY_LENGTH_UNCHECKED(__array) (sizeof (__array) / sizeof (__array[0]))
+  constexpr unsigned int ligature_count =
+      std::extent<decltype (ligature_table[0].ligatures)>::value;
+  constexpr unsigned int component_count =
+      std::extent<decltype (ligature_table[0].ligatures[0].components)>::value;
 
   /* We know that all our ligatures have the same number of components. */
-  OT::HBGlyphID16 ligature_list[table_length * ARRAY_LENGTH_UNCHECKED (ligature_table[0].ligatures)];
-  unsigned int component_count_list[table_length * ARRAY_LENGTH_UNCHECKED (ligature_table[0].ligatures)];
-  OT::HBGlyphID16 component_list[table_length * ARRAY_LENGTH_UNCHECKED (ligature_table[0].ligatures) *
-				 ARRAY_LENGTH_UNCHECKED (ligature_table[0].ligatures[0].components)];
-
-  #undef ARRAY_LENGTH_UNCHECKED
+  OT::HBGlyphID16 ligature_list[table_length * ligature_count];
+  unsigned int component_count_list[table_length * ligature_count];
+  OT::HBGlyphID16 component_list[table_length * ligature_count * component_count];
 
   unsigned int num_ligatures = 0;
   unsigned int num_components = 0;
@@ -129,7 +129,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   /* Populate arrays */
 
   /* Sort out the first-glyphs */
-  for (unsigned int first_glyph_idx = 0; first_glyph_idx < ARRAY_LENGTH (first_glyphs); first_glyph_idx++)
+  for (unsigned int first_glyph_idx = 0; first_glyph_idx < table_length; first_glyph_idx++)
   {
     hb_codepoint_t first_u = ligature_table[first_glyph_idx].first;
     hb_codepoint_t first_glyph;
@@ -149,15 +149,12 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   {
     unsigned int first_glyph_idx = first_glyphs_indirection[i];
 
-    for (unsigned int ligature_idx = 0; ligature_idx < ARRAY_LENGTH (ligature_table[0].ligatures); ligature_idx++)
+    for (unsigned int ligature_idx = 0; ligature_idx < ligature_count; ligature_idx++)
     {
       hb_codepoint_t ligature_u = ligature_table[first_glyph_idx].ligatures[ligature_idx].ligature;
       hb_codepoint_t ligature_glyph;
       if (!hb_font_get_glyph (font, ligature_u, 0, &ligature_glyph))
 	continue;
-
-      const auto &components = ligature_table[first_glyph_idx].ligatures[ligature_idx].components;
-      unsigned component_count = ARRAY_LENGTH (components);
 
       bool matched = true;
       for (unsigned j = 0; j < component_count; j++)
