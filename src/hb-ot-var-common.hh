@@ -1119,7 +1119,7 @@ struct TupleVariationData
         /* A region the VarData references again adds its deltas to the
          * tuple it already has, as merge_tuple_variations () would do,
          * instead of getting another copy of the region's axes. */
-        unsigned *tuple_index;
+        hb_codepoint_t *tuple_index;
         if (region_tuple_map.has (region_index, &tuple_index))
         {
           tuple_delta_t& tuple = tuple_vars.arrayZ[*tuple_index];
