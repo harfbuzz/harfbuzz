@@ -2786,11 +2786,23 @@ struct VarRegionList
     unsigned axis_count = axis_tags.length;
     unsigned region_count = regions.length;
     if (!axis_count || !region_count) return_trace (false);
-    if (unlikely (hb_unsigned_mul_overflows (axis_count * region_count,
-                                             VarRegionAxis::static_size))) return_trace (false);
+    if (unlikely (region_count > 0x7FFFu))
+    {
+      c->err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return_trace (false);
+    }
+    unsigned total_axes;
+    if (unlikely (hb_unsigned_mul_overflows (axis_count, region_count, &total_axes) ||
+                  hb_unsigned_mul_overflows (total_axes, VarRegionAxis::static_size)))
+    {
+      c->err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return_trace (false);
+    }
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    axisCount = axis_count;
-    regionCount = region_count;
+    if (unlikely (!c->check_assign (axisCount, axis_count, HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return_trace (false);
+    if (unlikely (!c->check_assign (regionCount, region_count, HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return_trace (false);
 
     for (unsigned r = 0; r < region_count; r++)
     {
@@ -2822,11 +2834,23 @@ struct VarRegionList
   bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_inc_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
+    unsigned mapped_region_count = region_map.get_population ();
+    if (unlikely (mapped_region_count > 0x7FFFu))
+    {
+      c->err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return_trace (false);
+    }
     if (unlikely (!c->extend_min (this))) return_trace (false);
     axisCount = src->axisCount;
-    regionCount = region_map.get_population ();
-    if (unlikely (hb_unsigned_mul_overflows (axisCount * regionCount,
-					     VarRegionAxis::static_size))) return_trace (false);
+    if (unlikely (!c->check_assign (regionCount, mapped_region_count, HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return_trace (false);
+    unsigned total_axes;
+    if (unlikely (hb_unsigned_mul_overflows ((unsigned) axisCount, (unsigned) regionCount, &total_axes) ||
+		  hb_unsigned_mul_overflows (total_axes, VarRegionAxis::static_size)))
+    {
+      c->err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return_trace (false);
+    }
     if (unlikely (!c->extend (this))) return_trace (false);
     unsigned int region_count = src->regionCount;
     for (unsigned int r = 0; r < regionCount; r++)

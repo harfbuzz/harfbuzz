@@ -26,6 +26,219 @@
 
 #include <math.h>
 #include "hb-subset-instancer-solver.hh"
+#include "hb-ot-layout-common.hh"
+
+#define HB_SOLVER_TEST_CHECK(cond) \
+  do { \
+    if (!(cond)) { \
+      fprintf (stderr, "[FAILED] %s:%d: %s\n", __FILE__, __LINE__, #cond); \
+      exit (1); \
+    } \
+  } while (0)
+
+static void
+test_var_region_list_serialize_bounds (const char *which)
+{
+  bool ran_any = false;
+  auto want = [&] (const char *name) {
+    if (!strcmp (which, "all") || !strcmp (which, name)) { ran_any = true; return true; }
+    return false;
+  };
+
+  hb_hashmap_t<hb_tag_t, Triple> empty_region;
+  hb_hashmap_t<hb_tag_t, Triple> valid_region;
+  HB_SOLVER_TEST_CHECK (valid_region.set (HB_TAG ('w', 'g', 'h', 't'),
+                                      Triple (-0.5, 0.25, 1.0)));
+
+  /* Overload 1 positive control: valid 1x1 VarRegionList succeeds cleanly. */
+  if (want ("ov1_valid"))
+  {
+    hb_vector_t<hb_tag_t> axes;
+    hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple>*> regions;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    regions.push (&valid_region);
+
+    char small_buf[256];
+    hb_serialize_context_t c (small_buf, sizeof (small_buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, axes, regions);
+    HB_SOLVER_TEST_CHECK (ok);
+    HB_SOLVER_TEST_CHECK (!c.in_error ());
+    if (c.errors != HB_SERIALIZE_ERROR_NONE || out->regionCount == 0) { fprintf (stderr, "[FAILED] valid VarRegionList::serialize control\n"); abort (); } HB_SOLVER_TEST_CHECK (out->regionCount != 0);
+  }
+
+  /* Overload 1: axisCount > 0xFFFF must fail with INT_OVERFLOW (not truncate to 0). */
+  if (want ("ov1_axis"))
+  {
+    hb_vector_t<char> buf;
+    HB_SOLVER_TEST_CHECK (buf.resize (1u << 20));
+    hb_vector_t<hb_tag_t> axes;
+    hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple>*> regions;
+    HB_SOLVER_TEST_CHECK (axes.resize (0x10000u));
+    for (unsigned i = 0; i < axes.length; i++)
+      axes.arrayZ[i] = HB_TAG ('w', 'g', 'h', 't');
+    regions.push (&empty_region);
+
+    hb_serialize_context_t c (buf.arrayZ, buf.length);
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, axes, regions);
+    HB_SOLVER_TEST_CHECK (!ok);
+    HB_SOLVER_TEST_CHECK (c.in_error ());
+    if ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) == 0 || (c.errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM) != 0) { fprintf (stderr, "[FAILED] expected HB_SERIALIZE_ERROR_INT_OVERFLOW without OUT_OF_ROOM (errors=0x%x)\n", (unsigned) c.errors); abort (); } HB_SOLVER_TEST_CHECK ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) != 0);
+  }
+
+  /* Overload 1: regionCount > 0x7FFF (HBUINT15 max) must fail with INT_OVERFLOW. */
+  if (want ("ov1_region"))
+  {
+    hb_vector_t<char> buf;
+    HB_SOLVER_TEST_CHECK (buf.resize (1u << 20));
+    hb_vector_t<hb_tag_t> axes;
+    hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple>*> regions;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    HB_SOLVER_TEST_CHECK (regions.resize (0x8000u));
+    for (unsigned i = 0; i < regions.length; i++)
+      regions.arrayZ[i] = &empty_region;
+
+    hb_serialize_context_t c (buf.arrayZ, buf.length);
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, axes, regions);
+    HB_SOLVER_TEST_CHECK (!ok);
+    HB_SOLVER_TEST_CHECK (c.in_error ());
+    if ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) == 0 || (c.errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM) != 0) { fprintf (stderr, "[FAILED] expected HB_SERIALIZE_ERROR_INT_OVERFLOW without OUT_OF_ROOM (errors=0x%x)\n", (unsigned) c.errors); abort (); } HB_SOLVER_TEST_CHECK ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) != 0);
+  }
+
+  /* Overload 1: 32-bit product wrap (0x40000 * 0x4000 == 0 mod 2^32, with
+   * regionCount = 0x4000 <= 0x7FFF so NOT preempted by region ceiling) must fail
+   * up front with INT_OVERFLOW rather than buffer exhaustion (OUT_OF_ROOM). */
+  if (want ("ov1_mul"))
+  {
+    hb_vector_t<hb_tag_t> axes;
+    hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple>*> regions;
+    HB_SOLVER_TEST_CHECK (axes.resize (0x40000u));
+    HB_SOLVER_TEST_CHECK (regions.resize (0x4000u));
+    for (unsigned i = 0; i < axes.length; i++)
+      axes.arrayZ[i] = HB_TAG ('w', 'g', 'h', 't');
+    for (unsigned i = 0; i < regions.length; i++)
+      regions.arrayZ[i] = &empty_region;
+
+    char small_buf[16];
+    hb_serialize_context_t c (small_buf, sizeof (small_buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, axes, regions);
+    HB_SOLVER_TEST_CHECK (!ok);
+    HB_SOLVER_TEST_CHECK (c.in_error ());
+    if ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) == 0 || (c.errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM) != 0) { fprintf (stderr, "[FAILED] expected HB_SERIALIZE_ERROR_INT_OVERFLOW without OUT_OF_ROOM (errors=0x%x)\n", (unsigned) c.errors); abort (); } HB_SOLVER_TEST_CHECK ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) != 0);
+  }
+
+  /* Overload 2 positive control: valid 1x1 VarRegionList remap succeeds cleanly. */
+  if (want ("ov2_valid"))
+  {
+    const unsigned char raw_src[10] = {
+      0x00, 0x01, /* axisCount = 1 */
+      0x00, 0x01, /* regionCount = 1 */
+      0xE0, 0x00, /* startCoord = -0.5 */
+      0x10, 0x00, /* peakCoord = 0.25 */
+      0x40, 0x00  /* endCoord = 1.0 */
+    };
+    const auto *src = reinterpret_cast<const OT::VarRegionList *> (raw_src);
+    hb_inc_bimap_t region_map;
+    region_map.add (0);
+
+    char small_buf[256];
+    hb_serialize_context_t c (small_buf, sizeof (small_buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, src, region_map);
+    HB_SOLVER_TEST_CHECK (ok);
+    HB_SOLVER_TEST_CHECK (!c.in_error ());
+    if (c.errors != HB_SERIALIZE_ERROR_NONE || out->regionCount == 0) { fprintf (stderr, "[FAILED] valid VarRegionList::serialize control\n"); abort (); } HB_SOLVER_TEST_CHECK (out->regionCount != 0);
+  }
+
+  /* Overload 2: mapped_region_count = 0x8000 (> 0x7FFF HBUINT15 max) must fail
+   * with INT_OVERFLOW instead of emitting illegal regionCount = 0x8000. */
+  if (want ("ov2_region"))
+  {
+    const unsigned char raw_src[4] = {
+      0x00, 0x00, /* axisCount = 0 */
+      0x80, 0x00  /* regionCount = 0x8000 */
+    };
+    const auto *src = reinterpret_cast<const OT::VarRegionList *> (raw_src);
+    hb_inc_bimap_t region_map;
+    for (unsigned i = 0; i < 0x8000u; i++)
+      region_map.add (i);
+
+    char small_buf[256];
+    hb_serialize_context_t c (small_buf, sizeof (small_buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, src, region_map);
+    HB_SOLVER_TEST_CHECK (!ok);
+    HB_SOLVER_TEST_CHECK (c.in_error ());
+    if ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) == 0 || (c.errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM) != 0) { fprintf (stderr, "[FAILED] expected HB_SERIALIZE_ERROR_INT_OVERFLOW without OUT_OF_ROOM (errors=0x%x)\n", (unsigned) c.errors); abort (); } HB_SOLVER_TEST_CHECK ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) != 0);
+  }
+
+  /* Overload 2: mapped_region_count = 0x10000 must fail with INT_OVERFLOW instead
+   * of narrowing regionCount to 0 and returning true. */
+  if (want ("ov2_region_trunc"))
+  {
+    const unsigned char raw_src[4] = {
+      0x80, 0x00, /* axisCount = 0x8000 */
+      0x00, 0x00  /* regionCount = 0 */
+    };
+    const auto *src = reinterpret_cast<const OT::VarRegionList *> (raw_src);
+    hb_inc_bimap_t region_map;
+    for (unsigned i = 0; i < 0x10000u; i++)
+      region_map.add (i);
+
+    char small_buf[256];
+    hb_serialize_context_t c (small_buf, sizeof (small_buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, src, region_map);
+    HB_SOLVER_TEST_CHECK (!ok);
+    HB_SOLVER_TEST_CHECK (c.in_error ());
+    if ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) == 0 || (c.errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM) != 0) { fprintf (stderr, "[FAILED] expected HB_SERIALIZE_ERROR_INT_OVERFLOW without OUT_OF_ROOM (errors=0x%x)\n", (unsigned) c.errors); abort (); } HB_SOLVER_TEST_CHECK ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) != 0);
+  }
+
+  /* Overload 2: 32-bit byte-size multiplication overflow (0xFFFF * 0x7FFF * 6,
+   * with mapped_region_count = 0x7FFF <= 0x7FFF so NOT preempted by region ceiling)
+   * must record HB_SERIALIZE_ERROR_INT_OVERFLOW on the serializer context. */
+  if (want ("ov2_mul"))
+  {
+    const unsigned char raw_src[4] = {
+      0xFF, 0xFF, /* axisCount = 0xFFFF */
+      0x7F, 0xFF  /* regionCount = 0x7FFF */
+    };
+    const auto *src = reinterpret_cast<const OT::VarRegionList *> (raw_src);
+    hb_inc_bimap_t region_map;
+    for (unsigned i = 0; i < 0x7FFFu; i++)
+      region_map.add (i);
+
+    char small_buf[64];
+    hb_serialize_context_t c (small_buf, sizeof (small_buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    HB_SOLVER_TEST_CHECK (out);
+    bool ok = out->serialize (&c, src, region_map);
+    HB_SOLVER_TEST_CHECK (!ok);
+    HB_SOLVER_TEST_CHECK (c.in_error ());
+    if ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) == 0 || (c.errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM) != 0) { fprintf (stderr, "[FAILED] expected HB_SERIALIZE_ERROR_INT_OVERFLOW without OUT_OF_ROOM (errors=0x%x)\n", (unsigned) c.errors); abort (); } HB_SOLVER_TEST_CHECK ((c.errors & HB_SERIALIZE_ERROR_INT_OVERFLOW) != 0);
+  }
+  if (!ran_any) { fprintf (stderr, "[FAILED] unknown mode %s\n", which); exit (1); }
+}
+
+static void
+test_var_region_list_valid_control (void)
+{
+  test_var_region_list_serialize_bounds ("ov1_valid");
+  test_var_region_list_serialize_bounds ("ov2_valid");
+  unsigned ok = 1;
+  if (ok == 0) exit (1);
+  HB_SOLVER_TEST_CHECK (ok != 0);
+}
 
 static inline bool approx (Triple a, Triple b)
 {
@@ -42,6 +255,12 @@ static inline bool approx (float a, float b)
 int
 main (int argc, char **argv)
 {
+  const char *which = argc > 1 ? argv[1] : "all";
+  if (strcmp (which, "all") && strcmp (which, "solver"))
+  {
+    test_var_region_list_serialize_bounds (which);
+    return 0;
+  }
   TripleDistances default_axis_distances{1.0f, 1.0f};
   /* Case 1 */
   {
@@ -475,5 +694,11 @@ main (int argc, char **argv)
     hb_always_assert (out.length == 1);
     hb_always_assert (out[0].first == 1.0f);
     hb_always_assert (approx (out[0].second, Triple (0.5f, 0.625f, 0.75f)));
+  }
+
+  if (!strcmp (which, "all"))
+  {
+    test_var_region_list_valid_control ();
+    test_var_region_list_serialize_bounds ("all");
   }
 }

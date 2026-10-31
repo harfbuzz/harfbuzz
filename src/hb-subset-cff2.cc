@@ -273,7 +273,11 @@ struct cff2_instancing_plan_t
       return false;
     unsigned regions_offset = (unsigned) offset;
     uint64_t total = offset + 4 + (uint64_t) new_regions.length * axis_tags.length * 6;
-    if (unlikely (total > 0xFFFFFFFFu)) return false;
+    if (unlikely (total > 0xFFFFFFFFu ||
+                  data_count > 0xFFFFu ||
+                  axis_tags.length > 0xFFFFu ||
+                  new_regions.length > 0x7FFFu))
+      return false;
 
     HBUINT16 *size_field = c->allocate_size<HBUINT16> (HBUINT16::static_size);
     if (unlikely (!size_field)) return false;
@@ -292,13 +296,17 @@ struct cff2_instancing_plan_t
     {
       if (!t.alive ()) continue;
       unsigned k = t.region_indices.length;
+      if (unlikely (k > 0xFFFFu)) return false;
       HBUINT16 *v = (HBUINT16 *) c->allocate_size<char> (6 + 2 * k);
       if (unlikely (!v)) return false;
       v[0] = 0;						/* itemCount */
       v[1] = 0;						/* wordSizeCount */
       v[2] = k;						/* regionIndices.len */
       for (unsigned j = 0; j < k; j++)
+      {
+	if (unlikely (t.region_indices.arrayZ[j] > 0xFFFFu)) return false;
 	v[3 + j] = t.region_indices.arrayZ[j];
+      }
     }
 
     hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple>*> region_ptrs;
@@ -902,7 +910,7 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
 				 const hb_array_t<const number_t> blends,
 				 unsigned n, unsigned i)
   {
-    arg.set_int (round (arg.to_real () + param.blend_deltas (blends)));
+    arg.set_int (hb_clamp_to<int> (round (arg.to_real () + param.blend_deltas (blends))));
   }
 
   /* The fold added to a value, error-compensated across the operator: most
@@ -1988,7 +1996,10 @@ OT::cff2::accelerator_subset_t::serialize (hb_serialize_context_t *c,
     TopDict &dict = cff2 + cff2->topDict;
     cff2_top_dict_op_serializer_t topSzr;
     if (unlikely (!dict.serialize (c, topDict, topSzr, plan.info))) return false;
-    cff2->topDictSize = c->head - (const char *)&dict;
+    if (unlikely (!c->check_assign (cff2->topDictSize,
+				    (unsigned) (c->head - (const char *) &dict),
+				    HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return false;
   }
 
   /* global subrs */
@@ -2045,4 +2056,157 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 		    c->plan->normalized_coords.as_array ());
 }
 
+#endif
+
+#ifdef MAIN
+#define HB_VARSTORE_TEST_CHECK(cond) \
+  do { \
+    if (!(cond)) { \
+      fprintf (stderr, "[FAILED] %s:%d: %s\n", __FILE__, __LINE__, #cond); \
+      exit (1); \
+    } \
+  } while (0)
+
+int
+main (int argc, char **argv)
+{
+#ifndef HB_NO_SUBSET_CFF
+  const char *which = argc > 1 ? argv[1] : "all";
+  bool ran_any = false;
+  auto want = [&] (const char *name) {
+    if (!strcmp (which, "all") || !strcmp (which, name)) { ran_any = true; return true; }
+    return false;
+  };
+
+  hb_hashmap_t<hb_tag_t, Triple> valid_region;
+  HB_VARSTORE_TEST_CHECK (valid_region.set (HB_TAG ('w', 'g', 'h', 't'),
+                                      Triple (-0.5, 0.25, 1.0)));
+
+  if (want ("valid"))
+  {
+    CFF::cff2_instancing_plan_t inst;
+    hb_vector_t<hb_tag_t> axes;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    HB_VARSTORE_TEST_CHECK (inst.new_regions.resize (1));
+    inst.new_regions.arrayZ[0] = valid_region;
+    inst.new_major_count = 1;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.resize (1));
+    inst.transforms.arrayZ[0].alive_ = true;
+    inst.transforms.arrayZ[0].region_indices.push (0);
+
+    char buf[256];
+    hb_serialize_context_t c (buf, sizeof (buf));
+    bool ok = inst.serialize_var_store (&c, axes);
+    HB_VARSTORE_TEST_CHECK (ok);
+    HB_VARSTORE_TEST_CHECK (!c.in_error ());
+    HB_VARSTORE_TEST_CHECK (c.head > c.start);
+  }
+
+  /* data_count > 0xFFFF must fail before allocating or narrowing header field. */
+  if (want ("data_count"))
+  {
+    CFF::cff2_instancing_plan_t inst;
+    hb_vector_t<hb_tag_t> axes;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    HB_VARSTORE_TEST_CHECK (inst.new_regions.resize (1));
+    inst.new_regions.arrayZ[0] = valid_region;
+    inst.new_major_count = 0x10000u;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.resize (0x10000u));
+    for (unsigned i = 0; i < inst.transforms.length; i++)
+      inst.transforms.arrayZ[i].alive_ = true;
+
+    hb_vector_t<char> buf;
+    HB_VARSTORE_TEST_CHECK (buf.resize (1u << 20));
+    hb_serialize_context_t c (buf.arrayZ, buf.length);
+    bool ok = inst.serialize_var_store (&c, axes);
+    HB_VARSTORE_TEST_CHECK (!ok);
+    HB_VARSTORE_TEST_CHECK (c.head == c.start);
+  }
+
+  /* axis_tags.length > 0xFFFF must fail up front in serialize_var_store. */
+  if (want ("axis_count"))
+  {
+    CFF::cff2_instancing_plan_t inst;
+    hb_vector_t<hb_tag_t> axes;
+    HB_VARSTORE_TEST_CHECK (axes.resize (0x10000u));
+    for (unsigned i = 0; i < axes.length; i++)
+      axes.arrayZ[i] = HB_TAG ('w', 'g', 'h', 't');
+    HB_VARSTORE_TEST_CHECK (inst.new_regions.resize (1));
+    inst.new_major_count = 1;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.resize (1));
+    inst.transforms.arrayZ[0].alive_ = true;
+    inst.transforms.arrayZ[0].region_indices.push (0);
+
+    hb_vector_t<char> buf;
+    HB_VARSTORE_TEST_CHECK (buf.resize (1u << 20));
+    hb_serialize_context_t c (buf.arrayZ, buf.length);
+    bool ok = inst.serialize_var_store (&c, axes);
+    HB_VARSTORE_TEST_CHECK (!ok);
+    HB_VARSTORE_TEST_CHECK (c.head == c.start);
+  }
+
+  /* new_regions.length > 0x7FFF (HBUINT15 max) must fail up front. */
+  if (want ("region_count"))
+  {
+    CFF::cff2_instancing_plan_t inst;
+    hb_vector_t<hb_tag_t> axes;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    HB_VARSTORE_TEST_CHECK (inst.new_regions.resize (0x8000u));
+    inst.new_major_count = 1;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.resize (1));
+    inst.transforms.arrayZ[0].alive_ = true;
+    inst.transforms.arrayZ[0].region_indices.push (0);
+
+    hb_vector_t<char> buf;
+    HB_VARSTORE_TEST_CHECK (buf.resize (1u << 20));
+    hb_serialize_context_t c (buf.arrayZ, buf.length);
+    bool ok = inst.serialize_var_store (&c, axes);
+    HB_VARSTORE_TEST_CHECK (!ok);
+    HB_VARSTORE_TEST_CHECK (c.head == c.start);
+  }
+
+  /* Per-VarData region_indices.length > 0xFFFF must fail instead of narrowing v[2]. */
+  if (want ("vardata_k"))
+  {
+    CFF::cff2_instancing_plan_t inst;
+    hb_vector_t<hb_tag_t> axes;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    HB_VARSTORE_TEST_CHECK (inst.new_regions.resize (1));
+    inst.new_regions.arrayZ[0] = valid_region;
+    inst.new_major_count = 1;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.resize (1));
+    inst.transforms.arrayZ[0].alive_ = true;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.arrayZ[0].region_indices.resize (0x10000u));
+    for (unsigned i = 0; i < 0x10000u; i++)
+      inst.transforms.arrayZ[0].region_indices.arrayZ[i] = 0;
+
+    hb_vector_t<char> buf;
+    HB_VARSTORE_TEST_CHECK (buf.resize (1u << 20));
+    hb_serialize_context_t c (buf.arrayZ, buf.length);
+    bool ok = inst.serialize_var_store (&c, axes);
+    HB_VARSTORE_TEST_CHECK (!ok);
+  }
+
+  /* Per-entry region_indices[j] > 0xFFFF must fail instead of narrowing v[3 + j]. */
+  if (want ("region_idx"))
+  {
+    CFF::cff2_instancing_plan_t inst;
+    hb_vector_t<hb_tag_t> axes;
+    axes.push (HB_TAG ('w', 'g', 'h', 't'));
+    HB_VARSTORE_TEST_CHECK (inst.new_regions.resize (1));
+    inst.new_regions.arrayZ[0] = valid_region;
+    inst.new_major_count = 1;
+    HB_VARSTORE_TEST_CHECK (inst.transforms.resize (1));
+    inst.transforms.arrayZ[0].alive_ = true;
+    inst.transforms.arrayZ[0].region_indices.push (0x10000u);
+
+    char buf[256];
+    hb_serialize_context_t c (buf, sizeof (buf));
+    bool ok = inst.serialize_var_store (&c, axes);
+    HB_VARSTORE_TEST_CHECK (!ok);
+  }
+  if (!ran_any) { fprintf (stderr, "[FAILED] unknown mode %s\n", which); exit (1); }
+#endif
+  return 0;
+}
 #endif
