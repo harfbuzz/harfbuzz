@@ -1224,7 +1224,7 @@ static inline unsigned int DIV_CEIL (const unsigned int a, unsigned int b)
 
 #undef  ARRAY_LENGTH
 template <typename Type, unsigned int n>
-static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
+static inline constexpr unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 /* A const version, but does not detect erratically being called on pointers. */
 #define ARRAY_LENGTH_CONST(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
