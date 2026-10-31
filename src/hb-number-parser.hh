@@ -103,11 +103,10 @@ struct hb_number_parser_t
 
   /* Signal end of input.  Rolls back a dangling exponent.  Returns the
    * accepted length, or 0 if no valid number was parsed. */
-  size_t finish ()
+  HB_NODISCARD size_t commit ()
   {
     if (state == ExpStart || state == ExpSign) rollback_exponent ();
-    return (state == Sign || state == AfterDotFromStart ||
-	    state == ExpStart || state == ExpSign) ? 0 : pos;
+    return (state == Sign || state == AfterDotFromStart) ? 0 : pos;
   }
 
   /* Valid after finish() returned true. */

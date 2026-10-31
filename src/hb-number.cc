@@ -41,7 +41,7 @@ hb_parse_double (const char **pp, const char *end, double *pv, bool whole_buffer
   hb_number_parser_t parser;
   while (p < end && parser.consume (*p)) p++;
 
-  size_t length = parser.finish ();
+  size_t length = parser.commit ();
   if (unlikely (length == 0)) return false;
   const char *pend = num_start + length;
   if (unlikely (whole_buffer && pend != end)) return false;
