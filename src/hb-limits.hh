@@ -171,7 +171,8 @@
 #endif
 
 /* Maximum surface dimension (pixels per side) when extents are derived
- * from font data (glyph extents or accumulated outline bounds).  Bounds
+ * from font data (glyph extents, accumulated outline bounds, or the header
+ * of an embedded PNG image about to be decoded).  Bounds
  * attacker-controlled allocations; extents set explicitly through
  * hb_raster_{draw,paint}_set_extents() are not limited. */
 #ifndef HB_RASTER_MAX_AUTO_DIMENSION
@@ -222,7 +223,7 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
   return budget >= 0;
 }
 
-/* The flat pixel-work floor for one raster paint session.  Pixel and
+/* The flat pixel-work floor for one raster draw or paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
  * the common outline budget above. */
 #ifndef HB_BUDGET_RASTER_PIXELS

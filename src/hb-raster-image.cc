@@ -535,8 +535,12 @@ hb_raster_image_t::configure (hb_raster_format_t format,
   return true;
 }
 
+/* Images wider or taller than max_dimension are rejected before anything
+ * is allocated; the decoder otherwise allocates and fills the whole image
+ * at the size its header declares. */
 bool
-hb_raster_image_t::deserialize_from_png (hb_blob_t *blob)
+hb_raster_image_t::deserialize_from_png (hb_blob_t *blob,
+					 unsigned max_dimension)
 {
 #ifndef HAVE_PNG
   return false;
@@ -587,7 +591,7 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob)
   png_get_IHDR (png, info, &w, &h, &bit_depth, &color_type,
 		&interlace_type, &compression_type, &filter_method);
 
-  if (!w || !h || w > (png_uint_32) INT_MAX || h > (png_uint_32) INT_MAX)
+  if (!w || !h || w > (png_uint_32) max_dimension || h > (png_uint_32) max_dimension)
   {
     png_destroy_read_struct (&png, &info, nullptr);
     hb_raster_png_read_blob_fini (reader);

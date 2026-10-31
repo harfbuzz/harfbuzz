@@ -207,7 +207,8 @@ typedef void (*hb_raster_paint_clip_mask_emit_t) (hb_raster_draw_t *rdr, void *u
  * outlines are drawn into it: curves outside the surface collapse to
  * their chord, and outline traversal and curve flattening charge the
  * seeded budget.  hb_raster_paint_readback_budget() pulls the remainder
- * back into the session afterwards. */
+ * back into the session afterwards.  An unlimited policy is seeded as
+ * such, so that it disables the rasterizer's own pixel budget too. */
 static void
 hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c,
 				 hb_raster_draw_t *rdr,
@@ -218,7 +219,9 @@ hb_raster_paint_attach_clip_rdr (hb_raster_paint_t *c,
 			       (float) surf->extents.y_origin,
 			       (float) surf->extents.x_origin + (float) surf->extents.width,
 			       (float) surf->extents.y_origin + (float) surf->extents.height);
-  hb_draw_set_budget (hb_raster_draw_get_funcs (rdr), rdr, c->budget_remaining);
+  hb_draw_set_budget (hb_raster_draw_get_funcs (rdr), rdr,
+		      c->budget == HB_BUDGET_UNLIMITED ? c->budget :
+		      c->budget_remaining);
 }
 
 /* Pull the outline budget the rasterizer has consumed back into the
@@ -282,7 +285,7 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
 				    hb_raster_image_t *surf,
 				    unsigned w, unsigned h)
 {
-  if (unlikely (!c->precharge_work (hb_raster_draw_get_pixel_work (rdr, h, w))))
+  if (unlikely (!c->precharge_work (hb_raster_draw_get_pixel_work (rdr))))
   {
     hb_raster_draw_clear (rdr);
     hb_raster_paint_push_empty_clip (c, w, h);
@@ -955,9 +958,7 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_paint_emit_clip_glyph_mask (rdr, &data);
   hb_raster_paint_readback_budget (c, rdr);
 
-  if (unlikely (!c->precharge_work (hb_raster_draw_get_pixel_work (rdr,
-							  surf->extents.height,
-							  surf->extents.width))))
+  if (unlikely (!c->precharge_work (hb_raster_draw_get_pixel_work (rdr))))
   {
     hb_raster_draw_clear (rdr);
     return;
@@ -1021,7 +1022,10 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   else if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
 #ifdef HAVE_PNG
-    if (!decoded_png.deserialize_from_png (blob))
+    /* The image size is font data and the decoder allocates and fills all
+     * of it before it can be charged below; bound it like other surfaces
+     * sized from font data. */
+    if (!decoded_png.deserialize_from_png (blob, HB_RASTER_MAX_AUTO_DIMENSION))
       return false;
     src_width = decoded_png.extents.width;
     src_height = decoded_png.extents.height;
