@@ -206,6 +206,41 @@ test_shape_overlong_mark_cluster (void)
   hb_face_destroy (face);
 }
 
+static void
+test_shape_overlong_cluster_remerge (void)
+{
+  /* The font has no space glyph, so default-ignorables are deleted in
+   * place.  Shaped RTL, the deleted soft hyphens follow the big mark
+   * cluster with descending cluster values, so each deletion would rewrite
+   * the cluster of the whole preceding run.  That re-merge walk must be
+   * charged to the buffer's op budget and fail the buffer, instead of
+   * taking O(N^2) time. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  for (unsigned i = 0; i < 20000; i++)
+    hb_buffer_add (buffer, 0x00AD, i);
+  hb_buffer_add (buffer, 'a', 20000);
+  for (unsigned i = 0; i < 20000; i++)
+    hb_buffer_add (buffer, 0x0301, 20001 + i);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_buffer_set_direction (buffer, HB_DIRECTION_RTL);
+
+  /* This exercises the native cluster re-merge op budget in hb-buffer.cc, so
+   * force the "ot" shaper: other shapers (e.g. harfrust) do their own cluster
+   * handling and never hit this path. */
+  const char *shaper_list[] = {"ot", NULL};
+  hb_shape_full (font, buffer, NULL, 0, shaper_list);
+
+  g_assert_true (!hb_buffer_allocation_successful (buffer));
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 
 static void
 test_shape_list (void)
@@ -228,6 +263,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
+  hb_test_add (test_shape_overlong_cluster_remerge);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);

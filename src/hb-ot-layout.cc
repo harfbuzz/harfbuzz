@@ -1586,9 +1586,24 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          glyphs_length,
 				      hb_bool_t             zero_context)
 {
+  return hb_ot_layout_lookup_would_substitute_with_buffer (face, lookup_index,
+							   glyphs, glyphs_length,
+							   (bool) zero_context,
+							   nullptr);
+}
+
+/* Same, but charges the work done to buffer's max_ops when buffer is not nullptr. */
+bool
+hb_ot_layout_lookup_would_substitute_with_buffer (hb_face_t            *face,
+						  unsigned int          lookup_index,
+						  const hb_codepoint_t *glyphs,
+						  unsigned int          glyphs_length,
+						  bool                  zero_context,
+						  hb_buffer_t          *buffer)
+{
   auto &gsub = face->table.GSUB;
   if (unlikely (lookup_index >= gsub->lookup_count)) return false;
-  OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
+  OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, zero_context, buffer);
 
   const OT::SubstLookup& l = gsub->table->get_lookup (lookup_index);
   auto *accel = gsub->get_accel (lookup_index);

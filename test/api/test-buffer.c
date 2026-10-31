@@ -1034,6 +1034,18 @@ test_buffer_empty (void)
   test_empty (b);
 
   g_assert_true (!hb_buffer_allocation_successful (b));
+
+  /* Setters must not write into the shared empty buffer. */
+  hb_buffer_set_direction (b, HB_DIRECTION_RTL);
+  hb_buffer_set_not_found_glyph (b, 42);
+  hb_buffer_set_not_found_variation_selector_glyph (b, 77);
+  hb_buffer_guess_segment_properties (b);
+
+  g_assert_cmpint (hb_buffer_get_direction (b), ==, HB_DIRECTION_INVALID);
+  g_assert_cmpint (hb_buffer_get_script (b), ==, HB_SCRIPT_INVALID);
+  g_assert_true (hb_buffer_get_language (b) == HB_LANGUAGE_INVALID);
+  g_assert_cmpint (hb_buffer_get_not_found_glyph (b), ==, 0);
+  g_assert_cmpint (hb_buffer_get_not_found_variation_selector_glyph (b), ==, HB_CODEPOINT_INVALID);
 }
 
 typedef struct {
