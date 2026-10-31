@@ -588,8 +588,14 @@ struct Glyph
        * Shift points horizontally by the updated left side bearing
        */
       if (shift)
-        for (auto &point : all_points.as_array ().sub_array (phantom_only ? all_points.length - PHANTOM_COUNT : 0))
+      {
+	/* Guard the subtraction: a failed phantom extend() under OOM can
+	 * leave all_points shorter than PHANTOM_COUNT. */
+	unsigned start = phantom_only && all_points.length >= PHANTOM_COUNT
+			 ? all_points.length - PHANTOM_COUNT : 0;
+	for (auto &point : all_points.as_array ().sub_array (start))
 	  point.x -= shift;
+      }
     }
 
     return !all_points.in_error ();
