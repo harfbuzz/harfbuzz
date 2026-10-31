@@ -36,11 +36,13 @@
 
  #ifndef HB_NO_VAR
 
+ template<typename ItemVarStore>
  void
- generate_varstore_inner_maps (const hb_set_t& varidx_set,
-                               unsigned subtable_count,
+ generate_varstore_inner_maps (const ItemVarStore &var_store,
+                               const hb_set_t& varidx_set,
                                hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */)
  {
+   unsigned subtable_count = var_store.get_sub_table_count ();
    if (varidx_set.is_empty () || subtable_count == 0) return;
 
    if (unlikely (!inner_maps.resize (subtable_count))) return;
@@ -49,11 +51,19 @@
      uint16_t major = idx >> 16;
      uint16_t minor = idx & 0xFFFF;
 
-     if (major >= subtable_count)
+     /* Runtime treats out-of-range delta-set indices as zero; don't
+      * retain rows the store doesn't have. */
+     if (!var_store.has_delta_set (idx))
        continue;
      inner_maps[major].add (minor);
    }
  }
+
+ template
+ void
+ generate_varstore_inner_maps<OT::ItemVariationStore> (const OT::ItemVariationStore &var_store,
+                               const hb_set_t& varidx_set,
+                               hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */);
 
  /* Evaluate a variation-region tent at v, mirroring VarRegionAxis::evaluate
   * (invalid regions evaluate as constant 1). */
@@ -134,6 +144,7 @@
 
    hb_hashmap_t<hb_tag_t, unsigned> grid_pos;
    hb_vector_t<hb_vector_t<double>> grid_points;
+   int64_t budget = HB_BUDGET_SUBSET_AVAR2_RANGES;
    for (unsigned i = 0; i < axes.length; i++)
    {
      grid_pos.reset ();
@@ -161,6 +172,9 @@
        const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
        unsigned row_size = vd.get_row_size ();
        unsigned region_count = vd.get_region_index_count ();
+       /* Out of budget: the remaining axes are left unconstrained. */
+       if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, region_count)))
+	 return true;
        for (unsigned r = 0; r < region_count; r++)
        {
 	 int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
@@ -207,8 +221,13 @@
      if (add_grid_axis (tag) < 0) return false;
      /* Per active region: (grid axis position, tent) for its valid tents. */
      hb_vector_t<hb_vector_t<hb_pair_t<unsigned, Triple>>> region_tents;
+     unsigned num_tents = 0;
      for (const auto &ar : active)
      {
+       /* Collecting a tent allocates, and adds breakpoints to sort. */
+       if (unlikely (!hb_budget_spend (budget, HB_BUDGET_16,
+				       1 + regions[ar.second].get_population ())))
+	 return true;
        region_tents.push (hb_vector_t<hb_pair_t<unsigned, Triple>> ());
        if (region_tents.in_error ()) return false;
        auto &tents = region_tents[region_tents.length - 1];
@@ -230,6 +249,7 @@
 	 tents.push (hb_pair ((unsigned) pos, tent));
 	 if (points.in_error () || tents.in_error ()) return false;
        }
+       num_tents += tents.length;
      }
 
      unsigned grid_size = 1;
@@ -244,6 +264,15 @@
        points.shrink (n);
        if (grid_size > MAX_GRID / points.length) { exact = false; break; }
        grid_size *= points.length;
+     }
+
+     /* Every vertex evaluates every tent of every active region. Fall back
+      * to the interval bounds, without charging, when that does not fit. */
+     if (exact)
+     {
+       int64_t cost = (int64_t) grid_size * (active.length + num_tents);
+       if (cost <= budget) budget -= cost;
+       else exact = false;
      }
 
      if (exact)
@@ -392,7 +421,7 @@
    auto *store_cache = var_store.create_cache ();
 
    unsigned new_major = 0, new_minor = 0;
-   unsigned last_major = (variation_indices.get_min ()) >> 16;
+   unsigned last_major = (unsigned) -1;
    for (unsigned idx : variation_indices)
    {
      int delta = 0;
@@ -408,7 +437,15 @@
 
      uint16_t major = idx >> 16;
      if (major >= subtable_count) break;
-     if (major != last_major)
+     /* Keep in sync with generate_varstore_inner_maps (): rows the store
+      * doesn't have are not retained, so such an index keeps its runtime
+      * meaning (no delta) instead of consuming a new row. */
+     if (!var_store.has_delta_set (idx))
+     {
+       variation_idx_delta_map.set (idx, hb_pair_t<unsigned, int> (HB_OT_LAYOUT_NO_VARIATIONS_INDEX, delta));
+       continue;
+     }
+     if (last_major != (unsigned) -1 && major != last_major)
      {
        new_minor = 0;
        ++new_major;
@@ -445,15 +482,13 @@
    hb_set_t varidx_set;
    base->collect_variation_indices (plan, varidx_set);
    const OT::ItemVariationStore &var_store = base->get_var_store ();
-   unsigned subtable_count = var_store.get_sub_table_count ();
-
 
    remap_variation_indices (var_store, varidx_set,
                              plan->normalized_coords,
                              !plan->pinned_at_default,
                              plan->all_axes_pinned,
                              plan->base_variation_idx_map);
-   generate_varstore_inner_maps (varidx_set, subtable_count, plan->base_varstore_inner_maps);
+   generate_varstore_inner_maps (var_store, varidx_set, plan->base_varstore_inner_maps);
 
    base.destroy ();
  }
@@ -807,6 +842,15 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
 
   OT::glyf_accelerator_t glyf (plan->source);
 
+  /* The decoded points of every retained glyph stay alive in the plan.
+   * Bound their total by the source glyf size: loca entries may share
+   * glyph data and repeated flags need no bytes per point, so the glyph
+   * count alone does not bound it. */
+  hb_blob_t *glyf_blob = glyf.reference_glyf_table ();
+  int64_t budget = hb_max (HB_BUDGET_SUBSET_CONTOUR_POINTS,
+			   (int64_t) (glyf_blob ? hb_blob_get_length (glyf_blob) : 0));
+  hb_blob_destroy (glyf_blob);
+
   for (auto &_ : plan->new_to_old_gid_list)
   {
     hb_codepoint_t new_gid = _.first;
@@ -821,6 +865,8 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
     hb_codepoint_t old_gid = _.second;
     auto glyph = glyf.glyph_for_gid (old_gid);
     if (unlikely (!glyph.get_all_points_without_var (plan->source, all_points)))
+      return false;
+    if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, all_points.length)))
       return false;
     if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
       return false;

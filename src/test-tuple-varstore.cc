@@ -191,9 +191,43 @@ test_shared_tuple_scalar_cache ()
     }
 }
 
+static bool
+decompile_cvar_with_budget (OT::TupleVariationData<>::tuple_variations_t &tuple_variations,
+                            int64_t *budget)
+{
+  const OT::cvar* cvar_table = reinterpret_cast<const OT::cvar*> (cvar_data);
+  hb_map_t axis_idx_tag_map;
+  axis_idx_tag_map.set (0, HB_TAG ('w', 'g', 'h', 't'));
+
+  hb_blob_t *blob = hb_blob_create ((const char *) cvar_data, sizeof (cvar_data),
+                                    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  bool result = cvar_table->decompile_tuple_variations (1, 65, blob, false, &axis_idx_tag_map,
+                                                        tuple_variations, budget);
+  hb_blob_destroy (blob);
+  return result;
+}
+
+static void
+test_tuple_points_budget ()
+{
+  /* Each tuple is expanded to 65 points; the decode charges them. */
+  {
+    OT::TupleVariationData<>::tuple_variations_t tuple_variations;
+    int64_t budget = 2 * 65 - 1;
+    hb_always_assert (!decompile_cvar_with_budget (tuple_variations, &budget));
+  }
+
+  OT::TupleVariationData<>::tuple_variations_t tuple_variations;
+  int64_t budget = 2 * 65;
+  hb_always_assert (decompile_cvar_with_budget (tuple_variations, &budget));
+  hb_always_assert (tuple_variations.tuple_vars.length == 2);
+  hb_always_assert (budget == 0);
+}
+
 int
 main (int argc, char **argv)
 {
   test_shared_tuple_scalar_cache ();
   test_decompile_cvar ();
+  test_tuple_points_budget ();
 }

@@ -587,6 +587,74 @@ test_subset_colr_var_overflow (void)
   hb_face_destroy (face);
 }
 
+static void
+check_colr_phantom_rows (hb_face_t *face, bool variable)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 10, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 1);
+  unsigned paint = list + read_uint_be (data + list + 6, 4);
+  g_assert_cmpuint (paint + 16, <=, length);
+  g_assert_cmpuint (data[paint], ==, variable ? 5 : 4);
+  unsigned line = paint + read_uint_be (data + paint + 1, 3);
+  unsigned stride = variable ? 10 : 6;
+  g_assert_cmpuint (line + 3 + 3 * stride, <=, length);
+  g_assert_cmpuint (read_uint_be (data + line + 1, 2), ==, 3);
+  for (unsigned stop = 0; stop < 3; stop++)
+  {
+    unsigned at = line + 3 + stop * stride;
+    /* Only the first stop names rows the store has; the others keep
+     * their runtime meaning of no variation. */
+    unsigned offset = stop * 8192, alpha = 16384;
+    if (!variable && !stop)
+    {
+      offset = 1024;
+      alpha = 14336;
+    }
+    g_assert_cmpuint (read_uint_be (data + at, 2), ==, offset);
+    g_assert_cmpuint (read_uint_be (data + at + 2, 2), ==, stop % 2);
+    g_assert_cmpuint (read_uint_be (data + at + 4, 2), ==, alpha);
+    if (variable)
+      g_assert_cmpuint (read_uint_be (data + at + 6, 4), ==, stop ? 0xFFFFFFFFu : 0);
+  }
+  unsigned store = read_uint_be (data + 30, 4);
+  if (!variable)
+    g_assert_cmpuint (store, ==, 0);
+  else
+  {
+    g_assert_cmpuint (store + 12, <=, length);
+    g_assert_cmpuint (read_uint_be (data + store + 6, 2), ==, 1);
+    unsigned var_data = store + read_uint_be (data + store + 8, 4);
+    g_assert_cmpuint (var_data + 6, <=, length);
+    /* No rows are invented for the stops the source store doesn't cover. */
+    g_assert_cmpuint (read_uint_be (data + var_data, 2), ==, 2);
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+test_subset_colr_phantom_rows (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-phantom-rows.ttf");
+  for (unsigned mode = 0; mode < 3; mode++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+    if (mode == 1)
+      g_assert_true (hb_subset_input_set_axis_range (input, face, HB_TAG ('w','g','h','t'), 0, 0.5f, 0));
+    if (mode == 2)
+      g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 1));
+    hb_face_t *subset = hb_subset_test_create_subset (face, input);
+    check_colr_phantom_rows (subset, mode != 2);
+    hb_face_destroy (subset);
+  }
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -603,6 +671,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_affine_values);
   hb_test_add (test_subset_colr_sentinel_map_without_variations);
   hb_test_add (test_subset_colr_var_overflow);
+  hb_test_add (test_subset_colr_phantom_rows);
 
   return hb_test_run();
 }

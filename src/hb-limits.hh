@@ -100,6 +100,14 @@
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
 #endif
 
+/* Region axes copied into tuples when one ItemVariationStore is converted
+ * for instancing, summed over its VarData subtables.  Every region a
+ * VarData references gets its own copy of that region's axes, and the
+ * font pays a few bytes per reference however many axes the region has. */
+#ifndef HB_VARSTORE_MAX_TUPLE_AXES
+#define HB_VARSTORE_MAX_TUPLE_AXES (1u << 20)
+#endif
+
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 200000
 #endif
@@ -237,6 +245,69 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 /* One raster draw session, in accumulated non-horizontal edges. */
 #ifndef HB_RASTER_MAX_DRAW_EDGES
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
+#endif
+
+
+/* One instancing session: all the tuple variations of one table.
+ * Limiting an axis splits every tuple that uses it into up to six, so
+ * tuples multiply with each limited axis.  The copies are charged to a
+ * budget that starts at MIN and earns FACTOR times each source tuple,
+ * in tuple_delta_t::get_cost () units of roughly eight bytes. */
+#ifndef HB_BUDGET_INSTANCER_FACTOR
+#define HB_BUDGET_INSTANCER_FACTOR 64
+#endif
+#ifndef HB_BUDGET_INSTANCER_MIN
+#define HB_BUDGET_INSTANCER_MIN ((int64_t) 1 << 22)
+#endif
+
+
+/* Instancing one whole gvar or cvar table in the subsetter, in points.
+ * Every tuple is expanded to one entry per point of its glyph (per cvt
+ * value), however few of them it refers to; a tuple takes a dozen bytes
+ * and a run of repeated glyf points a fraction of a byte each, so the
+ * size of the font does not bound the product.  The budget is this many
+ * points per byte of the table, but no less than the minimum; exceeding
+ * it fails the table. */
+#ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR
+#define HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR 64
+#endif
+#ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_MIN
+#define HB_BUDGET_SUBSET_TUPLE_POINTS_MIN ((int64_t) 1 << 20)
+#endif
+
+
+/* Decoded glyf points a subset plan keeps for partially instancing gvar:
+ * one per byte of the source glyf table, but no fewer than this.  Repeated
+ * flags and loca entries that share glyph data let a font declare far more
+ * points than it has bytes.  Exceeding the budget fails the plan. */
+#ifndef HB_BUDGET_SUBSET_CONTOUR_POINTS
+#define HB_BUDGET_SUBSET_CONTOUR_POINTS ((int64_t) 1 << 22)
+#endif
+
+
+/* One avar2 partial-instancing plan, in region tents visited to bound the
+ * final coordinates each axis can reach.  A delta-set row can list a region
+ * any number of times and axes can share a row, so the table size does not
+ * bound that work.  An axis whose exact bounds do not fit what is left gets
+ * the looser interval bounds; once exhausted, axes are left unconstrained. */
+#ifndef HB_BUDGET_SUBSET_AVAR2_RANGES
+#define HB_BUDGET_SUBSET_AVAR2_RANGES ((int64_t) 1 << 26)
+#endif
+
+
+/* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
+ * one int per (row, region) pair.  In the font a row only pays for the
+ * regions of its own VarData, so a small font can ask for a huge matrix.
+ * These are flat ceilings on that one allocation: a proportional bound
+ * would reject legitimate optimizer output, where several VarData use
+ * disjoint region subsets so the dense matrix is much wider than any one
+ * VarData.  Exceeding either limit fails instancing of that store. */
+#ifndef HB_SUBSET_MAX_VARSTORE_ROWS
+#define HB_SUBSET_MAX_VARSTORE_ROWS (1u << 21)
+#endif
+
+#ifndef HB_SUBSET_MAX_VARSTORE_DELTAS
+#define HB_SUBSET_MAX_VARSTORE_DELTAS ((uint64_t) 1 << 26)
 #endif
 
 

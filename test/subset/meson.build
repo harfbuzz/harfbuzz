@@ -88,6 +88,7 @@ tests = [
   'glyf_iup_large_contour',
   'hvar_partial_instance_implicit_map',
   'mvar_partial_instance',
+  'mvar_partial_instance_record_size',
   'update_def_wght',
   'feature_variations_partial_instance',
   'gdef_partial_instance',
