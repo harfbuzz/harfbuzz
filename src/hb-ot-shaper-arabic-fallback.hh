@@ -108,16 +108,16 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 					    const T &ligature_table,
 					    unsigned lookup_flags)
 {
-  OT::HBGlyphID16 first_glyphs[ARRAY_LENGTH_CONST (ligature_table)];
-  unsigned int first_glyphs_indirection[ARRAY_LENGTH_CONST (ligature_table)];
-  unsigned int ligature_per_first_glyph_count_list[ARRAY_LENGTH_CONST (first_glyphs)];
+  OT::HBGlyphID16 first_glyphs[ARRAY_LENGTH_UNCHECKED (ligature_table)];
+  unsigned int first_glyphs_indirection[ARRAY_LENGTH (first_glyphs)];
+  unsigned int ligature_per_first_glyph_count_list[ARRAY_LENGTH (first_glyphs)];
   unsigned int num_first_glyphs = 0;
 
   /* We know that all our ligatures have the same number of components. */
-  OT::HBGlyphID16 ligature_list[ARRAY_LENGTH_CONST (first_glyphs) * ARRAY_LENGTH_CONST(ligature_table[0].ligatures)];
-  unsigned int component_count_list[ARRAY_LENGTH_CONST (ligature_list)];
-  OT::HBGlyphID16 component_list[ARRAY_LENGTH_CONST (ligature_list) *
-				 ARRAY_LENGTH_CONST (ligature_table[0].ligatures[0].components)];
+  OT::HBGlyphID16 ligature_list[ARRAY_LENGTH (first_glyphs) * ARRAY_LENGTH_UNCHECKED (ligature_table[0].ligatures)];
+  unsigned int component_count_list[ARRAY_LENGTH (ligature_list)];
+  OT::HBGlyphID16 component_list[ARRAY_LENGTH (ligature_list) *
+				 ARRAY_LENGTH_UNCHECKED (ligature_table[0].ligatures[0].components)];
   unsigned int num_ligatures = 0;
   unsigned int num_components = 0;
 
@@ -152,7 +152,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 	continue;
 
       const auto &components = ligature_table[first_glyph_idx].ligatures[ligature_idx].components;
-      unsigned component_count = ARRAY_LENGTH_CONST (components);
+      unsigned component_count = ARRAY_LENGTH (components);
 
       bool matched = true;
       for (unsigned j = 0; j < component_count; j++)
@@ -186,7 +186,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 
 
   /* 16 bytes per ligature ought to be enough... */
-  char buf[ARRAY_LENGTH_CONST (ligature_list) * 16 + 128];
+  char buf[ARRAY_LENGTH (ligature_list) * 16 + 128];
   hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_ligature (&c,
@@ -220,7 +220,7 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
   return nullptr;
 }
 
-#define ARABIC_FALLBACK_MAX_LOOKUPS ARRAY_LENGTH_CONST (arabic_fallback_features)
+#define ARABIC_FALLBACK_MAX_LOOKUPS ARRAY_LENGTH (arabic_fallback_features)
 
 struct arabic_fallback_plan_t
 {
@@ -295,7 +295,7 @@ arabic_fallback_plan_init_unicode (arabic_fallback_plan_t *fallback_plan,
 				   const hb_ot_shape_plan_t *plan,
 				   hb_font_t *font)
 {
-  static_assert ((ARRAY_LENGTH_CONST (arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS), "");
+  static_assert ((ARRAY_LENGTH (arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS), "");
   unsigned int j = 0;
   for (unsigned int i = 0; i < ARRAY_LENGTH(arabic_fallback_features) ; i++)
   {
