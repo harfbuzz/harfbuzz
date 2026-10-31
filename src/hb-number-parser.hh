@@ -28,9 +28,12 @@
 
 #include "hb.hh"
 
-static const double _powers_of_10[] =
-{ 1.0e+256, 1.0e+128, 1.0e+64, 1.0e+32, 1.0e+16, 1.0e+8, 10000., 100., 10. };
-  
+static const double _small_powers_of_10[] =
+{ 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15 };
+static const double _large_powers_of_10[] =
+{ 1e0, 1e16, 1e32, 1e48, 1e64, 1e80, 1e96, 1e112, 1e128, 1e144,
+  1e160, 1e176, 1e192, 1e208, 1e224, 1e240, 1e256, 1e272, 1e288, 1e304 };
+
 /* Grammar:
  *   number  := sign? mantissa exponent?
  *   sign    := '+' | '-'
@@ -109,7 +112,7 @@ struct hb_number_parser_t
     return (state == Sign || state == AfterDotFromStart) ? 0 : pos;
   }
 
-  /* Valid after finish() returned true. */
+  /* Valid after `commit ()` returned nonzero. */
   double get_value () const
   {
     double v = value;
@@ -213,15 +216,22 @@ private:
   }
 
   /* Handles 0..308; anything larger overflows double and returns HUGE_VAL. */
-  static double _pow10 (unsigned exponent)
+  static double _pow10 (unsigned n)
   {
     /* DBL_MAX is between 10^308 and 10^309 */
-    if (unlikely (exponent > 308)) return HUGE_VAL;
-    unsigned mask = 1 << (ARRAY_LENGTH (_powers_of_10) - 1);
-    double result = 1;
-    for (const double *power = _powers_of_10; mask; ++power, mask >>= 1)
-      if (exponent & mask) result *= *power;
-    return result;
+    constexpr unsigned MAX_POW10_EXP = 308;
+    constexpr unsigned POW10_SHIFT   = 4;
+    constexpr unsigned POW10_SMALL   = 1u << POW10_SHIFT;   /* 16 */
+    constexpr unsigned POW10_MASK    = POW10_SMALL - 1;     /* 15 */
+
+    static_assert (ARRAY_LENGTH (_small_powers_of_10) == POW10_SMALL,
+		   "_small_powers_of_10: size must be 2^POW10_SHIFT");
+    static_assert ((MAX_POW10_EXP >> POW10_SHIFT) < ARRAY_LENGTH (_large_powers_of_10),
+		   "_large_powers_of_10: must cover MAX_POW10_EXP >> POW10_SHIFT");
+
+    if (unlikely (n > MAX_POW10_EXP)) return HUGE_VAL;
+    if (likely (n < POW10_SMALL)) return _small_powers_of_10[n];
+    return _large_powers_of_10[n >> POW10_SHIFT] * _small_powers_of_10[n & POW10_MASK];
   }
 };
 
