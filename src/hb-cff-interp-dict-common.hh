@@ -105,7 +105,7 @@ struct dict_opset_t : opset_t<number_t>
       if (unlikely (nibble == RESERVED)) break;
       else if (nibble == END)
       {
-	size_t length = parser.finish ();
+	size_t length = parser.commit ();
 	if (unlikely (length == 0 || length != count))
 	  break;
 	return parser.get_value ();

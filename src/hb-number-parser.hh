@@ -103,11 +103,10 @@ struct hb_number_parser_t
 
   /* Signal end of input.  Rolls back a dangling exponent.  Returns the
    * accepted length, or 0 if no valid number was parsed. */
-  size_t finish ()
+  HB_NODISCARD size_t commit ()
   {
     if (state == ExpStart || state == ExpSign) rollback_exponent ();
-    return (state == Sign || state == AfterDotFromStart ||
-	    state == ExpStart || state == ExpSign) ? 0 : pos;
+    return (state == Sign || state == AfterDotFromStart) ? 0 : pos;
   }
 
   /* Valid after finish() returned true. */
@@ -117,9 +116,13 @@ struct hb_number_parser_t
     if (!fraction.is_empty ()) v += fraction.get_value ();
     if (neg) v *= -1.;
 
+    /* Zero mantissa: any exponent gives zero, and this avoids
+     * 0 * HUGE_VAL = nan for "0e441" where _pow10(441) is HUGE_VAL
+     * but exp_overflow didn't fire.  Preserves -0.0 for "-0e<...>". */
+    if (v == 0) return v;
+
     if (unlikely (exp_overflow))
     {
-      if (v == 0)  return v; /* preserves -0.0 for "-0e<overflow>" */
       if (exp_neg) return neg ? -.0 : .0;
       else         return neg ? -HUGE_VAL : HUGE_VAL;
     }
@@ -144,14 +147,14 @@ struct hb_number_parser_t
   }
 
 private:
-  static constexpr uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
+  static constexpr uint64_t MAX_FRACT = 10000000000000000000ull; // 10^19
   struct /* fraction */
   {
     void add (int digit)
     {
       if (likely (fraction <= MAX_FRACT / 10))
       {
-	fraction = fraction * 10. + digit;
+	fraction = fraction * 10 + digit;
 	++count;
       }
       else if (drop < 0) drop = digit;
@@ -160,9 +163,10 @@ private:
 
     double get_value () const
     {
-      double result = fraction;
-      /* Round-to-nearest-even using the recorded tail */
-      if (drop > 5 || (drop == 5 && ((((uint64_t) fraction) & 1) || sticky)))
+      /* (double) fraction rounds to nearest; division by an exact
+       * power of ten rounds once more.  Combined error < 1 ULP. */
+      double result = (double) fraction;
+      if (drop > 5 || (drop == 5 && (sticky || (fraction & 1))))
 	result += 1;
       return result / _pow10 (count);
     }
@@ -171,7 +175,7 @@ private:
 
   private:
     unsigned count = 0;
-    double fraction = 0;
+    uint64_t fraction = 0;
     int drop = -1; /* drop is the first digit we couldn't accumulate */
     bool sticky = false; /* sticky is set when any later digit was nonzero. */
   } fraction;
