@@ -1905,6 +1905,47 @@ test_parse_double (void)
     hb_always_assert (pv == strtod (str, nullptr));
     hb_always_assert (pp == end);
   }
+  /* Zero mantissa, exponent in (308, MAX_EXP]: _pow10 returns HUGE_VAL
+   * but exp_overflow doesn't fire, so 0 * inf must short-circuit to 0
+   * rather than producing nan. */
+  {
+    const char str[] = "0e441";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && !std::signbit (pv));
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
+  {
+    const char str[] = "-0e441";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && std::signbit (pv));
+    hb_always_assert (pv == strtod (str, nullptr));
+    hb_always_assert (std::signbit (pv) == std::signbit (strtod (str, nullptr)));
+  }
+  /* Same bug, alternate zero-mantissa forms. */
+  {
+    const char str[] = ".0e441";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && !std::signbit (pv));
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
+  {
+    const char str[] = "0.e441";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv == 0.0 && !std::signbit (pv));
+    hb_always_assert (pv == strtod (str, nullptr));
+  }
 }
 
 int

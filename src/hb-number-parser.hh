@@ -116,9 +116,13 @@ struct hb_number_parser_t
     if (!fraction.is_empty ()) v += fraction.get_value ();
     if (neg) v *= -1.;
 
+    /* Zero mantissa: any exponent gives zero, and this avoids
+     * 0 * HUGE_VAL = nan for "0e441" where _pow10(441) is HUGE_VAL
+     * but exp_overflow didn't fire.  Preserves -0.0 for "-0e<...>". */
+    if (v == 0) return v;
+
     if (unlikely (exp_overflow))
     {
-      if (v == 0)  return v; /* preserves -0.0 for "-0e<overflow>" */
       if (exp_neg) return neg ? -.0 : .0;
       else         return neg ? -HUGE_VAL : HUGE_VAL;
     }
