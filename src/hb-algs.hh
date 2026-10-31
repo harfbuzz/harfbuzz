@@ -1223,8 +1223,8 @@ static inline unsigned int DIV_CEIL (const unsigned int a, unsigned int b)
 
 
 #undef  ARRAY_LENGTH
-template <typename Type, unsigned int n>
-static inline constexpr unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
+template <typename Type, size_t n>
+static inline constexpr size_t ARRAY_LENGTH (const Type (&)[n]) { return n; }
 
 static inline void *
 hb_memcpy (void *__restrict dst, const void *__restrict src, size_t len)
