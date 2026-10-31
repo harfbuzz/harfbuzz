@@ -848,7 +848,7 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
    * count alone does not bound it. */
   hb_blob_t *glyf_blob = glyf.reference_glyf_table ();
   int64_t budget = hb_max (HB_BUDGET_SUBSET_CONTOUR_POINTS,
-			   (int64_t) hb_blob_get_length (glyf_blob));
+			   (int64_t) (glyf_blob ? hb_blob_get_length (glyf_blob) : 0));
   hb_blob_destroy (glyf_blob);
 
   for (auto &_ : plan->new_to_old_gid_list)

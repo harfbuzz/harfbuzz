@@ -270,6 +270,62 @@ test_subset_gvar_shared_glyph_data (void)
   }
 }
 
+static void
+test_subset_gvar_invalid_glyf_format (void)
+{
+  /* head.glyphDataFormat > 1 disables the glyf accelerator, so
+   * reference_glyf_table () hands back no blob.  Partial instancing (only
+   * one of the two axes pinned) still enters
+   * get_instance_glyphs_contour_points (), which must not take the length of
+   * that null blob. */
+  static char head[54] = {
+    0, 1, 0, 0,                 /* version 1.0 */
+    0, 0, 0, 0,                 /* fontRevision */
+    0, 0, 0, 0,                 /* checksumAdjustment */
+    0x5F, 0x0F, 0x3C, (char) 0xF5, /* magicNumber */
+    0, 0,                       /* flags */
+    0x03, (char) 0xE8,          /* unitsPerEm */
+    /* ... indexToLocFormat and glyphDataFormat set below */
+  };
+  static const char maxp[] = {
+    0, 0, 0x50, 0,              /* version 0.5 */
+    0, 2,                       /* numGlyphs */
+  };
+  static const char fvar[] = {
+    0, 1, 0, 0,                 /* version 1.0 */
+    0, 16,                      /* axesArrayOffset */
+    0, 2,                       /* reserved */
+    0, 2,                       /* axisCount */
+    0, 20,                      /* axisSize */
+    0, 0,                       /* instanceCount */
+    0, 12,                      /* instanceSize */
+    'w', 'g', 'h', 't', 0, 100, 0, 0, 1, (char) 144, 0, 0, 3, (char) 132, 0, 0, 0, 0, 1, 0,
+    'w', 'd', 't', 'h', 0, 50, 0, 0, 0, 100, 0, 0, 0, (char) 200, 0, 0, 0, 0, 1, 1,
+  };
+  static const char loca[] = { 0, 0, 0, 0, 0, 0 }; /* short loca, 2 empty glyphs */
+  static const char glyf[] = { 0 };
+
+  head[51] = 0; /* indexToLocFormat: short */
+  head[53] = 2; /* glyphDataFormat: invalid (> 1) */
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "head", head);
+  HB_FACE_ADD_TABLE (face, "maxp", maxp);
+  HB_FACE_ADD_TABLE (face, "fvar", fvar);
+  HB_FACE_ADD_TABLE (face, "loca", loca);
+  HB_FACE_ADD_TABLE (face, "glyf", glyf);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+  g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 500));
+
+  /* The point is that this does not crash. */
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+  hb_subset_plan_destroy (plan);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -279,6 +335,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_gvar);
   hb_test_add (test_subset_gvar_retaingids);
   hb_test_add (test_subset_gvar_shared_glyph_data);
+  hb_test_add (test_subset_gvar_invalid_glyf_format);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_GVAR_header);
   hb_test_add (test_subset_GVAR_all_axes_pinned);
