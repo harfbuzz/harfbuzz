@@ -1946,6 +1946,19 @@ test_parse_double (void)
     hb_always_assert (pv == 0.0 && !std::signbit (pv));
     hb_always_assert (pv == strtod (str, nullptr));
   }
+  /* 18 fractional digits: accumulator keeps 15, so we can be ~3 ULP
+   * off from strtod.  Known limit; would tighten to ~1 ULP with a
+   * uint64_t accumulator. */
+  {
+    const char str[] = ".543588148486817512e";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (pv > 0.543588148486817 && pv < 0.543588148486818);
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == str + 19); // trailing 'e' not consumed
+  }
 }
 
 int

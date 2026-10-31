@@ -147,14 +147,14 @@ struct hb_number_parser_t
   }
 
 private:
-  static constexpr uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
+  static constexpr uint64_t MAX_FRACT = 10000000000000000000ull; // 10^19
   struct /* fraction */
   {
     void add (int digit)
     {
       if (likely (fraction <= MAX_FRACT / 10))
       {
-	fraction = fraction * 10. + digit;
+	fraction = fraction * 10 + digit;
 	++count;
       }
       else if (drop < 0) drop = digit;
@@ -163,9 +163,10 @@ private:
 
     double get_value () const
     {
-      double result = fraction;
-      /* Round-to-nearest-even using the recorded tail */
-      if (drop > 5 || (drop == 5 && ((((uint64_t) fraction) & 1) || sticky)))
+      /* (double) fraction rounds to nearest; division by an exact
+       * power of ten rounds once more.  Combined error < 1 ULP. */
+      double result = (double) fraction;
+      if (drop > 5 || (drop == 5 && (sticky || (fraction & 1))))
 	result += 1;
       return result / _pow10 (count);
     }
@@ -174,7 +175,7 @@ private:
 
   private:
     unsigned count = 0;
-    double fraction = 0;
+    uint64_t fraction = 0;
     int drop = -1; /* drop is the first digit we couldn't accumulate */
     bool sticky = false; /* sticky is set when any later digit was nonzero. */
   } fraction;
