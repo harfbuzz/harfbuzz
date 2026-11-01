@@ -23,13 +23,16 @@
  *
  */
 
+/* Include before hb.hh so libstdc++'s inline string implementations remain
+ * available for MemorySanitizer instrumentation. */
+#include <string>
+
 #define hb_realloc vector_test_realloc
 
 #include "hb.hh"
 #include "hb-vector.hh"
 #include "hb-set.hh"
 #include "hb-map.hh"
-#include <string>
 
 static size_t allocation_limit = SIZE_MAX;
 static size_t last_reallocation;
