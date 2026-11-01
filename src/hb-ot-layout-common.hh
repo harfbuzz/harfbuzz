@@ -4216,9 +4216,11 @@ struct ItemVarStoreInstancer
    if (!coords || varIdx == VarIdx::NO_VARIATION)
      return Float (0);
 
-    if (unlikely (hb_unsigned_add_overflows (varIdx, (uint32_t) offset, &varIdx) ||
-		  varIdx == VarIdx::NO_VARIATION))
+    unsigned index;
+    if (unlikely (hb_unsigned_add_overflows (varIdx, offset, &index) ||
+		  index == VarIdx::NO_VARIATION))
       return Float (0);
+    varIdx = index;
     if (varIdxMap)
       varIdx = varIdxMap->map (varIdx);
     return varStore->get_delta<Float> (varIdx, coords, cache);
