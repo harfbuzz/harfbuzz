@@ -570,6 +570,75 @@ test_hb_ot_color_clip_extents_overflow (void)
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
+
+static void
+test_hb_ot_color_varidx_add_overflow (void)
+{
+  /* Mutate Glyph 1's ClipBoxFormat2 varIdxBase in colr-var-overflow.ttf to
+   * 0xFFFFFFFE.  Offsets 0..3 must not wrap 32-bit uint32_t to varIdx 0..1
+   * (whose wght=1 deltas are INT32_MAX) or hit NO_VARIATION unchecked. */
+  hb_face_t *orig = hb_test_open_font_file ("fonts/colr-var-overflow.ttf");
+  hb_blob_t *colr_blob = hb_face_reference_table (orig, HB_TAG ('C','O','L','R'));
+  unsigned colr_len = 0;
+  const uint8_t *colr_src = (const uint8_t *) hb_blob_get_data (colr_blob, &colr_len);
+  g_assert_cmpuint (colr_len, >, 34);
+
+  uint8_t *colr_mut = (uint8_t *) g_malloc (colr_len);
+  memcpy (colr_mut, colr_src, colr_len);
+  hb_blob_destroy (colr_blob);
+
+  uint32_t off_clip = ((uint32_t) colr_mut[22] << 24) |
+                      ((uint32_t) colr_mut[23] << 16) |
+                      ((uint32_t) colr_mut[24] << 8)  |
+                      (uint32_t) colr_mut[25];
+  g_assert_cmpuint (off_clip + 12, <=, colr_len);
+  uint32_t box_off = ((uint32_t) colr_mut[off_clip + 9] << 16) |
+                     ((uint32_t) colr_mut[off_clip + 10] << 8) |
+                     (uint32_t) colr_mut[off_clip + 11];
+  uint32_t abs_box = off_clip + box_off;
+  g_assert_cmpuint (abs_box + 13, <=, colr_len);
+  g_assert_cmpuint (colr_mut[abs_box], ==, 2); /* ClipBoxFormat2 */
+
+  /* Set varIdxBase = 0xFFFFFFFE (base box is 300, 300, 300, 300). */
+  colr_mut[abs_box + 9]  = 0xFF;
+  colr_mut[abs_box + 10] = 0xFF;
+  colr_mut[abs_box + 11] = 0xFF;
+  colr_mut[abs_box + 12] = 0xFE;
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_tag_t tags[32];
+  unsigned tag_count = G_N_ELEMENTS (tags);
+  hb_face_get_table_tags (orig, 0, &tag_count, tags);
+  for (unsigned i = 0; i < tag_count; i++)
+  {
+    if (tags[i] == HB_TAG ('C','O','L','R'))
+      continue;
+    hb_blob_t *tb = hb_face_reference_table (orig, tags[i]);
+    hb_face_builder_add_table (face, tags[i], tb);
+    hb_blob_destroy (tb);
+  }
+  hb_blob_t *mut_blob = hb_blob_create ((const char *) colr_mut, colr_len,
+                                        HB_MEMORY_MODE_READONLY, colr_mut, g_free);
+  hb_face_builder_add_table (face, HB_TAG ('C','O','L','R'), mut_blob);
+  hb_blob_destroy (mut_blob);
+  hb_face_destroy (orig);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_variation_t var = {HB_TAG ('w','g','h','t'), 1.f};
+  hb_font_set_variations (font, &var, 1);
+  int upem = hb_face_get_upem (face);
+  hb_font_set_scale (font, upem, upem);
+
+  hb_glyph_extents_t extents;
+  g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+  g_assert_cmpint (extents.x_bearing, ==, 300);
+  g_assert_cmpint (extents.y_bearing, ==, 300);
+  g_assert_cmpint (extents.width, ==, 0);
+  g_assert_cmpint (extents.height, ==, 0);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
 #endif
 
 int
@@ -608,6 +677,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_svg);
 #endif
   hb_test_add (test_hb_ot_color_glyph_has_paint);
+#if !defined(HB_NO_VAR) && !defined(HB_NO_PAINT)
+  hb_test_add (test_hb_ot_color_varidx_add_overflow);
+#endif
 
   status = hb_test_run();
   hb_face_destroy (cpal_v0);

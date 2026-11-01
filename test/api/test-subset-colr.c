@@ -441,6 +441,191 @@ test_subset_colr_sentinel_map_without_variations (void)
   }
 }
 
+static hb_face_t *
+build_colrv1_closure_test_face (hb_bool_t use_var_paint,
+                                uint32_t paint_var_idx_base,
+                                hb_bool_t include_clip_box,
+                                uint32_t clip_var_idx_base)
+{
+  static const uint8_t head_data[54] = {
+    0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+    0x5F, 0x0F, 0x3C, 0xF5, 0, 0, 0x03, 0xE8
+  };
+  static const uint8_t hhea_data[36] = {
+    0, 1, 0, 0, 3, 0x20, 0xFF, 0x38, 0, 0, 3, 0xE8,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
+  };
+  static const uint8_t hmtx_data[8] = {
+    2, 0x58, 0, 0, 2, 0x58, 0, 0
+  };
+  static const uint8_t maxp_data[32] = {
+    0, 1, 0, 0, 0, 2
+  };
+  static const uint8_t loca_data[6] = {
+    0, 0, 0, 9, 0, 9
+  };
+  static const uint8_t glyf_data[18] = {
+    0, 1, 0, 0, 0, 0, 0, 100, 0, 100,
+    0, 1, 0, 0,
+    0x31, 0x33, 100, 0
+  };
+  static const uint8_t fvar_data[36] = {
+    0, 1, 0, 0, 0, 16, 0, 2, 0, 1, 0, 20, 0, 0, 0, 8,
+    'w', 'g', 'h', 't', 0, 100, 0, 0, 1, 0x90, 0, 0, 3, 0x84, 0, 0, 0, 0, 1, 0
+  };
+  static const uint8_t cpal_data[18] = {
+    0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 14, 0, 0,
+    0x00, 0x00, 0xFF, 0xFF
+  };
+
+  uint8_t *colr = (uint8_t *) g_malloc0 (124);
+  /* COLR v1 header (34 bytes) */
+  colr[1] = 1;  /* version = 1 */
+  colr[17] = 34; /* baseGlyphListOffset = 34 */
+  colr[25] = include_clip_box ? 61 : 0; /* clipListOffset */
+  colr[29] = 86; /* varIdxMapOffset = 86 */
+  colr[33] = 92; /* varStoreOffset = 92 */
+
+  /* BaseGlyphList @ 34 (10 bytes): 1 record for gid 1 */
+  colr[37] = 1;
+  colr[39] = 1; /* glyphId = 1 */
+  colr[43] = use_var_paint ? 10 : 22; /* paintOffset -> 44 or 56 */
+
+  /* PaintVarTranslate @ 44 (12 bytes) */
+  colr[44] = 15; /* format = 15 */
+  colr[47] = 12; /* src = +12 -> 56 (PaintSolid) */
+  colr[49] = 50; /* dx = 50 */
+  colr[51] = 25; /* dy = 25 */
+  colr[52] = (paint_var_idx_base >> 24) & 0xFF;
+  colr[53] = (paint_var_idx_base >> 16) & 0xFF;
+  colr[54] = (paint_var_idx_base >> 8) & 0xFF;
+  colr[55] = paint_var_idx_base & 0xFF;
+
+  /* PaintSolid @ 56 (5 bytes): format=2, paletteIndex=0, alpha=1.0 */
+  colr[56] = 2;
+  colr[59] = 0x40;
+
+  /* ClipList @ 61 (12 bytes) + ClipBoxFormat2 @ 73 (13 bytes) */
+  colr[61] = 1; /* format = 1 */
+  colr[65] = 1; /* numClips = 1 */
+  colr[67] = 1; /* startGlyphID = 1 */
+  colr[69] = 1; /* endGlyphID = 1 */
+  colr[72] = 12; /* clipBoxOffset = +12 -> 73 */
+  colr[73] = 2; /* ClipBoxFormat2 */
+  colr[75] = 10; /* xMin = 10 */
+  colr[77] = 20; /* yMin = 20 */
+  colr[79] = 110; /* xMax = 110 */
+  colr[81] = 120; /* yMax = 120 */
+  colr[82] = (clip_var_idx_base >> 24) & 0xFF;
+  colr[83] = (clip_var_idx_base >> 16) & 0xFF;
+  colr[84] = (clip_var_idx_base >> 8) & 0xFF;
+  colr[85] = clip_var_idx_base & 0xFF;
+
+  /* DeltaSetIndexMap @ 86 (6 bytes): format=0, entryFormat=0, mapCount=2, [0, 1] */
+  colr[89] = 2;
+  colr[91] = 1;
+
+  /* ItemVariationStore @ 92 (32 bytes): 1 region [0, 1, 1], 1 VarData with deltas {0, +100} */
+  colr[93] = 1;   /* format = 1 */
+  colr[97] = 12;  /* regionListOffset = 12 -> 104 */
+  colr[99] = 1;   /* dataCount = 1 */
+  colr[103] = 22; /* dataSets[0] = 22 -> 114 */
+  colr[105] = 1;  /* axisCount = 1 */
+  colr[107] = 1;  /* regionCount = 1 */
+  colr[110] = 0x40;
+  colr[112] = 0x40;
+  colr[115] = 2;   /* itemCount = 2 */
+  colr[119] = 1;   /* regionIndexCount = 1 */
+  colr[122] = 0;   /* item 0 delta = 0 */
+  colr[123] = 100; /* item 1 delta = +100 */
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *b;
+  #define ADD_COLR_TBL(tag_str, ptr, sz, free_fn)     G_STMT_START {       b = hb_blob_create ((const char *) (ptr), (sz), HB_MEMORY_MODE_READONLY, (void *) (ptr), (free_fn));       hb_face_builder_add_table (face, HB_TAG (tag_str[0], tag_str[1], tag_str[2], tag_str[3]), b);       hb_blob_destroy (b);     } G_STMT_END
+  ADD_COLR_TBL ("head", head_data, sizeof (head_data), NULL);
+  ADD_COLR_TBL ("hhea", hhea_data, sizeof (hhea_data), NULL);
+  ADD_COLR_TBL ("hmtx", hmtx_data, sizeof (hmtx_data), NULL);
+  ADD_COLR_TBL ("maxp", maxp_data, sizeof (maxp_data), NULL);
+  ADD_COLR_TBL ("loca", loca_data, sizeof (loca_data), NULL);
+  ADD_COLR_TBL ("glyf", glyf_data, sizeof (glyf_data), NULL);
+  ADD_COLR_TBL ("fvar", fvar_data, sizeof (fvar_data), NULL);
+  ADD_COLR_TBL ("CPAL", cpal_data, sizeof (cpal_data), NULL);
+  ADD_COLR_TBL ("COLR", colr, 124, g_free);
+  #undef ADD_COLR_TBL
+  return face;
+}
+
+static void
+test_subset_colr_clipbox_closure_overflow (void)
+{
+  /* Positive control (varIdxBase = 1) and overflow boundary (varIdxBase = 0xFFFFFFFC,
+   * where +3 hits NO_VARIATION) must both preserve ClipBoxFormat2 variations across
+   * unpinned subsetting. */
+  const uint32_t bases[2] = {1u, 0xFFFFFFFCu};
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *face = build_colrv1_closure_test_face (FALSE, 0, TRUE, bases[i]);
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    hb_subset_input_destroy (input);
+    g_assert_nonnull (subset);
+    g_assert_true (hb_ot_color_has_paint (subset));
+
+    hb_font_t *font = hb_font_create (subset);
+    hb_variation_t var = {HB_TAG ('w','g','h','t'), 900.f};
+    hb_font_set_variations (font, &var, 1);
+    hb_font_set_scale (font, 1000, 1000);
+
+    hb_glyph_extents_t extents = {0};
+    g_assert_true (hb_font_get_glyph_extents (font, 1, &extents));
+    g_assert_cmpint (extents.x_bearing, ==, 110);
+    g_assert_cmpint (extents.width, ==, 100);
+
+    hb_font_destroy (font);
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
+}
+
+static void
+test_subset_colr_paint_varidx_closure_overflow (void)
+{
+  /* Positive control (varIdxBase = 1) and overflow boundary (varIdxBase = 0xFFFFFFFE
+   * on PaintVarTranslate, where 0xFFFFFFFE + 2 - 1 == NO_VARIATION) must both
+   * retain variable PaintVarTranslate across unpinned subsetting. */
+  const uint32_t bases[2] = {1u, 0xFFFFFFFEu};
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *face = build_colrv1_closure_test_face (TRUE, bases[i], FALSE, 0);
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    hb_subset_input_destroy (input);
+    g_assert_nonnull (subset);
+    g_assert_true (hb_ot_color_has_paint (subset));
+    g_assert_true (hb_ot_color_glyph_has_paint (subset, 1));
+
+    hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','O','L','R'));
+    unsigned length = 0;
+    const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+    g_assert_cmpuint (length, >=, 34);
+    unsigned list = read_uint_be (data + 14, 4);
+    g_assert_cmpuint (list + 10, <=, length);
+    unsigned paint = list + read_uint_be (data + list + 6, 4);
+    g_assert_cmpuint (paint + 12, <=, length);
+    g_assert_cmpuint (data[paint], ==, 15); /* PaintVarTranslate retained */
+    g_assert_cmpuint (read_uint_be (data + paint + 4, 2), ==, 50);
+    g_assert_cmpuint (read_uint_be (data + paint + 6, 2), ==, 25);
+    g_assert_cmpuint (read_uint_be (data + 30, 4), !=, 0); /* varStoreOffset retained */
+
+    hb_blob_destroy (blob);
+    hb_face_destroy (subset);
+    hb_face_destroy (face);
+  }
+}
+
 static void
 check_colr_var_overflow (hb_face_t *face, bool variable)
 {
@@ -697,6 +882,8 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_subset_colr_noop);
+  hb_test_add (test_subset_colr_clipbox_closure_overflow);
+  hb_test_add (test_subset_colr_paint_varidx_closure_overflow);
   hb_test_add (test_subset_colr_keep_one_colr_glyph);
   hb_test_add (test_subset_colr_keep_mixed_glyph);
   hb_test_add (test_subset_colr_keep_no_colr_glyph);
