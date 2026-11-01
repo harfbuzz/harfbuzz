@@ -35,9 +35,7 @@
 # the first glyph of the run. Each action list walks backwards from the latest
 # push and wraps every eight values; zero values also advance that cursor.
 # The Reset flag is ignored. Legacy kern retains its existing pop rules.
-# These 35 cases were measured on macOS 15.8.2 and 26.6.2. The kerx-coretext
-# Meson test compares native CoreText and HB against the recorded positions
-# in ../kerx-coretext-results.json; the cases are in ../kerx-coretext-cases.json.
+# These 35 cases were measured on macOS 15.8.2 and 26.6.2.
 # stack-leftover
 ../fonts/661373fa372e6925c89d82332b60e5a791c8c9f7.ttf;;U+0061,U+0062,U+0063;[a=0+561|b=1@30,0+645|c=2+480]
 # stack-extra-value

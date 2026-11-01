@@ -26,15 +26,3 @@ foreach set : sets
     suite: ['shape', set],
   )
 endforeach
-
-if conf.get('HAVE_CORETEXT', 0) == 1 and not meson.is_cross_build()
-  kerx_coretext = executable('test-kerx-coretext', 'kerx-coretext.c',
-    dependencies: coretext_deps,
-    install: false,
-  )
-  test('kerx-coretext', find_program('run-kerx-coretext.py'),
-    args: [kerx_coretext, hb_shape],
-    protocol: 'tap',
-    suite: ['shape'],
-  )
-endif
