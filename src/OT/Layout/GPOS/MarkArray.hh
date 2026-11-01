@@ -12,7 +12,8 @@ static inline hb_position_t
 resolve_cross_offset (const hb_glyph_position_t *pos,
 		      unsigned int len,
 		      unsigned int glyph_pos,
-		      hb_direction_t direction)
+		      hb_direction_t direction,
+		      bool reversed = false)
 {
   bool horizontal = HB_DIRECTION_IS_HORIZONTAL (direction);
   hb_position_t offset = horizontal ? pos[glyph_pos].y_offset : pos[glyph_pos].x_offset;
@@ -25,7 +26,8 @@ resolve_cross_offset (const hb_glyph_position_t *pos,
     int chain = pos[glyph_pos].attach_chain();
     if (!chain)
       break;
-    unsigned int parent = (int) glyph_pos + chain;
+    /* AAT keeps attachment chains in the original buffer order. */
+    unsigned int parent = (int) glyph_pos + (reversed ? -chain : chain);
     if (unlikely (parent >= len))
       break;
     glyph_pos = parent;

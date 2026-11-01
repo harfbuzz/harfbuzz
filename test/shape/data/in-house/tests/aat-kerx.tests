@@ -14,3 +14,7 @@
 ../fonts/76945ad2b2303cbdf235f5be45285993eb65694b.ttf;;U+0062,U+0078,U+0078;[b=0+615|m=1@-440,600+150|m=2@-590,800+150]
 ../fonts/a8b4a746c2d1a1fd5d5d6108e366e79c0ae74ef5.ttf;;U+0645,U+064F,U+062D,U+064E,U+0645,U+064E,U+0651,U+062F;[uni062F.fina=7+474|uni064E=4@107,-64+0|uni0651=4@109,-186+0|uni0645.medi=4+413|uni064E=2@200,-172+0|uni062D.medi=2+666|uni064F=0@143,-196+0|uni0645.init=0+456]
 ../fonts/a8b4a746c2d1a1fd5d5d6108e366e79c0ae74ef5.ttf;;U+0643,U+064F,U+0644,U+064F,U+0651;[uni064F=2@112,-32+0|uni0651=2@128,-154+0|uni0644.fina=2+591|uni064F=0@56,-105+0|uni0643.init=0+415]
+# Cross-stream kerning followed by a backwards format 4 attachment.
+# Reset c's chain so m attaches to the unshifted b.
+../fonts/9c272fe4cf950932efc998c8d09b073055ebb23a.ttf;;U+0078,U+007A,U+0062,U+0062;[m=0@925,600+150|c=1+600|b=2+615|b=3@0,100+615]
+../fonts/9c272fe4cf950932efc998c8d09b073055ebb23a.ttf;;U+0078,U+007A,U+0062,U+0062,U+0062;[m=0@925,600+150|c=1+600|b=2+615|b=3@0,100+615|b=4@0,200+615]
