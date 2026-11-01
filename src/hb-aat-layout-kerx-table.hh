@@ -632,6 +632,12 @@ struct KerxSubTableFormat4
 	  }
 	  break;
 	}
+	hb_position_t base_offset = OT::Layout::GPOS_impl::resolve_cross_offset (buffer->pos, buffer->len, mark,
+										 buffer->props.direction);
+	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	  o.y_offset = hb_saturate_add (o.y_offset, base_offset);
+	else
+	  o.x_offset = hb_saturate_add (o.x_offset, base_offset);
 	o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_MARK;
 	o.attach_chain() = (int) mark - (int) buffer->idx;
 	if (c->buffer_is_reversed)
