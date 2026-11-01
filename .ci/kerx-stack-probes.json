@@ -158,5 +158,20 @@
     "name": "arabic-revised",
     "font": "test/shape/data/in-house/fonts/33f889c2024c188e23bec1c16a74ebb0c717bd7f.ttf",
     "text": "وَلَد"
+  },
+  {
+    "name": "reset-long-list",
+    "font": "test/shape/data/in-house/fonts/59e9061302a5ad5b85f9d7c2f702e194fa1d5fce.ttf",
+    "text": "aba"
+  },
+  {
+    "name": "reset-without-push-long-list",
+    "font": "test/shape/data/in-house/fonts/9882e955795520416cc62be2e4b29648121fd57f.ttf",
+    "text": "baba"
+  },
+  {
+    "name": "reset-each-push-history",
+    "font": "test/shape/data/in-house/fonts/be58c7e67838c61088189342d65e6e6f9dd62345.ttf",
+    "text": "abababababababababab"
   }
 ]
