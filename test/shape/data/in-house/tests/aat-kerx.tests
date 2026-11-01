@@ -29,7 +29,15 @@
 ../fonts/cc3a5bc0b7af5ea992fa8aa7810973e294d3b381.ttf;;U+0061,U+0061,U+0062;[a=0@42,0+603|a=1@17,0+578|b=2@44,0+659]
 
 # CoreText format 1 retains circular history instead of destructively popping.
-# Native reference measurements: .ci/kerx-stack-probes.md.
+# Apple's written rules specify destructive pops and clearing on Reset:
+# https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kerx.html
+# Native CoreText instead retains eight circular slots, initially pointing to
+# the first glyph of the run. Each action list walks backwards from the latest
+# push and wraps every eight values; zero values also advance that cursor.
+# The Reset flag is ignored. Legacy kern retains its existing pop rules.
+# These 35 cases were measured on macOS 15.8.2 and 26.6.2. The kerx-coretext
+# Meson test compares native CoreText and HB against the recorded positions
+# in ../kerx-coretext-results.json; the cases are in ../kerx-coretext-cases.json.
 # stack-leftover
 ../fonts/661373fa372e6925c89d82332b60e5a791c8c9f7.ttf;;U+0061,U+0062,U+0063;[a=0+561|b=1@30,0+645|c=2+480]
 # stack-extra-value

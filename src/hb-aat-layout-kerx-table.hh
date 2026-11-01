@@ -299,7 +299,7 @@ struct KerxSubTableFormat1
 
 	/* Contrary to the kerx spec's destructive pops, CoreText retains an
 	 * eight-slot circular history and walks it anew for each action list.
-	 * See .ci/kerx-stack-probes.md for the native measurements. */
+	 * See test/shape/data/in-house/tests/aat-kerx.tests for native cases. */
 	unsigned int cursor = stack_pos;
 	bool last = false;
 	while (!last && depth)

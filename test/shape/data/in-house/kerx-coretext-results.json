@@ -14,7 +14,7 @@
       "job_id": 124955174419
     }
   ],
-  "note": "Both native CoreText jobs produced identical glyph records. Font paths and input text are in kerx-stack-probes.json.",
+  "note": "Both native CoreText jobs produced identical glyph records. Font paths and input text are in kerx-coretext-cases.json.",
   "cases": [
     {"case":"stack-leftover","glyphs":[{"gid":1,"cluster":0,"x":0,"y":0,"advance":591},{"gid":2,"cluster":1,"x":591,"y":0,"advance":615},{"gid":3,"cluster":2,"x":1206,"y":0,"advance":480}]},
     {"case":"stack-extra-value","glyphs":[{"gid":1,"cluster":0,"x":60,"y":0,"advance":571},{"gid":2,"cluster":1,"x":631,"y":0,"advance":615}]},
