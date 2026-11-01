@@ -93,7 +93,7 @@ All 35 cases produced identical glyph records on the two systems.
 [kerx-stack-results.json](kerx-stack-results.json) preserves the records;
 [kerx-stack-probes.json](kerx-stack-probes.json) maps case names to fonts and
 input text. The shaping regressions in HB and HR cover these same inputs.
-The native CI probe checks its results against the recorded positions.
+The native probes can be rerun manually when investigating CoreText changes.
 
 On macOS, from the repository root:
 
