@@ -58,5 +58,10 @@
     "name": "long-list-64",
     "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
     "text": "a"
+  },
+  {
+    "name": "history-20",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "abababababababababab"
   }
 ]
