@@ -1270,6 +1270,8 @@ struct cff1
     hb_codepoint_t glyph_to_code (hb_codepoint_t glyph,
 				  code_pair_t *glyph_to_sid_cache = nullptr) const
     {
+      if (unlikely (glyph >= num_glyphs)) return CFF_UNDEF_CODE;
+
       if (encoding != &Null (Encoding))
 	return encoding->get_code (glyph);
       else

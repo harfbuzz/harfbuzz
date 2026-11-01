@@ -386,6 +386,42 @@ test_subset_cff1_encoding_many_codes_retaingids (void)
 }
 
 static void
+test_subset_cff1_encoding_glyph_count (gconstpointer data)
+{
+  const char *fonts[][2] = {
+    {"fonts/cff1_encoding0_bounded.otf", "fonts/cff1_encoding0_excess.otf"},
+    {"fonts/cff1_encoding1_bounded.otf", "fonts/cff1_encoding1_excess.otf"},
+  };
+  unsigned format = GPOINTER_TO_UINT (data);
+  hb_face_t *bounded = hb_test_open_font_file (fonts[format][0]);
+  hb_face_t *excess = hb_test_open_font_file (fonts[format][1]);
+
+  for (unsigned remap = 0; remap < 2; remap++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_glyph_set (input), 2);
+    /* Gaps in an explicit mapping can extend past the source glyph count.
+     * Excess encoding entries must not give those new empty glyphs codes. */
+    if (remap)
+      hb_map_set (hb_subset_input_old_to_new_glyph_mapping (input), 2, 4);
+
+    hb_face_t *expected = hb_subset_or_fail (bounded, input);
+    hb_face_t *actual = hb_subset_or_fail (excess, input);
+    g_assert_nonnull (expected);
+    g_assert_nonnull (actual);
+    g_assert_cmpuint (hb_face_get_glyph_count (actual), ==, remap ? 5 : 2);
+    hb_subset_test_check (expected, actual, HB_TAG ('C','F','F',' '));
+
+    hb_face_destroy (actual);
+    hb_face_destroy (expected);
+    hb_subset_input_destroy (input);
+  }
+
+  hb_face_destroy (excess);
+  hb_face_destroy (bounded);
+}
+
+static void
 test_subset_cff1_encoding_range_overflow (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_encoding_many_codes.otf");
@@ -614,6 +650,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_retaingids);
   hb_test_add (test_subset_cff1_j_retaingids);
   hb_test_add (test_subset_cff1_encoding_many_codes_retaingids);
+  hb_test_add_data_flavor (GUINT_TO_POINTER (0), "format0", test_subset_cff1_encoding_glyph_count);
+  hb_test_add_data_flavor (GUINT_TO_POINTER (1), "format1", test_subset_cff1_encoding_glyph_count);
   hb_test_add (test_subset_cff1_encoding_range_overflow);
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
