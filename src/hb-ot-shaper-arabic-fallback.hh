@@ -108,11 +108,11 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 					    const T &ligature_table,
 					    unsigned lookup_flags)
 {
-  constexpr size_t table_length = std::extent<T>::value;
+  constexpr size_t table_length = decltype (ARRAY_LENGTH (ligature_table))::value;
   constexpr size_t ligature_count =
-      std::extent<decltype (ligature_table[0].ligatures)>::value;
+      decltype (ARRAY_LENGTH (ligature_table[0].ligatures))::value;
   constexpr size_t component_count =
-      std::extent<decltype (ligature_table[0].ligatures[0].components)>::value;
+      decltype (ARRAY_LENGTH (ligature_table[0].ligatures[0].components))::value;
 
   OT::HBGlyphID16 first_glyphs[table_length];
   unsigned int first_glyphs_indirection[table_length];
