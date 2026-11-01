@@ -1,0 +1,62 @@
+[
+  {
+    "name": "stack-leftover",
+    "font": "test/shape/data/in-house/fonts/661373fa372e6925c89d82332b60e5a791c8c9f7.ttf",
+    "text": "abc"
+  },
+  {
+    "name": "stack-extra-value",
+    "font": "test/shape/data/in-house/fonts/a283202703174fdceb061162cb887ec84da5ec8b.ttf",
+    "text": "ab"
+  },
+  {
+    "name": "stack-double-push",
+    "font": "test/shape/data/in-house/fonts/b5cb7b50f2975a3375bf6688eb5211d37b16a90b.ttf",
+    "text": "ab"
+  },
+  {
+    "name": "stack-zero-first",
+    "font": "test/shape/data/in-house/fonts/4856acb0edc382fd8044d3d822760fed7b0b500e.ttf",
+    "text": "ab"
+  },
+  {
+    "name": "stack-zero-middle",
+    "font": "test/shape/data/in-house/fonts/ed2cc6cbd6f0b7c387a672a66d8e3e0be439fa64.ttf",
+    "text": "abc"
+  },
+  {
+    "name": "stack-negative-odd",
+    "font": "test/shape/data/in-house/fonts/d79a66345d13c6c6a15c085da4a4c1640b13c810.ttf",
+    "text": "aab"
+  },
+  {
+    "name": "stack-arabic-shape",
+    "font": "test/shape/data/in-house/fonts/7ac4822ace9d0c1ebdb3dd52f15408c1be9582e0.ttf",
+    "text": "abcd"
+  },
+  {
+    "name": "retained-stack",
+    "font": "test/shape/data/in-house/fonts/cc3a5bc0b7af5ea992fa8aa7810973e294d3b381.ttf",
+    "text": "aab"
+  },
+  {
+    "name": "stream-20",
+    "font": "test/shape/data/in-house/fonts/b767b987abb0c618ba75fb65459feff4a73e20be.ttf",
+    "text": "abababababababababab"
+  },
+  {
+    "name": "reset-before-action",
+    "font": "test/shape/data/in-house/fonts/f25a8432cd33bdd82904d99f6040c799ce935473.ttf",
+    "text": "ab"
+  },
+  {
+    "name": "reset-and-push",
+    "font": "test/shape/data/in-house/fonts/b2993b8b29634aa46fc9e7bcb61eb6e87cf62972.ttf",
+    "text": "ab"
+  },
+  {
+    "name": "long-list-64",
+    "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
+    "text": "a"
+  }
+]
