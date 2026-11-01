@@ -1871,8 +1871,8 @@ public:
     TRY (graph_result_t<void>::from (queue, ALLOCATION_FAILURE));
 
     hb_vector_t<bool> visited;
-    visited.resize (vertices_.length);
-    TRY (graph_result_t<void>::from (visited, ALLOCATION_FAILURE));
+    if (unlikely (!visited.resize (vertices_.length)))
+      return Err(ALLOCATION_FAILURE);
 
     while (!queue.in_error () && !queue.is_empty ())
     {
