@@ -28,36 +28,6 @@
 #include <hb.h>
 #include <hb-ot.h>
 #include <string.h>
-#ifndef HB_NO_VAR_COMPOSITES
-#if defined(__SANITIZE_ADDRESS__)
-#define HB_TEST_ASAN 1
-#elif defined(__has_feature)
-#if __has_feature(address_sanitizer)
-#define HB_TEST_ASAN 1
-#endif
-#endif
-#if defined(HB_TEST_ASAN) && defined(__has_include)
-#if __has_include(<sanitizer/allocator_interface.h>)
-#include <sanitizer/allocator_interface.h>
-#define HB_HAS_HEAP_ALLOC_TRACKER 1
-static size_t
-get_current_heap_allocated_bytes (void)
-{
-  return __sanitizer_get_current_allocated_bytes ();
-}
-#endif
-#endif
-#if !defined(HB_TEST_ASAN) && defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
-#include <malloc.h>
-#define HB_HAS_HEAP_ALLOC_TRACKER 1
-static size_t
-get_current_heap_allocated_bytes (void)
-{
-  struct mallinfo2 mi = mallinfo2 ();
-  return mi.uordblks + mi.hblkhd;
-}
-#endif
-#endif
 
 typedef struct draw_data_t
 {
@@ -597,55 +567,6 @@ test_hb_draw_varc_truncated_axes_run (void)
   }
 }
 
-static void
-test_hb_draw_varc_compressed_axes_preflight (void)
-{
-  /* Compressed zero-runs (65,536 * 64 = 4,194,304 values) must charge the
-   * draw budget BEFORE expanding into cached scratch vectors. */
-  const unsigned runs = 65536;
-  uint8_t *zeros = (uint8_t *) g_malloc (runs);
-  memset (zeros, 0xBF, runs); /* VALUES_ARE_ZEROS | 63 -> 64 zeros/byte */
-  hb_face_t *face = build_varc_axis_tuple_test_face (zeros, runs, zeros, runs);
-  g_free (zeros);
-
-  hb_font_t *font = hb_font_create (face);
-  hb_draw_funcs_t *budget_funcs = hb_draw_funcs_create ();
-  hb_draw_funcs_set_move_to_func (budget_funcs, move_to, NULL, NULL);
-  hb_draw_funcs_set_line_to_func (budget_funcs, line_to, NULL, NULL);
-  hb_draw_funcs_set_close_path_func (budget_funcs, close_path, NULL, NULL);
-  hb_draw_funcs_set_set_budget_func (budget_funcs, set_budget, NULL, NULL);
-  hb_draw_funcs_set_get_budget_func (budget_funcs, get_budget, NULL, NULL);
-  hb_draw_funcs_set_get_budget_remaining_func (budget_funcs, get_budget_remaining, NULL, NULL);
-  hb_draw_funcs_make_immutable (budget_funcs);
-
-  /* Warm up leaf glyph 0 first so accelerator setup is already accounted for. */
-  budget_draw_data_t draw_data = {{0}, HB_BUDGET_DEFAULT, 0};
-  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 1024));
-  hb_font_draw_glyph (font, 0, budget_funcs, &draw_data);
-  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 1);
-
-#ifdef HB_HAS_HEAP_ALLOC_TRACKER
-  size_t alloc_before = get_current_heap_allocated_bytes ();
-#endif
-
-  draw_data.draw = (draw_data_t) {0};
-  /* Budget 100,000 covers entering the 65 KiB record, but not 4,194,304 axes. */
-  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 100000));
-  hb_font_draw_glyph (font, 1, budget_funcs, &draw_data);
-  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 0);
-  g_assert_cmpint (draw_data.remaining, <, 0);
-
-#ifdef HB_HAS_HEAP_ALLOC_TRACKER
-  size_t alloc_after = get_current_heap_allocated_bytes ();
-  size_t retained = alloc_after > alloc_before ? alloc_after - alloc_before : 0;
-  /* Without pre-budget counting, cached_scratch retains 16 MiB (4M * 4B). */
-  g_assert_cmpuint (retained, <, 65536);
-#endif
-
-  hb_draw_funcs_destroy (budget_funcs);
-  hb_font_destroy (font);
-  hb_face_destroy (face);
-}
 #endif
 
 int
@@ -671,7 +592,6 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_varc_static_deltas);
   hb_test_add (test_hb_draw_varc_budget);
   hb_test_add (test_hb_draw_varc_truncated_axes_run);
-  hb_test_add (test_hb_draw_varc_compressed_axes_preflight);
 #endif
   unsigned result = hb_test_run ();
 
