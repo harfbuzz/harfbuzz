@@ -335,9 +335,48 @@ test_failed_encoding ()
   hb_always_assert (!item_vars.compile_varidx_map_for_testing (front_mapping));
 }
 
+static void
+test_item_varstore_instancer_varidx_overflow ()
+{
+  /* Minimal sanitized ItemVariationStore: 1 axis, 1 region [0, 1, 1],
+   * 1 VarData item [0][0] with 8-bit delta = +42. */
+  alignas (4) static const uint8_t store_bytes[] = {
+    0, 1,             /* format = 1 */
+    0, 0, 0, 12,      /* regionListOffset = 12 */
+    0, 1,             /* dataCount = 1 */
+    0, 0, 0, 22,      /* dataSets[0] = 22 */
+    /* VarRegionList @ 12 (10 bytes): axisCount=1, regionCount=1, [0, 1, 1] */
+    0, 1, 0, 1,
+    0x00, 0x00, 0x40, 0x00, 0x40, 0x00,
+    /* VarData @ 22 (9 bytes): itemCount=1, wordDeltaCount=0, regionIdxCount=1, reg[0]=0, delta=42 */
+    0, 1, 0, 0, 0, 1, 0, 0, 42
+  };
+  hb_blob_t *blob = hb_blob_create ((const char *) store_bytes, sizeof (store_bytes),
+                                    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  hb_sanitize_context_t sc (blob);
+  const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (store_bytes);
+  hb_always_assert (store.sanitize (&sc));
+  hb_blob_destroy (blob);
+
+  int coords[] = {16384};
+  OT::ItemVarStoreInstancer instancer (&store, nullptr, hb_array (coords));
+#ifdef HB_NO_VAR
+  hb_always_assert (instancer (0, 0) == 0.f);
+#else
+  hb_always_assert (instancer (0, 0) == 42.f);
+#endif
+  hb_always_assert (instancer (OT::VarIdx::NO_VARIATION, 0) == 0.f);
+  hb_always_assert (instancer (OT::VarIdx::NO_VARIATION, 1) == 0.f);
+  /* 0xFFFFFFFE + 1 == NO_VARIATION and 0xFFFFFFFE + 2 wraps 32-bit to 0. */
+  hb_always_assert (instancer (0xFFFFFFFEu, 1) == 0.f);
+  hb_always_assert (instancer (0xFFFFFFFEu, 2) == 0.f);
+}
+
+
 int
 main (int argc, char **argv)
 {
+  test_item_varstore_instancer_varidx_overflow ();
   test_scalar_cache_precision ();
   test_item_variations ();
   test_implicit_advance_mapping ();

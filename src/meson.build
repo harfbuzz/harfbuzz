@@ -995,6 +995,7 @@ if get_option('tests').enabled()
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
     'test-cache': ['test-cache.cc'],
     'test-cff': ['test-cff.cc', 'hb-static.cc'],
+    'test-colr': ['test-colr.cc', 'hb-static.cc'],
     'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
     'test-result': ['test-result.cc', 'hb-static.cc'],
     'test-decycler': ['test-decycler.cc', 'hb-static.cc'],

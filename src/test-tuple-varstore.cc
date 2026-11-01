@@ -191,9 +191,119 @@ test_shared_tuple_scalar_cache ()
     }
 }
 
+static void
+test_tuple_values_count_values ()
+{
+  unsigned count = 999;
+  const unsigned char empty = 0;
+  hb_always_assert (OT::TupleValues::count_values (&empty, &empty, &count));
+  hb_always_assert (count == 0);
+
+  /* 64 zeros (0xBF) + 2 bytes (0x01: 10, 20) + 1 word (0x40: 256) + 1 long (0xC0: 1) = 68 */
+  const unsigned char valid_mix[] = {
+    0xBF,
+    0x01, 10, 20,
+    0x40, 0x01, 0x00,
+    0xC0, 0x00, 0x00, 0x00, 0x01
+  };
+  hb_always_assert (OT::TupleValues::count_values (valid_mix, valid_mix + sizeof (valid_mix), &count));
+  hb_always_assert (count == 68);
+
+  /* Truncated word run: claims 2 words (4B), only 2B left. */
+  const unsigned char trunc_words[] = {0x41, 0x00, 0x05};
+  hb_always_assert (!OT::TupleValues::count_values (trunc_words, trunc_words + sizeof (trunc_words), &count));
+
+  /* Truncated long run: claims 1 long (4B), only 3B left. */
+  const unsigned char trunc_longs[] = {0xC0, 0x00, 0x00, 0x01};
+  hb_always_assert (!OT::TupleValues::count_values (trunc_longs, trunc_longs + sizeof (trunc_longs), &count));
+
+  /* Total count > INT_MAX: 33,554,433 * 64 = 2,147,483,712 > INT_MAX. */
+  hb_vector_t<unsigned char> huge_zeros;
+  hb_always_assert (huge_zeros.resize_dirty (33554433u));
+  hb_memset (huge_zeros.arrayZ, 0xBF, huge_zeros.length);
+  hb_always_assert (!OT::TupleValues::count_values (huge_zeros.arrayZ,
+                                           huge_zeros.arrayZ + huge_zeros.length,
+                                           &count));
+}
+
+static void
+test_tuple_values_valid_control ()
+{
+  const unsigned char valid_bytes[] = {0x81, 0x01, 42, 0xF9};
+  OT::TupleValues::iter_t it (valid_bytes, sizeof (valid_bytes));
+  hb_always_assert (hb_len (it) == 4);
+
+  OT::TupleValues::fetcher_t fetcher (valid_bytes + 1, 3);
+  float acc = 0.f;
+  fetcher.add_to (hb_array (&acc, 1), 1.f);
+  hb_always_assert (acc == 42.f);
+  fetcher.skip (1);
+
+  hb_vector_t<int> out;
+  const OT::HBUINT8 *p = reinterpret_cast<const OT::HBUINT8 *> (valid_bytes);
+  hb_always_assert (OT::TupleValues::decompile (p, out, p + sizeof (valid_bytes), true));
+  hb_always_assert (out.length == 4);
+  hb_always_assert (out[0] == 0 && out[1] == 0 && out[2] == 42 && out[3] == -7);
+}
+
+static void
+test_tuple_values_iter_trunc ()
+{
+  /* 0x41 claims 2 word values (4B), with only 2B {0x00, 0x05} left.
+   * Must stop cleanly instead of yielding 0 and re-parsing 0x00 as a 1-byte run (+5). */
+  const unsigned char trunc_bytes[] = {0x41, 0x00, 0x05};
+  OT::TupleValues::iter_t it (trunc_bytes, sizeof (trunc_bytes));
+  hb_always_assert (hb_len (it) == 0);
+}
+
+static void
+test_tuple_values_fetcher_trunc ()
+{
+  /* Truncated word run must advance fetcher_t::p to end so subsequent
+   * add_to() or skip() + add_to() calls do not re-parse {0x00, 0x05} as +5. */
+  const unsigned char trunc_bytes[] = {0x41, 0x00, 0x05};
+  {
+    OT::TupleValues::fetcher_t f (trunc_bytes, sizeof (trunc_bytes));
+    float acc = 0.f;
+    f.add_to (hb_array (&acc, 1), 1.f);
+    f.add_to (hb_array (&acc, 1), 1.f);
+    hb_always_assert (acc == 0.f);
+  }
+  {
+    OT::TupleValues::fetcher_t f (trunc_bytes, sizeof (trunc_bytes));
+    float acc = 0.f;
+    f.skip (1);
+    f.add_to (hb_array (&acc, 1), 1.f);
+    hb_always_assert (acc == 0.f);
+  }
+}
+
+static void
+test_tuple_values_decompile_trunc ()
+{
+  /* 1024 * 64 = 65,536 compressed zeros followed by a truncated word header (0x41):
+   * decompile(consume_all=true) must pre-validate via count_values and reject
+   * without expanding 65,536 elements into out. */
+  hb_vector_t<unsigned char> buf;
+  hb_always_assert (buf.resize_dirty (1025));
+  hb_memset (buf.arrayZ, 0xBF, 1024);
+  buf.arrayZ[1024] = 0x41;
+
+  hb_vector_t<int> out;
+  const OT::HBUINT8 *p = reinterpret_cast<const OT::HBUINT8 *> (buf.arrayZ);
+  hb_always_assert (!OT::TupleValues::decompile (p, out, p + buf.length, true));
+  hb_always_assert (out.length == 0);
+}
+
+
 int
 main (int argc, char **argv)
 {
+  test_tuple_values_count_values ();
+  test_tuple_values_valid_control ();
+  test_tuple_values_iter_trunc ();
+  test_tuple_values_fetcher_trunc ();
+  test_tuple_values_decompile_trunc ();
   test_shared_tuple_scalar_cache ();
   test_decompile_cvar ();
 }
