@@ -63,5 +63,85 @@
     "name": "history-20",
     "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
     "text": "abababababababababab"
+  },
+  {
+    "name": "history-1",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "a"
+  },
+  {
+    "name": "history-2",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "ab"
+  },
+  {
+    "name": "history-3",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "aba"
+  },
+  {
+    "name": "history-7",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "abababa"
+  },
+  {
+    "name": "history-8",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "abababab"
+  },
+  {
+    "name": "history-9",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "ababababa"
+  },
+  {
+    "name": "history-16",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "abababababababab"
+  },
+  {
+    "name": "history-17",
+    "font": "test/shape/data/in-house/fonts/053b0fbe96e1a6ac02e1febd48dc9f28464f5d33.ttf",
+    "text": "ababababababababa"
+  },
+  {
+    "name": "late-first-push",
+    "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
+    "text": "ca"
+  },
+  {
+    "name": "late-first-push-three",
+    "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
+    "text": "bca"
+  },
+  {
+    "name": "multiple-long-lists",
+    "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
+    "text": "aaa"
+  },
+  {
+    "name": "reset-refill",
+    "font": "test/shape/data/in-house/fonts/b2993b8b29634aa46fc9e7bcb61eb6e87cf62972.ttf",
+    "text": "abab"
+  },
+  {
+    "name": "reset-empty",
+    "font": "test/shape/data/in-house/fonts/b2993b8b29634aa46fc9e7bcb61eb6e87cf62972.ttf",
+    "text": "b"
+  },
+  {
+    "name": "reset-repeat",
+    "font": "test/shape/data/in-house/fonts/b2993b8b29634aa46fc9e7bcb61eb6e87cf62972.ttf",
+    "text": "abb"
+  },
+  {
+    "name": "reset-refill-late",
+    "font": "test/shape/data/in-house/fonts/b2993b8b29634aa46fc9e7bcb61eb6e87cf62972.ttf",
+    "text": "abcab"
+  },
+  {
+    "name": "action-before-first-push",
+    "font": "test/shape/data/in-house/fonts/f25a8432cd33bdd82904d99f6040c799ce935473.ttf",
+    "text": "ba"
   }
 ]
