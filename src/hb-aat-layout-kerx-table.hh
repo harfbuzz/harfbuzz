@@ -281,9 +281,9 @@ struct KerxSubTableFormat1
 	unsigned int tuple_count = hb_max (1u, table->header.tuple_count ());
 
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
-	kern_idx = Types::byteOffsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
+	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
 	const FWORD *actions = &kernAction[kern_idx];
-	if (!c->sanitizer.check_array (actions, depth, tuple_count))
+	if (!Types::extended && !c->sanitizer.check_array (actions, depth, tuple_count))
 	{
 	  depth = 0;
 	  return;
@@ -292,20 +292,41 @@ struct KerxSubTableFormat1
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
 
-	/* From Apple 'kern' spec:
-	 * "Each pops one glyph from the kerning stack and applies the kerning value to it.
-	 * The end of the list is marked by an odd value... */
 	bool last = false;
 	while (!last && depth)
 	{
+	  if (Types::extended)
+	  {
+	    if (!actions->sanitize (&c->sanitizer))
+	    {
+	      depth = 0;
+	      return;
+	    }
+	    hb_barrier ();
+	    /* kerx ends a list with a single 0xFFFF, without popping a glyph. */
+	    if (*actions == -1)
+	      break;
+	    if (tuple_count > 1 && !c->sanitizer.check_array (actions, 1, tuple_count))
+	    {
+	      depth = 0;
+	      return;
+	    }
+	    hb_barrier ();
+	  }
+
 	  unsigned int idx = stack[--depth];
 	  int v = *actions;
 	  actions += tuple_count;
 	  if (idx >= buffer->len) continue;
+	  if (Types::extended)
+	    buffer->unsafe_to_break (idx, buffer->idx + 1);
 
-	  /* "The end of the list is marked by an odd value..." */
-	  last = v & 1;
-	  v &= ~1;
+	  /* kern uses the low bit of the final value as the list terminator. */
+	  if (!Types::extended)
+	  {
+	    last = v & 1;
+	    v &= ~1;
+	  }
 
 	  hb_glyph_position_t &o = buffer->pos[idx];
 

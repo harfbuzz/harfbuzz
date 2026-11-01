@@ -18,3 +18,12 @@
 # Reset c's chain so m attaches to the unshifted b.
 ../fonts/1bfb8aab9b49ef30e8deae3db271ca3dbc6208a1.ttf;;U+0078,U+007A,U+0062,U+0062;[m=0@925,600+150|c=1+600|b=2+615|b=3@0,100+615]
 ../fonts/1bfb8aab9b49ef30e8deae3db271ca3dbc6208a1.ttf;;U+0078,U+007A,U+0062,U+0062,U+0062;[m=0@925,600+150|c=1+600|b=2+615|b=3@0,100+615|b=4@0,200+615]
+# https://github.com/harfbuzz/harfbuzz/issues/6536
+# Format 1 uses value indices and 0xFFFF terminators, preserving odd values.
+../fonts/36f8d640bc42f35a59e607bcf7c4aa70b63d4ef4.ttf;;U+0061,U+0061,U+0062;[a=0@50,0+611|a=1@40,0+601|b=2@31,0+646]
+../fonts/36f8d640bc42f35a59e607bcf7c4aa70b63d4ef4.ttf;--show-flags --unsafe-to-concat;U+0061,U+0061,U+0062;[a=0@50,0+611#2|a=1@40,0+601#3|b=2@31,0+646#3]
+../fonts/e4bec42ad0191b05c8bb95c58045a9156714cd66.ttf;;U+0061,U+0061,U+0062;[a=0@-50,0+511|a=1@-40,0+521|b=2@-31,0+584]
+../fonts/7125f48c02c32e8f8890bd3db88afa13c7ab8b18.ttf;;U+0061,U+0062;[a=0+561|b=1@30,0+645]
+../fonts/7125f48c02c32e8f8890bd3db88afa13c7ab8b18.ttf;;U+0063,U+0062;[c=0+480|b=1@70,0+685]
+../fonts/a14f746eb8b392338dcc4aa24f7b7450e48c0d7a.ttf;;U+0061,U+0061,U+0062;[a=0+561|a=1+561|b=2@31,0+646]
+../fonts/cc3a5bc0b7af5ea992fa8aa7810973e294d3b381.ttf;;U+0061,U+0061,U+0062;[a=0@17,0+578|a=1@13,0+574|b=2@31,0+646]
