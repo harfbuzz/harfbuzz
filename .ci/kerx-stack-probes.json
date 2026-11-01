@@ -107,12 +107,12 @@
   {
     "name": "late-first-push",
     "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
-    "text": "ca"
+    "text": "ba"
   },
   {
     "name": "late-first-push-three",
     "font": "test/shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf",
-    "text": "bca"
+    "text": "bba"
   },
   {
     "name": "multiple-long-lists",
@@ -137,11 +137,26 @@
   {
     "name": "reset-refill-late",
     "font": "test/shape/data/in-house/fonts/b2993b8b29634aa46fc9e7bcb61eb6e87cf62972.ttf",
-    "text": "abcab"
+    "text": "abaaba"
   },
   {
     "name": "action-before-first-push",
     "font": "test/shape/data/in-house/fonts/f25a8432cd33bdd82904d99f6040c799ce935473.ttf",
     "text": "ba"
+  },
+  {
+    "name": "reset-without-push",
+    "font": "test/shape/data/in-house/fonts/f25a8432cd33bdd82904d99f6040c799ce935473.ttf",
+    "text": "abb"
+  },
+  {
+    "name": "arabic-original",
+    "font": "test/shape/data/in-house/fonts/561bf77de7a26a5519dc384eddebfdff04c46c39.ttf",
+    "text": "وَلَد"
+  },
+  {
+    "name": "arabic-revised",
+    "font": "test/shape/data/in-house/fonts/33f889c2024c188e23bec1c16a74ebb0c717bd7f.ttf",
+    "text": "وَلَد"
   }
 ]
