@@ -116,6 +116,72 @@ test_aat_has (void)
   hb_face_destroy (trak);
 }
 
+#if !defined(HB_NO_SHAPE) && !defined(HB_NO_OT_SHAPE) && !defined(HB_NO_AAT_SHAPE)
+
+typedef struct {
+  hb_face_t *source;
+  hb_blob_t *kerx;
+} kerx_budget_data_t;
+
+static hb_blob_t *
+kerx_budget_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+{
+  kerx_budget_data_t *data = user_data;
+  return tag == HB_TAG ('k','e','r','x') ? hb_blob_reference (data->kerx) :
+					hb_face_reference_table (data->source, tag);
+}
+
+static void
+test_aat_kerx_action_budget (void)
+{
+  hb_face_t *source = hb_test_open_font_file (
+      "../shape/data/in-house/fonts/6bf9a24264162575b51da4af1eafaac975f0af2d.ttf");
+  hb_blob_t *original = hb_face_reference_table (source, HB_TAG ('k','e','r','x'));
+  const char *bytes = hb_blob_get_data (original, NULL);
+  guint32 values_offset;
+  memcpy (&values_offset, bytes + 36, sizeof (values_offset));
+  values_offset = 20 + GUINT32_FROM_BE (values_offset);
+
+  for (unsigned terminated = 0; terminated < 2; terminated++)
+  {
+    GByteArray *kerx = g_byte_array_new ();
+    g_byte_array_append (kerx, (const guint8 *) bytes, values_offset);
+    /* Reusing one glyph's history must still respect its 65536-op budget. */
+    guint16 value = GUINT16_TO_BE (1);
+    for (unsigned i = 0; i < 65537; i++)
+      g_byte_array_append (kerx, (const guint8 *) &value, sizeof (value));
+    if (terminated)
+    {
+      value = GUINT16_TO_BE (0xFFFF);
+      g_byte_array_append (kerx, (const guint8 *) &value, sizeof (value));
+    }
+    guint32 length = GUINT32_TO_BE (kerx->len - 8);
+    memcpy (kerx->data + 8, &length, sizeof (length));
+    kerx_budget_data_t data = {
+      source,
+      hb_blob_create ((const char *) kerx->data, kerx->len, HB_MEMORY_MODE_DUPLICATE, NULL, NULL)
+    };
+    hb_face_t *face = hb_face_create_for_tables (kerx_budget_reference_table, &data, NULL);
+    hb_font_t *font = hb_font_create (face);
+    hb_buffer_t *buffer = hb_buffer_create ();
+    hb_buffer_add_utf8 (buffer, "a", -1, 0, -1);
+    hb_buffer_guess_segment_properties (buffer);
+    const char *shapers[] = {"ot", NULL};
+    hb_shape_full (font, buffer, NULL, 0, shapers);
+    g_assert_false (hb_buffer_allocation_successful (buffer));
+
+    hb_buffer_destroy (buffer);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+    hb_blob_destroy (data.kerx);
+    g_byte_array_unref (kerx);
+  }
+  hb_blob_destroy (original);
+  hb_face_destroy (source);
+}
+
+#endif
+
 #endif
 
 int
@@ -128,6 +194,9 @@ main (int argc, char **argv)
   hb_test_add (test_aat_get_feature_types);
   hb_test_add (test_aat_get_feature_selectors);
   hb_test_add (test_aat_has);
+#if !defined(HB_NO_SHAPE) && !defined(HB_NO_OT_SHAPE) && !defined(HB_NO_AAT_SHAPE)
+  hb_test_add (test_aat_kerx_action_budget);
+#endif
 #endif
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");

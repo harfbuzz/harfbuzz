@@ -25,7 +25,15 @@ jobs:
         sw_vers
         python3 - "$RUNNER_TEMP/kerx-stack-probe" <<'PY'
         import json, subprocess, sys
+        with open('.ci/kerx-stack-results.json') as source:
+            reference = {case['case']: case['glyphs'] for case in json.load(source)['cases']}
         for case in json.load(open('.ci/kerx-stack-probes.json')):
             raw = subprocess.check_output([sys.argv[1], case['font'], case['text']], text=True)
-            print(json.dumps({'case': case['name'], 'glyphs': json.loads(raw)}), flush=True)
+            glyphs = json.loads(raw)
+            print(json.dumps({'case': case['name'], 'glyphs': glyphs}), flush=True)
+            expected = reference[case['name']]
+            positions = lambda items: [(g['gid'], g['cluster'], g['x'], g['y']) for g in items]
+            assert positions(glyphs) == positions(expected), case['name']
+            extent = lambda items: items[-1]['x'] + items[-1]['advance']
+            assert extent(glyphs) == extent(expected), case['name']
         PY

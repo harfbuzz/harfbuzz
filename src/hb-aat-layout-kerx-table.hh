@@ -256,6 +256,7 @@ struct KerxSubTableFormat1
 	 * other subtables in kerx.  Discovered via testing. */
 	kernAction (&table->machine + table->kernAction),
 	depth (0),
+	stack_pos (0),
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
     HB_AAT_TRANSITION_INLINE
@@ -265,12 +266,16 @@ struct KerxSubTableFormat1
     {
       unsigned int flags = entry.flags;
 
-      if (flags & Format1EntryT::Reset)
-	depth = 0;
-
+      /* CoreText ignores the kerx Reset flag. */
       if (flags & Format1EntryT::Push)
       {
-	if (likely (depth < ARRAY_LENGTH (stack)))
+	if (Types::extended)
+	{
+	  stack[stack_pos] = buffer->idx;
+	  stack_pos = (stack_pos + 1) % ARRAY_LENGTH (stack);
+	  depth = hb_min (depth + 1, (unsigned) ARRAY_LENGTH (stack));
+	}
+	else if (likely (depth < ARRAY_LENGTH (stack)))
 	  stack[depth++] = buffer->idx;
 	else
 	  depth = 0; /* Probably not what CoreText does, but better? */
@@ -292,11 +297,20 @@ struct KerxSubTableFormat1
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
 
+	/* Contrary to the kerx spec's destructive pops, CoreText retains an
+	 * eight-slot circular history and walks it anew for each action list.
+	 * See .ci/kerx-stack-probes.md for the native measurements. */
+	unsigned int cursor = stack_pos;
 	bool last = false;
 	while (!last && depth)
 	{
 	  if (Types::extended)
 	  {
+	    if (unlikely (buffer->max_ops-- <= 0))
+	    {
+	      buffer->successful = false;
+	      return;
+	    }
 	    if (!actions->sanitize (&c->sanitizer))
 	    {
 	      depth = 0;
@@ -314,7 +328,14 @@ struct KerxSubTableFormat1
 	    hb_barrier ();
 	  }
 
-	  unsigned int idx = stack[--depth];
+	  unsigned int idx;
+	  if (Types::extended)
+	  {
+	    cursor = (cursor + ARRAY_LENGTH (stack) - 1) % ARRAY_LENGTH (stack);
+	    idx = stack[cursor];
+	  }
+	  else
+	    idx = stack[--depth];
 	  int v = *actions;
 	  actions += tuple_count;
 	  if (idx >= buffer->len) continue;
@@ -388,8 +409,9 @@ struct KerxSubTableFormat1
     const KerxSubTableFormat1 *table;
     private:
     const UnsizedArrayOf<FWORD> &kernAction;
-    unsigned int stack[8];
+    unsigned int stack[8] = {};
     unsigned int depth;
+    unsigned int stack_pos;
     bool crossStream;
   };
 
