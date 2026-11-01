@@ -777,6 +777,8 @@ if (UNIX OR MINGW OR VITA)
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Make sure we don't link to libstdc++
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+    # Avoid a libstdc++ runtime dependency in unoptimized builds.
+    add_compile_definitions(_GLIBCXX_NO_ASSERTIONS)
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
     set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)

@@ -75,6 +75,9 @@ add_project_arguments(cpp.get_supported_arguments([
   '-fno-exceptions',
   '-fno-rtti',
   '-fno-threadsafe-statics',
+  # Avoid a libstdc++ runtime dependency in unoptimized builds.
+  '-U_GLIBCXX_ASSERTIONS',
+  '-D_GLIBCXX_NO_ASSERTIONS',
 ] + visibility_inlines_hidden_argument), language: 'cpp')
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
