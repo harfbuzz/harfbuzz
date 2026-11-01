@@ -412,6 +412,9 @@ hb_resolve_graph_overflows (hb_tag_t table_tag,
   hb_vector_t<graph::overflow_record_t> overflows;
   // TODO(garretrieger): select a good limit for max rounds.
   while (round < max_rounds && total_iterations < HB_REPACKER_MAX_ITERATIONS) {
+    // Each iteration checks every link for overflow and re-sorts the whole graph.
+    TRY (sorted_graph.charge_ops (sorted_graph.total_vertices_and_links ()));
+
     TRY_ASSIGN (bool overflows_exist, graph::will_overflow (sorted_graph, &overflows));
     if (!overflows_exist)
       break;

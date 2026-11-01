@@ -1056,6 +1056,7 @@ struct hb_bit_set_t
   }
 
   bool has_population () const { return population != UINT_MAX; }
+  unsigned int get_page_count () const { return pages.length; }
   unsigned int get_population () const
   {
     if (has_population ())
