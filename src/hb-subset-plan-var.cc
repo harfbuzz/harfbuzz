@@ -144,6 +144,7 @@
 
    hb_hashmap_t<hb_tag_t, unsigned> grid_pos;
    hb_vector_t<hb_vector_t<double>> grid_points;
+   int64_t budget = HB_BUDGET_SUBSET_AVAR2_RANGES;
    for (unsigned i = 0; i < axes.length; i++)
    {
      grid_pos.reset ();
@@ -171,6 +172,9 @@
        const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
        unsigned row_size = vd.get_row_size ();
        unsigned region_count = vd.get_region_index_count ();
+       /* Out of budget: the remaining axes are left unconstrained. */
+       if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, region_count)))
+	 return true;
        for (unsigned r = 0; r < region_count; r++)
        {
 	 int delta = vd.get_item_delta_fast (inner, r, delta_bytes, row_size);
@@ -217,8 +221,13 @@
      if (add_grid_axis (tag) < 0) return false;
      /* Per active region: (grid axis position, tent) for its valid tents. */
      hb_vector_t<hb_vector_t<hb_pair_t<unsigned, Triple>>> region_tents;
+     unsigned num_tents = 0;
      for (const auto &ar : active)
      {
+       /* Collecting a tent allocates, and adds breakpoints to sort. */
+       if (unlikely (!hb_budget_spend (budget, HB_BUDGET_16,
+				       1 + regions[ar.second].get_population ())))
+	 return true;
        region_tents.push (hb_vector_t<hb_pair_t<unsigned, Triple>> ());
        if (region_tents.in_error ()) return false;
        auto &tents = region_tents[region_tents.length - 1];
@@ -240,6 +249,7 @@
 	 tents.push (hb_pair ((unsigned) pos, tent));
 	 if (points.in_error () || tents.in_error ()) return false;
        }
+       num_tents += tents.length;
      }
 
      unsigned grid_size = 1;
@@ -254,6 +264,15 @@
        points.shrink (n);
        if (grid_size > MAX_GRID / points.length) { exact = false; break; }
        grid_size *= points.length;
+     }
+
+     /* Every vertex evaluates every tent of every active region. Fall back
+      * to the interval bounds, without charging, when that does not fit. */
+     if (exact)
+     {
+       int64_t cost = (int64_t) grid_size * (active.length + num_tents);
+       if (cost <= budget) budget -= cost;
+       else exact = false;
      }
 
      if (exact)
@@ -823,6 +842,15 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
 
   OT::glyf_accelerator_t glyf (plan->source);
 
+  /* The decoded points of every retained glyph stay alive in the plan.
+   * Bound their total by the source glyf size: loca entries may share
+   * glyph data and repeated flags need no bytes per point, so the glyph
+   * count alone does not bound it. */
+  hb_blob_t *glyf_blob = glyf.reference_glyf_table ();
+  int64_t budget = hb_max (HB_BUDGET_SUBSET_CONTOUR_POINTS,
+			   (int64_t) (glyf_blob ? hb_blob_get_length (glyf_blob) : 0));
+  hb_blob_destroy (glyf_blob);
+
   for (auto &_ : plan->new_to_old_gid_list)
   {
     hb_codepoint_t new_gid = _.first;
@@ -837,6 +865,8 @@ get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
     hb_codepoint_t old_gid = _.second;
     auto glyph = glyf.glyph_for_gid (old_gid);
     if (unlikely (!glyph.get_all_points_without_var (plan->source, all_points)))
+      return false;
+    if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, all_points.length)))
       return false;
     if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
       return false;
