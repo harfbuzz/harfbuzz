@@ -534,6 +534,13 @@ struct cff1_subset_plan
 
     if (!glyph_to_sid_map || glyph_to_sid_map->in_error ())
     {
+      /* A map created above is not yet shared with the accelerator, so a
+       * failed one is ours to free. */
+      if (created_map && glyph_to_sid_map)
+      {
+	glyph_to_sid_map->~glyph_to_sid_map_t ();
+	hb_free (glyph_to_sid_map);
+      }
       glyph_to_sid_map = nullptr;
       created_map = false;
     }
