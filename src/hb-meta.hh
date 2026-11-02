@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include <limits>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -80,14 +81,9 @@ template <typename T> using hb_type_identity = typename hb_type_identity_t<T>::t
 template <typename T> static inline T hb_declval ();
 #define hb_declval(T) (hb_declval<T> ())
 
-template <typename T> struct hb_match_const		: std::false_type { typedef T type; };
-template <typename T> struct hb_match_const<const T>	: std::true_type  { typedef T type; };
-template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
+template <typename T> using hb_remove_const = typename std::remove_const<T>::type;
 
-template <typename T> struct hb_match_reference		: std::false_type { typedef T type; };
-template <typename T> struct hb_match_reference<T &>	: std::true_type  { typedef T type; };
-template <typename T> struct hb_match_reference<T &&>	: std::true_type  { typedef T type; };
-template <typename T> using hb_remove_reference = typename hb_match_reference<T>::type;
+template <typename T> using hb_remove_reference = typename std::remove_reference<T>::type;
 template <typename T> auto _hb_try_add_lvalue_reference (hb_priority<1>) -> hb_type_identity<T&>;
 template <typename T> auto _hb_try_add_lvalue_reference (hb_priority<0>) -> hb_type_identity<T>;
 template <typename T> using hb_add_lvalue_reference = decltype (_hb_try_add_lvalue_reference<T> (hb_prioritize));
@@ -162,32 +158,18 @@ struct hb_reference_wrapper<T&>
 
 /* Type traits */
 
-template <typename T> struct hb_int_min;
-template <> struct hb_int_min<char>			: std::integral_constant<char,			CHAR_MIN>	{};
-template <> struct hb_int_min<signed char>		: std::integral_constant<signed char,		SCHAR_MIN>	{};
-template <> struct hb_int_min<unsigned char>		: std::integral_constant<unsigned char,		0>		{};
-template <> struct hb_int_min<signed short>		: std::integral_constant<signed short,		SHRT_MIN>	{};
-template <> struct hb_int_min<unsigned short>		: std::integral_constant<unsigned short,		0>		{};
-template <> struct hb_int_min<signed int>		: std::integral_constant<signed int,		INT_MIN>	{};
-template <> struct hb_int_min<unsigned int>		: std::integral_constant<unsigned int,		0>		{};
-template <> struct hb_int_min<signed long>		: std::integral_constant<signed long,		LONG_MIN>	{};
-template <> struct hb_int_min<unsigned long>		: std::integral_constant<unsigned long,		0>		{};
-template <> struct hb_int_min<signed long long>		: std::integral_constant<signed long long,	LLONG_MIN>	{};
-template <> struct hb_int_min<unsigned long long>	: std::integral_constant<unsigned long long,	0>		{};
-template <typename T> struct hb_int_min<T *>		: std::integral_constant<T *,			nullptr>	{};
+template <typename T>
+struct hb_int_min : std::integral_constant<T, (std::numeric_limits<T>::min) ()>
+{
+  static_assert (std::is_integral<T>::value, "");
+};
+template <typename T> struct hb_int_min<T *> : std::integral_constant<T *, nullptr> {};
 #define hb_int_min(T) hb_int_min<T>::value
-template <typename T> struct hb_int_max;
-template <> struct hb_int_max<char>			: std::integral_constant<char,			CHAR_MAX>	{};
-template <> struct hb_int_max<signed char>		: std::integral_constant<signed char,		SCHAR_MAX>	{};
-template <> struct hb_int_max<unsigned char>		: std::integral_constant<unsigned char,		UCHAR_MAX>	{};
-template <> struct hb_int_max<signed short>		: std::integral_constant<signed short,		SHRT_MAX>	{};
-template <> struct hb_int_max<unsigned short>		: std::integral_constant<unsigned short,		USHRT_MAX>	{};
-template <> struct hb_int_max<signed int>		: std::integral_constant<signed int,		INT_MAX>	{};
-template <> struct hb_int_max<unsigned int>		: std::integral_constant<unsigned int,		UINT_MAX>	{};
-template <> struct hb_int_max<signed long>		: std::integral_constant<signed long,		LONG_MAX>	{};
-template <> struct hb_int_max<unsigned long>		: std::integral_constant<unsigned long,		ULONG_MAX>	{};
-template <> struct hb_int_max<signed long long>		: std::integral_constant<signed long long,	LLONG_MAX>	{};
-template <> struct hb_int_max<unsigned long long>	: std::integral_constant<unsigned long long,	ULLONG_MAX>	{};
+template <typename T>
+struct hb_int_max : std::integral_constant<T, (std::numeric_limits<T>::max) ()>
+{
+  static_assert (std::is_integral<T>::value, "");
+};
 #define hb_int_max(T) hb_int_max<T>::value
 
 #if defined(__GNUC__) && __GNUC__ < 5 && !defined(__clang__)
