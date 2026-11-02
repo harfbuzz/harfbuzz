@@ -348,9 +348,10 @@ remap_colrv1_delta_set_index_indices (const DeltaSetIndexMap &index_map,
                                       hb_map_t &new_deltaset_idx_varidx_map /* OUT */);
 
 
+template<typename ItemVarStore>
 HB_INTERNAL void
-generate_varstore_inner_maps (const hb_set_t& varidx_set,
-                              unsigned subtable_count,
+generate_varstore_inner_maps (const ItemVarStore &var_store,
+                              const hb_set_t& varidx_set,
                               hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */);
 
 HB_INTERNAL bool
