@@ -107,8 +107,8 @@ template <typename T>
 static void
 test_array_length (const T &array)
 {
-  static_assert (decltype (ARRAY_LENGTH (array))::value == 3, "");
-  static_assert (decltype (ARRAY_LENGTH (array[0]))::value == 2, "");
+  static_assert (ARRAY_LENGTH (array) == 3, "");
+  static_assert (ARRAY_LENGTH (array[0]) == 2, "");
 }
 
 int
@@ -118,6 +118,10 @@ main (int argc, char **argv)
   static_assert (ARRAY_LENGTH (array) == 3, "");
   static_assert (ARRAY_LENGTH ("abc") == 4, "");
   test_array_length (array);
+
+  int index = 0;
+  static_assert (ARRAY_LENGTH (array[index++]) == 2, "");
+  hb_always_assert (index == 0);
 
   hb_always_assert (roundf (0.5f) == 1.f);
   hb_always_assert (roundf (-0.5f) == 0.f);
