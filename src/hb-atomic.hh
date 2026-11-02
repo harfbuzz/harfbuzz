@@ -106,6 +106,7 @@ struct hb_atomic_t<T *>
 
   void init (T *v_ = nullptr) { set_relaxed (v_); }
   void set_relaxed (T *v_) { v.store (v_, std::memory_order_relaxed); }
+  void set_release (T *v_) { v.store (v_, std::memory_order_release); }
   T *get_relaxed () const { return v.load (std::memory_order_relaxed); }
   T *get_acquire () const { return v.load (std::memory_order_acquire); }
   bool cmpexch (T *old, T *new_) { return v.compare_exchange_weak (old, new_, std::memory_order_acq_rel, std::memory_order_relaxed); }
@@ -164,6 +165,7 @@ struct hb_atomic_t<T*>
 
   void init (T* v_ = nullptr) { set_relaxed (v_); }
   void set_relaxed (T* v_) { v = v_; }
+  void set_release (T* v_) { v = v_; }
   T *get_relaxed () const { return v; }
   T *get_acquire () const { return v; }
   bool cmpexch (T *old, T *new_)
