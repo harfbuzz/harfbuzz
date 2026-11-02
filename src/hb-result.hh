@@ -51,9 +51,9 @@ struct hb_result_err_t
   constexpr bool operator != (const hb_result_err_t<OtherE>& other) const { return error != other.error; }
 };
 
-template <typename X> struct _hb_is_result_tag : hb_false_type {};
-template <typename X> struct _hb_is_result_tag<hb_result_ok_t<X>> : hb_true_type {};
-template <typename X> struct _hb_is_result_tag<hb_result_err_t<X>> : hb_true_type {};
+template <typename X> struct _hb_is_result_tag : std::false_type {};
+template <typename X> struct _hb_is_result_tag<hb_result_ok_t<X>> : std::true_type {};
+template <typename X> struct _hb_is_result_tag<hb_result_err_t<X>> : std::true_type {};
 
 template <typename T>
 static inline constexpr hb_result_ok_t<T&&> Ok (T&& v)

@@ -48,27 +48,18 @@ template<typename... Ts> using hb_void_t = typename _hb_void_t<Ts...>::type;
 template<typename Head, typename... Ts> struct _hb_head_t { typedef Head type; };
 template<typename... Ts> using hb_head_t = typename _hb_head_t<Ts...>::type;
 
-template <typename T, T v> struct hb_integral_constant { static constexpr T value = v; };
-template <bool b> using hb_bool_constant = hb_integral_constant<bool, b>;
-using hb_true_type = hb_bool_constant<true>;
-using hb_false_type = hb_bool_constant<false>;
-
 /* Static-assert as expression. */
 template <bool cond> struct static_assert_expr;
-template <> struct static_assert_expr<true> : hb_false_type {};
+template <> struct static_assert_expr<true> : std::false_type {};
 #define static_assert_expr(C) static_assert_expr<C>::value
 
 /* Basic type SFINAE. */
 
-template <bool B, typename T = void> struct hb_enable_if {};
-template <typename T>                struct hb_enable_if<true, T> { typedef T type; };
-#define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
+#define hb_enable_if(Cond) typename std::enable_if<(Cond)>::type* = nullptr
 /* Concepts/Requires alias: */
 #define hb_requires(Cond) hb_enable_if((Cond))
 
-template <typename T, typename T2> struct hb_is_same : hb_false_type {};
-template <typename T>              struct hb_is_same<T, T> : hb_true_type {};
-#define hb_is_same(T, T2) hb_is_same<T, T2>::value
+#define hb_is_same(T, T2) std::is_same<T, T2>::value
 
 /* Function overloading SFINAE and priority. */
 
@@ -89,13 +80,13 @@ template <typename T> using hb_type_identity = typename hb_type_identity_t<T>::t
 template <typename T> static inline T hb_declval ();
 #define hb_declval(T) (hb_declval<T> ())
 
-template <typename T> struct hb_match_const		: hb_type_identity_t<T>, hb_false_type	{};
-template <typename T> struct hb_match_const<const T>	: hb_type_identity_t<T>, hb_true_type	{};
+template <typename T> struct hb_match_const		: std::false_type { typedef T type; };
+template <typename T> struct hb_match_const<const T>	: std::true_type  { typedef T type; };
 template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
 
-template <typename T> struct hb_match_reference		: hb_type_identity_t<T>, hb_false_type	{};
-template <typename T> struct hb_match_reference<T &>	: hb_type_identity_t<T>, hb_true_type	{};
-template <typename T> struct hb_match_reference<T &&>	: hb_type_identity_t<T>, hb_true_type	{};
+template <typename T> struct hb_match_reference		: std::false_type { typedef T type; };
+template <typename T> struct hb_match_reference<T &>	: std::true_type  { typedef T type; };
+template <typename T> struct hb_match_reference<T &&>	: std::true_type  { typedef T type; };
 template <typename T> using hb_remove_reference = typename hb_match_reference<T>::type;
 template <typename T> auto _hb_try_add_lvalue_reference (hb_priority<1>) -> hb_type_identity<T&>;
 template <typename T> auto _hb_try_add_lvalue_reference (hb_priority<0>) -> hb_type_identity<T>;
@@ -104,8 +95,8 @@ template <typename T> auto _hb_try_add_rvalue_reference (hb_priority<1>) -> hb_t
 template <typename T> auto _hb_try_add_rvalue_reference (hb_priority<0>) -> hb_type_identity<T>;
 template <typename T> using hb_add_rvalue_reference = decltype (_hb_try_add_rvalue_reference<T> (hb_prioritize));
 
-template <typename T> struct hb_match_pointer		: hb_type_identity_t<T>, hb_false_type	{};
-template <typename T> struct hb_match_pointer<T *>	: hb_type_identity_t<T>, hb_true_type	{};
+template <typename T> struct hb_match_pointer		: std::false_type { typedef T type; };
+template <typename T> struct hb_match_pointer<T *>	: std::true_type  { typedef T type; };
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 template <typename T> auto _hb_try_add_pointer (hb_priority<1>) -> hb_type_identity<hb_remove_reference<T>*>;
 template <typename T> auto _hb_try_add_pointer (hb_priority<1>) -> hb_type_identity<T>;
@@ -117,7 +108,7 @@ template <typename T> using hb_decay = typename std::decay<T>::type;
 #define hb_is_convertible(From,To) std::is_convertible<From, To>::value
 
 template <typename From, typename To>
-using hb_is_cr_convertible = hb_bool_constant<
+using hb_is_cr_convertible = std::integral_constant<bool,
   hb_is_same (hb_decay<From>, hb_decay<To>) &&
   (!std::is_const<From>::value || std::is_const<To>::value) &&
   (!std::is_reference<To>::value || std::is_const<To>::value || std::is_reference<To>::value)
@@ -172,31 +163,31 @@ struct hb_reference_wrapper<T&>
 /* Type traits */
 
 template <typename T> struct hb_int_min;
-template <> struct hb_int_min<char>			: hb_integral_constant<char,			CHAR_MIN>	{};
-template <> struct hb_int_min<signed char>		: hb_integral_constant<signed char,		SCHAR_MIN>	{};
-template <> struct hb_int_min<unsigned char>		: hb_integral_constant<unsigned char,		0>		{};
-template <> struct hb_int_min<signed short>		: hb_integral_constant<signed short,		SHRT_MIN>	{};
-template <> struct hb_int_min<unsigned short>		: hb_integral_constant<unsigned short,		0>		{};
-template <> struct hb_int_min<signed int>		: hb_integral_constant<signed int,		INT_MIN>	{};
-template <> struct hb_int_min<unsigned int>		: hb_integral_constant<unsigned int,		0>		{};
-template <> struct hb_int_min<signed long>		: hb_integral_constant<signed long,		LONG_MIN>	{};
-template <> struct hb_int_min<unsigned long>		: hb_integral_constant<unsigned long,		0>		{};
-template <> struct hb_int_min<signed long long>		: hb_integral_constant<signed long long,	LLONG_MIN>	{};
-template <> struct hb_int_min<unsigned long long>	: hb_integral_constant<unsigned long long,	0>		{};
-template <typename T> struct hb_int_min<T *>		: hb_integral_constant<T *,			nullptr>	{};
+template <> struct hb_int_min<char>			: std::integral_constant<char,			CHAR_MIN>	{};
+template <> struct hb_int_min<signed char>		: std::integral_constant<signed char,		SCHAR_MIN>	{};
+template <> struct hb_int_min<unsigned char>		: std::integral_constant<unsigned char,		0>		{};
+template <> struct hb_int_min<signed short>		: std::integral_constant<signed short,		SHRT_MIN>	{};
+template <> struct hb_int_min<unsigned short>		: std::integral_constant<unsigned short,		0>		{};
+template <> struct hb_int_min<signed int>		: std::integral_constant<signed int,		INT_MIN>	{};
+template <> struct hb_int_min<unsigned int>		: std::integral_constant<unsigned int,		0>		{};
+template <> struct hb_int_min<signed long>		: std::integral_constant<signed long,		LONG_MIN>	{};
+template <> struct hb_int_min<unsigned long>		: std::integral_constant<unsigned long,		0>		{};
+template <> struct hb_int_min<signed long long>		: std::integral_constant<signed long long,	LLONG_MIN>	{};
+template <> struct hb_int_min<unsigned long long>	: std::integral_constant<unsigned long long,	0>		{};
+template <typename T> struct hb_int_min<T *>		: std::integral_constant<T *,			nullptr>	{};
 #define hb_int_min(T) hb_int_min<T>::value
 template <typename T> struct hb_int_max;
-template <> struct hb_int_max<char>			: hb_integral_constant<char,			CHAR_MAX>	{};
-template <> struct hb_int_max<signed char>		: hb_integral_constant<signed char,		SCHAR_MAX>	{};
-template <> struct hb_int_max<unsigned char>		: hb_integral_constant<unsigned char,		UCHAR_MAX>	{};
-template <> struct hb_int_max<signed short>		: hb_integral_constant<signed short,		SHRT_MAX>	{};
-template <> struct hb_int_max<unsigned short>		: hb_integral_constant<unsigned short,		USHRT_MAX>	{};
-template <> struct hb_int_max<signed int>		: hb_integral_constant<signed int,		INT_MAX>	{};
-template <> struct hb_int_max<unsigned int>		: hb_integral_constant<unsigned int,		UINT_MAX>	{};
-template <> struct hb_int_max<signed long>		: hb_integral_constant<signed long,		LONG_MAX>	{};
-template <> struct hb_int_max<unsigned long>		: hb_integral_constant<unsigned long,		ULONG_MAX>	{};
-template <> struct hb_int_max<signed long long>		: hb_integral_constant<signed long long,	LLONG_MAX>	{};
-template <> struct hb_int_max<unsigned long long>	: hb_integral_constant<unsigned long long,	ULLONG_MAX>	{};
+template <> struct hb_int_max<char>			: std::integral_constant<char,			CHAR_MAX>	{};
+template <> struct hb_int_max<signed char>		: std::integral_constant<signed char,		SCHAR_MAX>	{};
+template <> struct hb_int_max<unsigned char>		: std::integral_constant<unsigned char,		UCHAR_MAX>	{};
+template <> struct hb_int_max<signed short>		: std::integral_constant<signed short,		SHRT_MAX>	{};
+template <> struct hb_int_max<unsigned short>		: std::integral_constant<unsigned short,		USHRT_MAX>	{};
+template <> struct hb_int_max<signed int>		: std::integral_constant<signed int,		INT_MAX>	{};
+template <> struct hb_int_max<unsigned int>		: std::integral_constant<unsigned int,		UINT_MAX>	{};
+template <> struct hb_int_max<signed long>		: std::integral_constant<signed long,		LONG_MAX>	{};
+template <> struct hb_int_max<unsigned long>		: std::integral_constant<unsigned long,		ULONG_MAX>	{};
+template <> struct hb_int_max<signed long long>		: std::integral_constant<signed long long,	LLONG_MAX>	{};
+template <> struct hb_int_max<unsigned long long>	: std::integral_constant<unsigned long long,	ULLONG_MAX>	{};
 #define hb_int_max(T) hb_int_max<T>::value
 
 #if defined(__GNUC__) && __GNUC__ < 5 && !defined(__clang__)

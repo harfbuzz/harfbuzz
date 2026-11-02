@@ -40,19 +40,19 @@
 #define HB_NULL_POOL_SIZE 640
 
 template <typename T, typename>
-struct _hb_has_min_size : hb_false_type {};
+struct _hb_has_min_size : std::false_type {};
 template <typename T>
 struct _hb_has_min_size<T, hb_void_t<decltype (T::min_size)>>
-	: hb_true_type {};
+	: std::true_type {};
 template <typename T>
 using hb_has_min_size = _hb_has_min_size<T, void>;
 #define hb_has_min_size(T) hb_has_min_size<T>::value
 
 template <typename T, typename>
-struct _hb_has_null_size : hb_false_type {};
+struct _hb_has_null_size : std::false_type {};
 template <typename T>
 struct _hb_has_null_size<T, hb_void_t<decltype (T::null_size)>>
-	: hb_true_type {};
+	: std::true_type {};
 template <typename T>
 using hb_has_null_size = _hb_has_null_size<T, void>;
 #define hb_has_null_size(T) hb_has_null_size<T>::value
@@ -68,10 +68,10 @@ using hb_has_null_size = _hb_has_null_size<T, void>;
  */
 
 template <typename T, typename>
-struct _hb_null_size : hb_integral_constant<unsigned, sizeof (T)> {};
+struct _hb_null_size : std::integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
 struct _hb_null_size<T, hb_void_t<decltype (T::min_size)>>
-	: hb_integral_constant<unsigned,
+	: std::integral_constant<unsigned,
 			       (sizeof (T) > T::null_size ? sizeof (T) : T::null_size)> {};
 template <typename T>
 using hb_null_size = _hb_null_size<T, void>;
@@ -83,17 +83,17 @@ using hb_null_size = _hb_null_size<T, void>;
  * Returns T::static_size if T::min_size is defined, or sizeof (T) otherwise. */
 
 template <typename T, typename>
-struct _hb_static_size : hb_integral_constant<unsigned, sizeof (T)> {};
+struct _hb_static_size : std::integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
-struct _hb_static_size<T, hb_void_t<decltype (T::static_size)>> : hb_integral_constant<unsigned, T::static_size> {};
+struct _hb_static_size<T, hb_void_t<decltype (T::static_size)>> : std::integral_constant<unsigned, T::static_size> {};
 template <typename T>
 using hb_static_size = _hb_static_size<T, void>;
 #define hb_static_size(T) hb_static_size<T>::value
 
 template <typename T, typename>
-struct _hb_min_size : hb_integral_constant<unsigned, sizeof (T)> {};
+struct _hb_min_size : std::integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
-struct _hb_min_size<T, hb_void_t<decltype (T::min_size)>> : hb_integral_constant<unsigned, T::min_size> {};
+struct _hb_min_size<T, hb_void_t<decltype (T::min_size)>> : std::integral_constant<unsigned, T::min_size> {};
 template <typename T>
 using hb_min_size = _hb_min_size<T, void>;
 #define hb_min_size(T) hb_min_size<T>::value
