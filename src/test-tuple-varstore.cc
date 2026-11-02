@@ -28,6 +28,65 @@
 const unsigned char cvar_data[] = "\x0\x1\x0\x0\x0\x2\x0\x14\x0\x51\xa0\x0\xc0\x0\x0\x54\xa0\x0\x40\x0\x2a\x29\x17\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\xd\xff\x0\xfd\x1\x0\xff\x0\xfd\x1\x0\xdb\xdb\xe6\xe6\x82\x0\xfd\x84\x6\xfd\x0\x2\xe3\xe3\xec\xec\x82\x4\x1\xe3\xe3\xec\xec\x82\x0\x1\x2a\x29\x17\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\x1\xd\x1\x0\x5\xfd\x0\x1\x0\x5\xfd\x0\x61\x61\x44\x44\x82\x0\x5\x81\x9\x1\xff\x1\x7\xff\xfb\x49\x49\x35\x35\x82\x4\xff\x49\x49\x35\x35\x82\x0\xff";
 
 static void
+test_iup_shifted_default ()
+{
+  /* #6462: a fractional shift makes distinct reference coordinates round to
+   * the same glyf coordinate. IUP must not infer against the fractional base. */
+  const float positions[][2] = {{0, 1000}, {1000, 1000}, {1000, 0}, {0, 0}};
+  const float deltas[] = {499, 500, 500, 500};
+  const int signs[] = {1, -1};
+  const hb_tag_t tag = HB_TAG ('w', 'g', 'h', 't');
+  for (unsigned axis = 0; axis < 2; axis++)
+    for (int sign : signs)
+    {
+      contour_point_vector_t points;
+      hb_always_assert (points.resize (8));
+      for (unsigned i = 0; i < 4; i++)
+      {
+        points[i].init (sign * positions[i][axis], sign * positions[i][1 - axis]);
+      }
+      points[3].is_end_point = true;
+      /* Fractional phantom positions must survive the optimization unchanged. */
+      for (unsigned i = 4; i < 8; i++)
+        points[i].init (i + 0.25f, i + 0.75f);
+
+      OT::TupleVariationData<>::tuple_variations_t vars;
+      auto *tuple = vars.tuple_vars.push ();
+      hb_always_assert (!vars.tuple_vars.in_error ());
+      hb_always_assert (tuple->axis_tuples.set (tag, Triple (0., 1., 1.)));
+      hb_always_assert (tuple->indices.resize (8));
+      hb_always_assert (tuple->deltas_x.resize (8));
+      hb_always_assert (tuple->deltas_y.resize (8));
+      for (unsigned i = 0; i < 8; i++)
+      {
+        tuple->indices[i] = true;
+        tuple->deltas_x[i] = i < 4 && !axis ? sign * deltas[i] : 0.f;
+        tuple->deltas_y[i] = i < 4 && axis ? sign * deltas[i] : 0.f;
+      }
+
+      hb_hashmap_t<hb_tag_t, Triple> limits;
+      hb_always_assert (limits.set (tag, Triple (0.002, 0.002, 1.)));
+      hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+      hb_always_assert (distances.set (tag, TripleDistances (1., 1.)));
+      OT::optimize_scratch_t scratch;
+      hb_always_assert (vars.instantiate (limits, distances, scratch, nullptr, &points, true));
+      hb_always_assert (vars.tuple_vars.length == 1);
+      const auto &result = vars.tuple_vars[0];
+      for (unsigned i = 0; i < 4; i++)
+      {
+        hb_always_assert (result.indices[i]);
+        float delta = (axis ? result.deltas_y : result.deltas_x)[i];
+        hb_always_assert (roundf (delta) == sign * (i ? 499 : 498));
+      }
+      for (unsigned i = 4; i < 8; i++)
+      {
+        hb_always_assert (points[i].x == i + 0.25f);
+        hb_always_assert (points[i].y == i + 0.75f);
+      }
+    }
+}
+
+static void
 test_decompile_cvar ()
 {
   const OT::cvar* cvar_table = reinterpret_cast<const OT::cvar*> (cvar_data);
@@ -299,6 +358,7 @@ test_tuple_values_decompile_trunc ()
 int
 main (int argc, char **argv)
 {
+  test_iup_shifted_default ();
   test_tuple_values_count_values ();
   test_tuple_values_valid_control ();
   test_tuple_values_iter_trunc ();

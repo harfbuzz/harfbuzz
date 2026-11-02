@@ -1344,7 +1344,17 @@ struct TupleVariationData
       if (!merge_tuple_variations (optimize ? contour_points : nullptr))
         return false;
 
-      if (optimize && !iup_optimize (*contour_points, scratch)) return false;
+      if (optimize)
+      {
+        /* Match the integer contour base serialized to glyf when selecting
+         * IUP references. Keep the four phantom points unrounded. */
+        for (unsigned i = 0; i + 4 < contour_points->length; i++)
+        {
+          contour_points->arrayZ[i].x = roundf (contour_points->arrayZ[i].x);
+          contour_points->arrayZ[i].y = roundf (contour_points->arrayZ[i].y);
+        }
+        if (!iup_optimize (*contour_points, scratch)) return false;
+      }
       return !tuple_vars.in_error ();
     }
 
