@@ -1128,13 +1128,6 @@ struct TupleVariationData
     }
 
     private:
-    static int _cmp_axis_tag (const void *pa, const void *pb)
-    {
-      const hb_tag_t *a = (const hb_tag_t*) pa;
-      const hb_tag_t *b = (const hb_tag_t*) pb;
-      return (int)(*a) - (int)(*b);
-    }
-
     bool change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
 					      hb_alloc_pool_t *pool = nullptr)
@@ -1150,7 +1143,7 @@ struct TupleVariationData
       rebase_tent_result_scratch_t scratch;
       hb_vector_t<tuple_delta_t> out;
 
-      axis_tags.qsort (_cmp_axis_tag);
+      axis_tags.qsort (_hb_cmp_operator<hb_tag_t, hb_tag_t>);
       for (auto axis_tag : axis_tags)
       {
         Triple *axis_limit;
