@@ -1043,6 +1043,13 @@ if get_option('tests').enabled()
     ),
       args: [meson.project_source_root() / 'test/api/fonts/NotoColorEmoji.subset.multiple_size_tables.ttf'],
       suite: ['src', 'subset'])
+    test('test-subset-cff2-serialize', executable('test-subset-cff2-serialize', ['hb-subset-cff2.cc', 'hb-subset-cff-common.cc', 'hb-subset-instancer-solver.cc', 'hb-subset-instancer-iup.cc', 'hb-static.cc'],
+      include_directories: incconfig,
+      cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
+      dependencies: [libharfbuzz_dep, libharfbuzz_subset_dep],
+      install: false,
+    ),
+      suite: ['src', 'subset'])
   endif
 
   if not cpp_is_microsoft_compiler and conf.get('HAVE_GRAPHITE2', 0) == 1

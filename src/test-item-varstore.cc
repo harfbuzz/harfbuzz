@@ -28,6 +28,85 @@
 const char hvar_data[] = "\x0\x1\x0\x0\x0\x0\x0\x14\x0\x0\x0\xc4\x0\x0\x0\x0\x0\x0\x0\x0\x0\x1\x0\x0\x0\x10\x0\x2\x0\x0\x0\x74\x0\x0\x0\x7a\x0\x2\x0\x8\xc0\x0\xc0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x40\x0\x40\x0\xc0\x0\xc0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x40\x0\x40\x0\xc0\x0\xc0\x0\x0\x0\x0\x0\x40\x0\x40\x0\x0\x0\x40\x0\x40\x0\x0\x1\x0\x0\x0\x0\x0\x4\x0\x0\x0\x8\x0\x0\x0\x1\x0\x2\x0\x3\x0\x4\x0\x5\x0\x6\x0\x7\xf9\xf\x2f\xbf\xfb\xfb\x35\xf9\x4\x4\xf3\xb4\xf2\xfb\x2e\xf3\x4\x4\xe\xad\xfa\x1\x1a\x1\x15\x22\x59\xd6\xe3\xf6\x6\xf5\x0\x1\x0\x5\x0\x4\x7\x5\x6";
 
 static void
+test_var_region_list_serialize ()
+{
+  hb_vector_t<hb_tag_t> axes;
+  axes.push (HB_TAG ('w', 'g', 'h', 't'));
+  hb_hashmap_t<hb_tag_t, Triple> region;
+  hb_always_assert (region.set (axes[0], Triple (0., 0.5, 1.)));
+  hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple> *> regions;
+  regions.push (&region);
+
+  char buf[32], copy_buf[32];
+  hb_serialize_context_t c (buf, sizeof (buf));
+  auto *out = c.start_serialize<OT::VarRegionList> ();
+  hb_always_assert (out->serialize (&c, axes, regions));
+  hb_always_assert (!c.in_error ());
+  hb_always_assert (out->axisCount == 1 && out->regionCount == 1);
+  const int coords[] = {8192};
+  hb_always_assert (out->evaluate (0, coords, ARRAY_LENGTH (coords)) == 1.f);
+
+  hb_inc_bimap_t region_map;
+  region_map.add (0);
+  hb_always_assert (region_map.get_population () == 1);
+  hb_serialize_context_t copy_c (copy_buf, sizeof (copy_buf));
+  auto *copy = copy_c.start_serialize<OT::VarRegionList> ();
+  hb_always_assert (copy->serialize (&copy_c, out, region_map));
+  hb_always_assert (!copy_c.in_error ());
+  hb_always_assert (!hb_memcmp (out, copy, out->get_size ()));
+}
+
+static void
+test_var_region_list_serialize_bounds ()
+{
+  const unsigned counts[][2] = {
+    {0x10000u, 1},          /* axisCount does not fit uint16. */
+    {1, 0x8000u},          /* regionCount's high bit is reserved. */
+    {0x40000u, 0x4000u},   /* axisCount * regionCount wraps uint32. */
+  };
+  hb_hashmap_t<hb_tag_t, Triple> region;
+  for (const auto &count : counts)
+  {
+    hb_vector_t<hb_tag_t> axes;
+    hb_always_assert (axes.resize (count[0]));
+    for (auto &tag : axes)
+      tag = HB_TAG ('w', 'g', 'h', 't');
+    hb_vector_t<const hb_hashmap_t<hb_tag_t, Triple> *> regions;
+    hb_always_assert (regions.resize (count[1]));
+    for (auto &r : regions)
+      r = &region;
+
+    char buf[16];
+    hb_serialize_context_t c (buf, sizeof (buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    hb_always_assert (!out->serialize (&c, axes, regions));
+    hb_always_assert (c.errors == HB_SERIALIZE_ERROR_INT_OVERFLOW);
+  }
+
+  /* Only the header is needed: reject overflowing sizes before reading axes. */
+  const unsigned char source[] = {0xFF, 0xFF, 0x7F, 0xFF};
+  const auto *src = reinterpret_cast<const OT::VarRegionList *> (source);
+  const unsigned mapped_counts[] = {
+    0x8000u, /* Reserved high bit. */
+    0x10000u, /* Narrowing would wrap to zero. */
+    0x7FFFu, /* Valid counts, but 0xFFFF * 0x7FFF * 6 overflows uint32. */
+  };
+  for (unsigned count : mapped_counts)
+  {
+    hb_inc_bimap_t region_map;
+    for (unsigned i = 0; i < count; i++)
+      region_map.add (i);
+    hb_always_assert (region_map.get_population () == count);
+
+    char buf[16];
+    hb_serialize_context_t c (buf, sizeof (buf));
+    auto *out = c.start_serialize<OT::VarRegionList> ();
+    hb_always_assert (!out->serialize (&c, src, region_map));
+    hb_always_assert (c.errors == HB_SERIALIZE_ERROR_INT_OVERFLOW);
+  }
+}
+
+static void
 test_scalar_cache_precision ()
 {
   const float scalars[] = {
@@ -376,6 +455,8 @@ test_item_varstore_instancer_varidx_overflow ()
 int
 main (int argc, char **argv)
 {
+  test_var_region_list_serialize ();
+  test_var_region_list_serialize_bounds ();
   test_item_varstore_instancer_varidx_overflow ();
   test_scalar_cache_precision ();
   test_item_variations ();
