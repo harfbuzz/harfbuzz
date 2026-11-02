@@ -325,6 +325,49 @@ test_ot_layout_collect_lookup_variations (void)
 }
 #endif
 
+static void
+test_ot_layout_get_extender_glyphs (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/jstf.ttf");
+
+  g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+  {
+    hb_codepoint_t buffer[2];
+    unsigned offset = 0;
+    unsigned buffer_size = 2;
+    while (buffer_size == 2)
+    {
+      buffer[0] = HB_CODEPOINT_INVALID;
+      buffer[1] = HB_CODEPOINT_INVALID;
+      hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, offset, &buffer_size, buffer);
+      offset += buffer_size;
+    }
+    g_assert_cmpuint (buffer[0], ==, 6);
+    g_assert_cmpuint (buffer[1], ==, HB_CODEPOINT_INVALID);
+  }
+  {
+    hb_codepoint_t buffer[6];
+    unsigned buffer_size = 6;
+    buffer[5] = HB_CODEPOINT_INVALID;
+    hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, &buffer_size, buffer);
+    g_assert_cmpuint (buffer[0], ==, 2);
+    g_assert_cmpuint (buffer[1], ==, 3);
+    g_assert_cmpuint (buffer[2], ==, 4);
+    g_assert_cmpuint (buffer[3], ==, 5);
+    g_assert_cmpuint (buffer[4], ==, 6);
+    g_assert_cmpuint (buffer[5], ==, HB_CODEPOINT_INVALID);
+  }
+
+  // The API is just indifferent about language tags themselves right now
+  g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, hb_language_from_string ("fa", -1), 0, NULL, NULL));
+
+  // No glyph if the script on the font doesn't contain extender glyph
+  g_assert_cmpuint (0, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_BENGALI, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+
+  hb_face_destroy (face);
+  // There is test a for JSTFv1.1 in test-jstf.cc
+}
+
 int
 main (int argc, char **argv)
 {
@@ -343,5 +386,6 @@ main (int argc, char **argv)
 #ifndef HB_NO_VAR
   hb_test_add (test_ot_layout_collect_lookup_variations);
 #endif
+  hb_test_add (test_ot_layout_get_extender_glyphs);
   return hb_test_run ();
 }

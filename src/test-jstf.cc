@@ -39,6 +39,7 @@ create_face (const char *data, unsigned length)
 int
 main (int argc, char **argv)
 {
+  /* This is a test mostly for JSTFv1.1, JSTFv1 is tested in test-ot-layout.cc */
   static const char data[] = {
     0, 1, 0, 1,				/* version 1.1 */
     0, 0,				/* JstfScriptRecord count */
@@ -61,6 +62,17 @@ main (int argc, char **argv)
   hb_always_assert (jstf->find_script_index (HB_TAG ('a','r','a','b'), &index));
   hb_always_assert (index == 0);
   hb_always_assert (!jstf->get_script<OT::Layout::MediumTypes> (0).get_lang_sys_count ());
+
+  hb_always_assert (0 == hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_BRAHMI, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+  hb_always_assert (1 == hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+  hb_codepoint_t buffer[2];
+  buffer[0] = HB_CODEPOINT_INVALID;
+  buffer[1] = HB_CODEPOINT_INVALID;
+  unsigned glyphs_count = 2;
+  hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, &glyphs_count, buffer);
+  hb_always_assert (glyphs_count == 1);
+  hb_always_assert (buffer[0] == 0x10001);
+  hb_always_assert (buffer[1] == HB_CODEPOINT_INVALID);
 #else
   hb_always_assert (jstf.get_length ());
   hb_always_assert (!jstf->get_script_count ());

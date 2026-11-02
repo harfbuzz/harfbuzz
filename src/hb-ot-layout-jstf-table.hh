@@ -166,6 +166,20 @@ struct JstfScript
   bool has_default_lang_sys () const               { return defaultLangSys != 0; }
   const JstfLangSys& get_default_lang_sys () const { return this+defaultLangSys; }
 
+  unsigned get_extender_glyphs (unsigned        start_offset,
+				unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
+				hb_codepoint_t *glyphs       /* OUT.     May be NULL */) const
+  {
+    const ExtenderGlyphs<Types> &extenders = this+extenderGlyphs;
+    if (glyphs_count && glyphs)
+    {
+      + extenders.as_array ().sub_array (start_offset, glyphs_count)
+      | hb_sink (hb_array (glyphs, *glyphs_count))
+      ;
+    }
+    return extenders.len;
+  }
+
   bool sanitize (hb_sanitize_context_t *c,
 		 const Record_sanitize_closure_t * = nullptr) const
   {
@@ -277,6 +291,29 @@ struct JSTF
     if (has_script_list2 ()) return get_script_list2 ().find_index (tag, index);
 #endif
     return scriptList.find_index (tag, index);
+  }
+
+  unsigned get_extender_glyphs (hb_tag_t        script,
+				unsigned        start_offset,
+				unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
+				hb_codepoint_t *glyphs       /* OUT.     May be NULL */) const
+  {
+    unsigned int script_index;
+#ifndef HB_NO_BEYOND_64K
+    if (has_script_list2 ())
+    {
+      auto &scriptList2 = get_script_list2 ();
+      if (scriptList2.find_index (script, &script_index))
+      {
+        auto &script = scriptList2.get_script (this, script_index);
+        return script.get_extender_glyphs (start_offset, glyphs_count, glyphs);
+      }
+    }
+#endif
+    auto &jstfScript = scriptList.find_index (script, &script_index)
+		     ? scriptList.get_script (this, script_index)
+		     : Null (JstfScript<Layout::SmallTypes>);
+    return jstfScript.get_extender_glyphs (start_offset, glyphs_count, glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
