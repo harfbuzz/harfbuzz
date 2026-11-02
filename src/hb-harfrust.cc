@@ -138,7 +138,10 @@ retry_buffer:
   {
     hr_buffer = _hb_harfrust_buffer_create_rs ();
     if (unlikely (!hr_buffer))
-      return false;
+    {
+      buffer->successful = false;
+      return true;
+    }
 
     if (!hb_buffer_set_user_data (buffer,
 				  &hb_buffer_key,
@@ -170,17 +173,28 @@ retry_shape_plan:
     }
   }
 
-  return _hb_harfrust_shape_rs (font_data,
-				hr_shape_plan,
-				hr_buffer,
-				font,
-				buffer,
-				buffer->context[0],
-				buffer->context_len[0],
-				buffer->context[1],
-				buffer->context_len[1],
-				features,
-				num_features);
+  /* HarfRust reports a shaping failure -- a max_ops / preprocessing-budget trip,
+   * an allocation failure, or an internal error -- by returning false, whereas
+   * the ot shaper always returns true and signals such failures through the
+   * buffer's success flag.  Mirror the ot shaper here: always return true and,
+   * on failure, mark the buffer unsuccessful, so that callers of the
+   * void-returning hb_shape() can detect the failure via
+   * hb_buffer_allocation_successful() instead of seeing a buffer that looks
+   * successful but is left unshaped. */
+  if (unlikely (!_hb_harfrust_shape_rs (font_data,
+					hr_shape_plan,
+					hr_buffer,
+					font,
+					buffer,
+					buffer->context[0],
+					buffer->context_len[0],
+					buffer->context[1],
+					buffer->context_len[1],
+					features,
+					num_features)))
+    buffer->successful = false;
+
+  return true;
 }
 
 

@@ -243,6 +243,56 @@ test_shape_overlong_cluster_remerge (void)
 
 
 static void
+test_shape_harfrust_budget (void)
+{
+  /* A HarfRust max_ops / preprocessing-budget trip must propagate to the C
+   * buffer's allocation_successful flag, the same way the ot shaper reports a
+   * budget failure.  Many ranged (non-global) features make HarfRust's
+   * setup_masks() overrun the per-text op budget and mark its own buffer
+   * unsuccessful; hb-harfrust.cc must forward that to the hb_buffer_t so that a
+   * caller of the void-returning hb_shape() can see it.  Only meaningful when
+   * HarfRust is built in, so skip otherwise. */
+  hb_bool_t have_harfrust = false;
+  for (const char * const *s = hb_shape_list_shapers (); *s; s++)
+    if (0 == strcmp (*s, "harfrust")) { have_harfrust = true; break; }
+  if (!have_harfrust)
+  {
+    g_test_skip ("HarfRust shaper not built");
+    return;
+  }
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+
+  hb_buffer_add_utf8 (buffer, "abcabcab", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+
+  /* One ranged feature per entry; count times the text length exceeds the
+   * per-text op budget, which HarfRust charges in setup_masks(). */
+  const unsigned num_features = 20000;
+  hb_feature_t *features = g_new0 (hb_feature_t, num_features);
+  for (unsigned i = 0; i < num_features; i++)
+  {
+    features[i].tag = HB_TAG ('k', 'e', 'r', 'n');
+    features[i].value = 0;
+    features[i].start = i;
+    features[i].end = i + 1;
+  }
+
+  const char *shaper_list[] = {"harfrust", NULL};
+  hb_shape_full (font, buffer, features, num_features, shaper_list);
+
+  g_assert_true (!hb_buffer_allocation_successful (buffer));
+
+  g_free (features);
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+
+static void
 test_shape_list (void)
 {
   const char **shapers = hb_shape_list_shapers ();
@@ -264,6 +314,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
   hb_test_add (test_shape_overlong_cluster_remerge);
+  hb_test_add (test_shape_harfrust_budget);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);
