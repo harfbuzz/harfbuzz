@@ -327,6 +327,31 @@ static void test_running_class_size_estimates_with_locally_consecutive_glyphs ()
   hb_always_assert(check_add_class_def_size(estimator, map, 3, {2, 3}));
 }
 
+static void test_running_coverage_size_estimates_with_interleaved_glyphs () {
+  gid_and_class_list_t map = {
+    {0, 2},
+    {1, 1},
+    {2, 1},
+    {3, 1},
+    {4, 2},
+    {5, 1},
+    {6, 1},
+    {7, 1},
+    {8, 2},
+    {10, 3},
+  };
+
+  // Class 2 extends and joins the coverage ranges of class 1.
+  graph::class_def_size_estimator_t estimator = *graph::class_def_size_estimator_t::create (map.iter());
+  hb_always_assert(check_add_class_def_size(estimator, map, 1, {1}));
+  hb_always_assert(check_add_class_def_size(estimator, map, 2, {1, 2}));
+  hb_always_assert(check_add_class_def_size(estimator, map, 3, {1, 2, 3}));
+
+  estimator.reset();
+  hb_always_assert(check_add_class_def_size(estimator, map, 2, {2}));
+  hb_always_assert(check_add_class_def_size(estimator, map, 1, {1, 2}));
+}
+
 static void
 test_class_def_intersects_class ()
 {
@@ -371,6 +396,7 @@ main (int argc, char **argv)
   test_class_and_coverage_size_estimates ();
   test_running_class_and_coverage_size_estimates ();
   test_running_class_size_estimates_with_locally_consecutive_glyphs ();
+  test_running_coverage_size_estimates_with_interleaved_glyphs ();
 #ifndef HB_NO_BEYOND_64K
   test_class_def_format_3_values ();
 #endif

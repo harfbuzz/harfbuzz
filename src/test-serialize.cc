@@ -363,6 +363,31 @@ test_failed_class_mapping ()
   hb_always_assert (glyph_and_klass[0].second == 1);
 }
 
+static void
+test_push_pop_after_overflow ()
+{
+  char buf[32];
+  hb_serialize_context_t s (buf, sizeof (buf));
+  s.start_serialize ();
+  s.push ();
+  auto snap = s.snapshot ();
+  s.err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+
+  /* Objects opened while only an overflow is pending must not pop their parent. */
+  s.push ();
+  s.pop_discard ();
+  hb_always_assert (s.snapshot ().current == snap.current);
+  s.push ();
+  hb_always_assert (!s.pop_pack ());
+  hb_always_assert (s.snapshot ().current == snap.current);
+
+  s.revert (snap);
+  hb_always_assert (!s.in_error ());
+  s.pop_discard ();
+  s.end_serialize ();
+  hb_always_assert (!s.in_error ());
+}
+
 int
 main (int argc, char **argv)
 {
@@ -374,6 +399,7 @@ main (int argc, char **argv)
   test_medium_chain_rule ();
   test_device_only_value ();
   test_failed_class_mapping ();
+  test_push_pop_after_overflow ();
 
   char buf[16384];
 
