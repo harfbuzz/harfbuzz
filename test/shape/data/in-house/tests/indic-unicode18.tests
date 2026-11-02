@@ -1,0 +1,10 @@
+# Unicode 18 additions in Devanagari Extended-A and Bengali Supplement.
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11B0A,U+093C;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11B0A,U+093F;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11B0A,U+094C;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11B0A,U+094D,U+0915;[1=0|1=0|1=2]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11DF1,U+09BC;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11DF1,U+09BF;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+11DF1,U+09BE;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot;U+0995,U+11DF0;[1=0|1=0]
+../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot --script=beng;U+11DF0;[1=0|1=0]

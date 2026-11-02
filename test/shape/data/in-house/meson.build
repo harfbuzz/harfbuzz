@@ -43,6 +43,7 @@ in_house_tests = [
   'indic-script-extensions.tests',
   'indic-special-cases.tests',
   'indic-syllable.tests',
+  'indic-unicode18.tests',
   'indic-vowel-letter-spoofing.tests',
   'item-context.tests',
   'kbts.tests',
