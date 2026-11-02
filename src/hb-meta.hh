@@ -87,16 +87,10 @@ template <typename T> using hb_remove_reference = typename std::remove_reference
 template <typename T> auto _hb_try_add_lvalue_reference (hb_priority<1>) -> hb_type_identity<T&>;
 template <typename T> auto _hb_try_add_lvalue_reference (hb_priority<0>) -> hb_type_identity<T>;
 template <typename T> using hb_add_lvalue_reference = decltype (_hb_try_add_lvalue_reference<T> (hb_prioritize));
-template <typename T> auto _hb_try_add_rvalue_reference (hb_priority<1>) -> hb_type_identity<T&&>;
-template <typename T> auto _hb_try_add_rvalue_reference (hb_priority<0>) -> hb_type_identity<T>;
-template <typename T> using hb_add_rvalue_reference = decltype (_hb_try_add_rvalue_reference<T> (hb_prioritize));
 
 template <typename T> struct hb_match_pointer		: std::false_type { typedef T type; };
 template <typename T> struct hb_match_pointer<T *>	: std::true_type  { typedef T type; };
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
-template <typename T> auto _hb_try_add_pointer (hb_priority<1>) -> hb_type_identity<hb_remove_reference<T>*>;
-template <typename T> auto _hb_try_add_pointer (hb_priority<1>) -> hb_type_identity<T>;
-template <typename T> using hb_add_pointer = decltype (_hb_try_add_pointer<T> (hb_prioritize));
 
 
 template <typename T> using hb_decay = typename std::decay<T>::type;
