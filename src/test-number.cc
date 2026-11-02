@@ -1959,6 +1959,79 @@ test_parse_double (void)
     hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
     hb_always_assert (pp == str + 19); // trailing 'e' not consumed
   }
+  /* n = 251 = 15*16 + 11:  _large[15] * _small[11].
+   * Fuzzer finding: '.1E251' was 3 ULP off with the composition table. */
+  {
+    const char str[] = ".1E251";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == end);
+  }
+  /* n = 251, different mantissa: same decomposition, different leading
+   * digits.  Catches cases where the mantissa's own rounding shifts the
+   * result across the ULP boundary differently from '.1E251'. */
+  {
+    const char str[] = ".4E251";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == end);
+  }
+  /* n = 293 = 18*16 + 5:  _large[18] * _small[5].
+   * Fuzzer finding: '9.3E+293' was 3 ULP off.  Exercises the top end
+   * of the large table and a mid-range small offset. */
+  {
+    const char str[] = "9.3E+293";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == end);
+  }
+  /* n = 63 = 3*16 + 15:  _large[3] * _small[15].
+   * Fuzzer finding: '.0374111E63' was 2 ULP off.  Exercises the boundary
+   * where the small-table offset is at its maximum (15), and a mid-range
+   * large-table index that the composition path handled with fewer
+   * multiplications (63 = 32+16+8+4+2+1, six multiplications). */
+  {
+    const char str[] = ".0374111E63";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == end);
+  }
+  /* Bare '1e251' with the trailing garbage from the fuzzer input:
+   * verifies the longest-prefix path still applies after the _pow10
+   * change, and that the returned value is the fuzzer input's target. */
+  {
+    const char str[] = ".1E251-742 E\n2\n262";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == str + 6); /* ".1E251" is six chars */
+  }
+  /* Sign path: '-1e251' must be the negation of '1e251', and both must
+   * be within 2 ULP of strtod.  Catches cases where the _pow10 change
+   * interacts with negation. */
+  {
+    const char str[] = "-1e251";
+    const char *pp = str;
+    const char *end = str + ARRAY_LENGTH (str) - 1;
+    double pv;
+    hb_always_assert (hb_parse_double (&pp, end, &pv));
+    hb_always_assert (almost_equal (pv, strtod (str, nullptr)));
+    hb_always_assert (pp == end);
+  }
 }
 
 int
