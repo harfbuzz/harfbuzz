@@ -1,3 +1,10 @@
 @font-funcs=ot
 ../fonts/ee39587d13b2afa5499cc79e45780aa79293bbd4.ttf;--show-extents;U+1F42F;[gid1=0+2963<0,2179,2963,-2789>]
 ../fonts/fcbaa518d3cce441ed37ae3b1fed6a19e9b54efd.ttf;--show-extents;U+1F600;[gid4=0+2550<0,1898,2555,-2405>]
+
+# Honk (OFL), pinned to MORF=15, SHLN=0. The accent's first COLR layer is empty.
+# An empty clip must stay empty when transformed, rather than adding ink
+# at the origin and changing mark placement (harfbuzz/harfrust#553).
+../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents;U+1E49,0306;[nmacronbelow=0+1060<-40,968,1140,-1152>|uni0306=0@-1024,199+0<128,1168,732,-274>]
+../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --font-size=4000;U+1E49,0306;[nmacronbelow=0+2120<-80,1936,2280,-2304>|uni0306=0@-2048,398+0<256,2336,1464,-548>]
+../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --direction=ttb;U+1E49,0306;[nmacronbelow=0@-530,-1612+0,-2440<-40,968,1140,-1152>|uni0306=0@36,1733+0<128,1168,732,-274>]
