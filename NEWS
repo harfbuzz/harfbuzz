@@ -4,8 +4,8 @@ Overview of changes leading to REPLACEME
   introspection bindings to avoid returning a pointer into the input.
 
 - New API:
-  +hb_buffer_deserialize_glyphs_with_offset()
-  +hb_buffer_deserialize_unicode_with_offset()
+  +hb_buffer_deserialize_glyphs2()
+  +hb_buffer_deserialize_unicode2()
 
 
 Overview of changes leading to 15.0.0

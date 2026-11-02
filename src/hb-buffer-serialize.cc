@@ -896,7 +896,7 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
 
 
 /**
- * hb_buffer_deserialize_glyphs_with_offset:
+ * hb_buffer_deserialize_glyphs2:
  * @buffer: an #hb_buffer_t buffer.
  * @buf: (array length=buf_len) (element-type uint8_t): string to deserialize
  * @buf_len: the size of @buf in bytes, or -1 if it is `NULL`-terminated
@@ -918,12 +918,12 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
  * XSince: REPLACEME
  **/
 hb_bool_t
-hb_buffer_deserialize_glyphs_with_offset (hb_buffer_t *buffer,
-					  const char *buf,
-					  int buf_len,
-					  unsigned int *buf_consumed,
-					  hb_font_t *font,
-					  hb_buffer_serialize_format_t format)
+hb_buffer_deserialize_glyphs2 (hb_buffer_t *buffer,
+			       const char *buf,
+			       int buf_len,
+			       unsigned int *buf_consumed,
+			       hb_font_t *font,
+			       hb_buffer_serialize_format_t format)
 {
   const char *end;
   hb_bool_t ret = hb_buffer_deserialize_glyphs (buffer, buf, buf_len, &end,
@@ -934,7 +934,7 @@ hb_buffer_deserialize_glyphs_with_offset (hb_buffer_t *buffer,
 }
 
 /**
- * hb_buffer_deserialize_unicode_with_offset:
+ * hb_buffer_deserialize_unicode2:
  * @buffer: an #hb_buffer_t buffer.
  * @buf: (array length=buf_len) (element-type uint8_t): string to deserialize
  * @buf_len: the size of @buf in bytes, or -1 if it is `NULL`-terminated
@@ -955,11 +955,11 @@ hb_buffer_deserialize_glyphs_with_offset (hb_buffer_t *buffer,
  * XSince: REPLACEME
  **/
 hb_bool_t
-hb_buffer_deserialize_unicode_with_offset (hb_buffer_t *buffer,
-					   const char *buf,
-					   int buf_len,
-					   unsigned int *buf_consumed,
-					   hb_buffer_serialize_format_t format)
+hb_buffer_deserialize_unicode2 (hb_buffer_t *buffer,
+				const char *buf,
+				int buf_len,
+				unsigned int *buf_consumed,
+				hb_buffer_serialize_format_t format)
 {
   const char *end;
   hb_bool_t ret = hb_buffer_deserialize_unicode (buffer, buf, buf_len, &end,

@@ -1139,7 +1139,7 @@ typedef enum {
 } deserialize_type_t;
 
 static void
-test_buffer_deserialize_with_offset (gconstpointer user_data)
+test_buffer_deserialize2 (gconstpointer user_data)
 {
   deserialize_type_t type = GPOINTER_TO_INT (user_data);
   hb_font_t *font = NULL;
@@ -1198,17 +1198,17 @@ test_buffer_deserialize_with_offset (gconstpointer user_data)
 	{
 	  expected = hb_buffer_deserialize_glyphs (reference, buf, buf_len, &end,
 						   font, tests[i].format);
-	  result = hb_buffer_deserialize_glyphs_with_offset (buffer, buf, buf_len,
-							     repeat ? NULL : &consumed,
-							     font, tests[i].format);
+	  result = hb_buffer_deserialize_glyphs2 (buffer, buf, buf_len,
+						  repeat ? NULL : &consumed,
+						  font, tests[i].format);
 	}
 	else
 	{
 	  expected = hb_buffer_deserialize_unicode (reference, buf, buf_len, &end,
 						    tests[i].format);
-	  result = hb_buffer_deserialize_unicode_with_offset (buffer, buf, buf_len,
-							      repeat ? NULL : &consumed,
-							      tests[i].format);
+	  result = hb_buffer_deserialize_unicode2 (buffer, buf, buf_len,
+						   repeat ? NULL : &consumed,
+						   tests[i].format);
 	}
 
 	g_assert_cmpint (result, ==, expected);
@@ -1318,9 +1318,9 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_message_lifetime);
 #endif
   hb_test_add (test_buffer_serialize_deserialize);
-  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_GLYPHS), "glyphs", test_buffer_deserialize_with_offset);
-  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_GLYPH_NAMES), "glyph-names", test_buffer_deserialize_with_offset);
-  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_UNICODE), "unicode", test_buffer_deserialize_with_offset);
+  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_GLYPHS), "glyphs", test_buffer_deserialize2);
+  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_GLYPH_NAMES), "glyph-names", test_buffer_deserialize2);
+  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_UNICODE), "unicode", test_buffer_deserialize2);
   hb_test_add (test_buffer_serialize_no_advances);
 
   return hb_test_run();

@@ -770,19 +770,19 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
 			       hb_buffer_serialize_format_t format);
 
 HB_EXTERN hb_bool_t
-hb_buffer_deserialize_glyphs_with_offset (hb_buffer_t *buffer,
-					  const char *buf,
-					  int buf_len,
-					  unsigned int *buf_consumed,
-					  hb_font_t *font,
-					  hb_buffer_serialize_format_t format);
+hb_buffer_deserialize_glyphs2 (hb_buffer_t *buffer,
+			       const char *buf,
+			       int buf_len,
+			       unsigned int *buf_consumed,
+			       hb_font_t *font,
+			       hb_buffer_serialize_format_t format);
 
 HB_EXTERN hb_bool_t
-hb_buffer_deserialize_unicode_with_offset (hb_buffer_t *buffer,
-					   const char *buf,
-					   int buf_len,
-					   unsigned int *buf_consumed,
-					   hb_buffer_serialize_format_t format);
+hb_buffer_deserialize_unicode2 (hb_buffer_t *buffer,
+				const char *buf,
+				int buf_len,
+				unsigned int *buf_consumed,
+				hb_buffer_serialize_format_t format);
 
 
 
