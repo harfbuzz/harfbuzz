@@ -241,12 +241,8 @@ struct JstfScriptList : SortedArray16Of<JstfScriptRecord<Types>>
     }
     return this->len;
   }
-  const JstfScript<Types>& get_script (const void *base, unsigned int i) const
-  { return base+(*this)[i].offset; }
-  bool find_index (hb_tag_t tag, unsigned int *index) const
-  {
-    return this->bfind (tag, index, HB_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
-  }
+  const JstfScript<Types> &find_script (const void *base, hb_tag_t tag) const
+  { return base+this->bsearch (tag).offset; }
 };
 
 
@@ -266,31 +262,13 @@ struct JSTF
 #endif
     return scriptList.len;
   }
-  const Tag& get_script_tag (unsigned int i) const
-  {
-#ifndef HB_NO_BEYOND_64K
-    if (has_script_list2 ()) return get_script_list2 ().get_tag (i);
-#endif
-    return scriptList.get_tag (i);
-  }
-  unsigned int get_script_tags (unsigned int start_offset,
-				unsigned int *script_count /* IN/OUT */,
-				hb_tag_t     *script_tags /* OUT */) const
+  unsigned get_lang_sys_count (hb_tag_t script) const
   {
 #ifndef HB_NO_BEYOND_64K
     if (has_script_list2 ())
-      return get_script_list2 ().get_tags (start_offset, script_count, script_tags);
+      return get_script_list2 ().find_script (this, script).get_lang_sys_count ();
 #endif
-    return scriptList.get_tags (start_offset, script_count, script_tags);
-  }
-  template <typename Types>
-  const JstfScript<Types>& get_script (unsigned int i) const;
-  bool find_script_index (hb_tag_t tag, unsigned int *index) const
-  {
-#ifndef HB_NO_BEYOND_64K
-    if (has_script_list2 ()) return get_script_list2 ().find_index (tag, index);
-#endif
-    return scriptList.find_index (tag, index);
+    return scriptList.find_script (this, script).get_lang_sys_count ();
   }
 
   unsigned get_extender_glyphs (hb_tag_t        script,
@@ -298,22 +276,11 @@ struct JSTF
 				unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
 				hb_codepoint_t *glyphs       /* OUT.     May be NULL */) const
   {
-    unsigned int script_index;
 #ifndef HB_NO_BEYOND_64K
     if (has_script_list2 ())
-    {
-      auto &scriptList2 = get_script_list2 ();
-      if (scriptList2.find_index (script, &script_index))
-      {
-        auto &script = scriptList2.get_script (this, script_index);
-        return script.get_extender_glyphs (start_offset, glyphs_count, glyphs);
-      }
-    }
+      return get_script_list2 ().find_script (this, script).get_extender_glyphs (start_offset, glyphs_count, glyphs);
 #endif
-    auto &jstfScript = scriptList.find_index (script, &script_index)
-		     ? scriptList.get_script (this, script_index)
-		     : Null (JstfScript<Layout::SmallTypes>);
-    return jstfScript.get_extender_glyphs (start_offset, glyphs_count, glyphs);
+    return scriptList.find_script (this, script).get_extender_glyphs (start_offset, glyphs_count, glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -354,18 +321,6 @@ struct JSTF
   public:
   DEFINE_SIZE_ARRAY (6, scriptList);
 };
-
-template <>
-inline const JstfScript<Layout::SmallTypes>&
-JSTF::get_script<Layout::SmallTypes> (unsigned int i) const
-{ return scriptList.get_script (this, i); }
-
-#ifndef HB_NO_BEYOND_64K
-template <>
-inline const JstfScript<Layout::MediumTypes>&
-JSTF::get_script<Layout::MediumTypes> (unsigned int i) const
-{ return get_script_list2 ().get_script (this, i); }
-#endif
 
 
 } /* namespace OT */

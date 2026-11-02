@@ -57,12 +57,7 @@ main (int argc, char **argv)
 #ifndef HB_NO_BEYOND_64K
   hb_always_assert (jstf.get_length ());
   hb_always_assert (jstf->get_script_count () == 1);
-  hb_always_assert (jstf->get_script_tag (0) == HB_TAG ('a','r','a','b'));
-  unsigned index;
-  hb_always_assert (jstf->find_script_index (HB_TAG ('a','r','a','b'), &index));
-  hb_always_assert (index == 0);
-  hb_always_assert (!jstf->get_script<OT::Layout::MediumTypes> (0).get_lang_sys_count ());
-
+  hb_always_assert (!jstf->get_lang_sys_count (HB_TAG ('a','r','a','b')));
   hb_always_assert (0 == hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_BRAHMI, HB_LANGUAGE_INVALID, 0, NULL, NULL));
   hb_always_assert (1 == hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, NULL, NULL));
   hb_codepoint_t buffer[2];
@@ -76,6 +71,7 @@ main (int argc, char **argv)
 #else
   hb_always_assert (jstf.get_length ());
   hb_always_assert (!jstf->get_script_count ());
+  hb_always_assert (0 == hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, NULL, NULL));
 #endif
   jstf.destroy ();
   hb_face_destroy (face);
