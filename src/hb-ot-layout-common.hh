@@ -4038,6 +4038,7 @@ struct DeltaSetIndexMapFormat01
       return_trace (false);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
+    format = MapCountT::static_size == HBUINT16::static_size ? 0 : 1;
     entryFormat = ((width-1)<<4)|(inner_bit_count-1);
     mapCount = output_map.length;
     HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
@@ -4129,8 +4130,7 @@ struct DeltaSetIndexMap
   {
     TRACE_SERIALIZE (this);
     unsigned length = plan.get_output_map ().length;
-    u.format.v = length <= 0xFFFF ? 0 : 1;
-    switch (u.format.v) {
+    switch (length <= 0xFFFF ? 0 : 1) {
     case 0: hb_barrier (); return_trace (u.format0.serialize (c, plan));
     case 1: hb_barrier (); return_trace (u.format1.serialize (c, plan));
     default:return_trace (false);
