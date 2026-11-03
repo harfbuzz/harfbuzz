@@ -247,9 +247,7 @@ struct JSTF
 
   unsigned int get_script_count () const
   {
-#ifndef HB_NO_BEYOND_64K
     if (has_script_list2 ()) return get_script_list2 ().len;
-#endif
     return scriptList.len;
   }
   const Tag& get_script_tag (unsigned int i) const
