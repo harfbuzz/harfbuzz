@@ -23,6 +23,7 @@
  */
 
 #include "hb-test.h"
+#include "hb-ot.h"
 
 /* Unit tests for hb-face.h */
 
@@ -107,6 +108,34 @@ test_default_loader_environment (void)
   g_free (saved_loader);
 }
 
+static void
+test_create_or_fail_named_instance (void)
+{
+  char *path = hb_test_resolve_path ("fonts/AdobeVFPrototype-Subset.otf");
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
+  g_free (path);
+  g_assert_nonnull (blob);
+
+  hb_face_t *face = hb_face_create_or_fail (blob, (1u << 16) | 0);
+  g_assert_nonnull (face);
+  g_assert_cmpuint (hb_face_get_index (face), ==, (1u << 16) | 0);
+  g_assert_cmpuint (hb_ot_var_get_named_instance_count (face), >, 0);
+
+  hb_font_t *font = hb_font_create (face);
+  g_assert_cmpuint (hb_font_get_var_named_instance (font), ==, 0);
+  hb_font_destroy (font);
+
+  hb_face_destroy (face);
+
+  g_assert_null (hb_face_create_or_fail (blob, (1u << 16) | 1));
+
+  face = hb_face_create_or_fail_using (blob, (1u << 16), "ot");
+  g_assert_nonnull (face);
+  hb_face_destroy (face);
+
+  hb_blob_destroy (blob);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -125,6 +154,7 @@ main (int argc, char **argv)
   font_file = hb_test_resolve_path (font_file);
 
   hb_test_add (test_default_loader_environment);
+  hb_test_add (test_create_or_fail_named_instance);
   hb_test_add_flavor ("", test_create_from_file_using);
   hb_test_add_flavor ("", test_create_from_blob_using);
   for (const char **loaders = hb_face_list_loaders (); *loaders; loaders++)

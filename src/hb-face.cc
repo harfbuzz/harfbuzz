@@ -280,6 +280,10 @@ hb_face_create (hb_blob_t    *blob,
  * Like hb_face_create(), but returns `NULL` if the blob data
  * contains no usable font face at the specified index.
  *
+ * <note>Note: Only the lower 16-bits of @index are used to select the
+ * face.  The high 16-bits, if non-zero, are used by hb_font_create()
+ * to load named-instances in variable fonts, as with hb_face_create().</note>
+ *
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index.
  *
@@ -290,7 +294,7 @@ hb_face_create_or_fail (hb_blob_t    *blob,
 			unsigned int  index)
 {
   unsigned num_faces = hb_face_count (blob);
-  if (index >= num_faces)
+  if ((index & 0xFFFFu) >= num_faces)
     return nullptr;
 
   hb_face_t *face = hb_face_create (blob, index);
