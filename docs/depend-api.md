@@ -24,32 +24,14 @@ analyzing glyph coverage, and optimizing font delivery.
 
 # Building with the Depend API
 
-The dependency API is guarded by `HB_NO_SUBSET_DEPEND`, which is defined by
-default. To enable it, either enable the `experimental_api` build option or
-define `HB_SUBSET_DEPEND_API` to opt in to just this API.
+The dependency API is guarded by `HB_NO_SUBSET_DEPEND`, which is defined
+unless HarfBuzz is built with the `experimental_api` build option.
 
 ## Enabling via build option
 
 ```bash
 meson setup build -Dexperimental_api=true
 meson compile -C build
-```
-
-In code, check for availability:
-
-```c
-#ifdef HB_SUBSET_DEPEND_API
-  // Use dependency API
-#endif
-```
-
-## Enabling just the depend API
-
-Define `HB_SUBSET_DEPEND_API` on your compiler command line or in a config
-header to enable the depend API without enabling all experimental APIs:
-
-```bash
-cc ... -DHB_SUBSET_DEPEND_API ...
 ```
 
 ## Discovering available options
@@ -75,7 +57,7 @@ future HarfBuzz releases.
 ## Basic Example
 
 ```c
-#include <hb.h>
+#include <hb-subset.h>
 
 hb_blob_t *blob = hb_blob_create_from_file("font.ttf");
 hb_face_t *face = hb_face_create(blob, 0);
