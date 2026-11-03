@@ -26,6 +26,10 @@
 
 #include "hb-test.h"
 
+#ifdef HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
+
 #ifdef HAVE_FONTATIONS
 #include <hb-fontations.h>
 #endif
@@ -34,6 +38,128 @@
 
 
 static const char test_data[] = "test\0data";
+
+
+#ifndef HB_NO_GETENV
+#ifndef HB_NO_OT_FONT
+static void
+test_default_funcs_environment (void)
+{
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  char *saved_funcs = g_strdup (g_getenv ("HB_FONT_FUNCS"));
+  g_assert_true (g_setenv ("HB_FONT_FUNCS", "ot", TRUE));
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_set_funcs_using (font, NULL));
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  hb_position_t advance = hb_font_get_glyph_h_advance (font, glyph);
+  g_assert_cmpint (advance, >, 0);
+#ifdef HAVE_FREETYPE
+  /* "ot" is the first entry of supported_font_funcs, so the same funcs
+   * would be selected if the environment variable were ignored entirely.
+   * Check that the FreeType funcs are not selected. */
+  g_assert_null (hb_ft_font_get_face (font));
+#endif
+
+  g_assert_true (hb_font_set_funcs_using (font, ""));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==, advance);
+  g_assert_true (hb_font_set_funcs_using (font, "ot"));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==, advance);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  if (saved_funcs)
+    g_assert_true (g_setenv ("HB_FONT_FUNCS", saved_funcs, TRUE));
+  else
+    g_unsetenv ("HB_FONT_FUNCS");
+  g_free (saved_funcs);
+}
+#endif
+
+#if defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+static void
+test_default_funcs_environment_nonfirst (void)
+{
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  /* "ft" is not the first entry of supported_font_funcs, so selecting it
+   * proves that the environment default is honored rather than falling back
+   * to the first backend. */
+  char *saved_funcs = g_strdup (g_getenv ("HB_FONT_FUNCS"));
+  g_assert_true (g_setenv ("HB_FONT_FUNCS", "ft", TRUE));
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  g_assert_nonnull (hb_ft_font_get_face (font));
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), >, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  if (saved_funcs)
+    g_assert_true (g_setenv ("HB_FONT_FUNCS", saved_funcs, TRUE));
+  else
+    g_unsetenv ("HB_FONT_FUNCS");
+  g_free (saved_funcs);
+}
+#endif
+
+#if defined(G_OS_UNIX) && defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+static void
+test_default_funcs_environment_snapshot (void)
+{
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  char *saved_funcs = g_strdup (g_getenv ("HB_FONT_FUNCS"));
+  char funcs_env[] = "HB_FONT_FUNCS=ft";
+  g_assert_cmpint (putenv (funcs_env), ==, 0);
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  g_assert_nonnull (hb_ft_font_get_face (font));
+  hb_font_destroy (font);
+
+  /* Keep the caller-owned storage alive and change only its valid value.
+   * The cached default must remain the original snapshot. */
+  memcpy (strchr (funcs_env, '=') + 1, "ot", 3);
+  font = hb_font_create (face);
+  g_assert_nonnull (hb_ft_font_get_face (font));
+
+  /* An explicit selection must still override the cached default. */
+  g_assert_true (hb_font_set_funcs_using (font, "ot"));
+  g_assert_null (hb_ft_font_get_face (font));
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), >, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  g_unsetenv ("HB_FONT_FUNCS");
+  if (saved_funcs)
+    g_assert_true (g_setenv ("HB_FONT_FUNCS", saved_funcs, TRUE));
+  g_free (saved_funcs);
+}
+#endif
+#endif
 
 
 static void
@@ -1231,6 +1357,18 @@ int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+
+#ifndef HB_NO_GETENV
+#ifndef HB_NO_OT_FONT
+  hb_test_add (test_default_funcs_environment);
+#endif
+#if defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+  hb_test_add (test_default_funcs_environment_nonfirst);
+#endif
+#if defined(G_OS_UNIX) && defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+  hb_test_add (test_default_funcs_environment_snapshot);
+#endif
+#endif
 
   hb_test_add (test_face_empty);
   hb_test_add (test_face_create);
