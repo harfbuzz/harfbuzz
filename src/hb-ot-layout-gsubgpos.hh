@@ -6707,17 +6707,12 @@ struct GSUBGPOS
   template <typename T>
   struct accelerator_t
   {
-    accelerator_t (hb_face_t *face)
+    accelerator_t (hb_face_t *face) : face (face)
     {
+      sanitized_table.init ();
       hb_sanitize_context_t sc;
       sc.lazy_some_gpos = true;
       this->table = sc.reference_table<T> (face);
-
-      if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))
-      {
-	hb_blob_destroy (this->table.get_blob ());
-	this->table = hb_blob_get_empty ();
-      }
 
       this->lookup_count = table->get_lookup_count ();
 
@@ -6740,9 +6735,13 @@ struct GSUBGPOS
       }
       hb_free (this->accels);
       this->table.destroy ();
+      sanitized_table.fini ();
     }
 
     hb_blob_t *get_blob () const { return table.get_blob (); }
+
+    hb_blob_ptr_t<T> borrow_sanitized_table () const
+    { return sanitized_table.get_blob (); }
 
     hb_ot_layout_lookup_accelerator_t *get_accel (unsigned lookup_index) const
     {
@@ -6766,6 +6765,10 @@ struct GSUBGPOS
 
       return accel;
     }
+
+    /* Keep full sanitization independent of shaping's lazy sanitization. */
+    hb_face_t *face; /* Must be immediately before the lazy loader. */
+    hb_table_lazy_loader_t<T, 1> sanitized_table;
 
     hb_blob_ptr_t<T> table;
     unsigned int lookup_count;

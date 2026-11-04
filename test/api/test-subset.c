@@ -591,6 +591,121 @@ _copy_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
   return copy;
 }
 
+typedef struct {
+  hb_face_t *source;
+  hb_tag_t tag;
+  unsigned references;
+} table_cache_test_t;
+
+static hb_blob_t *
+_reference_counted_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+{
+  table_cache_test_t *data = (table_cache_test_t *) user_data;
+  if (tag == data->tag)
+    data->references++;
+  return _copy_table (face, tag, data->source);
+}
+
+static unsigned
+_get_counted_table_tags (const hb_face_t *face HB_UNUSED, unsigned start_offset,
+                         unsigned *table_count, hb_tag_t *table_tags, void *user_data)
+{
+  table_cache_test_t *data = (table_cache_test_t *) user_data;
+  return hb_face_get_table_tags (data->source, start_offset, table_count, table_tags);
+}
+
+static void
+test_subset_sanitized_table_cache (void)
+{
+  const struct {
+    const char *font;
+    hb_tag_t tag;
+  } tests[] = {
+    {"fonts/Roboto-Regular.abc.ttf", HB_TAG ('O','S','/','2')},
+#ifndef HB_NO_COLOR
+    {"fonts/TwemojiMozilla.subset.ttf", HB_TAG ('C','O','L','R')},
+#endif
+#ifndef HB_NO_OT_LAYOUT
+    {"fonts/Roboto-Regular-gpos-.aw.ttf", HB_TAG ('G','P','O','S')},
+#endif
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    table_cache_test_t data = {hb_test_open_font_file (tests[i].font), tests[i].tag, 0};
+    hb_face_t *face = hb_face_create_for_tables (_reference_counted_table, &data, NULL);
+    hb_face_set_get_table_tags_func (face, _get_counted_table_tags, &data, NULL);
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_invert (hb_subset_input_glyph_set (input));
+
+    hb_face_t *first = hb_subset_or_fail (face, input);
+    g_assert_nonnull (first);
+    unsigned references = data.references;
+    g_assert_cmpuint (references, >, 0);
+    hb_face_t *second = hb_subset_or_fail (face, input);
+    g_assert_nonnull (second);
+    g_assert_cmpuint (data.references, ==, references);
+    hb_blob_t *blob = hb_face_reference_table (second, data.tag);
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    hb_blob_destroy (blob);
+    hb_subset_test_check (first, second, data.tag);
+
+    hb_subset_input_destroy (input);
+    hb_face_destroy (face);
+    hb_face_destroy (data.source);
+    hb_face_destroy (first);
+    hb_face_destroy (second);
+  }
+}
+
+#if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)
+static void
+test_subset_gdef_blocklist (void)
+{
+  /* Match a Cantarell entry in the GDEF blocklist, with glyph 1 a mark. */
+  static const char gdef[188] =
+    "\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x00\x00"
+    "\x00\x01\x00\x01\x00\x01\x00\x03";
+  /* Valid layout tables with one empty lookup and no scripts or features. */
+  static const char gsub[248] =
+    "\x00\x01\x00\x00\x00\x0A\x00\x0C\x00\x0E\x00\x00\x00\x00"
+    "\x00\x01\x00\x04\x00\x01\x00\x00\x00\x01\x00\x08"
+    "\x00\x01\x00\x06\x00\x00\x00\x01\x00\x00";
+  static const char gpos[3852] =
+    "\x00\x01\x00\x00\x00\x0A\x00\x0C\x00\x0E\x00\x00\x00\x00"
+    "\x00\x01\x00\x04\x00\x01\x00\x00\x00\x01\x00\x08"
+    "\x00\x01\x00\x06\x00\x00\x00\x01\x00\x00";
+  static const char maxp[] = "\x00\x00\x50\x00\x00\x02";
+  hb_face_t *source = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (source, "GDEF", gdef);
+  HB_FACE_ADD_TABLE (source, "GSUB", gsub);
+  HB_FACE_ADD_TABLE (source, "GPOS", gpos);
+  HB_FACE_ADD_TABLE (source, "maxp", maxp);
+  table_cache_test_t data = {source, HB_TAG ('G','D','E','F'), 0};
+  hb_face_t *face = hb_face_create_for_tables (_reference_counted_table, &data, NULL);
+  hb_face_set_get_table_tags_func (face, _get_counted_table_tags, &data, NULL);
+
+  g_assert_false (hb_ot_layout_has_glyph_classes (face));
+  g_assert_cmpuint (data.references, ==, 1);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 1);
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (data.references, ==, 1);
+    g_assert_true (hb_ot_layout_has_glyph_classes (subset));
+    g_assert_cmpuint (hb_ot_layout_get_glyph_class (subset, 1), ==, HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+    g_assert_false (hb_ot_layout_has_glyph_classes (face));
+    hb_face_destroy (subset);
+  }
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+#endif
+
 static void
 test_subset_create_for_tables_face (void)
 {
@@ -1098,6 +1213,10 @@ main (int argc, char **argv)
   hb_test_add (test_subset_sets);
   hb_test_add (test_subset_plan);
   hb_test_add (test_subset_custom_glyph_mapping);
+  hb_test_add (test_subset_sanitized_table_cache);
+#if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)
+  hb_test_add (test_subset_gdef_blocklist);
+#endif
   hb_test_add (test_subset_create_for_tables_face);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_create_for_tables_face_MAXP);

@@ -2592,6 +2592,8 @@ struct COLR
     }
 
 
+    hb_blob_ptr_t<COLR> borrow_sanitized_table () const { return colr; }
+
     bool has_data () const { return colr->has_data (); }
 
 #ifndef HB_NO_PAINT
@@ -2626,7 +2628,7 @@ struct COLR
     }
 #endif
 
-    bool is_valid () { return colr.get_blob ()->length; }
+    bool is_valid () const { return colr.get_length (); }
 
     void depend (hb_depend_data_builder_t *depend_data) const
     {

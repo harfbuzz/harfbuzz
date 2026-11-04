@@ -37,6 +37,36 @@
 #include "hb-bimap.hh"
 #include "hb-set.hh"
 
+/* Accelerators opt in only when they can provide full sanitization. */
+template<typename Face, hb_tag_t Tag>
+static hb_blob_t *
+_hb_subset_get_face_table (Face *, hb_integral_constant<hb_tag_t, Tag>, hb_priority<0>) { return nullptr; }
+
+/* Allow an accelerator to handle initialization inside libharfbuzz. */
+template<typename Accel, typename Face, typename Loader>
+static auto
+_hb_subset_borrow_sanitized_table (Face *face, Loader &, hb_priority<1>)
+HB_AUTO_RETURN (Accel::borrow_sanitized_table (face))
+
+template<typename Accel, typename Face, typename Loader>
+static auto
+_hb_subset_borrow_sanitized_table (Face *, Loader &loader, hb_priority<0>)
+HB_AUTO_RETURN (loader->borrow_sanitized_table ())
+
+#define HB_OT_TABLE(Namespace, Type) \
+template<typename Face> \
+static auto _hb_subset_get_face_table (Face *face, \
+  hb_integral_constant<hb_tag_t, hb_remove_pointer<decltype (face->table.Type.get ())>::tableTag>, hb_priority<1>) \
+HB_AUTO_RETURN (face->table.Type.get_blob ())
+#define HB_OT_ACCELERATOR(Namespace, Type) \
+template<typename Face> \
+static auto _hb_subset_get_face_table (Face *face, \
+  hb_integral_constant<hb_tag_t, decltype (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize))::T::tableTag>, hb_priority<1>) \
+HB_AUTO_RETURN (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize).get_blob ())
+#include "hb-ot-face-table-list.hh"
+#undef HB_OT_ACCELERATOR
+#undef HB_OT_TABLE
+
 namespace OT {
 struct Feature;
 }
@@ -194,25 +224,29 @@ struct hb_subset_plan_t
   {
     hb_blob_ptr_t<T> operator () (hb_subset_plan_t *plan)
     {
+      if (hb_blob_t *blob = _hb_subset_get_face_table (plan->source, hb_integral_constant<hb_tag_t, T::tableTag> {}, hb_prioritize))
+	return blob;
+
       hb_lock_t lock (plan->accelerator ? &plan->accelerator->sanitized_table_cache_lock : nullptr);
 
       auto *cache = plan->accelerator ? &plan->accelerator->sanitized_table_cache : &plan->sanitized_table_cache;
       if (cache
 	  && !cache->in_error ()
 	  && cache->has (+T::tableTag)) {
-	return hb_blob_reference (cache->get (+T::tableTag).get ());
+	return cache->get (+T::tableTag).get ();
       }
 
       hb::unique_ptr<hb_blob_t> table_blob {hb_sanitize_context_t ().reference_table<T> (plan->source)};
-      hb_blob_t* ret = hb_blob_reference (table_blob.get ());
+      hb_blob_t* ret = table_blob.get ();
 
-      if (likely (cache))
-	cache->set (+T::tableTag, std::move (table_blob));
+      if (likely (cache) && cache->set (+T::tableTag, std::move (table_blob)))
+	return ret;
 
-      return ret;
+      return hb_blob_get_empty ();
     }
   };
 
+  // The source face or sanitized_table_cache owns the returned table.
   template<typename T>
   auto source_table() HB_AUTO_RETURN (source_table_loader<T> {} (this))
 

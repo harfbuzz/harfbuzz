@@ -980,10 +980,10 @@ struct GDEF
   {
     accelerator_t (hb_face_t *face)
     {
-      table = hb_sanitize_context_t ().reference_table<GDEF> (face);
+      sanitized_table = hb_sanitize_context_t ().reference_table<GDEF> (face);
+      table = sanitized_table;
       if (unlikely (table->is_blocklisted (table.get_blob (), face)))
       {
-	hb_blob_destroy (table.get_blob ());
 	table = hb_blob_get_empty ();
       }
 
@@ -1023,7 +1023,9 @@ struct GDEF
       }
 #endif
     }
-    ~accelerator_t () { table.destroy (); }
+    ~accelerator_t () { sanitized_table.destroy (); }
+
+    hb_blob_ptr_t<GDEF> borrow_sanitized_table () const { return sanitized_table; }
 
     unsigned int get_glyph_props (hb_codepoint_t glyph) const
     {
@@ -1087,6 +1089,8 @@ struct GDEF
       return lookup_props;
     }
 
+    /* Own the unfiltered table; the shaping view may be blocklisted. */
+    hb_blob_ptr_t<GDEF> sanitized_table;
     hb_blob_ptr_t<GDEF> table;
 #ifndef HB_NO_GDEF_CACHE
     struct mark_glyph_set_bitmap_t
@@ -1215,6 +1219,16 @@ struct GDEF
 
 struct GDEF_accelerator_t : GDEF::accelerator_t {
   GDEF_accelerator_t (hb_face_t *face) : GDEF::accelerator_t (face) {}
+
+#ifndef HB_NO_OT_LAYOUT
+  static hb_blob_ptr_t<GDEF> borrow_sanitized_table (hb_face_t *face)
+  {
+    /* The blocklist implementation is internal to libharfbuzz. */
+    hb_ot_layout_has_glyph_classes (face);
+    const auto *accel = face->table.GDEF.get_relaxed ();
+    return accel ? accel->sanitized_table : hb_blob_ptr_t<GDEF> {hb_blob_get_empty ()};
+  }
+#endif
 };
 
 } /* namespace OT */

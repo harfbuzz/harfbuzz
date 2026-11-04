@@ -178,6 +178,8 @@ struct SVG
     accelerator_t (hb_face_t *face);
     ~accelerator_t ();
 
+    hb_blob_ptr_t<SVG> borrow_sanitized_table () const { return table; }
+
     hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
       return table->get_glyph_entry (glyph_id).reference_blob (table.get_blob (),

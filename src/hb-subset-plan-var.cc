@@ -438,7 +438,6 @@
    hb_blob_ptr_t<OT::BASE> base = plan->source_table<OT::BASE> ();
    if (!base->has_var_store ())
    {
-     base.destroy ();
      return;
    }
 
@@ -454,8 +453,6 @@
                              plan->all_axes_pinned,
                              plan->base_variation_idx_map);
    generate_varstore_inner_maps (varidx_set, subtable_count, plan->base_varstore_inner_maps);
-
-   base.destroy ();
  }
 
  #endif
