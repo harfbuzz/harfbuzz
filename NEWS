@@ -1,3 +1,13 @@
+Overview of changes leading to REPLACEME
+======================================
+- Add buffer deserializers that report progress as a byte offset, allowing
+  introspection bindings to avoid returning a pointer into the input.
+
+- New API:
+  +hb_buffer_deserialize_glyphs2()
+  +hb_buffer_deserialize_unicode2()
+
+
 Overview of changes leading to 15.0.0
 Thursday, October 22, 2026
 =====================================
