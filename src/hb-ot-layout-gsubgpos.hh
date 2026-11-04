@@ -6714,12 +6714,6 @@ struct GSUBGPOS
       sc.lazy_some_gpos = true;
       this->table = sc.reference_table<T> (face);
 
-      if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))
-      {
-	hb_blob_destroy (this->table.get_blob ());
-	this->table = hb_blob_get_empty ();
-      }
-
       this->lookup_count = table->get_lookup_count ();
 
       this->accels = (hb_atomic_t<hb_ot_layout_lookup_accelerator_t *> *) hb_calloc (this->lookup_count, sizeof (*accels));
@@ -6772,8 +6766,7 @@ struct GSUBGPOS
       return accel;
     }
 
-    /* Keep full sanitization independent of shaping's lazy sanitization
-     * and blocklist filtering. */
+    /* Keep full sanitization independent of shaping's lazy sanitization. */
     hb_face_t *face; /* Must be immediately before the lazy loader. */
     hb_table_lazy_loader_t<T, 1> sanitized_table;
 

@@ -49,8 +49,6 @@ struct GPOS : GSUBGPOS
     return_trace (GSUBGPOS::sanitize<PosLookup> (c));
   }
 
-  bool is_blocklisted (hb_blob_t *, hb_face_t *) const { return false; }
-
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     for (unsigned i = 0; i < GSUBGPOS::get_lookup_count (); i++)
