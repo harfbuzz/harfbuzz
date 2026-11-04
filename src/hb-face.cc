@@ -290,7 +290,7 @@ hb_face_create_or_fail (hb_blob_t    *blob,
 			unsigned int  index)
 {
   unsigned num_faces = hb_face_count (blob);
-  if (index >= num_faces)
+  if ((index & 0xFFFFu) >= num_faces)
     return nullptr;
 
   hb_face_t *face = hb_face_create (blob, index);

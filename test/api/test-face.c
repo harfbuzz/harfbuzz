@@ -76,6 +76,25 @@ test_create_from_blob_using (const void *user_data)
 }
 
 static void
+test_create_or_fail_named_instance_index (void)
+{
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_file);
+  g_assert_nonnull (blob);
+
+  unsigned index = face_index | (1u << 16);
+  hb_face_t *face = hb_face_create_or_fail (blob, index);
+  g_assert_nonnull (face);
+  g_assert_cmpuint (hb_face_get_index (face), ==, index);
+  test_face (face);
+  hb_face_destroy (face);
+
+  face = hb_face_create_or_fail (blob, hb_face_count (blob) | (1u << 16));
+  g_assert_null (face);
+
+  hb_blob_destroy (blob);
+}
+
+static void
 test_default_loader_environment (void)
 {
   /* Exercise the HB_FACE_LOADER default-loader path (loader == NULL).  The
@@ -124,6 +143,7 @@ main (int argc, char **argv)
 
   font_file = hb_test_resolve_path (font_file);
 
+  hb_test_add (test_create_or_fail_named_instance_index);
   hb_test_add (test_default_loader_environment);
   hb_test_add_flavor ("", test_create_from_file_using);
   hb_test_add_flavor ("", test_create_from_blob_using);
