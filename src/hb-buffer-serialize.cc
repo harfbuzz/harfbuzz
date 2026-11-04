@@ -915,7 +915,7 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
  *
  * Return value: `true` if the full string was parsed, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 15.1.0
  **/
 hb_bool_t
 hb_buffer_deserialize_glyphs2 (hb_buffer_t *buffer,
@@ -952,7 +952,7 @@ hb_buffer_deserialize_glyphs2 (hb_buffer_t *buffer,
  *
  * Return value: `true` if the full string was parsed, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 15.1.0
  **/
 hb_bool_t
 hb_buffer_deserialize_unicode2 (hb_buffer_t *buffer,
