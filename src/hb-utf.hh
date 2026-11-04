@@ -464,17 +464,23 @@ hb_utf_offset_to_pointer (const typename utf_t::codepoint_t *start,
 {
   hb_codepoint_t unicode;
 
-  while (offset-- > 0)
+  while (offset > 0 && start < text + text_len)
+  {
     start = utf_t::next (start,
 			 text + text_len,
 			 &unicode,
 			 HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT);
+    offset--;
+  }
 
-  while (offset++ < 0)
+  while (offset < 0 && start > text)
+  {
     start = utf_t::prev (start,
 			 text,
 			 &unicode,
 			 HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT);
+    offset++;
+  }
 
   return start;
 }
