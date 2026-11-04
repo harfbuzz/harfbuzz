@@ -79,9 +79,7 @@ hb_depend_data_builder_t::compile (hb_face_t *face)
    * computation.
    *
    * For GSUB, hb_ot_layout_has_substitution() forces lazy-loader initialization
-   * in libharfbuzz, after which get_relaxed() safely returns the already-
-   * constructed accelerator without instantiating the GSUB_accelerator_t
-   * constructor (which references a hidden is_blocklisted symbol) in this TU. */
+   * before get_relaxed() accesses the accelerator. */
   if (hb_ot_layout_has_substitution (face))
     face->table.GSUB.get_relaxed ()->depend (this, face);
 #ifndef HB_NO_MATH

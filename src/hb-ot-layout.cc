@@ -410,26 +410,6 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
  * GSUB/GPOS
  */
 
-bool
-GSUB::is_blocklisted (hb_blob_t *blob HB_UNUSED,
-			  hb_face_t *face) const
-{
-#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
-  return false;
-#endif
-  return false;
-}
-
-bool
-GPOS::is_blocklisted (hb_blob_t *blob HB_UNUSED,
-			  hb_face_t *face HB_UNUSED) const
-{
-#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
-  return false;
-#endif
-  return false;
-}
-
 static const OT::GSUBGPOS&
 get_gsubgpos_table (hb_face_t *face,
 		    hb_tag_t   table_tag)

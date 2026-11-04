@@ -132,6 +132,38 @@ test_subset_gpos_device_only_pairpos (void)
   }
 }
 
+#ifndef HB_NO_OT_LAYOUT
+static void
+test_subset_gpos_full_sanitization (void)
+{
+  hb_face_t *source = hb_test_open_font_file ("fonts/device-only-pairpos1.ttf");
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *gpos = hb_face_reference_table (source, HB_TAG ('G','P','O','S'));
+  /* Truncate the final Device table. Lazy shaping sanitization skips it. */
+  hb_blob_t *truncated = hb_blob_create_sub_blob (gpos, 0, hb_blob_get_length (gpos) - 1);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','P','O','S'), truncated));
+  hb_blob_t *maxp = hb_face_reference_table (source, HB_TAG ('m','a','x','p'));
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), maxp));
+  hb_blob_destroy (maxp);
+  hb_blob_destroy (truncated);
+  hb_blob_destroy (gpos);
+
+  g_assert_true (hb_ot_layout_has_positioning (face));
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_invert (hb_subset_input_glyph_set (input));
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_null (subset);
+    g_assert_true (hb_ot_layout_has_positioning (face));
+  }
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -140,6 +172,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_gpos_lookup_subtable);
   hb_test_add (test_subset_gpos_pairpos1_vf);
   hb_test_add (test_subset_gpos_device_only_pairpos);
+#ifndef HB_NO_OT_LAYOUT
+  hb_test_add (test_subset_gpos_full_sanitization);
+#endif
 
   return hb_test_run ();
 }

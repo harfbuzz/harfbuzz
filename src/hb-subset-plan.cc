@@ -112,7 +112,11 @@ _cmap_closure (hb_face_t	   *face,
 static void _colr_closure (hb_subset_plan_t* plan,
                            hb_set_t *glyphs_colred)
 {
+#ifndef HB_NO_COLOR
+  const auto &colr = *plan->source->table.COLR;
+#else
   OT::COLR::accelerator_t colr (plan->source);
+#endif
   if (!colr.is_valid ()) return;
 
   hb_set_t palette_indices, layer_indices;
@@ -172,7 +176,6 @@ _math_closure (hb_subset_plan_t *plan,
   hb_blob_ptr_t<OT::MATH> math = plan->source_table<OT::MATH> ();
   if (math->has_data ())
     math->closure_glyphs (glyphset);
-  math.destroy ();
 }
 
 static inline void
