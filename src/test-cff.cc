@@ -27,6 +27,7 @@
 #include "hb-ot-cff1-table.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff-specializer.hh"
+#include "hb-cff-interp-dict-common.hh"
 
 static void
 test_specialized_line_geometry ()
@@ -203,7 +204,8 @@ main (int argc, char **argv)
       { 9.399999999999999999, 3, { 0x1E, 0x9A, 0x4F } }, // 9.4
       { 456.8, 4, { 0x1E, 0x45, 0x6A, 0x8F } }, // 456.8
       { 98765.37e2, 5, { 0x1E, 0x98, 0x76, 0x53, 0x7F } }, // 9876537
-      { 1234567890.0, 7, { 0x1E, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2
+      { 1234567890.0, 7, { 0x1E, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2 (rounded)
+      { 1234567900.0, 7, { 0x1E, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2
       { 9.876537e-4, 7, { 0x1E, 0x98, 0x76, 0x53, 0x7C, 0x10, 0xFF } }, // 9876537E-10
       { 9.876537e4, 6, { 0x1E, 0x98, 0x76, 0x5A, 0x37, 0xFF } }, // 98765.37
       { 1e8, 3, { 0x1E, 0x1B, 0x8F } }, // 1E8
@@ -217,15 +219,31 @@ main (int argc, char **argv)
       { -0.01, 4, { 0x1E, 0xE1, 0xC2, 0xFF } }, // -1E-2
       { 0.0123, 4, { 0x1E, 0x12, 0x3C, 0x4F } }, // 123E-4
       { -0.0123, 5, { 0x1E, 0xE1, 0x23, 0xC4, 0xFF } }, // -123E-4
+      { 0.0012, 4, { 0x1E, 0x12, 0xC4, 0xFF } },
+      { 1.23e-5, 4, { 0x1E, 0x12, 0x3C, 0x7F } },   // 123E-7
+      { 123456780.0, 6, { 0x1E, 0x12, 0x34, 0x56, 0x78, 0x0F } },  // 123456780
+      { 0.000123, 4, { 0x1E, 0x12, 0x3C, 0x6F } },   // 123E-6
+      { -0.000123, 5, { 0x1E, 0xE1, 0x23, 0xC6, 0xFF } },  // -123E-6
+      /* Test cases for trailing zeros fix */
+      { 5000.0, 3, { 0x1C, 0x13, 0x88 } }, // 5000
+      { 12340000.0, 5, { 0x1E, 0x12, 0x34, 0xB4, 0xFF } }, // 1234E4
+      { 1000000.0, 3, { 0x1E, 0x1B, 0x6F } }, // 1E6
     };
-    for (size_t t = 0; t < sizeof num_tp_tests / sizeof num_tp_tests[0]; t++)
+    for (auto &num_tp_test : num_tp_tests)
     {
-      struct num_tp_test num_tp_test = num_tp_tests[t];
       number.set_real (num_tp_test.input);
       encoder.encode_num_tp (number);
       hb_always_assert (buff.length == num_tp_test.length);
       for (unsigned i = 0; i < buff.length; i++)
 	hb_always_assert (buff[i] == num_tp_test.output[i]);
+      if (buff.length > 1 && buff[0] == 0x1E) /* OpCode_BCD = 30 = 0x1E */
+      {
+	hb_ubytes_t bytes (buff.arrayZ + 1, buff.length - 1);
+	CFF::byte_str_ref_t str_ref (bytes);
+	double parsed = CFF::dict_opset_t::parse_bcd (str_ref);
+        bool almost_equal = fabs (parsed - num_tp_test.input) <= fabs (num_tp_test.input) * 1e-7;
+	hb_always_assert (almost_equal);
+      }
       encoder.reset ();
     }
   }
