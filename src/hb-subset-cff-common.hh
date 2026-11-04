@@ -122,7 +122,6 @@ struct str_encoder_t
       // Sigh. BCD
       // https://learn.microsoft.com/en-us/typography/opentype/spec/cff2#table-5-nibble-definitions
       double v = n.to_real ();
-      encode_byte (OpCode_BCD);
 
       // Based on:
       // https://github.com/fonttools/fonttools/blob/0738c41dfbcbc213ab9263f486ef0cccc6eb5ce5/Lib/fontTools/misc/psCharStrings.py#L267-L316
@@ -139,8 +138,13 @@ struct str_encoder_t
       hb_locale_t clocale HB_UNUSED;
       hb_locale_t oldlocale HB_UNUSED;
       oldlocale = hb_uselocale (clocale = newlocale (LC_ALL_MASK, "C", NULL));
-      snprintf (buf, sizeof (buf), "%.8G", v);
+      int n_printed = snprintf (buf, sizeof (buf), "%.8G", v);
       (void) hb_uselocale (((void) freelocale (clocale), oldlocale));
+
+      /* Defensive: buf[16] exactly fits the widest %.8G output (15 chars
+       * + NUL); bail cleanly if snprintf ever errors or truncates. */
+      if (unlikely (n_printed < 0 || (size_t) n_printed >= sizeof (buf)))
+	return;
 
       char *s = buf;
       size_t len;
@@ -156,14 +160,18 @@ struct str_encoder_t
       }
       else if ((len = strlen (s)) > 3 && !strcmp (s + len - 3, "000"))
       {
-	unsigned exponent = len - 3;
-	char *s2 = s + exponent - 1;
-	while (*s2 == '0' && exponent > 1)
-	{
-	  s2--;
-	  exponent++;
-	}
-	snprintf (s2 + 1, sizeof (buf) - (s2 + 1 - buf), "E%u", exponent);
+        /* Count trailing zeros from the end.  s[0] is guaranteed non-'0'
+         * here (blocks 1-2 handle "0.xxx"/"-0.xxx" first, and %G never
+         * emits trailing fractional zeros), so the backward scan always
+         * terminates before reaching s. */
+	unsigned exponent = 0;
+	char *s2 = s + len - 1;
+	while (*s2 == '0')
+        {
+          s2--;
+          exponent++;
+        }
+        snprintf (s2 + 1, sizeof (buf) - (s2 + 1 - buf), "E%u", exponent);
       }
       else
       {
@@ -232,6 +240,13 @@ struct str_encoder_t
       nibbles.push (0x0F);
       if (nibbles.length % 2)
 	nibbles.push (0x0F);
+
+      if (unlikely (nibbles.in_error ()))
+      {
+	buff.set_error ();
+	return;
+      }
+      encode_byte (OpCode_BCD);
 
       unsigned count = nibbles.length;
       for (unsigned i = 0; i < count; i += 2)
