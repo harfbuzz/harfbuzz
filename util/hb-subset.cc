@@ -119,22 +119,22 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     }
 
     hb_face_t *new_face = nullptr;
+    hb_blob_t *result = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
     {
+      hb_blob_destroy (result);
       hb_face_destroy (new_face);
       new_face = hb_subset_or_fail (orig_face, input);
+      result = new_face ? hb_face_reference_blob (new_face) : nullptr;
     }
 
     bool success = new_face;
     if (success)
-    {
-      hb_blob_t *result = hb_face_reference_blob (new_face);
       write_file (output_file, result);
-      hb_blob_destroy (result);
-    }
     else if (hb_face_get_glyph_count (orig_face) == 0)
       fail (false, "Invalid font file.");
 
+    hb_blob_destroy (result);
     hb_face_destroy (new_face);
 
     return success ? 0 : 1;
