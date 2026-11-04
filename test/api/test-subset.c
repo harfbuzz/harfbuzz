@@ -658,6 +658,54 @@ test_subset_sanitized_table_cache (void)
   }
 }
 
+#if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)
+static void
+test_subset_gdef_blocklist (void)
+{
+  /* Match a Cantarell entry in the GDEF blocklist, with glyph 1 a mark. */
+  static const char gdef[188] =
+    "\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x00\x00"
+    "\x00\x01\x00\x01\x00\x01\x00\x03";
+  /* Valid layout tables with one empty lookup and no scripts or features. */
+  static const char gsub[248] =
+    "\x00\x01\x00\x00\x00\x0A\x00\x0C\x00\x0E\x00\x00\x00\x00"
+    "\x00\x01\x00\x04\x00\x01\x00\x00\x00\x01\x00\x08"
+    "\x00\x01\x00\x06\x00\x00\x00\x01\x00\x00";
+  static const char gpos[3852] =
+    "\x00\x01\x00\x00\x00\x0A\x00\x0C\x00\x0E\x00\x00\x00\x00"
+    "\x00\x01\x00\x04\x00\x01\x00\x00\x00\x01\x00\x08"
+    "\x00\x01\x00\x06\x00\x00\x00\x01\x00\x00";
+  static const char maxp[] = "\x00\x00\x50\x00\x00\x02";
+  hb_face_t *source = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (source, "GDEF", gdef);
+  HB_FACE_ADD_TABLE (source, "GSUB", gsub);
+  HB_FACE_ADD_TABLE (source, "GPOS", gpos);
+  HB_FACE_ADD_TABLE (source, "maxp", maxp);
+  table_cache_test_t data = {source, HB_TAG ('G','D','E','F'), 0};
+  hb_face_t *face = hb_face_create_for_tables (_reference_counted_table, &data, NULL);
+  hb_face_set_get_table_tags_func (face, _get_counted_table_tags, &data, NULL);
+
+  g_assert_false (hb_ot_layout_has_glyph_classes (face));
+  g_assert_cmpuint (data.references, ==, 1);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 1);
+  for (unsigned i = 0; i < 2; i++)
+  {
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (data.references, ==, 1);
+    g_assert_true (hb_ot_layout_has_glyph_classes (subset));
+    g_assert_cmpuint (hb_ot_layout_get_glyph_class (subset, 1), ==, HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+    g_assert_false (hb_ot_layout_has_glyph_classes (face));
+    hb_face_destroy (subset);
+  }
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+#endif
+
 static void
 test_subset_create_for_tables_face (void)
 {
@@ -1166,6 +1214,9 @@ main (int argc, char **argv)
   hb_test_add (test_subset_plan);
   hb_test_add (test_subset_custom_glyph_mapping);
   hb_test_add (test_subset_sanitized_table_cache);
+#if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)
+  hb_test_add (test_subset_gdef_blocklist);
+#endif
   hb_test_add (test_subset_create_for_tables_face);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_subset_create_for_tables_face_MAXP);

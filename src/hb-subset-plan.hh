@@ -42,6 +42,17 @@ template<typename Face, hb_tag_t Tag>
 static hb_blob_t *
 _hb_subset_get_face_table (Face *, hb_integral_constant<hb_tag_t, Tag>, hb_priority<0>) { return nullptr; }
 
+/* Allow an accelerator to handle initialization inside libharfbuzz. */
+template<typename Accel, typename Face, typename Loader>
+static auto
+_hb_subset_borrow_sanitized_table (Face *face, Loader &, hb_priority<1>)
+HB_AUTO_RETURN (Accel::borrow_sanitized_table (face))
+
+template<typename Accel, typename Face, typename Loader>
+static auto
+_hb_subset_borrow_sanitized_table (Face *, Loader &loader, hb_priority<0>)
+HB_AUTO_RETURN (loader->borrow_sanitized_table ())
+
 #define HB_OT_TABLE(Namespace, Type) \
 template<typename Face> \
 static auto _hb_subset_get_face_table (Face *face, \
@@ -50,8 +61,8 @@ HB_AUTO_RETURN (face->table.Type.get_blob ())
 #define HB_OT_ACCELERATOR(Namespace, Type) \
 template<typename Face> \
 static auto _hb_subset_get_face_table (Face *face, \
-  hb_integral_constant<hb_tag_t, decltype (face->table.Type->borrow_sanitized_table ())::T::tableTag>, hb_priority<1>) \
-HB_AUTO_RETURN (face->table.Type->borrow_sanitized_table ().get_blob ())
+  hb_integral_constant<hb_tag_t, decltype (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize))::T::tableTag>, hb_priority<1>) \
+HB_AUTO_RETURN (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize).get_blob ())
 #include "hb-ot-face-table-list.hh"
 #undef HB_OT_ACCELERATOR
 #undef HB_OT_TABLE
