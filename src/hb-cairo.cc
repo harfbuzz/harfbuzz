@@ -1193,12 +1193,14 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 	if (hb_glyph[i].cluster != hb_glyph[i+1].cluster)
 	{
 	  assert (hb_glyph[i].cluster > hb_glyph[i+1].cluster);
+	  unsigned delta = hb_min ((unsigned) (hb_glyph[i].cluster - hb_glyph[i+1].cluster),
+				   (unsigned) (utf8 + utf8_len - start));
 	  if (utf8_clusters)
-	    end = start + hb_glyph[i].cluster - hb_glyph[i+1].cluster;
+	    end = start + delta;
 	  else
 	    end = (const char *) hb_utf_offset_to_pointer<hb_utf8_t> ((const uint8_t *) start,
 								      (const uint8_t *) utf8, utf8_len,
-								      (signed) (hb_glyph[i].cluster - hb_glyph[i+1].cluster));
+								      (signed) delta);
 	  (*clusters)[cluster].num_bytes = end - start;
 	  start = end;
 	  cluster++;
@@ -1214,12 +1216,14 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 	if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
 	{
 	  assert (hb_glyph[i].cluster > hb_glyph[i-1].cluster);
+	  unsigned delta = hb_min ((unsigned) (hb_glyph[i].cluster - hb_glyph[i-1].cluster),
+				   (unsigned) (utf8 + utf8_len - start));
 	  if (utf8_clusters)
-	    end = start + hb_glyph[i].cluster - hb_glyph[i-1].cluster;
+	    end = start + delta;
 	  else
 	    end = (const char *) hb_utf_offset_to_pointer<hb_utf8_t> ((const uint8_t *) start,
 								      (const uint8_t *) utf8, utf8_len,
-								      (signed) (hb_glyph[i].cluster - hb_glyph[i-1].cluster));
+								      (signed) delta);
 	  (*clusters)[cluster].num_bytes = end - start;
 	  start = end;
 	  cluster++;

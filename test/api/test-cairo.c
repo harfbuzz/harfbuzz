@@ -165,52 +165,70 @@ test_hb_cairo_glyphs_from_buffer_clusters (void)
   } tests[] = {
     {HB_DIRECTION_LTR, {0, 1, 1, 3}, 3},
     {HB_DIRECTION_RTL, {3, 1, 1, 0}, 3},
+    /* Monotone clusters exceeding text/character length or wrapping sign. */
+    {HB_DIRECTION_LTR, {0, 4, 8, 12}, 4},
+    {HB_DIRECTION_RTL, {12, 8, 4, 0}, 4},
+    {HB_DIRECTION_LTR, {0, 1, 2, 0x80000000u}, 4},
     /* Not monotone. */
     {HB_DIRECTION_LTR, {0, 2, 0, 0}, 1},
     {HB_DIRECTION_LTR, {3, 1, 1, 0}, 1},
     {HB_DIRECTION_RTL, {0, 0, 2, 0}, 1},
     {HB_DIRECTION_RTL, {0, 1, 1, 3}, 1},
   };
-  const char *utf8 = "abcd";
+  static const char * const strings[] = {
+    "abcd",
+    "\xce\xb1\xce\xb2\xce\xb3\xce\xb4",  /* 4 2-byte Greek characters */
+    "\xf0\x9f\x98\x80\xf0\x9f\x98\x81\xf0\x9f\x98\x82\xf0\x9f\x98\x83",  /* 4 4-byte emoji */
+  };
 
-  for (unsigned t = 0; t < G_N_ELEMENTS (tests); t++)
-    for (unsigned utf8_clusters = 0; utf8_clusters < 2; utf8_clusters++)
-    {
-      hb_buffer_t *buffer = hb_buffer_create ();
-      hb_buffer_set_direction (buffer, tests[t].direction);
-      for (unsigned i = 0; i < 4; i++)
-	hb_buffer_add (buffer, i, tests[t].clusters[i]);
+  for (unsigned s = 0; s < G_N_ELEMENTS (strings); s++)
+  {
+    const char *utf8 = strings[s];
+    unsigned utf8_len = strlen (utf8);
+    /* Exact-sized allocation so ASan catches any OOB read beyond utf8_len. */
+    char *exact_utf8 = (char *) malloc (utf8_len);
+    memcpy (exact_utf8, utf8, utf8_len);
 
-      cairo_glyph_t *glyphs = NULL;
-      unsigned num_glyphs = 0;
-      cairo_text_cluster_t *clusters = NULL;
-      unsigned num_clusters = 0;
-      cairo_text_cluster_flags_t cluster_flags;
-      hb_cairo_glyphs_from_buffer (buffer, utf8_clusters,
-				   1., 1., 0., 0.,
-				   utf8, -1,
-				   &glyphs, &num_glyphs,
-				   &clusters, &num_clusters,
-				   &cluster_flags);
-
-      g_assert_cmpuint (num_glyphs, ==, 4);
-      g_assert_cmpuint (num_clusters, ==, tests[t].num_clusters);
-
-      int total_bytes = 0, total_glyphs = 0;
-      for (unsigned i = 0; i < num_clusters; i++)
+    for (unsigned t = 0; t < G_N_ELEMENTS (tests); t++)
+      for (unsigned utf8_clusters = 0; utf8_clusters < 2; utf8_clusters++)
       {
-	g_assert_cmpint (clusters[i].num_bytes, >=, 0);
-	g_assert_cmpint (clusters[i].num_glyphs, >, 0);
-	total_bytes += clusters[i].num_bytes;
-	total_glyphs += clusters[i].num_glyphs;
-      }
-      g_assert_cmpint (total_bytes, ==, 4);
-      g_assert_cmpint (total_glyphs, ==, 4);
+	hb_buffer_t *buffer = hb_buffer_create ();
+	hb_buffer_set_direction (buffer, tests[t].direction);
+	for (unsigned i = 0; i < 4; i++)
+	  hb_buffer_add (buffer, i, tests[t].clusters[i]);
 
-      cairo_glyph_free (glyphs);
-      cairo_text_cluster_free (clusters);
-      hb_buffer_destroy (buffer);
-    }
+	cairo_glyph_t *glyphs = NULL;
+	unsigned num_glyphs = 0;
+	cairo_text_cluster_t *clusters = NULL;
+	unsigned num_clusters = 0;
+	cairo_text_cluster_flags_t cluster_flags;
+	hb_cairo_glyphs_from_buffer (buffer, utf8_clusters,
+				     1., 1., 0., 0.,
+				     exact_utf8, (int) utf8_len,
+				     &glyphs, &num_glyphs,
+				     &clusters, &num_clusters,
+				     &cluster_flags);
+
+	g_assert_cmpuint (num_glyphs, ==, 4);
+	g_assert_cmpuint (num_clusters, ==, tests[t].num_clusters);
+
+	int total_bytes = 0, total_glyphs = 0;
+	for (unsigned i = 0; i < num_clusters; i++)
+	{
+	  g_assert_cmpint (clusters[i].num_bytes, >=, 0);
+	  g_assert_cmpint (clusters[i].num_glyphs, >, 0);
+	  total_bytes += clusters[i].num_bytes;
+	  total_glyphs += clusters[i].num_glyphs;
+	}
+	g_assert_cmpint (total_bytes, ==, (int) utf8_len);
+	g_assert_cmpint (total_glyphs, ==, 4);
+
+	cairo_glyph_free (glyphs);
+	cairo_text_cluster_free (clusters);
+	hb_buffer_destroy (buffer);
+      }
+    free (exact_utf8);
+  }
 }
 
 /* One clip glyph of 300 points with 15830 solid paints under it.  Cairo
