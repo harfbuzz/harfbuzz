@@ -28,6 +28,7 @@
 #include "hb-subset-cff-common.hh"
 #include "hb-cff-specializer.hh"
 #include "hb-cff-interp-dict-common.hh"
+#include "hb-cff-interp-common.hh"
 
 static void
 test_specialized_line_geometry ()
@@ -200,34 +201,56 @@ main (int argc, char **argv)
       unsigned char output[7];
     };
     struct num_tp_test num_tp_tests[] = {
-      { -9.399999999999999, 4, { 0x1E, 0xE9, 0xA4, 0xFF } }, // -9.4
-      { 9.399999999999999999, 3, { 0x1E, 0x9A, 0x4F } }, // 9.4
-      { 456.8, 4, { 0x1E, 0x45, 0x6A, 0x8F } }, // 456.8
-      { 98765.37e2, 5, { 0x1E, 0x98, 0x76, 0x53, 0x7F } }, // 9876537
-      { 1234567890.0, 7, { 0x1E, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2 (rounded)
-      { 1234567900.0, 7, { 0x1E, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2
-      { 9.876537e-4, 7, { 0x1E, 0x98, 0x76, 0x53, 0x7C, 0x10, 0xFF } }, // 9876537E-10
-      { 9.876537e4, 6, { 0x1E, 0x98, 0x76, 0x5A, 0x37, 0xFF } }, // 98765.37
-      { 1e8, 3, { 0x1E, 0x1B, 0x8F } }, // 1E8
-      { 1e-5, 3, { 0x1E, 0x1C, 0x5F } }, // 1E-5
-      { 1.2e8, 4, { 0x1E, 0x12, 0xB7, 0xFF } }, // 12E7
-      { 1.2345e-5, 5, { 0x1E, 0x12, 0x34, 0x5C, 0x9F } }, // 12345E-9
-      { 9.0987654e8, 6, { 0x1E, 0x90, 0x98, 0x76, 0x54, 0x0F } }, // 909876540
-      { 0.1, 3, { 0x1E, 0xA1, 0xFF } }, // .1
-      { -0.1, 3, { 0x1E, 0xEA, 0x1F } }, // -.1
-      { 0.01, 3, { 0x1E, 0x1C, 0x2F } }, // 1E-2
-      { -0.01, 4, { 0x1E, 0xE1, 0xC2, 0xFF } }, // -1E-2
-      { 0.0123, 4, { 0x1E, 0x12, 0x3C, 0x4F } }, // 123E-4
-      { -0.0123, 5, { 0x1E, 0xE1, 0x23, 0xC4, 0xFF } }, // -123E-4
-      { 0.0012, 4, { 0x1E, 0x12, 0xC4, 0xFF } },
-      { 1.23e-5, 4, { 0x1E, 0x12, 0x3C, 0x7F } },   // 123E-7
-      { 123456780.0, 6, { 0x1E, 0x12, 0x34, 0x56, 0x78, 0x0F } },  // 123456780
-      { 0.000123, 4, { 0x1E, 0x12, 0x3C, 0x6F } },   // 123E-6
-      { -0.000123, 5, { 0x1E, 0xE1, 0x23, 0xC6, 0xFF } },  // -123E-6
+      { -9.399999999999999, 4, { OpCode_BCD, 0xE9, 0xA4, 0xFF } }, // -9.4
+      { 9.399999999999999999, 3, { OpCode_BCD, 0x9A, 0x4F } }, // 9.4
+      { 456.8, 4, { OpCode_BCD, 0x45, 0x6A, 0x8F } }, // 456.8
+      { 98765.37e2, 5, { OpCode_BCD, 0x98, 0x76, 0x53, 0x7F } }, // 9876537
+      { 1234567890.0, 7, { OpCode_BCD, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2 (rounded)
+      { 1234567900.0, 7, { OpCode_BCD, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2
+      { 9.876537e-4, 7, { OpCode_BCD, 0x98, 0x76, 0x53, 0x7C, 0x10, 0xFF } }, // 9876537E-10
+      { 9.876537e4, 6, { OpCode_BCD, 0x98, 0x76, 0x5A, 0x37, 0xFF } }, // 98765.37
+      { 1e8, 3, { OpCode_BCD, 0x1B, 0x8F } }, // 1E8
+      { 1e-5, 3, { OpCode_BCD, 0x1C, 0x5F } }, // 1E-5
+      { 1.2e8, 4, { OpCode_BCD, 0x12, 0xB7, 0xFF } }, // 12E7
+      { 1.2345e-5, 5, { OpCode_BCD, 0x12, 0x34, 0x5C, 0x9F } }, // 12345E-9
+      { 9.0987654e8, 6, { OpCode_BCD, 0x90, 0x98, 0x76, 0x54, 0x0F } }, // 909876540
+      { 0.1, 3, { OpCode_BCD, 0xA1, 0xFF } }, // .1
+      { -0.1, 3, { OpCode_BCD, 0xEA, 0x1F } }, // -.1
+      { 0.01, 3, { OpCode_BCD, 0x1C, 0x2F } }, // 1E-2
+      { -0.01, 4, { OpCode_BCD, 0xE1, 0xC2, 0xFF } }, // -1E-2
+      { 0.0123, 4, { OpCode_BCD, 0x12, 0x3C, 0x4F } }, // 123E-4
+      { -0.0123, 5, { OpCode_BCD, 0xE1, 0x23, 0xC4, 0xFF } }, // -123E-4
+      { 0.0012, 4, { OpCode_BCD, 0x12, 0xC4, 0xFF } },   // 12E-4
+      { 1.23e-5, 4, { OpCode_BCD, 0x12, 0x3C, 0x7F } },   // 123E-7
+      { 123456780.0, 6, { OpCode_BCD, 0x12, 0x34, 0x56, 0x78, 0x0F } },  // 123456780
+      { 0.000123, 4, { OpCode_BCD, 0x12, 0x3C, 0x6F } },   // 123E-6
+      { -0.000123, 5, { OpCode_BCD, 0xE1, 0x23, 0xC6, 0xFF } },  // -123E-6
       /* Test cases for trailing zeros fix */
-      { 5000.0, 3, { 0x1C, 0x13, 0x88 } }, // 5000
-      { 12340000.0, 5, { 0x1E, 0x12, 0x34, 0xB4, 0xFF } }, // 1234E4
-      { 1000000.0, 3, { 0x1E, 0x1B, 0x6F } }, // 1E6
+      { 12340000.0, 5, { OpCode_BCD, 0x12, 0x34, 0xB4, 0xFF } }, // 1234E4
+      { 1000000.0, 3, { OpCode_BCD, 0x1B, 0x6F } }, // 1E6
+      { 5000.0, 3, { OpCode_shortint, 0x13, 0x88 } }, // 5000 (shortint, roundtrip via parse_shortint)
+      { 0.0, 1, { 0x8B } },
+      { -0.0, 1, { 0x8B } },
+      { 107.0, 1, { 0xF6 } },  // max positive one-byte
+      { -107.0, 1, { 0x20 } }, // min negative one-byte
+
+      { -108.0, 2, { OpCode_TwoByteNegInt0, 0x00 } },  // min two-byte negative
+      { 364.0,  2, { OpCode_TwoBytePosInt1, 0x00 } },  // 364 (first Int1)
+      { 620.0,  2, { OpCode_TwoBytePosInt2, 0x00 } },  // 620 (first Int2)
+      { 876.0,  2, { OpCode_TwoBytePosInt3, 0x00 } },  // 876 (first Int3)
+      { 1131.0, 2, { OpCode_TwoBytePosInt3, 0xFF } },  // 1131 (max)
+
+      /* Two-byte negative: symmetric coverage. */
+      { -108.0,  2, { OpCode_TwoByteNegInt0, 0x00 } },
+      { -364.0,  2, { OpCode_TwoByteNegInt1, 0x00 } },
+      { -620.0,  2, { OpCode_TwoByteNegInt2, 0x00 } },
+      { -876.0,  2, { OpCode_TwoByteNegInt3, 0x00 } },
+      { -1131.0, 2, { OpCode_TwoByteNegInt3, 0xFF } },
+
+      { 1132.0, 3, { OpCode_shortint, 0x04, 0x6C } },  // 1132 = 0x046C
+      { -1132.0, 3, { OpCode_shortint, 0xFB, 0x94 } }, // -1132 = 0xFB94
+      { 32767.0, 3, { OpCode_shortint, 0x7F, 0xFF } },   // INT16_MAX
+      { -32768.0, 3, { OpCode_shortint, 0x80, 0x00 } },  // INT16_MIN
     };
     for (auto &num_tp_test : num_tp_tests)
     {
@@ -236,14 +259,37 @@ main (int argc, char **argv)
       hb_always_assert (buff.length == num_tp_test.length);
       for (unsigned i = 0; i < buff.length; i++)
 	hb_always_assert (buff[i] == num_tp_test.output[i]);
-      if (buff.length > 1 && buff[0] == 0x1E) /* OpCode_BCD = 30 = 0x1E */
+      using opset_t = CFF::cff1_font_dict_opset_t::opset_t;
+      if (opset_t::is_one_byte_integer (buff[0]))
       {
+        hb_always_assert (buff.length == 1);
+        hb_always_assert (opset_t::parse_one_byte_integer (buff[0]) == (int) num_tp_test.input);
+      }
+      else if (opset_t::is_two_bytes_positive_integer (buff[0]))
+      {
+        hb_always_assert (buff.length == 2);
+        hb_always_assert (opset_t::parse_two_bytes_positive_integer (buff[0], buff[1]) == (int) num_tp_test.input);
+      }
+      else if (opset_t::is_two_bytes_negative_integer (buff[0]))
+      {
+        hb_always_assert (buff.length == 2);
+        hb_always_assert (opset_t::parse_two_bytes_negative_integer (buff[0], buff[1]) == (int) num_tp_test.input);
+      }
+      else if (opset_t::is_shortint (buff[0]))
+      {
+        hb_always_assert (buff.length == 3);
+        hb_always_assert (opset_t::parse_shortint (buff[1], buff[2]) == (int) num_tp_test.input);
+      }
+      else if (buff[0] == OpCode_BCD)
+      {
+        hb_always_assert (buff.length > 1);
 	hb_ubytes_t bytes (buff.arrayZ + 1, buff.length - 1);
 	CFF::byte_str_ref_t str_ref (bytes);
 	double parsed = CFF::dict_opset_t::parse_bcd (str_ref);
         bool almost_equal = fabs (parsed - num_tp_test.input) <= fabs (num_tp_test.input) * 1e-7;
 	hb_always_assert (almost_equal);
       }
+      else hb_always_assert (false); /* longint not handled yet */
       encoder.reset ();
     }
   }

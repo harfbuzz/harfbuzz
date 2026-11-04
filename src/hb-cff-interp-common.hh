@@ -617,36 +617,53 @@ using num_interp_env_t =  interp_env_t<>;
 template <typename ARG=number_t>
 struct opset_t
 {
+private:
+  static constexpr int one_byte_bias = (OpCode_OneByteIntFirst + OpCode_OneByteIntLast) / 2;
+  static constexpr int two_byte_base = OpCode_OneByteIntLast - one_byte_bias + 1;
+  static_assert (one_byte_bias == 139, "CFF one-byte range centers on 139");
+  static_assert (two_byte_base == 108, "CFF two-byte range starts at 108");
+
+public:
+  static bool is_shortint(op_code_t op) { return op == OpCode_shortint; }
+  static int16_t parse_shortint (uint8_t a, uint8_t b) { return (a << 8) | b; }
+
+  static bool is_one_byte_integer (op_code_t op)
+  { return (OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast); }
+  static int parse_one_byte_integer (op_code_t op) { return (int)op - one_byte_bias; }
+
+  static bool is_two_bytes_positive_integer (op_code_t op)
+  { return OpCode_TwoBytePosInt0 <= op && op <= OpCode_TwoBytePosInt3; }
+  static int parse_two_bytes_positive_integer (op_code_t op, uint8_t b)
+  { return (int16_t)(op - OpCode_TwoBytePosInt0) * 256 + b + two_byte_base; }
+
+  static bool is_two_bytes_negative_integer (op_code_t op)
+  { return OpCode_TwoByteNegInt0 <= op && op <= OpCode_TwoByteNegInt3; }
+  static int parse_two_bytes_negative_integer (op_code_t op, uint8_t b)
+  { return -(int16_t)(op - OpCode_TwoByteNegInt0) * 256 - b - two_byte_base; }
+
   static void process_op (op_code_t op, interp_env_t<ARG>& env)
   {
-    switch (op) {
-      case OpCode_shortint:
-	env.argStack.push_int ((int16_t)((env.str_ref[0] << 8) | env.str_ref[1]));
-	env.str_ref.inc (2);
-	break;
-
-      case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
-      case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-	env.argStack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + env.str_ref[0] + 108));
-	env.str_ref.inc ();
-	break;
-
-      case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
-      case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-	env.argStack.push_int ((-(int16_t)(op - OpCode_TwoByteNegInt0) * 256 - env.str_ref[0] - 108));
-	env.str_ref.inc ();
-	break;
-
-      default:
-	/* 1-byte integer */
-	if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)))
-	{
-	  env.argStack.push_int ((int)op - 139);
-	} else {
-	  /* invalid unknown operator */
-	  env.clear_args ();
-	}
-	break;
+    if (is_shortint (op))
+    {
+      env.argStack.push_int (parse_shortint (env.str_ref[0], env.str_ref[1]));
+      env.str_ref.inc (2);
+    }
+    else if (is_two_bytes_positive_integer (op))
+    {
+      env.argStack.push_int (parse_two_bytes_positive_integer (op, env.str_ref[0]));
+      env.str_ref.inc ();
+    }
+    else if (is_two_bytes_negative_integer (op))
+    {
+      env.argStack.push_int (parse_two_bytes_negative_integer (op, env.str_ref[0]));
+      env.str_ref.inc ();
+    }
+    else if (is_one_byte_integer (op))
+      env.argStack.push_int (parse_one_byte_integer (op));
+    else
+    {
+      /* invalid unknown operator */
+      env.clear_args ();
     }
   }
 };
