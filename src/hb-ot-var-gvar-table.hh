@@ -619,7 +619,7 @@ struct gvar_GVAR
     unsigned end_offset = get_offset (glyph_count, glyph+1);
     if (unlikely (end_offset < start_offset)) return hb_bytes_t ();
     unsigned length = end_offset - start_offset;
-    hb_bytes_t var_data = blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
+    hb_bytes_t var_data = blob->as_bytes ().sub_array ((unsigned) dataZ).sub_array (start_offset, length);
     return likely (var_data.length >= GlyphVariationData::min_size) ? var_data : hb_bytes_t ();
   }
 
