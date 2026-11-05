@@ -30,6 +30,7 @@
 #include "hb.hh"
 
 #include "hb-subset-plan.hh"
+#include "hb-cff-interp-common.hh"
 #include "hb-cff-interp-cs-common.hh"
 
 namespace CFF {
@@ -94,28 +95,32 @@ struct str_encoder_t
   // Encode number for CharString
   void encode_num_cs (const number_t& n)
   {
-    if (n.in_int_range ())
-    {
+    if (n.in_int16_range ())
       encode_int (n.to_int ());
-    }
     else
     {
-      int32_t v = n.to_fixed ();
       encode_byte (OpCode_fixedcs);
-      encode_byte ((v >> 24) & 0xFF);
-      encode_byte ((v >> 16) & 0xFF);
-      encode_byte ((v >> 8) & 0xFF);
-      encode_byte (v & 0xFF);
+      encode_int32_payload (n.to_fixed ());
     }
+  }
+
+  void encode_int32_payload (int32_t v)
+  {
+    encode_byte ((v >> 24) & 0xFF);
+    encode_byte ((v >> 16) & 0xFF);
+    encode_byte ((v >> 8) & 0xFF);
+    encode_byte (v & 0xFF);
   }
 
   // Encode number for TopDict / Private
   void encode_num_tp (const number_t& n)
   {
-    if (n.in_int_range ())
-    {
-      // TODO longint
+    if (n.in_int16_range ())
       encode_int (n.to_int ());
+    else if (n.in_int32_range ())
+    {
+      encode_byte (OpCode_longintdict);
+      encode_int32_payload (n.to_int ());
     }
     else
     {

@@ -244,8 +244,10 @@ struct number_t
   void set_real (double v)   { value = v; }
   double to_real () const    { return value; }
 
-  bool in_int_range () const
+  bool in_int16_range () const
   { return value >= INT16_MIN && value <= INT16_MAX && (double) (int16_t) value == value; }
+  bool in_int32_range () const
+  { return value >= INT32_MIN && value <= INT32_MAX && (double) (int32_t) value == value; }
 
   bool operator >  (const number_t &n) const { return value > n.to_real (); }
   bool operator <  (const number_t &n) const { return n > *this; }
@@ -481,9 +483,12 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
     return (unsigned) i;
   }
 
+  static int parse_longint (uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+  { return (int) ((uint32_t (a) << 24) | (b << 16) | (c << 8) | d); }
+
   void push_longint_from_substr (byte_str_ref_t& str_ref)
   {
-    push_int ((int) ((uint32_t (str_ref[0]) << 24) | (str_ref[1] << 16) | (str_ref[2] << 8) | (str_ref[3])));
+    push_int (parse_longint (str_ref[0], str_ref[1], str_ref[2], str_ref[3]));
     str_ref.inc (4);
   }
 

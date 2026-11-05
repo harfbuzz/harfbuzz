@@ -198,22 +198,22 @@ main (int argc, char **argv)
     struct num_tp_test {
       double input;
       unsigned length;
-      unsigned char output[7];
+      unsigned char output[8];
     };
     struct num_tp_test num_tp_tests[] = {
       { -9.399999999999999, 4, { OpCode_BCD, 0xE9, 0xA4, 0xFF } }, // -9.4
       { 9.399999999999999999, 3, { OpCode_BCD, 0x9A, 0x4F } }, // 9.4
       { 456.8, 4, { OpCode_BCD, 0x45, 0x6A, 0x8F } }, // 456.8
-      { 98765.37e2, 5, { OpCode_BCD, 0x98, 0x76, 0x53, 0x7F } }, // 9876537
-      { 1234567890.0, 7, { OpCode_BCD, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2 (rounded)
-      { 1234567900.0, 7, { OpCode_BCD, 0x12, 0x34, 0x56, 0x79, 0xB2, 0xFF } }, // 12345679E2
+      { 98765.37e2, 5, { OpCode_longintdict, 0x00, 0x96, 0xB4, 0x39 } }, // 9876537
+      { 1234567890.0, 5, { OpCode_longintdict, 0x49, 0x96, 0x02, 0xD2 } }, // 1234567900
+      { 1234567900.0, 5, { OpCode_longintdict, 0x49, 0x96, 0x02, 0xDC } }, // 1234567900
       { 9.876537e-4, 7, { OpCode_BCD, 0x98, 0x76, 0x53, 0x7C, 0x10, 0xFF } }, // 9876537E-10
       { 9.876537e4, 6, { OpCode_BCD, 0x98, 0x76, 0x5A, 0x37, 0xFF } }, // 98765.37
-      { 1e8, 3, { OpCode_BCD, 0x1B, 0x8F } }, // 1E8
+      { 1e8, 5, { OpCode_longintdict, 0x05, 0xF5, 0xE1, 0x00 } }, // 1E8
       { 1e-5, 3, { OpCode_BCD, 0x1C, 0x5F } }, // 1E-5
-      { 1.2e8, 4, { OpCode_BCD, 0x12, 0xB7, 0xFF } }, // 12E7
+      { 1.2e8, 5, { OpCode_longintdict, 0x07, 0x27, 0x0E, 0x00 } }, // 12E7
       { 1.2345e-5, 5, { OpCode_BCD, 0x12, 0x34, 0x5C, 0x9F } }, // 12345E-9
-      { 9.0987654e8, 6, { OpCode_BCD, 0x90, 0x98, 0x76, 0x54, 0x0F } }, // 909876540
+      { 9.0987654e8, 5, { OpCode_longintdict, 0x36, 0x3B, 0x9D, 0x3C } }, // 909876540
       { 0.1, 3, { OpCode_BCD, 0xA1, 0xFF } }, // .1
       { -0.1, 3, { OpCode_BCD, 0xEA, 0x1F } }, // -.1
       { 0.01, 3, { OpCode_BCD, 0x1C, 0x2F } }, // 1E-2
@@ -222,12 +222,12 @@ main (int argc, char **argv)
       { -0.0123, 5, { OpCode_BCD, 0xE1, 0x23, 0xC4, 0xFF } }, // -123E-4
       { 0.0012, 4, { OpCode_BCD, 0x12, 0xC4, 0xFF } },   // 12E-4
       { 1.23e-5, 4, { OpCode_BCD, 0x12, 0x3C, 0x7F } },   // 123E-7
-      { 123456780.0, 6, { OpCode_BCD, 0x12, 0x34, 0x56, 0x78, 0x0F } },  // 123456780
+      { 123456780.0, 5, { OpCode_longintdict, 0x07, 0x5B, 0xCD, 0x0C } },  // 123456780
       { 0.000123, 4, { OpCode_BCD, 0x12, 0x3C, 0x6F } },   // 123E-6
       { -0.000123, 5, { OpCode_BCD, 0xE1, 0x23, 0xC6, 0xFF } },  // -123E-6
       /* Test cases for trailing zeros fix */
-      { 12340000.0, 5, { OpCode_BCD, 0x12, 0x34, 0xB4, 0xFF } }, // 1234E4
-      { 1000000.0, 3, { OpCode_BCD, 0x1B, 0x6F } }, // 1E6
+      { 12340000.0, 5, { OpCode_longintdict, 0x00, 0xBC, 0x4B, 0x20 } }, // 1234E4
+      { 1000000.0, 5, { OpCode_longintdict, 0x00, 0x0F, 0x42, 0x40 } }, // 1E6
       { 5000.0, 3, { OpCode_shortint, 0x13, 0x88 } }, // 5000 (shortint, roundtrip via parse_shortint)
       { 0.0, 1, { 0x8B } },
       { -0.0, 1, { 0x8B } },
@@ -251,6 +251,24 @@ main (int argc, char **argv)
       { -1132.0, 3, { OpCode_shortint, 0xFB, 0x94 } }, // -1132 = 0xFB94
       { 32767.0, 3, { OpCode_shortint, 0x7F, 0xFF } },   // INT16_MAX
       { -32768.0, 3, { OpCode_shortint, 0x80, 0x00 } },  // INT16_MIN
+
+      /* Test cases for int32 encoding (new in this version) */
+      { 32768.0,       5, { OpCode_longintdict, 0x00, 0x00, 0x80, 0x00 } },    // INT16_MAX + 1
+      { 100000.0,      5, { OpCode_longintdict, 0x00, 0x01, 0x86, 0xA0 } },    // spec Table 4
+      { -100000.0,     5, { OpCode_longintdict, 0xFF, 0xFE, 0x79, 0x60 } },    // spec Table 4
+      { 2147483647.0,  5, { OpCode_longintdict, 0x7F, 0xFF, 0xFF, 0xFF } },    // INT32_MAX
+      { -2147483648.0, 5, { OpCode_longintdict, 0x80, 0x00, 0x00, 0x00 } },    // INT32_MIN
+
+      { -4.9406565e-324, 8, { OpCode_BCD, 0xE4, 0x94, 0x06, 0x56, 0x5C, 0x33, 0x1F } },
+      { 1.7976931348623157e308,  8, { OpCode_BCD, 0x17, 0x97, 0x69, 0x31, 0xB3, 0x01, 0xFF } }, // DBL_MAX
+      { -1.7976931348623157e308, 8, { OpCode_BCD, 0xE1, 0x79, 0x76, 0x93, 0x1B, 0x30, 0x1F } }, // -DBL_MAX
+      { 2.2250738585072014e-308, 8, { OpCode_BCD, 0x22, 0x25, 0x07, 0x39, 0xC3, 0x15, 0xFF } }, // DBL_MIN
+      { 4.9406564584124654e-324, 8, { OpCode_BCD, 0x49, 0x40, 0x65, 0x65, 0xC3, 0x31, 0xFF } }, // DBL_TRUE_MIN positive
+      { 1e200,  4, { OpCode_BCD, 0x1B, 0x20, 0x0F } }, // 1E+200
+      { 1e-200, 4, { OpCode_BCD, 0x1C, 0x20, 0x0F } }, // 1E-200
+      { 1e300,  4, { OpCode_BCD, 0x1B, 0x30, 0x0F } }, // 1E+300
+      { 1e-300, 4, { OpCode_BCD, 0x1C, 0x30, 0x0F } }, // 1E-300
+      { 1e-320, 8, { OpCode_BCD, 0x99, 0x99, 0x88, 0x87, 0xC3, 0x28, 0xFF } }, // 9.9998887E-321
     };
     for (auto &num_tp_test : num_tp_tests)
     {
@@ -280,6 +298,11 @@ main (int argc, char **argv)
         hb_always_assert (buff.length == 3);
         hb_always_assert (opset_t::parse_shortint (buff[1], buff[2]) == (int) num_tp_test.input);
       }
+      else if (buff[0] == OpCode_longintdict)
+      {
+        hb_always_assert (buff.length == 5);
+        hb_always_assert (CFF::arg_stack_t<>::parse_longint (buff[1], buff[2], buff[3], buff[4]) == (int) num_tp_test.input);
+      }
       else if (buff[0] == OpCode_BCD)
       {
         hb_always_assert (buff.length > 1);
@@ -289,7 +312,7 @@ main (int argc, char **argv)
         bool almost_equal = fabs (parsed - num_tp_test.input) <= fabs (num_tp_test.input) * 1e-7;
 	hb_always_assert (almost_equal);
       }
-      else hb_always_assert (false); /* longint not handled yet */
+      else hb_always_assert (false); /* Unsupported opcode */
       encoder.reset ();
     }
   }
