@@ -62,7 +62,9 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * the produced subset. Otherwise hinting instructions will be retained.
  * @HB_SUBSET_FLAGS_RETAIN_GIDS: If set glyph indices will not be modified in
  * the produced subset. If glyphs are dropped their indices will be retained
- * as an empty glyph.
+ * as an empty glyph. This is implied when the subset retains a table that
+ * cannot be subsetted and refers to glyphs, such as an AAT, Graphite, SVG, or
+ * bitmap table.
  * @HB_SUBSET_FLAGS_DESUBROUTINIZE: If set and subsetting a CFF font the
  * subsetter will attempt to remove subroutines from the CFF glyphs.
  * @HB_SUBSET_FLAGS_NAME_LEGACY: If set non-unicode name records will be

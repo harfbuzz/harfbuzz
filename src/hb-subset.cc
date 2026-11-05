@@ -57,8 +57,10 @@
  * only for OpenType Layout tables (GSUB, GPOS, GDEF). Notably subsetting of graphite or AAT tables
  * is not yet supported.
  *
- * Fonts with graphite or AAT tables may still be subsetted but will likely need to use the
- * retain glyph ids option and configure the subset to pass through the layout tables untouched.
+ * Fonts with graphite or AAT tables may still be subsetted but will likely need to
+ * configure the subset to pass through the unsupported tables untouched. When
+ * retained tables that cannot be subsetted refer to glyphs, glyph ids are
+ * preserved automatically.
  */
 
 
