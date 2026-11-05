@@ -206,7 +206,8 @@ struct str_encoder_t
 	memmove (s + sign, s2, len);
 	snprintf (s + sign + len, sizeof (buf) - (s + sign + len - buf), "E-%u", (unsigned) (strlen (s + sign) - 1));
       }
-      hb_vector_t<char> nibbles;
+      /* Nibble capacity must cover widest %.8G output plus END and pad */
+      nibble_buffer_t<ARRAY_LENGTH (buf) + 2> nibbles;
       while (*s)
       {
 	char c = s[0];
@@ -242,20 +243,11 @@ struct str_encoder_t
 
 	nibbles.push (c - '0');
       }
-      nibbles.push (0x0F);
-      if (nibbles.length % 2)
-	nibbles.push (0x0F);
 
-      if (unlikely (nibbles.in_error ()))
-      {
-	buff.set_error ();
-	return;
-      }
+      hb_ubytes_t bytes = nibbles.commit ();
+      if (unlikely (bytes.length == 0)) { buff.set_error (); return; }
       encode_byte (OpCode_BCD);
-
-      unsigned count = nibbles.length;
-      for (unsigned i = 0; i < count; i += 2)
-        encode_byte ((nibbles[i] << 4) | nibbles[i+1]);
+      copy_str (bytes);
     }
   }
 
@@ -270,18 +262,44 @@ struct str_encoder_t
       encode_byte (op);
   }
 
-  void copy_str (const unsigned char *str, unsigned length)
+  void copy_str (const hb_ubytes_t str)
   {
-    assert ((signed) (buff.length + length) <= buff.allocated);
-    hb_memcpy (buff.arrayZ + buff.length, str, length);
-    buff.length += length;
+    unsigned buff_tip = buff.length;
+    if (likely (buff.resize_dirty (buff_tip + str.length)))
+      hb_memcpy (buff.arrayZ + buff_tip, str, str.length);
+    else buff.set_error ();
   }
 
   bool in_error () const { return buff.in_error (); }
 
-  protected:
-
+protected:
   str_buff_t &buff;
+private:
+  template <unsigned size>
+  struct nibble_buffer_t
+  {
+    static_assert (size % 2 == 0, "size should be even");
+    static_assert (0 < size && size < 64, "size should be sensible and fit in stack");
+    void push (uint8_t nibble)
+    {
+      if (unlikely (in_error || nibble_count >= size)) { in_error = true; return; }
+      if (!(nibble_count & 1))
+	bytes[nibble_count >> 1] = nibble << 4;
+      else
+	bytes[nibble_count >> 1] |= nibble;
+      nibble_count++;
+    }
+    hb_ubytes_t commit ()
+    {
+      push (0x0F);
+      if (nibble_count & 1) push (0x0F);
+      return unlikely (in_error) ? hb_ubytes_t () : hb_ubytes_t (bytes, nibble_count >> 1);
+    }
+  private:
+    bool in_error = false;
+    uint8_t bytes[size / 2];
+    unsigned nibble_count = 0;
+  };
 };
 
 struct cff_sub_table_info_t {
@@ -1299,16 +1317,16 @@ struct subr_subsetter_t
 	{
 	  case OpCode_callsubr:
 	    encoder.encode_int (remaps.local_remaps[fd].biased_num (opstr.subr_num));
-	    encoder.copy_str (opstr.ptr, opstr.length);
+	    encoder.copy_str (hb_ubytes_t (opstr.ptr, opstr.length));
 	    break;
 
 	  case OpCode_callgsubr:
 	    encoder.encode_int (remaps.global_remap.biased_num (opstr.subr_num));
-	    encoder.copy_str (opstr.ptr, opstr.length);
+	    encoder.copy_str (hb_ubytes_t (opstr.ptr, opstr.length));
 	    break;
 
 	  default:
-	    encoder.copy_str (opstr.ptr, opstr.length);
+	    encoder.copy_str (hb_ubytes_t (opstr.ptr, opstr.length));
 	    break;
 	}
       }
