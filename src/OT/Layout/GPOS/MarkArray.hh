@@ -68,8 +68,8 @@ apply_mark_attachment (hb_ot_apply_context_t *c,
     goto overflow;
   }
   mark.attach_type() = ATTACH_TYPE_MARK;
-  mark.x_offset = roundf (base_x - mark_x);
-  mark.y_offset = roundf (base_y - mark_y);
+  mark.x_offset = hb_clamp_to<hb_position_t> (roundf (base_x - mark_x));
+  mark.y_offset = hb_clamp_to<hb_position_t> (roundf (base_y - mark_y));
   if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
     mark.y_offset = hb_saturate_add (mark.y_offset, base_offset);
   else

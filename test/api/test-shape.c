@@ -387,6 +387,34 @@ test_shape_list (void)
   g_assert_true (!strcmp (shapers[i - 1], "fallback"));
 }
 
+static void
+test_shape_cursive_anchor_overflow (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoNastaliqUrdu-Regular.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  /* At this scale the cursive anchors of the font do not fit in hb_position_t.
+   * They have to saturate; an out-of-range conversion from float is undefined,
+   * and on x86 gives a large negative advance. */
+  hb_font_set_scale (font, INT32_MAX, INT32_MAX);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "\xD8\xB3\xD9\x84\xD8\xA7\xD9\x85", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_buffer_set_direction (buffer, HB_DIRECTION_LTR);
+  hb_shape (font, buffer, NULL, 0);
+
+  unsigned count;
+  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &count);
+  g_assert_cmpuint (count, >, 0);
+  for (unsigned i = 0; i < count; i++)
+    g_assert_cmpint (pos[i].x_advance, >=, 0);
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -403,6 +431,8 @@ main (int argc, char **argv)
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);
+
+  hb_test_add (test_shape_cursive_anchor_overflow);
 
   return hb_test_run();
 }
