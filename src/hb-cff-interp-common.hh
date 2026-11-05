@@ -629,9 +629,6 @@ private:
   static_assert (two_byte_base == 108, "CFF two-byte range starts at 108");
 
 public:
-  static bool is_shortint(op_code_t op) { return op == OpCode_shortint; }
-  static int16_t parse_shortint (uint8_t a, uint8_t b) { return (a << 8) | b; }
-
   static bool is_one_byte_integer (op_code_t op)
   { return (OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast); }
   static int parse_one_byte_integer (op_code_t op) { return (int)op - one_byte_bias; }
@@ -646,13 +643,13 @@ public:
   static int parse_two_bytes_negative_integer (op_code_t op, uint8_t b)
   { return -(int16_t)(op - OpCode_TwoByteNegInt0) * 256 - b - two_byte_base; }
 
+  static bool is_shortint(op_code_t op) { return op == OpCode_shortint; }
+  static int parse_shortint (uint8_t a, uint8_t b) { return (int16_t) ((a << 8) | b); }
+
   static void process_op (op_code_t op, interp_env_t<ARG>& env)
   {
-    if (is_shortint (op))
-    {
-      env.argStack.push_int (parse_shortint (env.str_ref[0], env.str_ref[1]));
-      env.str_ref.inc (2);
-    }
+    if (is_one_byte_integer (op))
+      env.argStack.push_int (parse_one_byte_integer (op));
     else if (is_two_bytes_positive_integer (op))
     {
       env.argStack.push_int (parse_two_bytes_positive_integer (op, env.str_ref[0]));
@@ -663,13 +660,14 @@ public:
       env.argStack.push_int (parse_two_bytes_negative_integer (op, env.str_ref[0]));
       env.str_ref.inc ();
     }
-    else if (is_one_byte_integer (op))
-      env.argStack.push_int (parse_one_byte_integer (op));
-    else
+    else if (is_shortint (op))
     {
+      env.argStack.push_int (parse_shortint (env.str_ref[0], env.str_ref[1]));
+      env.str_ref.inc (2);
+    }
+    else
       /* invalid unknown operator */
       env.clear_args ();
-    }
   }
 };
 
