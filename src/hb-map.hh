@@ -126,10 +126,10 @@ struct hb_hashmap_t
 
     template <bool v = minus_one,
 	      hb_enable_if (v == false)>
-    static inline const V& default_value () { return Null(V); };
+    static const V& default_value () { return Null(V); };
     template <bool v = minus_one,
 	      hb_enable_if (v == true)>
-    static inline const V& default_value ()
+    static const V& default_value ()
     {
       static_assert (hb_is_same (V, hb_codepoint_t), "");
       return minus_1;
