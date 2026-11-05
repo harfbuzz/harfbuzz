@@ -582,6 +582,171 @@ test_subset_custom_glyph_mapping (void)
   hb_face_destroy (source);
 }
 
+static hb_face_t *
+_face_copy_tables (hb_face_t *source)
+{
+  hb_face_t *face = hb_face_builder_create ();
+
+  hb_tag_t tags[32];
+  unsigned offset = 0;
+  while (true)
+  {
+    unsigned count = G_N_ELEMENTS (tags);
+    hb_face_get_table_tags (source, offset, &count, tags);
+    if (!count) break;
+
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_blob_t *blob = hb_face_reference_table (source, tags[i]);
+      hb_face_builder_add_table (face, tags[i], blob);
+      hb_blob_destroy (blob);
+    }
+    offset += count;
+  }
+
+  return face;
+}
+
+static hb_face_t *
+_face_with_table (hb_face_t *source, hb_tag_t tag, const void *data, unsigned length)
+{
+  hb_face_t *face = _face_copy_tables (source);
+  hb_blob_t *blob = hb_blob_create_or_fail ((const char *) data, length,
+					    HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, tag, blob);
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+static hb_blob_t *
+_blob_with_checksum (uint32_t checksum, unsigned length)
+{
+  char *data = (char *) g_malloc0 (length ? length : 1);
+  if (length >= 4)
+  {
+    data[0] = checksum >> 24;
+    data[1] = checksum >> 16;
+    data[2] = checksum >> 8;
+    data[3] = checksum;
+  }
+  return hb_blob_create_or_fail (data, length, HB_MEMORY_MODE_WRITABLE,
+				 data, g_free);
+}
+
+static void
+test_subset_no_hinting_ignored_for_hint_dependent_font (void)
+{
+#ifndef HB_NO_NAME
+  /* Minimal name table with Font Family = "MingLiU". */
+  static const unsigned char name_table[] = {
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x12,
+    0x00, 0x03, 0x00, 0x01, 0x04, 0x09, 0x00, 0x01, 0x00, 0x0E, 0x00, 0x00,
+    0x00, 0x4D, 0x00, 0x69, 0x00, 0x6E, 0x00, 0x67,
+    0x00, 0x4C, 0x00, 0x69, 0x00, 0x55,
+  };
+  /* "HuaTianKaiTi" followed by U+4F53.  FreeType reads the non-ASCII
+   * character as `?`, matching the list entry "HuaTianKaiTi?". */
+  static const unsigned char name_table_question[] = {
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x12,
+    0x00, 0x03, 0x00, 0x01, 0x04, 0x09, 0x00, 0x01, 0x00, 0x1A, 0x00, 0x00,
+    0x00, 0x48, 0x00, 0x75, 0x00, 0x61, 0x00, 0x54,
+    0x00, 0x69, 0x00, 0x61, 0x00, 0x6E, 0x00, 0x4B,
+    0x00, 0x61, 0x00, 0x69, 0x00, 0x54, 0x00, 0x69,
+    0x4F, 0x53,
+  };
+  static const hb_tag_t hint_tags[] = {
+    HB_TAG ('c','v','t',' '),
+    HB_TAG ('f','p','g','m'),
+    HB_TAG ('p','r','e','p'),
+  };
+
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face = _face_with_table (source, HB_TAG ('n','a','m','e'),
+				      name_table, sizeof (name_table));
+  hb_face_t *face_question = _face_with_table (source, HB_TAG ('n','a','m','e'),
+					       name_table_question,
+					       sizeof (name_table_question));
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'a');
+
+  for (unsigned i = 0; i < 3; i++)
+  {
+    bool hint_dependent = i != 0;
+    hb_face_t *target = i == 0 ? source : i == 1 ? face : face_question;
+
+    hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+    hb_face_t *subset = hb_subset_or_fail (target, input);
+    g_assert_nonnull (subset);
+
+    for (unsigned j = 0; j < G_N_ELEMENTS (hint_tags); j++)
+    {
+      hb_blob_t *blob = hb_face_reference_table (subset, hint_tags[j]);
+      g_assert_true (!!hb_blob_get_length (blob) == hint_dependent);
+      hb_blob_destroy (blob);
+    }
+
+    hb_face_destroy (subset);
+    hb_subset_input_destroy (input);
+  }
+
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face_question);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+#endif
+}
+
+static void
+test_subset_no_hinting_ignored_for_hint_dependent_ids (void)
+{
+  static const struct {
+    hb_tag_t tag;
+    uint32_t checksum;
+    unsigned length;
+  } ids[] = {
+    {HB_TAG ('c','v','t',' '), 0x05BCF058, 0x000002E4},
+    {HB_TAG ('f','p','g','m'), 0x28233BF1, 0x000087C4},
+    {HB_TAG ('p','r','e','p'), 0xA344A1EA, 0x000001E1},
+  };
+  static const hb_tag_t hint_tags[] = {
+    HB_TAG ('c','v','t',' '),
+    HB_TAG ('f','p','g','m'),
+    HB_TAG ('p','r','e','p'),
+  };
+
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face = _face_copy_tables (source);
+  for (unsigned i = 0; i < G_N_ELEMENTS (ids); i++)
+  {
+    hb_blob_t *blob = _blob_with_checksum (ids[i].checksum, ids[i].length);
+    hb_face_builder_add_table (face, ids[i].tag, blob);
+    hb_blob_destroy (blob);
+  }
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'a');
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_set_destroy (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  for (unsigned i = 0; i < G_N_ELEMENTS (hint_tags); i++)
+  {
+    hb_blob_t *blob = hb_face_reference_table (subset, hint_tags[i]);
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    hb_blob_destroy (blob);
+  }
+
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 static hb_blob_t*
 _copy_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
@@ -1213,6 +1378,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_sets);
   hb_test_add (test_subset_plan);
   hb_test_add (test_subset_custom_glyph_mapping);
+  hb_test_add (test_subset_no_hinting_ignored_for_hint_dependent_font);
+  hb_test_add (test_subset_no_hinting_ignored_for_hint_dependent_ids);
   hb_test_add (test_subset_sanitized_table_cache);
 #if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)
   hb_test_add (test_subset_gdef_blocklist);
