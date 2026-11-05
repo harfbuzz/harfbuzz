@@ -3223,7 +3223,7 @@ struct Rule
     if (unlikely (!inputCount)) return_trace (false);
     const auto input = inputZ.as_array (inputCount - 1);
 
-    const hb_map_t *mapping = klass_map == nullptr ? c->plan->glyph_map : klass_map;
+    const hb_map_t *mapping = klass_map == nullptr ? &c->plan->glyph_map_gsub : klass_map;
     if (!hb_all (input, mapping)) return_trace (false);
     return_trace (serialize (c->serializer, mapping, lookup_map));
   }
