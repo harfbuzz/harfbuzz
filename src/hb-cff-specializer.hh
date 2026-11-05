@@ -33,7 +33,7 @@ is_zero (const number_t &n)
  *
  * Based on fontTools.cffLib.specializer.generalizeCommands
  */
-static void
+static inline void
 generalize_commands (hb_vector_t<cs_command_t> &commands)
 {
   hb_vector_t<cs_command_t> result;
@@ -149,7 +149,7 @@ generalize_commands (hb_vector_t<cs_command_t> &commands)
  *
  * This ensures we never exceed stack depth while optimizing bytecode.
  */
-static void
+static inline void
 specialize_commands (hb_vector_t<cs_command_t> &commands,
                      unsigned maxstack = 48)
 {
@@ -242,7 +242,7 @@ specialize_commands (hb_vector_t<cs_command_t> &commands,
 }
 
 /* Encode commands back to binary CharString */
-static bool
+static inline bool
 encode_commands (const hb_vector_t<cs_command_t> &commands,
                  str_buff_t &output)
 {
