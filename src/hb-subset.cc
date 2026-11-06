@@ -380,7 +380,7 @@ static void _attach_accelerator_data (hb_subset_plan_t* plan,
 
   // Populate caches that need access to the final tables.
   hb_blob_ptr_t<OT::cmap> cmap_ptr (hb_sanitize_context_t ().reference_table<OT::cmap> (face));
-  accel->cmap_cache = OT::cmap::create_filled_cache (cmap_ptr);
+  accel->cmap_cache = OT::cmap::create_filled_cache (cmap_ptr, face->get_num_glyphs ());
   accel->destroy_cmap_cache = OT::SubtableUnicodesCache::destroy;
 
   if (!hb_face_set_user_data(face,

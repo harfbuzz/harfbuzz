@@ -108,6 +108,71 @@ test_collect_unicodes_format4_with_range_offsets_and_deltas (void)
 }
 
 static void
+test_collect_unicodes_format4_overlapping_segments (void)
+{
+  /* Segments overlap and one lies entirely inside an earlier one; each
+   * codepoint must be collected once, from the first segment covering it. */
+  const char cmap_data[60] = {
+    0, 0, 0, 1,		      /* cmap header */
+    0, 0, 0, 3, 0, 0, 0, 12,  /* encoding records */
+    /* cmap 4 */
+    0, 4,          /* format */
+    0, 48,         /* length */
+    0, 0,          /* lang */
+    0, 8,          /* segcountx2 */
+    0, 0,          /* search range */
+    0, 0,          /* entry selector */
+    0, 0,          /* range shift */
+    0, 0x45,       /* end code [0] */
+    0, 0x47,       /* end code [1] */
+    0, 0x47,       /* end code [2] */
+    -1, -1,        /* end code [3] */
+    0, 0,          /* pad */
+    0, 0x41,       /* start code [0] */
+    0, 0x43,       /* start code [1] */
+    0, 0x40,       /* start code [2] */
+    -1, -1,        /* start code [3] */
+    0, 0,          /* id delta [0] */
+    1, 0,          /* id delta [1] */
+    2, 0,          /* id delta [2] */
+    0, 1,          /* id delta [3] */
+    0, 0,          /* id range offset [0] */
+    0, 0,          /* id range offset [1] */
+    0, 0,          /* id range offset [2] */
+    0, 0,          /* id range offset [3] */
+  };
+
+  hb_blob_t* cmap = hb_blob_create(cmap_data, 60, HB_MEMORY_MODE_READONLY, 0, 0);
+  hb_face_t* face = hb_face_builder_create();
+  hb_face_builder_add_table(face, HB_TAG('c', 'm', 'a', 'p'), cmap);
+  hb_blob_destroy(cmap);
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_map_t *mapping = hb_map_create();
+  hb_codepoint_t cp;
+
+  hb_face_collect_unicodes (face, codepoints);
+
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 7);
+  g_assert_cmpuint (hb_set_get_min (codepoints), ==, 0x41);
+  g_assert_cmpuint (hb_set_get_max (codepoints), ==, 0x47);
+
+  hb_set_clear(codepoints);
+  hb_face_collect_nominal_glyph_mapping(face, mapping, codepoints);
+
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 7);
+  g_assert_cmpuint (hb_map_get_population (mapping), ==, 7);
+  for (cp = 0x41; cp <= 0x45; cp++)
+    g_assert_cmpuint (hb_map_get(mapping, cp), ==, cp);
+  g_assert_cmpuint (hb_map_get(mapping, 0x46), ==, 0x146);
+  g_assert_cmpuint (hb_map_get(mapping, 0x47), ==, 0x147);
+
+  hb_map_destroy(mapping);
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static void
 test_collect_unicodes_format12_notdef (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cmunrm.otf");
@@ -194,6 +259,7 @@ main (int argc, char **argv)
   hb_test_add (test_collect_unicodes_format12);
   hb_test_add (test_collect_unicodes_format12_notdef);
   hb_test_add (test_collect_unicodes_format4_with_range_offsets_and_deltas);
+  hb_test_add (test_collect_unicodes_format4_overlapping_segments);
 
   return hb_test_run();
 }
