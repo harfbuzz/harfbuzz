@@ -107,6 +107,19 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_layout_has_substitution (face);
   hb_ot_layout_has_positioning (face);
 
+  hb_ot_layout_table_get_script_tags (face, HB_OT_TAG_GSUB, 0, NULL, NULL);
+  hb_ot_layout_table_get_feature_tags (face, HB_OT_TAG_GSUB, 0, 0, NULL);
+  hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_SCRIPT_HANGUL, NULL);
+  hb_ot_layout_script_get_language_tags (face, HB_OT_TAG_GSUB, 0, 0, NULL, NULL);
+  hb_ot_layout_language_get_feature_tags (face, HB_OT_TAG_GSUB, 0, 0, 0, NULL, NULL);
+  hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, 0, 0, NULL, NULL);
+  {
+    hb_codepoint_t buffer[1];
+    unsigned glyphs_count = 1;
+    hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, &glyphs_count, buffer);
+    if (glyphs_count) result += buffer[0];
+  }
+
   hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, cp, 0, NULL, NULL);
 
   {
