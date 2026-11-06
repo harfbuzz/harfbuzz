@@ -56,6 +56,14 @@ static inline const Type& StructAtOffsetOrNull (const void *P, int offset, hb_sa
   return obj;
 }
 
+/* Work budget of one pass over the charstrings of the table in blob. */
+static inline int64_t
+get_subset_budget (const hb_blob_t *blob)
+{
+  return hb_max ((int64_t) HB_BUDGET_SUBSET_CFF,
+		 (int64_t) HB_BUDGET_SUBSET_CFF_PER_BYTE * blob->length);
+}
+
 
 struct code_pair_t
 {

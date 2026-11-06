@@ -133,11 +133,16 @@ struct cff2_instancing_plan_t
     /* Instance each VarData with identity delta rows; the surviving tuples'
      * delta columns are the old-region → new-region transform. */
     OT::optimize_scratch_t scratch;
+    int64_t budget = HB_BUDGET_SUBSET_CFF2_CELLS;
     for (unsigned m = 0; m < major_count; m++)
     {
       const OT::VarData &var_data = varStore.get_sub_table (m);
       unsigned k = var_data.get_region_index_count ();
       vardata_transform_t &t = transforms.arrayZ[m];
+
+      /* k identity tuples of k cells each; neither k nor the number of
+       * VarDatas is otherwise bounded, and offsets may alias one VarData. */
+      if (unlikely (!hb_budget_spend (budget, k, k))) return false;
 
       if (!t.gains.resize_exact (k)) return false;
       varStore.get_region_scalars (m, plan->normalized_coords.arrayZ,
@@ -164,6 +169,10 @@ struct cff2_instancing_plan_t
 
       if (!tuples.instantiate (plan->axes_location, plan->axes_triple_distances, scratch))
 	return false;
+
+      /* The solver can split a region into several; the surviving tuples'
+       * columns are kept for the rest of the table. */
+      if (unlikely (!hb_budget_spend (budget, tuples.tuple_vars.length, k))) return false;
 
       for (auto &tuple : tuples.tuple_vars)
       {
@@ -1212,6 +1221,7 @@ struct cff2_subset_plan
 	hb_vector_t<bool> round_charstrings;
 	if (unlikely (!round_charstrings.resize (num_glyphs))) return false;
 	hb_set_t used_fds;
+	int64_t budget = CFF::get_subset_budget (acc.get_blob ());
 	for (unsigned int i = 0; i < num_glyphs; i++)
 	{
 	  hb_codepoint_t glyph;
@@ -1229,7 +1239,7 @@ struct cff2_subset_plan
 	  cff2_usage_param_t param;
 	  param.instancing = partial_instancing ? &instancing : nullptr;
 	  param.drop_hints = drop_hints;
-	  if (unlikely (!interp.interpret (param)))
+	  if (unlikely (!interp.interpret (param, &budget)))
 	    return false;
 	  round_charstrings.arrayZ[i] = param.has_blend && !param.has_flex1;
 	}
@@ -1261,6 +1271,7 @@ struct cff2_subset_plan
 	  return false;
 	if (capture_commands && !charstring_commands.resize_exact (num_glyphs))
 	  return false;
+	budget = CFF::get_subset_budget (acc.get_blob ());
 	for (unsigned int i = 0; i < num_glyphs; i++)
 	{
 	  hb_codepoint_t glyph;
@@ -1285,7 +1296,7 @@ struct cff2_subset_plan
 	  cff2_cs_rounding_t rounding;
 	  if (round_charstrings.arrayZ[i]) param.rounding = &rounding;
 	  param.instancer = partial_instancing ? &instancing : nullptr;
-	  if (unlikely (!interp.interpret (param)))
+	  if (unlikely (!interp.interpret (param, &budget)))
 	    return false;
 	}
       }
