@@ -795,6 +795,18 @@ test_depend_feature_variations (void)
   hb_face_destroy (face);
 }
 
+/* A set of GSUB Context lookups that invoke each other in every order interns
+ * a factorial number of recursion paths; the whole-table path cap must refuse
+ * the build rather than exhaust memory. */
+static void
+test_depend_gsub_recursion_limit (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/gsub-context-lookup-permutations.ttf");
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_null (depend);
+  hb_face_destroy (face);
+}
+
 #ifndef HB_NO_BEYOND_64K
 /* ContextSubst format 6 (beyond-64k) uses 24-bit Coverage offsets.
  * Lookup 0 matches glyphs 1 2 and calls lookup 1 (SingleSubst 2 -> 3)
@@ -827,6 +839,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_varc);
   hb_test_add (test_depend_gsub_formats);
   hb_test_add (test_depend_feature_variations);
+  hb_test_add (test_depend_gsub_recursion_limit);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_depend_context_format6);
 #endif

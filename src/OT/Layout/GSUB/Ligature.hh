@@ -137,6 +137,7 @@ struct Ligature
     unsigned int total_component_count = 0;
 
     if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return false;
+    if (unlikely (!c->charge_ops (1 + count / 16))) return_trace (false);
     unsigned int match_end = 0;
 
     if (likely (!match_input (c, count,

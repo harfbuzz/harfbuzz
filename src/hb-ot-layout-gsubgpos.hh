@@ -532,7 +532,13 @@ struct hb_depend_context_t :
      *
      * lookups_seen is pre-seeded with the top-level lookup index in
      * GSUB_accelerator_t::depend before the direct depend() call, so
-     * that indirect cycles of the form A→B→A are also caught here. */
+     * that indirect cycles of the form A→B→A are also caught here.
+     *
+     * lookups_seen only cuts cycles; a chain of distinct lookups would
+     * otherwise recurse once per lookup in the table, so also apply the
+     * same nesting limit the closure contexts use.  Shaping never applies
+     * lookups nested deeper than this, so no reachable edge is lost. */
+    if (unlikely (!nesting_level_left || !depend_data->successful)) return;
     if (lookups_seen.has (lookup_idx)) return;
     lookups_seen.add (lookup_idx);
 
@@ -546,7 +552,14 @@ struct hb_depend_context_t :
     if (!recurse_path_to_index.has (path_key, &path))
     {
       path_index = recurse_path_to_index.get_population () + 1;
-      if (unlikely (!recurse_path_to_index.set (path_key, path_index)))
+      /* Every distinct path is walked and memoized separately, so lookups
+       * that invoke each other in every order intern a factorial number of
+       * them.  reset_recurse_cache() clears recurse_path_to_index per
+       * top-level lookup, so bound the paths over the whole table with a
+       * separate counter and report the incomplete graph as a failure
+       * rather than emit it. */
+      if (unlikely (++total_recurse_paths > HB_MAX_LOOKUP_VISIT_COUNT ||
+		    !recurse_path_to_index.set (path_key, path_index)))
       {
 	depend_data->fail ();
 	lookups_seen.del (lookup_idx);
@@ -556,7 +569,9 @@ struct hb_depend_context_t :
     else
       path_index = *path;
     recurse_path = path_index;
+    nesting_level_left--;
     recurse_func (this, lookup_idx, covered_seq_indices, seq_index, end_index);
+    nesting_level_left++;
     recurse_path = parent_path;
     lookups_seen.del (lookup_idx);
   }
@@ -670,10 +685,22 @@ struct hb_depend_context_t :
   void finish_recurse (const recurse_key_t &key)
   { depend_data->check_success (completed_recursions.set (key, true)); }
 
+  /* hb_hashmap_t::clear() walks the whole table and keeps its storage.
+   * Keep the storage only if the lookup that just finished made use of it.
+   * Otherwise one lookup that grew the table would make every later lookup
+   * pay for its full capacity, however little that lookup recursed. */
+  template <typename Map>
+  static void clear_or_release (Map &map)
+  {
+    if (map.size () > 64 && map.get_population () < map.size () / 8)
+      map = Map ();  /* Swaps in fresh storage; a no-op in error state. */
+    map.clear ();
+  }
+
   void reset_recurse_cache ()
   {
-    completed_recursions.clear ();
-    recurse_path_to_index.clear ();
+    clear_or_release (completed_recursions);
+    clear_or_release (recurse_path_to_index);
     recurse_path = 0;
   }
 
@@ -778,6 +805,10 @@ struct hb_depend_context_t :
   hb_vector_t<active_glyphs_frame_t> active_glyphs_stack;
   unsigned active_glyphs_stack_depth = 0;
   recurse_func_t recurse_func;
+  unsigned nesting_level_left = HB_MAX_NESTING_LEVEL;
+  /* Distinct recursion paths interned over the whole table (not cleared by
+   * reset_recurse_cache), bounding the factorial path blow-up. */
+  unsigned total_recurse_paths = 0;
   hb_codepoint_t lookup_index = HB_CODEPOINT_INVALID;
   hb_bit_set_t lookups_seen;
   hb_vector_t<hb::unique_ptr<hb_set_t>> recurse_sets;
@@ -954,6 +985,7 @@ struct skipping_iterator_t
     match_glyph_data24 = nullptr;
 #endif
     matcher.init (c, context_match);
+    num_tested = 0;
   }
   void set_lookup_props (unsigned int lookup_props)
   {
@@ -983,12 +1015,14 @@ struct skipping_iterator_t
     idx = start_index_;
     end = c->buffer->len;
     matcher.syllable = c->buffer->cur().syllable();
+    num_tested = 0;
   }
   void reset_back (unsigned int start_index_, bool from_out_buffer = false)
   {
     // For GSUB backward iterator
     idx = start_index_;
     matcher.syllable = c->buffer->cur().syllable();
+    num_tested = 0;
   }
 
 #ifndef HB_OPTIMIZE_SIZE
@@ -998,6 +1032,7 @@ struct skipping_iterator_t
   {
     // Doesn't set end or syllable. Used by GPOS which doesn't care / change.
     idx = start_index_;
+    num_tested = 0;
   }
 
 #ifndef HB_OPTIMIZE_SIZE
@@ -1020,6 +1055,21 @@ struct skipping_iterator_t
     matcher_t::may_skip_t skip = matcher.may_skip (c, info);
     if (unlikely (skip == matcher_t::SKIP_YES))
       return SKIP;
+
+    /* Glyphs the lookup flags skip are cheap, and as no lookup applies at
+     * them, a scan over a run of them stops at the next glyph the lookup
+     * does apply at.  Every other glyph is tested against the matcher.  A
+     * scan testing more glyphs than a sequence can hold is walking skipped
+     * default-ignorables, or an oversized backtrack / lookahead; repeated
+     * from every buffer position and for every subtable that is quadratic,
+     * so charge each further glyph to the work budget and end the scan
+     * when it runs out. */
+    if (unlikely (++num_tested > HB_MAX_CONTEXT_LENGTH) &&
+	unlikely (--c->buffer->max_ops < 0))
+    {
+      c->buffer->successful = false;
+      return NOT_MATCH;
+    }
 
     matcher_t::may_match_t match = matcher.may_match (info, get_glyph_data ());
     if (match == matcher_t::MATCH_YES ||
@@ -1122,6 +1172,7 @@ struct skipping_iterator_t
 #endif
 
   unsigned int end;
+  unsigned int num_tested; /* Glyphs tested against the matcher since the last reset. */
 };
 
 struct hb_ot_apply_context_t :
@@ -1159,6 +1210,22 @@ struct hb_ot_apply_context_t :
     bool ret = recurse_func (this, sub_lookup_index);
     nesting_level_left++;
     return ret;
+  }
+
+  /* Charge work that does not move glyphs, like walking the rules of a
+   * RuleSet, to the buffer's work budget.  Offsets can share their
+   * targets, so the number of rules (or ligatures) tried at one glyph
+   * is not bounded by the size of the font. */
+  bool charge_ops (unsigned int count)
+  {
+    if (unlikely (buffer->max_ops < (int) count))
+    {
+      buffer->max_ops = -1;
+      buffer->successful = false;
+      return false;
+    }
+    buffer->max_ops -= (int) count;
+    return true;
   }
 
   skipping_iterator_t<hb_ot_apply_context_t> iter_input, iter_context;
@@ -1276,6 +1343,26 @@ struct hb_ot_apply_context_t :
     /* http://www.cplusplus.com/reference/random/minstd_rand/ */
     buffer->random_state = buffer->random_state * 48271 % 2147483647;
     return buffer->random_state;
+  }
+
+  /* Evaluating a variation Device walks the whole delta-set row of its
+   * VarData, and the font chooses how long that row is (up to 65535
+   * region indices, which need not be distinct).  Charge that walk to
+   * the buffer's work budget before doing it.  Sixteen region scalars
+   * count as one op, so ordinary rows are nearly free. */
+  bool charge_device (const Device &device)
+  {
+    unsigned int varidx = device.get_variation_index ();
+    if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      return true;
+
+    buffer->max_ops -= var_store.get_region_index_count (varidx >> 16) / 16;
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
+      return false;
+    }
+    return true;
   }
 
   static void buffer_changed_trampoline (hb_buffer_t *buffer HB_UNUSED, void *user_data)
@@ -3169,6 +3256,7 @@ struct Rule
 	      const ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
+    if (unlikely (!c->charge_ops (1 + inputCount / 16))) return_trace (false);
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 					   (inputZ.as_array (inputCount ? inputCount - 1 : 0));
     return_trace (context_apply_lookup (c, inputCount, inputZ.arrayZ, lookupCount, lookupRecord.arrayZ, lookup_context));
@@ -3334,6 +3422,9 @@ struct RuleSetOf
     TRACE_APPLY (this);
 
     unsigned num_rules = rule.len;
+
+    /* Walking the rules is cheap; those tried in full are charged there. */
+    if (unlikely (!c->charge_ops (num_rules / 8))) return_trace (false);
 
 #ifndef HB_NO_OT_RULESETS_FAST_PATH
     if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 4)
@@ -4756,6 +4847,7 @@ struct ChainRule
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    if (unlikely (!c->charge_ops (1 + (backtrack.len + input.lenP1 + lookahead.len) / 16))) return_trace (false);
     return_trace (chain_context_apply_lookup (c,
 					      backtrack.len, backtrack.arrayZ,
 					      input.lenP1, input.arrayZ,
@@ -4856,6 +4948,10 @@ struct ChainRule
     if (unlikely (!lookahead.len.sanitize (c))) return_trace (false);
     hb_barrier ();
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    /* The length checks above don't charge max_ops for the arrays they
+     * skipped over; charge them here so that many offsets pointing at
+     * the same large rule cannot escape the sanitizer's work bound. */
+    if (unlikely (!c->check_ops ((const char *) &lookup - (const char *) this))) return_trace (false);
     return_trace (likely (lookup.sanitize (c)));
   }
 
@@ -4973,6 +5069,9 @@ struct ChainRuleSetOf
     TRACE_APPLY (this);
 
     unsigned num_rules = rule.len;
+
+    /* Walking the rules is cheap; those tried in full are charged there. */
+    if (unlikely (!c->charge_ops (num_rules / 8))) return_trace (false);
 
 #ifndef HB_NO_OT_RULESETS_FAST_PATH
     if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 4)
