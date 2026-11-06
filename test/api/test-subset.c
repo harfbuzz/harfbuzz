@@ -541,6 +541,244 @@ test_subset_plan (void)
   hb_face_destroy (face_ac);
 }
 
+#ifndef HB_NO_SUBSET_LAYOUT
+static void
+test_subset_unsupported_layout_table_retains_gids (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/aat-morx.ttf");
+  hb_tag_t morx = HB_TAG ('m', 'o', 'r', 'x');
+
+  const struct {
+    bool drop_morx;
+    bool passthrough;
+    unsigned expected_num_glyphs;
+    unsigned expected_gid_a;
+    bool expected_morx;
+  } tests[] = {
+    /* morx is retained; glyph ids must not be renumbered. */
+    {false, true, 3, 2, true},
+    /* morx is dropped; glyph ids are renumbered as usual. */
+    {true,  true, 2, 1, false},
+    /* morx is kept but not passed through, so it is dropped. */
+    {false, false, 2, 1, false},
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    hb_set_t *codepoints = hb_set_create ();
+    hb_set_add (codepoints, 'A');
+    hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+    hb_set_destroy (codepoints);
+
+    if (!tests[i].drop_morx)
+      hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), morx);
+    if (tests[i].passthrough)
+      hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED);
+
+    hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+    g_assert_nonnull (plan);
+    g_assert_cmpuint (hb_map_get (hb_subset_plan_old_to_new_glyph_mapping (plan), 2),
+		      ==, tests[i].expected_gid_a);
+
+    hb_face_t *subset = hb_subset_plan_execute_or_fail (plan);
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, tests[i].expected_num_glyphs);
+
+    hb_blob_t *morx_blob = hb_face_reference_table (subset, morx);
+    g_assert_true (!!hb_blob_get_length (morx_blob) == tests[i].expected_morx);
+    hb_blob_destroy (morx_blob);
+
+    hb_face_destroy (subset);
+    hb_subset_plan_destroy (plan);
+    hb_subset_input_destroy (input);
+  }
+
+  hb_face_destroy (face);
+}
+
+static void
+test_subset_graphite_table_retains_gids (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/graphite2-expansion.ttf");
+  static const hb_tag_t graphite_tables[] = {
+    HB_TAG ('G', 'l', 'a', 't'),
+    HB_TAG ('G', 'l', 'o', 'c'),
+    HB_TAG ('S', 'i', 'l', 'f'),
+  };
+
+  for (unsigned retain = 0; retain < 2; retain++)
+  {
+    hb_set_t *glyphs = hb_set_create ();
+    hb_set_add (glyphs, 2);
+    hb_subset_input_t *input = hb_subset_test_create_input_from_glyphs (glyphs);
+    hb_set_destroy (glyphs);
+
+    if (retain)
+    {
+      hb_set_t *drop_tables = hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG);
+      for (unsigned i = 0; i < G_N_ELEMENTS (graphite_tables); i++)
+        hb_set_del (drop_tables, graphite_tables[i]);
+      hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED);
+    }
+
+    hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+    g_assert_nonnull (plan);
+    g_assert_cmpuint (hb_map_get (hb_subset_plan_old_to_new_glyph_mapping (plan), 2),
+		      ==, retain ? 2 : 1);
+
+    hb_face_t *subset = hb_subset_plan_execute_or_fail (plan);
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, retain ? 3 : 2);
+
+    hb_blob_t *silf = hb_face_reference_table (subset, HB_TAG ('S', 'i', 'l', 'f'));
+    g_assert_true (!!hb_blob_get_length (silf) == retain);
+    hb_blob_destroy (silf);
+
+    hb_face_destroy (subset);
+    hb_subset_plan_destroy (plan);
+    hb_subset_input_destroy (input);
+  }
+
+  hb_face_destroy (face);
+}
+
+static const char synthetic_table_data[] = {0, 1, 0, 0};
+
+static hb_face_t *
+_face_with_synthetic_table (hb_face_t *source, hb_tag_t tag)
+{
+  hb_face_t *face = hb_face_builder_create ();
+
+  hb_tag_t tags[32];
+  unsigned offset = 0;
+  while (true)
+  {
+    unsigned count = G_N_ELEMENTS (tags);
+    hb_face_get_table_tags (source, offset, &count, tags);
+    if (!count) break;
+
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_blob_t *blob = hb_face_reference_table (source, tags[i]);
+      hb_face_builder_add_table (face, tags[i], blob);
+      hb_blob_destroy (blob);
+    }
+    offset += count;
+  }
+
+  hb_blob_t *blob = hb_blob_create_or_fail (synthetic_table_data,
+					    sizeof (synthetic_table_data),
+					    HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, tag, blob);
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+static void
+test_subset_unsubsettable_glyph_tables (void)
+{
+  /* These tables must be passed through byte-for-byte. If a subsetter is added
+   * for one of them this test fails, since the new handler will reject or
+   * rewrite the synthetic data, and the tag should be removed from
+   * hb-subset-plan.cc's unsubsettable_glyph_tables[]. */
+  static const hb_tag_t tags[] = {
+    HB_TAG ('E', 'B', 'D', 'T'),
+    HB_TAG ('E', 'B', 'L', 'C'),
+    HB_TAG ('J', 'S', 'T', 'F'),
+    HB_TAG ('L', 'T', 'S', 'H'),
+    HB_TAG ('S', 'V', 'G', ' '),
+    HB_TAG ('Z', 'a', 'p', 'f'),
+    HB_TAG ('b', 'd', 'a', 't'),
+    HB_TAG ('b', 'l', 'o', 'c'),
+    HB_TAG ('g', 'c', 'i', 'd'),
+    HB_TAG ('h', 'v', 'g', 'l'),
+    HB_TAG ('h', 'v', 'p', 'm'),
+    HB_TAG ('a', 'n', 'k', 'r'),
+    HB_TAG ('b', 's', 'l', 'n'),
+    HB_TAG ('j', 'u', 's', 't'),
+    HB_TAG ('k', 'e', 'r', 'n'),
+    HB_TAG ('k', 'e', 'r', 'x'),
+    HB_TAG ('l', 'c', 'a', 'r'),
+    HB_TAG ('m', 'o', 'r', 't'),
+    HB_TAG ('m', 'o', 'r', 'x'),
+    HB_TAG ('o', 'p', 'b', 'd'),
+    HB_TAG ('p', 'r', 'o', 'p'),
+    HB_TAG ('G', 'l', 'a', 't'),
+    HB_TAG ('G', 'l', 'o', 'c'),
+    HB_TAG ('S', 'i', 'l', 'f'),
+  };
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (tags); i++)
+  {
+    hb_face_t *face = _face_with_synthetic_table (source, tags[i]);
+
+    hb_set_t *glyphs = hb_set_create ();
+    hb_set_add (glyphs, 3);
+    hb_subset_input_t *input = hb_subset_test_create_input_from_glyphs (glyphs);
+    hb_set_destroy (glyphs);
+    hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), tags[i]);
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED);
+
+    hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+    g_assert_nonnull (plan);
+    g_assert_cmpuint (hb_map_get (hb_subset_plan_old_to_new_glyph_mapping (plan), 3),
+		      ==, 3);
+
+    hb_face_t *subset = hb_subset_plan_execute_or_fail (plan);
+    g_assert_nonnull (subset);
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 4);
+
+    hb_blob_t *blob = hb_face_reference_table (subset, tags[i]);
+    unsigned length;
+    const char *data = hb_blob_get_data (blob, &length);
+    g_assert_cmpmem (data, length, synthetic_table_data, sizeof (synthetic_table_data));
+    hb_blob_destroy (blob);
+
+    hb_face_destroy (subset);
+    hb_subset_plan_destroy (plan);
+    hb_subset_input_destroy (input);
+    hb_face_destroy (face);
+  }
+
+  hb_face_destroy (source);
+}
+
+static void
+test_subset_non_glyph_layout_table_does_not_retain_gids (void)
+{
+  /* aat-trak.ttf has both morx and trak. morx is dropped by default, leaving
+   * only trak, which does not refer to glyphs, so ids are renumbered. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/aat-trak.ttf");
+  hb_tag_t trak = HB_TAG ('t', 'r', 'a', 'k');
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'C');
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_set_destroy (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED);
+
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+  g_assert_nonnull (plan);
+  g_assert_cmpuint (hb_map_get (hb_subset_plan_old_to_new_glyph_mapping (plan), 4),
+		    ==, 1);
+
+  hb_face_t *subset = hb_subset_plan_execute_or_fail (plan);
+  g_assert_nonnull (subset);
+  g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 2);
+
+  hb_blob_t *trak_blob = hb_face_reference_table (subset, trak);
+  g_assert_cmpuint (hb_blob_get_length (trak_blob), >, 0);
+  hb_blob_destroy (trak_blob);
+
+  hb_face_destroy (subset);
+  hb_subset_plan_destroy (plan);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+#endif
+
 static void
 test_subset_custom_glyph_mapping (void)
 {
@@ -1212,6 +1450,12 @@ main (int argc, char **argv)
   hb_test_add (test_subset_set_flags);
   hb_test_add (test_subset_sets);
   hb_test_add (test_subset_plan);
+#ifndef HB_NO_SUBSET_LAYOUT
+  hb_test_add (test_subset_unsupported_layout_table_retains_gids);
+  hb_test_add (test_subset_graphite_table_retains_gids);
+  hb_test_add (test_subset_unsubsettable_glyph_tables);
+  hb_test_add (test_subset_non_glyph_layout_table_does_not_retain_gids);
+#endif
   hb_test_add (test_subset_custom_glyph_mapping);
   hb_test_add (test_subset_sanitized_table_cache);
 #if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)
