@@ -197,6 +197,90 @@ reference_table_with_empty_avar2_store (hb_face_t *face HB_UNUSED,
   return copy;
 }
 
+/* Point the test font's gvar offsets of glyphs 0 and 2 at glyph 1's
+ * variation data (and glyph 1 at nothing), so that the retained glyphs'
+ * data add up to more than the table. */
+static hb_blob_t *
+reference_table_with_aliased_gvar_data (hb_face_t *face HB_UNUSED,
+					hb_tag_t tag,
+					void *user_data)
+{
+  hb_blob_t *table = hb_face_reference_table ((hb_face_t *) user_data, tag);
+  if (tag != HB_TAG ('g','v','a','r'))
+    return table;
+
+  hb_blob_t *copy = hb_blob_copy_writable_or_fail (table);
+  hb_blob_destroy (table);
+  g_assert_nonnull (copy);
+
+  unsigned length;
+  unsigned char *data = (unsigned char *) hb_blob_get_data_writable (copy, &length);
+  g_assert_nonnull (data);
+  g_assert_cmpuint (length, >=, 28);
+  g_assert_cmpuint (read_uint16_be (data + 12), ==, 3); /* glyphCount */
+  g_assert_cmpuint (read_uint16_be (data + 14) & 1, ==, 0); /* short offsets */
+  g_assert_cmpuint (read_uint16_be (data + 24), >, read_uint16_be (data + 22)); /* glyph 1 has data */
+
+  unsigned char start[2] = {data[22], data[23]};
+  unsigned char end[2] = {data[24], data[25]};
+  data[20] = start[0]; data[21] = start[1]; /* glyph 0: [start, end) */
+  data[22] = end[0];   data[23] = end[1];   /* glyph 1: [end, start): nothing */
+  data[24] = start[0]; data[25] = start[1]; /* glyph 2: [start, end) */
+  data[26] = end[0];   data[27] = end[1];
+  return copy;
+}
+
+static unsigned char *
+write_uint16_be (unsigned char *p, unsigned v)
+{
+  *p++ = (v >> 8) & 0xFF;
+  *p++ = v & 0xFF;
+  return p;
+}
+
+/* Replace the test font's avar table with one that gives wght hundreds of
+ * avar v1 breakpoints and, through the implicit VarIdxMap, keeps the axes'
+ * delta sets in a VarData of 65535 rows but no regions: rows that take no
+ * bytes.  Few enough breakpoints that the quadratic estimator budget is not
+ * the one that trips. */
+static hb_blob_t *
+reference_table_with_avar2_empty_rows (hb_face_t *face HB_UNUSED,
+				       hb_tag_t tag,
+				       void *user_data)
+{
+  if (tag != HB_TAG ('a','v','a','r'))
+    return hb_face_reference_table ((hb_face_t *) user_data, tag);
+
+  const unsigned axis_count = 6, map_count = 513;
+  unsigned tail = 8 + 2 * axis_count + 4 * map_count;
+  unsigned length = tail + 8 + 12 + 4 + 6;
+  unsigned char *data = (unsigned char *) calloc (length, 1);
+  g_assert_nonnull (data);
+
+  unsigned char *p = data;
+  p = write_uint16_be (p, 2); /* majorVersion; minorVersion, reserved */
+  p = write_uint16_be (p + 4, axis_count);
+  p = write_uint16_be (p, map_count); /* wght: identity breakpoints */
+  for (int v = -16384; v <= 16384; v += 64)
+  {
+    p = write_uint16_be (p, (unsigned) v);
+    p = write_uint16_be (p, (unsigned) v);
+  }
+  g_assert_true (p + 2 * (axis_count - 1) == data + tail); /* no maps */
+
+  p = write_uint16_be (data + tail + 6, tail + 8); /* NULL VarIdxMap; VarStore */
+  p = write_uint16_be (p, 1); /* format */
+  p = write_uint16_be (p + 2, 12); /* VarRegionList */
+  p = write_uint16_be (p, 1); /* VarDataCount */
+  p = write_uint16_be (p + 2, 12 + 4); /* VarData */
+  p = write_uint16_be (p, axis_count); /* no regions */
+  p = write_uint16_be (p + 2, 65535); /* itemCount; no region indices */
+  g_assert_true (p + 4 == data + length);
+
+  return hb_blob_create ((const char *) data, length,
+			 HB_MEMORY_MODE_WRITABLE, data, free);
+}
+
 static hb_face_t *
 instance_n (hb_face_t *face, hb_subset_input_t *input, unsigned expected_axes)
 {
@@ -607,6 +691,26 @@ test_avar2_empty_varstore (void)
   hb_face_destroy (source);
 }
 
+/* Culling parses every retained glyph's variation data; a table whose
+ * offsets point many glyphs at the same data must be rejected, not
+ * parsed and copied once per glyph. */
+static void
+test_avar2_culling_aliased_gvar_data (void)
+{
+  hb_face_t *source = open_original ();
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_aliased_gvar_data,
+					       source, NULL);
+  hb_subset_input_t *input = create_input ();
+  /* Keep glyph 0's data in the pass too: with glyph 2 it exceeds the table. */
+  hb_subset_input_set_flags (input, hb_subset_input_get_flags (input) | HB_SUBSET_FLAGS_NOTDEF_OUTLINE);
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 300.f, 500.f, 400.f));
+  g_assert_null (hb_subset_or_fail (face, input));
+  hb_subset_input_destroy (input);
+
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 /* Move opsz's default from near the axis minimum (14) far up the axis:
  * the retained negative-side avar v1 segment becomes very steep in the
  * new space and offset compensation is quantization-limited. The
@@ -631,6 +735,99 @@ test_avar2_restrict_steep_no_varidx (void)
   hb_face_destroy (face);
 }
 
+/* Replace the test font's avar with a version 2 table that has no VarIdxMap
+ * and no VarStore, and gives the first axis, wght, an identity mapping with
+ * a breakpoint every step F2Dot14 units. */
+typedef struct
+{
+  hb_face_t *source;
+  unsigned step;
+} breakpoints_t;
+
+static hb_blob_t *
+reference_table_with_breakpoints (hb_face_t *face HB_UNUSED,
+				  hb_tag_t tag,
+				  void *user_data)
+{
+  const breakpoints_t *breakpoints = (const breakpoints_t *) user_data;
+  if (tag != HB_TAG ('a','v','a','r'))
+    return hb_face_reference_table (breakpoints->source, tag);
+
+  unsigned map_count = 2 * 16384 / breakpoints->step + 1;
+  unsigned length = 8 + (2 + map_count * 4) + 5 * 2 + 8;
+  unsigned char *data = (unsigned char *) calloc (length, 1);
+  g_assert_nonnull (data);
+
+  data[1] = 2; /* major version */
+  data[7] = 6; /* axisCount */
+  data[8] = map_count >> 8;
+  data[9] = map_count & 0xFF;
+  for (unsigned i = 0; i < map_count; i++)
+  {
+    unsigned char *p = data + 10 + i * 4;
+    unsigned coord = (unsigned) ((int) (i * breakpoints->step) - 16384);
+    p[0] = p[2] = (coord >> 8) & 0xFF;
+    p[1] = p[3] = coord & 0xFF;
+  }
+
+  return hb_blob_create ((const char *) data, length,
+			 HB_MEMORY_MODE_WRITABLE, data, free);
+}
+
+/* Offset compensation takes time quadratic in the breakpoints of the
+ * restricted axis. It must cope with hundreds of them, but give up on tens
+ * of thousands rather than spend a minute. */
+static void
+test_avar2_restrict_many_breakpoints (void)
+{
+  hb_face_t *source = open_original ();
+
+  breakpoints_t many = {source, 64};
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_breakpoints,
+					       &many, NULL);
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  hb_face_t *inst = instance (face, input);
+
+  for (unsigned i = 0; i < 9; i++)
+  {
+    hb_variation_t vars[1] = {{WGHT, lerp (200.f, 700.f, i, 9)}};
+    check_same_coords (face, inst, vars, 1, 2);
+  }
+
+  hb_face_destroy (inst);
+  hb_face_destroy (face);
+
+  breakpoints_t too_many = {source, 1};
+  face = hb_face_create_for_tables (reference_table_with_breakpoints,
+				    &too_many, NULL);
+  input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  g_assert_null (hb_subset_or_fail (face, input));
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
+/* Every retained breakpoint adds an offset-compensation tuple with a delta
+ * per row of the VarData. For this table that is far more than the glyph
+ * has points, so instancing must fail instead of allocating it. */
+static void
+test_avar2_empty_rows (void)
+{
+  hb_face_t *source = open_original ();
+  hb_face_t *face = hb_face_create_for_tables (reference_table_with_avar2_empty_rows,
+					       source, NULL);
+  hb_subset_input_t *input = create_input ();
+  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+  g_assert_null (hb_subset_or_fail (face, input));
+
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  hb_face_destroy (source);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -649,8 +846,11 @@ main (int argc, char **argv)
   hb_test_add (test_avar2_restrict_both_shared);
   hb_test_add (test_avar2_culling);
   hb_test_add (test_avar2_empty_varstore);
+  hb_test_add (test_avar2_culling_aliased_gvar_data);
   hb_test_add (test_avar2_restrict_steep);
   hb_test_add (test_avar2_restrict_steep_no_varidx);
+  hb_test_add (test_avar2_restrict_many_breakpoints);
+  hb_test_add (test_avar2_empty_rows);
 
   return hb_test_run ();
 }
