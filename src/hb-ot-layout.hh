@@ -76,6 +76,12 @@ hb_ot_layout_lookup_would_substitute_with_buffer (hb_face_t            *face,
 						  bool                  zero_context,
 						  hb_buffer_t          *buffer);
 
+HB_INTERNAL hb_array_t<const OT::Index>
+_hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
+						   hb_tag_t      table_tag,
+						   unsigned int  feature_index,
+						   unsigned int  variations_index);
+
 
 /*
  * GDEF

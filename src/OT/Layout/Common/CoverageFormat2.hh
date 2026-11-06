@@ -157,6 +157,14 @@ struct CoverageFormat2_4
 	    hb_requires (hb_is_sink_of (IterableOut, hb_codepoint_t))>
   void intersect_set (const hb_set_t &glyphs, IterableOut&& intersect_glyphs) const
   {
+    if (rangeRecord.len > glyphs.get_population () * hb_bit_storage ((unsigned) rangeRecord.len))
+    {
+      for (auto g : glyphs)
+	if (get_coverage (g) != NOT_COVERED)
+	  intersect_glyphs << g;
+      return;
+    }
+
     /* Break out of loop for overlapping, broken, tables,
      * to avoid fuzzer timouts. */
     hb_codepoint_t last = 0;
