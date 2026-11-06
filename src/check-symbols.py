@@ -50,7 +50,7 @@ IGNORED_SYMBOLS += [
 
 IGNORED_SYMBOLS = "|".join(IGNORED_SYMBOLS)
 
-nm = os.getenv("NM", shutil.which("nm"))
+nm = os.getenv("NM") or shutil.which("nm") or shutil.which("llvm-nm")
 if not nm:
     print("check-symbols.py: 'nm' not found; skipping test")
     sys.exit(77)

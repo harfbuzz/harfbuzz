@@ -11,9 +11,9 @@ srcdir = sys.argv[1]
 base_srcdir = sys.argv[2]
 builddir = sys.argv[3]
 
-objdump = os.getenv("OBJDUMP", shutil.which("objdump"))
+objdump = os.getenv("OBJDUMP") or shutil.which("objdump") or shutil.which("llvm-objdump")
 if not objdump:
-    print("check-static-inits.py: 'ldd' not found; skipping test")
+    print("check-static-inits.py: 'objdump' not found; skipping test")
     sys.exit(77)
 
 if sys.version_info < (3, 5):
