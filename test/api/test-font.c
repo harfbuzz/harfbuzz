@@ -926,6 +926,15 @@ test_synthetic_bold_saturates (void)
   g_assert_true (hb_font_get_glyph_v_origin (font, 1, &x, &y));
   g_assert_cmpint (x, ==, INT32_MAX);
   g_assert_cmpint (y, ==, INT32_MAX);
+
+  hb_position_t xs = 0, ys = 0;
+  g_assert_true (hb_font_get_glyph_h_origins (font, 1, &glyph, 0, &xs, 0, &ys, 0));
+  g_assert_cmpint (xs, ==, INT32_MAX);
+  g_assert_cmpint (ys, ==, INT32_MAX);
+  g_assert_true (hb_font_get_glyph_v_origins (font, 1, &glyph, 0, &xs, 0, &ys, 0));
+  g_assert_cmpint (xs, ==, INT32_MAX);
+  g_assert_cmpint (ys, ==, INT32_MAX);
+
   g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
   g_assert_cmpint (x, ==, INT32_MAX);
 
@@ -939,6 +948,30 @@ test_synthetic_bold_saturates (void)
   g_assert_true (hb_font_get_v_extents (font, &extents));
   g_assert_cmpint (extents.ascender, ==, INT32_MAX);
   g_assert_cmpint (extents.descender, ==, INT32_MIN);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static void
+test_synthetic_slant_saturates (void)
+{
+  hb_font_funcs_t *ffuncs = _near_max_font_funcs ();
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_set_scale (font, 2048, 2048);
+
+  /* The contour point is one short of INT32_MAX in both axes. A slant of 1
+   * shifts x by the full y value; that product does not survive a float to
+   * int conversion, so it has to be clamped before it is added. */
+  hb_font_set_synthetic_slant (font, 1.f);
+
+  hb_position_t x = 0, y = 0;
+  g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
+  g_assert_cmpint (x, ==, INT32_MAX);
+  g_assert_cmpint (y, ==, INT32_MAX - 1);
 
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -1564,6 +1597,7 @@ main (int argc, char **argv)
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
   hb_test_add (test_synthetic_bold_saturates);
+  hb_test_add (test_synthetic_slant_saturates);
   hb_test_add (test_glyph_origin_offsets_saturate);
   hb_test_add (test_synthetic_bold_extreme_strength);
   hb_test_add (test_font_float_scale_saturates);
