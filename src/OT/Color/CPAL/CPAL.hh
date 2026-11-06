@@ -246,8 +246,6 @@ struct CPAL
   {
     TRACE_SERIALIZE (this);
 
-    // TODO(grieger): limit total final size.
-
     for (const auto idx : color_record_indices)
     {
       hb_codepoint_t layer_index = first_color_to_layer_index[idx];
@@ -315,6 +313,17 @@ struct CPAL
     for (const auto first_color_record_idx : colorRecordIndices)
     {
       if (first_color_to_layer_index.has (first_color_record_idx)) continue;
+
+      /* Palettes may overlap in the source, so the distinct starts times the
+       * retained colors is not bounded by the source numColorRecords. Fail
+       * before copying once the blocks could no longer be counted in the
+       * 16-bit numColorRecords; palettes that do not overlap never get there.
+       * This bounds the work below as well as the serialized size. */
+      if (unlikely (!c->serializer->check_assign (out->numColorRecords,
+						  (first_color_to_layer_index.get_population () + 1)
+						  * retained_color_indices.get_population (),
+						  HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+	return_trace (false);
 
       hb_vector_t<BGRAColor> retained_colors;
       if (unlikely (!retained_colors.alloc (retained_color_indices.get_population ()))) return_trace (false);
