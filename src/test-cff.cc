@@ -200,9 +200,9 @@ test_roundtrip_parse_encode_num_tp ()
     { 1234567900.0, 5, { OpCode_longintdict, 0x49, 0x96, 0x02, 0xDC } }, // 1234567900
     { 9.876537e-4, 7, { OpCode_BCD, 0x98, 0x76, 0x53, 0x7C, 0x10, 0xFF } }, // 9876537E-10
     { 9.876537e4, 6, { OpCode_BCD, 0x98, 0x76, 0x5A, 0x37, 0xFF } }, // 98765.37
-    { 1e8, 5, { OpCode_longintdict, 0x05, 0xF5, 0xE1, 0x00 } }, // 1E8
+    { 1e8, 5, { OpCode_longintdict, 0x05, 0xF5, 0xE1, 0x00 } }, // 100000000
     { 1e-5, 3, { OpCode_BCD, 0x1C, 0x5F } }, // 1E-5
-    { 1.2e8, 5, { OpCode_longintdict, 0x07, 0x27, 0x0E, 0x00 } }, // 12E7
+    { 1.2e8, 5, { OpCode_longintdict, 0x07, 0x27, 0x0E, 0x00 } }, // 120000000
     { 1.2345e-5, 5, { OpCode_BCD, 0x12, 0x34, 0x5C, 0x9F } }, // 12345E-9
     { 9.0987654e8, 5, { OpCode_longintdict, 0x36, 0x3B, 0x9D, 0x3C } }, // 909876540
     { 0.1, 3, { OpCode_BCD, 0xA1, 0xFF } }, // .1
@@ -217,8 +217,8 @@ test_roundtrip_parse_encode_num_tp ()
     { 0.000123, 4, { OpCode_BCD, 0x12, 0x3C, 0x6F } },   // 123E-6
     { -0.000123, 5, { OpCode_BCD, 0xE1, 0x23, 0xC6, 0xFF } },  // -123E-6
     { 123000.00001, 4, { OpCode_BCD, 0x12, 0x3B, 0x3F } },
-    { 12340000.0, 5, { OpCode_longintdict, 0x00, 0xBC, 0x4B, 0x20 } }, // 1234E4
-    { 1000000.0, 5, { OpCode_longintdict, 0x00, 0x0F, 0x42, 0x40 } }, // 1E6
+    { 12340000.0, 5, { OpCode_longintdict, 0x00, 0xBC, 0x4B, 0x20 } }, // 12340000
+    { 1000000.0, 5, { OpCode_longintdict, 0x00, 0x0F, 0x42, 0x40 } }, // 1000000
     { 5000.0, 3, { OpCode_shortint, 0x13, 0x88 } }, // 5000
     { 0.0, 1, { 0x8B } },
     { -0.0, 1, { 0x8B } },

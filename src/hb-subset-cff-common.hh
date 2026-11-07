@@ -30,7 +30,6 @@
 #include "hb.hh"
 
 #include "hb-subset-plan.hh"
-#include "hb-cff-interp-common.hh"
 #include "hb-cff-interp-cs-common.hh"
 
 namespace CFF {
