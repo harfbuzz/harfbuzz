@@ -852,8 +852,9 @@ hb_gpu_shader_sources = [
 ]
 
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
+hb_gpu_shader_headers = []
 foreach p: hb_gpu_shader_sources
-  custom_target('@0@'.format(p.get(1)),
+  hb_gpu_shader_headers += custom_target('@0@'.format(p.get(1)),
     build_by_default: true,
     input: p.get(0),
     output: p.get(1),
@@ -878,6 +879,7 @@ if not get_option('gpu').disabled()
 
   libharfbuzz_gpu = library('harfbuzz-gpu',
     hb_gpu_sources,
+    hb_gpu_shader_headers,
     include_directories: incconfig,
     dependencies: gpu_deps,
     link_with: [libharfbuzz],
