@@ -896,8 +896,10 @@ struct CmapSubtableLongSegmented
 	gid++;
       }
       if (unlikely ((unsigned int) gid >= num_glyphs)) continue;
-      if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
-	end = start + (hb_codepoint_t) num_glyphs - gid;
+      /* Format 13 maps a whole group to one glyph; only clamp groups whose
+       * glyph ids increase, keeping the last one below num_glyphs. */
+      if (T::increment && unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
+	end = start + (hb_codepoint_t) num_glyphs - gid - 1;
 
       out->add_range (start, hb_min (end, 0x10FFFFu));
     }
@@ -929,8 +931,10 @@ struct CmapSubtableLongSegmented
 	gid++;
       }
       if (unlikely ((unsigned int) gid >= num_glyphs)) continue;
-      if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
-	end = start + (hb_codepoint_t) num_glyphs - gid;
+      /* Format 13 maps a whole group to one glyph; only clamp groups whose
+       * glyph ids increase, keeping the last one below num_glyphs. */
+      if (T::increment && unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
+	end = start + (hb_codepoint_t) num_glyphs - gid - 1;
 
       mapping->alloc (mapping->get_population () + end - start + 1);
 
