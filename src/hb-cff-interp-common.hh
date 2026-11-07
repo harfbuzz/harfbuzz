@@ -244,8 +244,10 @@ struct number_t
   void set_real (double v)   { value = v; }
   double to_real () const    { return value; }
 
-  bool in_int_range () const
+  bool in_int16_range () const
   { return value >= INT16_MIN && value <= INT16_MAX && (double) (int16_t) value == value; }
+  bool in_int32_range () const
+  { return value >= INT32_MIN && value <= INT32_MAX && (double) (int32_t) value == value; }
 
   bool operator >  (const number_t &n) const { return value > n.to_real (); }
   bool operator <  (const number_t &n) const { return n > *this; }
@@ -481,9 +483,12 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
     return (unsigned) i;
   }
 
+  static int parse_longint (uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+  { return (int) ((uint32_t (a) << 24) | (b << 16) | (c << 8) | d); }
+
   void push_longint_from_substr (byte_str_ref_t& str_ref)
   {
-    push_int ((int) ((uint32_t (str_ref[0]) << 24) | (str_ref[1] << 16) | (str_ref[2] << 8) | (str_ref[3])));
+    push_int (parse_longint (str_ref[0], str_ref[1], str_ref[2], str_ref[3]));
     str_ref.inc (4);
   }
 
@@ -617,37 +622,52 @@ using num_interp_env_t =  interp_env_t<>;
 template <typename ARG=number_t>
 struct opset_t
 {
+private:
+  static constexpr int one_byte_bias = (OpCode_OneByteIntFirst + OpCode_OneByteIntLast) / 2;
+  static constexpr int two_byte_base = OpCode_OneByteIntLast - one_byte_bias + 1;
+  static_assert (one_byte_bias == 139, "CFF one-byte range centers on 139");
+  static_assert (two_byte_base == 108, "CFF two-byte range starts at 108");
+
+public:
+  static bool is_one_byte_integer (op_code_t op)
+  { return (OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast); }
+  static int parse_one_byte_integer (op_code_t op) { return (int)op - one_byte_bias; }
+
+  static bool is_two_bytes_positive_integer (op_code_t op)
+  { return OpCode_TwoBytePosInt0 <= op && op <= OpCode_TwoBytePosInt3; }
+  static int parse_two_bytes_positive_integer (op_code_t op, uint8_t b)
+  { return (int16_t)(op - OpCode_TwoBytePosInt0) * 256 + b + two_byte_base; }
+
+  static bool is_two_bytes_negative_integer (op_code_t op)
+  { return OpCode_TwoByteNegInt0 <= op && op <= OpCode_TwoByteNegInt3; }
+  static int parse_two_bytes_negative_integer (op_code_t op, uint8_t b)
+  { return -(int16_t)(op - OpCode_TwoByteNegInt0) * 256 - b - two_byte_base; }
+
+  static bool is_shortint(op_code_t op) { return op == OpCode_shortint; }
+  static int parse_shortint (uint8_t a, uint8_t b) { return (int16_t) ((a << 8) | b); }
+
   static void process_op (op_code_t op, interp_env_t<ARG>& env)
   {
-    switch (op) {
-      case OpCode_shortint:
-	env.argStack.push_int ((int16_t)((env.str_ref[0] << 8) | env.str_ref[1]));
-	env.str_ref.inc (2);
-	break;
-
-      case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
-      case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-	env.argStack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + env.str_ref[0] + 108));
-	env.str_ref.inc ();
-	break;
-
-      case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
-      case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-	env.argStack.push_int ((-(int16_t)(op - OpCode_TwoByteNegInt0) * 256 - env.str_ref[0] - 108));
-	env.str_ref.inc ();
-	break;
-
-      default:
-	/* 1-byte integer */
-	if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)))
-	{
-	  env.argStack.push_int ((int)op - 139);
-	} else {
-	  /* invalid unknown operator */
-	  env.clear_args ();
-	}
-	break;
+    if (is_one_byte_integer (op))
+      env.argStack.push_int (parse_one_byte_integer (op));
+    else if (is_two_bytes_positive_integer (op))
+    {
+      env.argStack.push_int (parse_two_bytes_positive_integer (op, env.str_ref[0]));
+      env.str_ref.inc ();
     }
+    else if (is_two_bytes_negative_integer (op))
+    {
+      env.argStack.push_int (parse_two_bytes_negative_integer (op, env.str_ref[0]));
+      env.str_ref.inc ();
+    }
+    else if (is_shortint (op))
+    {
+      env.argStack.push_int (parse_shortint (env.str_ref[0], env.str_ref[1]));
+      env.str_ref.inc (2);
+    }
+    else
+      /* invalid unknown operator */
+      env.clear_args ();
   }
 };
 

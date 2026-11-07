@@ -270,9 +270,11 @@ test_subset_cff2_pinned_private_blend_overflow (void)
    * Private DICT blends directly without a partial instancer and must clamp
    * out-of-range rounded values to INT_MAX instead of invoking float-to-int UB
    * (which produces x86 integer indefinite INT_MIN 0x80000000 in release builds). */
-  /* CFF BCD encoding of +2.1474836E9 (clamped INT_MAX) + OpCode_StdVW (0x0b),
-   * vs negative -2.1474836E9 (0x1e 0xe2 ...) from unpatched float-to-int UB. */
-  static const unsigned char clamped_int_max[8] = {0x1e, 0x21, 0x47, 0x48, 0x36, 0xb2, 0xff, 0x0b};
+  /* CFF2 longint encoding of +2147483647 (clamped INT_MAX), followed by
+   * OpCode_StdVW (0x0b), vs. the longint encoding of -2147483648 that
+   * unpatched float-to-int UB produces on x86 (which casts the 1e12 blend
+   * result to INT_MIN 0x80000000). */
+  static const unsigned char clamped_int_max[6] = {0x1d, 0x7f, 0xff, 0xff, 0xff, 0x0b};
   static const unsigned char indef_int_min[6]   = {0x1e, 0xe2, 0x14, 0x74, 0x83, 0x6b};
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.huge-blend.otf");
   const hb_subset_flags_t modes[] = {
