@@ -278,8 +278,7 @@ private:
   template <unsigned size>
   struct nibble_buffer_t
   {
-    static_assert (size % 2 == 0, "size should be even");
-    static_assert (0 < size && size < 64, "size should be sensible and fit in stack");
+    static_assert (0 < size && size < 64, "");
     void push (uint8_t nibble)
     {
       if (unlikely (in_error || nibble_count >= size)) { in_error = true; return; }
@@ -297,7 +296,7 @@ private:
     }
   private:
     bool in_error = false;
-    uint8_t bytes[size / 2];
+    uint8_t bytes[(size + 1) / 2];
     unsigned nibble_count = 0;
   };
 };
