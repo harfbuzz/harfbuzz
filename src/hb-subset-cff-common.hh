@@ -266,7 +266,7 @@ struct str_encoder_t
     unsigned buff_tip = buff.length;
     if (likely (buff.resize_dirty (buff_tip + str.length)))
       hb_memcpy (buff.arrayZ + buff_tip, str, str.length);
-    else buff.set_error ();
+    else buff.ensure_error ();
   }
 
   bool in_error () const { return buff.in_error (); }
