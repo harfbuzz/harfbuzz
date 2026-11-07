@@ -135,11 +135,11 @@ struct str_encoder_t
        * We use 8 here to match FontTools X-).
        */
 
-      hb_locale_t clocale HB_UNUSED;
-      hb_locale_t oldlocale HB_UNUSED;
-      oldlocale = hb_uselocale (clocale = newlocale (LC_ALL_MASK, "C", NULL));
-      int n_printed = snprintf (buf, sizeof (buf), "%.8G", v);
-      (void) hb_uselocale (((void) freelocale (clocale), oldlocale));
+      int n_printed;
+      {
+	hb_scoped_locale_t scoped_locale (newlocale (LC_ALL_MASK, "C", NULL), true);
+	n_printed = snprintf (buf, sizeof (buf), "%.8G", v);
+      }
 
       /* Defensive: buf[16] exactly fits the widest %.8G output (15 chars
        * + NUL); bail cleanly if snprintf ever errors or truncates. */

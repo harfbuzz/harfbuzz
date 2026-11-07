@@ -716,17 +716,16 @@ hb_subset_axis_range_to_string (hb_subset_input_t *input,
   char s[128];
   unsigned len = 0;
 
-  hb_locale_t clocale HB_UNUSED;
-  hb_locale_t oldlocale HB_UNUSED;
-  oldlocale = hb_uselocale (clocale = newlocale (LC_ALL_MASK, "C", NULL));
-  len += hb_max (0, snprintf (s, ARRAY_LENGTH (s) - len, "%g", (double) triple->minimum));
-  s[len++] = ':';
+  {
+    hb_scoped_locale_t scoped_locale (newlocale (LC_ALL_MASK, "C", NULL), true);
+    len += hb_max (0, snprintf (s, ARRAY_LENGTH (s) - len, "%g", (double) triple->minimum));
+    s[len++] = ':';
 
-  len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) triple->middle));
-  s[len++] = ':';
+    len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) triple->middle));
+    s[len++] = ':';
 
-  len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) triple->maximum));
-  (void) hb_uselocale (((void) freelocale (clocale), oldlocale));
+    len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) triple->maximum));
+  }
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);

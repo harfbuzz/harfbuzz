@@ -529,6 +529,25 @@ static int HB_UNUSED _hb_errno = 0;
 
 #endif
 
+struct hb_scoped_locale_t
+{
+  hb_scoped_locale_t (hb_locale_t locale, bool own = false)
+    : old_locale (hb_uselocale (locale)), owned (own ? locale : nullptr)
+  { (void) old_locale; (void) owned; }
+  ~hb_scoped_locale_t ()
+  {
+    (void) hb_uselocale (old_locale);
+#ifndef HB_NO_SETLOCALE
+    if (owned) freelocale (owned);
+#endif
+  }
+private:
+  hb_locale_t old_locale;
+  hb_locale_t owned;
+  hb_scoped_locale_t (const hb_scoped_locale_t &) = delete;
+  hb_scoped_locale_t &operator = (const hb_scoped_locale_t &) = delete;
+};
+
 
 /* Lets assert int types.  Saves trouble down the road. */
 static_assert ((sizeof (hb_codepoint_t) == 4), "");

@@ -1122,10 +1122,12 @@ hb_variation_to_string (hb_variation_t *variation,
     len--;
   s[len++] = '=';
 
-  hb_locale_t oldlocale HB_UNUSED;
-  oldlocale = hb_uselocale (get_C_locale ());
-  len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
-  (void) hb_uselocale (oldlocale);
+  {
+#ifndef HB_NO_SETLOCALE
+    hb_scoped_locale_t scoped_locale (get_C_locale ());
+#endif
+    len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
+  }
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);
