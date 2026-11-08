@@ -40,7 +40,7 @@
 /* Accelerators opt in only when they can provide full sanitization. */
 template<typename Face, hb_tag_t Tag>
 static hb_blob_t *
-_hb_subset_get_face_table (Face *, hb_integral_constant<hb_tag_t, Tag>, hb_priority<0>) { return nullptr; }
+_hb_subset_get_face_table (Face *, std::integral_constant<hb_tag_t, Tag>, hb_priority<0>) { return nullptr; }
 
 /* Allow an accelerator to handle initialization inside libharfbuzz. */
 template<typename Accel, typename Face, typename Loader>
@@ -56,12 +56,12 @@ HB_AUTO_RETURN (loader->borrow_sanitized_table ())
 #define HB_OT_TABLE(Namespace, Type) \
 template<typename Face> \
 static auto _hb_subset_get_face_table (Face *face, \
-  hb_integral_constant<hb_tag_t, hb_remove_pointer<decltype (face->table.Type.get ())>::tableTag>, hb_priority<1>) \
+  std::integral_constant<hb_tag_t, hb_remove_pointer<decltype (face->table.Type.get ())>::tableTag>, hb_priority<1>) \
 HB_AUTO_RETURN (face->table.Type.get_blob ())
 #define HB_OT_ACCELERATOR(Namespace, Type) \
 template<typename Face> \
 static auto _hb_subset_get_face_table (Face *face, \
-  hb_integral_constant<hb_tag_t, decltype (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize))::T::tableTag>, hb_priority<1>) \
+  std::integral_constant<hb_tag_t, decltype (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize))::T::tableTag>, hb_priority<1>) \
 HB_AUTO_RETURN (_hb_subset_borrow_sanitized_table<Namespace::Type##_accelerator_t> (face, face->table.Type, hb_prioritize).get_blob ())
 #include "hb-ot-face-table-list.hh"
 #undef HB_OT_ACCELERATOR
@@ -224,7 +224,7 @@ struct hb_subset_plan_t
   {
     hb_blob_ptr_t<T> operator () (hb_subset_plan_t *plan)
     {
-      if (hb_blob_t *blob = _hb_subset_get_face_table (plan->source, hb_integral_constant<hb_tag_t, T::tableTag> {}, hb_prioritize))
+      if (hb_blob_t *blob = _hb_subset_get_face_table (plan->source, std::integral_constant<hb_tag_t, T::tableTag> {}, hb_prioritize))
 	return blob;
 
       hb_lock_t lock (plan->accelerator ? &plan->accelerator->sanitized_table_cache_lock : nullptr);
