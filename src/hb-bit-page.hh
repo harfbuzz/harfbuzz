@@ -42,8 +42,7 @@ struct hb_vector_size_t
   elt_t& operator [] (unsigned int i) { return v[i]; }
   const elt_t& operator [] (unsigned int i) const { return v[i]; }
 
-  static inline constexpr unsigned len ()
-  { return byte_size / sizeof (elt_t); }
+  static constexpr unsigned len () { return byte_size / sizeof (elt_t); }
 
   void init0 ()
   {
@@ -121,8 +120,7 @@ struct hb_bit_page_t
 
   void dirty () { population = UINT_MAX; }
 
-  static inline constexpr unsigned len ()
-  { return vector_t::len (); }
+  static constexpr unsigned len () { return vector_t::len (); }
 
   operator bool () const { return !is_empty (); }
   bool is_empty () const

@@ -72,7 +72,7 @@ struct MarkBasePosFormat1_2
 
   const Coverage &get_coverage () const { return this+markCoverage; }
 
-  static inline bool accept (hb_buffer_t *buffer, unsigned idx)
+  static bool accept (hb_buffer_t *buffer, unsigned idx)
   {
     /* We only want to attach to the first of a MultipleSubst sequence.
      * https://github.com/harfbuzz/harfbuzz/issues/740

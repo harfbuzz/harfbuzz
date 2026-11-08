@@ -103,7 +103,7 @@ struct hb_blob_t
     unsigned capacity;
   };
 
-  static inline void recycle_data_destroy (void *user_data)
+  static void recycle_data_destroy (void *user_data)
   {
     auto *bd = (recycle_data_t *) user_data;
     hb_free (bd->buf);
@@ -117,7 +117,7 @@ struct hb_blob_t
    * fails and a fresh buffer was allocated instead -- the caller
    * must hb_free() that buf after recycle_finalize() runs.  Returns
    * nullptr on allocation failure. */
-  static inline char *
+  static char *
   recycle_acquire (hb_blob_t *recycled,
 		   unsigned   needed,
 		   unsigned  *out_capacity,
@@ -162,7 +162,7 @@ struct hb_blob_t
    * If @recycled is one of our blobs, update and return it (cheap);
    * otherwise create a new blob.  Pass @replaced_recycled_buf from
    * recycle_acquire(). */
-  static inline hb_blob_t *
+  static hb_blob_t *
   recycle_finalize (char      *buf,
 		    unsigned   capacity,
 		    unsigned   length,
@@ -200,7 +200,7 @@ struct hb_blob_t
   /* Discard @buf returned by recycle_acquire without committing to
    * a blob.  Frees @buf if it was a fresh allocation; leaves any
    * recycled buffer untouched. */
-  static inline void
+  static void
   recycle_abort (char *buf, hb_blob_t *recycled)
   {
     if (!buf) return;
@@ -216,7 +216,7 @@ struct hb_blob_t
    * encode.  Destroys any previously stashed blob.  Safe to call
    * with @blob = nullptr or the empty-singleton blob (treated as
    * "drop"). */
-  static inline void
+  static void
   recycle_stash (hb_blob_t **slot, hb_blob_t *blob)
   {
     hb_blob_destroy (*slot);
