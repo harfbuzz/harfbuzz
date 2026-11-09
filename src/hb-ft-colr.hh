@@ -189,6 +189,17 @@ _hb_ft_get_solid_color (hb_ft_paint_context_t *c,
     return;
   }
 
+  /* A callback may have painted another glyph, selecting another palette
+   * on the face while it was unlocked; select ours again if so. */
+  if (unlikely (c->ft_font->selected_palette != c->palette_index))
+  {
+    FT_Color *palette = nullptr;
+    (void) FT_Palette_Select (c->ft_font->ft_face, c->palette_index, &palette);
+    c->ft_font->selected_palette = c->palette_index;
+    c->palette = hb_array ((const FT_Color *) palette,
+			   palette ? c->palette.length : 0);
+  }
+
   FT_Color ft_color = c->palette ? c->palette[color_index.palette_index] : FT_Color {};
   *color = HB_COLOR (ft_color.blue,
 		     ft_color.green,
@@ -551,8 +562,10 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
   if (!palette)
   {
     // https://github.com/harfbuzz/harfbuzz/issues/5116
+    palette_index = 0;
     (void) FT_Palette_Select(ft_face, 0, &palette);
   }
+  ft_font->selected_palette = palette_index;
 
   auto palette_array = hb_array ((const FT_Color *) palette,
 				 palette ? palette_data.num_palette_entries : 0);
@@ -563,13 +576,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        FT_COLOR_NO_ROOT_TRANSFORM,
 			        &paint))
   {
-    /* Callbacks may select another palette on the same face. */
-    hb_vector_t<FT_Color> palette_copy;
-    palette_copy.extend (palette_array);
-    if (unlikely (palette_copy.in_error ()))
-      return false;
-    palette_array = palette_copy.as_array ();
-
     hb_ft_paint_context_t c (ft_font, font,
 			     paint_funcs, paint_data,
 			     palette_array, palette_index, foreground);
