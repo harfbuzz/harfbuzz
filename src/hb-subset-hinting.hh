@@ -387,8 +387,10 @@ _matches_hint_dependent_ids (hb_face_t *face)
   return false;
 }
 
+static hb_user_data_key_t _hb_subset_hint_dependent_user_data_key = {0};
+
 static inline bool
-_hb_face_requires_hinting (hb_face_t *face)
+_hb_subset_face_requires_hinting_uncached (hb_face_t *face)
 {
   if (!face->table.glyf->has_data ()) return false;
 
@@ -422,6 +424,28 @@ _hb_face_requires_hinting (hb_face_t *face)
 #endif
 
   return _matches_hint_dependent_ids (face);
+}
+
+static inline bool
+_hb_subset_face_requires_hinting (hb_face_t *face)
+{
+  bool *cached =
+      (bool *) hb_face_get_user_data (face, &_hb_subset_hint_dependent_user_data_key);
+  if (cached) return *cached;
+
+  bool result = _hb_subset_face_requires_hinting_uncached (face);
+
+  /* The answer depends only on the face tables, so cache it. */
+  bool *data = (bool *) hb_malloc (sizeof (bool));
+  if (data)
+  {
+    *data = result;
+    if (unlikely (!hb_face_set_user_data (face, &_hb_subset_hint_dependent_user_data_key,
+					  data, hb_free, false)))
+      hb_free (data);
+  }
+
+  return result;
 }
 
 #endif /* HB_SUBSET_HINTING_HH */

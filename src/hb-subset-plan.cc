@@ -762,7 +762,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   successful = true;
   flags = input->flags;
 
-  if ((flags & HB_SUBSET_FLAGS_NO_HINTING) && _hb_face_requires_hinting (face))
+  if ((flags & HB_SUBSET_FLAGS_NO_HINTING) && _hb_subset_face_requires_hinting (face))
   {
     DEBUG_MSG (SUBSET, nullptr,
 	       "Keeping hinting because the font requires it.");
