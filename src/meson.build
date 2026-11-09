@@ -401,6 +401,7 @@ hb_subset_sources = files(
   'hb-subset-cff2.cc',
   'hb-subset-cff2-round.hh',
   'hb-subset-cff2-to-cff1.hh',
+  'hb-subset-hinting.hh',
   'hb-subset-input.cc',
   'hb-subset-input.hh',
   'hb-subset-instancer-iup.hh',
