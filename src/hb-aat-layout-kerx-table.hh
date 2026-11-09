@@ -615,6 +615,7 @@ struct KerxSubTableFormat4
       }
     }
 
+    HB_NODISCARD
     HB_NEVER_INLINE
     bool perform_action (hb_buffer_t *buffer,
 			 const Entry<EntryData> &entry)
