@@ -703,10 +703,19 @@ struct KerxSubTableFormat4
 	o.y_offset = hb_saturate_add (o.y_offset, base_offset);
       else
 	o.x_offset = hb_saturate_add (o.x_offset, base_offset);
-      o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_MARK;
-      o.attach_chain() = (int) mark - (int) buffer->idx;
+      int attach_chain = (int) mark - (int) buffer->idx;
       if (c->buffer_is_reversed)
-	o.attach_chain() = -o.attach_chain();
+	attach_chain = -attach_chain;
+      o.attach_chain() = attach_chain;
+      if (unlikely (o.attach_chain() != attach_chain))
+      {
+	/* The signed 16-bit attach_chain cannot reach that far; leave the
+	 * glyph unattached rather than attaching it to the wrong one, as
+	 * the GPOS mark and cursive paths do. */
+	o.attach_chain() = 0;
+	return true;
+      }
+      o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_MARK;
       buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
       return true;
     }
