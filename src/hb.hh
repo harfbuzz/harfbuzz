@@ -591,15 +591,6 @@ extern "C" void  hb_free_impl(void *ptr);
 template <typename T> using hb_unique_ptr_t = hb::unique_ptr<T>;
 
 
-/* Library-internal; defined in hb-common.cc.  Same as
- * hb_language_matches (hb_language_from_string (str, len), specific),
- * without interning str. */
-HB_INTERNAL bool
-hb_language_matches_string (const char    *str,
-			    unsigned int   len,
-			    hb_language_t  specific);
-
-
 /* Our src/test-*.cc use hb_assert(), such that it's not compiled out under NDEBUG.
  * https://github.com/harfbuzz/harfbuzz/issues/5418 */
 #define hb_always_assert(x) \

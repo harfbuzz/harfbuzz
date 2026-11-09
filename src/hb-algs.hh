@@ -1218,6 +1218,14 @@ static inline unsigned char TOHEX (uint8_t c)
 static inline uint8_t FROMHEX (unsigned char c)
 { return (c >= '0' && c <= '9') ? c - '0' : TOLOWER (c) - 'a' + 10; }
 
+/* Library-internal; defined in hb-common.cc.  Same as
+ * hb_language_matches (hb_language_from_string (str, len), specific),
+ * without interning str. */
+HB_INTERNAL bool
+hb_language_matches_string (const char    *str,
+			    unsigned int   len,
+			    hb_language_t  specific);
+
 static inline unsigned int DIV_CEIL (const unsigned int a, unsigned int b)
 { return (a + (b - 1)) / b; }
 
