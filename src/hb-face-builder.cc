@@ -48,7 +48,19 @@ struct face_table_info_t
 struct hb_face_builder_data_t
 {
   hb_hashmap_t<hb_tag_t, face_table_info_t> tables;
+  /* Table tags in sorted order, built on first use and dropped when a
+   * table is added, so paging through get_table_tags() sorts once.
+   * Holds tables.get_population () tags. */
+  hb_atomic_t<hb_tag_t *> sorted_tags;
 };
+
+static int
+compare_tags (const void *pa, const void *pb)
+{
+  hb_tag_t a = * (const hb_tag_t *) pa;
+  hb_tag_t b = * (const hb_tag_t *) pb;
+  return (a > b) - (a < b);
+}
 
 static int compare_entries (const void* pa, const void* pb)
 {
@@ -74,6 +86,7 @@ _hb_face_builder_data_create ()
     return nullptr;
 
   data->tables.init ();
+  data->sorted_tags.init ();
 
   return data;
 }
@@ -87,6 +100,7 @@ _hb_face_builder_data_destroy (void *user_data)
     hb_blob_destroy (info.data);
 
   data->tables.fini ();
+  hb_free (data->sorted_tags.get_relaxed ());
 
   hb_free (data);
 }
@@ -182,18 +196,28 @@ _hb_face_builder_get_table_tags (const hb_face_t *face HB_UNUSED,
     return population;
   }
 
-  // Sort the tags.
-  hb_vector_t<hb_tag_t> sorted_tags;
-  data->tables.keys () | hb_sink (sorted_tags);
-  if (unlikely (sorted_tags.in_error ()))
+  hb_tag_t *sorted_tags = data->sorted_tags.get_acquire ();
+  if (!sorted_tags)
   {
-    // Not much to do...
-  }
-  sorted_tags.qsort ([] (const hb_tag_t &a, const hb_tag_t &b) {
-    return (a > b) - (a < b);
-  });
+    sorted_tags = (hb_tag_t *) hb_malloc (population * sizeof (hb_tag_t));
+    if (unlikely (!sorted_tags))
+    {
+      *table_count = 0;
+      return population;
+    }
+    unsigned i = 0;
+    for (hb_tag_t tag : data->tables.keys ())
+      sorted_tags[i++] = tag;
+    hb_qsort (sorted_tags, population, sizeof (hb_tag_t), compare_tags);
 
-  auto array = sorted_tags.as_array ().sub_array (start_offset, table_count);
+    if (unlikely (!data->sorted_tags.cmpexch (nullptr, sorted_tags)))
+    {
+      hb_free (sorted_tags);
+      sorted_tags = data->sorted_tags.get_acquire ();
+    }
+  }
+
+  auto array = hb_array (sorted_tags, population).sub_array (start_offset, table_count);
   if (table_tags)
   {
     auto out = hb_array (table_tags, *table_count);
@@ -272,6 +296,8 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
   }
 
   hb_blob_destroy (previous);
+  hb_free (data->sorted_tags.get_relaxed ());
+  data->sorted_tags.set_relaxed (nullptr);
   return true;
 }
 
