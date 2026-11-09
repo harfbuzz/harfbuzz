@@ -348,26 +348,10 @@ static const hint_dependent_font_id_t hint_dependent_font_ids[] = {
 static inline uint32_t
 _table_checksum (const char *data, unsigned length)
 {
-  if (unlikely ((uintptr_t) data & 3))
-  {
-    DEBUG_MSG (SUBSET, nullptr, "Cannot checksum unaligned table data.");
-    return 0xFFFFFFFFu; /* Make the comparison fail. */
-  }
-
-  /* set_for_data() requires 4-byte alignment and a length that is a
-   * multiple of four.  Checksum the aligned prefix with it, then add the
-   * trailing bytes as if they were zero-padded. */
+  /* set_for_data() handles arbitrary lengths and unaligned data. */
   OT::CheckSum checksum;
-  unsigned aligned_length = length & ~3u;
-  checksum.set_for_data (data, aligned_length);
-
-  uint32_t sum = checksum;
-  unsigned i = aligned_length;
-  if (i < length) sum += (uint32_t) (uint8_t) data[i] << 24;
-  if (i + 1 < length) sum += (uint32_t) (uint8_t) data[i + 1] << 16;
-  if (i + 2 < length) sum += (uint32_t) (uint8_t) data[i + 2] << 8;
-
-  return sum;
+  checksum.set_for_data (data, length);
+  return checksum;
 }
 
 static inline hint_dependent_table_id_t
