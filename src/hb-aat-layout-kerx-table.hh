@@ -620,6 +620,19 @@ struct KerxSubTableFormat4
 				     const Entry<EntryData> &entry)
     {
       hb_glyph_position_t &o = buffer->cur_pos();
+
+      int attach_chain = (int) mark - (int) buffer->idx;
+      if (c->buffer_is_reversed)
+	attach_chain = -attach_chain;
+      if (unlikely (attach_chain != (int16_t) attach_chain))
+      {
+	/* The signed 16-bit attach_chain cannot reach that far; leave the
+	 * glyph unattached rather than attaching it to the wrong one, as
+	 * the GPOS mark and cursive paths do. */
+	o.attach_chain() = 0;
+	return true;
+      }
+
       switch (action_type)
       {
 	case 0: /* Control Point Actions.*/
@@ -703,19 +716,8 @@ struct KerxSubTableFormat4
 	o.y_offset = hb_saturate_add (o.y_offset, base_offset);
       else
 	o.x_offset = hb_saturate_add (o.x_offset, base_offset);
-      int attach_chain = (int) mark - (int) buffer->idx;
-      if (c->buffer_is_reversed)
-	attach_chain = -attach_chain;
-      o.attach_chain() = attach_chain;
-      if (unlikely (o.attach_chain() != attach_chain))
-      {
-	/* The signed 16-bit attach_chain cannot reach that far; leave the
-	 * glyph unattached rather than attaching it to the wrong one, as
-	 * the GPOS mark and cursive paths do. */
-	o.attach_chain() = 0;
-	return true;
-      }
       o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_MARK;
+      o.attach_chain() = attach_chain;
       buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
       return true;
     }
