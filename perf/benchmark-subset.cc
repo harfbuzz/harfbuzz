@@ -55,21 +55,22 @@ struct test_input_t
   unsigned max_subset_size;
   const axis_location_t *instance_opts;
   unsigned num_instance_opts;
+  bool no_hinting;
 } default_tests[] =
 {
-  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 1000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4096, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1400, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf", 1000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "Mplus1p-Regular.ttf", 10000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "SourceHanSans-Regular_subset.otf", 10000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf", 2000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf", 300, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "MPLUS1-Variable.ttf", 6000, _mplus_instance_opts, ARRAY_LEN (_mplus_instance_opts)},
-  {SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf", 900, _roboto_flex_instance_opts, ARRAY_LEN (_roboto_flex_instance_opts)},
-  {SUBSET_FONT_BASE_PATH "Fraunces.ttf", 900, _fraunces_partial_instance_opts, ARRAY_LEN (_fraunces_partial_instance_opts)},
+  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 1000, nullptr, 0, true},
+  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4096, nullptr, 0, true},
+  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1400, nullptr, 0, true},
+  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf", 1000, nullptr, 0, true},
+  {SUBSET_FONT_BASE_PATH "Mplus1p-Regular.ttf", 10000, nullptr, 0, false},
+  {SUBSET_FONT_BASE_PATH "SourceHanSans-Regular_subset.otf", 10000, nullptr, 0, false},
+  {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf", 2000, nullptr, 0, false},
+  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf", 300, nullptr, 0, false},
+  {SUBSET_FONT_BASE_PATH "MPLUS1-Variable.ttf", 6000, _mplus_instance_opts, ARRAY_LEN (_mplus_instance_opts), false},
+  {SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf", 900, _roboto_flex_instance_opts, ARRAY_LEN (_roboto_flex_instance_opts), false},
+  {SUBSET_FONT_BASE_PATH "Fraunces.ttf", 900, _fraunces_partial_instance_opts, ARRAY_LEN (_fraunces_partial_instance_opts), false},
 #if 0
-  {"perf/fonts/NotoSansCJKsc-VF.ttf", 100000},
+  {"perf/fonts/NotoSansCJKsc-VF.ttf", 100000, nullptr, 0, false},
 #endif
 };
 
@@ -156,8 +157,13 @@ static void BM_subset (benchmark::State &state,
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();
   assert (input);
 
+  unsigned flags = 0;
+  if (test_input.no_hinting)
+    flags |= HB_SUBSET_FLAGS_NO_HINTING;
   if (retain_gids)
-    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
+    flags |= HB_SUBSET_FLAGS_RETAIN_GIDS;
+  if (flags)
+    hb_subset_input_set_flags (input, flags);
 
   switch (operation)
   {
@@ -219,6 +225,8 @@ static void test_subset (operation_t op,
   strcat (name, "/");
   const char *p = strrchr (test_input.font_path, '/');
   strcat (name, p ? p + 1 : test_input.font_path);
+  if (test_input.no_hinting)
+    strcat (name, "/nohinting");
   if (retain_gids)
     strcat (name, "/retaingids");
 
