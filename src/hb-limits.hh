@@ -143,13 +143,11 @@
 #define HB_SUBSET_CBDT_MAX_COPY_FACTOR 64
 #endif
 
-/* Entries the CBDT accelerator builds to answer find_table() by glyph
- * without walking a strike's IndexSubtableRecord array per query.  The
- * record count is a 32-bit field bounded only by the table length; a strike
- * whose records would push the shared index past this keeps the linear
- * walk, so the index stays bounded whatever the font claims. */
-#ifndef HB_CBDT_MAX_INDEX_ENTRIES
-#define HB_CBDT_MAX_INDEX_ENTRIES 65536
+/* Strikes of a CBLC table considered when choosing one for a glyph query;
+ * later ones are ignored.  numSizes is a 32-bit field and every query walks
+ * the strikes, while ppem is 8-bit and real fonts have a handful. */
+#ifndef HB_CBLC_MAX_STRIKES
+#define HB_CBLC_MAX_STRIKES 256
 #endif
 
 /* Total bytes of sub-blobs (gradient color stops, clip outlines) in one
