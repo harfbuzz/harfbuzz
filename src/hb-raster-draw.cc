@@ -1622,8 +1622,8 @@ sweep_row_to_alpha_wide (uint8_t *__restrict row_buf,
  *
  * Return value: (transfer full):
  * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration
- * failure. If no geometry was accumulated, returns an empty image. If
- * rasterizing the geometry would exceed the work budget, returns a blank image.
+ * failure, or if rasterizing the geometry would exceed the work budget.
+ * If no geometry was accumulated, returns an empty image.
  *
  * Since: 13.0.0
  **/
@@ -1682,6 +1682,17 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   /* Reset one-shot state on every exit path. */
   HB_SCOPE_GUARD (hb_raster_draw_clear (draw));
 
+  /* The sweep walks every edge once per row it spans, a product that
+     neither the edge cap nor the dimension cap bounds: fail if over
+     the pixel budget.  An unlimited outline policy disables that too. */
+  if (unlikely (draw->edges.length && ext.width && ext.height &&
+		draw->budget != HB_BUDGET_UNLIMITED &&
+		hb_raster_draw_get_pixel_work (draw) >
+		hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
+			(int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
+			ext.width * ext.height)))
+    return nullptr;
+
   hb_unique_ptr_t<hb_raster_image_t> image;
   if (draw->recycled_image)
   {
@@ -1699,15 +1710,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   image->clear ();
 
   /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
-  /* The sweep walks every edge once per row it spans, a product that
-     neither the edge cap nor the dimension cap bounds: skip it if over
-     the pixel budget.  An unlimited outline policy disables that too. */
-  if (draw->edges.length && ext.width && ext.height &&
-      likely (draw->budget == HB_BUDGET_UNLIMITED ||
-	      hb_raster_draw_get_pixel_work (draw) <=
-	      hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
-		      (int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
-		      ext.width * ext.height)))
+  if (draw->edges.length && ext.width && ext.height)
   {
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))
