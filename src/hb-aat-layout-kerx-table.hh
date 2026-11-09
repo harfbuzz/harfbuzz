@@ -616,8 +616,8 @@ struct KerxSubTableFormat4
     }
 
     HB_NEVER_INLINE
-    HB_NODISCARD bool perform_action (hb_buffer_t *buffer,
-				     const Entry<EntryData> &entry)
+    bool perform_action (hb_buffer_t *buffer,
+			 const Entry<EntryData> &entry)
     {
       hb_glyph_position_t &o = buffer->cur_pos();
       switch (action_type)
