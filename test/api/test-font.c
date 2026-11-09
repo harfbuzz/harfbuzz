@@ -964,14 +964,54 @@ test_synthetic_slant_saturates (void)
   hb_font_set_scale (font, 2048, 2048);
 
   /* The contour point is one short of INT32_MAX in both axes. A slant of 1
-   * shifts x by the full y value; that product does not survive a float to
-   * int conversion, so it has to be clamped before it is added. */
+   * shifts x by the full y value. The shift is added first and the sum is
+   * clamped afterwards: hb_clamp_to widens to double, so the out-of-range
+   * sum saturates instead of hitting an undefined float-to-int
+   * conversion. */
   hb_font_set_synthetic_slant (font, 1.f);
 
   hb_position_t x = 0, y = 0;
   g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
   g_assert_cmpint (x, ==, INT32_MAX);
   g_assert_cmpint (y, ==, INT32_MAX - 1);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static hb_bool_t
+_cancelling_contour_point_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+				hb_codepoint_t glyph HB_UNUSED,
+				unsigned int point_index HB_UNUSED,
+				hb_position_t *x, hb_position_t *y,
+				void *user_data HB_UNUSED)
+{
+  *x = -2000000000;
+  *y = 2000000000;
+  return TRUE;
+}
+
+static void
+test_synthetic_slant_cancelling (void)
+{
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_contour_point_func (ffuncs, _cancelling_contour_point_func, NULL, NULL);
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_set_scale (font, 2048, 2048);
+
+  /* A slant of 2 shifts x by twice y: -2000000000 + 2 * 2000000000 is
+   * 2000000000, which fits. Clamping the shift to INT32_MAX before
+   * adding it would give 147483647 instead, so the sum has to be
+   * clamped, not the shift. */
+  hb_font_set_synthetic_slant (font, 2.f);
+
+  hb_position_t x = 0, y = 0;
+  g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
+  g_assert_cmpint (x, ==, 2000000000);
+  g_assert_cmpint (y, ==, 2000000000);
 
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -1598,6 +1638,7 @@ main (int argc, char **argv)
   hb_test_add (test_synthetic_glyph_extents_overflow);
   hb_test_add (test_synthetic_bold_saturates);
   hb_test_add (test_synthetic_slant_saturates);
+  hb_test_add (test_synthetic_slant_cancelling);
   hb_test_add (test_glyph_origin_offsets_saturate);
   hb_test_add (test_synthetic_bold_extreme_strength);
   hb_test_add (test_font_float_scale_saturates);

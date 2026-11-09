@@ -653,7 +653,7 @@ struct hb_font_t
     {
       /* Slant */
       if (slant_xy)
-        *x = hb_saturate_add (*x, hb_clamp_to<hb_position_t> (roundf (*y * slant_xy)));
+        *x = hb_clamp_to<hb_position_t> (*x + roundf (*y * slant_xy));
 
       /* Embolden */
       if (!embolden_in_place)
