@@ -857,6 +857,44 @@ _face_with_table (hb_face_t *source, hb_tag_t tag, const void *data, unsigned le
   return face;
 }
 
+static hb_face_t *
+_face_with_name_table_and_wws (hb_face_t *source,
+			       const void *name_data, unsigned name_length,
+			       bool wws)
+{
+  hb_face_t *face = _face_copy_tables (source);
+
+  hb_blob_t *name_blob = hb_blob_create_or_fail ((const char *) name_data,
+						 name_length,
+						 HB_MEMORY_MODE_READONLY,
+						 NULL, NULL);
+  g_assert_nonnull (name_blob);
+  hb_face_builder_add_table (face, HB_TAG ('n','a','m','e'), name_blob);
+  hb_blob_destroy (name_blob);
+
+  hb_blob_t *os2 = hb_face_reference_table (source, HB_TAG ('O','S','/','2'));
+  hb_blob_t *os2_copy = hb_blob_copy_writable_or_fail (os2);
+  hb_blob_destroy (os2);
+  g_assert_nonnull (os2_copy);
+
+  unsigned length;
+  char *data = (char *) hb_blob_get_data_writable (os2_copy, &length);
+  g_assert_cmpuint (length, >=, 64);
+  /* fsSelection is at offset 62 in OS/2 version 0 and later. */
+  uint16_t fs_selection = ((uint8_t) data[62] << 8) | (uint8_t) data[63];
+  if (wws)
+    fs_selection |= 1u << 8;
+  else
+    fs_selection &= ~(1u << 8);
+  data[62] = fs_selection >> 8;
+  data[63] = fs_selection;
+
+  hb_face_builder_add_table (face, HB_TAG ('O','S','/','2'), os2_copy);
+  hb_blob_destroy (os2_copy);
+
+  return face;
+}
+
 static hb_blob_t *
 _blob_with_checksum (uint32_t checksum, unsigned length)
 {
@@ -933,6 +971,69 @@ test_subset_no_hinting_ignored_for_hint_dependent_font (void)
   hb_set_destroy (codepoints);
   hb_face_destroy (face_question);
   hb_face_destroy (face);
+  hb_face_destroy (source);
+#endif
+}
+
+static void
+test_subset_no_hinting_hint_dependent_wws_family (void)
+{
+#ifndef HB_NO_NAME
+  /* Font Family = "NotTricky", Typographic Family = "MingLiU", and
+   * WWS Family = "NotTricky".  With the OS/2 WWS bit set FreeType
+   * picks the typographic family and keeps hints; with it clear it
+   * picks the WWS family and must not fall through to the typographic
+   * one. */
+  static const unsigned char name_table[] = {
+    0x00, 0x00, 0x00, 0x03, 0x00, 0x2A,
+    0x00, 0x03, 0x00, 0x01, 0x04, 0x09, 0x00, 0x01, 0x00, 0x12, 0x00, 0x00,
+    0x00, 0x03, 0x00, 0x01, 0x04, 0x09, 0x00, 0x10, 0x00, 0x0E, 0x00, 0x12,
+    0x00, 0x03, 0x00, 0x01, 0x04, 0x09, 0x00, 0x15, 0x00, 0x12, 0x00, 0x20,
+    0x00, 0x4E, 0x00, 0x6F, 0x00, 0x74, 0x00, 0x54, 0x00, 0x72, 0x00, 0x69,
+    0x00, 0x63, 0x00, 0x6B, 0x00, 0x79, 0x00, 0x4D, 0x00, 0x69, 0x00, 0x6E,
+    0x00, 0x67, 0x00, 0x4C, 0x00, 0x69, 0x00, 0x55, 0x00, 0x4E, 0x00, 0x6F,
+    0x00, 0x74, 0x00, 0x54, 0x00, 0x72, 0x00, 0x69, 0x00, 0x63, 0x00, 0x6B,
+    0x00, 0x79,
+  };
+  static const hb_tag_t hint_tags[] = {
+    HB_TAG ('c','v','t',' '),
+    HB_TAG ('f','p','g','m'),
+    HB_TAG ('p','r','e','p'),
+  };
+
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *wws = _face_with_name_table_and_wws (source, name_table,
+						 sizeof (name_table), true);
+  hb_face_t *no_wws = _face_with_name_table_and_wws (source, name_table,
+						    sizeof (name_table), false);
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 'a');
+
+  for (unsigned i = 0; i < 2; i++)
+  {
+    bool hint_dependent = i == 0;
+    hb_face_t *target = i == 0 ? wws : no_wws;
+
+    hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+    hb_face_t *subset = hb_subset_or_fail (target, input);
+    g_assert_nonnull (subset);
+
+    for (unsigned j = 0; j < G_N_ELEMENTS (hint_tags); j++)
+    {
+      hb_blob_t *blob = hb_face_reference_table (subset, hint_tags[j]);
+      g_assert_true (!!hb_blob_get_length (blob) == hint_dependent);
+      hb_blob_destroy (blob);
+    }
+
+    hb_face_destroy (subset);
+    hb_subset_input_destroy (input);
+  }
+
+  hb_set_destroy (codepoints);
+  hb_face_destroy (no_wws);
+  hb_face_destroy (wws);
   hb_face_destroy (source);
 #endif
 }
@@ -1623,6 +1724,7 @@ main (int argc, char **argv)
 #endif
   hb_test_add (test_subset_custom_glyph_mapping);
   hb_test_add (test_subset_no_hinting_ignored_for_hint_dependent_font);
+  hb_test_add (test_subset_no_hinting_hint_dependent_wws_family);
   hb_test_add (test_subset_no_hinting_ignored_for_hint_dependent_ids);
   hb_test_add (test_subset_sanitized_table_cache);
 #if !defined(HB_NO_OT_LAYOUT) && !defined(HB_NO_OT_LAYOUT_BLOCKLIST)

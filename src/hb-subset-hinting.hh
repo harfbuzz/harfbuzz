@@ -26,16 +26,20 @@
 #ifndef HB_SUBSET_HINTING_HH
 #define HB_SUBSET_HINTING_HH
 
-#include "hb-ot-name.h"
-#include "hb-utf.hh"
 #include "hb.hh"
+#include "hb-open-type.hh"
+#include "hb-ot-face.hh"
+#include "hb-ot-glyf-table.hh"
+#include "hb-ot-name-table.hh"
+#include "hb-ot-os2-table.hh"
+#include "hb-utf.hh"
 
 #ifndef HB_NO_NAME
 /* Some legacy fonts have hinting programs that are required for correct
  * rendering; dropping them changes glyph advances and outlines.  FreeType
  * likewise refuses to load these fonts without hinting.  The family names are
  * from src/truetype/ttobjs.c in FreeType. */
-static const char *hint_dependent_font_families[] = {
+static const char hint_dependent_font_families[][19] = {
     "cpop",	   "DFGirl-W6-WIN-BF", "DFGothic-EB",	 "DFGyoSho-Lt",
     "DFHei",	   "DFHSGothic-W5",    "DFHSMincho-W3",	 "DFHSMincho-W7",
     "DFKaiSho-SB", "DFKaiShu",	       "DFKai-SB",	 "DFMing",
@@ -43,71 +47,170 @@ static const char *hint_dependent_font_families[] = {
     "MingLiU",	   "MingMedium",       "PMingLiU",	 "MingLi43",
 };
 
+/* Choose the name record FreeType would use for @name_id:
+ * Windows English, then Macintosh English/Roman, then Unicode. */
+static inline const OT::NameRecord *
+_find_hint_dependent_name_record (const OT::name &name,
+				  hb_ot_name_id_t name_id,
+				  bool *utf16)
+{
+  const OT::NameRecord *windows = nullptr;
+  const OT::NameRecord *apple_english = nullptr;
+  const OT::NameRecord *apple_roman = nullptr;
+  const OT::NameRecord *unicode = nullptr;
+  bool windows_is_english = false;
+
+  for (unsigned i = 0; i < (unsigned) name.count; i++)
+  {
+    const OT::NameRecord &record = name.nameRecordZ[i];
+    if (record.nameID != name_id || !record.length) continue;
+
+    switch ((unsigned) record.platformID)
+    {
+    case 0:
+    case 2: unicode = &record; break;
+
+    case 1:
+      if (record.languageID == 0) apple_english = &record;
+      if (record.encodingID == 0) apple_roman = &record;
+      break;
+
+    case 3: {
+      bool english = (record.languageID & 0x3ff) == 0x009;
+      if ((!windows || english) &&
+	  (record.encodingID == 0 || record.encodingID == 1 ||
+	   record.encodingID == 10))
+      {
+	windows = &record;
+	windows_is_english = english;
+      }
+      break;
+    }
+    }
+  }
+
+  const OT::NameRecord *apple = apple_english ? apple_english : apple_roman;
+  if (windows && (!apple || windows_is_english))
+  {
+    *utf16 = true;
+    return windows;
+  }
+  if (apple)
+  {
+    *utf16 = false;
+    return apple;
+  }
+  if (unicode)
+  {
+    *utf16 = true;
+    return unicode;
+  }
+
+  return nullptr;
+}
+
 static inline bool
 _name_matches_hint_dependent_family (hb_face_t *face,
 				     hb_ot_name_id_t name_id,
-				     hb_language_t language)
+				     bool *found)
 {
-  unsigned len =
-      hb_ot_name_get_utf8 (face, name_id, language, nullptr, nullptr);
-  if (!len) return false;
+  *found = false;
+  hb_blob_ptr_t<OT::name> name_table =
+      hb_sanitize_context_t ().reference_table<OT::name> (face);
+  unsigned table_length = name_table.get_length ();
+  if (!table_length) return false;
+
+  const OT::name &table = *name_table;
+  bool utf16 = false;
+  const OT::NameRecord *record =
+      _find_hint_dependent_name_record (table, name_id, &utf16);
+  if (!record) return false;
+
+  *found = true;
+
+  unsigned string_offset = table.stringOffset;
+  if (string_offset >= table_length) return false;
+
+  unsigned pool_length = table_length - string_offset;
+  unsigned record_offset = record->offset;
+  if (record_offset >= pool_length) return false;
+
+  unsigned record_length =
+      hb_min ((unsigned) record->length, pool_length - record_offset);
+  const char *string_data =
+      (const char *) &table + string_offset + record_offset;
+  unsigned max_chars = utf16 ? record_length / 2 : record_length;
 
   char stack_name[128];
-  char *name = stack_name;
-  char *heap_name = nullptr;
-  if (len + 1 > sizeof (stack_name))
+  hb_vector_t<char> name;
+  if (max_chars + 1 <= sizeof (stack_name))
   {
-    heap_name = (char *) hb_malloc (len + 1);
-    if (unlikely (!heap_name)) return true; /* Be conservative. */
-    name = heap_name;
+    name.set_storage (stack_name);
+    name.shrink (max_chars + 1);
   }
+  else if (unlikely (!name.resize (max_chars + 1)))
+    return false;
 
-  unsigned size = len + 1;
-  hb_ot_name_get_utf8 (face, name_id, language, &size, name);
-
-  /* Match FreeType: keep ASCII, replace other characters with `?`, stop at
-   * the first NUL, and skip a PDF font randomization tag. */
-  const uint8_t *p = (const uint8_t *) name;
-  const uint8_t *end = p + len;
-  uint8_t *out = (uint8_t *) name;
-  while (p < end)
+  char *name_string = &name[0];
+  char *out = name_string;
+  if (utf16)
   {
-    hb_codepoint_t cp = 0;
-    p = hb_utf8_t::next (p, end, &cp, '?');
-    if (!cp) break;
-    *out++ = (cp >= 32 && cp <= 127) ? (uint8_t) cp : '?';
+    for (unsigned i = 0; i + 1 < record_length; i += 2)
+    {
+      uint32_t cp =
+	  ((uint8_t) string_data[i] << 8) | (uint8_t) string_data[i + 1];
+      if (!cp) break;
+      *out++ = (cp >= 32 && cp <= 127) ? (char) cp : '?';
+    }
+  }
+  else
+  {
+    for (unsigned i = 0; i < record_length; i++)
+    {
+      uint8_t cp = string_data[i];
+      if (!cp) break;
+      *out++ = (cp >= 32 && cp <= 127) ? (char) cp : '?';
+    }
   }
   *out = '\0';
 
-  const char *family = name;
-  if (out - (uint8_t *) name >= 8 && family[0] >= 'A' && family[0] <= 'Z' &&
-      family[1] >= 'A' && family[1] <= 'Z' && family[2] >= 'A' &&
-      family[2] <= 'Z' && family[3] >= 'A' && family[3] <= 'Z' &&
-      family[4] >= 'A' && family[4] <= 'Z' && family[5] >= 'A' &&
-      family[5] <= 'Z' && family[6] == '+')
-    family += 7;
+  /* PDF subset tags are exactly six uppercase ASCII letters followed by
+   * `+`; FreeType checks the same with ft_isupper(), so don't accept
+   * lowercase or digits here. */
+  const char *family = name_string;
+  bool tagged =
+      (uint8_t *) out - (uint8_t *) name_string >= 8 && family[6] == '+';
+  if (tagged)
+    for (unsigned i = 0; i < 6; i++)
+      if (!ISALPHA ((unsigned char) family[i]) ||
+	  TOUPPER ((unsigned char) family[i]) != (unsigned char) family[i])
+      {
+	tagged = false;
+	break;
+      }
+  if (tagged) family += 7;
 
-  bool match = false;
-  for (const char *candidate : hint_dependent_font_families)
-    if (strstr (family, candidate))
-    {
-      match = true;
-      break;
-    }
+  for (const auto &candidate : hint_dependent_font_families)
+    if (strstr (family, candidate)) return true;
 
-  hb_free (heap_name);
-  return match;
+  return false;
 }
 #endif
 
 struct hint_dependent_table_id_t
 {
+  bool operator== (const hint_dependent_table_id_t &o) const
+  { return checksum == o.checksum && length == o.length; }
+
   uint32_t checksum;
   uint32_t length;
 };
 
 struct hint_dependent_font_id_t
 {
+  bool operator== (const hint_dependent_font_id_t &o) const
+  { return cvt == o.cvt && fpgm == o.fpgm && prep == o.prep; }
+
   hint_dependent_table_id_t cvt;
   hint_dependent_table_id_t fpgm;
   hint_dependent_table_id_t prep;
@@ -245,20 +348,26 @@ static const hint_dependent_font_id_t hint_dependent_font_ids[] = {
 static inline uint32_t
 _table_checksum (const char *data, unsigned length)
 {
-  uint32_t sum = 0;
-  unsigned i = 0;
-  for (; i + 4 <= length; i += 4)
-    sum += ((uint32_t) (uint8_t) data[i] << 24) |
-	   ((uint32_t) (uint8_t) data[i + 1] << 16) |
-	   ((uint32_t) (uint8_t) data[i + 2] << 8) |
-	   (uint32_t) (uint8_t) data[i + 3];
+  if (unlikely ((uintptr_t) data & 3))
+  {
+    DEBUG_MSG (SUBSET, nullptr, "Cannot checksum unaligned table data.");
+    return 0xFFFFFFFFu; /* Make the comparison fail. */
+  }
 
-  uint32_t rem = 0;
-  if (i < length) rem |= (uint32_t) (uint8_t) data[i] << 24;
-  if (i + 1 < length) rem |= (uint32_t) (uint8_t) data[i + 1] << 16;
-  if (i + 2 < length) rem |= (uint32_t) (uint8_t) data[i + 2] << 8;
+  /* set_for_data() requires 4-byte alignment and a length that is a
+   * multiple of four.  Checksum the aligned prefix with it, then add the
+   * trailing bytes as if they were zero-padded. */
+  OT::CheckSum checksum;
+  unsigned aligned_length = length & ~3u;
+  checksum.set_for_data (data, aligned_length);
 
-  return sum + rem;
+  uint32_t sum = checksum;
+  unsigned i = aligned_length;
+  if (i < length) sum += (uint32_t) (uint8_t) data[i] << 24;
+  if (i + 1 < length) sum += (uint32_t) (uint8_t) data[i + 1] << 16;
+  if (i + 2 < length) sum += (uint32_t) (uint8_t) data[i + 2] << 8;
+
+  return sum;
 }
 
 static inline hint_dependent_table_id_t
@@ -289,34 +398,7 @@ _matches_hint_dependent_ids (hb_face_t *face)
   id.prep = _table_id (face, HB_TAG ('p', 'r', 'e', 'p'));
 
   for (const auto &candidate : hint_dependent_font_ids)
-    if (id.cvt.checksum == candidate.cvt.checksum &&
-	id.cvt.length == candidate.cvt.length &&
-	id.fpgm.checksum == candidate.fpgm.checksum &&
-	id.fpgm.length == candidate.fpgm.length &&
-	id.prep.checksum == candidate.prep.checksum &&
-	id.prep.length == candidate.prep.length)
-      return true;
-
-  return false;
-}
-
-static inline bool
-_has_glyf_outlines (hb_face_t *face)
-{
-  static const hb_tag_t tags[] = {
-      HB_TAG ('g', 'l', 'y', 'f'),
-#ifndef HB_NO_BEYOND_64K
-      HB_TAG ('G', 'L', 'Y', 'F'),
-#endif
-  };
-
-  for (hb_tag_t tag : tags)
-  {
-    hb_blob_t *blob = hb_face_reference_table (face, tag);
-    bool has_data = hb_blob_get_length (blob) != 0;
-    hb_blob_destroy (blob);
-    if (has_data) return true;
-  }
+    if (id == candidate) return true;
 
   return false;
 }
@@ -324,21 +406,34 @@ _has_glyf_outlines (hb_face_t *face)
 static inline bool
 _hb_face_requires_hinting (hb_face_t *face)
 {
-  if (!_has_glyf_outlines (face)) return false;
+  if (!face->table.glyf->has_data ()) return false;
 
 #ifndef HB_NO_NAME
-  unsigned count;
-  const hb_ot_name_entry_t *names = hb_ot_name_list_names (face, &count);
-  for (unsigned i = 0; i < count; i++)
+  /* Match FreeType's choice: with the OS/2 WWS bit set the typographic
+   * family is preferred; otherwise the WWS family wins over it. */
+  hb_ot_name_id_t name_ids[3];
+  unsigned name_count;
+  if (face->table.OS2->fsSelection & OT::OS2::WWS)
   {
-    hb_ot_name_id_t name_id = names[i].name_id;
-    if (name_id != HB_OT_NAME_ID_FONT_FAMILY &&
-	name_id != HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY &&
-	name_id != HB_OT_NAME_ID_WWS_FAMILY)
-      continue;
-
-    if (_name_matches_hint_dependent_family (face, name_id, names[i].language))
+    name_ids[0] = HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY;
+    name_ids[1] = HB_OT_NAME_ID_FONT_FAMILY;
+    name_count = 2;
+  }
+  else
+  {
+    name_ids[0] = HB_OT_NAME_ID_WWS_FAMILY;
+    name_ids[1] = HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY;
+    name_ids[2] = HB_OT_NAME_ID_FONT_FAMILY;
+    name_count = 3;
+  }
+  for (unsigned i = 0; i < name_count; i++)
+  {
+    bool found = false;
+    if (_name_matches_hint_dependent_family (face, name_ids[i], &found))
       return true;
+    /* Do not fall through to a lower-priority family name if the
+     * preferred one exists but does not match. */
+    if (found) break;
   }
 #endif
 
