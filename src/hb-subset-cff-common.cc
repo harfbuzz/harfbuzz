@@ -29,6 +29,7 @@
 #ifndef HB_NO_SUBSET_CFF
 
 #include "hb-ot-cff-common.hh"
+#include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
 #include "hb-subset-cff-common.hh"
 
@@ -45,10 +46,11 @@ using namespace CFF;
  * along with a font index remapping table
  */
 
+template <typename FDSELECT>
 bool
 hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 			     unsigned int fdCount,
-			     const FDSelect &src, /* IN */
+			     const FDSELECT &src, /* IN */
 			     unsigned int src_num_glyphs,
 			     unsigned int &subset_fd_count /* OUT */,
 			     unsigned int &subset_fdselect_size /* OUT */,
@@ -159,6 +161,28 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 
   return true;
 }
+
+template bool
+hb_plan_subset_cff_fdselect<CFF1FDSelect> (const hb_subset_plan_t *plan,
+					   unsigned int fdCount,
+					   const CFF1FDSelect &src, /* IN */
+					   unsigned int src_num_glyphs,
+					   unsigned int &subset_fd_count /* OUT */,
+					   unsigned int &subset_fdselect_size /* OUT */,
+					   unsigned int &subset_fdselect_format /* OUT */,
+					   hb_vector_t<code_pair_t> &fdselect_ranges /* OUT */,
+					   hb_inc_bimap_t &fdmap /* OUT */);
+
+template bool
+hb_plan_subset_cff_fdselect<CFF2FDSelect> (const hb_subset_plan_t *plan,
+					   unsigned int fdCount,
+					   const CFF2FDSelect &src, /* IN */
+					   unsigned int src_num_glyphs,
+					   unsigned int &subset_fd_count /* OUT */,
+					   unsigned int &subset_fdselect_size /* OUT */,
+					   unsigned int &subset_fdselect_format /* OUT */,
+					   hb_vector_t<code_pair_t> &fdselect_ranges /* OUT */,
+					   hb_inc_bimap_t &fdmap /* OUT */);
 
 template <typename FDSELECT3_4>
 static inline bool

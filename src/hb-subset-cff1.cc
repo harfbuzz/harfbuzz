@@ -479,6 +479,9 @@ struct cff1_subset_plan
       {
 	hb_codepoint_t  sid = acc.glyph_to_sid (old_glyph, &glyph_to_sid_cache);
 	encoding->get_supplement_codes (sid, supp_codes);
+	/* Supplement entries name the glyph by SID; emit the renumbered one
+	 * (plan_subset_charset () already added all glyph names to sidmap). */
+	sid = sidmap[sid];
 	for (unsigned int i = 0; i < supp_codes.length; i++)
 	  subset_enc_supp_codes.push (code_pair_t {supp_codes[i], sid});
       }
