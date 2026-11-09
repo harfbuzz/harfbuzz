@@ -78,23 +78,9 @@ struct ltag
    * them could make that quadratic. */
   bool matches_language (unsigned int i, hb_language_t specific) const
   {
-    const char *s = hb_language_to_string (specific);
-    if (!s) return false;
-
     const FTStringRange &range = tagRanges[i];
-    const HBUINT8 *tag = (this+range.tag).arrayZ;
-    /* Canonicalize the same way hb_language_from_string() does: at most 63
-     * bytes, lowercase, '_' to '-', stop at the first other non-alphanumeric. */
-    unsigned len = hb_min ((unsigned) range.length, 63u);
-    unsigned l = 0;
-    for (; l < len; l++)
-    {
-      unsigned char c = TOLOWER (tag[l]);
-      if (c == '_') c = '-';
-      if (!ISALNUM (c) && c != '-') break;
-      if (c != (unsigned char) s[l]) return false;
-    }
-    return l && (s[l] == '\0' || s[l] == '-');
+    return hb_language_matches_string ((const char *) (this+range.tag).arrayZ,
+				       range.length, specific);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
