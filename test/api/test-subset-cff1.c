@@ -365,7 +365,8 @@ test_subset_cff1_subr_loop (void)
 {
   /* CID-keyed font whose parsed subrs, shared between font dicts, form a
    * call cycle that the charstrings never execute. Dropping hints used to
-   * recurse over it without end. */
+   * recurse over it without end; the walks now stop at the call-depth
+   * limit and the subset still succeeds. */
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_subr_loop.otf");
 
   hb_set_t *codepoints = hb_set_create ();
@@ -376,6 +377,7 @@ test_subset_cff1_subr_loop (void)
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
   face_subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (face_subset);
   hb_subset_input_destroy (input);
   hb_set_destroy (codepoints);
 
