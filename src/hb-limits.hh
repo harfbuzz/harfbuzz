@@ -326,7 +326,11 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * final coordinates each axis can reach.  A delta-set row can list a region
  * any number of times and axes can share a row, so the table size does not
  * bound that work.  An axis whose exact bounds do not fit what is left gets
- * the looser interval bounds; once exhausted, axes are left unconstrained. */
+ * the looser interval bounds; once exhausted, the remaining axes get no
+ * range and are not detected as self-contained.  Either way the instance
+ * stays correct, only less optimized: those ranges only cull variation
+ * data that cannot be reached, and a pinned axis not found self-contained
+ * stays in fvar as a hidden pin. */
 #ifndef HB_BUDGET_SUBSET_AVAR2_RANGES
 #define HB_BUDGET_SUBSET_AVAR2_RANGES ((int64_t) 1 << 26)
 #endif
