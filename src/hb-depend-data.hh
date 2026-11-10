@@ -261,7 +261,6 @@ struct hb_depend_data_t
  * - lookup_features: Packed lookup index to feature tag mapping
  * - lookup_feature_offsets: Per-lookup offsets into lookup_features
  * - edge_slots: Compact edge deduplication table
- * - edge_probes_remaining: Occupied slots the build may still step over
  * - set_to_index: Content-based dependency set deduplication map
  * - free_set_list: Indices of freed sets available for reuse
  * - current_context_set_index: Context requirements for current rule
@@ -483,11 +482,7 @@ struct hb_depend_data_builder_t
       unsigned int slot = edge_hash (source, record) & (new_size - 1);
       unsigned int step = 0;
       while (new_slots[slot])
-      {
-	if (unlikely (!hb_budget_spend (edge_probes_remaining, HB_BUDGET_1)))
-	  return fail ();
 	slot = (slot + ++step) & (new_size - 1);
-      }
       new_slots[slot] = ref;
     }
 
@@ -519,8 +514,6 @@ struct hb_depend_data_builder_t
       if (existing_source == source &&
 	  data.glyph_dependencies[source].dependencies[existing_index] == record)
 	return false;
-      if (unlikely (!hb_budget_spend (edge_probes_remaining, HB_BUDGET_1)))
-	return fail ();
       slot = (slot + ++step) & (edge_slots.length - 1);
     }
 
@@ -656,7 +649,6 @@ struct hb_depend_data_builder_t
   hb_vector_t<unsigned> lookup_feature_offsets;
   hb_vector_t<uint64_t> edge_slots;
   unsigned int edge_population = 0;
-  int64_t edge_probes_remaining = HB_DEPEND_MAX_EDGE_PROBES;
   hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
   hb_vector_t<hb_codepoint_t> free_set_list;
   hb_codepoint_t current_context_set_index;

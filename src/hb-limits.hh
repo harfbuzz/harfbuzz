@@ -108,7 +108,7 @@
  * by many feature tags multiplies its substitutions by the tag count and
  * a small table can describe a graph of hundreds of millions of edges. */
 #ifndef HB_DEPEND_MAX_EDGES
-#define HB_DEPEND_MAX_EDGES (1u << 22)
+#define HB_DEPEND_MAX_EDGES (1u << 25)
 #endif
 
 #ifndef HB_VAR_COMPOSITE_MAX_AXES
@@ -290,14 +290,6 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * range compiled extends to the end of the text. */
 #ifndef HB_BUDGET_AAT_MAP
 #define HB_BUDGET_AAT_MAP ((int64_t) 1 << 24)
-#endif
-
-/* One dependency graph build, in occupied slots stepped over while looking
- * for duplicate edges.  The edge hash is not keyed, so a font can still be
- * crafted so that its edges collide, and each colliding edge then steps
- * over every earlier one.  Exceeding the limit fails the build. */
-#ifndef HB_DEPEND_MAX_EDGE_PROBES
-#define HB_DEPEND_MAX_EDGE_PROBES ((int64_t) 1 << 26)
 #endif
 
 
