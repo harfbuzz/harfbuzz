@@ -23,6 +23,7 @@
  */
 
 #include "hb-buffer.hh"
+#include "hb-shape-plan.hh"
 
 int
 main (int argc, char **argv)
@@ -49,10 +50,18 @@ main (int argc, char **argv)
      * Refuse output growth without depending on system memory pressure. */
     hb_always_assert (buffer->allocated < 164);
     hb_always_assert (buffer->allocated * sizeof (hb_glyph_position_t) >= 4 * 24 + 164 * 8);
+    bool ret;
     if (fail)
+    {
+      /* hb_shape_plan_execute() installs its own per-text max_len;
+       * call the shaper directly so the stricter limit sticks. */
       buffer->max_len = buffer->allocated;
+      ret = plan->key.shaper_func (plan, font, buffer, nullptr, 0);
+    }
+    else
+      ret = hb_shape_plan_execute (plan, font, buffer, nullptr, 0);
 
-    hb_always_assert (bool (hb_shape_plan_execute (plan, font, buffer, nullptr, 0)) == !fail);
+    hb_always_assert (ret == !fail);
     hb_always_assert (bool (hb_buffer_allocation_successful (buffer)) == !fail);
     hb_always_assert (hb_buffer_get_length (buffer) == (fail ? 4u : 164u));
 
