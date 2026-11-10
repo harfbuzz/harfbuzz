@@ -139,6 +139,37 @@ generalize_commands (hb_vector_t<cs_command_t> &commands)
     commands.push (result[i]);
 }
 
+/* Merge each command into the one before it wherever can_combine allows,
+ * from the last command to the first.  Finished commands are kept packed
+ * at the end of the vector and moved to the front once at the end, such
+ * that dropping a merged command does not shift everything behind it. */
+template <typename Pred>
+static void
+combine_commands (hb_vector_t<cs_command_t> &commands, Pred can_combine)
+{
+  unsigned count = commands.length;
+  unsigned done = count; /* Finished commands are in [done, count). */
+  for (unsigned i = count; i-- > 0;)
+  {
+    auto &prev = commands.arrayZ[i];
+    while (done < count && can_combine (prev, commands.arrayZ[done]))
+    {
+      /* Merge into first command, keep its operator */
+      for (const auto &arg : commands.arrayZ[done].args)
+        prev.args.push (arg);
+      done++;
+    }
+    done--;
+    if (done != i)
+      commands.arrayZ[done] = std::move (prev);
+  }
+
+  if (!done) return;
+  for (unsigned i = done; i < count; i++)
+    commands.arrayZ[i - done] = std::move (commands.arrayZ[i]);
+  commands.shrink (count - done);
+}
+
 /* Specialize CharString commands to optimize bytecode size
  *
  * Follows fontTools approach:
@@ -190,55 +221,29 @@ specialize_commands (hb_vector_t<cs_command_t> &commands,
   /* Pass 2: Combine adjacent hlineto/vlineto operators
    * hlineto can take multiple args alternating with vlineto
    * This saves operator bytes */
-  for (int i = (int)commands.length - 1; i > 0; i--)
+  combine_commands (commands, [maxstack] (const cs_command_t &prev, const cs_command_t &cmd)
   {
-    auto &cmd = commands[i];
-    auto &prev = commands[i-1];
-
     /* Different starting directions can combine only after an odd number
      * of alternating arguments in the preceding command. */
-    if (((prev.op == OpCode_hlineto && cmd.op == OpCode_vlineto) ||
-         (prev.op == OpCode_vlineto && cmd.op == OpCode_hlineto)) &&
-        (prev.args.length & 1))
-    {
-      /* Check stack depth */
-      unsigned combined_args = prev.args.length + cmd.args.length;
-      if (combined_args < maxstack)
-      {
-        /* Merge into first command, keep its operator */
-        for (unsigned j = 0; j < cmd.args.length; j++)
-          prev.args.push (cmd.args[j]);
-        commands.remove_ordered (i);
-        i++;  /* Adjust for removed element */
-      }
-    }
-  }
+    return ((prev.op == OpCode_hlineto && cmd.op == OpCode_vlineto) ||
+            (prev.op == OpCode_vlineto && cmd.op == OpCode_hlineto)) &&
+           (prev.args.length & 1) &&
+           /* Check stack depth */
+           prev.args.length + cmd.args.length < maxstack;
+  });
 
   /* Pass 3: Combine adjacent identical operators */
-  for (int i = (int)commands.length - 1; i > 0; i--)
+  combine_commands (commands, [maxstack] (const cs_command_t &prev, const cs_command_t &cmd)
   {
-    auto &cmd = commands[i];
-    auto &prev = commands[i-1];
-
     /* Same-direction h/v commands can combine only after an even number
      * of alternating arguments. Other repeatable operators concatenate. */
-    if (prev.op == cmd.op &&
-        (cmd.op == OpCode_rlineto || cmd.op == OpCode_rrcurveto ||
-         ((cmd.op == OpCode_hlineto || cmd.op == OpCode_vlineto) &&
-          !(prev.args.length & 1))))
-    {
-      /* Check stack depth */
-      unsigned combined_args = prev.args.length + cmd.args.length;
-      if (combined_args < maxstack)
-      {
-        /* Merge args */
-        for (unsigned j = 0; j < cmd.args.length; j++)
-          prev.args.push (cmd.args[j]);
-        commands.remove_ordered (i);
-        i++;  /* Adjust for removed element */
-      }
-    }
-  }
+    return prev.op == cmd.op &&
+           (cmd.op == OpCode_rlineto || cmd.op == OpCode_rrcurveto ||
+            ((cmd.op == OpCode_hlineto || cmd.op == OpCode_vlineto) &&
+             !(prev.args.length & 1))) &&
+           /* Check stack depth */
+           prev.args.length + cmd.args.length < maxstack;
+  });
 }
 
 /* Encode commands back to binary CharString */
