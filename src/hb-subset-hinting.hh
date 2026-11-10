@@ -39,7 +39,10 @@
  * rendering; dropping them changes glyph advances and outlines.  FreeType
  * likewise refuses to load these fonts without hinting.  The family names are
  * from src/truetype/ttobjs.c in FreeType. */
-static const char hint_dependent_font_families[][19] = {
+/* Longest family name in the table, including NUL. */
+static constexpr unsigned HINT_DEPENDENT_FAMILY_NAME_SIZE = 19;
+
+static const char hint_dependent_font_families[][HINT_DEPENDENT_FAMILY_NAME_SIZE] = {
     "cpop",	   "DFGirl-W6-WIN-BF", "DFGothic-EB",	 "DFGyoSho-Lt",
     "DFHei",	   "DFHSGothic-W5",    "DFHSMincho-W3",	 "DFHSMincho-W7",
     "DFKaiSho-SB", "DFKaiShu",	       "DFKai-SB",	 "DFMing",
@@ -192,10 +195,12 @@ _name_matches_hint_dependent_family (hb_face_t *face,
       }
   if (tagged) family += 7;
 
-  for (const auto &candidate : hint_dependent_font_families)
-    if (strstr (family, candidate)) return true;
-
-  return false;
+  return
+  + hb_iter (hint_dependent_font_families)
+  | hb_map ([&] (const char (&candidate)[HINT_DEPENDENT_FAMILY_NAME_SIZE])
+	    { return strstr (family, candidate) != nullptr; })
+  | hb_any
+  ;
 }
 #endif
 
@@ -375,10 +380,11 @@ _matches_hint_dependent_ids (hb_face_t *face)
   id.fpgm = _table_id (face, HB_TAG ('f', 'p', 'g', 'm'));
   id.prep = _table_id (face, HB_TAG ('p', 'r', 'e', 'p'));
 
-  for (const auto &candidate : hint_dependent_font_ids)
-    if (id == candidate) return true;
-
-  return false;
+  return
+  + hb_iter (hint_dependent_font_ids)
+  | hb_map ([&] (const hint_dependent_font_id_t &candidate) { return id == candidate; })
+  | hb_any
+  ;
 }
 
 static hb_user_data_key_t _hb_subset_hint_dependent_user_data_key = {0};
