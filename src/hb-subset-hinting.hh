@@ -381,13 +381,6 @@ _matches_hint_dependent_ids (hb_face_t *face)
   return false;
 }
 
-enum class hint_dependent_cache_t : uintptr_t
-{
-  UNCACHED,
-  CACHED_FALSE,
-  CACHED_TRUE,
-};
-
 static hb_user_data_key_t _hb_subset_hint_dependent_user_data_key = {0};
 
 static inline bool
@@ -430,6 +423,12 @@ _hb_subset_face_requires_hinting_uncached (hb_face_t *face)
 static inline bool
 _hb_subset_face_requires_hinting (hb_face_t *face)
 {
+  enum class hint_dependent_cache_t : uintptr_t
+  {
+    UNCACHED,
+    CACHED_FALSE,
+    CACHED_TRUE,
+  };
   /* The user-data pointer is the enum value; UNCACHED is zero. */
   hint_dependent_cache_t cached = static_cast<hint_dependent_cache_t> (
       (uintptr_t) hb_face_get_user_data (face,
