@@ -175,6 +175,9 @@ static const char canon_map[256] = {
   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z',  0,   0,   0,   0,   0
 };
 
+/* hb_language_from_string() truncates strings with explicit length to this. */
+#define LANG_MAX_LEN 63
+
 static bool
 lang_equal (hb_language_t  v1,
 	    const void    *v2)
@@ -314,7 +317,7 @@ hb_language_from_string (const char *str, int len)
   if (len >= 0)
   {
     /* NUL-terminate it. */
-    char strbuf[64];
+    char strbuf[LANG_MAX_LEN + 1];
     len = hb_min (len, (int) sizeof (strbuf) - 1);
     hb_memcpy (strbuf, str, len);
     strbuf[len] = '\0';
@@ -408,6 +411,27 @@ hb_language_matches (hb_language_t language,
 
   return strncmp (l, s, ll) == 0 &&
 	 (s[ll] == '\0' || s[ll] == '-');
+}
+
+/* Returns hb_language_matches (hb_language_from_string (str, len), specific),
+ * without interning @str; hb_language_from_string() would add it to the
+ * process-wide list of languages forever. */
+bool
+hb_language_matches_string (const char    *str,
+			    unsigned int   len,
+			    hb_language_t  specific)
+{
+  if (!str || !len || !*str) return specific == HB_LANGUAGE_INVALID;
+  if (!specific) return false;
+
+  const unsigned char *p1 = (const unsigned char *) str;
+  const char *s = specific->s;
+  len = hb_min (len, (unsigned) LANG_MAX_LEN);
+  unsigned l = 0;
+  for (; l < len && canon_map[p1[l]]; l++)
+    if (canon_map[p1[l]] != s[l]) return false;
+
+  return s[l] == '\0' || s[l] == '-';
 }
 
 
