@@ -172,7 +172,8 @@
        const OT::HBUINT8 *delta_bytes = vd.get_delta_bytes ();
        unsigned row_size = vd.get_row_size ();
        unsigned region_count = vd.get_region_index_count ();
-       /* Out of budget: the remaining axes are left unconstrained. */
+       /* Out of budget: record nothing for the remaining axes.  That is
+	* still correct, only less tight; see HB_BUDGET_SUBSET_AVAR2_RANGES. */
        if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, region_count)))
 	 return true;
        for (unsigned r = 0; r < region_count; r++)
