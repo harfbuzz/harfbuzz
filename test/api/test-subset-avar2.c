@@ -241,8 +241,7 @@ write_uint16_be (unsigned char *p, unsigned v)
 /* Replace the test font's avar table with one that gives wght hundreds of
  * avar v1 breakpoints and, through the implicit VarIdxMap, keeps the axes'
  * delta sets in a VarData of 65535 rows but no regions: rows that take no
- * bytes.  Few enough breakpoints that the quadratic estimator budget is not
- * the one that trips. */
+ * bytes. */
 static hb_blob_t *
 reference_table_with_avar2_empty_rows (hb_face_t *face HB_UNUSED,
 				       hb_tag_t tag,
@@ -774,39 +773,34 @@ reference_table_with_breakpoints (hb_face_t *face HB_UNUSED,
 			 HB_MEMORY_MODE_WRITABLE, data, free);
 }
 
-/* Offset compensation takes time quadratic in the breakpoints of the
- * restricted axis. It must cope with hundreds of them, but give up on tens
- * of thousands rather than spend a minute. */
+/* Offset compensation looks every breakpoint of the restricted axis up in
+ * its mappings.  It must cope with hundreds of them, and with the tens of
+ * thousands an axis can have without taking time quadratic in them. */
 static void
 test_avar2_restrict_many_breakpoints (void)
 {
   hb_face_t *source = open_original ();
+  const unsigned steps[] = {64, 1};
 
-  breakpoints_t many = {source, 64};
-  hb_face_t *face = hb_face_create_for_tables (reference_table_with_breakpoints,
-					       &many, NULL);
-  hb_subset_input_t *input = create_input ();
-  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
-  hb_face_t *inst = instance (face, input);
-
-  for (unsigned i = 0; i < 9; i++)
+  for (unsigned s = 0; s < G_N_ELEMENTS (steps); s++)
   {
-    hb_variation_t vars[1] = {{WGHT, lerp (200.f, 700.f, i, 9)}};
-    check_same_coords (face, inst, vars, 1, 2);
+    breakpoints_t breakpoints = {source, steps[s]};
+    hb_face_t *face = hb_face_create_for_tables (reference_table_with_breakpoints,
+						 &breakpoints, NULL);
+    hb_subset_input_t *input = create_input ();
+    g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
+    hb_face_t *inst = instance (face, input);
+
+    for (unsigned i = 0; i < 9; i++)
+    {
+      hb_variation_t vars[1] = {{WGHT, lerp (200.f, 700.f, i, 9)}};
+      check_same_coords (face, inst, vars, 1, 2);
+    }
+
+    hb_face_destroy (inst);
+    hb_face_destroy (face);
   }
 
-  hb_face_destroy (inst);
-  hb_face_destroy (face);
-
-  breakpoints_t too_many = {source, 1};
-  face = hb_face_create_for_tables (reference_table_with_breakpoints,
-				    &too_many, NULL);
-  input = create_input ();
-  g_assert_true (hb_subset_input_set_axis_range (input, face, WGHT, 200.f, 700.f, 400.f));
-  g_assert_null (hb_subset_or_fail (face, input));
-
-  hb_subset_input_destroy (input);
-  hb_face_destroy (face);
   hb_face_destroy (source);
 }
 
