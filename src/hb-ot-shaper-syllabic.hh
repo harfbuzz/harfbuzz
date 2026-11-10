@@ -38,6 +38,24 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 				   int repha_category = -1,
 				   int dottedcircle_position = -1);
 
+HB_INTERNAL void
+hb_syllabic_record_cut_slow (hb_buffer_t *buffer,
+			     unsigned int start,
+			     unsigned int end);
+
+/* Call for each piece [start, end) that foreach_syllable() yields.
+ * foreach_syllable() cuts syllables longer than HB_MAX_SYLLABLE_LENGTH;
+ * this records such cuts so later walks see the same pieces.  Only does
+ * work for pieces of HB_MAX_SYLLABLE_LENGTH glyphs. */
+static inline void
+hb_syllabic_record_cut (hb_buffer_t *buffer,
+			unsigned int start,
+			unsigned int end)
+{
+  if (unlikely (end - start >= HB_MAX_SYLLABLE_LENGTH))
+    hb_syllabic_record_cut_slow (buffer, start, end);
+}
+
 HB_INTERNAL bool
 hb_syllabic_clear_var (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,

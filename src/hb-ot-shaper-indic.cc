@@ -418,7 +418,10 @@ setup_syllables_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
   HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
   find_syllables_indic (buffer);
   foreach_syllable (buffer, start, end)
+  {
+    hb_syllabic_record_cut (buffer, start, end);
     buffer->unsafe_to_break (start, end);
+  }
   return false;
 }
 
@@ -988,7 +991,12 @@ initial_reordering_indic (const hb_ot_shape_plan_t *plan,
     ret = true;
 
   foreach_syllable (buffer, start, end)
+  {
+    /* locl, ccmp, or inserted dotted-circles may have pushed a piece over
+     * the limit again; final reordering needs to see the same pieces. */
+    hb_syllabic_record_cut (buffer, start, end);
     initial_reordering_syllable_indic (plan, font->face, buffer, start, end);
+  }
 
   (void) buffer->message (font, "end reordering indic initial");
 
