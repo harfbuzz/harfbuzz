@@ -988,7 +988,7 @@ struct GDEF
 
 #ifndef HB_NO_GDEF_CACHE
       /* Flatten each mark set whose glyphs span fewer than PAGE_BITS
-       * gids into a single bit-page biased at its first glyph, for
+       * gids into a bit-vector biased at its first glyph, for
        * O(1) exact answers.  Wider sets, or on allocation failure,
        * fall back to the table.
        *
@@ -1004,21 +1004,22 @@ struct GDEF
 	  for (unsigned i = 0; i < count; i++)
 	  {
 	    auto &bitmap = mark_glyph_set_bitmaps.arrayZ[i];
-	    bitmap.bias = HB_SET_VALUE_INVALID;
 	    const Coverage &cov = mark_sets.get_coverage (i);
-	    mark_glyph_set_extents_t extents;
+	    hb_min_max_t extents;
 	    cov.collect_coverage (&extents);
-	    if (extents.min_gid == HB_SET_VALUE_INVALID)
+	    if (extents.get_min () == HB_SET_VALUE_INVALID)
 	      continue;
-	    if (extents.max_gid - extents.min_gid >= hb_bit_page_t::PAGE_BITS)
+	    if (extents.get_max () - extents.get_min () < hb_bit_page_t::PAGE_BITS)
 	    {
-	      /* Too wide for one page; a digest pre-filter instead. */
-	      cov.collect_coverage (&bitmap.u.digest);
-	      continue;
+	      bitmap.glyphs = hb_bit_vector_t<> (extents.get_min (), extents.get_max ());
+	      if (likely (!bitmap.glyphs.in_error ()))
+	      {
+		cov.collect_coverage (&bitmap.glyphs);
+		continue;
+	      }
 	    }
-	    bitmap.bias = extents.min_gid;
-	    mark_glyph_set_page_t page {bitmap.u.page, extents.min_gid};
-	    cov.collect_coverage (&page);
+	    /* Too wide, or allocation failed; a digest pre-filter instead. */
+	    cov.collect_coverage (&bitmap.digest);
 	  }
       }
 #endif
@@ -1026,40 +1027,6 @@ struct GDEF
     ~accelerator_t () { sanitized_table.destroy (); }
 
     hb_blob_ptr_t<GDEF> borrow_sanitized_table () const { return sanitized_table; }
-
-#ifndef HB_NO_GDEF_CACHE
-    /* Sinks for Coverage::collect_coverage(): the gid extents of a
-     * coverage, and a bit-page filled with gids relative to a bias
-     * (which must be the coverage's min gid, with max - min < PAGE_BITS). */
-    struct mark_glyph_set_extents_t
-    {
-      void add (hb_codepoint_t g)
-      {
-	min_gid = hb_min (min_gid, g);
-	max_gid = hb_max (max_gid, g);
-      }
-      bool add_range (hb_codepoint_t a, hb_codepoint_t b)
-      { if (a <= b) { add (a); add (b); } return true; }
-      template <typename T>
-      bool add_sorted_array (const hb_sorted_array_t<const T>& arr)
-      { for (const auto &g : arr) add (g); return true; }
-
-      hb_codepoint_t min_gid = HB_SET_VALUE_INVALID;
-      hb_codepoint_t max_gid = 0;
-    };
-    struct mark_glyph_set_page_t
-    {
-      void add (hb_codepoint_t g) { page.add (g - bias); }
-      bool add_range (hb_codepoint_t a, hb_codepoint_t b)
-      { if (a <= b) page.add_range (a - bias, b - bias); return true; }
-      template <typename T>
-      bool add_sorted_array (const hb_sorted_array_t<const T>& arr)
-      { for (const auto &g : arr) add (g); return true; }
-
-      hb_bit_page_t &page;
-      hb_codepoint_t bias;
-    };
-#endif
 
     unsigned int get_glyph_props (hb_codepoint_t glyph) const
     {
@@ -1087,12 +1054,8 @@ struct GDEF
 #ifndef HB_NO_GDEF_CACHE
       // We can access arrayZ directly because of sanitize_lookup_props() guarantee.
       const auto &bitmap = mark_glyph_set_bitmaps.arrayZ[set_index];
-      if (likely (bitmap.bias != HB_SET_VALUE_INVALID))
-      {
-	hb_codepoint_t biased = glyph_id - bitmap.bias;
-	return biased < hb_bit_page_t::PAGE_BITS &&
-	       bitmap.u.page.get (biased);
-      }
+      if (likely (!bitmap.glyphs.in_error ()))
+	return bitmap.glyphs.has (glyph_id);
       return mark_set_covers_slow (set_index, glyph_id);
 #else
       return table->mark_set_covers (set_index, glyph_id);
@@ -1104,7 +1067,7 @@ struct GDEF
     bool mark_set_covers_slow (unsigned int set_index, hb_codepoint_t glyph_id) const
     {
       const auto &bitmap = mark_glyph_set_bitmaps.arrayZ[set_index];
-      if (!bitmap.u.digest.may_have (glyph_id))
+      if (!bitmap.digest.may_have (glyph_id))
 	return false;
       return table->mark_set_covers (set_index, glyph_id);
     }
@@ -1129,15 +1092,8 @@ struct GDEF
 #ifndef HB_NO_GDEF_CACHE
     struct mark_glyph_set_bitmap_t
     {
-      /* Gid of the first bit (not page-aligned) for an exact one-page
-       * set, or HB_SET_VALUE_INVALID; then digest is a pre-filter for
-       * the table.  The all-zeros state is valid for both members. */
-      hb_codepoint_t bias = HB_SET_VALUE_INVALID;
-      union u_t {
-	u_t () : page () {}
-	hb_bit_page_t page;
-	hb_set_digest_t digest;
-      } u;
+      hb_bit_vector_t<> glyphs {1, 0};
+      hb_set_digest_t digest;
     };
 
     hb_vector_t<mark_glyph_set_bitmap_t> mark_glyph_set_bitmaps;
