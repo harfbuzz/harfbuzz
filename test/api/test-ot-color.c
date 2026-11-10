@@ -532,6 +532,59 @@ test_hb_ot_color_png_cbdt_records (void)
   hb_face_destroy (face);
 }
 
+static unsigned int
+cbdt_png_length_with_strikes (unsigned int num_strikes)
+{
+  /* num_strikes strikes, of which only the last has a ppem and a one-byte
+   * image for glyph 0.  The others have ppem 0 and are never chosen over
+   * it, unless it is beyond the strikes considered. */
+  unsigned int array_offset = 8 + 48 * num_strikes;
+  unsigned int cblc_length = array_offset + 8 + 12;
+  uint8_t *cblc = calloc (cblc_length, 1);
+  uint8_t *p;
+  static const uint8_t cbdt[4 + 8] = {0, 3, 0, 0, 0, 0, 0, 1};
+
+  cblc[1] = 3; /* version */
+  cblc[4] = num_strikes >> 24; cblc[5] = num_strikes >> 16;
+  cblc[6] = num_strikes >> 8; cblc[7] = num_strikes;
+  p = cblc + array_offset - 48; /* Last BitmapSize */
+  p[0] = array_offset >> 24; p[1] = array_offset >> 16;
+  p[2] = array_offset >> 8; p[3] = array_offset; /* indexSubtableArrayOffset */
+  p[11] = 1; /* numberOfIndexSubtables */
+  p[44] = p[45] = p[46] = 32; p[47] = 1; /* ppemX, ppemY, bitDepth, flags */
+  p = cblc + array_offset;
+  p[7] = 8; /* IndexSubtableRecord: glyphs 0..0, offsetToSubtable */
+  p += 8;
+  p[1] = 3; p[3] = 19; p[7] = 4; p[11] = 8; /* IndexSubtableFormat3 */
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ((const char *) cblc, cblc_length,
+				    HB_MEMORY_MODE_WRITABLE, cblc, free);
+  hb_face_builder_add_table (face, HB_TAG ('C','B','L','C'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) cbdt, sizeof (cbdt),
+			 HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (face, HB_TAG ('C','B','D','T'), blob);
+  hb_blob_destroy (blob);
+
+  hb_font_t *font = hb_font_create (face);
+  blob = hb_ot_color_glyph_reference_png (font, 0);
+  unsigned int length = hb_blob_get_length (blob);
+  hb_blob_destroy (blob);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  return length;
+}
+
+static void
+test_hb_ot_color_png_cbdt_max_strikes (void)
+{
+  /* Strikes beyond HB_CBLC_MAX_STRIKES (256) are ignored. */
+  g_assert_cmpuint (cbdt_png_length_with_strikes (1), ==, 1);
+  g_assert_cmpuint (cbdt_png_length_with_strikes (256), ==, 1);
+  g_assert_cmpuint (cbdt_png_length_with_strikes (257), ==, 0);
+}
+
 #if !defined(HB_NO_VAR) && !defined(HB_NO_PAINT)
 static void
 test_hb_ot_color_clip_extents_overflow (void)
@@ -670,6 +723,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_has_data);
   hb_test_add (test_hb_ot_color_png);
   hb_test_add (test_hb_ot_color_png_cbdt_records);
+  hb_test_add (test_hb_ot_color_png_cbdt_max_strikes);
 #if !defined(HB_NO_VAR) && !defined(HB_NO_PAINT)
   hb_test_add (test_hb_ot_color_clip_extents_overflow);
 #endif
