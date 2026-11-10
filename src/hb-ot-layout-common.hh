@@ -1614,6 +1614,8 @@ struct ClassDefFormat1_3
     if (use_class_zero)
     {
       const hb_set_t& glyphset = *c->plan->glyphset_gsub ();
+      if (glyph_filter && unlikely (!c->check_ops (glyphset.get_population ())))
+	return_trace (false);
       unsigned glyph_count = glyph_filter
 			     ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
 			     : glyphset.get_population ();
@@ -1866,8 +1868,13 @@ struct ClassDefFormat2_4
     hb_sorted_vector_t<hb_codepoint_pair_t> glyph_and_klass;
     hb_set_t orig_klasses;
 
-    if (glyph_set.get_population () * hb_bit_storage ((unsigned) rangeRecord.len)
-	< get_population ())
+    /* Either walk is repeated for every offset that points at us. */
+    unsigned glyph_set_cost = glyph_set.get_population () * hb_bit_storage ((unsigned) rangeRecord.len);
+    unsigned population = get_population ();
+    if (unlikely (!c->check_ops (hb_min (glyph_set_cost, population))))
+      return_trace (false);
+
+    if (glyph_set_cost < population)
     {
       for (hb_codepoint_t g : glyph_set)
       {
@@ -1902,6 +1909,8 @@ struct ClassDefFormat2_4
     }
 
     const hb_set_t& glyphset = *c->plan->glyphset_gsub ();
+    if (glyph_filter && unlikely (!c->check_ops (glyphset.get_population ())))
+      return_trace (false);
     unsigned glyph_count = glyph_filter
                            ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
                            : glyphset.get_population ();

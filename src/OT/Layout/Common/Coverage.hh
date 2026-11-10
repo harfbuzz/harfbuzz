@@ -190,6 +190,11 @@ struct Coverage
   {
     TRACE_SUBSET (this);
     const hb_subset_plan_t *plan = c->plan;
+
+    /* Ranges are walked glyph by glyph, once per offset that points at us. */
+    if (unlikely (!c->check_ops (hb_min (get_population (), plan->source->get_num_glyphs ()))))
+      return_trace (false);
+
     auto it =
     + iter ()
     | hb_take (plan->source->get_num_glyphs ())
