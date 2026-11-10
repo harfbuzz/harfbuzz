@@ -734,10 +734,23 @@ test_native_ft_v_metrics_batched (void)
       g_assert_true (hb_font_get_glyph_v_origin (fresh, glyphs[i], &ox, &oy));
       g_assert_cmpint (org[i].x, ==, ox);
       g_assert_cmpint (org[i].y, ==, oy);
-      /* The origin's x is half the horizontal advance, as hb-ot does. */
-      g_assert_cmpint (org[i].x, ==, hb_font_get_glyph_h_advance (fresh, glyphs[i]) / 2);
+      /* The origin comes from FreeType's bearings. */
+      g_assert_cmpint (FT_Load_Glyph (ft_face, glyphs[i], FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING), ==, 0);
+      g_assert_cmpint (org[i].x, ==, ft_face->glyph->metrics.horiBearingX -
+				     ft_face->glyph->metrics.vertBearingX);
+      g_assert_cmpint (org[i].y, ==, sign * (ft_face->glyph->metrics.horiBearingY +
+					     ft_face->glyph->metrics.vertBearingY));
     }
     hb_font_destroy (fresh);
+  }
+
+  /* A glyph FreeType fails to load has no vertical origin; repeating the
+   * query must not serve a cached value either. */
+  {
+    hb_position_t ox, oy;
+    hb_codepoint_t bad = ft_face->num_glyphs + 10;
+    g_assert_false (hb_font_get_glyph_v_origin (font, bad, &ox, &oy));
+    g_assert_false (hb_font_get_glyph_v_origin (font, bad, &ox, &oy));
   }
 
   hb_font_destroy (font);
