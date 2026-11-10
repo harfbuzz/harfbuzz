@@ -161,11 +161,11 @@ static void
 test_subset_shared_coverage_budget (void)
 {
   /* Walking 65535 glyphs per offset must run out of the per-table work
-   * budget (HB_BUDGET_SUBSET_TABLE) at 2048 offsets, but not at 256. */
+   * budget (HB_BUDGET_SUBSET_GLYF) at 8192 offsets, but not at 256. */
   static const struct { unsigned backtrack_count, range_last; hb_bool_t expected; } cases[] = {
-    { 2048, 1,     TRUE },
+    { 8192, 1,     TRUE },
     { 256,  65534, TRUE },
-    { 2048, 65534, FALSE },
+    { 8192, 65534, FALSE },
   };
 
   for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)

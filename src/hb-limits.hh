@@ -243,7 +243,10 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * variable fonts spend -- the largest glyf variable font under test/
  * (MPLUS1-Variable, 6,434 glyphs retained) uses ~1.2M units, and even a
  * font at the 65,535-glyph maximum stays far below -- while keeping the
- * adversarial worst case bounded. */
+ * adversarial worst case bounded.  Layout tables charge their Coverage
+ * and ClassDef glyph walks to the same budget: a glyph range costs a few
+ * bytes and any number of offsets can share it, so neither the table size
+ * nor the sanitizer's budget bounds that work. */
 #ifndef HB_BUDGET_SUBSET_GLYF
 #define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 28)
 #endif
@@ -274,14 +277,6 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * range compiled extends to the end of the text. */
 #ifndef HB_BUDGET_AAT_MAP
 #define HB_BUDGET_AAT_MAP ((int64_t) 1 << 24)
-#endif
-
-/* Subsetting one table, in glyphs visited while walking its Coverage and
- * ClassDef tables.  A glyph range costs a few bytes and any number of
- * offsets can share it, so neither the table size nor the sanitizer's
- * budget bounds that work. */
-#ifndef HB_BUDGET_SUBSET_TABLE
-#define HB_BUDGET_SUBSET_TABLE ((int64_t) 1 << 26)
 #endif
 
 
