@@ -205,6 +205,10 @@ struct hb_subset_plan_t
   // whether we're doing avar2 partial instancing
   bool has_avar2;
 
+  // see cff_budget ()
+  mutable int64_t _cff_budget = 0;
+  mutable bool _cff_budget_set = false;
+
 #define HB_SUBSET_PLAN_MEMBER(Type, Name) Type Name;
 #include "hb-subset-plan-member-list.hh"
 #undef HB_SUBSET_PLAN_MEMBER
@@ -258,6 +262,18 @@ struct hb_subset_plan_t
   {
     successful = (successful && success);
     return successful;
+  }
+
+  /* Charstring work budget shared by every CFF / CFF2 pass of this
+   * subset; the first caller sizes it. */
+  int64_t *cff_budget (int64_t initial) const
+  {
+    if (!_cff_budget_set)
+    {
+      _cff_budget = initial;
+      _cff_budget_set = true;
+    }
+    return &_cff_budget;
   }
 
   /*
