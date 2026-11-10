@@ -346,19 +346,26 @@ struct CheckSum : HBUINT32
 {
   CheckSum& operator = (uint32_t i) { HBUINT32::operator= (i); return *this; }
 
-  /* This is reference implementation from the spec. */
+  /* This is reference implementation from the spec, extended to handle a
+   * trailing partial word. */
   static uint32_t CalcTableChecksum (const HBUINT32 *Table, uint32_t Length)
   {
     uint32_t Sum = 0L;
-    assert (0 == (Length & 3));
     const HBUINT32 *EndPtr = Table + Length / HBUINT32::static_size;
 
     while (Table < EndPtr)
       Sum += *Table++;
+
+    uint32_t remainder = Length & (HBUINT32::static_size - 1);
+    if (remainder)
+    {
+      const uint8_t *p = (const uint8_t *) EndPtr;
+      for (uint32_t i = 0; i < remainder; i++)
+	Sum += (uint32_t) p[i] << (24 - 8 * i);
+    }
     return Sum;
   }
 
-  /* Note: data should be 4byte aligned and have 4byte padding at the end. */
   void set_for_data (const void *data, unsigned int length)
   { *this = CalcTableChecksum ((const HBUINT32 *) data, length); }
 

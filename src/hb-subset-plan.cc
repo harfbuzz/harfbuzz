@@ -31,6 +31,7 @@
 #include "hb-set.hh"
 #include "hb-subset.h"
 #include "hb-unicode.h"
+#include "hb-subset-hinting.hh"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
@@ -760,6 +761,13 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 {
   successful = true;
   flags = input->flags;
+
+  if ((flags & HB_SUBSET_FLAGS_NO_HINTING) && _hb_subset_face_requires_hinting (face))
+  {
+    DEBUG_MSG (SUBSET, nullptr,
+	       "Keeping hinting because the font requires it.");
+    flags &= ~HB_SUBSET_FLAGS_NO_HINTING;
+  }
 
   unicode_to_new_gid_list.init ();
 

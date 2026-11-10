@@ -59,7 +59,8 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * hb_subset_flags_t:
  * @HB_SUBSET_FLAGS_DEFAULT: all flags at their default value of false.
  * @HB_SUBSET_FLAGS_NO_HINTING: If set hinting instructions will be dropped in
- * the produced subset. Otherwise hinting instructions will be retained.
+ * the produced subset. Otherwise hinting instructions will be retained. This
+ * flag is ignored for fonts whose hinting is required for correct rendering.
  * @HB_SUBSET_FLAGS_RETAIN_GIDS: If set glyph indices will not be modified in
  * the produced subset. If glyphs are dropped their indices will be retained
  * as an empty glyph. This is implied when the subset retains a table that
