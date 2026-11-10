@@ -1756,7 +1756,7 @@ public:
   }
 
   /*
-   * Charges vertices and links that are about to be walked or added
+   * Charges vertices and links that are about to be added
    * against the work budget of this graph.
    */
   graph_result_t<void> charge_ops (size_t ops)
