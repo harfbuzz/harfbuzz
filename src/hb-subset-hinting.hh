@@ -345,15 +345,6 @@ static const hint_dependent_font_id_t hint_dependent_font_ids[] = {
      {0x7CD7E7B7, 0x0000025C}},
 };
 
-static inline uint32_t
-_table_checksum (const char *data, unsigned length)
-{
-  /* set_for_data() handles arbitrary lengths and unaligned data. */
-  OT::CheckSum checksum;
-  checksum.set_for_data (data, length);
-  return checksum;
-}
-
 static inline hint_dependent_table_id_t
 _table_id (hb_face_t *face, hb_tag_t tag)
 {
@@ -365,7 +356,8 @@ _table_id (hb_face_t *face, hb_tag_t tag)
   {
     unsigned data_length;
     const char *data = hb_blob_get_data (blob, &data_length);
-    id.checksum = _table_checksum (data, data_length);
+    id.checksum = OT::CheckSum::CalcTableChecksum (
+	(const OT::HBUINT32 *) data, data_length);
     id.length = data_length;
   }
   hb_blob_destroy (blob);
