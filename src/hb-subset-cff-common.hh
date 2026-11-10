@@ -1111,8 +1111,10 @@ struct subr_subsetter_t
    * run only, global subrs are shared by font dicts with different local
    * subrs, and endchar does not end a walk.  So the recorded call graph may
    * nest deeper than the interpreter allows, or even be cyclic, and the walks
-   * enforce the interpreter's call-depth limit themselves.  The hint-dropping
-   * walk also charges its work to the subsetting pass budget. */
+   * enforce the interpreter's call-depth limit themselves: a subr called
+   * past that depth is not walked into, as best effort, and the subset
+   * goes on.  The hint-dropping walk also charges its work to the
+   * subsetting pass budget. */
   struct drop_hints_param_t
   {
     drop_hints_param_t (int64_t *budget_)
@@ -1123,7 +1125,6 @@ struct subr_subsetter_t
 	budget (budget_) {}
 
     bool in_error () const { return *budget < 0; }
-    void set_error ()      { *budget = -1; }
 
     bool  seen_moveto;
     bool  ends_in_hint;
@@ -1140,7 +1141,8 @@ struct subr_subsetter_t
     drop.ends_in_hint = false;
     if (unlikely (drop.depth >= kMaxCallLimit))
     {
-      drop.set_error ();
+      /* Too deep to walk into; keep the call and its hints. */
+      drop.all_dropped = false;
       return false;
     }
     drop.depth++;
@@ -1279,32 +1281,32 @@ struct subr_subsetter_t
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-      if (unlikely (!collect_subr_refs_in_str (get_parsed_charstring (new_glyph), param)))
-	return false;
+      collect_subr_refs_in_str (get_parsed_charstring (new_glyph), param);
     }
 
     return true;
   }
 
-  bool collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
+  void collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param,
 				  unsigned int depth)
   {
     if (closure->has (subr_num))
-      return true;
-    if (unlikely (depth >= kMaxCallLimit))
-      return false;
+      return;
     closure->add (subr_num);
-    return collect_subr_refs_in_str (subrs[subr_num], param, depth + 1);
+    /* Too deep to walk into; keep the subr but not what it calls. */
+    if (unlikely (depth >= kMaxCallLimit))
+      return;
+    collect_subr_refs_in_str (subrs[subr_num], param, depth + 1);
   }
 
-  bool collect_subr_refs_in_str (const parsed_cs_str_t &str,
+  void collect_subr_refs_in_str (const parsed_cs_str_t &str,
                                  const subr_subset_param_t &param,
                                  unsigned int depth = 0)
   {
     if (!str.has_calls ())
-      return true;
+      return;
 
     for (auto &opstr : str.values)
     {
@@ -1313,22 +1315,19 @@ struct subr_subsetter_t
 	switch (opstr.op)
 	{
 	  case OpCode_callsubr:
-	    if (unlikely (!collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_local_subrs,
-						      param.local_closure, param, depth)))
-	      return false;
+	    collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_local_subrs,
+				       param.local_closure, param, depth);
 	    break;
 
 	  case OpCode_callgsubr:
-	    if (unlikely (!collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_global_subrs,
-						      param.global_closure, param, depth)))
-	      return false;
+	    collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_global_subrs,
+				       param.global_closure, param, depth);
 	    break;
 
 	  default: break;
 	}
       }
     }
-    return true;
   }
 
   bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff, bool encode_prefix = true) const
