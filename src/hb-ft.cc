@@ -106,8 +106,6 @@ struct hb_ft_font_t
   /* Vertical origin x and y, from FreeType's bearings. */
   mutable hb_ft_advance_cache_t v_origin_x_cache;
   mutable hb_ft_advance_cache_t v_origin_y_cache;
-  /* Palette last selected on ft_face by hb_ft_paint_glyph_colr(). */
-  mutable unsigned selected_palette;
 
   void clear_caches () const
   {
