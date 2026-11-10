@@ -117,23 +117,25 @@ _name_matches_hint_dependent_family (hb_face_t *face,
   *found = false;
   hb_blob_ptr_t<OT::name> name_table =
       hb_sanitize_context_t ().reference_table<OT::name> (face);
+  HB_SCOPE_GUARD (name_table.destroy ());
+
   unsigned table_length = name_table.get_length ();
-  if (!table_length) return false;
+  if (unlikely (!table_length)) return false;
 
   const OT::name &table = *name_table;
   bool utf16 = false;
   const OT::NameRecord *record =
       _find_hint_dependent_name_record (table, name_id, &utf16);
-  if (!record) return false;
+  if (unlikely (!record)) return false;
 
   *found = true;
 
   unsigned string_offset = table.stringOffset;
-  if (string_offset >= table_length) return false;
+  if (unlikely (string_offset >= table_length)) return false;
 
   unsigned pool_length = table_length - string_offset;
   unsigned record_offset = record->offset;
-  if (record_offset >= pool_length) return false;
+  if (unlikely (record_offset >= pool_length)) return false;
 
   unsigned record_length =
       hb_min ((unsigned) record->length, pool_length - record_offset);
