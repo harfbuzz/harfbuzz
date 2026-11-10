@@ -1114,9 +1114,6 @@ struct KerxTable
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
-      if (unlikely (!c->charge_buffer_pass ()))
-	break;
-
       if (!c->buffer->message (c->font, "start subtable %u", c->lookup_index))
 	goto skip;
 
