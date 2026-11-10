@@ -416,7 +416,7 @@ struct subr_flattener_t
     unsigned count = plan->num_output_glyphs ();
     if (!flat_charstrings.resize_exact (count))
       return false;
-    int64_t budget = get_subset_budget (acc.get_blob ());
+    int64_t *budget = plan->cff_budget (get_subset_budget (acc.get_blob ()));
     for (unsigned int i = 0; i < count; i++)
     {
       hb_codepoint_t  glyph;
@@ -441,7 +441,7 @@ struct subr_flattener_t
 	plan,
 	command_capture ? &(*command_capture)[i] : nullptr
       };
-      if (unlikely (!interp.interpret (param, &budget)))
+      if (unlikely (!interp.interpret (param, budget)))
 	return false;
     }
     return true;
@@ -936,7 +936,7 @@ struct subr_subsetter_t
     bool coalesce = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING) &&
 		    !plan->inprogress_accelerator;
 
-    int64_t budget = get_subset_budget (acc.get_blob ());
+    int64_t *budget = plan->cff_budget (get_subset_budget (acc.get_blob ()));
 
     /* phase 1 & 2 */
     for (auto _ : plan->new_to_old_gid_list)
@@ -973,7 +973,7 @@ struct subr_subsetter_t
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
                                   coalesce);
 
-      if (unlikely (!interp.interpret (param, &budget)))
+      if (unlikely (!interp.interpret (param, budget)))
         return false;
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
@@ -989,7 +989,7 @@ struct subr_subsetter_t
 				    &closures.local_closures[fd],
 				    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
 
-	drop_hints_param_t  drop (&budget);
+	drop_hints_param_t  drop (budget);
 	if (drop_hints_in_str (parsed_charstrings[new_glyph], param, drop))
 	{
 	  parsed_charstrings[new_glyph].set_hint_dropped ();
