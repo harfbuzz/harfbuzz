@@ -51,6 +51,9 @@ jobs:
             --wrap-mode=forcefallback `
             --buildtype=release `
             -Dglib=enabled `
+            -Dglib:tests=false `
+            -Dlibffi:tests=false `
+            -Dcairo=disabled `
             -Dfreetype=enabled `
             -Dgdi=enabled `
             -Ddirectwrite=enabled `
