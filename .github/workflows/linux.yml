@@ -20,7 +20,8 @@ jobs:
     - name: Setup Ccache
       uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
       with:
-        key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
+        key: ${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}
+        max-size: 1G
     - name: Install Dependencies
       run: |
         sudo rm -f /etc/apt/sources.list.d/google-chrome.list
