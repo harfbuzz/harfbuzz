@@ -38,8 +38,7 @@ meson setup \
 	${BUILD} \
 	"$@"
 
-# building with all the cores won't work fine with CricleCI for some reason
-meson compile -C ${BUILD} -j3
+meson compile -C ${BUILD}
 meson install -C ${BUILD}
 
 mkdir ${BUILD}/${DIST}
