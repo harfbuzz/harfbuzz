@@ -43,21 +43,18 @@
 namespace OT {
 
 
-/* First index in [lo, hi) for which below() is false.  below() must hold
- * for a prefix of the range and fail for the rest. */
-template <typename Below>
+/* The position where key would be inserted among count elements, found
+ * through hb_bsearch_impl -- the one binary search in the codebase.  The
+ * comparators below never return 0, so it reports that insertion point
+ * (a lower or upper bound, per the comparator) rather than a match. */
+template <typename K, typename V>
 static inline unsigned
-_avar_partition_point (unsigned lo, unsigned hi, Below below)
+_avar_bound (const K &key, const V *base, unsigned count,
+	     int (*cmp) (const void *, const void *))
 {
-  while (lo < hi)
-  {
-    unsigned mid = lo + (hi - lo) / 2;
-    if (below (mid))
-      lo = mid + 1;
-    else
-      hi = mid;
-  }
-  return lo;
+  unsigned pos;
+  hb_bsearch_impl (&pos, key, base, count, sizeof (V), cmp);
+  return pos;
 }
 
 
@@ -165,6 +162,24 @@ struct AxisValueMap
   DEFINE_SIZE_STATIC (4);
 };
 
+/* Compare a coordinate key against coords[0] of a mapping.  Never return 0:
+ * _lower stops at the first mapping whose coords[0] is >= the key (lower
+ * bound), _upper at the first strictly greater (upper bound). */
+static int
+_avar_cmp_mapping_lower (const void *pv, const void *pm)
+{
+  double v = * (const double *) pv;
+  double c = (double) ((const AxisValueMap *) pm)->coords[0].to_float ();
+  return v <= c ? -1 : 1;
+}
+static int
+_avar_cmp_mapping_upper (const void *pv, const void *pm)
+{
+  double v = * (const double *) pv;
+  double c = (double) ((const AxisValueMap *) pm)->coords[0].to_float ();
+  return v < c ? -1 : 1;
+}
+
 struct SegmentMaps : Array16Of<AxisValueMap>
 {
   bool is_sorted () const
@@ -216,8 +231,8 @@ struct SegmentMaps : Array16Of<AxisValueMap>
     sorted = sorted && !std::isnan (value);
     unsigned lower = start;
     if (sorted)
-      lower = _avar_partition_point (start, end,
-				     [&] (unsigned k) { return map[k].fromCoord < value; });
+      lower = start + _avar_bound ((double) value, map + start, end - start,
+				   _avar_cmp_mapping_lower);
 
     /* Look for exact match first, and do lots of special-casing. */
     unsigned i;
@@ -232,8 +247,8 @@ struct SegmentMaps : Array16Of<AxisValueMap>
       // There's at least one exact match. See if there are more.
       unsigned j = i;
       if (sorted)
-	j = _avar_partition_point (i, end,
-				   [&] (unsigned k) { return map[k].fromCoord == value; }) - 1;
+	j = i + _avar_bound ((double) value, map + i, end - i,
+			     _avar_cmp_mapping_upper) - 1;
       else
 	for (; j + 1 < end; j++)
 	  if (value != map[j + 1].fromCoord)
@@ -392,6 +407,16 @@ struct avar2_offset_knot_t
   double offset;
 };
 
+/* Compare a z key against a knot's z; never return 0, so the search stops
+ * at the first knot whose z is not below the key (lower bound). */
+static int
+_avar_cmp_knot_lower (const void *pz, const void *pk)
+{
+  double z = * (const double *) pz;
+  double kz = ((const avar2_offset_knot_t *) pk)->z;
+  return z <= kz ? -1 : 1;
+}
+
 /* Insert a knot keeping the vector sorted by z; first insertion wins on
  * duplicate z. */
 static inline void
@@ -442,8 +467,7 @@ _avar2_eval_offset (const hb_vector_t<avar2_offset_knot_t> &knots, double z)
   unsigned len = knots.length;
   /* The first knot not below z, where a linear scan would stop. */
   unsigned i = std::isnan (z) ? len :
-	       _avar_partition_point (0, len,
-				      [&] (unsigned k) { return knots.arrayZ[k].z < z; });
+	       _avar_bound (z, knots.arrayZ, len, _avar_cmp_knot_lower);
   if (i < len)
   {
     if (z == knots.arrayZ[i].z) return knots.arrayZ[i].offset;
@@ -512,9 +536,7 @@ _avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
 {
   /* Sorted by fromCoord, so a binary search finds what the scan would. */
   unsigned i = std::isnan (v) ? mappings.length :
-	       _avar_partition_point (0, mappings.length,
-				      [&] (unsigned k)
-				      { return (double) mappings.arrayZ[k].coords[0].to_float () < v; });
+	       _avar_bound (v, mappings.arrayZ, mappings.length, _avar_cmp_mapping_lower);
   return _avar2_map_new_mapping_at (mappings, v, i, 0, 1);
 }
 
