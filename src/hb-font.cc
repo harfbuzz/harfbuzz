@@ -2124,6 +2124,21 @@ _hb_font_create (hb_face_t *face)
   return font;
 }
 
+static void
+_hb_font_init_variations (hb_font_t *font, hb_face_t *face)
+{
+#ifndef HB_NO_VAR
+  // Initialize variations.
+  if (likely (face))
+  {
+    if (face->index >> 16)
+      hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+    else
+      hb_font_set_variations (font, nullptr, 0);
+  }
+#endif
+}
+
 /**
  * hb_font_create:
  * @face: a face.
@@ -2148,16 +2163,20 @@ hb_font_create (hb_face_t *face)
 
   hb_font_set_funcs_using (font, nullptr);
 
-#ifndef HB_NO_VAR
-  // Initialize variations.
-  if (likely (face))
-  {
-    if (face->index >> 16)
-      hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
-    else
-      hb_font_set_variations (font, nullptr, 0);
-  }
-#endif
+  _hb_font_init_variations (font, face);
+
+  return font;
+}
+
+/* Like hb_font_create(), but leaves the font functions empty. For
+ * callers that set their own font functions right away, such as
+ * hb_ft_font_create(). */
+hb_font_t *
+_hb_font_create_without_funcs (hb_face_t *face)
+{
+  hb_font_t *font = _hb_font_create (face);
+
+  _hb_font_init_variations (font, face);
 
   return font;
 }

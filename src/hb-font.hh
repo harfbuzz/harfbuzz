@@ -1178,5 +1178,8 @@ struct hb_font_t
 };
 DECLARE_NULL_INSTANCE (hb_font_t);
 
+HB_INTERNAL hb_font_t *
+_hb_font_create_without_funcs (hb_face_t *face);
+
 
 #endif /* HB_FONT_HH */
