@@ -78,6 +78,7 @@ struct LigatureSubstFormat1_2
 
     if (ligatureSet.len > glyph_set.get_population () * 4)
     {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
       for (auto g : glyph_set)
       {
 	unsigned i = cov.get_coverage (g);
@@ -89,6 +90,7 @@ struct LigatureSubstFormat1_2
       return;
     }
 
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, ligatureSet.len))) return;
     + hb_zip (cov, ligatureSet)
     | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)

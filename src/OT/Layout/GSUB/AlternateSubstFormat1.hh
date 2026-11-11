@@ -70,6 +70,7 @@ struct AlternateSubstFormat1_2
 
     if (alternateSet.len > glyph_set.get_population () * 4)
     {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
       for (auto g : glyph_set)
       {
 	unsigned i = cov.get_coverage (g);
@@ -81,6 +82,7 @@ struct AlternateSubstFormat1_2
       return;
     }
 
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, alternateSet.len))) return;
     + hb_zip (cov, alternateSet)
     | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)

@@ -158,16 +158,20 @@ struct ReverseChainSingleSubstFormat1_2
 
   void closure (hb_closure_context_t *c) const
   {
-    if (!intersects (c->glyphs)) return;
-
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
+
+    if (unlikely (!c->spend_coverages (this, backtrack) ||
+		  !c->spend_coverages (this, lookahead)))
+      return;
+    if (!intersects (c->glyphs)) return;
 
     auto &cov = this+coverage;
     auto &glyph_set = c->parent_active_glyphs ();
 
     if (substitute.len > glyph_set.get_population () * 4)
     {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
       for (auto g : glyph_set)
       {
 	unsigned i = cov.get_coverage (g);
@@ -179,6 +183,7 @@ struct ReverseChainSingleSubstFormat1_2
       return;
     }
 
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, substitute.len))) return;
     + hb_zip (cov, substitute)
     | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)

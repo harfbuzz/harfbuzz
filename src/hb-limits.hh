@@ -287,6 +287,24 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_AAT_MAP ((int64_t) 1 << 24)
 #endif
 
+/* One dependency graph build.  A few bytes of Coverage or ClassDef range
+ * can name any number of glyphs, so the glyph sets built from them are
+ * charged per page: for the work of expanding them, and for the memory
+ * they hold once the graph keeps a copy.  Exceeding the budget fails the
+ * build. */
+#ifndef HB_BUDGET_DEPEND
+#define HB_BUDGET_DEPEND ((int64_t) 1 << 26)
+#endif
+
+/* One GSUB glyph-closure session, in records (glyphs, offsets, ranges,
+ * rules) walked.  HB_MAX_LOOKUP_VISIT_COUNT bounds how many times lookups
+ * are entered per round, not what one visit walks: through shared offsets
+ * a subtable can walk many times the size of its table, and every glyph
+ * the closure gains makes all lookups visitable again. */
+#ifndef HB_BUDGET_LAYOUT_CLOSURE
+#define HB_BUDGET_LAYOUT_CLOSURE ((int64_t) 1 << 28)
+#endif
+
 
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500

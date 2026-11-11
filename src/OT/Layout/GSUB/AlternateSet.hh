@@ -27,7 +27,10 @@ struct AlternateSet
   { return hb_any (alternates, glyphs); }
 
   void closure (hb_closure_context_t *c) const
-  { c->output->add_array (alternates.arrayZ, alternates.len); }
+  {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, alternates.len))) return;
+    c->output->add_array (alternates.arrayZ, alternates.len);
+  }
 
   void depend (hb_depend_context_t *c, hb_codepoint_t source) const
   {

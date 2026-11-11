@@ -41,6 +41,7 @@ struct MultipleSubstFormat1_2
 
     if (sequence.len > glyph_set.get_population () * 4)
     {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
       for (auto g : glyph_set)
       {
 	unsigned i = cov.get_coverage (g);
@@ -52,6 +53,7 @@ struct MultipleSubstFormat1_2
       return;
     }
 
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, sequence.len))) return;
     + hb_zip (cov, sequence)
     | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)
