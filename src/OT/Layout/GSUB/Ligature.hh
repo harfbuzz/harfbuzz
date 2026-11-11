@@ -106,6 +106,9 @@ struct Ligature
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    if (unlikely (!c->buffer->successful)) return_trace (false);
+
     unsigned int count = component.lenP1;
 
     if (unlikely (!count)) return_trace (false);
