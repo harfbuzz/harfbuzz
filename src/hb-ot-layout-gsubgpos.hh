@@ -1112,6 +1112,11 @@ struct skipping_iterator_t
 	  return false;
 	}
 	case SKIP:
+	  /* Only skipping charges, so a first-try match adds no work while
+	   * repeated rescans over default-ignorables exhaust the budget. Keep
+	   * walking (idx advances), so the loop-end still sets *unsafe_to; the
+	   * outer per-pass max_ops check stops shaping. */
+	  c->buffer->max_ops--;
 	  continue;
       }
     }
@@ -1140,6 +1145,8 @@ struct skipping_iterator_t
 	  return false;
 	}
 	case SKIP:
+	  /* Charged as in next(). */
+	  c->buffer->max_ops--;
 	  continue;
       }
     }
@@ -2113,6 +2120,12 @@ static bool match_input (hb_ot_apply_context_t *c,
 	    j--;
 	  }
 
+	  /* The walk covers every glyph of the ligature, and each match
+	   * attempt repeats it, so it is charged. */
+	  buffer->max_ops -= (int) (buffer->out_len - j);
+	  if (unlikely (buffer->max_ops < 0))
+	    buffer->successful = false;
+
 	  if (found && skippy_iter.may_skip (out[j]) == matcher_t::SKIP_YES)
 	    ligbase = LIGBASE_MAY_SKIP;
 	  else
@@ -2246,7 +2259,8 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
   if (!is_mark_ligature && last_lig_id)
   {
     /* Re-adjust components for any marks following. */
-    for (unsigned i = buffer->idx; i < buffer->len; ++i)
+    unsigned i = buffer->idx;
+    for (; i < buffer->len; ++i)
     {
       if (last_lig_id != _hb_glyph_info_get_lig_id (&buffer->info[i])) break;
 
@@ -2258,6 +2272,11 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 			      hb_min (this_comp, last_num_components);
       _hb_glyph_info_set_lig_props_for_mark (&buffer->info[i], lig_id, new_lig_comp);
     }
+    /* The marks are rewritten again by the next ligation, so a run of
+     * ligatures over the same marks is quadratic; charge the walk. */
+    buffer->max_ops -= (int) (i - buffer->idx);
+    if (unlikely (buffer->max_ops < 0))
+      buffer->successful = false;
   }
   return_trace (true);
 }
@@ -2806,15 +2825,23 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
 
   for (unsigned int i = 0; i < lookupCount && buffer->successful; i++)
   {
+    /* A record that recurses is charged by recurse(); the ones skipped
+     * here are charged too, as a rule can carry up to 65535 of them. */
     unsigned int idx = lookupRecord[i].sequenceIndex;
     if (idx >= count)
+    {
+      if (unlikely (--buffer->max_ops < 0)) buffer->successful = false;
       continue;
+    }
 
     unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
 
     /* This can happen if earlier recursed lookups deleted many entries. */
     if (unlikely (c->match_positions.arrayZ[idx] >= orig_len))
+    {
+      if (unlikely (--buffer->max_ops < 0)) buffer->successful = false;
       continue;
+    }
 
     if (unlikely (!buffer->move_to (c->match_positions.arrayZ[idx])))
       break;
