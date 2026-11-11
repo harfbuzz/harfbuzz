@@ -345,6 +345,50 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #endif
 
 
+/* One instancing session: all the tuple variations of one table.
+ * Limiting an axis splits every tuple that uses it into up to six, so
+ * tuples multiply with each limited axis.  The copies are charged to a
+ * budget that starts at MIN and earns FACTOR times each source tuple,
+ * in tuple_delta_t::get_cost () units of roughly eight bytes. */
+#ifndef HB_BUDGET_INSTANCER_FACTOR
+#define HB_BUDGET_INSTANCER_FACTOR 64
+#endif
+#ifndef HB_BUDGET_INSTANCER_MIN
+#define HB_BUDGET_INSTANCER_MIN ((int64_t) 1 << 22)
+#endif
+
+
+/* Instancing one whole gvar or cvar table in the subsetter, in points.
+ * Every tuple is expanded to one entry per point of its glyph (per cvt
+ * value), however few of them it refers to; a tuple takes a dozen bytes
+ * and a run of repeated glyf points a fraction of a byte each, so the
+ * size of the font does not bound the product.  The budget is this many
+ * points per byte of the table, but no less than the minimum; exceeding
+ * it fails the table. */
+#ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR
+#define HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR 64
+#endif
+#ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_MIN
+#define HB_BUDGET_SUBSET_TUPLE_POINTS_MIN ((int64_t) 1 << 20)
+#endif
+
+
+/* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
+ * one int per (row, region) pair.  In the font a row only pays for the
+ * regions of its own VarData, so a small font can ask for a huge matrix.
+ * These are flat ceilings on that one allocation: a proportional bound
+ * would reject legitimate optimizer output, where several VarData use
+ * disjoint region subsets so the dense matrix is much wider than any one
+ * VarData.  Exceeding either limit fails instancing of that store. */
+#ifndef HB_SUBSET_MAX_VARSTORE_ROWS
+#define HB_SUBSET_MAX_VARSTORE_ROWS (1u << 21)
+#endif
+
+#ifndef HB_SUBSET_MAX_VARSTORE_DELTAS
+#define HB_SUBSET_MAX_VARSTORE_DELTAS ((uint64_t) 1 << 26)
+#endif
+
+
 #ifndef HB_REPACKER_MAX_ITERATIONS
 #define HB_REPACKER_MAX_ITERATIONS 500
 #endif
