@@ -136,8 +136,6 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
 				  bool          per_syllable,
 				  hb_tag_t      feature_tag)
 {
-  unsigned int lookup_indices[32];
-  unsigned int offset, len;
   unsigned int table_lookup_count;
 
   table_lookup_count = hb_ot_layout_table_get_lookup_count (face, table_tags[table_index]);
@@ -166,32 +164,26 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
     return;
   }
 
-  offset = 0;
-  do {
-    len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_with_variations_get_lookups (face,
-					      table_tags[table_index],
-					      feature_index,
-					      key.variations_index[table_index],
-						      offset, &len,
-						      lookup_indices);
-
-    for (unsigned int i = 0; i < len; i++)
-    {
-      if (lookup_indices[i] >= table_lookup_count)
-	continue;
-      hb_ot_map_t::lookup_map_t *lookup = m.lookups[table_index].push ();
-      lookup->mask = mask;
-      lookup->index = lookup_indices[i];
-      lookup->auto_zwnj = auto_zwnj;
-      lookup->auto_zwj = auto_zwj;
-      lookup->random = random;
-      lookup->per_syllable = per_syllable;
-      lookup->feature_tag = feature_tag;
-    }
-
-    offset += len;
-  } while (len == ARRAY_LENGTH (lookup_indices));
+  /* Resolve the feature once: under a FeatureVariations record that is a
+   * linear search of the substitution records, so don't repeat it per batch
+   * of lookup indices. */
+  auto lookup_indices = _hb_ot_layout_feature_with_variations_get_lookups (face,
+									   table_tags[table_index],
+									   feature_index,
+									   key.variations_index[table_index]);
+  for (unsigned int lookup_index : lookup_indices)
+  {
+    if (lookup_index >= table_lookup_count)
+      continue;
+    hb_ot_map_t::lookup_map_t *lookup = m.lookups[table_index].push ();
+    lookup->mask = mask;
+    lookup->index = lookup_index;
+    lookup->auto_zwnj = auto_zwnj;
+    lookup->auto_zwj = auto_zwj;
+    lookup->random = random;
+    lookup->per_syllable = per_syllable;
+    lookup->feature_tag = feature_tag;
+  }
 }
 
 

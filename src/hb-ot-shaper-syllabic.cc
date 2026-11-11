@@ -99,6 +99,55 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
   return true;
 }
 
+/* foreach_syllable() cuts syllables longer than HB_MAX_SYLLABLE_LENGTH,
+ * but the cut is computed from the current glyph positions and is not
+ * recorded, so walks before and after substitutions would see different
+ * pieces.  Record the cuts in syllable(), which substituted glyphs inherit:
+ * cut the whole syllable starting at start into the same pieces
+ * foreach_syllable() would, and give every piece but the last a serial
+ * different from its neighbours.  The rest of the walk then sees pieces
+ * that are not cut further.  The pieces are not syllables on their own and
+ * text must not be broken between them, so also keep them in one cluster. */
+void
+hb_syllabic_record_cut_slow (hb_buffer_t *buffer,
+			     unsigned int start,
+			     unsigned int end)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  unsigned int syllable = info[start].syllable();
+  if (end == count || info[end].syllable() != syllable)
+    return; /* Not cut. */
+
+  unsigned int syllable_end = end;
+  while (syllable_end < count && info[syllable_end].syllable() == syllable)
+    syllable_end++;
+
+  buffer->merge_clusters (start, syllable_end);
+
+  /* Alternate between two serials different from both the one before
+   * start and the one the last piece keeps. */
+  unsigned int prev_serial = start ? info[start - 1].syllable() >> 4 : 0;
+  unsigned int last_serial = syllable >> 4;
+  unsigned int serials[2];
+  unsigned int serial = 1;
+  for (unsigned int j = 0; j < 2; j++)
+  {
+    while (serial == prev_serial || serial == last_serial)
+      serial++;
+    serials[j] = serial++;
+  }
+
+  unsigned int j = 0;
+  for (; syllable_end - start > HB_MAX_SYLLABLE_LENGTH; start = end, j ^= 1)
+  {
+    end = start + HB_MAX_SYLLABLE_LENGTH;
+    unsigned int v = (serials[j] << 4) | (syllable & 0x0F);
+    for (unsigned int i = start; i < end; i++)
+      info[i].syllable() = v;
+  }
+}
+
 HB_INTERNAL bool
 hb_syllabic_clear_var (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,

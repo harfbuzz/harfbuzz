@@ -36,9 +36,26 @@ struct MultipleSubstFormat1_2
 
   void closure (hb_closure_context_t *c) const
   {
+    auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
+    if (sequence.len > glyph_set.get_population () * 4)
+    {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= sequence.len)
+	  continue;
+	(this+sequence.arrayZ[i]).closure (c);
+      }
+
+      return;
+    }
+
     if (unlikely (!c->spend_budget (HB_BUDGET_1, sequence.len))) return;
-    + hb_zip (this+coverage, sequence)
-    | hb_filter (c->parent_active_glyphs (), hb_first)
+    + hb_zip (cov, sequence)
+    | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const Sequence<Types> &_) { _.closure (c); })
@@ -47,9 +64,25 @@ struct MultipleSubstFormat1_2
 
   void depend (hb_depend_context_t *c) const
   {
+    auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
     // Filter by parent_active_glyphs like closure does
-    + hb_zip (this+coverage, sequence)
-    | hb_filter (c->parent_active_glyphs (), hb_first)
+    if (sequence.len > glyph_set.get_population () * 4)
+    {
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= sequence.len)
+	  continue;
+	(this+sequence.arrayZ[i]).depend (c, g);
+      }
+
+      return;
+    }
+
+    + hb_zip (cov, sequence)
+    | hb_filter (glyph_set, hb_first)
     | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const typename Types::template OffsetTo<Sequence<Types>>&> &_)
                 {
                   const Sequence<Types>& s = this+_.second;
