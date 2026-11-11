@@ -2124,6 +2124,20 @@ _hb_font_create (hb_face_t *face)
   return font;
 }
 
+static void
+_hb_font_init_variations (hb_font_t *font HB_UNUSED, hb_face_t *face HB_UNUSED)
+{
+#ifndef HB_NO_VAR
+  if (likely (face))
+  {
+    if (face->index >> 16)
+      hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+    else
+      hb_font_set_variations (font, nullptr, 0);
+  }
+#endif
+}
+
 /**
  * hb_font_create:
  * @face: a face.
@@ -2148,14 +2162,25 @@ hb_font_create (hb_face_t *face)
 
   hb_font_set_funcs_using (font, nullptr);
 
+  _hb_font_init_variations (font, face);
+
+  return font;
+}
+
+hb_font_t *
+hb_font_create_without_funcs_or_fail (hb_face_t *face)
+{
+  hb_font_t *font = _hb_font_create (face);
+  if (unlikely (font == hb_font_get_empty ()))
+    return nullptr;
+
+  _hb_font_init_variations (font, face);
+
 #ifndef HB_NO_VAR
-  // Initialize variations.
-  if (likely (face))
+  if (unlikely (font->num_coords != hb_ot_var_get_axis_count (font->face)))
   {
-    if (face->index >> 16)
-      hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
-    else
-      hb_font_set_variations (font, nullptr, 0);
+    hb_font_destroy (font);
+    return nullptr;
   }
 #endif
 

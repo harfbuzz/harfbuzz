@@ -80,6 +80,19 @@ hb_face_t* face = hb_face_create(blob, 0);
 hb_font_t* hb_font = hb_font_create(hb_face);
 </programlisting>
     <para>
+      Clients that install their own font functions can use
+      <function>hb_font_create_without_funcs_or_fail()</function> to avoid
+      the overhead of setting up the default font functions first. It
+      initializes the font's scale and variation coordinates as usual,
+      but leaves its font functions empty. It returns <literal>NULL</literal>
+      if allocation fails.
+    </para>
+<programlisting language="C">
+hb_font_t *hb_font = hb_font_create_without_funcs_or_fail(hb_face);
+if (hb_font)
+  hb_font_set_funcs(hb_font, custom_funcs, font_data, destroy_font_data);
+</programlisting>
+    <para>
       After creating a font, there are a few properties you should
       set. Many fonts enable and disable hints based on the size it
       is used at, so setting this is important for font

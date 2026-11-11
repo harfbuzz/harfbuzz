@@ -469,6 +469,7 @@ hb_face_builder_sort_tables
 <FILE>hb-font</FILE>
 hb_font_add_glyph_origin_for_direction
 hb_font_create
+hb_font_create_without_funcs_or_fail
 hb_font_create_sub_font
 hb_font_get_empty
 hb_font_reference
