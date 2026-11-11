@@ -12,27 +12,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-26.04
-    name: ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: g++ c++11
-            CXX: g++
-            CXX_STANDARD: c++11
-            PACKAGES: g++
-          - name: g++ c++2c
-            CXX: g++
-            CXX_STANDARD: c++2c
-            PACKAGES: g++
-          - name: clang c++11
-            CXX: clang++
-            CXX_STANDARD: c++11
-            PACKAGES: clang
-          - name: clang c++2c
-            CXX: clang++
-            CXX_STANDARD: c++2c
-            PACKAGES: clang
 
     steps:
     - name: Checkout
@@ -42,6 +21,15 @@ jobs:
         sudo rm -f /etc/apt/sources.list.d/google-chrome.list
         sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo apt-get update
-        sudo apt install -y ${{ matrix.PACKAGES }}
+        sudo apt install -y g++ clang
     - name: Build
-      run: ${{ matrix.CXX }} -c src/harfbuzz-world.cc -DHB_NO_MT -Werror -std=${{ matrix.CXX_STANDARD }}
+      run: |
+        status=0
+        for cxx in g++ clang++; do
+          for standard in c++11 c++2c; do
+            echo "::group::$cxx $standard"
+            "$cxx" -c src/harfbuzz-world.cc -DHB_NO_MT -Werror -std="$standard" || status=1
+            echo "::endgroup::"
+          done
+        done
+        exit "$status"

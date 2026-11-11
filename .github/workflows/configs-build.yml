@@ -12,18 +12,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - HB_DISABLE_DEPRECATED
-          - HB_MINI
-          - HB_LEAN
-          - HB_TINY
-          - HB_NO_DRAW
-          - HB_NO_PAINT
-
-    name: ${{ matrix.config }}
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -38,7 +26,15 @@ jobs:
         EOF
     - name: install dependencies
       run: sudo apt-get install gcc
-    - name: Build with ${{ matrix.config }}
-      run: g++ -std=c++11 main.cc -D${{ matrix.config }}
-    - name: Build subset library with ${{ matrix.config }}
-      run: g++ -std=c++11 -c subset.cc -D${{ matrix.config }}
+    - name: Build configurations
+      run: |
+        status=0
+        for config in HB_DISABLE_DEPRECATED HB_MINI HB_LEAN HB_TINY HB_NO_DRAW HB_NO_PAINT; do
+          echo "::group::Build with $config"
+          g++ -std=c++11 main.cc -D"$config" || status=1
+          echo "::endgroup::"
+          echo "::group::Build subset library with $config"
+          g++ -std=c++11 -c subset.cc -D"$config" || status=1
+          echo "::endgroup::"
+        done
+        exit "$status"
