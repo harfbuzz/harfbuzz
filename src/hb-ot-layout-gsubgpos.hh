@@ -1112,11 +1112,11 @@ struct skipping_iterator_t
 	  return false;
 	}
 	case SKIP:
-	  /* Only skipping charges, so a first-try match adds no work while
-	   * repeated rescans over default-ignorables exhaust the budget. Keep
-	   * walking (idx advances), so the loop-end still sets *unsafe_to; the
-	   * outer per-pass max_ops check stops shaping. */
-	  c->buffer->max_ops--;
+	  /* Only skipping charges. Flag exhaustion but keep walking (no early
+	   * return), so the loop-end still sets *unsafe_to; the callers that loop
+	   * stop repeated walks once successful clears. */
+	  if (unlikely (--c->buffer->max_ops < 0))
+	    c->buffer->successful = false;
 	  continue;
       }
     }
@@ -1146,7 +1146,8 @@ struct skipping_iterator_t
 	}
 	case SKIP:
 	  /* Charged as in next(). */
-	  c->buffer->max_ops--;
+	  if (unlikely (--c->buffer->max_ops < 0))
+	    c->buffer->successful = false;
 	  continue;
       }
     }
@@ -3130,6 +3131,7 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
 					 const ContextApplyLookupContext &lookup_context)
 {
   if (unlikely (inputCount > HB_MAX_CONTEXT_LENGTH)) return false;
+  if (unlikely (!c->buffer->successful)) return false;
 
   unsigned match_end = 0;
   bool ret = false;
@@ -4704,6 +4706,7 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					       const ChainContextApplyLookupContext &lookup_context)
 {
   if (unlikely (inputCount > HB_MAX_CONTEXT_LENGTH)) return false;
+  if (unlikely (!c->buffer->successful)) return false;
 
   unsigned start_index = c->buffer->out_len;
   unsigned end_index = c->buffer->idx;

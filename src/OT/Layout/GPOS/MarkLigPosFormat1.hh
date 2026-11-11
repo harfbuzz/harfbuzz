@@ -88,6 +88,8 @@ struct MarkLigPosFormat1_2
     unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
     if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
+    if (unlikely (!buffer->successful)) return_trace (false);
+
     /* Now we search backwards for a non-mark glyph */
 
     auto &skippy_iter = c->iter_input;
