@@ -12,6 +12,10 @@ permissions:
 jobs:
   msys2:
     runs-on: windows-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_COMPILERCHECK: content
+      CCACHE_MAXSIZE: 500M
 
     strategy:
       fail-fast: false
@@ -38,6 +42,7 @@ jobs:
           mingw-w64-${{ matrix.MSYS2_ARCH }}-cairo
           mingw-w64-${{ matrix.MSYS2_ARCH }}-freetype
           mingw-w64-${{ matrix.MSYS2_ARCH }}-cc
+          mingw-w64-${{ matrix.MSYS2_ARCH }}-ccache
           mingw-w64-${{ matrix.MSYS2_ARCH }}-gettext
           mingw-w64-${{ matrix.MSYS2_ARCH }}-glib2
           mingw-w64-${{ matrix.MSYS2_ARCH }}-gobject-introspection
@@ -48,11 +53,18 @@ jobs:
           mingw-w64-${{ matrix.MSYS2_ARCH }}-pkgconf
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python-pip
+    - name: Restore Compiler Cache
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: .ccache
+        key: ccache-msys2-${{ matrix.MSYSTEM }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: ccache-msys2-${{ matrix.MSYSTEM }}-
     - name: Install Python Dependencies
       run: |
         pip3 install -r .ci/requirements-fonttools.txt --require-hashes
     - name: Setup Meson
       run: |
+        ccache --zero-stats
         meson setup build \
           --wrap-mode=nodownload \
           --auto-features=enabled \
@@ -66,6 +78,9 @@ jobs:
       run: meson compile -Cbuild
     - name: Test
       run: meson test --print-errorlogs --suite=harfbuzz -Cbuild
+    - name: Compiler Cache Statistics
+      if: always()
+      run: ccache --show-stats
     - name: Upload DLLs
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
