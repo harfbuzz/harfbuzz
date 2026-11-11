@@ -45,6 +45,7 @@ in_house_tests = [
   'indic-syllable.tests',
   'indic-unicode18.tests',
   'indic-vowel-letter-spoofing.tests',
+  'indic-zero-context.tests',
   'item-context.tests',
   'kbts.tests',
   'kern-format1.tests',
