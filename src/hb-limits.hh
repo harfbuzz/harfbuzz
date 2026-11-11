@@ -373,6 +373,29 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #endif
 
 
+/* Decoded glyf points a subset plan keeps for partially instancing gvar:
+ * one per byte of the source glyf table, but no fewer than this.  Repeated
+ * flags and loca entries that share glyph data let a font declare far more
+ * points than it has bytes.  Exceeding the budget fails the plan. */
+#ifndef HB_BUDGET_SUBSET_CONTOUR_POINTS
+#define HB_BUDGET_SUBSET_CONTOUR_POINTS ((int64_t) 1 << 22)
+#endif
+
+
+/* One avar2 partial-instancing plan, in region tents visited to bound the
+ * final coordinates each axis can reach.  A delta-set row can list a region
+ * any number of times and axes can share a row, so the table size does not
+ * bound that work.  An axis whose exact bounds do not fit what is left gets
+ * the looser interval bounds; once exhausted, the remaining axes get no
+ * range and are not detected as self-contained.  Either way the instance
+ * stays correct, only less optimized: those ranges only cull variation
+ * data that cannot be reached, and a pinned axis not found self-contained
+ * stays in fvar as a hidden pin. */
+#ifndef HB_BUDGET_SUBSET_AVAR2_RANGES
+#define HB_BUDGET_SUBSET_AVAR2_RANGES ((int64_t) 1 << 26)
+#endif
+
+
 /* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
  * one int per (row, region) pair.  In the font a row only pays for the
  * regions of its own VarData, so a small font can ask for a huge matrix.
