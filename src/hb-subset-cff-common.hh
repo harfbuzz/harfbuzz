@@ -416,6 +416,7 @@ struct subr_flattener_t
     unsigned count = plan->num_output_glyphs ();
     if (!flat_charstrings.resize_exact (count))
       return false;
+    int64_t budget = get_subset_budget (acc.get_blob ());
     for (unsigned int i = 0; i < count; i++)
     {
       hb_codepoint_t  glyph;
@@ -440,7 +441,7 @@ struct subr_flattener_t
 	plan,
 	command_capture ? &(*command_capture)[i] : nullptr
       };
-      if (unlikely (!interp.interpret (param)))
+      if (unlikely (!interp.interpret (param, &budget)))
 	return false;
     }
     return true;
@@ -892,6 +893,19 @@ struct subr_subsetter_t
       parsed_global_subrs = &cff_accelerator->parsed_global_subrs;
       parsed_local_subrs = &cff_accelerator->parsed_local_subrs;
     } else {
+      /* Font DICTs can share a Private DICT and its Subrs, so the size of
+       * the table does not bound the sum of their counts.  Every subroutine
+       * of a font that does not share them takes at least one byte of the
+       * table; _hb_subset_table_try() would not serialize more than this
+       * anyway.  Over the limit the subset fails, as any CFF planning
+       * failure has since dde7da182e. */
+      uint64_t num_subrs = acc.globalSubrs->count;
+      for (unsigned int i = 0; i < acc.fdCount; i++)
+	num_subrs += acc.privateDicts[i].localSubrs->count;
+      if (unlikely (num_subrs * sizeof (parsed_cs_str_t) >
+		    (uint64_t) acc.get_blob ()->length * 256))
+	return false;
+
       parsed_charstrings.resize_exact (plan->num_output_glyphs ());
       parsed_global_subrs_storage.resize_exact (acc.globalSubrs->count);
 
@@ -921,6 +935,8 @@ struct subr_subsetter_t
      * instead of a separate compact() pass. */
     bool coalesce = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING) &&
 		    !plan->inprogress_accelerator;
+
+    int64_t budget = get_subset_budget (acc.get_blob ());
 
     /* phase 1 & 2 */
     for (auto _ : plan->new_to_old_gid_list)
@@ -957,7 +973,7 @@ struct subr_subsetter_t
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
                                   coalesce);
 
-      if (unlikely (!interp.interpret (param)))
+      if (unlikely (!interp.interpret (param, &budget)))
         return false;
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
