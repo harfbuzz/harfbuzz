@@ -1566,6 +1566,7 @@ struct hb_accelerate_subtables_context_t :
 #ifdef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     bool apply (hb_ot_apply_context_t *c) const
     {
+      if (unlikely (!c->buffer->successful)) return false;
       return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c, nullptr);
     }
     bool apply_no_digest (hb_ot_apply_context_t *c) const
@@ -1575,10 +1576,12 @@ struct hb_accelerate_subtables_context_t :
 #else
     bool apply (hb_ot_apply_context_t *c) const
     {
+      if (unlikely (!c->buffer->successful)) return false;
       return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c, external_cache);
     }
     bool apply_cached (hb_ot_apply_context_t *c) const
     {
+      if (unlikely (!c->buffer->successful)) return false;
       return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c, external_cache);
     }
     bool apply_no_digest (hb_ot_apply_context_t *c) const

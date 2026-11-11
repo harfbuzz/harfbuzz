@@ -98,8 +98,6 @@ struct MarkBasePosFormat1_2
     unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
     if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
-    if (unlikely (!buffer->successful)) return_trace (false);
-
     /* Now we search backwards for a non-mark glyph.
      * We don't use skippy_iter.prev() to avoid O(n^2) behavior. */
 

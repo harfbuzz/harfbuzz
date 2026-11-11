@@ -222,8 +222,6 @@ struct ReverseChainSingleSubstFormat1_2
   {
     TRACE_APPLY (this);
 
-    if (unlikely (!c->buffer->successful)) return_trace (false);
-
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur ().codepoint);
     if (index == NOT_COVERED) return_trace (false);
 
