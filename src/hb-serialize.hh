@@ -130,13 +130,22 @@ struct hb_serialize_context_t
 	  && 0 == hb_memcmp (head, o.head, tail - head)
 	  && real_links.as_bytes () == o.real_links.as_bytes ();
     }
-    uint32_t hash () const
+    // Compute and cache the dedup hash for pop_pack(), using the serializer's
+    // per-context seed.  Virtual links aren't considered (they don't affect
+    // the object's functionality, same as operator==).  The seed is what
+    // stops a font from crafting many distinct objects that share one hash
+    // and drive the dedup map quadratic: the previous fixed fasthash seed was
+    // invertible.  operator== still compares the full content.  Caching lets
+    // the dedup map's del(obj) -- which hashes the key itself -- see the same
+    // seeded value without a hb-map.hh change.
+    uint32_t hash_with_seed (uint32_t seed)
     {
-      // Virtual links aren't considered for equality since they don't affect the functionality
-      // of the object.
-      return hb_bytes_t (head, hb_min (128, tail - head)).hash () ^
-          real_links.as_bytes ().hash ();
+      hb_bytes_t links = real_links.as_bytes ();
+      hash_v = fasthash32 (head, hb_min ((size_t) 128, (size_t) (tail - head)), seed) ^
+               fasthash32 (links.arrayZ, links.length, seed);
+      return hash_v;
     }
+    uint32_t hash () const { return hash_v; }
 
     struct link_t
     {
@@ -173,6 +182,7 @@ struct hb_serialize_context_t
     hb_vector_t<link_t> real_links;
     hb_vector_t<link_t> virtual_links;
     object_t *next;
+    uint32_t hash_v = 0; // cached dedup hash; see hash_with_seed ()
 
     auto all_links () const HB_AUTO_RETURN
         (( hb_concat (real_links, virtual_links) ));
@@ -254,6 +264,26 @@ struct hb_serialize_context_t
     fini ();
     this->packed.push (nullptr);
     this->packed_map.init ();
+
+    /* Seed the object-dedup hash once here and save it, so every object in
+     * this serialization shares one seed (see calculate_hash_seed). */
+    this->hash_seed = calculate_hash_seed ();
+  }
+
+  /* A per-serialization seed for the object-dedup hash (pop_pack()), mixed
+   * from two ASLR'd addresses in different regions -- this context's own
+   * location and this frame's stack.  A font being subset cannot observe
+   * them, so it cannot craft distinct objects that all collide in packed_map
+   * and make its probing quadratic.  With ASLR off this folds to a fixed
+   * value, i.e. no worse than the fixed seed used before.  It never affects
+   * output: packed_map is lookup-only and dedup keeps the first-inserted
+   * object, independent of hash order. */
+  uint32_t calculate_hash_seed () const
+  {
+    uint64_t s = (uint64_t) (uintptr_t) this;
+    s ^= (uint64_t) (uintptr_t) &s * 0x9E3779B97F4A7C15ull;
+    s ^= s >> 32; s *= 0xD6E8FEB86659FD93ull; s ^= s >> 32;
+    return (uint32_t) s | 1u;
   }
 
   bool check_success (bool success,
@@ -395,7 +425,7 @@ struct hb_serialize_context_t
     uint32_t hash = 0;
     if (share)
     {
-      hash = hb_hash (obj);
+      hash = obj->hash_with_seed (hash_seed);
       objidx = packed_map.get_with_hash (obj, hash);
       if (objidx)
       {
@@ -833,6 +863,7 @@ struct hb_serialize_context_t
 
   /* Map view of packed objects. */
   hb_hashmap_t<const object_t *, objidx_t> packed_map;
+  uint32_t hash_seed = 0; // per-context seed for the object-dedup hash
 };
 
 #endif /* HB_SERIALIZE_HH */
