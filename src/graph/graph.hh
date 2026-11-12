@@ -942,7 +942,13 @@ public:
   graph_result_t<unsigned> mutable_index_for_offset (unsigned node_idx, const void* offset)
   {
     TRY_ASSIGN (unsigned child_idx, index_for_offset (node_idx, offset));
-    if (unlikely (child_idx >= vertices_.length))
+    return mutable_index_for_child (node_idx, child_idx);
+  }
+
+  // Like mutable_index_for_offset(), but for an already-resolved child index.
+  graph_result_t<unsigned> mutable_index_for_child (unsigned node_idx, unsigned child_idx)
+  {
+    if (unlikely (node_idx >= vertices_.length || child_idx >= vertices_.length))
       return Err(OUT_OF_BOUNDS);
 
     auto& child = vertices_[child_idx];

@@ -337,6 +337,10 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     TRY(c.graph.vertices_[liga_subst_prime_id].add_real_link (SmallTypes::size, coverage_prime_id, 2));
     TRY(coverage_prime_vertex.add_parent (liga_subst_prime_id, false));
 
+    // Resolve the original offsets once, before moving any sets. Keep object ids rather than
+    // vertex pointers, since making a shared set mutable can reallocate vertices_.
+    TRY_ASSIGN (auto liga_set_ids, liga_set_index_to_object_id (c, this_index));
+
     // Locate all liga sets with ligas between start and end.
     // Clone or move them as needed.
     unsigned count = 0;
@@ -377,12 +381,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
           base_size + liga_set_count * SmallTypes::size));
       }
 
-      // Liga sets that were already moved are looked up through the new liga subst, which only
-      // holds the moved run, so these lookups stay cheap.
+      // Moving a run does not change its object ids. Avoid rescanning either parent's
+      // links for each set, while still copying sets shared with other parents before mutation.
       bool moved = i < moved_end;
-      TRY_ASSIGN (auto liga_set, moved
-                  ? c.graph.as_mutable_table<LigatureSet>(liga_subst_prime_id, &liga_subst_prime->ligatureSet[liga_set_count])
-                  : c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (unsigned mutable_id, c.graph.mutable_index_for_child (
+        moved ? liga_subst_prime_id : this_index, liga_set_ids[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_table_from_index<LigatureSet> (mutable_id));
 
       unsigned liga_set_index = liga_set.index;
       // Bounds may need to be adjusted if some ligas have been previously removed.
