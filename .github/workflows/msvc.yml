@@ -6,12 +6,18 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
 jobs:
   msvc:
     runs-on: ${{ matrix.os }}
+    env:
+      MSVC_DEPS_PREFIX: ${{ github.workspace }}/msvc-deps-install
 
     strategy:
       fail-fast: false
@@ -20,20 +26,24 @@ jobs:
           - name: msvc-2025-x86
             os: windows-2025
             ARCH: x86
+            OPTIMIZATION: 1
           - name: msvc-2025-amd64
             os: windows-2025
             ARCH: amd64
+            OPTIMIZATION: 3
     name: ${{ matrix.name }}
 
     steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+      id: compiler-cache
+      uses: ./.github/actions/compiler-cache
       with:
         variant: sccache
         key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.ARCH }}
     - name: Setup Python
+      id: python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
@@ -44,13 +54,49 @@ jobs:
     - name: Install Python Dependencies
       run: |
         pip3 install -r .ci/requirements.txt --require-hashes
+    - name: Install pkg-config
+      run: choco install pkgconfiglite --version=0.28 --yes --no-progress
+    - name: Identify MSVC Toolset
+      id: msvc-version
+      run: |
+        "version=$((Get-Item (Get-Command cl.exe).Source).VersionInfo.FileVersion)" >> $env:GITHUB_OUTPUT
+        "sdk=$($env:WindowsSDKVersion.TrimEnd('\'))" >> $env:GITHUB_OUTPUT
+    - name: Cache Installed Dependencies
+      id: msvc-deps
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: ${{ env.MSVC_DEPS_PREFIX }}
+        key: msvc-deps-${{ matrix.os }}-${{ matrix.ARCH }}-${{ steps.msvc-version.outputs.version }}-${{ steps.msvc-version.outputs.sdk }}-${{ steps.python.outputs.python-version }}-${{ hashFiles('subprojects/**/*.wrap', 'subprojects/packagefiles/**', '.ci/msvc-deps/**', '.ci/requirements.txt') }}
+    - name: Build Dependencies
+      if: steps.msvc-deps.outputs.cache-hit != 'true'
+      run: |
+        $source = Join-Path $env:RUNNER_TEMP harfbuzz-msvc-deps
+        Copy-Item .ci/msvc-deps $source -Recurse
+        New-Item -ItemType Directory "$source/subprojects"
+        Copy-Item subprojects/*.wrap "$source/subprojects"
+        if (Test-Path subprojects/packagefiles) {
+          Copy-Item subprojects/packagefiles "$source/subprojects/packagefiles" -Recurse
+        }
+        # Keep dependency build options in .ci/msvc-deps so the cache key tracks them.
+        meson setup build-msvc-deps $source --prefix="$env:MSVC_DEPS_PREFIX" --wrap-mode=forcefallback
+        meson compile -Cbuild-msvc-deps
+        meson install -Cbuild-msvc-deps --no-rebuild
+    - name: Use Installed Dependencies
+      run: |
+        "$env:MSVC_DEPS_PREFIX/bin" >> $env:GITHUB_PATH
+        "PKG_CONFIG_PATH=$env:MSVC_DEPS_PREFIX/lib/pkgconfig" >> $env:GITHUB_ENV
     - name: Setup Meson
       run: |
           sccache --version
+          pkg-config --modversion glib-2.0 freetype2
           meson setup build `
-            --wrap-mode=forcefallback `
+            --wrap-mode=nofallback `
             --buildtype=release `
+            -Doptimization=${{ matrix.OPTIMIZATION }} `
+            -Db_ndebug=true `
             -Dglib=enabled `
+            -Dcairo=disabled `
+            -Dicu=disabled `
             -Dfreetype=enabled `
             -Dgdi=enabled `
             -Ddirectwrite=enabled `
@@ -59,3 +105,10 @@ jobs:
       run: meson compile -Cbuild
     - name: Test
       run: meson test --print-errorlogs --suite=harfbuzz -Cbuild
+    - name: Save Compiler Cache
+      if: ${{ !cancelled() && steps.compiler-cache.outcome == 'success' }}
+      uses: ./.github/actions/save-compiler-cache
+      with:
+        key: ${{ steps.compiler-cache.outputs.key }}
+        variant: ${{ steps.compiler-cache.outputs.variant }}
+        start: ${{ steps.compiler-cache.outputs.start }}

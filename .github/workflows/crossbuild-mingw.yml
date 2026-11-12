@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -20,16 +24,21 @@ jobs:
         include:
           - name: win32
             ARCH: 32
+            TRIPLET: i686-w64-mingw32
             PACKAGES: g++-mingw-w64-i686 wine wine32
           - name: win64
             ARCH: 64
+            TRIPLET: x86_64-w64-mingw32
             PACKAGES: g++-mingw-w64-x86-64 wine wine64 wine32:i386
 
     steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+      id: compiler-cache
+      uses: ./.github/actions/compiler-cache
+      with:
+        key: ${{ github.workflow }}-${{ runner.os }}-${{ matrix.ARCH }}
     - name: Install Dependencies
       run: |
         sudo dpkg --add-architecture i386
@@ -46,7 +55,14 @@ jobs:
     - name: Install Python Dependencies
       run: pip3 install -r .ci/requirements.txt --require-hashes
     - name: Build
-      run: bash .ci/build-win.sh ${{ matrix.ARCH }}
+      run: |
+        cat > "$RUNNER_TEMP/ccache-cross-file.txt" <<'EOF'
+        [binaries]
+        c = ['ccache', '${{ matrix.TRIPLET }}-gcc']
+        cpp = ['ccache', '${{ matrix.TRIPLET }}-g++']
+        EOF
+        bash .ci/build-win.sh ${{ matrix.ARCH }} \
+          --cross-file="$RUNNER_TEMP/ccache-cross-file.txt"
     - name: Test
       run: meson devenv -Cbuild-win${{ matrix.ARCH }} meson test -t 10 --print-errorlogs --suite=harfbuzz
     - name: Archive artifacts
@@ -55,6 +71,14 @@ jobs:
         name: harfbuzz-win${{ matrix.ARCH }}
         path: harfbuzz-win${{ matrix.ARCH }}.zip
         if-no-files-found: error
+
+    - name: Save Compiler Cache
+      if: ${{ !cancelled() && steps.compiler-cache.outcome == 'success' }}
+      uses: ./.github/actions/save-compiler-cache
+      with:
+        key: ${{ steps.compiler-cache.outputs.key }}
+        variant: ${{ steps.compiler-cache.outputs.variant }}
+        start: ${{ steps.compiler-cache.outputs.start }}
 
   release:
     name: Create and populate release

@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -15,6 +19,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Setup Ccache
+      id: compiler-cache
+      uses: ./.github/actions/compiler-cache
+      with:
+        key: ${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}
     - name: Create main.cc
       run: |
         cat <<EOF > main.cc
@@ -27,14 +36,41 @@ jobs:
     - name: install dependencies
       run: sudo apt-get install gcc
     - name: Build configurations
+      env:
+        # Ragel #line directives name pseudo-files; use real include dependencies.
+        CCACHE_DEPEND: 1
       run: |
+        build_config() {
+          local config=$1 status=0
+          echo "Build with $config"
+          ccache g++ -std=c++11 -MD -c main.cc -D"$config" -o "main-$config.o" &&
+            g++ "main-$config.o" -o "main-$config" || status=1
+          echo "Build subset library with $config"
+          ccache g++ -std=c++11 -MD -c subset.cc -D"$config" -o "subset-$config.o" || status=1
+          return "$status"
+        }
+
+        configs=(HB_DISABLE_DEPRECATED HB_MINI HB_LEAN HB_TINY HB_NO_DRAW HB_NO_PAINT)
         status=0
-        for config in HB_DISABLE_DEPRECATED HB_MINI HB_LEAN HB_TINY HB_NO_DRAW HB_NO_PAINT; do
-          echo "::group::Build with $config"
-          g++ -std=c++11 main.cc -D"$config" || status=1
-          echo "::endgroup::"
-          echo "::group::Build subset library with $config"
-          g++ -std=c++11 -c subset.cc -D"$config" || status=1
-          echo "::endgroup::"
+        for ((i=0; i<${#configs[@]}; i+=2)); do
+          pids=()
+          for config in "${configs[@]:i:2}"; do
+            build_config "$config" > "$config.log" 2>&1 &
+            pids+=("$!")
+          done
+          for ((j=0; j<${#pids[@]}; j++)); do
+            wait "${pids[j]}" || status=1
+            config=${configs[i+j]}
+            echo "::group::Build with $config"
+            cat "$config.log"
+            echo "::endgroup::"
+          done
         done
         exit "$status"
+    - name: Save Compiler Cache
+      if: ${{ !cancelled() && steps.compiler-cache.outcome == 'success' }}
+      uses: ./.github/actions/save-compiler-cache
+      with:
+        key: ${{ steps.compiler-cache.outputs.key }}
+        variant: ${{ steps.compiler-cache.outputs.variant }}
+        start: ${{ steps.compiler-cache.outputs.start }}

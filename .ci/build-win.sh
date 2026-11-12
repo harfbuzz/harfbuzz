@@ -26,6 +26,8 @@ meson setup \
 	-Dcairo:freetype=disabled \
 	-Dcairo:dwrite=disabled \
 	-Dcairo:tests=disabled \
+	-Dpixman:tests=disabled \
+	-Dpixman:demos=disabled \
 	-Dglib=enabled \
 	-Dglib:tests=false \
 	-Dlibffi:tests=false \
@@ -38,8 +40,7 @@ meson setup \
 	${BUILD} \
 	"$@"
 
-# building with all the cores won't work fine with CricleCI for some reason
-meson compile -C ${BUILD} -j3
+meson compile -C ${BUILD}
 meson install -C ${BUILD}
 
 mkdir ${BUILD}/${DIST}
