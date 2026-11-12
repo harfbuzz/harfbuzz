@@ -36,8 +36,7 @@ jobs:
           libfreetype6-dev \
           libglib2.0-dev \
           libcairo2-dev \
-          libicu-dev \
-          libgraphite2-dev
+          libicu-dev
     - name: Setup Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
