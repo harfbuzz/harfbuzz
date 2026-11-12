@@ -56,7 +56,7 @@ static inline const Type& StructAtOffsetOrNull (const void *P, int offset, hb_sa
   return obj;
 }
 
-/* Work budget of one pass over the charstrings of the table in blob. */
+/* Charstring work budget of one subset of the table in blob. */
 static inline int64_t
 get_subset_budget (const hb_blob_t *blob)
 {

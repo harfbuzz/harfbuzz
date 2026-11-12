@@ -1625,6 +1625,9 @@ struct cff1_subset_accelerator_t : cff1::accelerator_subset_t {
         builder->add_depend (gid, HB_TAG('C','F','F',' '), accent_gid);
       }
     }
+    /* The charstring interpreter caps each glyph at the remaining budget and
+     * never overshoots, so exhaustion leaves the budget at exactly 0 rather
+     * than negative; treat that as failure too. */
     if (unlikely (budget <= 0))
       builder->fail ();
   }

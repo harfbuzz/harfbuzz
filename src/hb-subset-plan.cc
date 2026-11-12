@@ -533,11 +533,12 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     bool has_seac = false;
     if (cff->is_valid ())
     {
-      int64_t budget = CFF::get_subset_budget (cff->get_blob ());
+      int64_t *budget = plan->cff_budget (CFF::get_subset_budget (cff->get_blob ()));
       for (hb_codepoint_t gid : cur_glyphset)
-	if (_add_cff_seac_components (*cff, gid, &plan->_glyphset, &budget))
+	if (_add_cff_seac_components (*cff, gid, &plan->_glyphset, budget))
 	  has_seac = true;
-      plan->check_success (budget > 0);
+      /* Exhaustion saturates the interpreter budget at exactly 0, not below. */
+      plan->check_success (*budget > 0);
     }
     plan->has_seac = has_seac;
   }

@@ -275,11 +275,12 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 28)
 #endif
 
-/* The flat floor for one pass of the subsetter over the charstrings of
- * a CFF or CFF2 table, in operators and operands interpreted.  Glyphs
- * can share subroutines, so neither HB_CFF_MAX_OPS per glyph nor the
- * table size bounds that work.  Running out fails the charstring being
- * interpreted, as exceeding HB_CFF_MAX_OPS does. */
+/* The flat floor for the subsetter's work on the charstrings of a CFF or
+ * CFF2 table, in operators and operands interpreted, shared by all passes
+ * of one subset over them.  Glyphs can share subroutines, so neither
+ * HB_CFF_MAX_OPS per glyph nor the table size bounds that work.  Running
+ * out fails the charstring being interpreted, as exceeding HB_CFF_MAX_OPS
+ * does. */
 #ifndef HB_BUDGET_SUBSET_CFF
 #define HB_BUDGET_SUBSET_CFF ((int64_t) 1 << 24)
 #endif
