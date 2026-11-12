@@ -243,6 +243,7 @@ typedef struct
 {
   const FT_Byte *data;
   FT_ULong       length;
+  unsigned int   full_reads;
 } memory_stream_data_t;
 
 static unsigned long
@@ -257,7 +258,11 @@ memory_stream_read (FT_Stream      stream,
     return count ? 0 : 1;
 
   if (count)
+  {
+    if (!offset && count == sd->length)
+      sd->full_reads++;
     memcpy (buffer, sd->data + offset, count);
+  }
 
   return count;
 }
@@ -270,6 +275,17 @@ memory_stream_close (FT_Stream stream HB_UNUSED)
 static void
 test_native_ft_set_funcs_stream_face_no_deadlock (void)
 {
+#ifndef HB_NO_GETENV
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  g_assert_true (g_setenv ("HB_FONT_FUNCS", "ft", TRUE));
+#endif
+
   init_freetype ();
 
 #if GLIB_CHECK_VERSION(2,37,2)
@@ -284,7 +300,7 @@ test_native_ft_set_funcs_stream_face_no_deadlock (void)
   g_assert_true (g_file_get_contents (path, &contents, &length, &error));
   g_free (path);
 
-  memory_stream_data_t stream_data = { (const FT_Byte *) contents, (FT_ULong) length };
+  memory_stream_data_t stream_data = { (const FT_Byte *) contents, (FT_ULong) length, 0 };
 
   FT_StreamRec stream_rec;
   memset (&stream_rec, 0, sizeof (stream_rec));
@@ -307,8 +323,13 @@ test_native_ft_set_funcs_stream_face_no_deadlock (void)
   /* hb_ft_font_create() followed by hb_ft_font_set_funcs() on a face
    * opened from a custom stream used to self-deadlock in
    * hb_font_destroy(); https://github.com/harfbuzz/harfbuzz/issues/6276 */
+  unsigned int full_reads = stream_data.full_reads;
   hb_font_t *font = hb_ft_font_create (ft_face, NULL);
   g_assert_nonnull (font);
+  /* Even with FreeType as the default backend, creation must not read the
+   * entire font stream to load a second FT_Face before installing ours. */
+  g_assert_cmpuint (stream_data.full_reads, ==, full_reads);
+  g_assert_true (hb_ft_font_get_ft_face (font) == ft_face);
   hb_ft_font_set_funcs (font);
 
   hb_buffer_t *buffer = hb_buffer_create ();

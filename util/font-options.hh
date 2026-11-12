@@ -81,7 +81,9 @@ void
 font_options_t::post_parse (GError **error)
 {
   assert (!font);
-  font = hb_font_create (face);
+  font = font_funcs ? hb_font_create_without_funcs_or_fail (face) : hb_font_create (face);
+  if (unlikely (!font))
+    font = hb_font_get_empty ();
 
   if (font_size_x == FONT_SIZE_UPEM)
     font_size_x = hb_face_get_upem (face);

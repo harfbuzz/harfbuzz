@@ -106,7 +106,9 @@ hb_fc_font_create (FcPattern *fcfont)
   if (!face) /* XXX MT-unsafe */
     face = hb_face_create (hb_blob_get_empty (), 0);
 
-  font = hb_font_create (face);
+  font = hb_font_create_without_funcs_or_fail (face);
+  if (!font)
+    return hb_font_get_empty ();
 
   hb_font_set_funcs (font,
 		     _hb_fc_get_font_funcs (),

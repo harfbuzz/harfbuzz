@@ -53,6 +53,41 @@ test_get_var_coords (void)
 }
 
 static void
+test_create_without_funcs_var_coords (void)
+{
+  for (unsigned int instance = 0; instance < 2; instance++)
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Estedad-VF.ttf");
+    hb_face_set_index (face, instance << 16);
+    hb_font_t *font = hb_font_create_without_funcs_or_fail (face);
+    g_assert_nonnull (font);
+
+    float expected[2];
+    unsigned int count = 2;
+    if (instance)
+      hb_ot_var_named_instance_get_design_coords (face, instance - 1, &count, expected);
+    else
+    {
+      hb_ot_var_axis_info_t axes[2];
+      hb_ot_var_get_axis_infos (face, 0, &count, axes);
+      for (unsigned int i = 0; i < count; i++)
+        expected[i] = axes[i].default_value;
+    }
+    g_assert_cmpuint (count, ==, 2);
+
+    const float *coords = hb_font_get_var_coords_design (font, &count);
+    g_assert_cmpuint (count, ==, 2);
+    for (unsigned int i = 0; i < count; i++)
+      g_assert_cmpfloat (coords[i], ==, expected[i]);
+    g_assert_cmpuint (hb_font_get_var_named_instance (font), ==,
+                      instance ? instance - 1 : HB_FONT_NO_VAR_NAMED_INSTANCE);
+
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_get_var_get_axis_infos (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Estedad-VF.ttf");
@@ -81,6 +116,7 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_get_var_coords);
+  hb_test_add (test_create_without_funcs_var_coords);
   hb_test_add (test_get_var_get_axis_infos);
   return hb_test_run ();
 }

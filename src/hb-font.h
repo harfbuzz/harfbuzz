@@ -1116,6 +1116,28 @@ hb_font_paint_glyph (hb_font_t *font,
 HB_EXTERN hb_font_t *
 hb_font_create (hb_face_t *face);
 
+/**
+ * hb_font_create_without_funcs_or_fail:
+ * @face: (nullable): a face
+ *
+ * Constructs a new font object with the same initial properties as
+ * hb_font_create(), but without setting up default font functions.
+ * The face is referenced and made immutable, and the scale and variation
+ * coordinates are initialized as in hb_font_create().
+ *
+ * This is useful for clients that install their own font functions with
+ * hb_font_set_funcs() or hb_font_set_funcs_using(), to avoid the overhead
+ * of setting up default font functions only to replace them immediately.
+ * The `HB_FONT_FUNCS` environment variable is not consulted.
+ *
+ * Return value: (transfer full) (nullable): The new font object, or `NULL`
+ * if allocation fails
+ *
+ * XSince: REPLACEME
+ **/
+HB_EXTERN hb_font_t *
+hb_font_create_without_funcs_or_fail (hb_face_t *face);
+
 HB_EXTERN hb_font_t *
 hb_font_create_sub_font (hb_font_t *parent);
 

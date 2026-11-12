@@ -103,8 +103,14 @@ static void BM_Font (benchmark::State &state,
     num_glyphs = hb_face_get_glyph_count (face);
     if (max_num_glyphs && num_glyphs > max_num_glyphs)
       num_glyphs = max_num_glyphs;
-    font = hb_font_create (face);
+    font = hb_font_create_without_funcs_or_fail (face);
     hb_face_destroy (face);
+  }
+
+  if (!font)
+  {
+    state.SkipWithError("Failed to create font.");
+    return;
   }
 
   if (variations)
@@ -244,8 +250,14 @@ static void BM_Font (benchmark::State &state,
       {
 	hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
 	assert (face);
-	hb_font_t *font = hb_font_create (face);
+	hb_font_t *font = hb_font_create_without_funcs_or_fail (face);
 	hb_face_destroy (face);
+
+	if (!font)
+	{
+	  state.SkipWithError("Failed to create font.");
+	  return;
+	}
 
 	bool ret = hb_font_set_funcs_using (font, backend);
 	if (!ret)

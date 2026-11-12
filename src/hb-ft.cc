@@ -1483,7 +1483,12 @@ hb_ft_font_create (FT_Face           ft_face,
   /* If face creation failed, @destroy has already been called. */
   if (unlikely (hb_face_is_immutable (face)))
     return hb_font_get_empty ();
-  font = hb_font_create (face);
+  font = hb_font_create_without_funcs_or_fail (face);
+  if (unlikely (!font))
+  {
+    hb_face_destroy (face);
+    return hb_font_get_empty ();
+  }
   _hb_ft_font_set_funcs (font, ft_face, false);
   hb_ft_font_changed (font);
   hb_face_destroy (face);
