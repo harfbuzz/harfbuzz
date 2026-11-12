@@ -48,6 +48,19 @@ jobs:
           pkg-config \
           zlib1g-dev \
           bindgen
+    - name: Identify Rust Compiler
+      id: rust-compiler
+      run: echo "version=$(rustc --version)" >> "$GITHUB_OUTPUT"
+    - name: Cache Cargo Dependencies and Build Outputs
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          build/src/rust/debugoptimized
+          build/src/rust/.rustc_info.json
+        key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.version }}-${{ hashFiles('src/rust/Cargo.toml', 'src/rust/meson.build') }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: cargo-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.version }}-${{ hashFiles('src/rust/Cargo.toml', 'src/rust/meson.build') }}-
     - name: Setup Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
