@@ -26,9 +26,11 @@ jobs:
           - name: msvc-2025-x86
             os: windows-2025
             ARCH: x86
+            OPTIMIZATION: 1
           - name: msvc-2025-amd64
             os: windows-2025
             ARCH: amd64
+            OPTIMIZATION: 3
     name: ${{ matrix.name }}
 
     steps:
@@ -88,6 +90,8 @@ jobs:
           meson setup build `
             --wrap-mode=nofallback `
             --buildtype=release `
+            -Doptimization=${{ matrix.OPTIMIZATION }} `
+            -Db_ndebug=true `
             -Dglib=enabled `
             -Dcairo=disabled `
             -Dicu=disabled `
