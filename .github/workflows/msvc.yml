@@ -16,6 +16,8 @@ permissions:
 jobs:
   msvc:
     runs-on: ${{ matrix.os }}
+    env:
+      MSVC_DEPS_PREFIX: ${{ github.workspace }}/msvc-deps-install
 
     strategy:
       fail-fast: false
@@ -38,6 +40,7 @@ jobs:
         variant: sccache
         key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.ARCH }}
     - name: Setup Python
+      id: python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
@@ -48,15 +51,44 @@ jobs:
     - name: Install Python Dependencies
       run: |
         pip3 install -r .ci/requirements.txt --require-hashes
+    - name: Install pkg-config
+      run: choco install pkgconfiglite --version=0.28 --yes --no-progress
+    - name: Identify MSVC Toolset
+      id: msvc-version
+      run: |
+        "version=$((Get-Item (Get-Command cl.exe).Source).VersionInfo.FileVersion)" >> $env:GITHUB_OUTPUT
+        "sdk=$($env:WindowsSDKVersion.TrimEnd('\'))" >> $env:GITHUB_OUTPUT
+    - name: Cache Installed Dependencies
+      id: msvc-deps
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: ${{ env.MSVC_DEPS_PREFIX }}
+        key: msvc-deps-${{ matrix.os }}-${{ matrix.ARCH }}-${{ steps.msvc-version.outputs.version }}-${{ steps.msvc-version.outputs.sdk }}-${{ steps.python.outputs.python-version }}-${{ hashFiles('subprojects/**/*.wrap', 'subprojects/packagefiles/**', '.ci/msvc-deps/**', '.ci/requirements.txt', '.github/workflows/msvc.yml') }}
+    - name: Build Dependencies
+      if: steps.msvc-deps.outputs.cache-hit != 'true'
+      run: |
+        $source = Join-Path $env:RUNNER_TEMP harfbuzz-msvc-deps
+        Copy-Item .ci/msvc-deps $source -Recurse
+        New-Item -ItemType Directory "$source/subprojects"
+        Copy-Item subprojects/*.wrap "$source/subprojects"
+        if (Test-Path subprojects/packagefiles) {
+          Copy-Item subprojects/packagefiles "$source/subprojects/packagefiles" -Recurse
+        }
+        meson setup build-msvc-deps $source --prefix="$env:MSVC_DEPS_PREFIX" --wrap-mode=forcefallback
+        meson compile -Cbuild-msvc-deps
+        meson install -Cbuild-msvc-deps --no-rebuild
+    - name: Use Installed Dependencies
+      run: |
+        "$env:MSVC_DEPS_PREFIX/bin" >> $env:GITHUB_PATH
+        "PKG_CONFIG_PATH=$env:MSVC_DEPS_PREFIX/lib/pkgconfig" >> $env:GITHUB_ENV
     - name: Setup Meson
       run: |
           sccache --version
+          pkg-config --modversion glib-2.0 freetype2
           meson setup build `
-            --wrap-mode=forcefallback `
+            --wrap-mode=nofallback `
             --buildtype=release `
             -Dglib=enabled `
-            -Dglib:tests=false `
-            -Dlibffi:tests=false `
             -Dcairo=disabled `
             -Dicu=disabled `
             -Dfreetype=enabled `
