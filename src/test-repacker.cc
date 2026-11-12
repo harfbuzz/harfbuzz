@@ -1940,6 +1940,135 @@ populate_serializer_with_large_liga_overlapping_clone_result (hb_serialize_conte
 }
 
 static void
+populate_serializer_with_liga_shared_liga_set (hb_serialize_context_t* c)
+{
+  // One LigatureSubst whose two coverage entries point at the same LigatureSet,
+  // as produced by the subsetter when two first glyphs have identical ligature lists.
+  std::string large_string(100000, 'a');
+  c->start_serialize<char> ();
+
+  constexpr unsigned liga_size = 30000;
+
+  unsigned liga[3];
+
+  unsigned coverage = add_coverage(0, 1, c);
+  for (int i = 2; i >= 0; i--) {
+    start_object (large_string.c_str(), liga_size, c);
+    add_virtual_offset(coverage, c);
+    liga[i] = c->pop_pack (false);
+  }
+
+  add_liga_set_header(3, c);
+  add_virtual_offset(coverage, c);
+  for (unsigned i = 0; i < 3; i++)
+    add_offset(liga[i], c);
+  unsigned liga_set = c->pop_pack(false);
+
+  add_liga_header(coverage, 2, c);
+  add_offset(liga_set, c);
+  add_offset(liga_set, c);
+  unsigned liga_subst = c->pop_pack(false);
+
+  liga_subst = add_extension(liga_subst, 4, c);
+
+  start_lookup (7, 1, c);
+  add_offset(liga_subst, c);
+
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_liga_shared_liga_set_result (hb_serialize_context_t* c)
+{
+  // Ligatures are numbered per coverage entry, [0, 3) for glyph 0 and [3, 6) for
+  // glyph 1, and the split points are at 2 and 4. Both glyphs must keep all three
+  // ligatures across the resulting subtables.
+  std::string large_string(100000, 'a');
+  c->start_serialize<char> ();
+
+  constexpr unsigned liga_size = 30000;
+
+  unsigned liga[3];
+  unsigned liga_subst[3];
+  unsigned liga_set[2];
+
+  // LigaSubst 3: glyph 1, ligas 1 and 2
+  unsigned coverage = add_coverage(1, 1, c);
+  for (int i = 2; i >= 1; i--) {
+    start_object (large_string.c_str(), liga_size, c);
+    add_virtual_offset(coverage, c);
+    liga[i] = c->pop_pack (false);
+  }
+
+  add_liga_set_header(2, c);
+  add_virtual_offset(coverage, c);
+  for (unsigned i = 1; i < 3; i++)
+    add_offset(liga[i], c);
+  liga_set[0] = c->pop_pack(false);
+
+  add_liga_header(coverage, 1, c);
+  add_offset(liga_set[0], c);
+  liga_subst[2] = c->pop_pack(false);
+
+  // LigaSubst 2: glyph 0 liga 2, glyph 1 liga 0
+  coverage = add_coverage(0, 1, c);
+  start_object (large_string.c_str(), liga_size, c);
+  add_virtual_offset(coverage, c);
+  liga[0] = c->pop_pack (false);
+
+  add_liga_set_header(1, c);
+  add_virtual_offset(coverage, c);
+  add_offset(liga[0], c);
+  liga_set[1] = c->pop_pack(false);
+
+  add_liga_set_header(1, c);
+  add_virtual_offset(coverage, c);
+  add_offset(liga[2], c);
+  liga_set[0] = c->pop_pack(false);
+
+  add_liga_header(coverage, 2, c);
+  add_offset(liga_set[0], c);
+  add_offset(liga_set[1], c);
+  liga_subst[1] = c->pop_pack(false);
+
+  // LigaSubst 1: glyph 0, ligas 0 and 1
+  coverage = add_coverage(0, 0, c);
+
+  add_liga_set_header(2, c);
+  add_virtual_offset(coverage, c);
+  for (unsigned i = 0; i < 2; i++)
+    add_offset(liga[i], c);
+  liga_set[0] = c->pop_pack(false);
+
+  add_liga_header(coverage, 1, c);
+  add_offset(liga_set[0], c);
+  liga_subst[0] = c->pop_pack(false);
+
+  for (int l = 2; l >= 0; l--) {
+    liga_subst[l] = add_extension(liga_subst[l], 4, c);
+  }
+
+  start_lookup (7, 3, c);
+  for (unsigned l = 0; l < 3; l++) {
+    add_offset(liga_subst[l], c);
+  }
+
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_with_large_liga_null_offsets (hb_serialize_context_t* c, bool split)
 {
   std::string large_string(100000, 'a');
@@ -2913,6 +3042,29 @@ static void test_resolve_with_liga_split_null_offsets ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_liga_split_shared_liga_set ()
+{
+  size_t buffer_size = 400000;
+  void* buffer = malloc (buffer_size);
+  hb_always_assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_liga_shared_liga_set(&c);
+
+  void* expected_buffer = malloc (buffer_size);
+  hb_always_assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_liga_shared_liga_set_result(&e);
+
+  run_resolve_overflow_test ("test_resolve_with_liga_split_shared_liga_set",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'S', 'U', 'B'));
+  free (buffer);
+  free (expected_buffer);
+}
+
 static void test_resolve_with_liga_split_shared_table ()
 {
   size_t buffer_size = 400000;
@@ -3573,6 +3725,7 @@ main (int argc, char **argv)
   test_resolve_with_liga_split_move ();
   test_dont_duplicate_virtual ();
   test_resolve_with_liga_split_overlapping_clone ();
+  test_resolve_with_liga_split_shared_liga_set ();
   test_resolve_with_liga_split_null_offsets ();
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();

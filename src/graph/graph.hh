@@ -149,6 +149,32 @@ struct graph_t
       return graph_result_t<void>::from (obj_.virtual_links, ALLOCATION_FAILURE);
     }
 
+    // Collapses virtual links that point to the same object down to a single link, keeping the
+    // first occurrence of each target. The object index of every dropped link is appended to
+    // 'removed' so the caller can correct that target's incoming-edge bookkeeping. Linear in the
+    // number of virtual links.
+    graph_result_t<void> dedup_virtual_links (hb_vector_t<unsigned>& removed)
+    {
+      hb_set_t seen;
+      unsigned count = obj_.virtual_links.length;
+      unsigned w = 0;
+      for (unsigned r = 0; r < count; r++)
+      {
+        unsigned objidx = obj_.virtual_links.arrayZ[r].objidx;
+        if (seen.has (objidx))
+        {
+          removed.push (objidx);
+          continue;
+        }
+        seen.add (objidx);
+        obj_.virtual_links.arrayZ[w++] = obj_.virtual_links.arrayZ[r];
+      }
+      obj_.virtual_links.shrink (w);
+      TRY (graph_result_t<void>::from (seen, ALLOCATION_FAILURE));
+      TRY (graph_result_t<void>::from (removed, ALLOCATION_FAILURE));
+      return graph_result_t<void>::from (obj_.virtual_links, ALLOCATION_FAILURE);
+    }
+
     const hb_serialize_context_t::object_t& obj() const { return obj_; }
 
     template<typename T>
@@ -1586,6 +1612,65 @@ public:
       TRY(reassign_link (l, parent_idx, new_child_idx, true));
     }
     return Ok(new_child_idx);
+  }
+
+  /*
+   * Ensures that every child linked from parent_idx by a real link at a position >=
+   * first_link_pos is reached from parent_idx through exactly one link. The first link to a
+   * given child keeps it (and has its redundant virtual links collapsed); every later link to
+   * an already-seen child is repointed to a fresh deep copy of that child.
+   *
+   * This is a single pass over the parent's links, so it is O(n) in both time and memory for a
+   * parent with n such links. (A per-link remap-then-rescan would be O(n^2) in time, and copying
+   * a child that carries one redundant virtual link per incoming reference would be O(n^2) in
+   * memory.)
+   */
+  graph_result_t<void> unshare_duplicate_children (unsigned parent_idx, unsigned first_link_pos)
+  {
+    if (unlikely (parent_idx >= vertices_.length))
+      return Err(OUT_OF_BOUNDS);
+
+    positions_invalid = true;
+    distance_invalid = true;
+
+    // duplicate () appends to vertices_; reserve room for the clones up front (at most one per
+    // link) so it cannot reallocate vertices_ and invalidate the parent reference and link array
+    // held across the loop below.
+    unsigned num_links = vertices_[parent_idx].obj ().real_links.length;
+    if (unlikely (!vertices_.alloc (vertices_.length + num_links)))
+      return Err(ALLOCATION_FAILURE);
+
+    hb_set_t seen;
+    auto& parent = vertices_[parent_idx];
+    for (auto& l : parent.real_links_writer ())
+    {
+      if (l.position < first_link_pos)
+        continue;
+
+      unsigned child_idx = l.objidx;
+      if (unlikely (child_idx >= vertices_.length))
+        return Err(OUT_OF_BOUNDS);
+
+      if (!seen.has (child_idx))
+      {
+        seen.add (child_idx);
+
+        // A child reached from several of parent's entries carries one (redundant) virtual link
+        // back to the shared Coverage per entry; collapse them so the deep copies below copy
+        // O(1) virtual links each, not O(n), and fix the dropped links' incoming-edge counts.
+        hb_vector_t<unsigned> dropped;
+        TRY (vertices_[child_idx].dedup_virtual_links (dropped));
+        for (unsigned target : dropped)
+          if (likely (target < vertices_.length))
+            vertices_[target].remove_parent (child_idx);
+        continue;
+      }
+
+      TRY_ASSIGN (unsigned clone_idx, duplicate (child_idx, true));
+      TRY (reassign_link (l, parent_idx, clone_idx, false));
+    }
+
+    return graph_result_t<void>::from (seen, ALLOCATION_FAILURE);
   }
 
   /*
