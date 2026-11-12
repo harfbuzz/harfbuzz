@@ -495,6 +495,72 @@ test_ot_layout_collect_lookup_variations (void)
 }
 #endif
 
+static void
+test_ot_layout_get_extender_glyphs (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/jstf.ttf");
+
+  g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+  {
+    hb_codepoint_t buffer[2];
+    unsigned offset = 0;
+    unsigned buffer_size = 2;
+    while (buffer_size == 2)
+    {
+      buffer[0] = HB_CODEPOINT_INVALID;
+      buffer[1] = HB_CODEPOINT_INVALID;
+      hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, offset, &buffer_size, buffer);
+      offset += buffer_size;
+    }
+    g_assert_cmpuint (buffer[0], ==, 6);
+    g_assert_cmpuint (buffer[1], ==, HB_CODEPOINT_INVALID);
+  }
+  {
+    hb_codepoint_t buffer[6];
+    unsigned buffer_size = 6;
+    buffer[5] = HB_CODEPOINT_INVALID;
+    hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, &buffer_size, buffer);
+    g_assert_cmpuint (buffer[0], ==, 2);
+    g_assert_cmpuint (buffer[1], ==, 3);
+    g_assert_cmpuint (buffer[2], ==, 4);
+    g_assert_cmpuint (buffer[3], ==, 5);
+    g_assert_cmpuint (buffer[4], ==, 6);
+    g_assert_cmpuint (buffer[5], ==, HB_CODEPOINT_INVALID);
+  }
+
+  /* The API is just indifferent about language tags themselves right now */
+  g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, hb_language_from_string ("fa", -1), 0, NULL, NULL));
+
+  /* No glyph if the script on the font doesn't contain extender glyph */
+  g_assert_cmpuint (0, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_BENGALI, HB_LANGUAGE_INVALID, 0, NULL, NULL));
+
+  {
+    hb_codepoint_t glyph = HB_CODEPOINT_INVALID;
+    unsigned count = 1;
+    g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 5, &count, &glyph));
+    g_assert_cmpuint (count, ==, 0);
+    g_assert_cmpuint (glyph, ==, HB_CODEPOINT_INVALID);
+
+    count = 1;
+    g_assert_cmpuint (5, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 6, &count, &glyph));
+    g_assert_cmpuint (count, ==, 0);
+    g_assert_cmpuint (glyph, ==, HB_CODEPOINT_INVALID);
+
+    count = 1;
+    g_assert_cmpuint (0, ==, hb_ot_layout_get_extender_glyphs (face, HB_SCRIPT_BENGALI, HB_LANGUAGE_INVALID, 0, &count, &glyph));
+    g_assert_cmpuint (count, ==, 0);
+    g_assert_cmpuint (glyph, ==, HB_CODEPOINT_INVALID);
+
+    count = 1;
+    g_assert_cmpuint (0, ==, hb_ot_layout_get_extender_glyphs (hb_face_get_empty (), HB_SCRIPT_ARABIC, HB_LANGUAGE_INVALID, 0, &count, &glyph));
+    g_assert_cmpuint (count, ==, 0);
+    g_assert_cmpuint (glyph, ==, HB_CODEPOINT_INVALID);
+  }
+
+  hb_face_destroy (face);
+  /* JSTFv1.1 is tested in test-jstf.cc. */
+}
+
 /* A Context lookup that recurses to a MarkBasePos lookup at input positions
  * 1,0,1,0,... makes the latter drop its cached backward base search every
  * other time and rescan from scratch.  On a run of marks with no base glyph
@@ -726,6 +792,7 @@ main (int argc, char **argv)
 #ifndef HB_NO_VAR
   hb_test_add (test_ot_layout_collect_lookup_variations);
 #endif
+  hb_test_add (test_ot_layout_get_extender_glyphs);
   hb_test_add (test_ot_layout_gpos_mark_base_rescan_budget);
   hb_test_add (test_ot_layout_lookups_substitute_closure_large_coverage);
   return hb_test_run ();
