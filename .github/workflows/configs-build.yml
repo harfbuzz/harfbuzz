@@ -19,6 +19,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Setup Ccache
+      uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+      with:
+        key: ${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}
     - name: Create main.cc
       run: |
         cat <<EOF > main.cc
@@ -35,10 +39,11 @@ jobs:
         status=0
         for config in HB_DISABLE_DEPRECATED HB_MINI HB_LEAN HB_TINY HB_NO_DRAW HB_NO_PAINT; do
           echo "::group::Build with $config"
-          g++ -std=c++11 main.cc -D"$config" || status=1
+          ccache g++ -std=c++11 -c main.cc -D"$config" -o main.o &&
+            g++ main.o || status=1
           echo "::endgroup::"
           echo "::group::Build subset library with $config"
-          g++ -std=c++11 -c subset.cc -D"$config" || status=1
+          ccache g++ -std=c++11 -c subset.cc -D"$config" || status=1
           echo "::endgroup::"
         done
         exit "$status"
