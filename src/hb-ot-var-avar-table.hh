@@ -43,6 +43,21 @@
 namespace OT {
 
 
+/* The position where key would be inserted among count elements, found
+ * through hb_bsearch_impl -- the one binary search in the codebase.  The
+ * comparators below never return 0, so it reports that insertion point
+ * (a lower or upper bound, per the comparator) rather than a match. */
+template <typename K, typename V>
+static inline unsigned
+_avar_bound (const K &key, const V *base, unsigned count,
+	     int (*cmp) (const void *, const void *))
+{
+  unsigned pos;
+  hb_bsearch_impl (&pos, key, base, count, sizeof (V), cmp);
+  return pos;
+}
+
+
 /* "Spec": https://github.com/be-fonts/boring-expansion-spec/issues/14 */
 struct avarV2Tail
 {
@@ -147,9 +162,39 @@ struct AxisValueMap
   DEFINE_SIZE_STATIC (4);
 };
 
+/* Compare a coordinate key against coords[0] of a mapping.  Never return 0:
+ * _lower stops at the first mapping whose coords[0] is >= the key (lower
+ * bound), _upper at the first strictly greater (upper bound). */
+static int
+_avar_cmp_mapping_lower (const void *pv, const void *pm)
+{
+  double v = * (const double *) pv;
+  double c = (double) ((const AxisValueMap *) pm)->coords[0].to_float ();
+  return v <= c ? -1 : 1;
+}
+static int
+_avar_cmp_mapping_upper (const void *pv, const void *pm)
+{
+  double v = * (const double *) pv;
+  double c = (double) ((const AxisValueMap *) pm)->coords[0].to_float ();
+  return v < c ? -1 : 1;
+}
+
 struct SegmentMaps : Array16Of<AxisValueMap>
 {
-  float map_float (float value, unsigned int from_offset = 0, unsigned int to_offset = 1) const
+  bool is_sorted () const
+  {
+    for (unsigned i = 1; i < len; i++)
+      if (arrayZ[i].coords[0].to_int () < arrayZ[i - 1].coords[0].to_int ())
+	return false;
+    return true;
+  }
+
+  /* Pass sorted only with the default offsets and for maps whose
+   * is_sorted() holds; binary searches then find what the linear scans
+   * would. */
+  float map_float (float value, unsigned int from_offset = 0, unsigned int to_offset = 1,
+		   bool sorted = false) const
   {
 #define fromCoord coords[from_offset].to_float ()
 #define toCoord coords[to_offset].to_float ()
@@ -182,18 +227,32 @@ struct SegmentMaps : Array16Of<AxisValueMap>
     if (map[end-1].fromCoord == +1 && map[end-1].toCoord == +1 && map[end-2].fromCoord == +1)
       end--;
 
+    /* A NaN matches nothing; leave it to the linear scans. */
+    sorted = sorted && !std::isnan (value);
+    unsigned lower = start;
+    if (sorted)
+      lower = start + _avar_bound ((double) value, map + start, end - start,
+				   _avar_cmp_mapping_lower);
+
     /* Look for exact match first, and do lots of special-casing. */
     unsigned i;
-    for (i = start; i < end; i++)
-      if (value == map[i].fromCoord)
-	break;
+    if (sorted)
+      i = lower < end && value == map[lower].fromCoord ? lower : end;
+    else
+      for (i = start; i < end; i++)
+	if (value == map[i].fromCoord)
+	  break;
     if (i < end)
     {
       // There's at least one exact match. See if there are more.
       unsigned j = i;
-      for (; j + 1 < end; j++)
-	if (value != map[j + 1].fromCoord)
-	  break;
+      if (sorted)
+	j = i + _avar_bound ((double) value, map + i, end - i,
+			     _avar_cmp_mapping_upper) - 1;
+      else
+	for (; j + 1 < end; j++)
+	  if (value != map[j + 1].fromCoord)
+	    break;
 
       // [i,j] inclusive are all exact matches:
 
@@ -222,9 +281,12 @@ struct SegmentMaps : Array16Of<AxisValueMap>
     /* There's at least two and we're not an exact match. Prepare to lerp. */
 
     // Find the segment we're in.
-    for (i = start; i < end; i++)
-      if (value < map[i].fromCoord)
-	break;
+    if (sorted)
+      i = lower; /* No exact match, so the first fromCoord above value. */
+    else
+      for (i = start; i < end; i++)
+	if (value < map[i].fromCoord)
+	  break;
 
     if (i == start)
     {
@@ -345,6 +407,16 @@ struct avar2_offset_knot_t
   double offset;
 };
 
+/* Compare a z key against a knot's z; never return 0, so the search stops
+ * at the first knot whose z is not below the key (lower bound). */
+static int
+_avar_cmp_knot_lower (const void *pz, const void *pk)
+{
+  double z = * (const double *) pz;
+  double kz = ((const avar2_offset_knot_t *) pk)->z;
+  return z <= kz ? -1 : 1;
+}
+
 /* Insert a knot keeping the vector sorted by z; first insertion wins on
  * duplicate z. */
 static inline void
@@ -360,13 +432,43 @@ _avar2_add_knot (hb_vector_t<avar2_offset_knot_t> &knots, double z, double offse
   knots.arrayZ[i] = avar2_offset_knot_t {z, offset};
 }
 
+/* Sort knots by z, keeping only the first of those with equal z: what
+ * adding them one by one with _avar2_add_knot would make, without its
+ * quadratic shifting. */
+static inline bool
+_avar2_sort_knots (hb_vector_t<avar2_offset_knot_t> &knots)
+{
+  hb_vector_t<unsigned> order;
+  if (unlikely (!order.resize (knots.length)))
+    return false;
+  for (unsigned k = 0; k < order.length; k++)
+    order.arrayZ[k] = k;
+  order.qsort ([&] (const unsigned &a, const unsigned &b) {
+    double za = knots.arrayZ[a].z, zb = knots.arrayZ[b].z;
+    if (za != zb) return za < zb ? -1 : 1;
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
+
+  hb_vector_t<avar2_offset_knot_t> sorted;
+  if (unlikely (!sorted.alloc_exact (knots.length)))
+    return false;
+  for (unsigned k : order)
+    if (!sorted.length || sorted.tail ().z != knots.arrayZ[k].z)
+      sorted.push (knots.arrayZ[k]);
+  knots = std::move (sorted);
+  return true;
+}
+
 /* Piecewise-linear evaluation over the sorted knots. Inputs are always
  * within [-1, +1] and anchor knots at -1/0/+1 always exist. */
 static inline double
 _avar2_eval_offset (const hb_vector_t<avar2_offset_knot_t> &knots, double z)
 {
   unsigned len = knots.length;
-  for (unsigned i = 0; i < len; i++)
+  /* The first knot not below z, where a linear scan would stop. */
+  unsigned i = std::isnan (z) ? len :
+	       _avar_bound (z, knots.arrayZ, len, _avar_cmp_knot_lower);
+  if (i < len)
   {
     if (z == knots.arrayZ[i].z) return knots.arrayZ[i].offset;
     if (z < knots.arrayZ[i].z)
@@ -381,17 +483,32 @@ _avar2_eval_offset (const hb_vector_t<avar2_offset_knot_t> &knots, double z)
   return len ? knots.arrayZ[len - 1].offset : 0.0;
 }
 
-/* Piecewise-linear evaluation over instantiated avar v1 mappings, as
- * produced by SegmentMaps::subset (sorted, with -1/0/+1 anchors).
- * Matches SegmentMaps::map_float for such well-formed mappings. */
+/* Index of the first mapping whose from_offset coordinate is not below v,
+ * found by a linear scan; the mappings need not be sorted by it. */
+static inline unsigned
+_avar2_new_mapping_scan (const hb_vector_t<AxisValueMap> &mappings, double v,
+			 unsigned from_offset, unsigned i = 0)
+{
+  unsigned len = mappings.length;
+  for (; i < len; i++)
+  {
+    double from = (double) mappings.arrayZ[i].coords[from_offset].to_float ();
+    if (v == from || v < from)
+      break;
+  }
+  return i;
+}
+
+/* Piecewise-linear evaluation over instantiated avar v1 mappings, given
+ * i as found by _avar2_new_mapping_scan. */
 static inline double
-_avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v,
-			unsigned from_offset = 0, unsigned to_offset = 1)
+_avar2_map_new_mapping_at (const hb_vector_t<AxisValueMap> &mappings, double v,
+			   unsigned i, unsigned from_offset, unsigned to_offset)
 {
   unsigned len = mappings.length;
   if (!len) return v;
 
-  for (unsigned i = 0; i < len; i++)
+  if (i < len)
   {
     double from = (double) mappings.arrayZ[i].coords[from_offset].to_float ();
     if (v == from)
@@ -411,14 +528,16 @@ _avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v,
            + (double) mappings.arrayZ[len - 1].coords[to_offset].to_float ();
 }
 
-/* Inverse of _avar2_map_new_mapping: pull an output coordinate back to a
- * preimage input coordinate. For a non-strictly-monotone mapping this picks
- * one preimage, which is fine for its only use (augmenting the error
- * estimator's sample set). */
+/* Piecewise-linear evaluation over instantiated avar v1 mappings, as
+ * produced by SegmentMaps::subset (sorted, with -1/0/+1 anchors).
+ * Matches SegmentMaps::map_float for such well-formed mappings. */
 static inline double
-_avar2_unmap_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
+_avar2_map_new_mapping (const hb_vector_t<AxisValueMap> &mappings, double v)
 {
-  return _avar2_map_new_mapping (mappings, v, 1, 0);
+  /* Sorted by fromCoord, so a binary search finds what the scan would. */
+  unsigned i = std::isnan (v) ? mappings.length :
+	       _avar_bound (v, mappings.arrayZ, mappings.length, _avar_cmp_mapping_lower);
+  return _avar2_map_new_mapping_at (mappings, v, i, 0, 1);
 }
 
 /* Plain (non-avar) fvar-style normalization of a user value against a
@@ -460,6 +579,11 @@ _avar2_estimate_offset_error (const SegmentMaps &old_seg,
                               double new_min, double new_def, double new_max,
                               const hb_vector_t<avar2_offset_knot_t> &knots)
 {
+  /* An old mapping whose fromCoords are out of order, which the spec
+   * forbids, takes a linear scan per sample; do not estimate then. */
+  if (unlikely (!old_seg.is_sorted ()))
+    return 0;
+
   constexpr unsigned samples = 257;
   hb_vector_t<double> us;
   if (unlikely (!us.alloc (samples + old_seg.as_array ().length +
@@ -473,10 +597,19 @@ _avar2_estimate_offset_error (const SegmentMaps &old_seg,
   for (const auto &_ : new_mapping)
     us.push (_avar2_denormalize_value ((double) _.coords[0].to_float (),
                                        new_min, new_def, new_max));
+  /* Pull each knot back to a preimage input coordinate.  For a
+   * non-strictly-monotone mapping this picks one preimage, which is fine
+   * for augmenting the sample set.  The knots ascend, so the first mapping
+   * whose toCoord is not below each one never moves back and one scan
+   * serves them all. */
+  unsigned j = 0;
   for (const auto &knot : knots)
+  {
+    j = _avar2_new_mapping_scan (new_mapping, knot.z, 1, j);
     us.push (_avar2_denormalize_value (
-               _avar2_unmap_new_mapping (new_mapping, knot.z),
+               _avar2_map_new_mapping_at (new_mapping, knot.z, j, 1, 0),
                new_min, new_def, new_max));
+  }
   if (unlikely (us.in_error ())) return UINT_MAX;
 
   unsigned max_err = 0;
@@ -484,7 +617,7 @@ _avar2_estimate_offset_error (const SegmentMaps &old_seg,
   {
     if (u < new_min || u > new_max) continue;
     double n_old = _avar2_normalize_value (u, old_min, old_def, old_max);
-    double old_final = (double) old_seg.map_float ((float) n_old);
+    double old_final = (double) old_seg.map_float ((float) n_old, 0, 1, true);
     double n_new = _avar2_normalize_value (u, new_min, new_def, new_max);
     double z = _avar2_map_new_mapping (new_mapping, n_new);
     double new_final = z + _avar2_eval_offset (knots, z);
@@ -937,6 +1070,14 @@ struct avar
      * Track processed (outer,inner) pairs to avoid adding duplicate biases
      * when multiple axes share the same varIdx. */
     hb_set_t processed_varidxes;
+    /* Every offset-compensation tuple holds a delta for each row of its
+     * VarData, whereas a knot takes four bytes of the table and a VarData
+     * without regions stores its rows in no bytes at all, so the table
+     * size does not bound the tuples.  Charge each tuple's item_count
+     * deltas to a budget derived from the table, and fail rather than
+     * quietly drop the table when it runs out. */
+    int64_t delta_budget = hb_max ((int64_t) HB_AVAR2_MAX_DELTAS_MIN,
+                                   (int64_t) HB_AVAR2_MAX_DELTAS_FACTOR * c->source_blob->length);
     for (unsigned i = 0; i < axisCount; i++)
     {
       hb_tag_t *axis_tag_ptr;
@@ -988,6 +1129,8 @@ struct avar
         int bias = d_int + (int) roundf (default_deltas[i]);
         if (bias != 0)
         {
+          if (unlikely (!hb_budget_spend (delta_budget, HB_BUDGET_1, item_count)))
+            return c->serializer->check_success (false);
           hb_hashmap_t<hb_tag_t, Triple> empty_region;
           item_vars.add_tuple (outer, std::move (empty_region),
                                inner, bias, item_count);
@@ -1041,25 +1184,30 @@ struct avar
            * its old intermediate value so offset(z) is reproduced at every
            * kink. */
           hb_vector_t<avar2_offset_knot_t> with_breakpoints (knots);
-          for (const auto &m : new_mapping)
-          {
-            double from = (double) m.coords[0].to_float ();
-            if (from == -1.0 || from == 0.0 || from == 1.0)
-              continue; /* anchors already seeded */
-            double z = (double) m.coords[1].to_float ();
-            if (!(-1.0 < z && z < 1.0))
-              continue;
-            double user = _avar2_denormalize_value (from,
-                                                    (double) new_user->minimum,
-                                                    (double) new_user->middle,
-                                                    (double) new_user->maximum);
-            double n_old = _avar2_normalize_value (user, old_min, old_def, old_max);
-            double x_old = (double) old_seg_maps[i]->map_float ((float) n_old);
-            x_old = (double) roundf ((float) (x_old * 16384.0)) / 16384.0;
-            _avar2_add_knot (with_breakpoints, z, x_old - z);
-          }
+          /* Looking each breakpoint up in an old mapping whose fromCoords
+           * are out of order, which the spec forbids, takes a linear scan;
+           * keep the anchors alone then. */
+          if (old_seg_maps[i]->is_sorted ())
+            for (const auto &m : new_mapping)
+            {
+              double from = (double) m.coords[0].to_float ();
+              if (from == -1.0 || from == 0.0 || from == 1.0)
+                continue; /* anchors already seeded */
+              double z = (double) m.coords[1].to_float ();
+              if (!(-1.0 < z && z < 1.0))
+                continue;
+              double user = _avar2_denormalize_value (from,
+                                                      (double) new_user->minimum,
+                                                      (double) new_user->middle,
+                                                      (double) new_user->maximum);
+              double n_old = _avar2_normalize_value (user, old_min, old_def, old_max);
+              double x_old = (double) old_seg_maps[i]->map_float ((float) n_old, 0, 1, true);
+              x_old = (double) roundf ((float) (x_old * 16384.0)) / 16384.0;
+              with_breakpoints.push (avar2_offset_knot_t {z, x_old - z});
+            }
 
-          if (unlikely (knots.in_error () || with_breakpoints.in_error ()))
+          if (unlikely (knots.in_error () || with_breakpoints.in_error () ||
+                        !_avar2_sort_knots (with_breakpoints)))
             return false;
 
           /* Extra tents cost F2Dot14 rounding, so for a steep segment they
@@ -1118,6 +1266,8 @@ struct avar
               upper = knots.arrayZ[k + 1].z;
               lower = k > 0 ? knots.arrayZ[k - 1].z : z;
             }
+            if (unlikely (!hb_budget_spend (delta_budget, HB_BUDGET_1, item_count)))
+              return c->serializer->check_success (false);
             hb_hashmap_t<hb_tag_t, Triple> region;
             if (unlikely (!region.set (axis_tag, Triple (lower, z, upper))))
               return false;
@@ -1145,6 +1295,8 @@ struct avar
         if (dd != 0)
         {
           unsigned item_count = item_vars.get_item_count (outer);
+          if (unlikely (!hb_budget_spend (delta_budget, HB_BUDGET_1, item_count)))
+            return c->serializer->check_success (false);
           hb_hashmap_t<hb_tag_t, Triple> empty_region;
           item_vars.add_tuple (outer, std::move (empty_region),
                                inner, dd, item_count);
