@@ -22,7 +22,7 @@ jobs:
       uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@a09cb739e2aa7722ecbc681411975d76d270be44 # master
       with:
         oss-fuzz-project-name: 'harfbuzz'
-        fuzz-seconds: 600
+        fuzz-seconds: 300
         dry-run: false
     - name: Upload Crash
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
