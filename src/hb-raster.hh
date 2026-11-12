@@ -49,6 +49,10 @@ hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw);
 
 /* Shared pixel helpers (used by paint and image compositing). */
 
+/* BGRA bytes in memory, independent of host endianness and alignment.
+ * Arithmetic uses native integers with alpha in the high byte. */
+using hb_raster_pixel_t = HBInt<false, uint32_t>;
+
 static HB_ALWAYS_INLINE uint8_t
 hb_raster_div255 (unsigned a)
 {

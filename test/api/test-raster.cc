@@ -442,12 +442,15 @@ test_background_premultiplied (void)
 
   for (unsigned y = 0; y < out_ext.height; y++)
   {
-    const uint32_t *row = (const uint32_t *) (buf + (size_t) y * out_ext.stride);
+    const uint8_t *row = buf + (size_t) y * out_ext.stride;
     for (unsigned x = 0; x < out_ext.width; x++)
-      /* 0x80800000: alpha=0x80, premultiplied red=0x80, in BGRA memory
-       * order. The old HB_COLOR()-based reconstruction produces
-       * 0x0000ff80 instead (wrong byte layout, not premultiplied). */
-      g_assert_cmphex (row[x], ==, 0x80800000);
+    {
+      const uint8_t *pixel = row + x * 4;
+      g_assert_cmphex (pixel[0], ==, 0x00);
+      g_assert_cmphex (pixel[1], ==, 0x00);
+      g_assert_cmphex (pixel[2], ==, 0x80);
+      g_assert_cmphex (pixel[3], ==, 0x80);
+    }
   }
 
   hb_raster_image_destroy (img);
@@ -645,6 +648,71 @@ test_clip_rectangle_transformed (void)
     }
 }
 
+/* Raw BGRA input and SRC_OVER must use the same byte order, including
+ * on rows that are not word-aligned. */
+static void
+test_image_bgra (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  hb_raster_extents_t ext = {0, 0, 2, 2, 9};
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_raster_paint_set_background (paint, HB_COLOR (0, 0, 0, 255));
+  const char pixels[] = {16, 32, 48, (char) 128, 16, 32, 48, (char) 128,
+                         16, 32, 48, (char) 128, 16, 32, 48, (char) 128};
+  hb_blob_t *blob = hb_blob_create (pixels, sizeof (pixels),
+                                  HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  hb_glyph_extents_t gext = {0, 1, 2, -2};
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_push_group (funcs, paint);
+  hb_paint_image (funcs, paint, blob, 2, 2,
+                  HB_PAINT_IMAGE_FORMAT_BGRA, 0.f, &gext);
+  hb_paint_pop_group (funcs, paint, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  hb_raster_image_get_extents (img, &ext);
+  const uint8_t expected[] = {16, 32, 48, 255};
+  for (unsigned y = 0; y < ext.height; y++)
+    for (unsigned x = 0; x < ext.width; x++)
+      g_assert_cmpmem (hb_raster_image_get_buffer (img) + y * ext.stride + x * 4,
+                      4, expected, 4);
+  hb_raster_image_destroy (img);
+  hb_blob_destroy (blob);
+  hb_raster_paint_destroy (paint);
+}
+
+static void
+test_image_png_byte_order (void)
+{
+#ifndef HAVE_PNG
+  g_test_skip ("Built without PNG support.");
+#else
+  /* A 1x1 RGBA PNG: red=96, green=64, blue=32, alpha=128. */
+  static const uint8_t data[] = {
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00,
+    0x0d, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x48, 0x70, 0x50, 0x68,
+    0x00, 0x00, 0x03, 0x05, 0x01, 0x41, 0x9e, 0xec, 0x86, 0x30, 0x00, 0x00,
+    0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+  };
+  hb_blob_t *png = hb_blob_create ((const char *) data, sizeof (data),
+                                 HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  hb_raster_image_t *img = hb_raster_image_create_or_fail ();
+  g_assert_nonnull (img);
+  g_assert_true (hb_raster_image_deserialize_from_png_or_fail (img, png));
+  hb_blob_destroy (png);
+  const uint8_t expected[] = {16, 32, 48, 128};
+  g_assert_cmpmem (hb_raster_image_get_buffer (img), 4, expected, 4);
+
+  png = hb_raster_image_serialize_to_png_or_fail (img);
+  g_assert_nonnull (png);
+  g_assert_true (hb_raster_image_deserialize_from_png_or_fail (img, png));
+  g_assert_cmpmem (hb_raster_image_get_buffer (img), 4, expected, 4);
+  hb_blob_destroy (png);
+  hb_raster_image_destroy (img);
+#endif
+}
+
 /* Paint the middle of an opaque PNG image of the given width onto a 1x1
  * surface; returns the resulting alpha, or -1 if built without PNG. */
 static int
@@ -763,6 +831,8 @@ main (int argc, char **argv)
   hb_test_add (test_paint_reset);
   hb_test_add (test_set_extents_while_painting);
   hb_test_add (test_clip_rectangle_transformed);
+  hb_test_add (test_image_bgra);
+  hb_test_add (test_image_png_byte_order);
   hb_test_add (test_image_png_size);
   hb_test_add (test_budget_sweep);
 

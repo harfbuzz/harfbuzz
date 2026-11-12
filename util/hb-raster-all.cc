@@ -62,8 +62,7 @@ write_ppm (hb_raster_image_t *img, const char *dir, unsigned gid)
       }
       else /* BGRA32 — composite over white */
       {
-	uint32_t px;
-	hb_memcpy (&px, src + x * 4, 4);
+	uint32_t px = *(const HBInt<false, uint32_t> *) (src + x * 4);
 	uint8_t b = (uint8_t) (px & 0xFF);
 	uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
 	uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
