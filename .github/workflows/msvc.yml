@@ -58,6 +58,7 @@ jobs:
             -Dglib:tests=false `
             -Dlibffi:tests=false `
             -Dcairo=disabled `
+            -Dicu=disabled `
             -Dfreetype=enabled `
             -Dgdi=enabled `
             -Ddirectwrite=enabled `
