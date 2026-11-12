@@ -26,6 +26,12 @@
 
 #include "hb-test.h"
 
+#include <hb-ot.h>
+
+#ifdef HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
+
 #ifdef HAVE_FONTATIONS
 #include <hb-fontations.h>
 #endif
@@ -34,6 +40,128 @@
 
 
 static const char test_data[] = "test\0data";
+
+
+#ifndef HB_NO_GETENV
+#ifndef HB_NO_OT_FONT
+static void
+test_default_funcs_environment (void)
+{
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  char *saved_funcs = g_strdup (g_getenv ("HB_FONT_FUNCS"));
+  g_assert_true (g_setenv ("HB_FONT_FUNCS", "ot", TRUE));
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_set_funcs_using (font, NULL));
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  hb_position_t advance = hb_font_get_glyph_h_advance (font, glyph);
+  g_assert_cmpint (advance, >, 0);
+#ifdef HAVE_FREETYPE
+  /* "ot" is the first entry of supported_font_funcs, so the same funcs
+   * would be selected if the environment variable were ignored entirely.
+   * Check that the FreeType funcs are not selected. */
+  g_assert_null (hb_ft_font_get_face (font));
+#endif
+
+  g_assert_true (hb_font_set_funcs_using (font, ""));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==, advance);
+  g_assert_true (hb_font_set_funcs_using (font, "ot"));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==, advance);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  if (saved_funcs)
+    g_assert_true (g_setenv ("HB_FONT_FUNCS", saved_funcs, TRUE));
+  else
+    g_unsetenv ("HB_FONT_FUNCS");
+  g_free (saved_funcs);
+}
+#endif
+
+#if defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+static void
+test_default_funcs_environment_nonfirst (void)
+{
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  /* "ft" is not the first entry of supported_font_funcs, so selecting it
+   * proves that the environment default is honored rather than falling back
+   * to the first backend. */
+  char *saved_funcs = g_strdup (g_getenv ("HB_FONT_FUNCS"));
+  g_assert_true (g_setenv ("HB_FONT_FUNCS", "ft", TRUE));
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  g_assert_nonnull (hb_ft_font_get_face (font));
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), >, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  if (saved_funcs)
+    g_assert_true (g_setenv ("HB_FONT_FUNCS", saved_funcs, TRUE));
+  else
+    g_unsetenv ("HB_FONT_FUNCS");
+  g_free (saved_funcs);
+}
+#endif
+
+#if defined(G_OS_UNIX) && defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+static void
+test_default_funcs_environment_snapshot (void)
+{
+  if (!g_test_subprocess ())
+  {
+    g_test_trap_subprocess (NULL, 0, 0);
+    g_test_trap_assert_passed ();
+    return;
+  }
+
+  char *saved_funcs = g_strdup (g_getenv ("HB_FONT_FUNCS"));
+  char funcs_env[] = "HB_FONT_FUNCS=ft";
+  g_assert_cmpint (putenv (funcs_env), ==, 0);
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  g_assert_nonnull (hb_ft_font_get_face (font));
+  hb_font_destroy (font);
+
+  /* Keep the caller-owned storage alive and change only its valid value.
+   * The cached default must remain the original snapshot. */
+  memcpy (strchr (funcs_env, '=') + 1, "ot", 3);
+  font = hb_font_create (face);
+  g_assert_nonnull (hb_ft_font_get_face (font));
+
+  /* An explicit selection must still override the cached default. */
+  g_assert_true (hb_font_set_funcs_using (font, "ot"));
+  g_assert_null (hb_ft_font_get_face (font));
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), >, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  g_unsetenv ("HB_FONT_FUNCS");
+  if (saved_funcs)
+    g_assert_true (g_setenv ("HB_FONT_FUNCS", saved_funcs, TRUE));
+  g_free (saved_funcs);
+}
+#endif
+#endif
 
 
 static void
@@ -716,6 +844,257 @@ test_synthetic_glyph_extents_overflow (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
+static hb_position_t
+_near_max_advance_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+			hb_codepoint_t glyph HB_UNUSED,
+			void *user_data HB_UNUSED)
+{
+  return INT32_MAX - 1;
+}
+
+static hb_bool_t
+_near_max_origin_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+		       hb_codepoint_t glyph HB_UNUSED,
+		       hb_position_t *x, hb_position_t *y,
+		       void *user_data HB_UNUSED)
+{
+  *x = *y = INT32_MAX - 1;
+  return TRUE;
+}
+
+static hb_bool_t
+_near_max_contour_point_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+			      hb_codepoint_t glyph HB_UNUSED,
+			      unsigned int point_index HB_UNUSED,
+			      hb_position_t *x, hb_position_t *y,
+			      void *user_data HB_UNUSED)
+{
+  *x = *y = INT32_MAX - 1;
+  return TRUE;
+}
+
+static hb_bool_t
+_near_max_font_extents_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+			     hb_font_extents_t *extents,
+			     void *user_data HB_UNUSED)
+{
+  extents->ascender = INT32_MAX - 1;
+  extents->descender = INT32_MIN + 1;
+  extents->line_gap = 0;
+  return TRUE;
+}
+
+static hb_font_funcs_t *
+_near_max_font_funcs (void)
+{
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_h_advance_func (ffuncs, _near_max_advance_func, NULL, NULL);
+  hb_font_funcs_set_glyph_v_advance_func (ffuncs, _near_max_advance_func, NULL, NULL);
+  hb_font_funcs_set_glyph_h_origin_func (ffuncs, _near_max_origin_func, NULL, NULL);
+  hb_font_funcs_set_glyph_v_origin_func (ffuncs, _near_max_origin_func, NULL, NULL);
+  hb_font_funcs_set_glyph_contour_point_func (ffuncs, _near_max_contour_point_func, NULL, NULL);
+  hb_font_funcs_set_font_h_extents_func (ffuncs, _near_max_font_extents_func, NULL, NULL);
+  hb_font_funcs_set_font_v_extents_func (ffuncs, _near_max_font_extents_func, NULL, NULL);
+  return ffuncs;
+}
+
+static void
+test_synthetic_bold_saturates (void)
+{
+  hb_font_funcs_t *ffuncs = _near_max_font_funcs ();
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_set_scale (font, 2048, 2048);
+  hb_font_set_synthetic_bold (font, 0.05f, 0.05f, FALSE);
+
+  /* Every value is one short of INT32_MAX, and bold adds about 100 to it. */
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==, INT32_MAX);
+  g_assert_cmpint (hb_font_get_glyph_v_advance (font, 1), ==, INT32_MAX);
+
+  hb_codepoint_t glyph = 1;
+  hb_position_t a = 0;
+  hb_font_get_glyph_h_advances (font, 1, &glyph, 0, &a, 0);
+  g_assert_cmpint (a, ==, INT32_MAX);
+  hb_font_get_glyph_v_advances (font, 1, &glyph, 0, &a, 0);
+  g_assert_cmpint (a, ==, INT32_MAX);
+
+  hb_position_t x = 0, y = 0;
+  g_assert_true (hb_font_get_glyph_h_origin (font, 1, &x, &y));
+  g_assert_cmpint (x, ==, INT32_MAX);
+  g_assert_cmpint (y, ==, INT32_MAX);
+  g_assert_true (hb_font_get_glyph_v_origin (font, 1, &x, &y));
+  g_assert_cmpint (x, ==, INT32_MAX);
+  g_assert_cmpint (y, ==, INT32_MAX);
+
+  hb_position_t xs = 0, ys = 0;
+  g_assert_true (hb_font_get_glyph_h_origins (font, 1, &glyph, 0, &xs, 0, &ys, 0));
+  g_assert_cmpint (xs, ==, INT32_MAX);
+  g_assert_cmpint (ys, ==, INT32_MAX);
+  g_assert_true (hb_font_get_glyph_v_origins (font, 1, &glyph, 0, &xs, 0, &ys, 0));
+  g_assert_cmpint (xs, ==, INT32_MAX);
+  g_assert_cmpint (ys, ==, INT32_MAX);
+
+  g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
+  g_assert_cmpint (x, ==, INT32_MAX);
+
+  hb_font_extents_t extents;
+  g_assert_true (hb_font_get_h_extents (font, &extents));
+  g_assert_cmpint (extents.ascender, ==, INT32_MAX);
+  g_assert_true (hb_font_get_v_extents (font, &extents));
+  g_assert_cmpint (extents.ascender, ==, INT32_MAX);
+
+  hb_font_set_synthetic_bold (font, 0.05f, 0.05f, TRUE);
+  g_assert_true (hb_font_get_v_extents (font, &extents));
+  g_assert_cmpint (extents.ascender, ==, INT32_MAX);
+  g_assert_cmpint (extents.descender, ==, INT32_MIN);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static void
+test_synthetic_slant_saturates (void)
+{
+  hb_font_funcs_t *ffuncs = _near_max_font_funcs ();
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_set_scale (font, 2048, 2048);
+
+  /* The contour point is one short of INT32_MAX in both axes. A slant of 1
+   * shifts x by the full y value. The shift is added first and the sum is
+   * clamped afterwards: hb_clamp_to widens to double, so the out-of-range
+   * sum saturates instead of hitting an undefined float-to-int
+   * conversion. */
+  hb_font_set_synthetic_slant (font, 1.f);
+
+  hb_position_t x = 0, y = 0;
+  g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
+  g_assert_cmpint (x, ==, INT32_MAX);
+  g_assert_cmpint (y, ==, INT32_MAX - 1);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static hb_bool_t
+_cancelling_contour_point_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+				hb_codepoint_t glyph HB_UNUSED,
+				unsigned int point_index HB_UNUSED,
+				hb_position_t *x, hb_position_t *y,
+				void *user_data HB_UNUSED)
+{
+  *x = -2000000000;
+  *y = 2000000000;
+  return TRUE;
+}
+
+static void
+test_synthetic_slant_cancelling (void)
+{
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_contour_point_func (ffuncs, _cancelling_contour_point_func, NULL, NULL);
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_set_scale (font, 2048, 2048);
+
+  /* A slant of 2 shifts x by twice y: -2000000000 + 2 * 2000000000 is
+   * 2000000000, which fits. Clamping the shift to INT32_MAX before
+   * adding it would give 147483647 instead, so the sum has to be
+   * clamped, not the shift. */
+  hb_font_set_synthetic_slant (font, 2.f);
+
+  hb_position_t x = 0, y = 0;
+  g_assert_true (hb_font_get_glyph_contour_point (font, 1, 0, &x, &y));
+  g_assert_cmpint (x, ==, 2000000000);
+  g_assert_cmpint (y, ==, 2000000000);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static void
+test_glyph_origin_offsets_saturate (void)
+{
+  hb_font_funcs_t *ffuncs = _near_max_font_funcs ();
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+
+  hb_position_t x = 100, y = 100;
+  hb_font_add_glyph_origin_for_direction (font, 1, HB_DIRECTION_LTR, &x, &y);
+  g_assert_cmpint (x, ==, INT32_MAX);
+  g_assert_cmpint (y, ==, INT32_MAX);
+
+  x = y = -100;
+  hb_font_subtract_glyph_origin_for_direction (font, 1, HB_DIRECTION_LTR, &x, &y);
+  g_assert_cmpint (x, ==, INT32_MIN);
+  g_assert_cmpint (y, ==, INT32_MIN);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static hb_position_t
+_small_advance_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+		     hb_codepoint_t glyph HB_UNUSED,
+		     void *user_data HB_UNUSED)
+{
+  return 100;
+}
+
+static void
+test_synthetic_bold_extreme_strength (void)
+{
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_h_advance_func (ffuncs, _small_advance_func, NULL, NULL);
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+
+  /* The strength does not fit in 32 bits, in either direction. */
+  hb_font_set_scale (font, 2048, 2048);
+  hb_font_set_synthetic_bold (font, 1e30f, 1e30f, FALSE);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==, INT32_MAX);
+  hb_font_set_synthetic_bold (font, -1e30f, -1e30f, FALSE);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==, 100 - INT32_MAX);
+
+  /* The magnitude of INT32_MIN does not fit either. */
+  hb_font_set_scale (font, INT32_MIN, INT32_MIN);
+  hb_font_set_synthetic_bold (font, 1.f, 1.f, FALSE);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 1), ==, 100 - INT32_MAX);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_font_funcs_destroy (ffuncs);
+}
+
+static void
+test_font_float_scale_saturates (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Mplus1p-Regular.660E.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  /* The ascender of this font is larger than its em, so at these scales the
+   * scaled value does not fit in hb_position_t. */
+  hb_position_t ascender = 0;
+  hb_font_set_scale (font, INT32_MAX, INT32_MAX);
+  g_assert_true (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &ascender));
+  g_assert_cmpint (ascender, ==, INT32_MAX);
+  hb_font_set_scale (font, INT32_MIN, INT32_MIN);
+  g_assert_true (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &ascender));
+  g_assert_cmpint (ascender, ==, INT32_MIN);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 #ifndef HB_DISABLE_DEPRECATED
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
@@ -1232,6 +1611,18 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+#ifndef HB_NO_GETENV
+#ifndef HB_NO_OT_FONT
+  hb_test_add (test_default_funcs_environment);
+#endif
+#if defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+  hb_test_add (test_default_funcs_environment_nonfirst);
+#endif
+#if defined(G_OS_UNIX) && defined(HAVE_FREETYPE) && !defined(HB_NO_OT_FONT)
+  hb_test_add (test_default_funcs_environment_snapshot);
+#endif
+#endif
+
   hb_test_add (test_face_empty);
   hb_test_add (test_face_create);
   hb_test_add (test_face_createfortables);
@@ -1245,6 +1636,12 @@ main (int argc, char **argv)
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
   hb_test_add (test_synthetic_glyph_extents_overflow);
+  hb_test_add (test_synthetic_bold_saturates);
+  hb_test_add (test_synthetic_slant_saturates);
+  hb_test_add (test_synthetic_slant_cancelling);
+  hb_test_add (test_glyph_origin_offsets_saturate);
+  hb_test_add (test_synthetic_bold_extreme_strength);
+  hb_test_add (test_font_float_scale_saturates);
 #ifndef HB_DISABLE_DEPRECATED
   hb_test_add (test_font_set_face);
   hb_test_add (test_font_set_face_custom_funcs);

@@ -58,7 +58,8 @@ struct cvar
                                    hb_blob_t *blob,
                                    bool is_gvar,
                                    const hb_map_t *axes_old_index_tag_map,
-                                   TupleVariationData<>::tuple_variations_t& tuple_variations /* OUT */) const
+                                   TupleVariationData<>::tuple_variations_t& tuple_variations, /* OUT */
+                                   int64_t *budget = nullptr) const
   {
     hb_vector_t<unsigned> shared_indices;
     TupleVariationData<>::tuple_iterator_t iterator;
@@ -71,7 +72,9 @@ struct cvar
                                                           axes_old_index_tag_map,
                                                           shared_indices,
                                                           hb_array<const F2DOT14> (),
-                                                          tuple_variations);
+                                                          tuple_variations,
+                                                          nullptr, false,
+                                                          budget);
   }
 
   static bool calculate_cvt_deltas (unsigned axis_count,
@@ -152,10 +155,13 @@ struct cvar
     unsigned point_count = hb_blob_get_length (cvt_blob) / FWORD::static_size;
     hb_blob_destroy (cvt_blob);
 
+    int64_t budget = hb_max ((int64_t) c->source_blob->length * HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR,
+                             HB_BUDGET_SUBSET_TUPLE_POINTS_MIN);
     if (!decompile_tuple_variations (axis_count, point_count,
                                      c->source_blob, false,
                                      &(c->plan->axes_old_index_tag_map),
-                                     tuple_variations))
+                                     tuple_variations,
+                                     &budget))
       return_trace (false);
 
     optimize_scratch_t scratch;

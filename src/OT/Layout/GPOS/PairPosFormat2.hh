@@ -34,7 +34,9 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
     else
     {
       unsigned klass1 = class_def1.get (cp);
-      class1_set.add (klass1);
+      /* Classes outside the matrix have no values; apply() ignores them too. */
+      if (klass1 < class1_count)
+        class1_set.add (klass1);
     }
   }
 
@@ -42,7 +44,8 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
   for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
   {
     unsigned klass2 = class_def2.get (cp);
-    class2_set.add (klass2);
+    if (klass2 < class2_count)
+      class2_set.add (klass2);
   }
 
   if (class1_set.is_empty ()
@@ -179,6 +182,11 @@ struct PairPosFormat2_4 : ValueBase
     return_trace (c->check_range ((const void *) values,
                                   count,
                                   stride) &&
+		  /* Records of two empty ValueFormats take no bytes, so the
+		   * range check neither bounds count nor charges for it.
+		   * Manually modify the sanitizer max ops to take this into
+		   * account. */
+		  (likely (stride) || c->check_ops (count)) &&
 		  (c->lazy_some_gpos ||
 		   (valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
 		    valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride))));

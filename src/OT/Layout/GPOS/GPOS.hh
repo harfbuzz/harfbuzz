@@ -13,7 +13,8 @@ using Layout::GPOS_impl::PosLookup;
 namespace Layout {
 
 static void
-propagate_attachment_offsets (hb_glyph_position_t *pos,
+propagate_attachment_offsets (hb_buffer_t *buffer,
+                              hb_glyph_position_t *pos,
                               unsigned int len,
                               unsigned int i,
                               hb_direction_t direction,
@@ -49,9 +50,6 @@ struct GPOS : GSUBGPOS
     return_trace (GSUBGPOS::sanitize<PosLookup> (c));
   }
 
-  HB_INTERNAL bool is_blocklisted (hb_blob_t *blob,
-                                   hb_face_t *face) const;
-
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     for (unsigned i = 0; i < GSUBGPOS::get_lookup_count (); i++)
@@ -72,7 +70,8 @@ struct GPOS : GSUBGPOS
 
 
 static void
-propagate_attachment_offsets (hb_glyph_position_t *pos,
+propagate_attachment_offsets (hb_buffer_t *buffer,
+                              hb_glyph_position_t *pos,
                               unsigned int len,
                               unsigned int i,
                               hb_direction_t direction,
@@ -94,7 +93,7 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
     return;
 
   if (pos[j].attach_chain())
-    propagate_attachment_offsets (pos, len, j, direction, nesting_level - 1);
+    propagate_attachment_offsets (buffer, pos, len, j, direction, nesting_level - 1);
 
   assert (!!(type & GPOS_impl::ATTACH_TYPE_MARK) ^ !!(type & GPOS_impl::ATTACH_TYPE_CURSIVE));
 
@@ -113,6 +112,16 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
       pos[i].y_offset = hb_saturate_add (pos[i].y_offset, pos[j].y_offset);
 
     // i is the position of the mark; j is the base.
+    /* The base can be up to 32767 glyphs away (the range of attach_chain),
+     * and this runs once per mark, so the total work is unbounded by the
+     * font.  Charge the walk to the buffer's work budget, the same one the
+     * unsafe_to_break walk over this range uses. */
+    buffer->max_ops -= (int) (j < i ? i - j : j - i);
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
+      return;
+    }
     if (j < i)
     {
       /* This is the common case: mark follows base.
@@ -176,13 +185,13 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
     // https://github.com/harfbuzz/harfbuzz/issues/5514
     if (HB_DIRECTION_IS_FORWARD (direction))
     {
-      for (unsigned i = 0; i < len; i++)
+      for (unsigned i = 0; i < len && buffer->successful; i++)
 	if (pos[i].attach_chain())
-	  propagate_attachment_offsets (pos, len, i, direction);
+	  propagate_attachment_offsets (buffer, pos, len, i, direction);
     } else {
-      for (unsigned i = len; i-- > 0; )
+      for (unsigned i = len; i-- > 0 && buffer->successful; )
 	if (pos[i].attach_chain())
-	  propagate_attachment_offsets (pos, len, i, direction);
+	  propagate_attachment_offsets (buffer, pos, len, i, direction);
     }
   }
 

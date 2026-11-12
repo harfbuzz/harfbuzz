@@ -34,6 +34,7 @@ struct Ligature
 
   void closure (hb_closure_context_t *c) const
   {
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, component.lenP1))) return;
     if (!intersects (c->glyphs)) return;
     c->output->add (ligGlyph);
   }
@@ -105,6 +106,9 @@ struct Ligature
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    if (unlikely (!c->buffer->successful)) return_trace (false);
+
     unsigned int count = component.lenP1;
 
     if (unlikely (!count)) return_trace (false);

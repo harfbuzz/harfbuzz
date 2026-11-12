@@ -2627,19 +2627,49 @@ static const struct supported_font_funcs_t {
 #endif
 };
 
+#ifndef HB_NO_GETENV
+static inline void free_static_funcs_name ();
+
+static struct hb_funcs_name_lazy_loader_t : hb_lazy_loader_t<char,
+							  hb_funcs_name_lazy_loader_t>
+{
+  static char *create ()
+  {
+    const char *env = getenv ("HB_FONT_FUNCS");
+    if (!env || !env[0])
+      return nullptr;
+
+    /* Duplicate the value and hold onto it: the environment storage is owned
+     * by the C runtime or the caller and may change after this lookup. */
+    size_t len = strlen (env) + 1;
+    char *name = (char *) hb_malloc (len);
+    if (unlikely (!name))
+      return nullptr;
+    hb_memcpy (name, env, len);
+
+    hb_atexit (free_static_funcs_name);
+
+    return name;
+  }
+  static void destroy (char *p)
+  { hb_free (p); }
+  static const char *get_null ()
+  { return ""; }
+} static_funcs_name;
+
+static inline void free_static_funcs_name ()
+{
+  static_funcs_name.free_instance ();
+}
+#endif
+
 static const char *get_default_funcs_name ()
 {
-  static hb_atomic_t<const char *> static_funcs_name;
-  const char *name = static_funcs_name.get_acquire ();
-  if (!name)
-  {
-    name = getenv ("HB_FONT_FUNCS");
-    if (!name)
-      name = "";
-    if (!static_funcs_name.cmpexch (nullptr, name))
-      name = static_funcs_name.get_acquire ();
-  }
-  return name;
+#ifndef HB_NO_GETENV
+  return static_funcs_name.get ();
+#else
+  return "";
+#endif
 }
 
 /**

@@ -271,6 +271,9 @@ struct optimize_scratch_t
   hb_vector_t<unsigned char> point_data;
   hb_vector_t<unsigned char> deltas_data;
   hb_vector_t<int> rounded_deltas;
+
+  /* What splitting tuples may still cost; see HB_BUDGET_INSTANCER_*. */
+  int64_t budget = HB_BUDGET_INSTANCER_MIN;
 };
 
 struct tuple_delta_t
@@ -332,6 +335,10 @@ struct tuple_delta_t
 	   compiled_peak_coords.duplicate_vector_from_pool (pool, o.compiled_peak_coords) &&
 	   compiled_interm_coords.duplicate_vector_from_pool (pool, o.compiled_interm_coords);
   }
+
+  /* Budget cost of a copy of this tuple. */
+  unsigned get_cost () const
+  { return HB_BUDGET_32 + HB_BUDGET_8 * axis_tuples.get_population () + HB_BUDGET_1 * indices.length; }
 
   void remove_axis (hb_tag_t axis_tag)
   { axis_tuples.del (axis_tag); }
@@ -1020,7 +1027,8 @@ struct TupleVariationData
                                      const hb_vector_t<unsigned> &shared_indices,
                                      const hb_array_t<const F2DOT14> shared_tuples,
 				     hb_alloc_pool_t *pool = nullptr,
-                                     bool is_composite_glyph = false)
+                                     bool is_composite_glyph = false,
+                                     int64_t *budget = nullptr)
     {
       hb_vector_t<unsigned> private_indices;
       hb_vector_t<int> deltas_x;
@@ -1059,6 +1067,11 @@ struct TupleVariationData
             return false;
         }
 
+        /* Every tuple is expanded to point_count entries, however few
+         * points it names; charge that to the table budget, if any. */
+        if (budget && unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, point_count)))
+          return false;
+
         tuple_delta_t var;
         var.axis_tuples = std::move (axis_tuples);
         if (unlikely (!var.indices.allocate_from_pool (pool, point_count) ||
@@ -1088,6 +1101,7 @@ struct TupleVariationData
                                     const hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>>& regions,
                                     const hb_map_t& axes_old_index_tag_map,
                                     unsigned& item_count,
+                                    unsigned& num_tuple_axes,
                                     const hb_inc_bimap_t* inner_map = nullptr)
     {
       /* NULL offset, to keep original varidx valid, just return */
@@ -1102,8 +1116,31 @@ struct TupleVariationData
       unsigned row_size = var_data.get_row_size ();
       const HBUINT8 *delta_bytes = var_data.get_delta_bytes ();
 
+      /* region index -> index of its tuple in tuple_vars */
+      hb_map_t region_tuple_map;
       for (unsigned r = 0; r < num_regions; r++)
       {
+        unsigned region_index = var_data.get_region_index (r);
+        if (region_index >= regions.length) return false;
+
+        /* A region the VarData references again adds its deltas to the
+         * tuple it already has, as merge_tuple_variations () would do,
+         * instead of getting another copy of the region's axes. */
+        hb_codepoint_t *tuple_index;
+        if (region_tuple_map.has (region_index, &tuple_index))
+        {
+          tuple_delta_t& tuple = tuple_vars.arrayZ[*tuple_index];
+          for (unsigned i = 0; i < item_count; i++)
+            tuple.deltas_x.arrayZ[i] += var_data.get_item_delta_fast (inner_map ? inner_map->backward (i) : i,
+                                                                      r, delta_bytes, row_size);
+          continue;
+        }
+
+        /* Each tuple copies its region's axes; charge them before copying. */
+        const hb_hashmap_t<hb_tag_t, Triple>& region = regions.arrayZ[region_index];
+        num_tuple_axes += region.get_population ();
+        if (unlikely (num_tuple_axes > HB_VARSTORE_MAX_TUPLE_AXES)) return false;
+
         /* In VarData, deltas are organized in rows, convert them into
          * column(region) based tuples, resize deltas_x first */
         tuple_delta_t tuple;
@@ -1118,10 +1155,9 @@ struct TupleVariationData
                                                                    r, delta_bytes, row_size);
         }
 
-        unsigned region_index = var_data.get_region_index (r);
-        if (region_index >= regions.length) return false;
-        tuple.axis_tuples = regions.arrayZ[region_index];
+        tuple.axis_tuples = region;
 
+        if (unlikely (!region_tuple_map.set (region_index, tuple_vars.length))) return false;
         tuple_vars.push (std::move (tuple));
       }
       return !tuple_vars.in_error ();
@@ -1130,8 +1166,13 @@ struct TupleVariationData
     private:
     bool change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+					      int64_t &budget,
 					      hb_alloc_pool_t *pool = nullptr)
     {
+      /* Splitting below may grow the tuples this much. */
+      for (const tuple_delta_t& var : tuple_vars)
+	budget += (int64_t) var.get_cost () * HB_BUDGET_INSTANCER_FACTOR;
+
       /* sort axis_tag/axis_limits, make result deterministic */
       hb_vector_t<hb_tag_t> axis_tags;
       if (!axis_tags.alloc (normalized_axes_location.get_population ()))
@@ -1160,6 +1201,9 @@ struct TupleVariationData
 	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch, pool);
           if (unlikely (out.in_error ())) return false;
           if (!out) continue;
+
+	  if (unlikely (!hb_budget_spend (budget, out.arrayZ[0].get_cost (), out.length - 1)))
+	    return false;
 
           unsigned new_len = new_vars.length + out.length;
 
@@ -1320,7 +1364,7 @@ struct TupleVariationData
                       bool optimize = false)
     {
       if (!tuple_vars) return true;
-      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, pool))
+      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, scratch.budget, pool))
         return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)
@@ -1715,7 +1759,8 @@ struct TupleVariationData
                                    const hb_array_t<const F2DOT14> shared_tuples,
                                    tuple_variations_t& tuple_variations, /* OUT */
 				   hb_alloc_pool_t *pool = nullptr,
-                                   bool is_composite_glyph = false) const
+                                   bool is_composite_glyph = false,
+                                   int64_t *budget = nullptr) const
   {
     return tuple_variations.create_from_tuple_var_data (iterator, tupleVarCount,
                                                         point_count, is_gvar,
@@ -1723,7 +1768,8 @@ struct TupleVariationData
                                                         shared_indices,
                                                         shared_tuples,
 							pool,
-                                                        is_composite_glyph);
+                                                        is_composite_glyph,
+                                                        budget);
   }
 
   bool serialize (hb_serialize_context_t *c,
@@ -2005,6 +2051,7 @@ struct item_variations_t
     if (!vars.alloc (num_var_data) ||
         !var_data_num_rows.alloc (num_var_data)) return false;
 
+    unsigned num_tuple_axes = 0;
     for (unsigned i = 0; i < num_var_data; i++)
     {
       if (inner_maps && !inner_maps.arrayZ[i].get_population ())
@@ -2015,6 +2062,7 @@ struct item_variations_t
                                                       orig_region_list,
                                                       axes_old_index_tag_map,
                                                       item_count,
+                                                      num_tuple_axes,
                                                       inner_maps ? &(inner_maps.arrayZ[i]) : nullptr))
         return false;
 
@@ -2208,10 +2256,17 @@ struct item_variations_t
     for (unsigned major = 0; major < var_data_num_rows.length; major++)
       total_rows += var_data_num_rows[major];
 
+    /* Every row is allocated as wide as the whole region list, while in the
+     * font a row only pays for the regions of its own VarData (possibly none).
+     * Bound the matrix before allocating it. */
+    if (unlikely (total_rows > HB_SUBSET_MAX_VARSTORE_ROWS ||
+		  (uint64_t) total_rows * num_cols > HB_SUBSET_MAX_VARSTORE_DELTAS))
+      return false;
+
     if (!delta_rows.resize (total_rows)) return false;
     /* init all rows to [0]*num_cols */
     for (unsigned i = 0; i < total_rows; i++)
-      if (!(delta_rows[i].resize (num_cols))) return false;
+      if (!(delta_rows[i].resize_exact (num_cols))) return false;
 
     /* old VarIdxes -> full encoding_row mapping */
     hb_hashmap_t<unsigned, const hb_vector_t<int>*> front_mapping;

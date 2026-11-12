@@ -1132,6 +1132,105 @@ test_buffer_serialize_deserialize (void)
 
 }
 
+typedef enum {
+  DESERIALIZE_UNICODE,
+  DESERIALIZE_GLYPHS,
+  DESERIALIZE_GLYPH_NAMES,
+} deserialize_type_t;
+
+static void
+test_buffer_deserialize2 (gconstpointer user_data)
+{
+  deserialize_type_t type = GPOINTER_TO_INT (user_data);
+  hb_font_t *font = NULL;
+  if (type == DESERIALIZE_GLYPH_NAMES)
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/adwaita.ttf");
+    font = hb_font_create (face);
+    hb_face_destroy (face);
+  }
+
+  const struct {
+    hb_buffer_serialize_format_t format;
+    const char *unicode;
+    const char *glyphs;
+    hb_bool_t immutable;
+  } tests[] = {
+    { HB_BUFFER_SERIALIZE_FORMAT_TEXT, "<U+0041=0|U+0042=1>", "[1=0@2,3+4,5|2=1+6]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_JSON, "[{\"u\":65,\"cl\":0},{\"u\":66,\"cl\":1}]",
+      "[{\"g\":1,\"cl\":0,\"dx\":2,\"dy\":3,\"ax\":4,\"ay\":5},{\"g\":2,\"cl\":1}]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_TEXT, "<U+0041=0>", "[icon0=0+10]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_JSON, "[{\"u\":65}]", "[{\"g\":\"icon0\",\"ax\":10}]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_TEXT, "<U+0041=0|U+0042=?>", "[1=0|2=?]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_JSON, "[{\"u\":65},?]", "[{\"g\":1},?]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_TEXT, "<U+0041=0|U+0042=4294967296>", "[1=0|2=4294967296]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_JSON, "[{\"u\":65},{\"u\":4294967296}]",
+      "[{\"g\":1},{\"g\":2,\"ax\":2147483648}]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_TEXT, "", "", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_INVALID, "<U+0041=0>", "[1=0]", FALSE },
+    { HB_BUFFER_SERIALIZE_FORMAT_TEXT, "<U+0041=0>", "[1=0]", TRUE },
+    { HB_BUFFER_SERIALIZE_FORMAT_JSON, "[{\"u\":65}]", "[{\"g\":1}]", TRUE },
+  };
+
+  for (unsigned int i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    const char *contents = type == DESERIALIZE_UNICODE ? tests[i].unicode : tests[i].glyphs;
+    int length = strlen (contents);
+
+    for (int buf_len = -1; buf_len <= length; buf_len++)
+    {
+      char *buf = buf_len == -1 ? g_strdup (contents) : g_malloc (buf_len);
+      if (buf_len > 0)
+	memcpy (buf, contents, buf_len);
+
+      hb_buffer_t *reference = tests[i].immutable ? hb_buffer_get_empty () : hb_buffer_create ();
+      hb_buffer_t *buffer = tests[i].immutable ? hb_buffer_get_empty () : hb_buffer_create ();
+
+      g_test_message ("deserialize test #%u, length %d", i, buf_len);
+
+      for (unsigned int repeat = 0; repeat < 2; repeat++)
+      {
+	const char *end;
+	unsigned int consumed = (unsigned int) -1;
+	hb_bool_t expected, result;
+
+	if (type != DESERIALIZE_UNICODE)
+	{
+	  expected = hb_buffer_deserialize_glyphs (reference, buf, buf_len, &end,
+						   font, tests[i].format);
+	  result = hb_buffer_deserialize_glyphs2 (buffer, buf, buf_len,
+						  repeat ? NULL : &consumed,
+						  font, tests[i].format);
+	}
+	else
+	{
+	  expected = hb_buffer_deserialize_unicode (reference, buf, buf_len, &end,
+						    tests[i].format);
+	  result = hb_buffer_deserialize_unicode2 (buffer, buf, buf_len,
+						   repeat ? NULL : &consumed,
+						   tests[i].format);
+	}
+
+	g_assert_cmpint (result, ==, expected);
+	if (!repeat)
+	  g_assert_cmpuint (consumed, ==, end == buf ? 0 : end - buf);
+	g_assert_cmpint (hb_buffer_get_content_type (buffer), ==,
+			 hb_buffer_get_content_type (reference));
+	g_assert_cmpint (hb_buffer_has_positions (buffer), ==,
+			 hb_buffer_has_positions (reference));
+	g_assert_cmpint (hb_buffer_diff (buffer, reference, (hb_codepoint_t) -1, 0), ==,
+			 HB_BUFFER_DIFF_FLAG_EQUAL);
+      }
+
+      hb_buffer_destroy (buffer);
+      hb_buffer_destroy (reference);
+      g_free (buf);
+    }
+  }
+
+  hb_font_destroy (font);
+}
+
 static void
 test_buffer_serialize_no_advances (void)
 {
@@ -1219,6 +1318,9 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_message_lifetime);
 #endif
   hb_test_add (test_buffer_serialize_deserialize);
+  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_GLYPHS), "glyphs", test_buffer_deserialize2);
+  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_GLYPH_NAMES), "glyph-names", test_buffer_deserialize2);
+  hb_test_add_data_flavor (GINT_TO_POINTER (DESERIALIZE_UNICODE), "unicode", test_buffer_deserialize2);
   hb_test_add (test_buffer_serialize_no_advances);
 
   return hb_test_run();

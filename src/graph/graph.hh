@@ -1886,8 +1886,8 @@ public:
     queue.insert (0, root_idx ());
     TRY (graph_result_t<void>::from (queue, ALLOCATION_FAILURE));
 
-    hb_vector_t<bool> visited;
-    if (unlikely (!visited.resize (vertices_.length)))
+    hb_bit_vector_t<> visited (0, count - 1);
+    if (unlikely (visited.in_error ()))
       return Err(ALLOCATION_FAILURE);
 
     while (!queue.in_error () && !queue.is_empty ())
@@ -1896,7 +1896,7 @@ public:
       if (visited[next_idx]) continue;
       const auto& next = vertices_[next_idx];
       int64_t next_distance = next.distance;
-      visited[next_idx] = true;
+      visited.add (next_idx);
 
       for (const auto& link : next.obj().all_links ())
       {

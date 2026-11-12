@@ -92,6 +92,14 @@
 #define HB_MAX_LOOKUP_VISIT_COUNT 35000
 #endif
 
+/* Distinct lookup recursion paths the dependency graph builder interns
+ * over a whole GSUB; building the graph fails when it needs more.
+ * Lookups that invoke each other in every order make a factorial number
+ * of them.  The most among the test fonts is 744 (NotoNastaliqUrdu-Bold). */
+#ifndef HB_MAX_DEPEND_RECURSE_PATHS
+#define HB_MAX_DEPEND_RECURSE_PATHS 35000
+#endif
+
 /* Subtables of one kern, kerx, mort, or morx table; the table is rejected
  * when it declares more.  The table's accelerator keeps glyph sets for
  * each, which can take far more memory than the subtable has bytes. */
@@ -103,8 +111,38 @@
 #define HB_MAX_GRAPH_EDGE_COUNT 16384
 #endif
 
+/* Maximum number of edges stored in one glyph dependency graph.  GSUB
+ * edges are keyed by (source, target, feature tag), so a lookup reached
+ * by many feature tags multiplies its substitutions by the tag count and
+ * a small table can describe a graph of hundreds of millions of edges. */
+#ifndef HB_DEPEND_MAX_EDGES
+#define HB_DEPEND_MAX_EDGES (1u << 25)
+#endif
+
 #ifndef HB_VAR_COMPOSITE_MAX_AXES
 #define HB_VAR_COMPOSITE_MAX_AXES 4096
+#endif
+
+/* Region axes copied into tuples when one ItemVariationStore is converted
+ * for instancing, summed over its VarData subtables.  Every region a
+ * VarData references gets its own copy of that region's axes, and the
+ * font pays a few bytes per reference however many axes the region has. */
+#ifndef HB_VARSTORE_MAX_TUPLE_AXES
+#define HB_VARSTORE_MAX_TUPLE_AXES (1u << 20)
+#endif
+
+/* Deltas that instancing an avar version 2 table may add to its variation
+ * store as offset-compensation tuples.  Each tuple holds a delta for every
+ * row of the VarData it is added to, but the breakpoint it encodes costs
+ * four bytes of the table and a VarData without regions stores its rows in
+ * no bytes at all, so the table size does not bound that memory.  The
+ * budget is this many deltas per byte of the table, but no less than the
+ * minimum; exceeding it fails the table. */
+#ifndef HB_AVAR2_MAX_DELTAS_FACTOR
+#define HB_AVAR2_MAX_DELTAS_FACTOR 128
+#endif
+#ifndef HB_AVAR2_MAX_DELTAS_MIN
+#define HB_AVAR2_MAX_DELTAS_MIN 65536
 #endif
 
 #ifndef HB_GLYF_MAX_POINTS
@@ -143,13 +181,11 @@
 #define HB_SUBSET_CBDT_MAX_COPY_FACTOR 64
 #endif
 
-/* Entries the CBDT accelerator builds to answer find_table() by glyph
- * without walking a strike's IndexSubtableRecord array per query.  The
- * record count is a 32-bit field bounded only by the table length; a strike
- * whose records would push the shared index past this keeps the linear
- * walk, so the index stays bounded whatever the font claims. */
-#ifndef HB_CBDT_MAX_INDEX_ENTRIES
-#define HB_CBDT_MAX_INDEX_ENTRIES 65536
+/* Strikes of a CBLC table considered when choosing one for a glyph query;
+ * later ones are ignored.  numSizes is a 32-bit field and every query walks
+ * the strikes, while ppem is 8-bit and real fonts have a handful. */
+#ifndef HB_CBLC_MAX_STRIKES
+#define HB_CBLC_MAX_STRIKES 256
 #endif
 
 /* Total bytes of sub-blobs (gradient color stops, clip outlines) in one
@@ -221,7 +257,6 @@
 #define HB_BUDGET_256	256u
 #define HB_BUDGET_512	512u
 #define HB_BUDGET_1024	1024u
-#define HB_BUDGET_8192	8192u
 
 /* The common finite default for one top-level glyph rendering session.
  * Nested outline and paint work shares the same live counter. */
@@ -246,9 +281,36 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * variable fonts spend -- the largest glyf variable font under test/
  * (MPLUS1-Variable, 6,434 glyphs retained) uses ~1.2M units, and even a
  * font at the 65,535-glyph maximum stays far below -- while keeping the
- * adversarial worst case bounded. */
+ * adversarial worst case bounded.  Layout tables charge their Coverage
+ * and ClassDef glyph walks to the same budget: a glyph range costs a few
+ * bytes and any number of offsets can share it, so neither the table size
+ * nor the sanitizer's budget bounds that work. */
 #ifndef HB_BUDGET_SUBSET_GLYF
 #define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 28)
+#endif
+
+/* The flat floor for the subsetter's work on the charstrings of a CFF or
+ * CFF2 table, in operators and operands interpreted, shared by all passes
+ * of one subset over them.  Glyphs can share subroutines, so neither
+ * HB_CFF_MAX_OPS per glyph nor the table size bounds that work.  Running
+ * out fails the charstring being interpreted, as exceeding HB_CFF_MAX_OPS
+ * does. */
+#ifndef HB_BUDGET_SUBSET_CFF
+#define HB_BUDGET_SUBSET_CFF ((int64_t) 1 << 24)
+#endif
+
+/* Very large CFF and CFF2 tables still get several operations per byte;
+ * subroutinized fonts interpret a few operations per table byte. */
+#ifndef HB_BUDGET_SUBSET_CFF_PER_BYTE
+#define HB_BUDGET_SUBSET_CFF_PER_BYTE 32
+#endif
+
+/* Partially instancing one CFF2 table in the subsetter, in cells of the
+ * old-region to new-region matrices built for its VarDatas.  A VarData
+ * with k regions costs k * k cells for 2 * k bytes of font, and many
+ * offsets can share one VarData.  Exceeding the budget fails the table. */
+#ifndef HB_BUDGET_SUBSET_CFF2_CELLS
+#define HB_BUDGET_SUBSET_CFF2_CELLS ((int64_t) 1 << 24)
 #endif
 
 /* The flat pixel-work floor for one raster draw or paint session.  Pixel and
@@ -277,6 +339,91 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * range compiled extends to the end of the text. */
 #ifndef HB_BUDGET_AAT_MAP
 #define HB_BUDGET_AAT_MAP ((int64_t) 1 << 24)
+#endif
+
+/* One dependency graph build.  A few bytes of Coverage or ClassDef range
+ * can name any number of glyphs, so the glyph sets built from them are
+ * charged per page: for the work of expanding them, and for the memory
+ * they hold once the graph keeps a copy.  Exceeding the budget fails the
+ * build. */
+#ifndef HB_BUDGET_DEPEND
+#define HB_BUDGET_DEPEND ((int64_t) 1 << 26)
+#endif
+
+/* One GSUB glyph-closure session, in records (glyphs, offsets, ranges,
+ * rules) walked.  HB_MAX_LOOKUP_VISIT_COUNT bounds how many times lookups
+ * are entered per round, not what one visit walks: through shared offsets
+ * a subtable can walk many times the size of its table, and every glyph
+ * the closure gains makes all lookups visitable again. */
+#ifndef HB_BUDGET_LAYOUT_CLOSURE
+#define HB_BUDGET_LAYOUT_CLOSURE ((int64_t) 1 << 28)
+#endif
+
+
+/* One instancing session: all the tuple variations of one table.
+ * Limiting an axis splits every tuple that uses it into up to six, so
+ * tuples multiply with each limited axis.  The copies are charged to a
+ * budget that starts at MIN and earns FACTOR times each source tuple,
+ * in tuple_delta_t::get_cost () units of roughly eight bytes. */
+#ifndef HB_BUDGET_INSTANCER_FACTOR
+#define HB_BUDGET_INSTANCER_FACTOR 64
+#endif
+#ifndef HB_BUDGET_INSTANCER_MIN
+#define HB_BUDGET_INSTANCER_MIN ((int64_t) 1 << 22)
+#endif
+
+
+/* Instancing one whole gvar or cvar table in the subsetter, in points.
+ * Every tuple is expanded to one entry per point of its glyph (per cvt
+ * value), however few of them it refers to; a tuple takes a dozen bytes
+ * and a run of repeated glyf points a fraction of a byte each, so the
+ * size of the font does not bound the product.  The budget is this many
+ * points per byte of the table, but no less than the minimum; exceeding
+ * it fails the table. */
+#ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR
+#define HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR 64
+#endif
+#ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_MIN
+#define HB_BUDGET_SUBSET_TUPLE_POINTS_MIN ((int64_t) 1 << 20)
+#endif
+
+
+/* Decoded glyf points a subset plan keeps for partially instancing gvar:
+ * one per byte of the source glyf table, but no fewer than this.  Repeated
+ * flags and loca entries that share glyph data let a font declare far more
+ * points than it has bytes.  Exceeding the budget fails the plan. */
+#ifndef HB_BUDGET_SUBSET_CONTOUR_POINTS
+#define HB_BUDGET_SUBSET_CONTOUR_POINTS ((int64_t) 1 << 22)
+#endif
+
+
+/* One avar2 partial-instancing plan, in region tents visited to bound the
+ * final coordinates each axis can reach.  A delta-set row can list a region
+ * any number of times and axes can share a row, so the table size does not
+ * bound that work.  An axis whose exact bounds do not fit what is left gets
+ * the looser interval bounds; once exhausted, the remaining axes get no
+ * range and are not detected as self-contained.  Either way the instance
+ * stays correct, only less optimized: those ranges only cull variation
+ * data that cannot be reached, and a pinned axis not found self-contained
+ * stays in fvar as a hidden pin. */
+#ifndef HB_BUDGET_SUBSET_AVAR2_RANGES
+#define HB_BUDGET_SUBSET_AVAR2_RANGES ((int64_t) 1 << 26)
+#endif
+
+
+/* The instancer rebuilds an ItemVariationStore from a dense delta matrix,
+ * one int per (row, region) pair.  In the font a row only pays for the
+ * regions of its own VarData, so a small font can ask for a huge matrix.
+ * These are flat ceilings on that one allocation: a proportional bound
+ * would reject legitimate optimizer output, where several VarData use
+ * disjoint region subsets so the dense matrix is much wider than any one
+ * VarData.  Exceeding either limit fails instancing of that store. */
+#ifndef HB_SUBSET_MAX_VARSTORE_ROWS
+#define HB_SUBSET_MAX_VARSTORE_ROWS (1u << 21)
+#endif
+
+#ifndef HB_SUBSET_MAX_VARSTORE_DELTAS
+#define HB_SUBSET_MAX_VARSTORE_DELTAS ((uint64_t) 1 << 26)
 #endif
 
 

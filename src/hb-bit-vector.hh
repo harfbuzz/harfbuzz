@@ -27,16 +27,25 @@
 
 #include "hb.hh"
 
+#include "hb-array.hh"
 #include "hb-atomic.hh"
 
 struct hb_min_max_t
 {
   void add (hb_codepoint_t v) { min_v = hb_min (min_v, v); max_v = hb_max (max_v, v); }
-  void add_range (hb_codepoint_t a, hb_codepoint_t b)
+  bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    min_v = hb_min (min_v, a);
-    max_v = hb_max (max_v, b);
+    if (a <= b)
+    {
+      min_v = hb_min (min_v, a);
+      max_v = hb_max (max_v, b);
+    }
+    return true;
   }
+
+  template <typename T>
+  bool add_sorted_array (const hb_sorted_array_t<const T>& arr)
+  { for (const auto &v : arr) add (v); return true; }
 
   template <typename set_t>
   void union_ (const set_t &set)
@@ -86,17 +95,17 @@ struct hb_bit_vector_t
   hb_bit_vector_t (unsigned min_v, unsigned max_v)
     : min_v (min_v), max_v (max_v)
   {
-    if (unlikely (min_v >= max_v))
+    if (unlikely (min_v > max_v || max_v - min_v == UINT_MAX))
     {
-      min_v = max_v = count = 0;
+      this->min_v = this->max_v = count = 0;
       return;
     }
 
-    unsigned num = (max_v - min_v + sizeof (int_t) * 8) / (sizeof (int_t) * 8);
+    unsigned num = (max_v - min_v) / ELT_BITS + 1;
     elts = (elt_t *) hb_calloc (num, sizeof (int_t));
     if (unlikely (!elts))
     {
-      min_v = max_v = count = 0;
+      this->min_v = this->max_v = count = 0;
       return;
     }
 
@@ -106,6 +115,9 @@ struct hb_bit_vector_t
   {
     hb_free (elts);
   }
+
+  /* Invalid ranges and allocation failure leave the vector in error. */
+  bool in_error () const { return !elts; }
 
   void add (hb_codepoint_t g) { elt (g) |= mask (g); }
   void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
@@ -117,10 +129,11 @@ struct hb_bit_vector_t
   bool operator [] (hb_codepoint_t g) const { return get (g); }
   bool operator () (hb_codepoint_t g) const { return get (g); }
 
-  void add_range (hb_codepoint_t a, hb_codepoint_t b)
+  bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    if (unlikely (!count || a > b || a < min_v || b > max_v))
-      return;
+    if (unlikely (a > b)) return true;
+    if (unlikely (!count || a < min_v || b > max_v))
+      return false;
 
     elt_t *la = &elt (a);
     elt_t *lb = &elt (b);
@@ -135,7 +148,12 @@ struct hb_bit_vector_t
 
       *lb |= ((mask (b) << 1) - 1llu);
     }
+    return true;
   }
+
+  template <typename T>
+  bool add_sorted_array (const hb_sorted_array_t<const T>& arr)
+  { for (const auto &g : arr) add (g); return !in_error (); }
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     if (unlikely (!count || a > b || a < min_v || b > max_v))
@@ -185,7 +203,7 @@ struct hb_bit_vector_t
     return elts[g / ELT_BITS];
   }
 
-  static constexpr int_t mask (hb_codepoint_t g) { return elt_t (1) << (g & ELT_MASK); }
+  int_t mask (hb_codepoint_t g) const { return int_t (1) << ((g - min_v) & ELT_MASK); }
 
   hb_codepoint_t min_v = 0, max_v = 0, count = 0;
   elt_t *elts = nullptr;

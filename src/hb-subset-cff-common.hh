@@ -94,35 +94,38 @@ struct str_encoder_t
   // Encode number for CharString
   void encode_num_cs (const number_t& n)
   {
-    if (n.in_int_range ())
-    {
+    if (n.in_int16_range ())
       encode_int (n.to_int ());
-    }
     else
     {
-      int32_t v = n.to_fixed ();
       encode_byte (OpCode_fixedcs);
-      encode_byte ((v >> 24) & 0xFF);
-      encode_byte ((v >> 16) & 0xFF);
-      encode_byte ((v >> 8) & 0xFF);
-      encode_byte (v & 0xFF);
+      encode_int32_payload (n.to_fixed ());
     }
+  }
+
+  void encode_int32_payload (int32_t v)
+  {
+    encode_byte ((v >> 24) & 0xFF);
+    encode_byte ((v >> 16) & 0xFF);
+    encode_byte ((v >> 8) & 0xFF);
+    encode_byte (v & 0xFF);
   }
 
   // Encode number for TopDict / Private
   void encode_num_tp (const number_t& n)
   {
-    if (n.in_int_range ())
-    {
-      // TODO longint
+    if (n.in_int16_range ())
       encode_int (n.to_int ());
+    else if (n.in_int32_range ())
+    {
+      encode_byte (OpCode_longintdict);
+      encode_int32_payload (n.to_int ());
     }
     else
     {
       // Sigh. BCD
       // https://learn.microsoft.com/en-us/typography/opentype/spec/cff2#table-5-nibble-definitions
       double v = n.to_real ();
-      encode_byte (OpCode_BCD);
 
       // Based on:
       // https://github.com/fonttools/fonttools/blob/0738c41dfbcbc213ab9263f486ef0cccc6eb5ce5/Lib/fontTools/misc/psCharStrings.py#L267-L316
@@ -139,8 +142,13 @@ struct str_encoder_t
       hb_locale_t clocale HB_UNUSED;
       hb_locale_t oldlocale HB_UNUSED;
       oldlocale = hb_uselocale (clocale = newlocale (LC_ALL_MASK, "C", NULL));
-      snprintf (buf, sizeof (buf), "%.8G", v);
+      int n_printed = snprintf (buf, sizeof (buf), "%.8G", v);
       (void) hb_uselocale (((void) freelocale (clocale), oldlocale));
+
+      /* Defensive: buf[16] exactly fits the widest %.8G output (15 chars
+       * + NUL); bail cleanly if snprintf ever errors or truncates. */
+      if (unlikely (n_printed < 0 || (size_t) n_printed >= sizeof (buf)))
+	return;
 
       char *s = buf;
       size_t len;
@@ -156,14 +164,18 @@ struct str_encoder_t
       }
       else if ((len = strlen (s)) > 3 && !strcmp (s + len - 3, "000"))
       {
-	unsigned exponent = len - 3;
-	char *s2 = s + exponent - 1;
-	while (*s2 == '0' && exponent > 1)
-	{
-	  s2--;
-	  exponent++;
-	}
-	snprintf (s2 + 1, sizeof (buf) - (s2 + 1 - buf), "E%u", exponent);
+        /* Count trailing zeros from the end.  s[0] is guaranteed non-'0'
+         * here (blocks 1-2 handle "0.xxx"/"-0.xxx" first, and %G never
+         * emits trailing fractional zeros), so the backward scan always
+         * terminates before reaching s. */
+	unsigned exponent = 0;
+	char *s2 = s + len - 1;
+	while (*s2 == '0')
+        {
+          s2--;
+          exponent++;
+        }
+        snprintf (s2 + 1, sizeof (buf) - (s2 + 1 - buf), "E%u", exponent);
       }
       else
       {
@@ -193,7 +205,8 @@ struct str_encoder_t
 	memmove (s + sign, s2, len);
 	snprintf (s + sign + len, sizeof (buf) - (s + sign + len - buf), "E-%u", (unsigned) (strlen (s + sign) - 1));
       }
-      hb_vector_t<char> nibbles;
+      /* Nibble capacity must cover widest %.8G output plus END and pad */
+      nibble_buffer_t<ARRAY_LENGTH (buf) + 2> nibbles;
       while (*s)
       {
 	char c = s[0];
@@ -229,13 +242,11 @@ struct str_encoder_t
 
 	nibbles.push (c - '0');
       }
-      nibbles.push (0x0F);
-      if (nibbles.length % 2)
-	nibbles.push (0x0F);
 
-      unsigned count = nibbles.length;
-      for (unsigned i = 0; i < count; i += 2)
-        encode_byte ((nibbles[i] << 4) | nibbles[i+1]);
+      hb_ubytes_t bytes = nibbles.commit ();
+      if (unlikely (bytes.length == 0)) { buff.set_error (); return; }
+      encode_byte (OpCode_BCD);
+      copy_str (bytes);
     }
   }
 
@@ -250,18 +261,43 @@ struct str_encoder_t
       encode_byte (op);
   }
 
-  void copy_str (const unsigned char *str, unsigned length)
+  void copy_str (const hb_ubytes_t str)
   {
-    assert ((signed) (buff.length + length) <= buff.allocated);
-    hb_memcpy (buff.arrayZ + buff.length, str, length);
-    buff.length += length;
+    unsigned buff_tip = buff.length;
+    if (likely (buff.resize_dirty (buff_tip + str.length)))
+      hb_memcpy (buff.arrayZ + buff_tip, str, str.length);
+    else buff.ensure_error ();
   }
 
   bool in_error () const { return buff.in_error (); }
 
-  protected:
-
+protected:
   str_buff_t &buff;
+private:
+  template <unsigned size>
+  struct nibble_buffer_t
+  {
+    static_assert (0 < size && size < 64, "");
+    void push (uint8_t nibble)
+    {
+      if (unlikely (in_error || nibble_count >= size)) { in_error = true; return; }
+      if (!(nibble_count & 1))
+	bytes[nibble_count >> 1] = nibble << 4;
+      else
+	bytes[nibble_count >> 1] |= nibble;
+      nibble_count++;
+    }
+    hb_ubytes_t commit ()
+    {
+      push (0x0F);
+      if (nibble_count & 1) push (0x0F);
+      return unlikely (in_error) ? hb_ubytes_t () : hb_ubytes_t (bytes, nibble_count >> 1);
+    }
+  private:
+    bool in_error = false;
+    uint8_t bytes[(size + 1) / 2];
+    unsigned nibble_count = 0;
+  };
 };
 
 struct cff_sub_table_info_t {
@@ -380,6 +416,7 @@ struct subr_flattener_t
     unsigned count = plan->num_output_glyphs ();
     if (!flat_charstrings.resize_exact (count))
       return false;
+    int64_t *budget = plan->cff_budget (get_subset_budget (acc.get_blob ()));
     for (unsigned int i = 0; i < count; i++)
     {
       hb_codepoint_t  glyph;
@@ -404,7 +441,7 @@ struct subr_flattener_t
 	plan,
 	command_capture ? &(*command_capture)[i] : nullptr
       };
-      if (unlikely (!interp.interpret (param)))
+      if (unlikely (!interp.interpret (param, budget)))
 	return false;
     }
     return true;
@@ -856,6 +893,19 @@ struct subr_subsetter_t
       parsed_global_subrs = &cff_accelerator->parsed_global_subrs;
       parsed_local_subrs = &cff_accelerator->parsed_local_subrs;
     } else {
+      /* Font DICTs can share a Private DICT and its Subrs, so the size of
+       * the table does not bound the sum of their counts.  Every subroutine
+       * of a font that does not share them takes at least one byte of the
+       * table; _hb_subset_table_try() would not serialize more than this
+       * anyway.  Over the limit the subset fails, as any CFF planning
+       * failure has since dde7da182e. */
+      uint64_t num_subrs = acc.globalSubrs->count;
+      for (unsigned int i = 0; i < acc.fdCount; i++)
+	num_subrs += acc.privateDicts[i].localSubrs->count;
+      if (unlikely (num_subrs * sizeof (parsed_cs_str_t) >
+		    (uint64_t) acc.get_blob ()->length * 256))
+	return false;
+
       parsed_charstrings.resize_exact (plan->num_output_glyphs ());
       parsed_global_subrs_storage.resize_exact (acc.globalSubrs->count);
 
@@ -885,6 +935,8 @@ struct subr_subsetter_t
      * instead of a separate compact() pass. */
     bool coalesce = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING) &&
 		    !plan->inprogress_accelerator;
+
+    int64_t *budget = plan->cff_budget (get_subset_budget (acc.get_blob ()));
 
     /* phase 1 & 2 */
     for (auto _ : plan->new_to_old_gid_list)
@@ -921,7 +973,7 @@ struct subr_subsetter_t
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
                                   coalesce);
 
-      if (unlikely (!interp.interpret (param)))
+      if (unlikely (!interp.interpret (param, budget)))
         return false;
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
@@ -937,13 +989,15 @@ struct subr_subsetter_t
 				    &closures.local_closures[fd],
 				    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
 
-	drop_hints_param_t  drop;
+	drop_hints_param_t  drop (budget);
 	if (drop_hints_in_str (parsed_charstrings[new_glyph], param, drop))
 	{
 	  parsed_charstrings[new_glyph].set_hint_dropped ();
 	  if (drop.vsindex_dropped)
 	    parsed_charstrings[new_glyph].set_vsindex_dropped ();
 	}
+	if (unlikely (drop.in_error ()))
+	  return false;
       }
 
       /* Doing this here one by one instead of compacting all at the end
@@ -1052,18 +1106,32 @@ struct subr_subsetter_t
   }
 
   protected:
+  /* The walks over parsed strings below need not follow the path the
+   * interpreter took for the glyph at hand: a string is parsed on its first
+   * run only, global subrs are shared by font dicts with different local
+   * subrs, and endchar does not end a walk.  So the recorded call graph may
+   * nest deeper than the interpreter allows, or even be cyclic, and the walks
+   * enforce the interpreter's call-depth limit themselves: a subr called
+   * past that depth is not walked into, as best effort, and the subset
+   * goes on.  The hint-dropping walk also charges its work to the
+   * subsetting pass budget. */
   struct drop_hints_param_t
   {
-    drop_hints_param_t ()
+    drop_hints_param_t (int64_t *budget_)
       : seen_moveto (false),
 	ends_in_hint (false),
 	all_dropped (false),
-	vsindex_dropped (false) {}
+	vsindex_dropped (false),
+	budget (budget_) {}
+
+    bool in_error () const { return *budget < 0; }
 
     bool  seen_moveto;
     bool  ends_in_hint;
     bool  all_dropped;
     bool  vsindex_dropped;
+    unsigned depth = 0;
+    int64_t *budget;
   };
 
   bool drop_hints_in_subr (parsed_cs_str_t &str, unsigned int pos,
@@ -1071,7 +1139,15 @@ struct subr_subsetter_t
 			   const subr_subset_param_t &param, drop_hints_param_t &drop)
   {
     drop.ends_in_hint = false;
+    if (unlikely (drop.depth >= kMaxCallLimit))
+    {
+      /* Too deep to walk into; keep the call and its hints. */
+      drop.all_dropped = false;
+      return false;
+    }
+    drop.depth++;
     bool has_hint = drop_hints_in_str (subrs[subr_num], param, drop);
+    drop.depth--;
 
     /* if this subr ends with a stem hint (i.e., not a number; potential argument for moveto),
      * then this entire subroutine must be a hint. drop its call. */
@@ -1097,6 +1173,8 @@ struct subr_subsetter_t
     bool  seen_hint = false;
 
     unsigned count = str.values.length;
+    if (unlikely (!hb_budget_spend (*drop.budget, count)))
+      return false;
     auto *values = str.values.arrayZ;
     for (unsigned int pos = 0; pos < count; pos++)
     {
@@ -1211,16 +1289,21 @@ struct subr_subsetter_t
 
   void collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
-				  const subr_subset_param_t &param)
+				  const subr_subset_param_t &param,
+				  unsigned int depth)
   {
     if (closure->has (subr_num))
       return;
     closure->add (subr_num);
-    collect_subr_refs_in_str (subrs[subr_num], param);
+    /* Too deep to walk into; keep the subr but not what it calls. */
+    if (unlikely (depth >= kMaxCallLimit))
+      return;
+    collect_subr_refs_in_str (subrs[subr_num], param, depth + 1);
   }
 
   void collect_subr_refs_in_str (const parsed_cs_str_t &str,
-                                 const subr_subset_param_t &param)
+                                 const subr_subset_param_t &param,
+                                 unsigned int depth = 0)
   {
     if (!str.has_calls ())
       return;
@@ -1233,12 +1316,12 @@ struct subr_subsetter_t
 	{
 	  case OpCode_callsubr:
 	    collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_local_subrs,
-				       param.local_closure, param);
+				       param.local_closure, param, depth);
 	    break;
 
 	  case OpCode_callgsubr:
 	    collect_subr_refs_in_subr (opstr.subr_num, *param.parsed_global_subrs,
-				       param.global_closure, param);
+				       param.global_closure, param, depth);
 	    break;
 
 	  default: break;
@@ -1279,16 +1362,16 @@ struct subr_subsetter_t
 	{
 	  case OpCode_callsubr:
 	    encoder.encode_int (remaps.local_remaps[fd].biased_num (opstr.subr_num));
-	    encoder.copy_str (opstr.ptr, opstr.length);
+	    encoder.copy_str (hb_ubytes_t (opstr.ptr, opstr.length));
 	    break;
 
 	  case OpCode_callgsubr:
 	    encoder.encode_int (remaps.global_remap.biased_num (opstr.subr_num));
-	    encoder.copy_str (opstr.ptr, opstr.length);
+	    encoder.copy_str (hb_ubytes_t (opstr.ptr, opstr.length));
 	    break;
 
 	  default:
-	    encoder.copy_str (opstr.ptr, opstr.length);
+	    encoder.copy_str (hb_ubytes_t (opstr.ptr, opstr.length));
 	    break;
 	}
       }
@@ -1346,10 +1429,11 @@ struct subr_subsetter_t
 
 } /* namespace CFF */
 
+template <typename FDSELECT>
 HB_INTERNAL bool
 hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 			    unsigned int fdCount,
-			    const CFF::FDSelect &src, /* IN */
+			    const FDSELECT &src, /* IN */
 			    unsigned int src_num_glyphs,
 			    unsigned int &subset_fd_count /* OUT */,
 			    unsigned int &subset_fdselect_size /* OUT */,

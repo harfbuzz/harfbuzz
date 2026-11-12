@@ -684,6 +684,129 @@ test_depend_varc (void)
   hb_face_destroy (face);
 }
 
+/* A GSUB face whose features have no lookups of their own.  Feature 0 is 'aaaa',
+ * the others are 'bbbb', and the default LangSys lists all but the last.  Every
+ * FeatureVariations record uses the same FeatureTableSubstitution, which gives
+ * lookup 0 (glyph 1 -> 2) to feature 0 and lookup 1 (glyph 3 -> 4) to the last
+ * feature; its other records are for a feature that does not exist. */
+static hb_face_t *
+create_feature_variations_face (unsigned num_features,
+				unsigned num_records,
+				unsigned num_substitutions)
+{
+  unsigned lookup_list_offset = 14;
+  unsigned script_list_offset = lookup_list_offset + 6 + 2 * 20;
+  unsigned feature_list_offset = script_list_offset + 18 + (num_features - 1) * 2;
+  unsigned variations_offset = feature_list_offset + 2 + num_features * 6 + 4;
+  unsigned substitutions_size = 6 + num_substitutions * 6;
+  unsigned gsub_size = variations_offset + 8 + num_records * 8 + substitutions_size + 2 * 6;
+  unsigned char *gsub = (unsigned char *) g_malloc0 (gsub_size);
+  unsigned char *p = gsub;
+  unsigned char maxp[6] = {0x00, 0x00, 0x50, 0x00, 0x00, 0x05};
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob;
+
+#define PUT16(v) (*p++ = (unsigned char) ((v) >> 8), *p++ = (unsigned char) (v))
+#define PUT32(v) (PUT16 ((v) >> 16), PUT16 (v))
+  PUT16 (1); PUT16 (1); /* version */
+  PUT16 (script_list_offset);
+  PUT16 (feature_list_offset);
+  PUT16 (lookup_list_offset);
+  PUT32 (variations_offset);
+
+  PUT16 (2); PUT16 (6); PUT16 (6 + 20); /* lookupCount, lookupOffsets */
+  for (unsigned i = 0; i < 2; i++)
+  {
+    PUT16 (1); PUT16 (0); PUT16 (1); PUT16 (8); /* type, flag, subTableCount, offset */
+    PUT16 (1); PUT16 (6); PUT16 (1); /* SingleSubst format, coverage, deltaGlyphID */
+    PUT16 (1); PUT16 (1); PUT16 (1 + 2 * i); /* Coverage format, glyphCount, glyph */
+  }
+
+  PUT16 (1); PUT32 (HB_TAG ('D','F','L','T')); PUT16 (8); /* scriptCount, record */
+  PUT16 (4); PUT16 (0); /* defaultLangSys, langSysCount */
+  PUT16 (0); PUT16 (0xFFFF); PUT16 (num_features - 1); /* lookupOrder, required, count */
+  for (unsigned i = 0; i < num_features - 1; i++)
+    PUT16 (i);
+
+  PUT16 (num_features);
+  for (unsigned i = 0; i < num_features; i++)
+  {
+    PUT32 (i ? HB_TAG ('b','b','b','b') : HB_TAG ('a','a','a','a'));
+    PUT16 (2 + num_features * 6);
+  }
+  PUT16 (0); PUT16 (0); /* featureParams, lookupIndexCount */
+
+  PUT16 (1); PUT16 (0); /* version */
+  PUT32 (num_records);
+  for (unsigned i = 0; i < num_records; i++)
+  {
+    PUT32 (0); /* conditionSet */
+    PUT32 (8 + num_records * 8); /* featureTableSubstitution */
+  }
+
+  PUT16 (1); PUT16 (0); /* version */
+  PUT16 (num_substitutions);
+  PUT16 (0); PUT32 (substitutions_size);
+  PUT16 (num_features - 1); PUT32 (substitutions_size + 6);
+  for (unsigned i = 2; i < num_substitutions; i++)
+  {
+    PUT16 (0xFFFF); PUT32 (0);
+  }
+  for (unsigned i = 0; i < 2; i++)
+  {
+    PUT16 (0); PUT16 (1); PUT16 (i); /* featureParams, lookupIndexCount, lookup */
+  }
+  g_assert_true (p == gsub + gsub_size);
+#undef PUT32
+#undef PUT16
+
+  blob = hb_blob_create ((const char *) gsub, gsub_size,
+			 HB_MEMORY_MODE_READONLY, gsub, g_free);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob));
+  hb_blob_destroy (blob);
+
+  blob = hb_blob_create ((const char *) maxp, sizeof (maxp),
+			 HB_MEMORY_MODE_DUPLICATE, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob));
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+/* Lookups of substitute features get the tag of the feature they replace, in
+ * one pass over the FeatureVariations table. */
+static void
+test_depend_feature_variations (void)
+{
+  /* 8,000 x 40,000 x 90 steps if every record is searched for every feature. */
+  hb_face_t *face = create_feature_variations_face (8000, 40000, 90);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  hb_tag_t tag;
+  g_assert_nonnull (depend);
+
+  tag = HB_TAG ('a','a','a','a');
+  g_assert_true (find_dependency (depend, 1, 2, HB_OT_TAG_GSUB, &tag, NULL));
+  tag = HB_TAG ('b','b','b','b');
+  g_assert_false (find_dependency (depend, 1, 2, HB_OT_TAG_GSUB, &tag, NULL));
+  /* No script reaches the last feature. */
+  g_assert_false (find_dependency (depend, 3, 4, HB_OT_TAG_GSUB, NULL, NULL));
+
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
+/* A set of GSUB Context lookups that invoke each other in every order interns
+ * a factorial number of recursion paths; the whole-table path cap must refuse
+ * the build rather than exhaust memory. */
+static void
+test_depend_gsub_recursion_limit (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/gsub-context-lookup-permutations.ttf");
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_null (depend);
+  hb_face_destroy (face);
+}
+
 #ifndef HB_NO_BEYOND_64K
 /* ContextSubst format 6 (beyond-64k) uses 24-bit Coverage offsets.
  * Lookup 0 matches glyphs 1 2 and calls lookup 1 (SingleSubst 2 -> 3)
@@ -701,7 +824,288 @@ test_depend_context_format6 (void)
   hb_subset_depend_destroy (depend);
   hb_face_destroy (face);
 }
+
+/* A GSUB with one ChainContextSubst format 3 under feature 'test': one input
+ * glyph, no lookahead, no lookup records, and num_coverages backtrack
+ * positions, each with its own Coverage format 4 holding the single range
+ * [position, last_glyph - position]. */
+static hb_face_t *
+create_chain_context_face (unsigned num_glyphs,
+			   unsigned num_coverages,
+			   unsigned last_glyph)
+{
+  unsigned coverages_offset = 12 + num_coverages * 2;
+  unsigned gsub_size = 10 + 20 + 14 + 12 + coverages_offset + 6 + num_coverages * 14;
+  unsigned char *gsub = g_malloc0 (gsub_size);
+  unsigned char *p = gsub;
+
+#define PUT16(v) (*p++ = (unsigned char) ((v) >> 8), *p++ = (unsigned char) (v))
+#define PUT24(v) (*p++ = (unsigned char) ((v) >> 16), PUT16 (v))
+  PUT16 (1); PUT16 (0); /* version */
+  PUT16 (10); PUT16 (10 + 20); PUT16 (10 + 20 + 14); /* scriptList, featureList, lookupList */
+
+  PUT16 (1); memcpy (p, "DFLT", 4); p += 4; PUT16 (8); /* ScriptList */
+  PUT16 (4); PUT16 (0); /* Script: defaultLangSys, langSysCount */
+  PUT16 (0); PUT16 (0xFFFF); PUT16 (1); PUT16 (0); /* LangSys */
+
+  PUT16 (1); memcpy (p, "test", 4); p += 4; PUT16 (8); /* FeatureList */
+  PUT16 (0); PUT16 (1); PUT16 (0); /* Feature */
+
+  PUT16 (1); PUT16 (4); /* LookupList */
+  PUT16 (6); PUT16 (0); PUT16 (1); PUT16 (8); /* Lookup */
+
+  PUT16 (3); /* ChainContextSubst format */
+  PUT16 (num_coverages); /* backtrackGlyphCount */
+  for (unsigned i = 0; i < num_coverages; i++)
+    PUT16 (coverages_offset + 6 + i * 14);
+  PUT16 (1); PUT16 (coverages_offset); /* inputGlyphCount, input coverage */
+  PUT16 (0); /* lookaheadGlyphCount */
+  PUT16 (0); /* seqLookupCount */
+
+  PUT16 (1); PUT16 (1); PUT16 (1); /* Coverage format 1: glyph 1 */
+  for (unsigned i = 0; i < num_coverages; i++)
+  {
+    PUT16 (4); PUT24 (1); /* Coverage format 4, rangeCount */
+    PUT24 (i); PUT24 (last_glyph - i); PUT24 (0); /* first, last, startCoverageIndex */
+  }
+#undef PUT24
+#undef PUT16
+  g_assert_true (p == gsub + gsub_size);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ((const char *) gsub, gsub_size,
+				    HB_MEMORY_MODE_READONLY, gsub, g_free);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob));
+  hb_blob_destroy (blob);
+  hb_face_set_glyph_count (face, num_glyphs);
+
+  return face;
+}
+
+/* Context sets hold no glyph the face does not have, however far the
+ * Coverage ranges that name them reach. */
+static void
+test_depend_gsub_context_set_glyphs (void)
+{
+  hb_face_t *face = create_chain_context_face (1000, 4, 0xFFFFFF);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_nonnull (depend);
+
+  hb_set_t *set = hb_set_create ();
+  unsigned num_sets = 0;
+  for (hb_codepoint_t index = 0; hb_subset_depend_lookup_set (depend, index, set); index++)
+  {
+    for (hb_codepoint_t g = HB_SET_VALUE_INVALID; hb_set_next (set, &g);)
+      if (!(g & 0x80000000u)) /* Not a reference to another context set. */
+	g_assert_cmpuint (g, <, 1000);
+    num_sets++;
+  }
+  g_assert_cmpuint (num_sets, >=, 4);
+
+  /* The backtrack set of the first position covers the whole face. */
+  g_assert_true (hb_subset_depend_lookup_set (depend, 0, set));
+  g_assert_cmpuint (hb_set_get_population (set), ==, 1000);
+  g_assert_cmpuint (hb_set_get_max (set), ==, 999);
+
+  hb_set_destroy (set);
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
+/* A face whose context glyph sets take far more work to expand than it has
+ * bytes exhausts the build's budget and is refused. */
+static void
+test_depend_gsub_set_budget (void)
+{
+  /* 600 ranges of 16,777,216 glyphs from under 10 KB of GSUB. */
+  hb_face_t *face = create_chain_context_face (1000, 600, 0xFFFFFF);
+  g_assert_null (hb_subset_depend_from_face_or_fail (face));
+  hb_face_destroy (face);
+}
 #endif
+
+static void
+append_uint16 (GByteArray *array, unsigned value)
+{
+  guint8 bytes[2] = { value >> 8, value & 0xFF };
+  g_byte_array_append (array, bytes, 2);
+}
+
+/* Build a face whose GSUB has one AlternateSubst lookup in which covered
+ * glyphs 1..N all share one AlternateSet of glyphs 1..M, selected by F
+ * distinct feature tags.  The dependency graph of such a font has N*M*F
+ * edges while the font itself grows with only N+M+F. */
+static hb_face_t *
+create_fanout_face (unsigned covered_glyphs, unsigned alternates, unsigned features)
+{
+  GByteArray *gsub = g_byte_array_new ();
+  unsigned script_list_len = 18 + 2 * features;
+  unsigned feature_list_len = 8 + 6 * features;
+  unsigned i;
+
+  /* Header */
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 10);
+  append_uint16 (gsub, 10 + script_list_len);
+  append_uint16 (gsub, 10 + script_list_len + feature_list_len);
+
+  /* ScriptList: DFLT, whose default LangSys enables every feature */
+  append_uint16 (gsub, 1);
+  g_byte_array_append (gsub, (const guint8 *) "DFLT", 4);
+  append_uint16 (gsub, 8);
+  append_uint16 (gsub, 4);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 0xFFFF);
+  append_uint16 (gsub, features);
+  for (i = 0; i < features; i++)
+    append_uint16 (gsub, i);
+
+  /* FeatureList: F records that all point at one Feature selecting lookup 0 */
+  append_uint16 (gsub, features);
+  for (i = 0; i < features; i++)
+  {
+    guint8 tag[4] = { 'f', '0' + i / 100 % 10, '0' + i / 10 % 10, '0' + i % 10 };
+    g_byte_array_append (gsub, tag, 4);
+    append_uint16 (gsub, 2 + 6 * features);
+  }
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 0);
+
+  /* LookupList: one AlternateSubstFormat1 lookup */
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 4);
+  append_uint16 (gsub, 3);
+  append_uint16 (gsub, 0);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 8);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 6 + 2 * covered_glyphs);
+  append_uint16 (gsub, covered_glyphs);
+  for (i = 0; i < covered_glyphs; i++)
+    append_uint16 (gsub, 6 + 2 * covered_glyphs + 10);
+  /* Coverage format 2: one range, glyphs 1..N */
+  append_uint16 (gsub, 2);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, 1);
+  append_uint16 (gsub, covered_glyphs);
+  append_uint16 (gsub, 0);
+  /* The shared AlternateSet: glyphs 1..M */
+  append_uint16 (gsub, alternates);
+  for (i = 1; i <= alternates; i++)
+    append_uint16 (gsub, i);
+
+  GByteArray *maxp = g_byte_array_new ();
+  append_uint16 (maxp, 0);
+  append_uint16 (maxp, 0x5000);
+  append_uint16 (maxp, MAX (covered_glyphs, alternates) + 1);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create ((const char *) gsub->data, gsub->len,
+				    HB_MEMORY_MODE_READONLY, gsub, (hb_destroy_func_t) g_byte_array_unref);
+  hb_face_builder_add_table (face, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) maxp->data, maxp->len,
+			 HB_MEMORY_MODE_READONLY, maxp, (hb_destroy_func_t) g_byte_array_unref);
+  hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+/* Test that a fan-out is recorded in full: 16 * 16 * 4 edges.  Reaching
+ * HB_DEPEND_MAX_EDGES takes seconds and gigabytes, too much for a test. */
+static void
+test_depend_edge_limit (void)
+{
+  hb_face_t *face = create_fanout_face (16, 16, 4);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  g_assert_nonnull (depend);
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 16, 0, NULL, NULL), ==, 16 * 4);
+  hb_tag_t layout_tag = HB_TAG ('f','0','0','3');
+  g_assert_true (find_dependency (depend, 16, 1, HB_TAG ('G','S','U','B'),
+				  &layout_tag, NULL));
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
+/* A face with a GSUB table of one lookup that substitutes each of glyphs
+ * 1..num_substs by the next glyph, enabled by num_features features whose
+ * tags are tag_step apart. */
+static hb_face_t *
+create_gsub_face (unsigned num_substs, unsigned num_features, hb_tag_t tag_step)
+{
+  unsigned script_list_size = 18 + num_features * 2;
+  unsigned feature_list_size = 2 + num_features * 6 + 6;
+  unsigned gsub_size = 10 + script_list_size + feature_list_size + 28;
+  unsigned char *gsub = (unsigned char *) g_malloc0 (gsub_size);
+  unsigned char *p = gsub;
+  unsigned char maxp[6] = {0x00, 0x00, 0x50, 0x00};
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob;
+
+#define PUT16(v) (*p++ = (unsigned char) ((v) >> 8), *p++ = (unsigned char) (v))
+#define PUT32(v) (PUT16 ((v) >> 16), PUT16 (v))
+  PUT16 (1); PUT16 (0); /* version */
+  PUT16 (10); /* scriptList */
+  PUT16 (10 + script_list_size); /* featureList */
+  PUT16 (10 + script_list_size + feature_list_size); /* lookupList */
+
+  PUT16 (1); PUT32 (HB_TAG ('D','F','L','T')); PUT16 (8); /* ScriptList */
+  PUT16 (4); PUT16 (0); /* Script: defaultLangSys, langSysCount */
+  PUT16 (0); PUT16 (0xFFFF); PUT16 (num_features); /* LangSys */
+  for (unsigned i = 0; i < num_features; i++)
+    PUT16 (i); /* featureIndex */
+
+  PUT16 (num_features); /* FeatureList */
+  for (unsigned i = 0; i < num_features; i++)
+  {
+    PUT32 (1 + i * tag_step); /* featureTag */
+    PUT16 (2 + num_features * 6); /* All share one Feature */
+  }
+  PUT16 (0); PUT16 (1); PUT16 (0); /* Feature: lookup 0 */
+
+  PUT16 (1); PUT16 (4); /* LookupList */
+  PUT16 (1); PUT16 (0); PUT16 (1); PUT16 (8); /* Lookup: type, flag, subtables */
+  PUT16 (1); PUT16 (6); PUT16 (1); /* SingleSubstFormat1: coverage, delta */
+  PUT16 (2); PUT16 (1); /* Coverage format, rangeCount */
+  PUT16 (1); PUT16 (num_substs); PUT16 (0);
+  g_assert_true (p == gsub + gsub_size);
+
+  p = maxp + 4;
+  PUT16 (num_substs + 2); /* numGlyphs */
+#undef PUT32
+#undef PUT16
+
+  blob = hb_blob_create ((const char *) gsub, gsub_size,
+			 HB_MEMORY_MODE_READONLY, gsub, g_free);
+  g_assert_true (hb_face_builder_add_table (face, HB_OT_TAG_GSUB, blob));
+  hb_blob_destroy (blob);
+
+  blob = hb_blob_create ((const char *) maxp, sizeof (maxp),
+			 HB_MEMORY_MODE_DUPLICATE, NULL, NULL);
+  g_assert_true (hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob));
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+/* Feature tags that differ in their high bits only must not land every
+ * edge of a lookup on the same slot of the edge deduplication table. */
+static void
+test_depend_gsub_high_bit_tags (void)
+{
+  hb_face_t *face = create_gsub_face (64, 2048, 1u << 20);
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  hb_tag_t tag = 1 + (2047u << 20);
+  g_assert_nonnull (depend);
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 64, 0, NULL, NULL), ==, 2048);
+  g_assert_true (find_dependency (depend, 64, 65, HB_OT_TAG_GSUB, &tag, NULL));
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
 
 int
 main (int argc, char **argv)
@@ -715,8 +1119,14 @@ main (int argc, char **argv)
   hb_test_add (test_depend_math);
   hb_test_add (test_depend_varc);
   hb_test_add (test_depend_gsub_formats);
+  hb_test_add (test_depend_feature_variations);
+  hb_test_add (test_depend_edge_limit);
+  hb_test_add (test_depend_gsub_high_bit_tags);
+  hb_test_add (test_depend_gsub_recursion_limit);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_depend_context_format6);
+  hb_test_add (test_depend_gsub_context_set_glyphs);
+  hb_test_add (test_depend_gsub_set_budget);
 #endif
 
   return hb_test_run ();

@@ -84,7 +84,7 @@ struct RearrangementSubtable
 	table (table_),
 	start (0), end (0) {}
 
-    HB_AAT_TRANSITION_INLINE
+    HB_ALWAYS_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -98,65 +98,69 @@ struct RearrangementSubtable
 	end = hb_min (buffer->idx + 1, buffer->len);
 
       if ((flags & Verb) && start < end)
+	perform_action (buffer, flags);
+    }
+
+    HB_NEVER_INLINE
+    void perform_action (hb_buffer_t *buffer, unsigned int flags)
+    {
+      /* The following map has two nibbles, for start-side
+       * and end-side. Values of 0,1,2 mean move that many
+       * to the other side. Value of 3 means move 2 and
+       * flip them. */
+      const unsigned char map[16] =
       {
-	/* The following map has two nibbles, for start-side
-	 * and end-side. Values of 0,1,2 mean move that many
-	 * to the other side. Value of 3 means move 2 and
-	 * flip them. */
-	const unsigned char map[16] =
+	0x00,	/* 0	no change */
+	0x10,	/* 1	Ax => xA */
+	0x01,	/* 2	xD => Dx */
+	0x11,	/* 3	AxD => DxA */
+	0x20,	/* 4	ABx => xAB */
+	0x30,	/* 5	ABx => xBA */
+	0x02,	/* 6	xCD => CDx */
+	0x03,	/* 7	xCD => DCx */
+	0x12,	/* 8	AxCD => CDxA */
+	0x13,	/* 9	AxCD => DCxA */
+	0x21,	/* 10	ABxD => DxAB */
+	0x31,	/* 11	ABxD => DxBA */
+	0x22,	/* 12	ABxCD => CDxAB */
+	0x32,	/* 13	ABxCD => CDxBA */
+	0x23,	/* 14	ABxCD => DCxAB */
+	0x33,	/* 15	ABxCD => DCxBA */
+      };
+
+      unsigned int m = map[flags & Verb];
+      unsigned int l = hb_min (2u, m >> 4);
+      unsigned int r = hb_min (2u, m & 0x0F);
+      bool reverse_l = 3 == (m >> 4);
+      bool reverse_r = 3 == (m & 0x0F);
+
+      if (end - start >= l + r && end-start <= HB_MAX_CONTEXT_LENGTH)
+      {
+	buffer->merge_clusters (start, hb_min (buffer->idx + 1, buffer->len));
+	buffer->merge_clusters (start, end);
+
+	hb_glyph_info_t *info = buffer->info;
+	hb_glyph_info_t buf[4];
+
+	hb_memcpy (buf, info + start, l * sizeof (buf[0]));
+	hb_memcpy (buf + 2, info + end - r, r * sizeof (buf[0]));
+
+	if (l != r)
+	  memmove (info + start + r, info + start + l, (end - start - l - r) * sizeof (buf[0]));
+
+	hb_memcpy (info + start, buf + 2, r * sizeof (buf[0]));
+	hb_memcpy (info + end - l, buf, l * sizeof (buf[0]));
+	if (reverse_l)
 	{
-	  0x00,	/* 0	no change */
-	  0x10,	/* 1	Ax => xA */
-	  0x01,	/* 2	xD => Dx */
-	  0x11,	/* 3	AxD => DxA */
-	  0x20,	/* 4	ABx => xAB */
-	  0x30,	/* 5	ABx => xBA */
-	  0x02,	/* 6	xCD => CDx */
-	  0x03,	/* 7	xCD => DCx */
-	  0x12,	/* 8	AxCD => CDxA */
-	  0x13,	/* 9	AxCD => DCxA */
-	  0x21,	/* 10	ABxD => DxAB */
-	  0x31,	/* 11	ABxD => DxBA */
-	  0x22,	/* 12	ABxCD => CDxAB */
-	  0x32,	/* 13	ABxCD => CDxBA */
-	  0x23,	/* 14	ABxCD => DCxAB */
-	  0x33,	/* 15	ABxCD => DCxBA */
-	};
-
-	unsigned int m = map[flags & Verb];
-	unsigned int l = hb_min (2u, m >> 4);
-	unsigned int r = hb_min (2u, m & 0x0F);
-	bool reverse_l = 3 == (m >> 4);
-	bool reverse_r = 3 == (m & 0x0F);
-
-	if (end - start >= l + r && end-start <= HB_MAX_CONTEXT_LENGTH)
+	  buf[0] = info[end - 1];
+	  info[end - 1] = info[end - 2];
+	  info[end - 2] = buf[0];
+	}
+	if (reverse_r)
 	{
-	  buffer->merge_clusters (start, hb_min (buffer->idx + 1, buffer->len));
-	  buffer->merge_clusters (start, end);
-
-	  hb_glyph_info_t *info = buffer->info;
-	  hb_glyph_info_t buf[4];
-
-	  hb_memcpy (buf, info + start, l * sizeof (buf[0]));
-	  hb_memcpy (buf + 2, info + end - r, r * sizeof (buf[0]));
-
-	  if (l != r)
-	    memmove (info + start + r, info + start + l, (end - start - l - r) * sizeof (buf[0]));
-
-	  hb_memcpy (info + start, buf + 2, r * sizeof (buf[0]));
-	  hb_memcpy (info + end - l, buf, l * sizeof (buf[0]));
-	  if (reverse_l)
-	  {
-	    buf[0] = info[end - 1];
-	    info[end - 1] = info[end - 2];
-	    info[end - 2] = buf[0];
-	  }
-	  if (reverse_r)
-	  {
-	    buf[0] = info[start];
-	    info[start] = info[start + 1];
-	    info[start + 1] = buf[0];
-	  }
+	  buf[0] = info[start];
+	  info[start] = info[start + 1];
+	  info[start + 1] = buf[0];
 	}
       }
     }
@@ -244,7 +248,7 @@ struct ContextualSubtable
 	mark (0),
 	subs (table+table->substitutionTables) {}
 
-    HB_AAT_TRANSITION_INLINE
+    HB_ALWAYS_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -254,6 +258,21 @@ struct ContextualSubtable
       if (buffer->idx == buffer->len && !mark_set)
 	return;
 
+      if (table->is_actionable (entry))
+	perform_action (buffer, driver, entry);
+
+      if (entry.flags & SetMark)
+      {
+	mark_set = true;
+	mark = buffer->idx;
+      }
+    }
+
+    HB_NEVER_INLINE
+    void perform_action (hb_buffer_t *buffer,
+			 StateTableDriver<Types, EntryData, Flags> *driver,
+			 const Entry<EntryData> &entry)
+    {
       const HBGlyphID16 *replacement;
 
       replacement = nullptr;
@@ -312,12 +331,6 @@ struct ContextualSubtable
       {
 	c->replace_glyph_inplace (idx, *replacement);
 	ret = true;
-      }
-
-      if (entry.flags & SetMark)
-      {
-	mark_set = true;
-	mark = buffer->idx;
       }
     }
 
@@ -492,7 +505,7 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    HB_AAT_TRANSITION_INLINE
+    HB_ALWAYS_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -509,84 +522,89 @@ struct LigatureSubtable
       }
 
       if (LigatureEntryT::performAction (entry))
+	perform_action (buffer, entry);
+    }
+
+    HB_NEVER_INLINE
+    void perform_action (hb_buffer_t *buffer,
+			 const Entry<EntryData> &entry)
+    {
+      DEBUG_MSG (APPLY, nullptr, "Perform action with %u", match_length);
+      unsigned int end = buffer->out_len;
+
+      if (unlikely (!match_length))
+	return;
+
+      if (buffer->idx >= buffer->len)
+	return; /* TODO Work on previous instead? */
+
+      unsigned int cursor = match_length;
+
+      unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
+      action_idx = Types::offsetToIndex (action_idx, table, ligAction.arrayZ);
+      const HBUINT32 *actionData = &ligAction[action_idx];
+
+      unsigned int ligature_idx = 0;
+      unsigned int action;
+      do
       {
-	DEBUG_MSG (APPLY, nullptr, "Perform action with %u", match_length);
-	unsigned int end = buffer->out_len;
-
-	if (unlikely (!match_length))
-	  return;
-
-	if (buffer->idx >= buffer->len)
-	  return; /* TODO Work on previous instead? */
-
-	unsigned int cursor = match_length;
-
-	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
-	action_idx = Types::offsetToIndex (action_idx, table, ligAction.arrayZ);
-	const HBUINT32 *actionData = &ligAction[action_idx];
-
-	unsigned int ligature_idx = 0;
-	unsigned int action;
-	do
+	if (unlikely (!cursor))
 	{
-	  if (unlikely (!cursor))
-	  {
-	    /* Stack underflow.  Clear the stack. */
-	    DEBUG_MSG (APPLY, nullptr, "Stack underflow");
-	    match_length = 0;
-	    break;
-	  }
-
-	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
-	  if (unlikely (!buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]))) return;
-
-	  if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
-	  hb_barrier ();
-	  action = *actionData;
-
-	  uint32_t uoffset = action & LigActionOffset;
-	  if (uoffset & 0x20000000)
-	    uoffset |= 0xC0000000; /* Sign-extend. */
-	  int32_t offset = (int32_t) uoffset;
-	  unsigned int component_idx = buffer->cur().codepoint + offset;
-	  component_idx = Types::wordOffsetToIndex (component_idx, table, component.arrayZ);
-	  const HBUINT16 &componentData = component[component_idx];
-	  if (unlikely (!componentData.sanitize (&c->sanitizer))) break;
-	  hb_barrier ();
-	  ligature_idx += componentData;
-
-	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
-		     bool (action & LigActionStore),
-		     bool (action & LigActionLast));
-	  if (action & (LigActionStore | LigActionLast))
-	  {
-	    ligature_idx = Types::offsetToIndex (ligature_idx, table, ligature.arrayZ);
-	    const HBGlyphID16 &ligatureData = ligature[ligature_idx];
-	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) break;
-	    hb_barrier ();
-	    hb_codepoint_t lig = ligatureData;
-
-	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
-	    if (unlikely (!c->replace_glyph (lig))) return;
-
-	    unsigned int lig_end = match_positions[(match_length - 1u) % ARRAY_LENGTH (match_positions)] + 1u;
-	    /* Now go and delete all subsequent components. */
-	    while (match_length - 1u > cursor)
-	    {
-	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
-	      if (unlikely (!buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]))) return;
-	      if (!c->delete_glyph ()) return;
-	    }
-
-	    if (unlikely (!buffer->move_to (lig_end))) return;
-	    buffer->merge_out_clusters (match_positions[cursor % ARRAY_LENGTH (match_positions)], buffer->out_len);
-	  }
-
-	  actionData++;
+	  /* Stack underflow.  Clear the stack. */
+	  DEBUG_MSG (APPLY, nullptr, "Stack underflow");
+	  match_length = 0;
+	  break;
 	}
-	while (!(action & LigActionLast));
-	if (unlikely (!buffer->move_to (end))) return;
+
+	DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
+	if (unlikely (!buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]))) return;
+
+	if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
+	hb_barrier ();
+	action = *actionData;
+
+	uint32_t uoffset = action & LigActionOffset;
+	if (uoffset & 0x20000000)
+	  uoffset |= 0xC0000000; /* Sign-extend. */
+	int32_t offset = (int32_t) uoffset;
+	unsigned int component_idx = buffer->cur().codepoint + offset;
+	component_idx = Types::wordOffsetToIndex (component_idx, table, component.arrayZ);
+	const HBUINT16 &componentData = component[component_idx];
+	if (unlikely (!componentData.sanitize (&c->sanitizer))) break;
+	hb_barrier ();
+	ligature_idx += componentData;
+
+	DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
+		   bool (action & LigActionStore),
+		   bool (action & LigActionLast));
+	if (action & (LigActionStore | LigActionLast))
+	{
+	  ligature_idx = Types::offsetToIndex (ligature_idx, table, ligature.arrayZ);
+	  const HBGlyphID16 &ligatureData = ligature[ligature_idx];
+	  if (unlikely (!ligatureData.sanitize (&c->sanitizer))) break;
+	  hb_barrier ();
+	  hb_codepoint_t lig = ligatureData;
+
+	  DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
+	  if (unlikely (!c->replace_glyph (lig))) return;
+
+	  unsigned int lig_end = match_positions[(match_length - 1u) % ARRAY_LENGTH (match_positions)] + 1u;
+	  /* Now go and delete all subsequent components. */
+	  while (match_length - 1u > cursor)
+	  {
+	    DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
+	    if (unlikely (!buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]))) return;
+	    if (!c->delete_glyph ()) return;
+	  }
+
+	  if (unlikely (!buffer->move_to (lig_end))) return;
+	  buffer->merge_out_clusters (match_positions[cursor % ARRAY_LENGTH (match_positions)], buffer->out_len);
+	}
+
+	actionData++;
       }
+      while (!(action & LigActionLast));
+      if (unlikely (!buffer->move_to (end))) return;
     }
 
     public:
@@ -790,10 +808,21 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    HB_AAT_TRANSITION_INLINE
+    HB_ALWAYS_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
+    {
+      if (entry.data.markedInsertIndex != 0xFFFF ||
+          entry.data.currentInsertIndex != 0xFFFF)
+	perform_action (buffer, entry);
+      else if (entry.flags & SetMark)
+	mark = buffer->out_len;
+    }
+
+    HB_NEVER_INLINE
+    void perform_action (hb_buffer_t *buffer,
+			 const Entry<EntryData> &entry)
     {
       unsigned int flags = entry.flags;
 
@@ -1240,9 +1269,6 @@ struct Chain
 		bool (coverage & ChainSubtable<Types>::Backwards) :
 		bool (coverage & ChainSubtable<Types>::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
-
-      if (unlikely (!c->charge_buffer_pass ()))
-	break;
 
       if (!c->buffer->message (c->font, "start chainsubtable %u", c->lookup_index))
 	goto skip;

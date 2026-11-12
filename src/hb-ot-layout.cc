@@ -410,26 +410,6 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
  * GSUB/GPOS
  */
 
-bool
-GSUB::is_blocklisted (hb_blob_t *blob HB_UNUSED,
-			  hb_face_t *face) const
-{
-#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
-  return false;
-#endif
-  return false;
-}
-
-bool
-GPOS::is_blocklisted (hb_blob_t *blob HB_UNUSED,
-			  hb_face_t *face HB_UNUSED) const
-{
-#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
-  return false;
-#endif
-  return false;
-}
-
 static const OT::GSUBGPOS&
 get_gsubgpos_table (hb_face_t *face,
 		    hb_tag_t   table_tag)
@@ -1539,6 +1519,23 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
   return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
 }
 
+/* Like hb_ot_layout_feature_with_variations_get_lookups(), but resolves the
+ * feature only once and returns all of its lookup indices.  Resolving a feature
+ * under a FeatureVariations record is a linear search of the record's
+ * FeatureTableSubstitution, so callers must not page through the lookups. */
+hb_array_t<const OT::Index>
+_hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
+						   hb_tag_t      table_tag,
+						   unsigned int  feature_index,
+						   unsigned int  variations_index)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  const OT::Feature &f = g.get_feature_variation (feature_index, variations_index);
+
+  return f.lookupIndex.as_array ();
+}
+
 
 /*
  * OT::GSUB
@@ -2023,7 +2020,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
   }
-  while ((int) buffer->idx >= 0);
+  while ((int) buffer->idx >= 0 && buffer->successful);
   return ret;
 }
 
@@ -2037,6 +2034,19 @@ apply_string (OT::hb_ot_apply_context_t *c,
 
   if (unlikely (!buffer->len || !c->lookup_mask))
     return false;
+
+  /* Lookups can share subtables, features can share lookups, each stage
+   * applies its lookups anew, and an earlier lookup can grow the buffer far
+   * beyond the text the budget was sized for.  Charge each pass for walking
+   * the buffer, even if it applies at no glyph.  Skipping a glyph is cheap,
+   * hence the division; applying at one is charged only through the buffer
+   * operations and nested lookups it does. */
+  buffer->max_ops -= buffer->len / 16;
+  if (unlikely (buffer->max_ops < 0))
+  {
+    buffer->successful = false;
+    return false;
+  }
 
   bool ret = false;
 
@@ -2083,7 +2093,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
     const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->last_lookup; i++)
+    for (; i < stage->last_lookup && buffer->successful; i++)
     {
       auto &lookup = lookups[table_index][i];
 
@@ -2852,8 +2862,8 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
 /**
  * hb_ot_layout_get_extender_glyphs:
  * @face: The #hb_face_t to work on
- * @script: a script tag to get extender glyphs for.
- * @language: a language tag, currently unused.
+ * @script: the script to get extender glyphs for.
+ * @language: (nullable): the language, currently unused.
  * @start_offset: offset of the first extender glyph to retrieve
  * @glyphs_count: (inout) (nullable): Input = the maximum number of extender glyphs to return;
  *                Output = the actual number of extender glyphs returned (may be zero).
@@ -2868,7 +2878,7 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
  * Only glyphs listed in the JSTF table are returned; clients can handle the
  * default tatweel glyph separately.
  *
- * Return value: Total number of extender glyphs for the given script tag.
+ * Return value: Total number of extender glyphs for the given script.
  *
  * XSince: REPLACEME
  */

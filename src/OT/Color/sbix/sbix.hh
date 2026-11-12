@@ -220,6 +220,8 @@ struct sbix
     }
     ~accelerator_t () { table.destroy (); }
 
+    hb_blob_ptr_t<sbix> borrow_sanitized_table () const { return table; }
+
     bool has_data () const { return table->has_data (); }
 
     bool get_extents (hb_font_t          *font,

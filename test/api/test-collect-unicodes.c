@@ -108,6 +108,71 @@ test_collect_unicodes_format4_with_range_offsets_and_deltas (void)
 }
 
 static void
+test_collect_unicodes_format4_overlapping_segments (void)
+{
+  /* Segments overlap and one lies entirely inside an earlier one; each
+   * codepoint must be collected once, from the first segment covering it. */
+  const char cmap_data[60] = {
+    0, 0, 0, 1,		      /* cmap header */
+    0, 0, 0, 3, 0, 0, 0, 12,  /* encoding records */
+    /* cmap 4 */
+    0, 4,          /* format */
+    0, 48,         /* length */
+    0, 0,          /* lang */
+    0, 8,          /* segcountx2 */
+    0, 0,          /* search range */
+    0, 0,          /* entry selector */
+    0, 0,          /* range shift */
+    0, 0x45,       /* end code [0] */
+    0, 0x47,       /* end code [1] */
+    0, 0x47,       /* end code [2] */
+    -1, -1,        /* end code [3] */
+    0, 0,          /* pad */
+    0, 0x41,       /* start code [0] */
+    0, 0x43,       /* start code [1] */
+    0, 0x40,       /* start code [2] */
+    -1, -1,        /* start code [3] */
+    0, 0,          /* id delta [0] */
+    1, 0,          /* id delta [1] */
+    2, 0,          /* id delta [2] */
+    0, 1,          /* id delta [3] */
+    0, 0,          /* id range offset [0] */
+    0, 0,          /* id range offset [1] */
+    0, 0,          /* id range offset [2] */
+    0, 0,          /* id range offset [3] */
+  };
+
+  hb_blob_t* cmap = hb_blob_create(cmap_data, 60, HB_MEMORY_MODE_READONLY, 0, 0);
+  hb_face_t* face = hb_face_builder_create();
+  hb_face_builder_add_table(face, HB_TAG('c', 'm', 'a', 'p'), cmap);
+  hb_blob_destroy(cmap);
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_map_t *mapping = hb_map_create();
+  hb_codepoint_t cp;
+
+  hb_face_collect_unicodes (face, codepoints);
+
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 7);
+  g_assert_cmpuint (hb_set_get_min (codepoints), ==, 0x41);
+  g_assert_cmpuint (hb_set_get_max (codepoints), ==, 0x47);
+
+  hb_set_clear(codepoints);
+  hb_face_collect_nominal_glyph_mapping(face, mapping, codepoints);
+
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 7);
+  g_assert_cmpuint (hb_map_get_population (mapping), ==, 7);
+  for (cp = 0x41; cp <= 0x45; cp++)
+    g_assert_cmpuint (hb_map_get(mapping, cp), ==, cp);
+  g_assert_cmpuint (hb_map_get(mapping, 0x46), ==, 0x146);
+  g_assert_cmpuint (hb_map_get(mapping, 0x47), ==, 0x147);
+
+  hb_map_destroy(mapping);
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static void
 test_collect_unicodes_format12_notdef (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cmunrm.otf");
@@ -146,6 +211,85 @@ test_collect_unicodes_format12 (void)
   g_assert_cmpuint (0x63, ==, cp);
   g_assert_true (!hb_set_next (codepoints, &cp));
 
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static hb_face_t *
+face_with_long_segmented_cmap (unsigned format, unsigned num_glyphs)
+{
+  /* One (3,10) cmap subtable with a single group U+0041..U+0045 -> glyph 1. */
+  const char data[40] = {
+    0, 0, 0, 1,                 /* cmap header */
+    0, 3, 0, 10, 0, 0, 0, 12,   /* encoding record */
+    0, (char) format,           /* format */
+    0, 0,                       /* reserved */
+    0, 0, 0, 28,                /* length */
+    0, 0, 0, 0,                 /* language */
+    0, 0, 0, 1,                 /* num groups */
+    0, 0, 0, 0x41,              /* start char code */
+    0, 0, 0, 0x45,              /* end char code */
+    0, 0, 0, 1,                 /* glyph id */
+  };
+
+  const char maxp[6] = { 0, 0, 0x50, 0, 0, (char) num_glyphs }; /* maxp 0.5 */
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (data, sizeof (data), HB_MEMORY_MODE_DUPLICATE, 0, 0);
+  hb_face_builder_add_table (face, HB_TAG ('c','m','a','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (maxp, sizeof (maxp), HB_MEMORY_MODE_DUPLICATE, 0, 0);
+  hb_face_builder_add_table (face, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+  return face;
+}
+
+static void
+test_collect_unicodes_format12_clamped (void)
+{
+  /* Glyph ids 1..5 with only 3 glyphs: only U+0041 (gid 1) and U+0042 (gid 2) are valid. */
+  hb_face_t *face = face_with_long_segmented_cmap (12, 3);
+  hb_set_t *codepoints = hb_set_create ();
+  hb_map_t *mapping = hb_map_create ();
+
+  hb_face_collect_unicodes (face, codepoints);
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 2);
+  g_assert_true (hb_set_has (codepoints, 0x41));
+  g_assert_true (hb_set_has (codepoints, 0x42));
+
+  hb_set_clear (codepoints);
+  hb_face_collect_nominal_glyph_mapping (face, mapping, codepoints);
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 2);
+  g_assert_cmpuint (hb_map_get_population (mapping), ==, 2);
+  g_assert_cmpuint (hb_map_get (mapping, 0x41), ==, 1);
+  g_assert_cmpuint (hb_map_get (mapping, 0x42), ==, 2);
+
+  hb_map_destroy (mapping);
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static void
+test_collect_unicodes_format13 (void)
+{
+  /* Format 13 maps every code point of the group to glyph 1, which exists. */
+  hb_face_t *face = face_with_long_segmented_cmap (13, 2);
+  hb_set_t *codepoints = hb_set_create ();
+  hb_map_t *mapping = hb_map_create ();
+
+  hb_face_collect_unicodes (face, codepoints);
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 5);
+  g_assert_cmpuint (hb_set_get_min (codepoints), ==, 0x41);
+  g_assert_cmpuint (hb_set_get_max (codepoints), ==, 0x45);
+
+  hb_set_clear (codepoints);
+  hb_face_collect_nominal_glyph_mapping (face, mapping, codepoints);
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 5);
+  g_assert_cmpuint (hb_map_get_population (mapping), ==, 5);
+  for (hb_codepoint_t u = 0x41; u <= 0x45; u++)
+    g_assert_cmpuint (hb_map_get (mapping, u), ==, 1);
+
+  hb_map_destroy (mapping);
   hb_set_destroy (codepoints);
   hb_face_destroy (face);
 }
@@ -193,7 +337,10 @@ main (int argc, char **argv)
   hb_test_add (test_collect_unicodes_format4);
   hb_test_add (test_collect_unicodes_format12);
   hb_test_add (test_collect_unicodes_format12_notdef);
+  hb_test_add (test_collect_unicodes_format12_clamped);
+  hb_test_add (test_collect_unicodes_format13);
   hb_test_add (test_collect_unicodes_format4_with_range_offsets_and_deltas);
+  hb_test_add (test_collect_unicodes_format4_overlapping_segments);
 
   return hb_test_run();
 }

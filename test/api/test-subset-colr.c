@@ -876,6 +876,127 @@ test_subset_colr_shared_layers (void)
   hb_face_destroy (face);
 }
 
+static void
+check_colr_phantom_rows (hb_face_t *face, bool variable)
+{
+  hb_blob_t *blob = hb_face_reference_table (face, HB_TAG ('C','O','L','R'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, >=, 34);
+  unsigned list = read_uint_be (data + 14, 4);
+  g_assert_cmpuint (list + 10, <=, length);
+  g_assert_cmpuint (read_uint_be (data + list, 4), ==, 1);
+  unsigned paint = list + read_uint_be (data + list + 6, 4);
+  g_assert_cmpuint (paint + 16, <=, length);
+  g_assert_cmpuint (data[paint], ==, variable ? 5 : 4);
+  unsigned line = paint + read_uint_be (data + paint + 1, 3);
+  unsigned stride = variable ? 10 : 6;
+  g_assert_cmpuint (line + 3 + 3 * stride, <=, length);
+  g_assert_cmpuint (read_uint_be (data + line + 1, 2), ==, 3);
+  for (unsigned stop = 0; stop < 3; stop++)
+  {
+    unsigned at = line + 3 + stop * stride;
+    /* Only the first stop names rows the store has; the others keep
+     * their runtime meaning of no variation. */
+    unsigned offset = stop * 8192, alpha = 16384;
+    if (!variable && !stop)
+    {
+      offset = 1024;
+      alpha = 14336;
+    }
+    g_assert_cmpuint (read_uint_be (data + at, 2), ==, offset);
+    g_assert_cmpuint (read_uint_be (data + at + 2, 2), ==, stop % 2);
+    g_assert_cmpuint (read_uint_be (data + at + 4, 2), ==, alpha);
+    if (variable)
+      g_assert_cmpuint (read_uint_be (data + at + 6, 4), ==, stop ? 0xFFFFFFFFu : 0);
+  }
+  unsigned store = read_uint_be (data + 30, 4);
+  if (!variable)
+    g_assert_cmpuint (store, ==, 0);
+  else
+  {
+    g_assert_cmpuint (store + 12, <=, length);
+    g_assert_cmpuint (read_uint_be (data + store + 6, 2), ==, 1);
+    unsigned var_data = store + read_uint_be (data + store + 8, 4);
+    g_assert_cmpuint (var_data + 6, <=, length);
+    /* No rows are invented for the stops the source store doesn't cover. */
+    g_assert_cmpuint (read_uint_be (data + var_data, 2), ==, 2);
+  }
+  hb_blob_destroy (blob);
+}
+
+static void
+test_subset_colr_phantom_rows (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-phantom-rows.ttf");
+  for (unsigned mode = 0; mode < 3; mode++)
+  {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add_range (hb_subset_input_glyph_set (input), 0, 1);
+    if (mode == 1)
+      g_assert_true (hb_subset_input_set_axis_range (input, face, HB_TAG ('w','g','h','t'), 0, 0.5f, 0));
+    if (mode == 2)
+      g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 1));
+    hb_face_t *subset = hb_subset_test_create_subset (face, input);
+    check_colr_phantom_rows (subset, mode != 2);
+    hb_face_destroy (subset);
+  }
+  hb_face_destroy (face);
+}
+
+static hb_face_t *
+subset_overlapping_palettes (unsigned num_palettes)
+{
+  /* Glyph 1 uses all 300 colors. Palette i starts at color record i. */
+  const char maxp_data[] = {0, 0, 0x50, 0, 0, 3};
+  char colr_data[14 + 6 + 300 * 4] = {0, 0, 0, 1, 0, 0, 0, 14, 0, 0, 0, 20, 300 >> 8, 300 & 0xFF,
+				      0, 1, 0, 0, 300 >> 8, 300 & 0xFF};
+  char cpal_data[12 + 300 * 2 + 600 * 4] = {0, 0, 300 >> 8, 300 & 0xFF, 0, 0, 600 >> 8, 600 & 0xFF,
+					    0, 0, 612 >> 8, 612 & 0xFF};
+  cpal_data[4] = (char) (num_palettes >> 8);
+  cpal_data[5] = (char) (num_palettes & 0xFF);
+  for (unsigned i = 0; i < 300; i++)
+  {
+    colr_data[20 + i * 4 + 1] = 2;
+    colr_data[20 + i * 4 + 2] = cpal_data[12 + i * 2] = (char) (i >> 8);
+    colr_data[20 + i * 4 + 3] = cpal_data[12 + i * 2 + 1] = (char) (i & 0xFF);
+  }
+  for (unsigned i = 0; i < 600; i++)
+  {
+    cpal_data[612 + i * 4] = (char) (i >> 8);
+    cpal_data[612 + i * 4 + 1] = (char) (i & 0xFF);
+  }
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
+  HB_FACE_ADD_TABLE (face, "COLR", colr_data);
+  HB_FACE_ADD_TABLE (face, "CPAL", cpal_data);
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_glyph_set (input), 1);
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+  return subset;
+}
+
+static void
+test_subset_cpal_overlapping_palettes (void)
+{
+  /* Each palette gets its own color records, of which there can be 65535. */
+  hb_face_t *subset = subset_overlapping_palettes (218);
+  g_assert_nonnull (subset);
+  hb_blob_t *blob = hb_face_reference_table (subset, HB_TAG ('C','P','A','L'));
+  unsigned length;
+  const unsigned char *data = (const unsigned char *) hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, ==, 12 + 218 * 2 + 218 * 300 * 4);
+  g_assert_cmpuint (read_uint_be (data + 6, 2), ==, 218 * 300);
+  hb_blob_destroy (blob);
+  hb_face_destroy (subset);
+
+  g_assert_null (subset_overlapping_palettes (219));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -896,6 +1017,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_colr_var_overflow);
   hb_test_add (test_subset_colr_layers_out_of_range);
   hb_test_add (test_subset_colr_shared_layers);
+  hb_test_add (test_subset_colr_phantom_rows);
+  hb_test_add (test_subset_cpal_overlapping_palettes);
 
   return hb_test_run();
 }

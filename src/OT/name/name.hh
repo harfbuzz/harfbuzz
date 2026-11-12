@@ -519,6 +519,8 @@ struct name
       this->table.destroy ();
     }
 
+    hb_blob_ptr_t<name> borrow_sanitized_table () const { return table; }
+
     int get_index (hb_ot_name_id_t  name_id,
 		   hb_language_t    language,
 		   unsigned int    *width=nullptr) const

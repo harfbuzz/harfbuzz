@@ -199,7 +199,7 @@ struct hb_bit_set_t
 
   /* Duplicated here from hb-machinery.hh to avoid including it. */
   template<typename Type>
-  static inline const Type& StructAtOffsetUnaligned(const void *P, unsigned int offset)
+  static const Type& StructAtOffsetUnaligned(const void *P, unsigned int offset)
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
@@ -1056,6 +1056,7 @@ struct hb_bit_set_t
   }
 
   bool has_population () const { return population != UINT_MAX; }
+  unsigned int get_page_count () const { return pages.length; }
   unsigned int get_population () const
   {
     if (has_population ())

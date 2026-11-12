@@ -388,6 +388,92 @@ test_push_pop_after_overflow ()
   hb_always_assert (!s.in_error ());
 }
 
+static void
+check_delta_set_index_map (unsigned count, unsigned expected_format)
+{
+  struct plan_t
+  {
+    unsigned get_width () const { return 2; }
+    unsigned get_inner_bit_count () const { return 16; }
+    hb_array_t<const uint32_t> get_output_map () const { return output_map.as_array (); }
+
+    hb_vector_t<uint32_t> output_map;
+  } plan;
+
+  hb_always_assert (plan.output_map.resize (count));
+  for (unsigned i = 0; i < count; i++)
+    plan.output_map.arrayZ[i] = i & 0xFFFF;
+  /* Give the last entry a value no other entry has. */
+  plan.output_map.arrayZ[count - 1] = 0xBEEF;
+
+  unsigned count_size = expected_format ? OT::HBUINT32::static_size : OT::HBUINT16::static_size;
+  unsigned size = 2 + count_size + 2 * count;
+  hb_vector_t<char> buf;
+  hb_always_assert (buf.resize (size));
+
+  hb_serialize_context_t s (buf.arrayZ, buf.length);
+  auto *map = s.start_serialize<OT::DeltaSetIndexMap> ();
+  hb_always_assert (map->serialize (&s, plan));
+  s.end_serialize ();
+  hb_always_assert (!s.in_error ());
+
+  hb_bytes_t bytes = s.copy_bytes ();
+  hb_always_assert (bytes.length == size);
+  hb_always_assert ((unsigned) bytes.arrayZ[0] == expected_format);
+
+  const OT::DeltaSetIndexMap *result =
+      reinterpret_cast<const OT::DeltaSetIndexMap *> (bytes.arrayZ);
+  hb_always_assert (result->get_map_count () == count);
+  hb_always_assert (result->map (0) == 0);
+  hb_always_assert (result->map (1) == 1);
+  hb_always_assert (result->map (count - 2) == ((count - 2) & 0xFFFF));
+  hb_always_assert (result->map (count - 1) == 0xBEEF);
+  bytes.fini ();
+}
+
+static void
+test_delta_set_index_map_format1 ()
+{
+  check_delta_set_index_map (65535, 0);
+  check_delta_set_index_map (65536, 1);
+  check_delta_set_index_map (65537, 1);
+
+  struct plan_t
+  {
+    unsigned get_width () const { return 2; }
+    unsigned get_inner_bit_count () const { return 16; }
+    hb_array_t<const uint32_t> get_output_map () const { return output_map.as_array (); }
+
+    hb_vector_t<uint32_t> output_map;
+  } plan;
+
+  hb_always_assert (plan.output_map.resize (3));
+  for (unsigned i = 0; i < plan.output_map.length; i++)
+    plan.output_map.arrayZ[i] = i;
+
+  char small_buf[16];
+  hb_serialize_context_t s0 (small_buf, sizeof (small_buf));
+  auto *map0 = s0.start_serialize<OT::DeltaSetIndexMap> ();
+  hb_always_assert (map0->serialize (&s0, plan));
+  s0.end_serialize ();
+  hb_always_assert (!s0.in_error ());
+
+  hb_bytes_t bytes0 = s0.copy_bytes ();
+  static const unsigned char expected[] = {
+    0, 0x1F,                    /* format, entryFormat */
+    0, 3,                       /* mapCount */
+    0, 0, 0, 1, 0, 2,           /* mapData */
+  };
+  hb_always_assert (bytes0.length == sizeof (expected));
+  hb_always_assert (!hb_memcmp (bytes0.arrayZ, expected, sizeof (expected)));
+
+  const OT::DeltaSetIndexMap *result0 =
+      reinterpret_cast<const OT::DeltaSetIndexMap *> (bytes0.arrayZ);
+  hb_always_assert (result0->get_map_count () == 3);
+  hb_always_assert (result0->map (2) == 2);
+  bytes0.fini ();
+}
+
 int
 main (int argc, char **argv)
 {
@@ -400,6 +486,7 @@ main (int argc, char **argv)
   test_device_only_value ();
   test_failed_class_mapping ();
   test_push_pop_after_overflow ();
+  test_delta_set_index_map_format1 ();
 
   char buf[16384];
 

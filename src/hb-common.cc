@@ -175,6 +175,9 @@ static const char canon_map[256] = {
   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z',  0,   0,   0,   0,   0
 };
 
+/* hb_language_from_string() truncates strings with explicit length to this. */
+#define LANG_MAX_LEN 63
+
 static bool
 lang_equal (hb_language_t  v1,
 	    const void    *v2)
@@ -237,17 +240,10 @@ struct hb_language_item_t {
 /* Thread-safe lockfree language list */
 
 static hb_atomic_t<hb_language_item_t *> langs;
-/* One-entry cache of the most recently returned language, so that repeated
- * lookups of the same tag (the common case: every run of a mostly-one-language
- * document) return without walking the whole list.  Interned languages are
- * never freed, so a cached pointer stays valid; a stale or raced read just
- * falls through to the list scan below. */
-static hb_atomic_t<hb_language_item_t *> last_found_lang;
 
 static inline void
 free_langs ()
 {
-  last_found_lang.set_relaxed (nullptr);
 retry:
   hb_language_item_t *first_lang = langs;
   if (unlikely (!langs.cmpexch (first_lang, nullptr)))
@@ -264,21 +260,12 @@ retry:
 static hb_language_item_t *
 lang_find_or_insert (const char *key)
 {
-  /* Fast path: the most recently returned language.  Repeated lookups of the
-   * same tag hit here without walking the list. */
-  hb_language_item_t *cached = last_found_lang.get_acquire ();
-  if (cached && *cached == key)
-    return cached;
-
 retry:
   hb_language_item_t *first_lang = langs;
 
   for (hb_language_item_t *lang = first_lang; lang; lang = lang->next)
     if (*lang == key)
-    {
-      last_found_lang.set_release (lang);
       return lang;
-    }
 
   /* Not found; allocate one. */
   hb_language_item_t *lang = (hb_language_item_t *) hb_calloc (1, sizeof (hb_language_item_t));
@@ -302,7 +289,6 @@ retry:
   if (!first_lang)
     hb_atexit (free_langs); /* First person registers atexit() callback. */
 
-  last_found_lang.set_release (lang);
   return lang;
 }
 
@@ -331,7 +317,7 @@ hb_language_from_string (const char *str, int len)
   if (len >= 0)
   {
     /* NUL-terminate it. */
-    char strbuf[64];
+    char strbuf[LANG_MAX_LEN + 1];
     len = hb_min (len, (int) sizeof (strbuf) - 1);
     hb_memcpy (strbuf, str, len);
     strbuf[len] = '\0';
@@ -425,6 +411,27 @@ hb_language_matches (hb_language_t language,
 
   return strncmp (l, s, ll) == 0 &&
 	 (s[ll] == '\0' || s[ll] == '-');
+}
+
+/* Returns hb_language_matches (hb_language_from_string (str, len), specific),
+ * without interning @str; hb_language_from_string() would add it to the
+ * process-wide list of languages forever. */
+bool
+hb_language_matches_string (const char    *str,
+			    unsigned int   len,
+			    hb_language_t  specific)
+{
+  if (!str || !len || !*str) return specific == HB_LANGUAGE_INVALID;
+  if (!specific) return false;
+
+  const unsigned char *p1 = (const unsigned char *) str;
+  const char *s = specific->s;
+  len = hb_min (len, (unsigned) LANG_MAX_LEN);
+  unsigned l = 0;
+  for (; l < len && canon_map[p1[l]]; l++)
+    if (canon_map[p1[l]] != s[l]) return false;
+
+  return s[l] == '\0' || s[l] == '-';
 }
 
 

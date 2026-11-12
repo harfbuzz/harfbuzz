@@ -662,7 +662,7 @@ _cff1_charstring_may_end_in_seac (const hb_ubytes_t &str,
   return end >= 2 && str[end - 2] == OpCode_escape;
 }
 
-bool OT::cff1::accelerator_subset_t::get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const
+bool OT::cff1::accelerator_subset_t::get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent, int64_t *budget) const
 {
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
   /* seac uses StandardEncoding names and is not defined in CID-keyed fonts. */
@@ -674,7 +674,7 @@ bool OT::cff1::accelerator_subset_t::get_seac_components (hb_codepoint_t glyph, 
   cff1_cs_interp_env_t env (str, *this, fd);
   cff1_cs_interpreter_t<cff1_cs_opset_seac_t, get_seac_param_t> interp (env);
   get_seac_param_t  param (this);
-  if (unlikely (!interp.interpret (param))) return false;
+  if (unlikely (!interp.interpret (param, budget))) return false;
 
   if (param.has_seac ())
   {

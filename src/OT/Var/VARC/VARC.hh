@@ -221,6 +221,8 @@ struct VARC
       table.destroy ();
     }
 
+    hb_blob_ptr_t<VARC> borrow_sanitized_table () const { return table; }
+
     bool has_data () const { return table->has_data (); }
 
     bool

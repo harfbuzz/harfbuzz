@@ -132,23 +132,60 @@ struct ReverseChainSingleSubstFormat1_2
     hb_codepoint_t saved_context = c->depend_data->current_context_set_index;
     c->depend_data->current_context_set_index = context_set_idx;
 
-    + hb_zip (this+coverage, substitute)
-    | hb_filter (c->parent_active_glyphs (), hb_first)
-    | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
-    ;
+    auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
+    if (substitute.len > glyph_set.get_population () * 4)
+    {
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= substitute.len)
+	  continue;
+	c->depend_data->add_gsub_lookup (g, c->lookup_index, substitute.arrayZ[i]);
+      }
+    }
+    else
+    {
+      + hb_zip (cov, substitute)
+      | hb_filter (glyph_set, hb_first)
+      | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
+      ;
+    }
 
     c->depend_data->current_context_set_index = saved_context;
   }
 
   void closure (hb_closure_context_t *c) const
   {
-    if (!intersects (c->glyphs)) return;
-
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
 
-    + hb_zip (this+coverage, substitute)
-    | hb_filter (c->parent_active_glyphs (), hb_first)
+    if (unlikely (!c->spend_coverages (this, backtrack) ||
+		  !c->spend_coverages (this, lookahead)))
+      return;
+    if (!intersects (c->glyphs)) return;
+
+    auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
+    if (substitute.len > glyph_set.get_population () * 4)
+    {
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, glyph_set.get_population ()))) return;
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= substitute.len)
+	  continue;
+	c->output->add (substitute.arrayZ[i]);
+      }
+
+      return;
+    }
+
+    if (unlikely (!c->spend_budget (HB_BUDGET_1, substitute.len))) return;
+    + hb_zip (cov, substitute)
+    | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)
     | hb_sink (c->output)
     ;
@@ -184,6 +221,7 @@ struct ReverseChainSingleSubstFormat1_2
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur ().codepoint);
     if (index == NOT_COVERED) return_trace (false);
 

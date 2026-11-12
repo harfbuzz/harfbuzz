@@ -128,12 +128,6 @@ _hb_subset_repack (hb_tag_t tag, const hb_serialize_context_t& c)
   return result;
 }
 
-template <typename T>
-static HB_UNUSED auto _hb_do_destroy (T &t, hb_priority<1>) HB_RETURN (void, t.destroy ())
-
-template <typename T>
-static HB_UNUSED void _hb_do_destroy (T &t, hb_priority<0>) {}
-
 template<typename TableType>
 static bool
 _hb_subset_table (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
@@ -147,7 +141,6 @@ _hb_subset_table (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
   {
     DEBUG_MSG (SUBSET, nullptr,
                "OT::%c%c%c%c::subset sanitize failed on source table.", HB_UNTAG (tag));
-    _hb_do_destroy (source_blob, hb_prioritize);
     return false;
   }
 
@@ -157,7 +150,6 @@ _hb_subset_table (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
   if (unlikely (!buf.alloc (buf_size)))
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
-    _hb_do_destroy (source_blob, hb_prioritize);
     return false;
   }
 
@@ -167,7 +159,6 @@ _hb_subset_table (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
     hb_subset_context_t c (blob, plan, &serializer, tag);
     needed = _hb_subset_table_try (table, &buf, &c);
   }
-  _hb_do_destroy (source_blob, hb_prioritize);
 
   if (serializer.in_error () && !serializer.only_offset_overflow ())
   {

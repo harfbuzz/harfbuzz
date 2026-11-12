@@ -706,14 +706,12 @@ test_budget_sweep (void)
 {
   hb_raster_extents_t extents = {0, 0, 1, 1, 0};
 
-  /* 20,000 edges of 4,096 rows each. */
+  /* 20,000 edges of 4,096 rows each: over budget, so rendering fails. */
   hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
   for (unsigned i = 0; i < 10000; i++)
     draw_rect (rdr, 0.f, 0.f, 1.f, 4096.f);
   hb_raster_image_t *img = hb_raster_draw_render (rdr);
-  g_assert_nonnull (img);
-  g_assert_cmpint (pixel_at (img, 0, 0), ==, 0);
-  hb_raster_image_destroy (img);
+  g_assert_null (img);
 
   /* The same edges, clipped to one row. */
   hb_raster_draw_set_extents (rdr, &extents);

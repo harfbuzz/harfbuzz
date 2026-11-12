@@ -161,6 +161,8 @@ struct post
       table.destroy ();
     }
 
+    hb_blob_ptr_t<post> borrow_sanitized_table () const { return table; }
+
     bool get_glyph_name (hb_codepoint_t glyph,
 			 char *buf, unsigned int buf_len) const
     {

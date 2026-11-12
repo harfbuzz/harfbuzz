@@ -43,7 +43,6 @@ hb_subset_plan_t::layout_variation_delta (unsigned var_idx HB_UNUSED)
   hb_blob_ptr_t<OT::GDEF> gdef = source_table<OT::GDEF> ();
   double delta = gdef->get_var_store ().get_delta<double> (var_idx,
                                                 normalized_coords.as_array ());
-  gdef.destroy ();
   return delta;
 #else
   return 0.f;
@@ -58,13 +57,11 @@ remap_used_mark_sets (hb_subset_plan_t *plan,
 
   if (!gdef->has_data () || !gdef->has_mark_glyph_sets ())
   {
-    gdef.destroy ();
     return;
   }
 
   hb_set_t used_mark_sets;
   gdef->get_mark_glyph_sets ().collect_used_mark_sets (plan->_glyphset_gsub, used_mark_sets);
-  gdef.destroy ();
 
   remap_indexes (&used_mark_sets, &used_mark_sets_map);
 }
@@ -123,7 +120,6 @@ _collect_instanced_lookup_variations (
 	&variations_index,
 	&instancer,
 	&state);
-  gdef.destroy ();
 
   if (unlikely (!success || state.in_error ()))
     return plan->check_success (false);
@@ -206,7 +202,6 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
       plan->all_axes_pinned
     };
     table.collect_feature_substitutes_with_variations (&c);
-    gdef.destroy ();
   }
 #endif
 
@@ -465,8 +460,6 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
       catch_all_record_idx_feature_map.set (p.first, hb_pair (&f, tag));
     }
 #endif
-
-  table.destroy ();
 }
 
 void layout_nameid_closure (hb_subset_plan_t* plan,
@@ -480,7 +473,6 @@ void layout_nameid_closure (hb_subset_plan_t* plan,
                             plan->user_axes_location.is_empty () ? nullptr : &plan->gpos_feature_record_cond_idx_map,
                             &plan->gpos_old_features,
                             plan->all_axes_pinned);
-    gpos.destroy ();
   }
   if (!drop_tables->has (HB_OT_TAG_GSUB))
   {
@@ -490,7 +482,6 @@ void layout_nameid_closure (hb_subset_plan_t* plan,
                             plan->user_axes_location.is_empty () ? nullptr : &plan->gsub_feature_record_cond_idx_map,
                             &plan->gsub_old_features,
                             plan->all_axes_pinned);
-    gsub.destroy ();
   }
 }
 
@@ -537,9 +528,6 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
 
   if (!gdef->has_data () || !gdef->has_var_store ())
   {
-    gdef.destroy ();
-    gsub.destroy ();
-    gpos.destroy ();
     return;
   }
 
@@ -567,7 +555,6 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
     c.glyph_set = &plan->_glyphset_mathed;
     math->collect_variation_indices (&c, &plan->_glyphset_cmaped);
     c.glyph_set = glyph_set;
-    math.destroy ();
   }
 #endif
 
@@ -577,13 +564,8 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
                            plan->all_axes_pinned,
                            plan->layout_variation_idx_delta_map);
 
-  unsigned subtable_count = gdef->get_var_store ().get_sub_table_count ();
-  generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
+  generate_varstore_inner_maps (gdef->get_var_store (), varidx_set, plan->gdef_varstore_inner_maps);
   plan->check_success (!plan->layout_condition_values.in_error ());
-
-  gdef.destroy ();
-  gsub.destroy ();
-  gpos.destroy ();
 }
 #endif
 

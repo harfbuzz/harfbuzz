@@ -396,6 +396,115 @@ test_condition_delta_precision ()
 }
 
 static void
+test_multi_instancer_budget ()
+{
+  const char store_data[] =
+    "\x00\x01" "\x00\x00\x00\x0c" "\x00\x01" "\x00\x00\x00\x22" // Store
+    "\x00\x00\x00\x01" "\x00\x00\x00\x08" // SparseVarRegionList
+    "\x00\x01" "\x00\x00\x00\x06" // SparseVariationRegion
+    "\x00\x00" "\x00\x00" "\x40\x00" "\x40\x00" // SparseVarRegionAxis
+    "\x01" "\x00\x02" "\x00\x00" "\x00\x00" "\x00\x00\x00\x0b" // MultiVarData
+    "\x00\x00\x00\x01" "\x01" "\x01\x04" "\x01\x01\x02"; // TupleList
+  const auto &store = *reinterpret_cast<const OT::MultiItemVariationStore *> (store_data);
+  int coords[] = {16384};
+  OT::hb_scalar_cache_t static_cache;
+  auto *cache = store.create_cache (&static_cache);
+  hb_always_assert (cache == &static_cache);
+  int64_t budget = 9;
+  OT::MultiItemVarStoreInstancer instancer (&store, nullptr, hb_array (coords), cache, &budget);
+  // Each delta is charged per region listed by its MultiVarData, for the
+  // visit and for each value; and per axis of each region not cached yet.
+  hb_always_assert (instancer[0] == 3.);
+  hb_always_assert (budget == 4);
+  hb_always_assert (instancer[OT::VarIdx::NO_VARIATION] == 0.);
+  hb_always_assert (budget == 4);
+  hb_always_assert (instancer[0] == 3.);
+  hb_always_assert (budget == 0);
+  hb_always_assert (instancer[0] == 0.);
+  hb_always_assert (budget < 0);
+  OT::MultiItemVariationStore::destroy_cache (cache, &static_cache);
+}
+
+static void
+test_condition_budget ()
+{
+  static const unsigned char store_data[] = {
+    0, 1,  0, 0, 0, 12,  0, 1,  0, 0, 0, 26,	/* MultiItemVariationStore */
+    0, 0, 0, 2,  0, 0, 0, 12,  0, 0, 0, 12,	/* SparseVarRegionList */
+    0, 0,					/* SparseVariationRegion */
+    1,  0, 2,  0, 0,  0, 1,  0, 0, 0, 11,	/* MultiVarData */
+    0, 0, 0, 1,  1,  1, 4,  1, 1, 2,		/* TupleList */
+  };
+  static const unsigned char condition_data[] = {
+    0, 3,  3,  0, 0, 12,  0, 0, 12,  0, 0, 12,	/* ConditionAnd */
+    0, 2,  0xFF, 0xFE,  0, 0, 0, 0,		/* ConditionValue */
+  };
+  const auto &store = *reinterpret_cast<const OT::MultiItemVariationStore *> (store_data);
+  const auto &condition = *reinterpret_cast<const OT::Condition *> (condition_data);
+
+  OT::MultiItemVarStoreInstancer unbudgeted (&store, nullptr, hb_array_t<const int> ());
+  hb_always_assert (unbudgeted.get_condition_delta (0) == 3.);
+  hb_always_assert (condition.evaluate (nullptr, 0, &unbudgeted));
+
+  // Every node visited is charged one unit, even when the And's three
+  // children share one subtree; each value leaf fetches a delta charged per
+  // region its MultiVarData sums over ((1 + out.length) x 2 regions).
+  int64_t budget = 1 + 3 * (1 + (1 + 1) * 2);
+  OT::MultiItemVarStoreInstancer instancer (&store, nullptr, hb_array_t<const int> (), nullptr, &budget);
+  hb_always_assert (condition.evaluate (nullptr, 0, &instancer));
+  hb_always_assert (budget == 0);
+  hb_always_assert (!condition.evaluate (nullptr, 0, &instancer));
+  hb_always_assert (budget < 0);
+}
+
+static void
+test_repeated_region_index ()
+{
+  /* One axis, two regions, and a VarData whose region indices are {0, 1, 0}:
+   * the repeated region's two delta columns must be summed into one tuple. */
+  const char store_data[] =
+    "\x00\x01\x00\x00\x00\x0c\x00\x01\x00\x00\x00\x1c"	// ItemVariationStore
+    "\x00\x01\x00\x02"					// VarRegionList: 1 axis, 2 regions
+    "\x00\x00\x40\x00\x40\x00"				// region 0: (0, 1, 1)
+    "\xc0\x00\xc0\x00\x00\x00"				// region 1: (-1, -1, 0)
+    "\x00\x02\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00"	// VarData: 2 items, regions {0, 1, 0}
+    "\x01\x02\x03"					// item 0
+    "\x0a\x14\x1e";					// item 1
+  const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (store_data);
+  hb_map_t axis_map;
+  axis_map.set (0, HB_TAG ('T','E','S','T'));
+
+  hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> regions;
+  hb_always_assert (store.get_region_list ().get_var_regions (axis_map, regions));
+  OT::tuple_variations_t tuples;
+  unsigned item_count = 0, num_tuple_axes = 0;
+  hb_always_assert (tuples.create_from_item_var_data (store.get_sub_table (0), regions, axis_map,
+                                                      item_count, num_tuple_axes));
+  hb_always_assert (item_count == 2 && num_tuple_axes == 2);
+  hb_always_assert (tuples.tuple_vars.length == 2);
+  hb_always_assert (tuples.tuple_vars[0].deltas_x[0] == 4.f && tuples.tuple_vars[0].deltas_x[1] == 40.f);
+  hb_always_assert (tuples.tuple_vars[1].deltas_x[0] == 2.f && tuples.tuple_vars[1].deltas_x[1] == 20.f);
+
+  /* The region axes copied for one store are capped. */
+  OT::tuple_variations_t capped;
+  num_tuple_axes = HB_VARSTORE_MAX_TUPLE_AXES - 1;
+  hb_always_assert (!capped.create_from_item_var_data (store.get_sub_table (0), regions, axis_map,
+                                                       item_count, num_tuple_axes));
+
+  OT::item_variations_t item_vars;
+  hb_always_assert (item_vars.create_from_item_varstore (store, axis_map));
+  hb_hashmap_t<hb_tag_t, Triple> locations;
+  hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+  hb_always_assert (item_vars.instantiate_tuple_vars (locations, distances));
+  hb_always_assert (item_vars.as_item_varstore (false));
+  hb_always_assert (item_vars.get_region_list ().length == 2);
+  const auto &items = item_vars.get_vardata_encodings ()[0].items;
+  hb_always_assert (items.length == 2);
+  hb_always_assert ((*items[0])[0] == 4 && (*items[0])[1] == 2);
+  hb_always_assert ((*items[1])[0] == 40 && (*items[1])[1] == 20);
+}
+
+static void
 test_failed_encoding ()
 {
   hb_vector_t<int> row;
@@ -452,6 +561,61 @@ test_item_varstore_instancer_varidx_overflow ()
 }
 
 
+static void
+test_delta_matrix_limits ()
+{
+  const unsigned num_rows = 0xFFFFu;
+
+  /* One row using every region plus many rows using only the first one: the
+   * dense matrix is rows x regions while the store only pays for the deltas. */
+  const unsigned region_counts[] = {2, (unsigned) (HB_SUBSET_MAX_VARSTORE_DELTAS / num_rows) + 1};
+  for (unsigned num_regions : region_counts)
+  {
+    OT::item_variations_t item_vars;
+    unsigned wide = item_vars.add_vardata (1);
+    for (unsigned i = 0; i < num_regions; i++)
+    {
+      hb_hashmap_t<hb_tag_t, Triple> region;
+      region.set (HB_TAG ('T','E','S','T'), Triple (0, (i + 1.) / num_regions, 1));
+      item_vars.add_tuple (wide, std::move (region), 0, 1, 1);
+    }
+    unsigned tall = item_vars.add_vardata (num_rows);
+    hb_hashmap_t<hb_tag_t, Triple> region;
+    region.set (HB_TAG ('T','E','S','T'), Triple (0, 1. / num_regions, 1));
+    item_vars.add_tuple (tall, std::move (region), 0, 1, num_rows);
+    hb_always_assert (item_vars.build_region_list ());
+    hb_always_assert (item_vars.get_region_list ().length == num_regions);
+    hb_always_assert (item_vars.as_item_varstore () == (num_regions == 2));
+  }
+
+  /* Rows of a VarData without regions take no space in the font at all. */
+  OT::item_variations_t item_vars;
+  unsigned outer = item_vars.add_vardata (1);
+  item_vars.add_tuple (outer, hb_hashmap_t<hb_tag_t, Triple> (), 0, 1, 1);
+  for (unsigned i = 0; i < HB_SUBSET_MAX_VARSTORE_ROWS / num_rows + 1; i++)
+    item_vars.add_vardata (num_rows);
+  hb_always_assert (item_vars.build_region_list ());
+  hb_always_assert (!item_vars.as_item_varstore ());
+}
+
+static void
+test_tuple_split_budget ()
+{
+  /* A tent inside the new range with the new default on its slope splits
+   * into six, so the region below would become 6^16 tuples. */
+  hb_hashmap_t<hb_tag_t, Triple> region, locations;
+  hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+  for (unsigned i = 0; i < 16; i++)
+  {
+    region.set (HB_TAG ('A','A','A','A') + i, Triple (0.3, 0.5, 0.7));
+    locations.set (HB_TAG ('A','A','A','A') + i, Triple (0.2, 0.45, 0.8));
+  }
+  OT::item_variations_t item_vars;
+  unsigned outer = item_vars.add_vardata (1);
+  item_vars.add_tuple (outer, std::move (region), 0, 100, 1);
+  hb_always_assert (!item_vars.instantiate_tuple_vars (locations, distances));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -466,4 +630,9 @@ main (int argc, char **argv)
   test_failed_encoding ();
   test_accumulated_delta_widths ();
   test_condition_delta_precision ();
+  test_multi_instancer_budget ();
+  test_condition_budget ();
+  test_repeated_region_index ();
+  test_delta_matrix_limits ();
+  test_tuple_split_budget ();
 }

@@ -259,7 +259,7 @@ struct KerxSubTableFormat1
 	stack_pos (0),
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
-    HB_AAT_TRANSITION_INLINE
+    HB_ALWAYS_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -282,123 +282,128 @@ struct KerxSubTableFormat1
       }
 
       if (Format1EntryT::performAction (entry) && depth)
+	perform_action (buffer, entry);
+    }
+
+    HB_NEVER_INLINE
+    void perform_action (hb_buffer_t *buffer,
+			 const Entry<EntryData> &entry)
+    {
+      unsigned int tuple_count = hb_max (1u, table->header.tuple_count ());
+
+      unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
+      kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
+      const FWORD *actions = &kernAction[kern_idx];
+      if (!Types::extended && !c->sanitizer.check_array (actions, depth, tuple_count))
       {
-	unsigned int tuple_count = hb_max (1u, table->header.tuple_count ());
+	depth = 0;
+	return;
+      }
+      hb_barrier ();
 
-	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
-	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
-	const FWORD *actions = &kernAction[kern_idx];
-	if (!Types::extended && !c->sanitizer.check_array (actions, depth, tuple_count))
+      hb_mask_t kern_mask = c->plan->kern_mask;
+
+      /* Contrary to the kerx spec's destructive pops, CoreText retains an
+       * eight-slot circular history and walks it anew for each action list.
+       * See test/shape/data/in-house/tests/aat-kerx.tests for native cases. */
+      unsigned int cursor = stack_pos;
+      bool last = false;
+      while (!last && depth)
+      {
+	if (Types::extended)
 	{
-	  depth = 0;
-	  return;
+	  if (unlikely (buffer->max_ops-- <= 0))
+	  {
+	    buffer->successful = false;
+	    return;
+	  }
+	  if (!actions->sanitize (&c->sanitizer))
+	  {
+	    depth = 0;
+	    return;
+	  }
+	  hb_barrier ();
+	  /* kerx ends a list with a single 0xFFFF, without popping a glyph. */
+	  if (*actions == -1)
+	    break;
+	  if (tuple_count > 1 && !c->sanitizer.check_array (actions, 1, tuple_count))
+	  {
+	    depth = 0;
+	    return;
+	  }
+	  hb_barrier ();
 	}
-	hb_barrier ();
 
-	hb_mask_t kern_mask = c->plan->kern_mask;
-
-	/* Contrary to the kerx spec's destructive pops, CoreText retains an
-	 * eight-slot circular history and walks it anew for each action list.
-	 * See test/shape/data/in-house/tests/aat-kerx.tests for native cases. */
-	unsigned int cursor = stack_pos;
-	bool last = false;
-	while (!last && depth)
+	unsigned int idx;
+	if (Types::extended)
 	{
-	  if (Types::extended)
-	  {
-	    if (unlikely (buffer->max_ops-- <= 0))
-	    {
-	      buffer->successful = false;
-	      return;
-	    }
-	    if (!actions->sanitize (&c->sanitizer))
-	    {
-	      depth = 0;
-	      return;
-	    }
-	    hb_barrier ();
-	    /* kerx ends a list with a single 0xFFFF, without popping a glyph. */
-	    if (*actions == -1)
-	      break;
-	    if (tuple_count > 1 && !c->sanitizer.check_array (actions, 1, tuple_count))
-	    {
-	      depth = 0;
-	      return;
-	    }
-	    hb_barrier ();
-	  }
+	  cursor = (cursor + ARRAY_LENGTH (stack) - 1) % ARRAY_LENGTH (stack);
+	  idx = stack[cursor];
+	}
+	else
+	  idx = stack[--depth];
+	int v = *actions;
+	actions += tuple_count;
+	if (idx >= buffer->len) continue;
+	if (Types::extended)
+	  buffer->unsafe_to_break (idx, buffer->idx + 1);
 
-	  unsigned int idx;
-	  if (Types::extended)
-	  {
-	    cursor = (cursor + ARRAY_LENGTH (stack) - 1) % ARRAY_LENGTH (stack);
-	    idx = stack[cursor];
-	  }
-	  else
-	    idx = stack[--depth];
-	  int v = *actions;
-	  actions += tuple_count;
-	  if (idx >= buffer->len) continue;
-	  if (Types::extended)
-	    buffer->unsafe_to_break (idx, buffer->idx + 1);
+	/* kern uses the low bit of the final value as the list terminator. */
+	if (!Types::extended)
+	{
+	  last = v & 1;
+	  v &= ~1;
+	}
 
-	  /* kern uses the low bit of the final value as the list terminator. */
-	  if (!Types::extended)
-	  {
-	    last = v & 1;
-	    v &= ~1;
-	  }
+	hb_glyph_position_t &o = buffer->pos[idx];
 
-	  hb_glyph_position_t &o = buffer->pos[idx];
-
-	  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	{
+	  if (crossStream)
 	  {
-	    if (crossStream)
+	    /* The following flag is undocumented in the spec, but described
+	     * in the 'kern' table example. */
+	    if (v == -0x8000)
 	    {
-	      /* The following flag is undocumented in the spec, but described
-	       * in the 'kern' table example. */
-	      if (v == -0x8000)
-	      {
-		o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_NONE;
-		o.attach_chain() = 0;
-		o.y_offset = 0;
-	      }
-	      else if (o.attach_type())
-	      {
-		o.y_offset = hb_saturate_add (o.y_offset, c->font->em_scale_y (v));
-		buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
-	      }
+	      o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_NONE;
+	      o.attach_chain() = 0;
+	      o.y_offset = 0;
 	    }
-	    else if (buffer->info[idx].mask & kern_mask)
+	    else if (o.attach_type())
 	    {
-	      auto scaled = c->font->em_scale_x (v);
-	      o.x_advance = hb_saturate_add (o.x_advance, scaled);
-	      o.x_offset = hb_saturate_add (o.x_offset, scaled);
+	      o.y_offset = hb_saturate_add (o.y_offset, c->font->em_scale_y (v));
+	      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	    }
 	  }
-	  else
+	  else if (buffer->info[idx].mask & kern_mask)
 	  {
-	    if (crossStream)
+	    auto scaled = c->font->em_scale_x (v);
+	    o.x_advance = hb_saturate_add (o.x_advance, scaled);
+	    o.x_offset = hb_saturate_add (o.x_offset, scaled);
+	  }
+	}
+	else
+	{
+	  if (crossStream)
+	  {
+	    /* CoreText doesn't do crossStream kerning in vertical.  We do. */
+	    if (v == -0x8000)
 	    {
-	      /* CoreText doesn't do crossStream kerning in vertical.  We do. */
-	      if (v == -0x8000)
-	      {
-		o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_NONE;
-		o.attach_chain() = 0;
-		o.x_offset = 0;
-	      }
-	      else if (o.attach_type())
-	      {
-		o.x_offset = hb_saturate_add (o.x_offset, c->font->em_scale_x (v));
-		buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
-	      }
+	      o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_NONE;
+	      o.attach_chain() = 0;
+	      o.x_offset = 0;
 	    }
-	    else if (buffer->info[idx].mask & kern_mask)
+	    else if (o.attach_type())
 	    {
-	      auto scaled = c->font->em_scale_y (v);
-	      o.y_advance = hb_saturate_add (o.y_advance, scaled);
-	      o.y_offset = hb_saturate_add (o.y_offset, scaled);
+	      o.x_offset = hb_saturate_add (o.x_offset, c->font->em_scale_x (v));
+	      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	    }
+	  }
+	  else if (buffer->info[idx].mask & kern_mask)
+	  {
+	    auto scaled = c->font->em_scale_y (v);
+	    o.y_advance = hb_saturate_add (o.y_advance, scaled);
+	    o.y_offset = hb_saturate_add (o.y_offset, scaled);
 	  }
 	}
       }
@@ -595,109 +600,127 @@ struct KerxSubTableFormat4
 	mark_set (false),
 	mark (0) {}
 
-    HB_AAT_TRANSITION_INLINE
+    HB_ALWAYS_INLINE
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       if (mark_set && entry.data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
-      {
-	hb_glyph_position_t &o = buffer->cur_pos();
-	switch (action_type)
-	{
-	  case 0: /* Control Point Actions.*/
-	  {
-	    /* Indexed into glyph outline. */
-	    /* Each action (record in ankrData) contains two 16-bit fields, so we must
-	       double the ankrActionIndex to get the correct offset here. */
-	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
-	    if (!c->sanitizer.check_array (data, 2)) return;
-	    hb_barrier ();
-	    /* Font functions may load the whole glyph outline to find a contour
-	     * point, and a non-advancing transition can repeat that at will.
-	     * Charge the two lookups to the buffer's work budget. */
-	    if (unlikely ((buffer->max_ops -= 2 * HB_BUDGET_256) <= 0)) return;
-	    unsigned int markControlPoint = *data++;
-	    unsigned int currControlPoint = *data++;
-	    hb_position_t markX = 0;
-	    hb_position_t markY = 0;
-	    hb_position_t currX = 0;
-	    hb_position_t currY = 0;
-	    if (!c->font->get_glyph_contour_point_for_origin (c->buffer->info[mark].codepoint,
-							      markControlPoint,
-							      HB_DIRECTION_LTR /*XXX*/,
-							      &markX, &markY) ||
-		!c->font->get_glyph_contour_point_for_origin (c->buffer->cur ().codepoint,
-							      currControlPoint,
-							      HB_DIRECTION_LTR /*XXX*/,
-							      &currX, &currY))
-	      return;
-
-	    o.x_offset = hb_saturate_sub (markX, currX);
-	    o.y_offset = hb_saturate_sub (markY, currY);
-	  }
-	  break;
-
-	  case 1: /* Anchor Point Actions. */
-	  {
-	    /* Indexed into 'ankr' table. */
-	    /* Each action (record in ankrData) contains two 16-bit fields, so we must
-	       double the ankrActionIndex to get the correct offset here. */
-	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
-	    if (!c->sanitizer.check_array (data, 2)) return;
-	    hb_barrier ();
-	    unsigned int markAnchorPoint = *data++;
-	    unsigned int currAnchorPoint = *data++;
-	    const Anchor &markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
-								  markAnchorPoint,
-								  c->sanitizer.get_num_glyphs ());
-	    const Anchor &currAnchor = c->ankr_table->get_anchor (c->buffer->cur ().codepoint,
-								  currAnchorPoint,
-								  c->sanitizer.get_num_glyphs ());
-
-	    o.x_offset = hb_saturate_sub (c->font->em_scale_x (markAnchor.xCoordinate),
-					  c->font->em_scale_x (currAnchor.xCoordinate));
-	    o.y_offset = hb_saturate_sub (c->font->em_scale_y (markAnchor.yCoordinate),
-					  c->font->em_scale_y (currAnchor.yCoordinate));
-	  }
-	  break;
-
-	  case 2: /* Control Point Coordinate Actions. */
-	  {
-	    /* Each action contains four 16-bit fields, so we multiply the ankrActionIndex
-	       by 4 to get the correct offset for the given action. */
-	    const FWORD *data = (const FWORD *) &ankrData[entry.data.ankrActionIndex * 4];
-	    if (!c->sanitizer.check_array (data, 4)) return;
-	    hb_barrier ();
-	    int markX = *data++;
-	    int markY = *data++;
-	    int currX = *data++;
-	    int currY = *data++;
-
-	    o.x_offset = hb_saturate_sub (c->font->em_scale_x (markX), c->font->em_scale_x (currX));
-	    o.y_offset = hb_saturate_sub (c->font->em_scale_y (markY), c->font->em_scale_y (currY));
-	  }
-	  break;
-	}
-	hb_position_t base_offset = OT::Layout::GPOS_impl::resolve_cross_offset (buffer->pos, buffer->len, mark,
-										 buffer->props.direction,
-										 c->buffer_is_reversed);
-	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-	  o.y_offset = hb_saturate_add (o.y_offset, base_offset);
-	else
-	  o.x_offset = hb_saturate_add (o.x_offset, base_offset);
-	o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_MARK;
-	o.attach_chain() = (int) mark - (int) buffer->idx;
-	if (c->buffer_is_reversed)
-	  o.attach_chain() = -o.attach_chain();
-	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
-      }
+	if (unlikely (!perform_action (buffer, entry))) return;
 
       if (entry.flags & Mark)
       {
 	mark_set = true;
 	mark = buffer->idx;
       }
+    }
+
+    HB_NODISCARD
+    HB_NEVER_INLINE
+    bool perform_action (hb_buffer_t *buffer,
+			 const Entry<EntryData> &entry)
+    {
+      hb_glyph_position_t &o = buffer->cur_pos();
+
+      int attach_chain = (int) mark - (int) buffer->idx;
+      if (c->buffer_is_reversed)
+	attach_chain = -attach_chain;
+      if (unlikely (attach_chain != (int16_t) attach_chain))
+      {
+	/* The signed 16-bit attach_chain cannot reach that far; leave the
+	 * glyph unattached rather than attaching it to the wrong one, as
+	 * the GPOS mark and cursive paths do. */
+	o.attach_chain() = 0;
+	return true;
+      }
+
+      switch (action_type)
+      {
+	case 0: /* Control Point Actions.*/
+	{
+	  /* Indexed into glyph outline. */
+	  /* Each action (record in ankrData) contains two 16-bit fields, so we must
+	     double the ankrActionIndex to get the correct offset here. */
+	  const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
+	  if (!c->sanitizer.check_array (data, 2)) return false;
+	  hb_barrier ();
+	  /* Font functions may load the whole glyph outline to find a contour
+	   * point, and a non-advancing transition can repeat that at will.
+	   * Charge the two lookups to the buffer's work budget. */
+	  if (unlikely ((buffer->max_ops -= 2 * HB_BUDGET_256) <= 0)) return false;
+	  unsigned int markControlPoint = *data++;
+	  unsigned int currControlPoint = *data++;
+	  hb_position_t markX = 0;
+	  hb_position_t markY = 0;
+	  hb_position_t currX = 0;
+	  hb_position_t currY = 0;
+	  if (!c->font->get_glyph_contour_point_for_origin (c->buffer->info[mark].codepoint,
+							    markControlPoint,
+							    HB_DIRECTION_LTR /*XXX*/,
+							    &markX, &markY) ||
+	      !c->font->get_glyph_contour_point_for_origin (c->buffer->cur ().codepoint,
+							    currControlPoint,
+							    HB_DIRECTION_LTR /*XXX*/,
+							    &currX, &currY))
+	    return false;
+
+	  o.x_offset = hb_saturate_sub (markX, currX);
+	  o.y_offset = hb_saturate_sub (markY, currY);
+	}
+	break;
+
+	case 1: /* Anchor Point Actions. */
+	{
+	  /* Indexed into 'ankr' table. */
+	  /* Each action (record in ankrData) contains two 16-bit fields, so we must
+	     double the ankrActionIndex to get the correct offset here. */
+	  const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
+	  if (!c->sanitizer.check_array (data, 2)) return false;
+	  hb_barrier ();
+	  unsigned int markAnchorPoint = *data++;
+	  unsigned int currAnchorPoint = *data++;
+	  const Anchor &markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
+								markAnchorPoint,
+								c->sanitizer.get_num_glyphs ());
+	  const Anchor &currAnchor = c->ankr_table->get_anchor (c->buffer->cur ().codepoint,
+								currAnchorPoint,
+								c->sanitizer.get_num_glyphs ());
+
+	  o.x_offset = hb_saturate_sub (c->font->em_scale_x (markAnchor.xCoordinate),
+					c->font->em_scale_x (currAnchor.xCoordinate));
+	  o.y_offset = hb_saturate_sub (c->font->em_scale_y (markAnchor.yCoordinate),
+					c->font->em_scale_y (currAnchor.yCoordinate));
+	}
+	break;
+
+	case 2: /* Control Point Coordinate Actions. */
+	{
+	  /* Each action contains four 16-bit fields, so we multiply the ankrActionIndex
+	     by 4 to get the correct offset for the given action. */
+	  const FWORD *data = (const FWORD *) &ankrData[entry.data.ankrActionIndex * 4];
+	  if (!c->sanitizer.check_array (data, 4)) return false;
+	  hb_barrier ();
+	  int markX = *data++;
+	  int markY = *data++;
+	  int currX = *data++;
+	  int currY = *data++;
+
+	  o.x_offset = hb_saturate_sub (c->font->em_scale_x (markX), c->font->em_scale_x (currX));
+	  o.y_offset = hb_saturate_sub (c->font->em_scale_y (markY), c->font->em_scale_y (currY));
+	}
+	break;
+      }
+      hb_position_t base_offset = OT::Layout::GPOS_impl::resolve_cross_offset (buffer->pos, buffer->len, mark,
+									       buffer->props.direction,
+									       c->buffer_is_reversed);
+      if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	o.y_offset = hb_saturate_add (o.y_offset, base_offset);
+      else
+	o.x_offset = hb_saturate_add (o.x_offset, base_offset);
+      o.attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_MARK;
+      o.attach_chain() = attach_chain;
+      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+      return true;
     }
 
     public:
@@ -1090,9 +1113,6 @@ struct KerxTable
 
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
-
-      if (unlikely (!c->charge_buffer_pass ()))
-	break;
 
       if (!c->buffer->message (c->font, "start subtable %u", c->lookup_index))
 	goto skip;

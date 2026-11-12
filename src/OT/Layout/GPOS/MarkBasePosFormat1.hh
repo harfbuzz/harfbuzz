@@ -72,7 +72,7 @@ struct MarkBasePosFormat1_2
 
   const Coverage &get_coverage () const { return this+markCoverage; }
 
-  static inline bool accept (hb_buffer_t *buffer, unsigned idx)
+  static bool accept (hb_buffer_t *buffer, unsigned idx)
   {
     /* We only want to attach to the first of a MultipleSubst sequence.
      * https://github.com/harfbuzz/harfbuzz/issues/740
@@ -125,6 +125,16 @@ struct MarkBasePosFormat1_2
 	c->last_base = (signed) j - 1;
 	break;
       }
+    }
+    /* The cache above only amortizes the search while buffer->idx moves
+     * forward.  A (Chain)Context lookup recursing to us out-of-order
+     * resets it and we rescan from scratch; charge the work so that a
+     * font cannot do that unboundedly. */
+    buffer->max_ops -= buffer->idx - j;
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
+      return_trace (false);
     }
     c->last_base_until = buffer->idx;
     if (c->last_base == -1)

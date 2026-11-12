@@ -322,18 +322,14 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  static inline Offset16To<Device, ValueBase>& get_device (Value* value)
-  {
-    return *static_cast<Offset16To<Device, ValueBase> *> (value);
-  }
-  static inline const Offset16To<Device, ValueBase>& get_device (const Value* value)
-  {
-    return *static_cast<const Offset16To<Device, ValueBase> *> (value);
-  }
-  static inline const Device& get_device (const Value* value,
-					  bool *worked,
-					  const ValueBase *base,
-					  hb_sanitize_context_t &c)
+  static Offset16To<Device, ValueBase>& get_device (Value* value)
+  { return *static_cast<Offset16To<Device, ValueBase> *> (value); }
+  static const Offset16To<Device, ValueBase>& get_device (const Value* value)
+  { return *static_cast<const Offset16To<Device, ValueBase> *> (value); }
+  static const Device& get_device (const Value* value,
+				   bool *worked,
+				   const ValueBase *base,
+				   hb_sanitize_context_t &c)
   {
     if (worked) *worked |= bool (*value);
     auto &offset = *static_cast<const Offset16To<Device> *> (value);
@@ -386,7 +382,7 @@ struct ValueFormat : HBUINT16
     }
   }
 
-  static inline const HBINT16& get_short (const Value* value, bool *worked=nullptr)
+  static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
     return *reinterpret_cast<const HBINT16 *> (value);
@@ -418,6 +414,12 @@ struct ValueFormat : HBUINT16
     unsigned size = get_size ();
 
     if (!c->check_range (values, count, size)) return_trace (false);
+
+    /* Records of an empty ValueFormat take no bytes, so the range check
+     * neither bounds count nor charges for it, while later code (eg. the
+     * subsetter) still walks count records.  Manually modify the sanitizer
+     * max ops to take this into account. */
+    if (unlikely (!size && !c->check_ops (count))) return_trace (false);
 
     if (c->lazy_some_gpos)
       return_trace (true);

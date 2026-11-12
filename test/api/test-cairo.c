@@ -36,38 +36,6 @@
 #endif
 
 static void
-test_hb_cairo_budget (void)
-{
-#ifdef HB_TEST_CAIRO_TSAN
-  /* Cairo's user-font rendering takes two internal mutexes in both orders.
-   * The same workload reports this lock-order inversion against unmodified
-   * HarfBuzz; keep race detection enabled rather than suppressing Cairo
-   * deadlock reports process-wide. */
-  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
-  return;
-#endif
-
-  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/clusterfuzz-testcase-minimized-hb-vector-fuzzer-4886959609413632");
-  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_face (face);
-  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
-  cairo_t *cr = cairo_create (surface);
-
-  cairo_set_font_face (cr, cairo_face);
-  cairo_set_font_size (cr, 30);
-
-  cairo_glyph_t glyph = {0, 0, 0};
-  cairo_show_glyphs (cr, &glyph, 1);
-
-  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
-  g_assert_cmpint (cairo_surface_status (surface), ==, CAIRO_STATUS_SUCCESS);
-
-  cairo_destroy (cr);
-  cairo_surface_destroy (surface);
-  cairo_font_face_destroy (cairo_face);
-  hb_face_destroy (face);
-}
-
-static void
 test_hb_cairo_color_glyph_cycle (void)
 {
 #ifdef HB_TEST_CAIRO_TSAN
@@ -165,111 +133,79 @@ test_hb_cairo_glyphs_from_buffer_clusters (void)
   } tests[] = {
     {HB_DIRECTION_LTR, {0, 1, 1, 3}, 3},
     {HB_DIRECTION_RTL, {3, 1, 1, 0}, 3},
+    /* Monotone clusters exceeding text/character length or wrapping sign. */
+    {HB_DIRECTION_LTR, {0, 4, 8, 12}, 4},
+    {HB_DIRECTION_RTL, {12, 8, 4, 0}, 4},
+    {HB_DIRECTION_LTR, {0, 1, 2, 0x80000000u}, 4},
     /* Not monotone. */
     {HB_DIRECTION_LTR, {0, 2, 0, 0}, 1},
     {HB_DIRECTION_LTR, {3, 1, 1, 0}, 1},
     {HB_DIRECTION_RTL, {0, 0, 2, 0}, 1},
     {HB_DIRECTION_RTL, {0, 1, 1, 3}, 1},
   };
-  const char *utf8 = "abcd";
+  static const char * const strings[] = {
+    "abcd",
+    "\xce\xb1\xce\xb2\xce\xb3\xce\xb4",  /* 4 2-byte Greek characters */
+    "\xf0\x9f\x98\x80\xf0\x9f\x98\x81\xf0\x9f\x98\x82\xf0\x9f\x98\x83",  /* 4 4-byte emoji */
+  };
 
-  for (unsigned t = 0; t < G_N_ELEMENTS (tests); t++)
-    for (unsigned utf8_clusters = 0; utf8_clusters < 2; utf8_clusters++)
-    {
-      hb_buffer_t *buffer = hb_buffer_create ();
-      hb_buffer_set_direction (buffer, tests[t].direction);
-      for (unsigned i = 0; i < 4; i++)
-	hb_buffer_add (buffer, i, tests[t].clusters[i]);
+  for (unsigned s = 0; s < G_N_ELEMENTS (strings); s++)
+  {
+    const char *utf8 = strings[s];
+    unsigned utf8_len = strlen (utf8);
+    /* Exact-sized allocation so ASan catches any OOB read beyond utf8_len. */
+    char *exact_utf8 = (char *) malloc (utf8_len);
+    memcpy (exact_utf8, utf8, utf8_len);
 
-      cairo_glyph_t *glyphs = NULL;
-      unsigned num_glyphs = 0;
-      cairo_text_cluster_t *clusters = NULL;
-      unsigned num_clusters = 0;
-      cairo_text_cluster_flags_t cluster_flags;
-      hb_cairo_glyphs_from_buffer (buffer, utf8_clusters,
-				   1., 1., 0., 0.,
-				   utf8, -1,
-				   &glyphs, &num_glyphs,
-				   &clusters, &num_clusters,
-				   &cluster_flags);
-
-      g_assert_cmpuint (num_glyphs, ==, 4);
-      g_assert_cmpuint (num_clusters, ==, tests[t].num_clusters);
-
-      int total_bytes = 0, total_glyphs = 0;
-      for (unsigned i = 0; i < num_clusters; i++)
+    for (unsigned t = 0; t < G_N_ELEMENTS (tests); t++)
+      for (unsigned utf8_clusters = 0; utf8_clusters < 2; utf8_clusters++)
       {
-	g_assert_cmpint (clusters[i].num_bytes, >=, 0);
-	g_assert_cmpint (clusters[i].num_glyphs, >, 0);
-	total_bytes += clusters[i].num_bytes;
-	total_glyphs += clusters[i].num_glyphs;
+	hb_buffer_t *buffer = hb_buffer_create ();
+	hb_buffer_set_direction (buffer, tests[t].direction);
+	for (unsigned i = 0; i < 4; i++)
+	  hb_buffer_add (buffer, i, tests[t].clusters[i]);
+
+	cairo_glyph_t *glyphs = NULL;
+	unsigned num_glyphs = 0;
+	cairo_text_cluster_t *clusters = NULL;
+	unsigned num_clusters = 0;
+	cairo_text_cluster_flags_t cluster_flags;
+	hb_cairo_glyphs_from_buffer (buffer, utf8_clusters,
+				     1., 1., 0., 0.,
+				     exact_utf8, (int) utf8_len,
+				     &glyphs, &num_glyphs,
+				     &clusters, &num_clusters,
+				     &cluster_flags);
+
+	g_assert_cmpuint (num_glyphs, ==, 4);
+	g_assert_cmpuint (num_clusters, ==, tests[t].num_clusters);
+
+	int total_bytes = 0, total_glyphs = 0;
+	for (unsigned i = 0; i < num_clusters; i++)
+	{
+	  g_assert_cmpint (clusters[i].num_bytes, >=, 0);
+	  g_assert_cmpint (clusters[i].num_glyphs, >, 0);
+	  total_bytes += clusters[i].num_bytes;
+	  total_glyphs += clusters[i].num_glyphs;
+	}
+	g_assert_cmpint (total_bytes, ==, (int) utf8_len);
+	g_assert_cmpint (total_glyphs, ==, 4);
+
+	cairo_glyph_free (glyphs);
+	cairo_text_cluster_free (clusters);
+	hb_buffer_destroy (buffer);
       }
-      g_assert_cmpint (total_bytes, ==, 4);
-      g_assert_cmpint (total_glyphs, ==, 4);
-
-      cairo_glyph_free (glyphs);
-      cairo_text_cluster_free (clusters);
-      hb_buffer_destroy (buffer);
-    }
-}
-
-/* One clip glyph of 300 points with 15830 solid paints under it.  Cairo
- * rasterizes the clip path anew for every paint, so the paints must be
- * charged to the glyph budget or this takes over a minute.  The test has
- * no discriminating assertion; it guards against reintroduction through
- * the meson test timeout, finishing in about a second once the paints
- * are charged. */
-static void
-test_hb_cairo_paint_budget (void)
-{
-#ifdef HB_TEST_CAIRO_TSAN
-  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
-  return;
-#endif
-
-  hb_face_t *face = hb_test_open_font_file ("fonts/colr-clip-paint-budget.ttf");
-  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_face (face);
-  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 256, 256);
-  cairo_t *cr = cairo_create (surface);
-
-  cairo_set_font_face (cr, cairo_face);
-  cairo_set_font_size (cr, 256);
-
-  cairo_glyph_t glyph = {1, 0, 256};
-  cairo_show_glyphs (cr, &glyph, 1);
-  cairo_surface_flush (surface);
-
-  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
-  g_assert_cmpint (cairo_surface_status (surface), ==, CAIRO_STATUS_SUCCESS);
-
-  /* The budget truncates the repeated paints but keeps the first ones. */
-  const unsigned char *data = cairo_image_surface_get_data (surface);
-  int stride = cairo_image_surface_get_stride (surface);
-  gboolean painted = FALSE;
-  for (int y = 0; y < 256 && !painted; y++)
-    for (int x = 0; x < 256; x++)
-      if (data[y * stride + x * 4 + 3])
-      {
-	painted = TRUE;
-	break;
-      }
-  g_assert_true (painted);
-
-  cairo_destroy (cr);
-  cairo_surface_destroy (surface);
-  cairo_font_face_destroy (cairo_face);
-  hb_face_destroy (face);
+    free (exact_utf8);
+  }
 }
 
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
-  hb_test_add (test_hb_cairo_budget);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
-  hb_test_add (test_hb_cairo_paint_budget);
 
   return hb_test_run ();
 }

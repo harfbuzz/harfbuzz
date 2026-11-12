@@ -95,23 +95,6 @@ struct hb_depend_edge_t {
            context_set == o.context_set;
   }
 
-  uint32_t hash () const
-  {
-    /* FNV-1a hash of all identity fields (excludes flags) */
-    uint32_t current = 0x84222325;  /* FNV-1a offset basis */
-    current = current ^ hb_hash (table_tag);
-    current = current * 16777619;   /* FNV-1a prime */
-    current = current ^ hb_hash (dependent);
-    current = current * 16777619;
-    current = current ^ hb_hash (layout_tag);
-    current = current * 16777619;
-    current = current ^ hb_hash (ligature_set);
-    current = current * 16777619;
-    current = current ^ hb_hash (context_set);
-    current = current * 16777619;
-    return current;
-  }
-
   hb_tag_t table_tag;
   hb_codepoint_t dependent;
   hb_tag_t layout_tag;
@@ -124,7 +107,7 @@ struct hb_depend_edge_t {
  * hb_depend_edge_key_t:
  *
  * Key structure for edge deduplication. Combines source glyph with edge record.
- * Uses the record's equality and hash operators for comparison.
+ * Uses the record's equality operator for comparison.
  */
 struct hb_depend_edge_key_t {
   hb_codepoint_t source;
@@ -148,13 +131,15 @@ struct hb_depend_edge_key_t {
 
   uint32_t hash () const
   {
-    /* Combine source hash with record hash */
-    uint32_t current = 0x84222325;  /* FNV-1a offset basis */
-    current = current ^ hb_hash (source);
-    current = current * 16777619;   /* FNV-1a prime */
-    current = current ^ record.hash ();
-    current = current * 16777619;
-    return current;
+    /* Hash of all identity fields (excludes flags).  The edge table is
+     * indexed by the low bits of this value, so every bit of every field
+     * has to reach them: a chain of XORs and multiplications only ever
+     * carries upwards, and a font can pick feature tags and glyph IDs that
+     * differ in their high bits only to pile every edge onto one slot. */
+    const uint32_t fields[] = {source, record.table_tag, record.dependent,
+			       record.layout_tag, record.ligature_set,
+			       record.context_set};
+    return fasthash32 (fields, sizeof (fields), 0xf437ffe6);
   }
 };
 
@@ -306,9 +291,17 @@ struct hb_depend_data_builder_t
     check_success (free_set_list.push_or_fail (set_index));
   }
 
+  /* Charge a set for its pages: the memory it holds once stored, or, at a
+   * lower cost, the work of filling a temporary one. */
+  bool charge_set (const hb_set_t &set, unsigned cost = HB_BUDGET_32)
+  { return check_success (hb_budget_spend (budget_remaining, cost, 1 + set.get_page_count ())); }
+
   hb_codepoint_t new_set (const hb_set_t &set)
   {
     hb_codepoint_t set_index;
+
+    if (unlikely (!charge_set (set)))
+      return fail_invalid ();
 
     if (free_set_list.length > 0)
     {
@@ -507,6 +500,9 @@ struct hb_depend_data_builder_t
 
   bool add_edge (hb_codepoint_t source, const hb_depend_edge_t &record)
   {
+    if (unlikely (!successful))
+      return false;
+
     /* Store only a source and per-glyph edge index in each bucket.  The edge
      * itself already lives in the output vector, where it can be compared to
      * resolve hash collisions exactly.  Adding one to the encoded source
@@ -528,6 +524,9 @@ struct hb_depend_data_builder_t
 	return false;
       slot = (slot + ++step) & (edge_slots.length - 1);
     }
+
+    if (unlikely (edge_population >= HB_DEPEND_MAX_EDGES))
+      return fail ();
 
     auto &dependencies = data.glyph_dependencies[source].dependencies;
     unsigned int index = dependencies.length;
@@ -561,6 +560,8 @@ struct hb_depend_data_builder_t
                         hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                         hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
+    if (unlikely (!successful))
+      return false;
     if (context_set == HB_CODEPOINT_INVALID)
       context_set = current_context_set_index;
     hb_subset_depend_edge_flags_t flags = current_edge_flags;
@@ -656,6 +657,7 @@ struct hb_depend_data_builder_t
   hb_vector_t<unsigned> lookup_feature_offsets;
   hb_vector_t<uint64_t> edge_slots;
   unsigned int edge_population = 0;
+  int64_t budget_remaining = HB_BUDGET_DEPEND;
   hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
   hb_vector_t<hb_codepoint_t> free_set_list;
   hb_codepoint_t current_context_set_index;

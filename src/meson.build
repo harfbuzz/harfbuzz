@@ -401,6 +401,7 @@ hb_subset_sources = files(
   'hb-subset-cff2.cc',
   'hb-subset-cff2-round.hh',
   'hb-subset-cff2-to-cff1.hh',
+  'hb-subset-hinting.hh',
   'hb-subset-input.cc',
   'hb-subset-input.hh',
   'hb-subset-instancer-iup.hh',
@@ -852,8 +853,9 @@ hb_gpu_shader_sources = [
 ]
 
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
+hb_gpu_shader_headers = []
 foreach p: hb_gpu_shader_sources
-  custom_target('@0@'.format(p.get(1)),
+  hb_gpu_shader_headers += custom_target('@0@'.format(p.get(1)),
     build_by_default: true,
     input: p.get(0),
     output: p.get(1),
@@ -878,6 +880,7 @@ if not get_option('gpu').disabled()
 
   libharfbuzz_gpu = library('harfbuzz-gpu',
     hb_gpu_sources,
+    hb_gpu_shader_headers,
     include_directories: incconfig,
     dependencies: gpu_deps,
     link_with: [libharfbuzz],
@@ -993,8 +996,11 @@ if get_option('tests').enabled()
     'test-algs': ['test-algs.cc', 'hb-static.cc'],
     'test-array': ['test-array.cc'],
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
+    'test-bit-vector': ['test-bit-vector.cc', 'hb-static.cc'],
+    'test-gdef-cache': ['test-gdef-cache.cc', 'hb-static.cc'],
     'test-cache': ['test-cache.cc'],
     'test-cff': ['test-cff.cc', 'hb-static.cc'],
+    'test-checksum': ['test-checksum.cc', 'hb-static.cc'],
     'test-colr': ['test-colr.cc', 'hb-static.cc'],
     'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
     'test-result': ['test-result.cc', 'hb-static.cc'],
