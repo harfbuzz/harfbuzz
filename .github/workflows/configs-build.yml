@@ -35,14 +35,17 @@ jobs:
     - name: install dependencies
       run: sudo apt-get install gcc
     - name: Build configurations
+      env:
+        # Ragel #line directives name pseudo-files; use real include dependencies.
+        CCACHE_DEPEND: 1
       run: |
         build_config() {
           local config=$1 status=0
           echo "Build with $config"
-          ccache g++ -std=c++11 -c main.cc -D"$config" -o "main-$config.o" &&
+          ccache g++ -std=c++11 -MD -c main.cc -D"$config" -o "main-$config.o" &&
             g++ "main-$config.o" -o "main-$config" || status=1
           echo "Build subset library with $config"
-          ccache g++ -std=c++11 -c subset.cc -D"$config" -o "subset-$config.o" || status=1
+          ccache g++ -std=c++11 -MD -c subset.cc -D"$config" -o "subset-$config.o" || status=1
           return "$status"
         }
 
