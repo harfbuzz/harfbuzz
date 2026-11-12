@@ -21,7 +21,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+      id: compiler-cache
+      uses: ./.github/actions/compiler-cache
       with:
         key: ${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}
     - name: Install Dependencies
@@ -49,3 +50,10 @@ jobs:
       run: meson compile -Cbuild
     - name: Test
       run: meson test -Cbuild -t 10 --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs
+    - name: Save Compiler Cache
+      if: ${{ !cancelled() && steps.compiler-cache.outcome == 'success' }}
+      uses: ./.github/actions/save-compiler-cache
+      with:
+        key: ${{ steps.compiler-cache.outputs.key }}
+        variant: ${{ steps.compiler-cache.outputs.variant }}
+        start: ${{ steps.compiler-cache.outputs.start }}

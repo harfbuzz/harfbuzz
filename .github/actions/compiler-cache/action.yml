@@ -1,0 +1,41 @@
+name: Setup compiler cache
+description: Restore and configure a compiler cache without saving an unchanged snapshot
+
+inputs:
+  key:
+    description: Cache key identifying the workflow and compiler configuration
+    required: true
+  variant:
+    description: Compiler cache implementation
+    default: ccache
+  max-size:
+    description: Maximum local cache size
+    default: 500MB
+
+outputs:
+  key:
+    description: Cache key identifying the workflow and compiler configuration
+    value: ${{ inputs.key }}
+  variant:
+    description: Compiler cache implementation
+    value: ${{ inputs.variant }}
+  start:
+    description: Start time used to retain objects accessed during this job
+    value: ${{ steps.start.outputs.start }}
+
+runs:
+  using: composite
+  steps:
+    - name: Record cache start time
+      id: start
+      shell: bash
+      continue-on-error: true
+      run: echo "start=$(date +%s)" >> "$GITHUB_OUTPUT"
+    - name: Restore compiler cache
+      uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+      continue-on-error: true
+      with:
+        key: ${{ inputs.key }}
+        variant: ${{ inputs.variant }}
+        max-size: ${{ inputs.max-size }}
+        save: false

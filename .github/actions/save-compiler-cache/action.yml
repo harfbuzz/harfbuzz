@@ -1,0 +1,42 @@
+name: Save compiler cache
+description: Save compiler caches only when compilation added entries
+
+inputs:
+  key:
+    description: Cache key returned by the setup action
+    required: true
+  variant:
+    description: Compiler cache implementation returned by the setup action
+    required: true
+  start:
+    description: Start time returned by the setup action
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare compiler cache
+      id: prepare
+      shell: bash
+      continue-on-error: true
+      env:
+        COMPILER_CACHE_KEY: ${{ inputs.key }}
+        COMPILER_CACHE_VARIANT: ${{ inputs.variant }}
+        COMPILER_CACHE_START: ${{ inputs.start }}
+      run: |
+        if [ "$RUNNER_OS" = Windows ]; then
+          compiler_cache_python=python
+        else
+          compiler_cache_python=python3
+        fi
+        "$compiler_cache_python" "$GITHUB_WORKSPACE/.ci/save-compiler-cache.py" \
+          --key "$COMPILER_CACHE_KEY" \
+          --variant "$COMPILER_CACHE_VARIANT" \
+          --start "$COMPILER_CACHE_START"
+    - name: Upload compiler cache
+      if: steps.prepare.outputs.save == 'true'
+      uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+      continue-on-error: true
+      with:
+        path: ${{ steps.prepare.outputs.path }}
+        key: ${{ steps.prepare.outputs.key }}
