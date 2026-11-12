@@ -7,13 +7,12 @@ Overview of changes leading to REPLACEME
 
 - New API:
   +hb_font_create_without_funcs_or_fail()
+- +hb_ot_layout_get_extender_glyphs()
 
 
 Overview of changes leading to 15.1.0
 Wednesday, November 4, 2026
 =====================================
-- Add `hb_ot_layout_get_extender_glyphs()` to retrieve script-specific
-  justification extenders from the font's `JSTF` table.
 - Add buffer deserialization APIs that report progress as a byte offset, for
   use from introspection bindings.
 - Fix Indic shaping of the Unicode 18 Devanagari and Bengali additions.
