@@ -42,8 +42,8 @@ if get_option('cpp_std') == 'c++11'
   if cpp.get_id() == 'clang' and cpp_is_microsoft_compiler
     add_project_arguments('-std=c++14', language: 'cpp')
   elif cpp.get_id() == 'clang-cl'
-    # Clang-cl produces a warning when using -std=c++14, but not when using /std:c++14
-    add_project_arguments('/std:c++14', language : 'cpp')
+    # clang-cl ignores /std:c++14, so forward the option to the Clang driver
+    add_project_arguments('/clang:-std=c++14', language : 'cpp')
   endif
 endif
 
