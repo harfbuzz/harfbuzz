@@ -59,7 +59,7 @@ jobs:
           ~/.cargo/git
           build/src/rust/debugoptimized
           build/src/rust/.rustc_info.json
-        key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.version }}-${{ hashFiles('src/rust/Cargo.toml', 'src/rust/meson.build') }}-${{ github.run_id }}-${{ github.run_attempt }}
+        key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.version }}-${{ hashFiles('src/rust/Cargo.toml', 'src/rust/meson.build') }}-${{ hashFiles('src/*.h', 'src/rust/*.rs', '.github/workflows/rust.yml') }}
         restore-keys: cargo-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.version }}-${{ hashFiles('src/rust/Cargo.toml', 'src/rust/meson.build') }}-
     - name: Setup Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
