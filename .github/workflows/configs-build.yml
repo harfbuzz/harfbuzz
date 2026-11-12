@@ -36,14 +36,30 @@ jobs:
       run: sudo apt-get install gcc
     - name: Build configurations
       run: |
+        build_config() {
+          local config=$1 status=0
+          echo "Build with $config"
+          ccache g++ -std=c++11 -c main.cc -D"$config" -o "main-$config.o" &&
+            g++ "main-$config.o" -o "main-$config" || status=1
+          echo "Build subset library with $config"
+          ccache g++ -std=c++11 -c subset.cc -D"$config" -o "subset-$config.o" || status=1
+          return "$status"
+        }
+
+        configs=(HB_DISABLE_DEPRECATED HB_MINI HB_LEAN HB_TINY HB_NO_DRAW HB_NO_PAINT)
         status=0
-        for config in HB_DISABLE_DEPRECATED HB_MINI HB_LEAN HB_TINY HB_NO_DRAW HB_NO_PAINT; do
-          echo "::group::Build with $config"
-          ccache g++ -std=c++11 -c main.cc -D"$config" -o main.o &&
-            g++ main.o || status=1
-          echo "::endgroup::"
-          echo "::group::Build subset library with $config"
-          ccache g++ -std=c++11 -c subset.cc -D"$config" || status=1
-          echo "::endgroup::"
+        for ((i=0; i<${#configs[@]}; i+=2)); do
+          pids=()
+          for config in "${configs[@]:i:2}"; do
+            build_config "$config" > "$config.log" 2>&1 &
+            pids+=("$!")
+          done
+          for ((j=0; j<${#pids[@]}; j++)); do
+            wait "${pids[j]}" || status=1
+            config=${configs[i+j]}
+            echo "::group::Build with $config"
+            cat "$config.log"
+            echo "::endgroup::"
+          done
         done
         exit "$status"
