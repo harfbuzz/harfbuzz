@@ -682,7 +682,7 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob,
 
   for (unsigned y = 0; y < (unsigned) h; y++)
   {
-    hb_packed_t<uint32_t> *dst = (hb_packed_t<uint32_t> *) (decoded.buffer.arrayZ + (size_t) ((unsigned) h - 1 - y) * decoded.extents.stride);
+    hb_raster_pixel_t *dst = (hb_raster_pixel_t *) (decoded.buffer.arrayZ + (size_t) ((unsigned) h - 1 - y) * decoded.extents.stride);
     const uint8_t *src = reader->rgba + (size_t) y * (size_t) rowbytes;
     for (unsigned x = 0; x < (unsigned) w; x++)
     {
@@ -690,7 +690,7 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob,
       uint8_t g = src[4 * x + 1];
       uint8_t b = src[4 * x + 2];
       uint8_t a = src[4 * x + 3];
-      dst[x] = hb_packed_t<uint32_t> ((uint32_t) hb_raster_div255 (b * a)
+      dst[x] = hb_raster_pixel_t ((uint32_t) hb_raster_div255 (b * a)
 				    | ((uint32_t) hb_raster_div255 (g * a) << 8)
 				    | ((uint32_t) hb_raster_div255 (r * a) << 16)
 				    | ((uint32_t) a << 24));
@@ -790,8 +790,7 @@ hb_raster_image_t::serialize_to_png_or_fail () const
 
     for (unsigned x = 0; x < extents.width; x++)
     {
-      uint32_t px;
-      hb_memcpy (&px, src + x * 4, 4);
+      uint32_t px = *(const hb_raster_pixel_t *) (src + x * 4);
       uint8_t b = (uint8_t) (px & 0xFF);
       uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
       uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
@@ -860,10 +859,10 @@ hb_raster_image_t::composite_from (const hb_raster_image_t *src,
 
   for (unsigned y = 0; y < h; y++)
   {
-    hb_packed_t<uint32_t> *dp = (hb_packed_t<uint32_t> *) (buffer.arrayZ + y * stride);
-    const hb_packed_t<uint32_t> *sp = (const hb_packed_t<uint32_t> *) (src->buffer.arrayZ + y * stride);
+    hb_raster_pixel_t *dp = (hb_raster_pixel_t *) (buffer.arrayZ + y * stride);
+    const hb_raster_pixel_t *sp = (const hb_raster_pixel_t *) (src->buffer.arrayZ + y * stride);
     for (unsigned x = 0; x < w; x++)
-      dp[x] = hb_packed_t<uint32_t> (composite_pixel ((uint32_t) sp[x], (uint32_t) dp[x], mode));
+      dp[x] = hb_raster_pixel_t (composite_pixel ((uint32_t) sp[x], (uint32_t) dp[x], mode));
   }
 }
 

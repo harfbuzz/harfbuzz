@@ -36,7 +36,7 @@ HB_BEGIN_DECLS
 /**
  * hb_raster_format_t:
  * @HB_RASTER_FORMAT_A8: 8-bit alpha-only coverage
- * @HB_RASTER_FORMAT_BGRA32: 32-bit BGRA color
+ * @HB_RASTER_FORMAT_BGRA32: Premultiplied color in B, G, R, A byte order
  *
  * Pixel format for raster images.
  *
