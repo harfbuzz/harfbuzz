@@ -67,7 +67,7 @@ struct hb_subset_context_t :
   /* Work left for subsetting this table: outline work for glyf instancing,
    * Coverage and ClassDef glyph walks for layout tables.  Lives here rather
    * than in the table's subset() so retries with a larger buffer share it. */
-  int64_t budget_remaining = HB_BUDGET_SUBSET_GLYF;
+  int64_t budget_remaining;
 
   hb_subset_context_t (hb_blob_t *source_blob_,
 		       hb_subset_plan_t *plan_,
@@ -76,7 +76,10 @@ struct hb_subset_context_t :
 		        source_blob (source_blob_),
 			plan (plan_),
 			serializer (serializer_),
-			table_tag (table_tag_) {}
+			table_tag (table_tag_),
+			budget_remaining (table_tag_ == HB_TAG ('g','l','y','f') ||
+					  table_tag_ == HB_TAG ('G','L','Y','F') ?
+					  HB_BUDGET_SUBSET_GLYF : HB_BUDGET_SUBSET_LAYOUT) {}
 };
 
 #endif /* HB_SUBSET_HH */
