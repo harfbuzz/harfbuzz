@@ -1078,6 +1078,34 @@ test_glyph_origin_offsets_saturate (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
+static void
+test_ot_vertical_fallback_saturates (void)
+{
+  /* No vmtx; MVAR moves the ascender to INT32_MAX and the descender to
+   * INT32_MIN at TEST=1, so the vertical fallbacks must not overflow
+   * subtracting one from the other. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/mvar-huge-ascender.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_ot_font_set_funcs (font);
+  hb_variation_t var = {HB_TAG ('T','E','S','T'), 1.f};
+  hb_font_set_variations (font, &var, 1);
+
+  hb_font_extents_t extents;
+  hb_font_get_h_extents (font, &extents);
+  g_assert_cmpint (extents.ascender, ==, INT32_MAX);
+  g_assert_cmpint (extents.descender, ==, INT32_MIN);
+
+  g_assert_cmpint (hb_font_get_glyph_v_advance (font, 1), ==, INT32_MIN);
+
+  hb_position_t x, y;
+  hb_font_get_glyph_v_origin (font, 1, &x, &y);
+  /* y_bearing 500, height -500: centered within the saturated advance. */
+  g_assert_cmpint (y, ==, 500 + ((INT32_MAX - 500) >> 1));
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static hb_position_t
 _small_advance_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 		     hb_codepoint_t glyph HB_UNUSED,
@@ -1678,6 +1706,7 @@ main (int argc, char **argv)
   hb_test_add (test_synthetic_slant_saturates);
   hb_test_add (test_synthetic_slant_cancelling);
   hb_test_add (test_glyph_origin_offsets_saturate);
+  hb_test_add (test_ot_vertical_fallback_saturates);
   hb_test_add (test_synthetic_bold_extreme_strength);
   hb_test_add (test_font_float_scale_saturates);
 #ifndef HB_DISABLE_DEPRECATED
