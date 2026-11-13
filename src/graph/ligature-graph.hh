@@ -124,8 +124,11 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     for (const auto& l : c.graph.vertices_[this_index].obj ().real_links) {
       if (l.position < base_size) continue;
       unsigned array_index = (l.position - base_size) / SmallTypes::size;
-      if (likely (array_index < map.length))
-        map[array_index] = l.objidx;
+      if (unlikely (l.width != SmallTypes::size ||
+                    (l.position - base_size) % SmallTypes::size ||
+                    array_index >= map.length))
+        return Err(INVALID_ARGUMENT);
+      map[array_index] = l.objidx;
     }
     return map;
   }
@@ -161,7 +164,11 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     for (const auto& l : liga_set.vertex->obj ().real_links) {
       if (l.position < 2) continue;
-      unsigned array_index = (l.position - 2) / 2;
+      unsigned array_index = (l.position - 2) / SmallTypes::size;
+      if (unlikely (l.width != SmallTypes::size ||
+                    (l.position - 2) % SmallTypes::size ||
+                    array_index >= map.length))
+        return Err(INVALID_ARGUMENT);
       map[array_index] = l.objidx;
     }
     return map;
