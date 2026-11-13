@@ -3065,10 +3065,11 @@ static void test_resolve_with_liga_split_shared_liga_set ()
   free (expected_buffer);
 }
 
-static void test_resolve_with_liga_split_shared_run ()
+static void test_resolve_with_liga_split_shared_run (bool large_first)
 {
-  // A large first ligature forces the remaining sets into one moved run. Two
-  // alternating shared sets check both unsharing and the order of cached ids.
+  // A large ligature forces a split before or after a run of small sets. Two
+  // alternating shared sets check both unsharing and the order of cached ids
+  // when moving the run or shrinking the retained subtable.
   constexpr unsigned num_sets = 4000;
   hb_vector_t<char> buffer;
   hb_always_assert (buffer.resize (200000));
@@ -3099,9 +3100,10 @@ static void test_resolve_with_liga_split_shared_run ()
   }
 
   add_liga_header (coverage, num_sets + 1, &c);
-  add_offset (first_set, &c);
+  if (large_first) add_offset (first_set, &c);
   for (unsigned i = 0; i < num_sets; i++)
     add_offset (shared_sets[i % 2], &c);
+  if (!large_first) add_offset (first_set, &c);
   unsigned subtable = c.pop_pack (false);
   start_lookup (4, 1, &c);
   add_offset (subtable, &c);
@@ -3117,9 +3119,9 @@ static void test_resolve_with_liga_split_shared_run ()
 
   auto subtables = graph.vertices_[lookup_id].position_to_index_map ().value ();
   hb_always_assert (subtables.get_population () == 2);
-  const auto& first = graph.object (subtables.get (6));
-  hb_always_assert (*(const OT::HBUINT16*) (first.head + 4) == 1);
-  unsigned moved_id = subtables.get (8);
+  const auto& large = graph.object (subtables.get (large_first ? 6 : 8));
+  hb_always_assert (*(const OT::HBUINT16*) (large.head + 4) == 1);
+  unsigned moved_id = subtables.get (large_first ? 8 : 6);
   const auto& moved = graph.object (moved_id);
   hb_always_assert (*(const OT::HBUINT16*) (moved.head + 4) == num_sets);
   auto sets = graph.vertices_[moved_id].position_to_index_map ().value ();
@@ -3795,7 +3797,8 @@ main (int argc, char **argv)
   test_dont_duplicate_virtual ();
   test_resolve_with_liga_split_overlapping_clone ();
   test_resolve_with_liga_split_shared_liga_set ();
-  test_resolve_with_liga_split_shared_run ();
+  test_resolve_with_liga_split_shared_run (true);
+  test_resolve_with_liga_split_shared_run (false);
   test_resolve_with_liga_split_null_offsets ();
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();

@@ -90,6 +90,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     // the analysis passes above: the deep copies share the same Ligatures and keep the same
     // ligature.len, so the counts and split points are unchanged (and the map is now stale).
     TRY (duplicate_shared_liga_sets(c, this_index));
+    TRY_ASSIGN (liga_set_ids, liga_set_index_to_object_id (c, this_index));
 
     split_context_t split_context {
       c,
@@ -97,15 +98,14 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       this_index,
       total_ligas,
       std::move (counts),
+      std::move (liga_set_ids),
     };
     return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
 
  private:
-  // Gives each coverage entry its own LigatureSet copy when the subset serializer deduped a set
-  // shared by several entries of this subtable. as_mutable_table() does not cover this: it only
-  // un-shares a child shared with *other* parents, not one reached twice from this_index. The
-  // ligatureSet offsets are the real links at position >= min_size (coverage sits at position 2).
+  // Separate duplicate LigatureSet references within this subtable. The ligatureSet offsets
+  // start at min_size (coverage sits at position 2).
   graph_result_t<void> duplicate_shared_liga_sets(gsubgpos_graph_context_t& c, unsigned this_index) const {
     const unsigned base_size = OT::Layout::GSUB_impl::LigatureSubstFormat1_2<SmallTypes>::min_size;
     return c.graph.unshare_duplicate_children (this_index, base_size);
@@ -225,6 +225,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned this_index;
     unsigned original_count_;
     hb_vector_t<unsigned> liga_counts;
+    hb_vector_t<unsigned> liga_set_ids;
 
     unsigned original_count ()
     {
@@ -233,12 +234,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     graph_result_t<unsigned> clone_range (unsigned start, unsigned end)
     {
-      return thiz->clone_range (c, this_index, liga_counts, start, end);
+      return thiz->clone_range (c, this_index, liga_counts, liga_set_ids, start, end);
     }
 
     graph_result_t<void> shrink (unsigned count)
     {
-      return thiz->shrink (c, this_index, original_count(), liga_counts, count);
+      return thiz->shrink (c, this_index, original_count(), liga_counts, liga_set_ids, count);
     }
   };
 
@@ -310,7 +311,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
   graph_result_t<unsigned> clone_range (gsubgpos_graph_context_t& c,
                                         unsigned this_index,
-                                        hb_vector_t<unsigned> liga_counts,
+                                        const hb_vector_t<unsigned>& liga_counts,
+                                        hb_vector_t<unsigned>& liga_set_ids,
                                         unsigned start, unsigned end) const
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
@@ -336,10 +338,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     TRY(c.graph.vertices_[liga_subst_prime_id].add_real_link (SmallTypes::size, coverage_prime_id, 2));
     TRY(coverage_prime_vertex.add_parent (liga_subst_prime_id, false));
-
-    // Resolve the original offsets once, before moving any sets. Keep object ids rather than
-    // vertex pointers, since making a shared set mutable can reallocate vertices_.
-    TRY_ASSIGN (auto liga_set_ids, liga_set_index_to_object_id (c, this_index));
 
     // Locate all liga sets with ligas between start and end.
     // Clone or move them as needed.
@@ -386,6 +384,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       bool moved = i < moved_end;
       TRY_ASSIGN (unsigned mutable_id, c.graph.mutable_index_for_child (
         moved ? liga_subst_prime_id : this_index, liga_set_ids[i]));
+      if (!moved) liga_set_ids[i] = mutable_id;
       TRY_ASSIGN (auto liga_set, c.graph.as_table_from_index<LigatureSet> (mutable_id));
 
       unsigned liga_set_index = liga_set.index;
@@ -459,7 +458,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   graph_result_t<void> shrink (gsubgpos_graph_context_t& c,
                                unsigned this_index,
                                unsigned old_count,
-                               hb_vector_t<unsigned> liga_counts,
+                               const hb_vector_t<unsigned>& liga_counts,
+                               const hb_vector_t<unsigned>& liga_set_ids,
                                unsigned count)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
@@ -473,7 +473,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned new_liga_set_count = 0;
     for (unsigned i = 0; i < liga_counts.length; i++)
     {
-      TRY_ASSIGN (auto liga_set, c.graph.as_mutable_table<LigatureSet>(this_index, &ligatureSet[i]));
+      TRY_ASSIGN (unsigned mutable_id, c.graph.mutable_index_for_child (this_index, liga_set_ids[i]));
+      TRY_ASSIGN (auto liga_set, c.graph.as_table_from_index<LigatureSet> (mutable_id));
 
       // We need the virtual links to coverage removed from all descendants on this liga subst.
       // If any are left when we try to mutate the coverage table later it will be unnessecarily
