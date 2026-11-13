@@ -29,7 +29,7 @@
 
 
 #ifndef HB_BUFFER_MAX_LEN_FACTOR
-#define HB_BUFFER_MAX_LEN_FACTOR 256
+#define HB_BUFFER_MAX_LEN_FACTOR 1024
 #endif
 #ifndef HB_BUFFER_MAX_LEN_MIN
 #define HB_BUFFER_MAX_LEN_MIN 65536
@@ -39,13 +39,17 @@
 #endif
 
 #ifndef HB_BUFFER_MAX_OPS_FACTOR
-#define HB_BUFFER_MAX_OPS_FACTOR 4096
+/* Duployan words and repeated words spend up to ~121K operations per
+ * input character.  Allow ten times a rounded-up 125K. */
+#define HB_BUFFER_MAX_OPS_FACTOR (125000u * 10)
 #endif
 #ifndef HB_BUFFER_MAX_OPS_MIN
-#define HB_BUFFER_MAX_OPS_MIN 65536
+/* Short Duployan inputs spend up to ~478K operations before the linear
+ * allowance takes over. */
+#define HB_BUFFER_MAX_OPS_MIN (500000u * 10)
 #endif
 #ifndef HB_BUFFER_MAX_OPS_DEFAULT
-#define HB_BUFFER_MAX_OPS_DEFAULT 0x1FFFFFFF /* Shaping more than a billion operations? Let us know! */
+#define HB_BUFFER_MAX_OPS_DEFAULT 0x3FFFFFFF /* Shaping more than a billion operations? Let us know! */
 #endif
 
 
