@@ -570,7 +570,7 @@ static void
 test_ot_layout_gpos_mark_base_rescan_budget (void)
 {
 #define LOOKUP_RECORDS 20
-#define MARKS 10000
+#define MARKS 32768
   static const char gdef[] = {
     0x00, 0x01, 0x00, 0x00, /* version 1.0 */
     0x00, 0x0C,             /* glyphClassDefOffset */
