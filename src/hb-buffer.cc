@@ -333,10 +333,9 @@ hb_buffer_t::enter ()
   {
     max_len = hb_max (mul, (unsigned) HB_BUFFER_MAX_LEN_MIN);
   }
-  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_OPS_FACTOR, &mul)))
-  {
-    max_ops = hb_max (mul, (unsigned) HB_BUFFER_MAX_OPS_MIN);
-  }
+  max_ops = (int) hb_clamp ((uint64_t) len * HB_BUFFER_MAX_OPS_FACTOR,
+			  (uint64_t) HB_BUFFER_MAX_OPS_MIN,
+			  (uint64_t) HB_BUFFER_MAX_OPS_DEFAULT);
 }
 void
 hb_buffer_t::leave ()
