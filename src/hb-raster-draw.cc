@@ -1705,7 +1705,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 		draw->budget != HB_BUDGET_UNLIMITED &&
 		hb_raster_draw_get_pixel_work (draw) >
 		hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
-			(int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
+			(int64_t) HB_BUDGET_RASTER_DRAW_PASSES *
 			ext.width * ext.height)))
     return nullptr;
 
