@@ -540,6 +540,11 @@ hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw)
     max_rows = draw->fixed_extents.height;
     max_cols = draw->fixed_extents.width;
   }
+  else if (draw->has_clip_box)
+  {
+    max_rows = hb_max ((int64_t) 0, hb_clamp_to<int64_t> (ceil ((double) draw->clip_y1) - floor ((double) draw->clip_y0)));
+    max_cols = hb_max ((int64_t) 0, hb_clamp_to<int64_t> (ceil ((double) draw->clip_x1) - floor ((double) draw->clip_x0)));
+  }
 
   int64_t work = 0;
   for (const auto &edge : draw->edges)
@@ -1666,10 +1671,21 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       int x1 = (int) (((int64_t) xmax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS);
       int y1 = (int) (((int64_t) ymax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS);
 
+      /* Paint masks only need the part visible on their destination.
+       * Clip before the dimension cap, so a large off-surface outline
+       * neither allocates a huge mask nor loses its visible portion. */
+      if (draw->has_clip_box)
+      {
+	x0 = hb_max (x0, hb_clamp_to<int> (floorf (draw->clip_x0)));
+	y0 = hb_max (y0, hb_clamp_to<int> (floorf (draw->clip_y0)));
+	x1 = hb_min (x1, hb_clamp_to<int> (ceilf (draw->clip_x1)));
+	y1 = hb_min (y1, hb_clamp_to<int> (ceilf (draw->clip_y1)));
+      }
+
       ext.x_origin = x0;
       ext.y_origin = y0;
-      ext.width    = (unsigned) hb_min (hb_max (0, x1 - x0), HB_RASTER_MAX_AUTO_DIMENSION);
-      ext.height   = (unsigned) hb_min (hb_max (0, y1 - y0), HB_RASTER_MAX_AUTO_DIMENSION);
+      ext.width    = (unsigned) hb_min (hb_max ((int64_t) 0, (int64_t) x1 - x0), (int64_t) HB_RASTER_MAX_AUTO_DIMENSION);
+      ext.height   = (unsigned) hb_min (hb_max ((int64_t) 0, (int64_t) y1 - y0), (int64_t) HB_RASTER_MAX_AUTO_DIMENSION);
       ext.stride   = 0; /* filled below */
     }
   }
