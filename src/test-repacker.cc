@@ -3136,6 +3136,59 @@ static void test_resolve_with_liga_split_shared_run (bool large_first)
   }
 }
 
+static void test_liga_split_many_ranges (unsigned num_sets)
+{
+  // A compact graph with one shared large ligature requires one output
+  // subtable per coverage entry. Allocations must follow the output ranges,
+  // rather than reserving the original offset array for every clone.
+  hb_vector_t<char> buffer;
+  hb_always_assert (buffer.resize (100000 + 2 * num_sets));
+  hb_serialize_context_t c (buffer.arrayZ, buffer.length);
+  c.start_serialize<char> ();
+  unsigned coverage = add_coverage (0, num_sets - 1, &c);
+  std::string large (65520, 'a');
+  start_object (large.data (), large.size (), &c);
+  add_virtual_offset (coverage, &c);
+  unsigned liga = c.pop_pack (false);
+  add_liga_set_header (1, &c);
+  add_offset (liga, &c);
+  add_virtual_offset (coverage, &c);
+  unsigned set = c.pop_pack (false);
+  add_liga_header (coverage, num_sets, &c);
+  for (unsigned i = 0; i < num_sets; i++) add_offset (set, &c);
+  unsigned subtable = c.pop_pack (false);
+  start_lookup (4, 1, &c);
+  add_offset (subtable, &c);
+  unsigned lookup = finish_lookup (&c);
+  unsigned lookup_list = add_lookup_list (&lookup, 1, &c);
+  add_gsubgpos_header (lookup_list, &c);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  auto context = graph::gsubgpos_graph_context_t::create (HB_OT_TAG_GSUB, graph).value ();
+  unsigned lookup_id = *context.lookups.keys ();
+  hb_always_assert (context.lookups.get (lookup_id)->split_subtables_if_needed (context, lookup_id).is_ok ());
+  auto subtables = graph.vertices_[lookup_id].position_to_index_map ().value ();
+  hb_always_assert (subtables.get_population () == num_sets);
+  for (unsigned i = 0; i < num_sets; i++)
+  {
+    unsigned id = subtables.get (6 + 2 * i);
+    const auto& obj = graph.object (id);
+    hb_always_assert (obj.tail - obj.head == 8);
+    hb_always_assert (*(const OT::HBUINT16*) (obj.head + 4) == 1);
+    auto coverage = graph.as_table<graph::Coverage> (id, obj.head + 2).value ();
+    auto glyphs = coverage.table->iter ();
+    hb_always_assert (glyphs && *glyphs == i);
+    glyphs++;
+    hb_always_assert (!glyphs);
+    auto set = graph.as_table<graph::LigatureSet> (id, obj.head + 6).value ();
+    hb_always_assert (set.table->ligature.len == 1);
+    unsigned liga_id = graph.index_for_offset (set.index, set.vertex->obj ().head + 2).value ();
+    hb_always_assert (graph.vertices_[liga_id].table_size () == large.size ());
+  }
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
+}
+
 static void test_resolve_with_liga_split_shared_table ()
 {
   size_t buffer_size = 400000;
@@ -3800,6 +3853,7 @@ main (int argc, char **argv)
   test_resolve_with_liga_split_shared_run (true);
   test_resolve_with_liga_split_shared_run (false);
   test_resolve_with_liga_split_null_offsets ();
+  test_liga_split_many_ranges (512);
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();
   test_deep_graph_traversal ();

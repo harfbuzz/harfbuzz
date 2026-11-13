@@ -99,7 +99,11 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       total_ligas,
       std::move (counts),
       std::move (liga_set_ids),
+      0,
+      0,
     };
+    // TODO: move_children () and coverage filtering still scan the source
+    // for each range; many short ranges can take quadratic time.
     return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
 
@@ -226,6 +230,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned original_count_;
     hb_vector_t<unsigned> liga_counts;
     hb_vector_t<unsigned> liga_set_ids;
+    unsigned first_set;
+    unsigned first_liga;
 
     unsigned original_count ()
     {
@@ -234,7 +240,13 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     graph_result_t<unsigned> clone_range (unsigned start, unsigned end)
     {
-      return thiz->clone_range (c, this_index, liga_counts, liga_set_ids, start, end);
+      // Ranges arrive in order. Advance past earlier sets once across all
+      // ranges, rather than scanning the complete counts array for each one.
+      while (first_set < liga_counts.length &&
+             first_liga + liga_counts[first_set] <= start)
+        first_liga += liga_counts[first_set++];
+      return thiz->clone_range (c, this_index, liga_counts, liga_set_ids,
+                                first_set, first_liga, start, end);
     }
 
     graph_result_t<void> shrink (unsigned count)
@@ -313,22 +325,24 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
                                         unsigned this_index,
                                         const hb_vector_t<unsigned>& liga_counts,
                                         hb_vector_t<unsigned>& liga_set_ids,
+                                        unsigned first_set, unsigned first_liga,
                                         unsigned start, unsigned end) const
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
                "  Cloning LigatureSubstFormat1 (%u) range [%u, %u).", this_index, start, end);
 
-    // Create an oversized new liga subst, we'll adjust the size down later. We don't know
-    // the final size until we process it but we also need it to exist while we're processing
-    // so that nodes can be moved to it as needed.
+    // Each emitted set contains at least one offset slot in [start, end).
+    // Bound the capacity by this range, so many short ranges do not each
+    // allocate the original subtable's entire offset array.
+    unsigned capacity = hb_min ((unsigned) ligatureSet.len, end - start);
     unsigned prime_size = OT::Layout::GSUB_impl::LigatureSubstFormat1_2<SmallTypes>::min_size
-                          + ligatureSet.get_size() - ligatureSet.len.get_size();
+                          + capacity * SmallTypes::size;
 
     TRY_ASSIGN (unsigned liga_subst_prime_id, c.create_node (prime_size));
 
     LigatureSubstFormat1* liga_subst_prime = (LigatureSubstFormat1*) c.graph.object (liga_subst_prime_id).head;
     liga_subst_prime->format = this->format;
-    liga_subst_prime->ligatureSet.len = this->ligatureSet.len;
+    liga_subst_prime->ligatureSet.len = capacity;
 
     // Create a place holder coverage prime id since we need to add virtual links to it while
     // generating liga and liga sets. Afterwards it will be updated to have the correct coverage.
@@ -341,12 +355,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     // Locate all liga sets with ligas between start and end.
     // Clone or move them as needed.
-    unsigned count = 0;
+    unsigned count = first_liga;
     unsigned liga_set_count = 0;
     unsigned liga_set_start = HB_GRAPH_INVALID;
     unsigned liga_set_end = 0; // inclusive
     unsigned moved_end = 0; // liga sets before this one have already been moved to the new liga subst.
-    for (unsigned i = 0; i < liga_counts.length; i++)
+    for (unsigned i = first_set; i < liga_counts.length && count < end; i++)
     {
       unsigned num_ligas = liga_counts[i];
 
