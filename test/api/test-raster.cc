@@ -804,7 +804,8 @@ test_budget_sweep (void)
   hb_paint_pop_clip (funcs, paint);
   img = hb_raster_paint_render (paint);
   g_assert_nonnull (img);
-  g_assert_cmpuint (hb_raster_image_get_buffer (img)[3], ==, 0);
+  /* Paint masks crop the same edges to the visible one-pixel surface. */
+  g_assert_cmpuint (hb_raster_image_get_buffer (img)[3], ==, 255);
   hb_raster_image_destroy (img);
   hb_raster_paint_destroy (paint);
 }
