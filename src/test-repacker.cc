@@ -3718,6 +3718,47 @@ static void test_pair_pos_format_2_sanitize_size_overflow ()
   hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
 }
 
+static void test_liga_split_invalid_array_links ()
+{
+  // These positions fit the vertices and do not overlap other links, but
+  // they do not represent Offset16 array elements. Reject before mutation.
+  for (unsigned variant = 0; variant < 4; variant++)
+  {
+    char buffer[200];
+    hb_serialize_context_t c (buffer, sizeof (buffer));
+    c.start_serialize<char> ();
+    unsigned coverage = add_coverage (0, 0, &c);
+    unsigned liga = add_object ("ligature", 8, &c);
+    add_liga_set_header (1, &c);
+    add_offset (liga, &c);
+    extend ("x", 1, &c); // room for a misaligned or widened link
+    unsigned set = c.pop_pack (false);
+    add_liga_header (coverage, 1, &c);
+    add_offset (set, &c);
+    extend ("x", 1, &c);
+    unsigned subtable = c.pop_pack (false);
+    start_lookup (4, 1, &c);
+    add_offset (subtable, &c);
+    unsigned lookup = finish_lookup (&c);
+    unsigned lookup_list = add_lookup_list (&lookup, 1, &c);
+    add_gsubgpos_header (lookup_list, &c);
+    c.end_serialize ();
+
+    // Modify serializer indices before graph creation removes the nil node.
+    auto& links = c.object_graph ()[variant < 2 ? subtable : set]->real_links;
+    auto& link = links[links.length - 1];
+    if (variant % 2 == 0) link.position++;
+    else link.width++;
+
+    graph_t graph = graph_t::create (c.object_graph ()).value ();
+    auto context = graph::gsubgpos_graph_context_t::create (HB_OT_TAG_GSUB, graph).value ();
+    unsigned lookup_id = *context.lookups.keys ();
+    auto result = context.lookups.get (lookup_id)->split_subtables_if_needed (context, lookup_id);
+    hb_always_assert (result.is_err ());
+    hb_always_assert (result.error () == graph::INVALID_ARGUMENT);
+  }
+}
+
 static void test_invalid_link_position ()
 {
   size_t buffer_size = 100;
@@ -3752,6 +3793,7 @@ main (int argc, char **argv)
   test_invalid_link_objidx ();
   test_invalid_link_add_and_move ();
   test_invalid_link_position ();
+  test_liga_split_invalid_array_links ();
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
