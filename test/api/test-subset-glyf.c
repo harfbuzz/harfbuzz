@@ -688,14 +688,14 @@ add_composite_glyph (uint8_t *p, unsigned count, unsigned component)
 static void
 test_subset_glyf_instancing_budget (void)
 {
-  /* gid 1 is a simple glyph of 65536 points (or 4 for the control), gid 2
-   * uses it three times, gid 3..64 each wrap the previous glyph, and 100
+  /* gid 1 is a simple glyph of 4 or 4096 points, gid 2
+   * uses it three times, gid 3..64 each wrap the previous glyph, and 1000
    * top-level glyphs wrap gid 64.  No glyph exceeds a per-glyph limit, but
    * instancing loads the shared chain again for every top-level glyph, so
    * the table as a whole must be bounded by one work budget. */
   static const char maxp_data[] =
     "\x00\x00\x50\x00" /* version */
-    "\x00\xA5" /* numGlyphs */
+    "\x04\x29" /* numGlyphs */
     ;
   static const char head_data[54] =
     "\x00\x01\x00\x00" /* version */
@@ -723,12 +723,12 @@ test_subset_glyf_instancing_budget (void)
     "\x00\x08" /* instanceSize */
     "wght" "\x00\x64\x00\x00" "\x01\x90\x00\x00" "\x03\x84\x00\x00" "\x00\x00" "\x01\x00"
     ;
-  const unsigned num_glyphs = 165;
+  const unsigned num_glyphs = 1065;
 
   for (unsigned heavy = 0; heavy < 2; heavy++)
   {
-    unsigned flag_pairs = heavy ? 256 : 1;
-    uint8_t *glyf_data = calloc (14 + 2 * flag_pairs + 28 + 62 * 16 + 100 * 16, 1);
+    unsigned flag_pairs = heavy ? 16 : 1;
+    uint8_t *glyf_data = calloc (14 + 2 * flag_pairs + 28 + 62 * 16 + 1000 * 16, 1);
     uint8_t *loca_data = calloc (4 * (num_glyphs + 1), 1);
     unsigned offset = 0;
     for (unsigned gid = 0; gid < num_glyphs; gid++)
@@ -775,12 +775,10 @@ test_subset_glyf_instancing_budget (void)
     g_assert_true (hb_subset_input_pin_axis_location (input, face, HB_TAG ('w','g','h','t'), 500.f));
     hb_face_t *subset = hb_subset_test_create_subset (face, input);
 
-    /* Exhausting the budget drops glyf from the instance. */
+    /* Both valid instances fit; exhaustion is tested with a controlled
+     * budget in test-subset-glyf-budget. */
     blob = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
-    if (heavy)
-      g_assert_cmpuint (hb_blob_get_length (blob), ==, 0);
-    else
-      g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
     hb_blob_destroy (blob);
 
     hb_face_destroy (subset);

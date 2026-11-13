@@ -282,15 +282,18 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * glyph that uses them, so the per-glyph budget (HB_BUDGET_GLYPH) would
  * multiply by the glyph count.  This is one cumulative budget for the whole
  * table instead; exhausting it fails the table.  Sized well above what real
- * variable fonts spend -- the largest glyf variable font under test/
- * (MPLUS1-Variable, 6,434 glyphs retained) uses ~1.2M units, and even a
- * font at the 65,535-glyph maximum stays far below -- while keeping the
- * adversarial worst case bounded.  Layout tables charge their Coverage
- * and ClassDef glyph walks to the same budget: a glyph range costs a few
- * bytes and any number of offsets can share it, so neither the table size
- * nor the sanitizer's budget bounds that work. */
+ * variable fonts spend -- instancing all 1,605 glyphs of Handjet at the
+ * midpoint of its axes uses ~625M units -- while keeping the
+ * adversarial worst case bounded. */
 #ifndef HB_BUDGET_SUBSET_GLYF
-#define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 28)
+#define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 33)
+#endif
+
+/* Coverage and ClassDef glyph walks while subsetting one layout table.
+ * A glyph range costs a few bytes and any number of offsets can share it,
+ * so neither the table size nor the sanitizer's budget bounds that work. */
+#ifndef HB_BUDGET_SUBSET_LAYOUT
+#define HB_BUDGET_SUBSET_LAYOUT ((int64_t) 1 << 28)
 #endif
 
 /* The flat floor for the subsetter's work on the charstrings of a CFF or
@@ -300,13 +303,13 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * out fails the charstring being interpreted, as exceeding HB_CFF_MAX_OPS
  * does. */
 #ifndef HB_BUDGET_SUBSET_CFF
-#define HB_BUDGET_SUBSET_CFF ((int64_t) 1 << 24)
+#define HB_BUDGET_SUBSET_CFF ((int64_t) 1 << 25)
 #endif
 
 /* Very large CFF and CFF2 tables still get several operations per byte;
  * subroutinized fonts interpret a few operations per table byte. */
 #ifndef HB_BUDGET_SUBSET_CFF_PER_BYTE
-#define HB_BUDGET_SUBSET_CFF_PER_BYTE 32
+#define HB_BUDGET_SUBSET_CFF_PER_BYTE 96
 #endif
 
 /* Partially instancing one CFF2 table in the subsetter, in cells of the
@@ -370,7 +373,7 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * budget that starts at MIN and earns FACTOR times each source tuple,
  * in tuple_delta_t::get_cost () units of roughly eight bytes. */
 #ifndef HB_BUDGET_INSTANCER_FACTOR
-#define HB_BUDGET_INSTANCER_FACTOR 64
+#define HB_BUDGET_INSTANCER_FACTOR 128
 #endif
 #ifndef HB_BUDGET_INSTANCER_MIN
 #define HB_BUDGET_INSTANCER_MIN ((int64_t) 1 << 22)
@@ -397,7 +400,7 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * flags and loca entries that share glyph data let a font declare far more
  * points than it has bytes.  Exceeding the budget fails the plan. */
 #ifndef HB_BUDGET_SUBSET_CONTOUR_POINTS
-#define HB_BUDGET_SUBSET_CONTOUR_POINTS ((int64_t) 1 << 22)
+#define HB_BUDGET_SUBSET_CONTOUR_POINTS ((int64_t) 1 << 23)
 #endif
 
 

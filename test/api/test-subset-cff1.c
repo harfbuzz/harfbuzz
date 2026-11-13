@@ -759,7 +759,7 @@ test_subset_cff1_shared_subrs (void)
     /* Enough of them exhaust the shared work budget; the subset fails
      * instead of interpreting num_glyphs x HB_CFF_MAX_OPS, and so does the
      * dependency builder that walks the same seac closure. */
-    face = create_shared_subrs_face (100, endchar_in_subr);
+    face = create_shared_subrs_face (256, endchar_in_subr);
     subset = hb_subset_or_fail (face, input);
     g_assert_null (subset);
 #ifndef HB_NO_SUBSET_DEPEND
