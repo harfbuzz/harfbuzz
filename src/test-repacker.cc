@@ -2260,6 +2260,57 @@ static void test_sort_shortest ()
   free (buffer_e);
 }
 
+static void test_unshare_children ()
+{
+  char buffer[200];
+  hb_serialize_context_t c (buffer, sizeof (buffer));
+  c.start_serialize<char> ();
+  unsigned coverage = add_object ("coverage", 8, &c);
+  start_object ("child", 5, &c);
+  for (unsigned i = 0; i < 3; i++)
+    add_virtual_offset (coverage, &c);
+  unsigned child = c.pop_pack (false);
+  start_object ("", 0, &c);
+  add_offset (child, &c);
+  unsigned other_parent = c.pop_pack (false);
+  start_object ("", 0, &c);
+  add_offset (child, &c); // excluded prefix link
+  add_offset (child, &c);
+  add_offset (child, &c);
+  add_offset (other_parent, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  unsigned parent = graph.root_idx ();
+  auto before = graph.vertices_[parent].position_to_index_map ().value ();
+  child = before.get (0);
+  other_parent = before.get (6);
+  coverage = graph.object (child).virtual_links[0].objidx;
+  hb_always_assert (graph.vertices_[coverage].incoming_edges () == 3);
+
+  // Also exercise unsorted links: prefix aliases must be protected regardless
+  // of their position in the link vector.
+  hb_swap (graph.vertices_[parent].real_links_writer ()[0],
+           graph.vertices_[parent].real_links_writer ()[2]);
+  hb_always_assert (graph.unshare_duplicate_children (parent, 2).is_ok ());
+  auto after = graph.vertices_[parent].position_to_index_map ().value ();
+  hb_always_assert (after.get (0) == child);
+  hb_always_assert (graph.object (other_parent).real_links[0].objidx == child);
+  for (unsigned pos = 2; pos <= 4; pos += 2)
+  {
+    unsigned clone = after.get (pos);
+    hb_always_assert (clone != child);
+    hb_always_assert (graph.object (clone).head != graph.object (child).head);
+    hb_always_assert (graph.vertices_[clone].incoming_edges () == 1);
+    hb_always_assert (graph.object (clone).virtual_links.length == 1);
+  }
+  hb_always_assert (after.get (2) != after.get (4));
+  hb_always_assert (graph.object (child).virtual_links.length == 1);
+  hb_always_assert (graph.vertices_[coverage].incoming_edges () == 3);
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
+}
+
 static void test_duplicate_leaf ()
 {
   size_t buffer_size = 100;
@@ -3095,6 +3146,8 @@ static void test_resolve_with_liga_split_shared_run ()
     add_liga_set_header (1, &c);
     add_offset (liga, &c);
     add_virtual_offset (coverage, &c);
+    add_virtual_offset (coverage, &c); // redundant constraints from serializer dedup
+    add_virtual_offset (coverage, &c);
     shared_sets[i] = c.pop_pack (false);
   }
 
@@ -3124,14 +3177,19 @@ static void test_resolve_with_liga_split_shared_run ()
   hb_always_assert (*(const OT::HBUINT16*) (moved.head + 4) == num_sets);
   auto sets = graph.vertices_[moved_id].position_to_index_map ().value ();
   hb_always_assert (sets.get_population () == num_sets + 1); // includes coverage
+  hb_set_t unique_sets;
   for (unsigned i = 0; i < num_sets; i++)
   {
     unsigned set_id = sets.get (6 + 2 * i);
+    unique_sets.add (set_id);
+    hb_always_assert (graph.vertices_[set_id].obj ().virtual_links.length == 1);
     const auto& set = graph.object (set_id);
     hb_always_assert (*(const OT::HBUINT16*) set.head == 1);
     unsigned liga_id = graph.index_for_offset (set_id, set.head + 2).value ();
     hb_always_assert (graph.object (liga_id).head[1] == (char) (i % 2 + 1));
   }
+  hb_always_assert (unique_sets.get_population () == num_sets);
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
 }
 
 static void test_resolve_with_liga_split_shared_table ()
@@ -3772,6 +3830,7 @@ main (int argc, char **argv)
   test_resolve_overflows_via_splitting_spaces ();
   test_resolve_overflows_via_splitting_spaces_2 ();
   test_resolve_mixed_overflows_via_isolation_spaces ();
+  test_unshare_children ();
   test_duplicate_leaf ();
   test_duplicate_interior ();
   test_virtual_link ();
