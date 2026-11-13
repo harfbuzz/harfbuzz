@@ -218,7 +218,7 @@
  * context, so a flat cap suffices.  Unsigned (not size_t like the SVG-table
  * limit above) to match hb_vector_buf_t's unsigned length arithmetic. */
 #ifndef HB_VECTOR_MAX_DOCUMENT_SIZE
-#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 16 << 20)
+#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 40 << 20)
 #endif
 
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
@@ -265,7 +265,7 @@
 /* The common finite default for one top-level glyph rendering session.
  * Nested outline and paint work shares the same live counter. */
 #ifndef HB_BUDGET_GLYPH
-#define HB_BUDGET_GLYPH ((int64_t) 1 << 24)
+#define HB_BUDGET_GLYPH ((int64_t) 1 << 25)
 #endif
 
 /* Precharge COST * MULT.  Callers bound COST and MULT structurally, and live
@@ -327,9 +327,16 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_RASTER_PIXELS ((int64_t) 1 << 26)
 #endif
 
-/* Very large raster surfaces still get a few full-surface operations. */
+/* Color paints can rasterize and combine many masks over one surface.
+ * Bitcount Ink uses roughly 2,800 surface areas of pixel work; allow
+ * about ten times that, rounded up to 32,768. */
 #ifndef HB_BUDGET_RASTER_PAINT_PASSES
-#define HB_BUDGET_RASTER_PAINT_PASSES 4
+#define HB_BUDGET_RASTER_PAINT_PASSES 32768
+#endif
+
+/* A standalone outline does not need the color paint allowance. */
+#ifndef HB_BUDGET_RASTER_DRAW_PASSES
+#define HB_BUDGET_RASTER_DRAW_PASSES 4
 #endif
 
 /* One raster draw session, in accumulated non-horizontal edges. */
