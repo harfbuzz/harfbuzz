@@ -446,6 +446,9 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       count += num_ligas;
     }
 
+    // move_child () removes links unordered, so a later moved run can arrive
+    // out of position order. Keep shortest-distance tie breaking deterministic.
+    c.graph.vertices_[liga_subst_prime_id].sort_real_links ();
     c.graph.vertices_[liga_subst_prime_id].shrink_buffer ((liga_subst_prime->ligatureSet.len - liga_set_count) * SmallTypes::size);
     liga_subst_prime->ligatureSet.len = liga_set_count;
 
