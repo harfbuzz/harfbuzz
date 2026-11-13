@@ -1041,6 +1041,14 @@ if get_option('tests').enabled()
   endforeach
 
   if not cpp_is_microsoft_compiler and not get_option('subset').disabled()
+    test('test-subset-glyf-budget', executable('test-subset-glyf-budget', ['test-subset-glyf-budget.cc', 'hb-static.cc'],
+      include_directories: incconfig,
+      cpp_args: cpp_args + ['-UNDEBUG'],
+      dependencies: [libharfbuzz_dep, libharfbuzz_subset_dep],
+      install: false,
+    ),
+      args: [meson.project_source_root() / 'test/subset/data/fonts/Handjet.ttf'],
+      suite: ['src', 'subset'])
     test('test-cbdt-cache', executable('test-cbdt-cache', ['test-cbdt-cache.cc', 'hb-static.cc'],
       include_directories: incconfig,
       cpp_args: cpp_args + ['-UNDEBUG'],
