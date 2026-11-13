@@ -94,7 +94,7 @@ test_document_cap (void)
   hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG);
   hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
 
-  unsigned len = 40u << 20;           /* 40 MB, well past the 16 MB cap */
+  unsigned len = 48u << 20;           /* 48 MB, past the 40 MB cap */
   char *data = (char *) calloc (len, 1);
   assert (data);
   hb_blob_t *image = hb_blob_create (data, len, HB_MEMORY_MODE_READONLY, data, free);
@@ -107,8 +107,8 @@ test_document_cap (void)
   hb_blob_t *out = hb_vector_paint_render (paint);
   /* The cap either makes render refuse the over-budget document (null) or
    * bounds its size; either way it must not balloon to the base64 of the
-   * whole 40 MB image (~53 MB), which is what an uncapped buffer produces. */
-  assert (!out || hb_blob_get_length (out) < (32u << 20));
+   * whole 48 MB image (~64 MB), which is what an uncapped buffer produces. */
+  assert (!out || hb_blob_get_length (out) <= (40u << 20));
   hb_blob_destroy (out);
   hb_blob_destroy (image);
 
@@ -205,7 +205,7 @@ png_chunk (unsigned char *out, const char *type, const unsigned char *data, unsi
 static void
 test_indexed_smask_cap (void)
 {
-  unsigned width = 4097, height = 4096; /* 16 MB + 4 KB, just past the cap */
+  unsigned width = 8193, height = 5120; /* 40 MB + 5 KB, just past the cap */
   unsigned raw_len = (width + 1) * height;
   unsigned char *idat = (unsigned char *) malloc (raw_len / 258 * 2 + 1024);
   assert (idat);
