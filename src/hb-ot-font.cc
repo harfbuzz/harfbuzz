@@ -521,7 +521,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   {
     hb_font_extents_t font_extents;
     font->get_h_extents_with_fallback (&font_extents);
-    hb_position_t advance = font_extents.descender - font_extents.ascender;
+    hb_position_t advance = hb_saturate_sub (font_extents.descender, font_extents.ascender);
     for (unsigned int i = 0; i < count; i++)
     {
       *first_advance = advance;
@@ -774,7 +774,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
   {
     hb_font_extents_t font_extents;
     font->get_h_extents_with_fallback (&font_extents);
-    hb_position_t font_advance = font_extents.ascender - font_extents.descender;
+    hb_position_t font_advance = hb_saturate_sub (font_extents.ascender, font_extents.descender);
 
     for (unsigned i = 0; i < count; i++)
     {
