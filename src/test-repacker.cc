@@ -3134,6 +3134,61 @@ static void test_resolve_with_liga_split_shared_run ()
   }
 }
 
+static void test_liga_split_link_order ()
+{
+  // Two three-ligature sets split across the first two ranges. Moving the
+  // remainder of the second set swaps the last small-set link forward,
+  // before the subsequent run of small sets is moved to the final range.
+  constexpr unsigned num_small = 100;
+  hb_vector_t<char> buffer;
+  hb_always_assert (buffer.resize (100000));
+  hb_serialize_context_t c (buffer.arrayZ, buffer.length);
+  c.start_serialize<char> ();
+  unsigned coverage = add_coverage (0, num_small + 1, &c);
+  std::string large (30000, 'a');
+  unsigned liga = add_object (large.data (), large.size (), &c);
+  add_liga_set_header (3, &c);
+  for (unsigned i = 0; i < 3; i++) add_offset (liga, &c);
+  unsigned large_set = c.pop_pack (false);
+  liga = add_object ("small!", 6, &c);
+  add_liga_set_header (1, &c);
+  add_offset (liga, &c);
+  unsigned small_set = c.pop_pack (false);
+  add_liga_header (coverage, num_small + 2, &c);
+  add_offset (large_set, &c);
+  add_offset (large_set, &c);
+  for (unsigned i = 0; i < num_small; i++) add_offset (small_set, &c);
+  unsigned subtable = c.pop_pack (false);
+  start_lookup (4, 1, &c);
+  add_offset (subtable, &c);
+  unsigned lookup = finish_lookup (&c);
+  unsigned lookup_list = add_lookup_list (&lookup, 1, &c);
+  add_gsubgpos_header (lookup_list, &c);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  auto context = graph::gsubgpos_graph_context_t::create (HB_OT_TAG_GSUB, graph).value ();
+  unsigned lookup_id = *context.lookups.keys ();
+  hb_always_assert (context.lookups.get (lookup_id)->split_subtables_if_needed (context, lookup_id).is_ok ());
+  auto subtables = graph.vertices_[lookup_id].position_to_index_map ().value ();
+  hb_always_assert (subtables.get_population () == 3);
+  unsigned total_ligas = 0;
+  for (unsigned i = 0; i < 3; i++)
+  {
+    const auto& obj = graph.object (subtables.get (6 + 2 * i));
+    unsigned last_pos = 0;
+    for (const auto& l : obj.real_links)
+    {
+      hb_always_assert (l.position >= last_pos);
+      last_pos = l.position;
+      if (l.position >= 6)
+        total_ligas += *(const OT::HBUINT16*) graph.object (l.objidx).head;
+    }
+  }
+  hb_always_assert (total_ligas == 6 + num_small);
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
+}
+
 static void test_resolve_with_liga_split_shared_table ()
 {
   size_t buffer_size = 400000;
@@ -3797,6 +3852,7 @@ main (int argc, char **argv)
   test_resolve_with_liga_split_shared_liga_set ();
   test_resolve_with_liga_split_shared_run ();
   test_resolve_with_liga_split_null_offsets ();
+  test_liga_split_link_order ();
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();
   test_deep_graph_traversal ();
