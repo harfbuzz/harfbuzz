@@ -926,8 +926,7 @@ struct matcher_t
   may_match_t may_match (hb_glyph_info_t &info,
 			 hb_codepoint_t glyph_data) const
   {
-    if (!(info.mask & mask) ||
-	(per_syllable && syllable && syllable != info.syllable ()))
+    if (!(info.mask & mask))
       return MATCH_NO;
 
     if (match_func)
@@ -1075,6 +1074,11 @@ struct skipping_iterator_t
 #endif
   match_t match (hb_glyph_info_t &info)
   {
+    /* Do not skip glyphs from another syllable. */
+    if (matcher.per_syllable && matcher.syllable &&
+	matcher.syllable != info.syllable ())
+      return NOT_MATCH;
+
     matcher_t::may_skip_t skip = matcher.may_skip (c, info);
     if (unlikely (skip == matcher_t::SKIP_YES))
       return SKIP;
