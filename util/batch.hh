@@ -36,10 +36,22 @@ batch_main (int argc, char **argv)
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
     int ret = 0;
-    char buf[4092];
-    while (fgets (buf, sizeof (buf), stdin))
+    GString *line = g_string_new (nullptr);
+    while (true)
     {
-      size_t l = strlen (buf);
+      g_string_set_size (line, 0);
+      char chunk[4092];
+      while (fgets (chunk, sizeof (chunk), stdin))
+      {
+	g_string_append (line, chunk);
+	if (line->len && line->str[line->len - 1] == '\n')
+	  break;
+      }
+      if (!line->len)
+	break;
+
+      char *buf = line->str;
+      size_t l = line->len;
       if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
 
       char *args[64];
@@ -63,6 +75,7 @@ batch_main (int argc, char **argv)
 
       ret = MAX (ret, result);
     }
+    g_string_free (line, true);
     return ret;
   }
 

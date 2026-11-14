@@ -5,6 +5,11 @@ subdir('data/text-rendering-tests') # text_rendering_tests
 
 shape_run_tests_py = find_program('run-tests.py')
 
+test('batch', find_program('test-batch.py'),
+  args: [hb_shape, meson.project_source_root() / 'test/api/fonts/Roboto-Regular.abc.ttf'],
+  suite: ['util'],
+)
+
 sets = ['in-house', 'aots', 'text-rendering-tests']
 foreach set : sets
   # in-house -> in_house_tests, aots -> aots_tests, text-rendering-tests -> text_rendering_tests
