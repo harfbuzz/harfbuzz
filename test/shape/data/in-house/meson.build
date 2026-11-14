@@ -69,6 +69,7 @@ in_house_tests = [
   'reverse-sub.tests',
   'rotation.tests',
   'sara-am.tests',
+  'shaping-parity.tests',
   'simple.tests',
   'sinhala.tests',
   'spaces.tests',
