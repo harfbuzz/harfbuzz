@@ -897,7 +897,7 @@ struct matcher_t
   void init (const context_t *c, bool context_match = false)
   {
     set_match_func (nullptr, nullptr);
-    lookup_props = c->lookup_props;
+    set_lookup_props (c, c->lookup_props);
     /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
     ignore_zwnj = c->table_index == 1 || (context_match && c->auto_zwnj);
     /* Ignore ZWJ if we are matching context, or asked to. */
@@ -908,6 +908,22 @@ struct matcher_t
     /* Per syllable matching is only for GSUB. */
     per_syllable = c->table_index == 0 && c->per_syllable;
     syllable = 0;
+  }
+
+  template <typename context_t>
+  void set_lookup_props (const context_t *c HB_UNUSED, unsigned props)
+  {
+    lookup_props = props;
+#ifndef HB_NO_GDEF_CACHE
+    mark_filter = nullptr;
+    if (props & LookupFlag::UseMarkFilteringSet)
+    {
+      const auto &sets = c->gdef_accel.mark_glyph_set_bitmaps;
+      unsigned index = props >> 16;
+      if (index < sets.length && !sets.arrayZ[index].glyphs.in_error ())
+        mark_filter = &sets.arrayZ[index].glyphs;
+    }
+#endif
   }
 
   void set_match_func (match_func_t match_func_,
@@ -948,7 +964,11 @@ struct matcher_t
   may_skip_t may_skip (const context_t *c,
 		       const hb_glyph_info_t &info) const
   {
+#ifndef HB_NO_GDEF_CACHE
+    if (!c->check_glyph_property (&info, lookup_props, mark_filter))
+#else
     if (!c->check_glyph_property (&info, lookup_props))
+#endif
       return SKIP_YES;
 
     if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
@@ -970,6 +990,10 @@ struct matcher_t
   uint8_t syllable = 0;
   match_func_t match_func = nullptr;
   const void *match_data = nullptr;
+#ifndef HB_NO_GDEF_CACHE
+  /* Stable for the current lookup; avoid resolving it for every mark. */
+  const hb_bit_vector_t<> *mark_filter = nullptr;
+#endif
 };
 
 /* A view of 16- or 24-bit glyph IDs or coverage offsets. */
@@ -1014,7 +1038,7 @@ struct skipping_iterator_t
   }
   void set_lookup_props (unsigned int lookup_props)
   {
-    matcher.lookup_props = lookup_props;
+    matcher.set_lookup_props (c, lookup_props);
   }
   void set_match_func (matcher_t::match_func_t match_func_,
 		       const void *match_data_)
@@ -1389,7 +1413,8 @@ struct hb_ot_apply_context_t :
   HB_ALWAYS_INLINE
 #endif
   bool check_glyph_property (const hb_glyph_info_t *info,
-			     unsigned match_props) const
+			     unsigned match_props,
+			     const hb_bit_vector_t<> *mark_filter = nullptr) const
   {
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
 
@@ -1400,7 +1425,11 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK)
+    {
+      if (mark_filter)
+        return mark_filter->has (info->codepoint);
       return match_properties_mark (info, glyph_props, match_props);
+    }
 
     return true;
   }
