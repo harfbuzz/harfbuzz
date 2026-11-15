@@ -72,16 +72,17 @@ static void shape (const test_input_t &input,
     unsigned text_length = orig_text_length;
     const char *text = orig_text;
 
-    const char *end;
-    while ((end = (const char *) memchr (text, '\n', text_length)))
+    while (text_length)
     {
+      const char *end = (const char *) memchr (text, '\n', text_length);
+      unsigned line_length = end ? end - text : text_length;
       hb_buffer_clear_contents (buf);
-      hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
+      hb_buffer_add_utf8 (buf, text, text_length, 0, line_length);
       hb_buffer_guess_segment_properties (buf);
       hb_buffer_set_language (buf, language);
       hb_shape (font, buf, nullptr, 0);
 
-      unsigned skip = end - text + 1;
+      unsigned skip = line_length + (end ? 1 : 0);
       text_length -= skip;
       text += skip;
     }
