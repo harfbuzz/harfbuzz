@@ -1321,7 +1321,7 @@ struct cff1
     const hb_codepoint_t *get_glyph_to_sid_table () const
     {
       /* Predefined charsets and format 0 already have direct lookups. */
-      if (charset == &Null (Charset) || charset->format == 0)
+      if (is_predef_charset () || charset->format == 0)
 	return nullptr;
 
     retry:
