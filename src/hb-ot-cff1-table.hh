@@ -1316,15 +1316,20 @@ struct cff1
     /* Charset::get_sid() without a cache walks the charset ranges from the
      * start, which made naming every glyph of a shaped run quadratic-ish.
      * Build a glyph-to-SID table in one pass over the charset on first use
-     * instead.  SIDs are Card16. */
-    const uint16_t *get_glyph_to_sid_table () const
+     * instead.  Preserve the full SID value, since malformed ranges can
+     * extend beyond Card16. */
+    const hb_codepoint_t *get_glyph_to_sid_table () const
     {
+      /* Predefined charsets and format 0 already have direct lookups. */
+      if (charset == &Null (Charset) || charset->format == 0)
+	return nullptr;
+
     retry:
-      uint16_t *table = glyph_to_sid_table.get_acquire ();
+      hb_codepoint_t *table = glyph_to_sid_table.get_acquire ();
       if (likely (table))
 	return table;
 
-      table = (uint16_t *) hb_calloc (num_glyphs, sizeof (uint16_t));
+      table = (hb_codepoint_t *) hb_calloc (num_glyphs, sizeof (hb_codepoint_t));
       if (unlikely (!table))
 	return nullptr;
 
@@ -1461,7 +1466,7 @@ struct cff1
 
     private:
     mutable hb_atomic_t<uint16_t *> std_code_to_glyph_table {nullptr};
-    mutable hb_atomic_t<uint16_t *> glyph_to_sid_table {nullptr};
+    mutable hb_atomic_t<hb_codepoint_t *> glyph_to_sid_table {nullptr};
   };
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
@@ -1490,7 +1495,7 @@ struct cff1
       if (unlikely (!is_valid ())) return false;
       if (is_CID()) return false;
       if (unlikely (!buf_len)) return true;
-      const uint16_t *table = charset != &Null (Charset) ? get_glyph_to_sid_table () : nullptr;
+      const hb_codepoint_t *table = get_glyph_to_sid_table ();
       hb_codepoint_t sid = table ? table[glyph] : glyph_to_sid (glyph);
       const char *str;
       size_t str_len;
