@@ -63,7 +63,7 @@ jobs:
         "sdk=$($env:WindowsSDKVersion.TrimEnd('\'))" >> $env:GITHUB_OUTPUT
     - name: Cache Installed Dependencies
       id: msvc-deps
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ env.MSVC_DEPS_PREFIX }}
         key: msvc-deps-${{ matrix.os }}-${{ matrix.ARCH }}-${{ steps.msvc-version.outputs.version }}-${{ steps.msvc-version.outputs.sdk }}-${{ steps.python.outputs.python-version }}-${{ hashFiles('subprojects/**/*.wrap', 'subprojects/packagefiles/**', '.ci/msvc-deps/**', '.ci/requirements.txt') }}
