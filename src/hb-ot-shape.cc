@@ -762,8 +762,11 @@ hb_ot_shape_setup_masks (const hb_ot_shape_context_t *c)
     const hb_feature_t *feature = &c->user_features[i];
     if (!(feature->start == HB_FEATURE_GLOBAL_START && feature->end == HB_FEATURE_GLOBAL_END)) {
       unsigned int shift;
-      hb_mask_t mask = map->get_mask (feature->tag, &shift);
-      buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
+      bool is_global;
+      hb_mask_t mask = map->get_mask (feature->tag, &shift, &is_global);
+      /* A later global request supersedes earlier ranges for this tag. */
+      if (!is_global)
+	buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
     }
   }
 }

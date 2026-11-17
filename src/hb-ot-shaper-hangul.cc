@@ -242,7 +242,9 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    chars[0] = 0x25CCu;
 	    chars[1] = u;
 	  }
-	  (void) buffer->replace_glyphs (1, 2, chars);
+	  if (unlikely (!buffer->replace_glyphs (1, 2, chars))) break;
+	  unsigned int dotted_circle = buffer->out_len - (chars[0] == 0x25CCu ? 2 : 1);
+	  _hb_glyph_info_set_unicode_props (&buffer->out_info[dotted_circle], buffer);
 	}
 	else
 	{
@@ -394,6 +396,12 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	/* We didn't decompose the S, so just advance past it and fall through. */
 	end = start + 1;
       }
+    }
+
+    else if (u == 0x25CCu)
+    {
+      /* A dotted circle is already a placeholder base for a tone mark. */
+      end = start + 1;
     }
 
     /* Didn't find a recognizable syllable, so we leave end <= start;

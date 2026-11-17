@@ -53,6 +53,7 @@ struct hb_ot_map_t
     hb_mask_t mask;
     hb_mask_t _1_mask; /* mask for value=1, for quick access */
     unsigned int needs_fallback : 1;
+    unsigned int is_global : 1;
     unsigned int auto_zwnj : 1;
     unsigned int auto_zwj : 1;
     unsigned int random : 1;
@@ -118,10 +119,12 @@ struct hb_ot_map_t
 
   hb_mask_t get_global_mask () const { return global_mask; }
 
-  hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = nullptr) const
+  hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = nullptr,
+		      bool *is_global = nullptr) const
   {
     const feature_map_t *map = features.bsearch (feature_tag);
     if (shift) *shift = map ? map->shift : 0;
+    if (is_global) *is_global = map && map->is_global;
     return map ? map->mask : 0;
   }
 

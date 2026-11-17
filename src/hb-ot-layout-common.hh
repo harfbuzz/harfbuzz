@@ -6542,8 +6542,8 @@ struct Device
   {
     switch (u.b.format)
     {
-    case 1: case 2: case 3:
 #ifndef HB_NO_HINTING
+    case 1: case 2: case 3:
       hb_barrier ();
       return u.hinting.get_y_delta (font);
 #endif

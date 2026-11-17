@@ -429,7 +429,10 @@ struct hb_buffer_t
     if (end - start < 2)
       return;
     if (!HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES (cluster_level))
+    {
+      unsafe_to_break_in_outbuffer (start, end);
       return;
+    }
     merge_out_clusters_impl (start, end);
   }
   HB_INTERNAL void merge_out_clusters_impl (unsigned int start, unsigned int end);
@@ -536,6 +539,16 @@ struct hb_buffer_t
     _set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
 		      start, end,
 		      true, true);
+  }
+  /* Both endpoints are output-buffer indices. */
+  void unsafe_to_break_in_outbuffer (unsigned int start, unsigned int end)
+  {
+    assert (start <= end && end <= out_len);
+    if (end - start < 2)
+      return;
+    unsigned cluster = _infos_find_min_cluster (out_info, start, end);
+    _infos_set_glyph_flags (out_info, start, end, cluster,
+                           HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
   }
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
@@ -661,7 +674,7 @@ struct hb_buffer_t
     unsigned cluster_first = infos[start].cluster;
     unsigned cluster_last = infos[end - 1].cluster;
 
-    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS ||
+    if (!HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (cluster_level) ||
 	(cluster != cluster_first && cluster != cluster_last))
     {
       for (unsigned int i = start; i < end; i++)
@@ -691,7 +704,7 @@ struct hb_buffer_t
     if (unlikely (start == end))
       return cluster;
 
-    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+    if (!HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (cluster_level))
     {
       for (unsigned int i = start; i < end; i++)
 	cluster = hb_min (cluster, infos[i].cluster);

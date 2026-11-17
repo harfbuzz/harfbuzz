@@ -87,7 +87,7 @@ typedef struct hb_subset_depend_t hb_subset_depend_t;
  * hb_subset_depend_entry_t:
  * @table_tag: Source table (e.g. GSUB, glyf, CFF, COLR, MATH).
  * @dependent: Target glyph ID.
- * @layout_tag: Feature tag for GSUB edges; 0 otherwise.
+ * @layout_tag: Feature tag for GSUB edges; #HB_CODEPOINT_INVALID otherwise.
  * @ligature_set_index: Index into the sets array for ligature component
  *   glyphs, or #HB_CODEPOINT_INVALID if not a ligature edge.
  * @context_set_index: Index into the sets array for context requirement

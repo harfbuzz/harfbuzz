@@ -1,2 +1,23 @@
 ../fonts/757ebd573617a24aa9dfbf0b885c54875c6fe06b.ttf;;U+115F,U+11A2;[gid3=0+920|gid4=0+0]
 ../fonts/7e14e7883ed152baa158b80e207b66114c823a8b.ttf;;U+11A2;[gid1=0+920]
+
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+1100,U+302E;[kiyeok=0+500|singleDot=0@-450,0+0|dottedcircle=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+1100,U+302F;[kiyeok=0+500|dottedcircle=0+500|doubleDot=0@-450,0+0]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+302E;[singleDot=0+200|dottedcircle=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+302F;[dottedcircle=0+500|doubleDot=0@-450,0+0]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+AC00,U+302E;[singleDot=0+200|ga=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+AC00,U+302F;[ga=0+500|doubleDot=0@-450,0+0]
+
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;--bot;U+302E;[singleDot=0+200|dottedcircle=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;--bot;U+302F;[dottedcircle=0+500|doubleDot=0@-450,0+0]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+25CC,U+302E;[singleDot=0+200|dottedcircle=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+25CC,U+302F;[dottedcircle=0+500|doubleDot=0@-450,0+0]
+
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=0 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=0+500]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=0 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=0+500|L.alt=2+500|V.alt=2+500|T.alt=2+500|L.alt=4+500|V.alt=4+500|T.alt=4+500|L.alt=6+500|V.alt=6+500|T.alt=6+500|L.alt=8+500|V.alt=8+500|T.alt=8+500|L.alt=10+500|V.alt=10+500|T.alt=10+500]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=1 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=1+500#3]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=1 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=1+500#3|L.alt=2+500|V.alt=2+500|T.alt=3+500#3|L.alt=4+500|V.alt=4+500|T.alt=5+500#3|L.alt=6+500|V.alt=6+500|T.alt=7+500#3|L.alt=8+500|V.alt=8+500|T.alt=9+500#3|L.alt=10+500|V.alt=10+500|T.alt=11+500#3]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=2 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=1+500#3]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=2 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=1+500#3|L.alt=2+500|V.alt=2+500|T.alt=3+500#3|L.alt=4+500|V.alt=4+500|T.alt=5+500#3|L.alt=6+500|V.alt=6+500|T.alt=7+500#3|L.alt=8+500|V.alt=8+500|T.alt=9+500#3|L.alt=10+500|V.alt=10+500|T.alt=11+500#3]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=3 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=0+500]
+../fonts/30a951cae79125d340a32761e2d710ed4c62cdc6.ttf;--cluster-level=3 --show-flags --unsafe-to-concat --verify;U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB,U+AC00,U+11EB;[L.alt=0+500|V.alt=0+500|T.alt=0+500|L.alt=2+500|V.alt=2+500|T.alt=2+500|L.alt=4+500|V.alt=4+500|T.alt=4+500|L.alt=6+500|V.alt=6+500|T.alt=6+500|L.alt=8+500|V.alt=8+500|T.alt=8+500|L.alt=10+500|V.alt=10+500|T.alt=10+500]

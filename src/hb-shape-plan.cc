@@ -252,13 +252,11 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 		  num_coords,
 		  shaper_list);
 
-  if (unlikely (!HB_DIRECTION_IS_VALID (props->direction)))
+  if (unlikely (!props || !HB_DIRECTION_IS_VALID (props->direction)))
     return hb_shape_plan_get_empty ();
 
   hb_shape_plan_t *shape_plan;
 
-  if (unlikely (!props))
-    goto bail;
   if (!(shape_plan = hb_object_create<hb_shape_plan_t> ()))
     goto bail;
 
@@ -548,6 +546,11 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 		  face,
 		  num_user_features,
 		  shaper_list);
+
+  if (unlikely (!props))
+    return hb_shape_plan_get_empty ();
+  if (unlikely (!face))
+    face = hb_face_get_empty ();
 
 retry:
   hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans;

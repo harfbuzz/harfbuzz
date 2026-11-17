@@ -23,7 +23,9 @@
 static void
 _output_dotted_circle (hb_buffer_t *buffer)
 {
-  (void) buffer->output_glyph (0x25CCu);
+  if (unlikely (!buffer->output_glyph (0x25CCu)))
+    return;
+  _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer);
   _hb_glyph_info_clear_continuation (&buffer->prev());
 }
 

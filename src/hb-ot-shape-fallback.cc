@@ -346,7 +346,7 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   /* Use horizontal advance for horizontal positioning.
    * Generally a better idea.  Also works for zero-ink glyphs.  See:
    * https://github.com/harfbuzz/harfbuzz/issues/1532 */
-  base_extents.x_bearing = 0;
+  base_extents.x_bearing = buffer->pos[base].x_offset;
   base_extents.width = font->get_glyph_h_advance (buffer->info[base].codepoint);
 
   unsigned int lig_id = _hb_glyph_info_get_lig_id (&buffer->info[base]);

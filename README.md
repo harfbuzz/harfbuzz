@@ -47,7 +47,7 @@ Here is a quick map of its components:
 | Library | Description |
 |---------|-------------|
 | **libharfbuzz-raster** | Glyph rasterization to bitmaps, including color fonts. Uses hb-draw and hb-paint. |
-| **libharfbuzz-vector** | Glyph output to vector formats (currently SVG), including color fonts. Uses hb-draw and hb-paint. |
+| **libharfbuzz-vector** | Glyph output to vector formats (SVG and PDF), including color fonts. Uses hb-draw and hb-paint. |
 | **libharfbuzz-gpu** | Encodes glyph outlines for GPU rasterization (Slug algorithm). Provides shader sources in GLSL, WGSL, MSL, and HLSL. [Live demo.](https://harfbuzz.github.io/hb-gpu-demo/) |
 
 Notable missing feature: font hinting (including autohinting)

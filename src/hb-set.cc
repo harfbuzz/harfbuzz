@@ -502,7 +502,10 @@ hb_set_symmetric_difference (hb_set_t       *set,
  *
  * Inverts the contents of @set.
  *
- * Since: 3.0.0
+ * This function was deprecated in 1.6.1 and became a no-op. It was
+ * restored in 2.9.1.
+ *
+ * Since: 0.9.10
  **/
 void
 hb_set_invert (hb_set_t *set)

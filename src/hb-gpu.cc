@@ -74,7 +74,8 @@
  * hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
  *
  * hb_gpu_draw_glyph (draw, font, gid);
- * hb_blob_t *blob = hb_gpu_draw_encode (draw);
+ * hb_glyph_extents_t extents;
+ * hb_blob_t *blob = hb_gpu_draw_encode (draw, &extents);
  *
  * // Upload hb_blob_get_data(blob) to the atlas at some offset.
  * unsigned atlas_offset = upload_to_atlas (blob);

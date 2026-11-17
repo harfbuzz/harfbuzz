@@ -59,6 +59,27 @@ test_regular_face (void)
 }
 
 static void
+test_optical_size_os2 (void)
+{
+  char os2_data[100] = {0};
+  os2_data[1] = 5;           /* Version 5. */
+  os2_data[97] = (char) 160; /* Lower optical size: 8 points in TWIPs. */
+  os2_data[98] = 1;
+  os2_data[99] = (char) 224; /* Upper optical size: 24 points in TWIPs. */
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "OS/2", os2_data);
+  hb_font_t *font = hb_font_create (face);
+
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 16);
+  hb_font_set_ptem (font, 10);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 10);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_bold_face (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
@@ -199,6 +220,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_empty_face);
   hb_test_add (test_regular_face);
+  hb_test_add (test_optical_size_os2);
   hb_test_add (test_bold_face);
   hb_test_add (test_face_user_setting);
   hb_test_add (test_synthetic_slant);

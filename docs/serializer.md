@@ -104,7 +104,7 @@ the serialization buffer at the appropriate location.
 
 If during link resolution the resolver finds that an offsets value would exceed what can be encoded
 in that offset field link resolution is aborted and the offset overflow resolver is invoked.
-That process is documented [here](reapcker.md).
+That process is documented [here](repacker.md).
 
 
 ### Example of Complex Serialization
@@ -121,58 +121,62 @@ a--b--d
 Serializer would be called like this:
 
 ```c++
-hb_serialize_context_t ctx;
+struct child;
 
 struct root {
   char name;
   Offset16To<child> child_1;
   Offset16To<child> child_2;
-}
+  DEFINE_SIZE_STATIC (5);
+};
 
 struct child {
   char name;
   Offset16To<char> leaf;
-}
+  DEFINE_SIZE_STATIC (3);
+};
 
-// Object A.
-ctx->push();
-root* a = ctx->start_embed<root> ();
-ctx->extend_min (a);
+char buffer[256];
+hb_serialize_context_t ctx (buffer, sizeof (buffer));
+
+// Object A remains current until end_serialize() packs it and resolves links.
+ctx.start_serialize ();
+root* a = ctx.start_embed<root> ();
+ctx.extend_min (a);
 a->name = 'a';
 
 // Object B.
-ctx->push();
-child* b = ctx->start_embed<child> ();
-ctx->extend_min (b);
+ctx.push();
+child* b = ctx.start_embed<child> ();
+ctx.extend_min (b);
 b->name = 'b';
 
 // Object D.
-ctx->push();
-*ctx->allocate_size<char> (1) = 'd';
-unsigned d_id = ctx->pop_pack ();
+ctx.push();
+*ctx.allocate_size<char> (1) = 'd';
+unsigned d_id = ctx.pop_pack ();
 
-ctx->add_link (b->leaf, d_id);
-unsigned b_id = ctx->pop_pack ();
+ctx.add_link (b->leaf, d_id);
+unsigned b_id = ctx.pop_pack ();
 
 // Object C
-ctx->push();
-child* c = ctx->start_embed<child> ();
-ctx->extend_min (c);
+ctx.push();
+child* c = ctx.start_embed<child> ();
+ctx.extend_min (c);
 c->name = 'c';
 
 // Object D.
-ctx->push();
-*ctx->allocate_size<char> (1) = 'd';
-d_id = ctx->pop_pack (); // Serializer will automatically de-dup this with the previous 'd'
+ctx.push();
+*ctx.allocate_size<char> (1) = 'd';
+d_id = ctx.pop_pack (); // Serializer will automatically de-dup this with the previous 'd'
 
-ctx->add_link (c->leaf, d_id);
-unsigned c_id = ctx->pop_pack ();
+ctx.add_link (c->leaf, d_id);
+unsigned c_id = ctx.pop_pack ();
 
 // Object A's links:
-ctx->add_link (a->child_1, b_id);
-ctx->add_link (a->child_2, c_id);
-ctx->pop_pack ();
+ctx.add_link (a->child_1, b_id);
+ctx.add_link (a->child_2, c_id);
 
-ctx->end_serialize ();
+ctx.end_serialize ();
 
 ```

@@ -14,7 +14,8 @@ GENERATED = \
 all: packtab $(GENERATED)
 
 SOURCES = \
-		ArabicShaping.txt UnicodeData.txt Blocks.txt emoji-data.txt \
+		ArabicShaping.txt UnicodeData.txt Blocks.txt DerivedCoreProperties.txt \
+		emoji-data.txt emoji-test.txt \
 		IndicSyllabicCategory.txt IndicPositionalCategory.txt \
 		languagetags language-subtag-registry ucd.nounihan.grouped.zip Scripts.txt
 
