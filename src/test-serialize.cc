@@ -312,6 +312,50 @@ test_medium_chain_rule ()
 }
 
 static void
+test_device_dispatch ()
+{
+  static const char fvar_data[] = {
+    0, 1, 0, 0, 0, 16, 0, 2, 0, 1, 0, 20, 0, 0, 0, 8,
+    'w', 'g', 'h', 't',
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0,
+  };
+  static const char store_data[] = {
+    0, 1, 0, 0, 0, 12, 0, 1, 0, 0, 0, 22, /* One VarData at offset 22. */
+    0, 1, 0, 1, 0, 0, 0x40, 0, 0x40, 0,  /* One region: (0, 1, 1). */
+    0, 1, 0, 1, 0, 1, 0, 0, 0, 100,       /* Delta 100 at index 0. */
+  };
+  static const char var_data[] = {0, 0, 0, 0, (char) 0x80, 0};
+  char hint_data[] = {0, 0, 0, 0, 0, 1};
+  const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (store_data);
+  const auto &variation = *reinterpret_cast<const OT::Device *> (var_data);
+  const auto &hinting = *reinterpret_cast<const OT::Device *> (hint_data);
+
+  hb_face_t *face = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (fvar_data, sizeof (fvar_data),
+                                  HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  hb_always_assert (hb_face_builder_add_table (face, HB_TAG ('f', 'v', 'a', 'r'), blob));
+  hb_blob_destroy (blob);
+  hb_face_set_upem (face, 1000);
+  hb_font_t *font = hb_font_create (face);
+  const int coords[] = {16384};
+  hb_font_set_var_coords_normalized (font, coords, 1);
+
+  hb_always_assert (variation.get_x_delta (font, store) == 100);
+  hb_always_assert (variation.get_y_delta (font, store) == 100);
+  for (unsigned format = 1; format <= 3; format++)
+  {
+    hint_data[5] = format;
+    /* With ppem unset, hinting deltas are zero. HB_NO_HINTING must also
+     * ignore them, rather than interpreting the size fields as varIdx 0. */
+    hb_always_assert (hinting.get_x_delta (font, store) == 0);
+    hb_always_assert (hinting.get_y_delta (font, store) == 0);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_device_only_value ()
 {
   using namespace OT::Layout::GPOS_impl;
@@ -483,6 +527,7 @@ main (int argc, char **argv)
   test_feature_substitution_params_sanitize ();
   test_medium_rule ();
   test_medium_chain_rule ();
+  test_device_dispatch ();
   test_device_only_value ();
   test_failed_class_mapping ();
   test_push_pop_after_overflow ();
