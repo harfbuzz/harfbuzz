@@ -82,7 +82,8 @@
 #define HB_NO_VERTICAL
 #define HB_NO_VAR
 
-#if !(defined(HB_HAS_CAIRO) || defined(HB_HAS_RASTER) || defined(HB_HAS_VECTOR) || defined(HB_HAS_GPU))
+#if !(defined(HAVE_CAIRO) || defined(HAVE_RASTER) || defined(HAVE_VECTOR) || defined(HAVE_GPU) || \
+      defined(HB_HAS_CAIRO) || defined(HB_HAS_RASTER) || defined(HB_HAS_VECTOR) || defined(HB_HAS_GPU))
 #define HB_NO_COLOR
 #define HB_NO_DRAW
 #define HB_NO_PAINT

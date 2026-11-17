@@ -78,6 +78,12 @@ set(HB_HAVE_VECTOR ${HB_BUILD_VECTOR})
 set(HB_HAVE_GPU ${HB_BUILD_GPU})
 set(HB_HAVE_GRAPHITE ${HB_HAVE_GRAPHITE2})
 
+foreach(feature RASTER VECTOR GPU)
+  if (HB_BUILD_${feature})
+    add_compile_definitions(HAVE_${feature}=1)
+  endif ()
+endforeach()
+
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
   set (HB_HAVE_GLIB ON)
