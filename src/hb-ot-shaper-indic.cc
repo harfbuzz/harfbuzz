@@ -1438,11 +1438,16 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
   /* Apply 'init' to the Left Matra if it's a word start. */
   if (info[start].indic_position () == POS_PRE_M)
   {
-    if (!start ||
-	!(FLAG_UNSAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
-	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
+    hb_unicode_general_category_t previous_category = HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR;
+    if (start)
+      previous_category = _hb_glyph_info_get_general_category (&info[start - 1]);
+    else if (buffer->context_len[0])
+      previous_category = buffer->unicode->general_category (buffer->context[0][0]);
+
+    if (!(FLAG_UNSAFE (previous_category) &
+	  FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
       info[start].mask |= indic_plan->mask_array[INDIC_INIT];
-    else
+    else if (start)
       buffer->unsafe_to_break (start - 1, start + 1);
   }
 }
