@@ -162,7 +162,9 @@ test_shape_not_found_variation_selector (void)
     hb_buffer_set_not_found_glyph (buffer, 42);
     hb_buffer_add_utf32 (buffer, texts[i], len, 0, len);
     hb_buffer_guess_segment_properties (buffer);
-    hb_shape (font, buffer, NULL, 0);
+    /* This regression exercises the OpenType normalizer. */
+    const char *shaper_list[] = {"ot", NULL};
+    g_assert_true (hb_shape_full (font, buffer, NULL, 0, shaper_list));
     hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
     g_assert_cmpuint (hb_buffer_get_length (buffer), >, 0);
     g_assert_cmpuint (info[0].codepoint, ==, 42);
