@@ -252,6 +252,7 @@ endif
 if graphite2_dep.found() or graphite_dep.found()
   conf.set('HAVE_GRAPHITE2', 1)
 endif
+conf.set('HAVE_GRAPHITE', conf.get('HAVE_GRAPHITE2', false))
 
 if icu_dep.found()
   conf.set('HAVE_ICU', 1)
