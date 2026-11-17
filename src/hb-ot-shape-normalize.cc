@@ -364,6 +364,9 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       decompose_multi_char_cluster (&c, end, always_short_circuit);
     }
     while (buffer->idx < count && buffer->successful);
+    /* Decomposition can introduce marks into otherwise simple input. */
+    if (buffer->successful && buffer->out_len != count)
+      all_simple = false;
     buffer->sync ();
     (void) buffer->message (font, "end decompose");
   }
