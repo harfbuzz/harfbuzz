@@ -49,6 +49,7 @@ in_house_tests = [
   'indic-zero-context.tests',
   'item-context.tests',
   'kbts.tests',
+  'kern-format0.tests',
   'kern-format1.tests',
   'kern-format2.tests',
   'khmer-mark-order.tests',

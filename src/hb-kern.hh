@@ -87,7 +87,16 @@ struct hb_kern_machine_t
       if (likely (!kern))
 	goto skip;
 
-      if (horizontal)
+      if (crossStream && kern == -0x8000)
+      {
+	pos[j].attach_type() = OT::Layout::GPOS_impl::ATTACH_TYPE_NONE;
+	pos[j].attach_chain() = 0;
+	if (horizontal)
+	  pos[j].y_offset = 0;
+	else
+	  pos[j].x_offset = 0;
+      }
+      else if (horizontal)
       {
 	if (scale)
 	  kern = font->em_scale_x (kern);
