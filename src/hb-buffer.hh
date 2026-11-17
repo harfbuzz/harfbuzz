@@ -661,7 +661,7 @@ struct hb_buffer_t
     unsigned cluster_first = infos[start].cluster;
     unsigned cluster_last = infos[end - 1].cluster;
 
-    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS ||
+    if (!HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (cluster_level) ||
 	(cluster != cluster_first && cluster != cluster_last))
     {
       for (unsigned int i = start; i < end; i++)
@@ -691,7 +691,7 @@ struct hb_buffer_t
     if (unlikely (start == end))
       return cluster;
 
-    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+    if (!HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (cluster_level))
     {
       for (unsigned int i = start; i < end; i++)
 	cluster = hb_min (cluster, infos[i].cluster);
