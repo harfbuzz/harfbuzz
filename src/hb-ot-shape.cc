@@ -376,6 +376,9 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t *planner,
       map->add_feature (horizontal_features[i]);
   else
   {
+    /* Keep a fallback mask when vertical kerning is requested. */
+    map->add_feature (HB_TAG ('v','k','r','n'), F_GLOBAL_HAS_FALLBACK, 0);
+
     /* We only apply `vert` feature. See:
      * https://github.com/harfbuzz/harfbuzz/commit/d71c0df2d17f4590d5611239577a6cb532c26528
      * https://lists.freedesktop.org/archives/harfbuzz/2013-August/003490.html */

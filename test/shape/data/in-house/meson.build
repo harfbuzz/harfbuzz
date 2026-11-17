@@ -51,6 +51,7 @@ in_house_tests = [
   'kbts.tests',
   'kern-format1.tests',
   'kern-format2.tests',
+  'kern-vertical.tests',
   'khmer-mark-order.tests',
   'khmer-misc.tests',
   'language-tags.tests',
