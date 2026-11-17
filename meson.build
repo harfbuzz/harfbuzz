@@ -250,7 +250,7 @@ if wasm_dep.found()
 endif
 
 if graphite2_dep.found() or graphite_dep.found()
-  conf.set('HAVE_GRAPHITE2', 1)
+  conf.set('HAVE_GRAPHITE', 1)
 endif
 
 if icu_dep.found()
@@ -263,6 +263,10 @@ endif
 
 if get_option('experimental_api')
   conf.set('HB_EXPERIMENTAL_API', 1)
+endif
+
+if not get_option('gpu').disabled()
+  conf.set('HAVE_GPU', 1)
 endif
 
 if not get_option('raster').disabled()
@@ -483,7 +487,7 @@ build_summary = {
      'Fontations': conf.get('HAVE_FONTATIONS', 0) == 1,
     },
   'Additional shapers':
-    {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
+    {'Graphite2': conf.get('HAVE_GRAPHITE', 0) == 1,
      'WebAssembly (experimental)': conf.get('HAVE_WASM', 0) == 1,
     },
   'Platform / other shapers (not normally needed)':

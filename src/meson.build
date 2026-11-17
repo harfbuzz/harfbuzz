@@ -526,7 +526,7 @@ if conf.get('HAVE_GDI', 0) == 1
   harfbuzz_deps += gdi_uniscribe_deps
 endif
 
-if conf.get('HAVE_GRAPHITE2', 0) == 1
+if conf.get('HAVE_GRAPHITE', 0) == 1
   hb_sources += hb_graphite2_sources
   hb_headers += hb_graphite2_headers
   harfbuzz_deps += [graphite2_dep, graphite_dep]
@@ -1067,7 +1067,7 @@ if get_option('tests').enabled()
       suite: ['src', 'subset'])
   endif
 
-  if not cpp_is_microsoft_compiler and conf.get('HAVE_GRAPHITE2', 0) == 1
+  if not cpp_is_microsoft_compiler and conf.get('HAVE_GRAPHITE', 0) == 1
     test('test-graphite2-buffer', executable('test-graphite2-buffer', ['test-graphite2-buffer.cc', 'hb-static.cc'],
       include_directories: incconfig,
       cpp_args: cpp_args + ['-UNDEBUG'],

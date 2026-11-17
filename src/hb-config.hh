@@ -82,7 +82,8 @@
 #define HB_NO_VERTICAL
 #define HB_NO_VAR
 
-#if !(defined(HB_HAS_CAIRO) || defined(HB_HAS_RASTER) || defined(HB_HAS_VECTOR) || defined(HB_HAS_GPU))
+#if !(defined(HAVE_CAIRO) || defined(HAVE_RASTER) || defined(HAVE_VECTOR) || defined(HAVE_GPU) || \
+      defined(HB_HAS_CAIRO) || defined(HB_HAS_RASTER) || defined(HB_HAS_VECTOR) || defined(HB_HAS_GPU))
 #define HB_NO_COLOR
 #define HB_NO_DRAW
 #define HB_NO_PAINT
@@ -94,7 +95,6 @@
 #define HB_NO_AAT
 #define HB_NO_LEGACY
 #define HB_NO_BEYOND_64K
-#define HB_NO_CUBIC_GLYF
 #endif
 
 #ifdef __OPTIMIZE_SIZE__
@@ -200,12 +200,6 @@
 #define HB_OPTIMIZE_SIZE_VAL 1
 #else
 #define HB_OPTIMIZE_SIZE_VAL 0
-#endif
-
-#ifdef HB_MINIMIZE_MEMORY_USAGE
-#define HB_MINIMIZE_MEMORY_USAGE_VAL 1
-#else
-#define HB_MINIMIZE_MEMORY_USAGE_VAL 0
 #endif
 
 #endif /* HB_CONFIG_HH */

@@ -478,6 +478,58 @@ test_hb_ot_color_png (void)
   hb_font_destroy (cbdt_font);
 }
 
+#if !defined(HB_NO_PAINT) && !defined(HB_NO_COLOR) && !defined(HB_NO_OT_FONT_BITMAP)
+static hb_blob_t *
+reference_bitmap_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+{
+  const unsigned int *tables = user_data;
+  if (tag == HB_TAG ('s', 'b', 'i', 'x'))
+    return *tables & 1 ? hb_face_reference_table (sbix, tag) : hb_blob_get_empty ();
+  if (tag == HB_TAG ('C', 'B', 'D', 'T') || tag == HB_TAG ('C', 'B', 'L', 'C'))
+    return *tables & 2 ? hb_face_reference_table (cbdt, tag) : hb_blob_get_empty ();
+  return hb_face_reference_table (sbix, tag);
+}
+
+static hb_bool_t
+capture_png (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+             hb_blob_t *image, unsigned int width HB_UNUSED,
+             unsigned int height HB_UNUSED, hb_tag_t format,
+             float slant HB_UNUSED, hb_glyph_extents_t *extents HB_UNUSED,
+             void *user_data HB_UNUSED)
+{
+  hb_blob_t **result = paint_data;
+  g_assert_cmpuint (format, ==, HB_PAINT_IMAGE_FORMAT_PNG);
+  g_assert_null (*result);
+  *result = hb_blob_reference (image);
+  return true;
+}
+
+static void
+test_hb_ot_color_png_paint_order (void)
+{
+  /* The existing fixtures contain distinct PNGs for glyph 1. Test each
+   * bitmap format alone, and both tables in the same face. */
+  for (unsigned int tables = 1; tables <= 3; tables++)
+  {
+    hb_face_t *face = hb_face_create_for_tables (reference_bitmap_table, &tables, NULL);
+    hb_font_t *font = hb_font_create (face);
+    hb_blob_t *expected = hb_ot_color_glyph_reference_png (font, 1);
+    hb_blob_t *painted = NULL;
+    hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_set_image_func (funcs, capture_png, NULL, NULL);
+    hb_font_paint_glyph (font, 1, funcs, &painted, 0, HB_COLOR (0, 0, 0, 255));
+    g_assert_nonnull (painted);
+    hb_test_assert_blobs_equal (expected, painted);
+
+    hb_paint_funcs_destroy (funcs);
+    hb_blob_destroy (painted);
+    hb_blob_destroy (expected);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+#endif
+
 static void
 test_hb_ot_color_png_cbdt_records (void)
 {
@@ -722,6 +774,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_glyph_get_layers);
   hb_test_add (test_hb_ot_color_has_data);
   hb_test_add (test_hb_ot_color_png);
+#if !defined(HB_NO_PAINT) && !defined(HB_NO_COLOR) && !defined(HB_NO_OT_FONT_BITMAP)
+  hb_test_add (test_hb_ot_color_png_paint_order);
+#endif
   hb_test_add (test_hb_ot_color_png_cbdt_records);
   hb_test_add (test_hb_ot_color_png_cbdt_max_strikes);
 #if !defined(HB_NO_VAR) && !defined(HB_NO_PAINT)

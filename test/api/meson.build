@@ -82,7 +82,7 @@ if conf.get('HAVE_FREETYPE', 0) == 1
   ]
 endif
 
-if conf.get('HAVE_GRAPHITE2', 0) == 1
+if conf.get('HAVE_GRAPHITE', 0) == 1
   tests += 'test-graphite2.c'
 endif
 

@@ -69,7 +69,7 @@
  * This must be larger than the number of times add_gsub_pause() is
  * called in a collect_features call of any shaper.
  */
-#define HB_CLOSURE_MAX_STAGES 12
+#define HB_CLOSURE_MAX_STAGES 16
 #endif
 
 #ifndef HB_MAX_SCRIPTS
@@ -163,10 +163,6 @@
  * glyph IDs makes trimming and hint dropping cost that many table scans. */
 #ifndef HB_SUBSET_GLYF_MAX_BYTES_FACTOR
 #define HB_SUBSET_GLYF_MAX_BYTES_FACTOR 16
-#endif
-
-#ifndef HB_SVG_MAX_PATH_SEGMENTS
-#define HB_SVG_MAX_PATH_SEGMENTS 262144
 #endif
 
 #ifndef HB_GPU_DRAW_MAX_CURVES

@@ -65,7 +65,7 @@ struct hb_aat_map_builder_t
     hb_aat_layout_feature_type_t  type;
     hb_aat_layout_feature_selector_t  setting;
     bool is_exclusive;
-    unsigned  seq; /* For stable sorting only. */
+    unsigned  seq; /* Request order and identity. */
 
     HB_INTERNAL static int cmp (const void *pa, const void *pb)
     {
@@ -74,7 +74,7 @@ struct hb_aat_map_builder_t
       if (a->type != b->type) return (a->type < b->type ? -1 : 1);
       if (!a->is_exclusive &&
 	  (a->setting & ~1) != (b->setting & ~1)) return (a->setting < b->setting ? -1 : 1);
-	    return (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0);
+      return (a->seq > b->seq ? -1 : a->seq < b->seq ? 1 : 0);
     }
 
     /* compares type & setting only */
