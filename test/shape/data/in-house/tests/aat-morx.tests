@@ -22,3 +22,12 @@
 ../fonts/morx-language-canonicalization.ttf;--no-glyph-names --language=zh-Hant-TW;41;[3=0+600]
 ../fonts/morx-language-canonicalization.ttf;--no-glyph-names --language=zh;41;[1=0+600]
 ../fonts/morx-long-language-tag.ttf;--no-glyph-names --language=sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss-sub;41;[2=0+600]
+
+../fonts/ea89099cc8caaf464a5dc23119b01f2a8ebfdcc5.ttf;--features=-liga,liga;U+0066,U+0069;[f.alt=0+700|i=1+500]
+../fonts/ea89099cc8caaf464a5dc23119b01f2a8ebfdcc5.ttf;--features=liga,-liga;U+0066,U+0069;[f=0+500|i=1+500]
+../fonts/ea89099cc8caaf464a5dc23119b01f2a8ebfdcc5.ttf;--features=-liga,liga,-liga;U+0066,U+0069;[f=0+500|i=1+500]
+../fonts/ea89099cc8caaf464a5dc23119b01f2a8ebfdcc5.ttf;--features=-liga,liga[0:1];U+0066,U+0066,U+0066,U+0066;[f.alt=0+700|f=1+500|f=2+500|f=3+500]
+../fonts/ea89099cc8caaf464a5dc23119b01f2a8ebfdcc5.ttf;--features=liga,-liga[1:3];U+0066,U+0066,U+0066,U+0066;[f.alt=0+700|f=1+500|f=2+500|f.alt=3+700]
+../fonts/ea89099cc8caaf464a5dc23119b01f2a8ebfdcc5.ttf;--features=liga[0:1],-liga[0:4],liga[0:3];U+0066,U+0066,U+0066,U+0066;[f.alt=0+700|f.alt=1+700|f.alt=2+700|f=3+500]
+../fonts/6dbce44ea8013a8465034cd874b2f186d7b71792.ttf;--features=aalt=0,aalt=1;U+0066,U+0069;[f.alt=0+700|i=1+500]
+../fonts/6dbce44ea8013a8465034cd874b2f186d7b71792.ttf;--features=aalt=1,aalt=0;U+0066,U+0069;[f=0+500|i=1+500]
