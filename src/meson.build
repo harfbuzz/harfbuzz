@@ -611,6 +611,8 @@ foreach feature : features
   hb_supported_features.set(key, 1)
 endforeach
 
+hb_enabled_features.set('HB_HAS_GRAPHITE', conf.get('HAVE_GRAPHITE2', false))
+
 # The enabled features. This file is installed.
 hb_features_h = configure_file(input: 'hb-features.h.in',
                                output: 'hb-features.h',

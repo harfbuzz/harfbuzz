@@ -265,6 +265,10 @@ if get_option('experimental_api')
   conf.set('HB_EXPERIMENTAL_API', 1)
 endif
 
+if not get_option('gpu').disabled()
+  conf.set('HAVE_GPU', 1)
+endif
+
 if not get_option('raster').disabled()
   conf.set('HAVE_RASTER', 1)
 endif
