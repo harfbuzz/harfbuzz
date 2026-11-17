@@ -100,9 +100,10 @@ hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
     return face->table.OS2->is_italic () || face->table.head->is_italic () ? 1 : 0;
   case HB_STYLE_TAG_OPTICAL_SIZE:
   {
+    /* OS/2 optical sizes are in twentieths of a point. */
     unsigned int lower, design, upper;
     return face->table.OS2->v5 ().get_optical_size (&lower, &upper)
-	   ? (float) (lower + upper) / 2.f
+	   ? (float) (lower + upper) / 40.f
 	   : hb_ot_layout_get_size_params (face, &design, nullptr, nullptr, nullptr, nullptr)
 	   ? design / 10.f
 	   : 12.f;
