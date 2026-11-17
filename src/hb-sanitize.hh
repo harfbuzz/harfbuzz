@@ -104,9 +104,6 @@
  */
 
 /* This limits sanitizing time on really broken fonts. */
-#ifndef HB_SANITIZE_MAX_EDITS
-#define HB_SANITIZE_MAX_EDITS 32
-#endif
 #ifndef HB_SANITIZE_MAX_OPS_FACTOR
 #define HB_SANITIZE_MAX_OPS_FACTOR 64
 #endif

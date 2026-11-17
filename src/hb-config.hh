@@ -203,10 +203,4 @@
 #define HB_OPTIMIZE_SIZE_VAL 0
 #endif
 
-#ifdef HB_MINIMIZE_MEMORY_USAGE
-#define HB_MINIMIZE_MEMORY_USAGE_VAL 1
-#else
-#define HB_MINIMIZE_MEMORY_USAGE_VAL 0
-#endif
-
 #endif /* HB_CONFIG_HH */
