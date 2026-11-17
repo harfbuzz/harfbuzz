@@ -85,21 +85,19 @@ The actual code for this processing loop can be found in the function hb_resolve
 
 # Topological Sorting Algorithms
 
-The harfbuzz repacker uses two different algorithms for topological sorting:
-*  [Kahn's Algorithm](https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm)
-*  Sorting by shortest distance
-
-Kahn's algorithm is approximately twice as fast as the shortest distance sort so that is attempted
-first (only on the first topological sort). If it fails to eliminate overflows then shortest distance
-sort will be used for all subsequent topological sorting operations.
+The harfbuzz repacker uses shortest-distance topological sorting from the first sort onward.
+This combines shortest-path distances with
+[Kahn's Algorithm](https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm),
+using a priority queue to select the next available node.
 
 ## Shortest Distance Sort
 
 This algorithm orders the nodes based on total distance to each node. Nodes with a shorter distance
 are ordered first.
 
-The "weight" of an edge is the sum of the size of the sub-table being pointed to plus 2^16 for a 16 bit
-offset and 2^32 for a 32 bit offset.
+The "weight" of an edge is the size of the child subtable plus
+`2^(offset width in bits) * (child space + 1)`. In space zero, the offset term is
+2^16 for a 16 bit offset and 2^32 for a 32 bit offset. Virtual links use a 32 bit offset term.
 
 The distance of a node is the sum of all weights along the shortest path from the root to that node
 plus a priority modifier (used to change where nodes are placed by moving increasing or
@@ -118,8 +116,8 @@ to be as fast as possible. There's a few things that are done to speed up subseq
 operations:
 
 *  The number of incoming edges to each node is cached. This is required by the Kahn's algorithm
-   portion of both sorts. Where possible when the graph is modified we manually update the cached
-   edge counts of affected nodes.
+   portion of the shortest-distance sort. Where possible when the graph is modified we manually update
+   the cached edge counts of affected nodes.
 
 *  The distance to each node is cached. Where possible when the graph is modified we manually update
    the cached distances of any affected nodes.
@@ -180,9 +178,9 @@ If there is a subgraph that is only reachable from one or more 32 bit offsets, t
 
 The sorting algorithm incorporates this via a "space" modifier that can be applied to nodes in the
 graph. By default all nodes are treated as being in space zero. If a node is given a non-zero space, n,
-then the computed distance to the node will be modified by adding `n * 2^32`. This will cause that
-node and it's descendants to be packed between all nodes in space n-1 and space n+1. Resulting in a
-topological sort like:
+then the offset term of each incoming edge's weight is multiplied by `n + 1`.
+For a 32 bit edge this term becomes `(n + 1) * 2^32`. This biases independent subgraphs
+into separate regions of the topological order, for example:
 
 ```
 | space 0 subtables | space 1 subtables | .... | space n subtables |
@@ -211,7 +209,8 @@ cannot be pointed over). When such cases are detected table splitting is invoked
   which contain a subset of the data of the original subtable and then shrinking the original subtable.
 
 Table splitting must be aware of the underlying format of each subtable type and thus needs custom
-code for each subtable type. Currently subtable splitting is only supported for GPOS subtable types.
+code for each subtable type. Splitting is supported for GPOS PairPos and MarkBasePos subtables
+and GSUB LigatureSubst subtables.
 
 ## GSUB/GPOS Extension Lookup Promotion
 
@@ -276,9 +275,9 @@ The harfbuzz repacker has tests defined using generic graphs: https://github.com
 # Future Improvements
 
 Currently for GPOS tables the repacker implementation is sufficient to handle both subsetting and the
-general case of font compilation repacking. However for GSUB the repacker is only sufficient for
-subsetting related overflows. To enable general case repacking of GSUB, support for splitting of
-GSUB subtables will need to be added. Other table types such as COLRv1 shouldn't require table
+general case of font compilation repacking. GSUB subtable splitting currently covers LigatureSubst;
+extending splitting to other GSUB lookup types would improve support for general font compilation.
+Other table types such as COLRv1 shouldn't require table
 splitting due to the wide use of 24 bit offsets throughout the table.
 
 Beyond subtable splitting there are a couple of "nice to have" improvements, but these are not required
