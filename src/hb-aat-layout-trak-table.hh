@@ -239,7 +239,7 @@ struct trak
     {
       hb_position_t advance_to_add = get_v_tracking (c->font, track);
       foreach_grapheme (buffer, start, end)
-	buffer->pos[start].y_advance = hb_saturate_add (buffer->pos[start].y_advance, advance_to_add);
+	buffer->pos[start].y_advance = hb_saturate_sub (buffer->pos[start].y_advance, advance_to_add);
     }
 
     return_trace (true);

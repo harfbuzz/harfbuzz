@@ -7,3 +7,8 @@
 ../fonts/TRAK.ttf;--font-ptem=72;U+0041,U+0042,U+0043;[A.alt=0+929|B=1+929|C.alt=2+929]
 ../fonts/TRAK.ttf;--font-ptem=144;U+0041,U+0042,U+0043;[A.alt=0+900|B=1+900|C.alt=2+900]
 ../fonts/e4c033dd26392a35b91c82f6cde82f3ea4323a1f.ttf;--font-funcs=ot;U+0041,U+0042,U+0043;[gid0=0+650|gid0=1+650|gid0=2+650]
+
+../fonts/cd34b11aac3c383f457ba96a4b5e80021627be57.ttf;--direction=ttb --font-ptem=12;U+0041,U+0056;[A=0@-250,-500+0,-1100|V=1@-250,-500+0,-1100]
+../fonts/cd34b11aac3c383f457ba96a4b5e80021627be57.ttf;--direction=ttb --font-ptem=96;U+0041,U+0056;[A=0@-250,-500+0,-900|V=1@-250,-500+0,-900]
+../fonts/cd34b11aac3c383f457ba96a4b5e80021627be57.ttf;--direction=ltr --font-ptem=12;U+0041,U+0056;[A=0+550|V=1+550]
+../fonts/cd34b11aac3c383f457ba96a4b5e80021627be57.ttf;--direction=ltr --font-ptem=96;U+0041,U+0056;[A=0+450|V=1+450]
