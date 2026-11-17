@@ -281,7 +281,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
       /* Limit bits per feature. */
       bits_needed = hb_min (HB_OT_MAP_MAX_BITS, hb_bit_storage (info->max_value));
 
-    if (!info->max_value || next_bit + bits_needed >= global_bit_shift)
+    if (!info->max_value || next_bit + bits_needed > global_bit_shift)
       continue; /* Feature disabled, or not enough bits. */
 
     bool found = false;
