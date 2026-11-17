@@ -242,7 +242,9 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    chars[0] = 0x25CCu;
 	    chars[1] = u;
 	  }
-	  (void) buffer->replace_glyphs (1, 2, chars);
+	  if (unlikely (!buffer->replace_glyphs (1, 2, chars))) break;
+	  unsigned int dotted_circle = buffer->out_len - (chars[0] == 0x25CCu ? 2 : 1);
+	  _hb_glyph_info_set_unicode_props (&buffer->out_info[dotted_circle], buffer);
 	}
 	else
 	{
