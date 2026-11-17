@@ -1243,6 +1243,8 @@ struct cff1
       privateDicts.fini ();
       hb_free (std_code_to_glyph_table.get_relaxed ());
       std_code_to_glyph_table.set_relaxed (nullptr);
+      hb_free (glyph_to_sid_table.get_relaxed ());
+      glyph_to_sid_table.set_relaxed (nullptr);
       hb_blob_destroy (blob);
       blob = nullptr;
     }
@@ -1310,6 +1312,38 @@ struct cff1
       return table;
     }
     public:
+
+    /* Charset::get_sid() without a cache walks the charset ranges from the
+     * start, which made naming every glyph of a shaped run quadratic-ish.
+     * Build a glyph-to-SID table in one pass over the charset on first use
+     * instead.  Preserve the full SID value, since malformed ranges can
+     * extend beyond Card16. */
+    const hb_codepoint_t *get_glyph_to_sid_table () const
+    {
+      /* Predefined charsets and format 0 already have direct lookups. */
+      if (is_predef_charset () || charset->format == 0)
+	return nullptr;
+
+    retry:
+      hb_codepoint_t *table = glyph_to_sid_table.get_acquire ();
+      if (likely (table))
+	return table;
+
+      table = (hb_codepoint_t *) hb_calloc (num_glyphs, sizeof (hb_codepoint_t));
+      if (unlikely (!table))
+	return nullptr;
+
+      code_pair_t glyph_to_sid_cache {0, HB_CODEPOINT_INVALID};
+      for (hb_codepoint_t glyph = 0; glyph < num_glyphs; glyph++)
+	table[glyph] = charset->get_sid (glyph, num_glyphs, &glyph_to_sid_cache);
+
+      if (unlikely (!glyph_to_sid_table.cmpexch (nullptr, table)))
+      {
+	hb_free (table);
+	goto retry;
+      }
+      return table;
+    }
 
     bool is_predef_encoding () const { return topDict.EncodingOffset <= ExpertEncoding; }
 
@@ -1432,6 +1466,7 @@ struct cff1
 
     private:
     mutable hb_atomic_t<uint16_t *> std_code_to_glyph_table {nullptr};
+    mutable hb_atomic_t<hb_codepoint_t *> glyph_to_sid_table {nullptr};
   };
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
@@ -1460,7 +1495,8 @@ struct cff1
       if (unlikely (!is_valid ())) return false;
       if (is_CID()) return false;
       if (unlikely (!buf_len)) return true;
-      hb_codepoint_t sid = glyph_to_sid (glyph);
+      const hb_codepoint_t *table = get_glyph_to_sid_table ();
+      hb_codepoint_t sid = table ? table[glyph] : glyph_to_sid (glyph);
       const char *str;
       size_t str_len;
       if (sid < cff1_std_strings_length)

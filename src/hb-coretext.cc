@@ -33,6 +33,8 @@
 #include "hb-shaper-impl.hh"
 
 #include "hb-coretext.hh"
+#include "hb-open-file.hh"
+#include "hb-ot-name-table.hh"
 
 
 /**
@@ -179,30 +181,63 @@ release_data (void *info, const void *data, size_t size)
   hb_blob_destroy ((hb_blob_t *) info);
 }
 
-CGFontRef
-create_cg_font (CFArrayRef ct_font_desc_array, unsigned int named_instance_index)
+static CGFontRef
+create_cg_font (CFArrayRef ct_font_desc_array, hb_face_t *face)
 {
   hb_cf_ptr_t<CFArrayRef> desc_array (ct_font_desc_array);
   if (unlikely (!desc_array))
     return nullptr;
 
-  if (named_instance_index == 0)
+  if (CFArrayGetCount (desc_array) == 1)
   {
-    // Default instance. We don't know which one is it. Return the first one.
-    // We will set the correct variations on it later.
+    auto descriptor = (CTFontDescriptorRef) CFArrayGetValueAtIndex (desc_array, 0);
+    hb_cf_ptr_t<CTFontRef> ct_font (CTFontCreateWithFontDescriptor (descriptor, 0, nullptr));
+    return ct_font ? CTFontCopyGraphicsFont (ct_font, nullptr) : nullptr;
   }
-  else
-    named_instance_index--;
-  auto ct_font_desc = (CFArrayGetCount (desc_array) > (CFIndex) named_instance_index) ?
-		      (CTFontDescriptorRef) CFArrayGetValueAtIndex (desc_array, (CFIndex) named_instance_index) : nullptr;
-  if (unlikely (!ct_font_desc))
+  if (unlikely (!face))
     return nullptr;
 
-  hb_cf_ptr_t<CTFontRef> ct_font (CTFontCreateWithFontDescriptor (ct_font_desc, 0, nullptr));
-  if (unlikely (!ct_font))
+  /* CoreText enumerates descriptors for all collection members and their named
+   * instances.  Match the selected member's base PostScript name; array indices
+   * do not correspond to either TTC indices or fvar instance indices.  Named
+   * instance coordinates will be applied by hb_font_create(). */
+  hb_blob_ptr_t<OT::name> names = hb_sanitize_context_t ().reference_table<OT::name> (face);
+  const OT::NameRecord *record = nullptr;
+  unsigned score = UNSUPPORTED;
+  for (const OT::NameRecord &entry : names->nameRecordZ.as_array (names->count))
+  {
+    if (entry.nameID == HB_OT_NAME_ID_POSTSCRIPT_NAME && entry.score () < score)
+    {
+      record = &entry;
+      score = entry.score ();
+    }
+  }
+
+  hb_cf_ptr_t<CFStringRef> postscript_name;
+  if (record)
+  {
+    const UInt8 *bytes = reinterpret_cast<const UInt8 *> ((names+names->stringOffset+record->offset).arrayZ);
+    CFStringEncoding encoding = record->isUnicode () ? kCFStringEncodingUTF16BE : kCFStringEncodingMacRoman;
+    postscript_name.reset (CFStringCreateWithBytes (nullptr, bytes, record->length, encoding, false));
+  }
+  names.destroy ();
+  if (unlikely (!postscript_name))
     return nullptr;
 
-  return CTFontCopyGraphicsFont (ct_font, nullptr);
+  for (CFIndex i = 0; i < CFArrayGetCount (desc_array); i++)
+  {
+    auto descriptor = (CTFontDescriptorRef) CFArrayGetValueAtIndex (desc_array, i);
+    hb_cf_ptr_t<CFStringRef> name ((CFStringRef) CTFontDescriptorCopyAttribute (descriptor, kCTFontNameAttribute));
+    if (!name || !CFEqual (name, postscript_name))
+      continue;
+
+    hb_cf_ptr_t<CTFontRef> ct_font (CTFontCreateWithFontDescriptor (descriptor, 0, nullptr));
+    if (unlikely (!ct_font))
+      return nullptr;
+
+    return CTFontCopyGraphicsFont (ct_font, nullptr);
+  }
+  return nullptr;
 }
 
 CGFontRef
@@ -214,16 +249,7 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
   if (unlikely (!blob_length))
     DEBUG_MSG (CORETEXT, blob, "Empty blob");
 
-  unsigned ttc_index = index & 0xFFFF;
-  unsigned named_instance_index = index >> 16;
-
-  if (ttc_index != 0)
-  {
-    DEBUG_MSG (CORETEXT, blob, "TTC index %u not supported", ttc_index);
-    return nullptr; // CoreText does not support TTCs
-  }
-
-  if (unlikely (named_instance_index != 0))
+  if (index || blob->as<OT::OpenTypeFontFile> ()->get_tag () == OT::OpenTypeFontFile::TTCTag)
   {
     // https://github.com/harfbuzz/harfbuzz/issues/5300
     // https://github.com/harfbuzz/harfbuzz/issues/5354
@@ -233,12 +259,15 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
     (defined(__WATCH_OS_VERSION_MIN_REQUIRED) && __WATCH_OS_VERSION_MIN_REQUIRED >= 40000) || \
     (defined(__MACCATALYST_VERSION_MIN_REQUIRED) && __MACCATALYST_VERSION_MIN_REQUIRED >= 130100) || \
     (defined(__VISION_OS_VERSION_MIN_REQUIRED) && __VISION_OS_VERSION_MIN_REQUIRED >= 10000)
+    hb_unique_ptr_t<hb_face_t> face (hb_face_create_or_fail (blob, index));
+    if (unlikely (!face))
+      return nullptr;
     hb_cf_ptr_t<CFDataRef> data (CFDataCreate (kCFAllocatorDefault, (const UInt8 *) blob_data, blob_length));
     if (data)
     {
       auto ct_font_desc_array = CTFontManagerCreateFontDescriptorsFromData (data);
       if (likely (ct_font_desc_array))
-	return create_cg_font (ct_font_desc_array, named_instance_index);
+	return create_cg_font (ct_font_desc_array, face.get ());
     }
 #endif
     return nullptr;
@@ -434,15 +463,6 @@ hb_face_t *
 hb_coretext_face_create_from_file_or_fail (const char   *file_name,
 					   unsigned int  index)
 {
-  unsigned ttc_index = index & 0xFFFF;
-  unsigned named_instance_index = index >> 16;
-
-  if (ttc_index != 0)
-  {
-    DEBUG_MSG (CORETEXT, nullptr, "TTC index %u not supported", ttc_index);
-    return nullptr; // CoreText does not support TTCs
-  }
-
   hb_cf_ptr_t<CFURLRef> url (CFURLCreateFromFileSystemRepresentation (nullptr,
 								      (const UInt8 *) file_name,
 								      strlen (file_name),
@@ -450,11 +470,32 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
   if (unlikely (!url))
     return nullptr;
 
-  auto ct_font_desc_array = CTFontManagerCreateFontDescriptorsFromURL (url);
+  hb_cf_ptr_t<CFArrayRef> ct_font_desc_array (CTFontManagerCreateFontDescriptorsFromURL (url));
   if (unlikely (!ct_font_desc_array))
     return nullptr;
 
-  hb_cf_ptr_t<CGFontRef> cg_font (create_cg_font (ct_font_desc_array, named_instance_index));
+  hb_unique_ptr_t<hb_face_t> source;
+  if ((index & 0xFFFF) || CFArrayGetCount (ct_font_desc_array) != 1)
+  {
+#ifndef HB_NO_OPEN
+    hb_unique_ptr_t<hb_blob_t> blob (hb_blob_create_from_file_or_fail (file_name));
+#else
+    hb_cf_ptr_t<CGDataProviderRef> provider (CGDataProviderCreateWithFilename (file_name));
+    hb_cf_ptr_t<CFDataRef> data (provider ? CGDataProviderCopyData (provider) : nullptr);
+    if (unlikely (!data || CFDataGetLength (data) > UINT_MAX))
+      return nullptr;
+    const char *bytes = reinterpret_cast<const char *> (CFDataGetBytePtr (data));
+    unsigned length = CFDataGetLength (data);
+    hb_unique_ptr_t<hb_blob_t> blob (hb_blob_create (bytes, length, HB_MEMORY_MODE_READONLY,
+						  reinterpret_cast<void *> (const_cast<__CFData *> (data.release ())),
+						  release_table_data));
+#endif
+    source = hb_unique_ptr_t<hb_face_t> (hb_face_create_or_fail (blob.get (), index));
+    if (unlikely (!source))
+      return nullptr;
+  }
+
+  hb_cf_ptr_t<CGFontRef> cg_font (create_cg_font (ct_font_desc_array.release (), source.get ()));
   if (unlikely (!cg_font))
     return nullptr;
 

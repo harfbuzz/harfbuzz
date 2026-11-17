@@ -2260,6 +2260,57 @@ static void test_sort_shortest ()
   free (buffer_e);
 }
 
+static void test_unshare_children ()
+{
+  char buffer[200];
+  hb_serialize_context_t c (buffer, sizeof (buffer));
+  c.start_serialize<char> ();
+  unsigned coverage = add_object ("coverage", 8, &c);
+  start_object ("child", 5, &c);
+  for (unsigned i = 0; i < 3; i++)
+    add_virtual_offset (coverage, &c);
+  unsigned child = c.pop_pack (false);
+  start_object ("", 0, &c);
+  add_offset (child, &c);
+  unsigned other_parent = c.pop_pack (false);
+  start_object ("", 0, &c);
+  add_offset (child, &c); // excluded prefix link
+  add_offset (child, &c);
+  add_offset (child, &c);
+  add_offset (other_parent, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  unsigned parent = graph.root_idx ();
+  auto before = graph.vertices_[parent].position_to_index_map ().value ();
+  child = before.get (0);
+  other_parent = before.get (6);
+  coverage = graph.object (child).virtual_links[0].objidx;
+  hb_always_assert (graph.vertices_[coverage].incoming_edges () == 3);
+
+  // Also exercise unsorted links: prefix aliases must be protected regardless
+  // of their position in the link vector.
+  hb_swap (graph.vertices_[parent].real_links_writer ()[0],
+           graph.vertices_[parent].real_links_writer ()[2]);
+  hb_always_assert (graph.unshare_duplicate_children (parent, 2).is_ok ());
+  auto after = graph.vertices_[parent].position_to_index_map ().value ();
+  hb_always_assert (after.get (0) == child);
+  hb_always_assert (graph.object (other_parent).real_links[0].objidx == child);
+  for (unsigned pos = 2; pos <= 4; pos += 2)
+  {
+    unsigned clone = after.get (pos);
+    hb_always_assert (clone != child);
+    hb_always_assert (graph.object (clone).head != graph.object (child).head);
+    hb_always_assert (graph.vertices_[clone].incoming_edges () == 1);
+    hb_always_assert (graph.object (clone).virtual_links.length == 1);
+  }
+  hb_always_assert (after.get (2) != after.get (4));
+  hb_always_assert (graph.object (child).virtual_links.length == 1);
+  hb_always_assert (graph.vertices_[coverage].incoming_edges () == 3);
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
+}
+
 static void test_duplicate_leaf ()
 {
   size_t buffer_size = 100;
@@ -3065,10 +3116,11 @@ static void test_resolve_with_liga_split_shared_liga_set ()
   free (expected_buffer);
 }
 
-static void test_resolve_with_liga_split_shared_run ()
+static void test_resolve_with_liga_split_shared_run (bool large_first)
 {
-  // A large first ligature forces the remaining sets into one moved run. Two
-  // alternating shared sets check both unsharing and the order of cached ids.
+  // A large ligature forces a split before or after a run of small sets. Two
+  // alternating shared sets check both unsharing and the order of cached ids
+  // when moving the run or shrinking the retained subtable.
   constexpr unsigned num_sets = 4000;
   hb_vector_t<char> buffer;
   hb_always_assert (buffer.resize (200000));
@@ -3095,13 +3147,16 @@ static void test_resolve_with_liga_split_shared_run ()
     add_liga_set_header (1, &c);
     add_offset (liga, &c);
     add_virtual_offset (coverage, &c);
+    add_virtual_offset (coverage, &c); // redundant constraints from serializer dedup
+    add_virtual_offset (coverage, &c);
     shared_sets[i] = c.pop_pack (false);
   }
 
   add_liga_header (coverage, num_sets + 1, &c);
-  add_offset (first_set, &c);
+  if (large_first) add_offset (first_set, &c);
   for (unsigned i = 0; i < num_sets; i++)
     add_offset (shared_sets[i % 2], &c);
+  if (!large_first) add_offset (first_set, &c);
   unsigned subtable = c.pop_pack (false);
   start_lookup (4, 1, &c);
   add_offset (subtable, &c);
@@ -3117,21 +3172,79 @@ static void test_resolve_with_liga_split_shared_run ()
 
   auto subtables = graph.vertices_[lookup_id].position_to_index_map ().value ();
   hb_always_assert (subtables.get_population () == 2);
-  const auto& first = graph.object (subtables.get (6));
-  hb_always_assert (*(const OT::HBUINT16*) (first.head + 4) == 1);
-  unsigned moved_id = subtables.get (8);
+  const auto& large = graph.object (subtables.get (large_first ? 6 : 8));
+  hb_always_assert (*(const OT::HBUINT16*) (large.head + 4) == 1);
+  unsigned moved_id = subtables.get (large_first ? 8 : 6);
   const auto& moved = graph.object (moved_id);
   hb_always_assert (*(const OT::HBUINT16*) (moved.head + 4) == num_sets);
   auto sets = graph.vertices_[moved_id].position_to_index_map ().value ();
   hb_always_assert (sets.get_population () == num_sets + 1); // includes coverage
+  hb_set_t unique_sets;
   for (unsigned i = 0; i < num_sets; i++)
   {
     unsigned set_id = sets.get (6 + 2 * i);
+    unique_sets.add (set_id);
+    hb_always_assert (graph.vertices_[set_id].obj ().virtual_links.length == 1);
     const auto& set = graph.object (set_id);
     hb_always_assert (*(const OT::HBUINT16*) set.head == 1);
     unsigned liga_id = graph.index_for_offset (set_id, set.head + 2).value ();
     hb_always_assert (graph.object (liga_id).head[1] == (char) (i % 2 + 1));
   }
+  hb_always_assert (unique_sets.get_population () == num_sets);
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
+}
+
+static void test_liga_split_many_ranges (unsigned num_sets)
+{
+  // A compact graph with one shared large ligature requires one output
+  // subtable per coverage entry. Allocations must follow the output ranges,
+  // rather than reserving the original offset array for every clone.
+  hb_vector_t<char> buffer;
+  hb_always_assert (buffer.resize (100000 + 2 * num_sets));
+  hb_serialize_context_t c (buffer.arrayZ, buffer.length);
+  c.start_serialize<char> ();
+  unsigned coverage = add_coverage (0, num_sets - 1, &c);
+  std::string large (65520, 'a');
+  start_object (large.data (), large.size (), &c);
+  add_virtual_offset (coverage, &c);
+  unsigned liga = c.pop_pack (false);
+  add_liga_set_header (1, &c);
+  add_offset (liga, &c);
+  add_virtual_offset (coverage, &c);
+  unsigned set = c.pop_pack (false);
+  add_liga_header (coverage, num_sets, &c);
+  for (unsigned i = 0; i < num_sets; i++) add_offset (set, &c);
+  unsigned subtable = c.pop_pack (false);
+  start_lookup (4, 1, &c);
+  add_offset (subtable, &c);
+  unsigned lookup = finish_lookup (&c);
+  unsigned lookup_list = add_lookup_list (&lookup, 1, &c);
+  add_gsubgpos_header (lookup_list, &c);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  auto context = graph::gsubgpos_graph_context_t::create (HB_OT_TAG_GSUB, graph).value ();
+  unsigned lookup_id = *context.lookups.keys ();
+  hb_always_assert (context.lookups.get (lookup_id)->split_subtables_if_needed (context, lookup_id).is_ok ());
+  auto subtables = graph.vertices_[lookup_id].position_to_index_map ().value ();
+  hb_always_assert (subtables.get_population () == num_sets);
+  for (unsigned i = 0; i < num_sets; i++)
+  {
+    unsigned id = subtables.get (6 + 2 * i);
+    const auto& obj = graph.object (id);
+    hb_always_assert (obj.tail - obj.head == 8);
+    hb_always_assert (*(const OT::HBUINT16*) (obj.head + 4) == 1);
+    auto coverage = graph.as_table<graph::Coverage> (id, obj.head + 2).value ();
+    auto glyphs = coverage.table->iter ();
+    hb_always_assert (glyphs && *glyphs == i);
+    glyphs++;
+    hb_always_assert (!glyphs);
+    auto set = graph.as_table<graph::LigatureSet> (id, obj.head + 6).value ();
+    hb_always_assert (set.table->ligature.len == 1);
+    unsigned liga_id = graph.index_for_offset (set.index, set.vertex->obj ().head + 2).value ();
+    hb_always_assert (graph.vertices_[liga_id].table_size () == large.size ());
+  }
+  hb_always_assert (graph.is_fully_connected ().is_ok ());
 }
 
 static void test_liga_split_link_order ()
@@ -3773,6 +3886,47 @@ static void test_pair_pos_format_2_sanitize_size_overflow ()
   hb_always_assert (!pair_pos->sanitize (vertex).is_ok ());
 }
 
+static void test_liga_split_invalid_array_links ()
+{
+  // These positions fit the vertices and do not overlap other links, but
+  // they do not represent Offset16 array elements. Reject before mutation.
+  for (unsigned variant = 0; variant < 4; variant++)
+  {
+    char buffer[200];
+    hb_serialize_context_t c (buffer, sizeof (buffer));
+    c.start_serialize<char> ();
+    unsigned coverage = add_coverage (0, 0, &c);
+    unsigned liga = add_object ("ligature", 8, &c);
+    add_liga_set_header (1, &c);
+    add_offset (liga, &c);
+    extend ("x", 1, &c); // room for a misaligned or widened link
+    unsigned set = c.pop_pack (false);
+    add_liga_header (coverage, 1, &c);
+    add_offset (set, &c);
+    extend ("x", 1, &c);
+    unsigned subtable = c.pop_pack (false);
+    start_lookup (4, 1, &c);
+    add_offset (subtable, &c);
+    unsigned lookup = finish_lookup (&c);
+    unsigned lookup_list = add_lookup_list (&lookup, 1, &c);
+    add_gsubgpos_header (lookup_list, &c);
+    c.end_serialize ();
+
+    // Modify serializer indices before graph creation removes the nil node.
+    auto& links = c.object_graph ()[variant < 2 ? subtable : set]->real_links;
+    auto& link = links[links.length - 1];
+    if (variant % 2 == 0) link.position++;
+    else link.width++;
+
+    graph_t graph = graph_t::create (c.object_graph ()).value ();
+    auto context = graph::gsubgpos_graph_context_t::create (HB_OT_TAG_GSUB, graph).value ();
+    unsigned lookup_id = *context.lookups.keys ();
+    auto result = context.lookups.get (lookup_id)->split_subtables_if_needed (context, lookup_id);
+    hb_always_assert (result.is_err ());
+    hb_always_assert (result.error () == graph::INVALID_ARGUMENT);
+  }
+}
+
 static void test_invalid_link_position ()
 {
   size_t buffer_size = 100;
@@ -3807,6 +3961,7 @@ main (int argc, char **argv)
   test_invalid_link_objidx ();
   test_invalid_link_add_and_move ();
   test_invalid_link_position ();
+  test_liga_split_invalid_array_links ();
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
@@ -3827,6 +3982,7 @@ main (int argc, char **argv)
   test_resolve_overflows_via_splitting_spaces ();
   test_resolve_overflows_via_splitting_spaces_2 ();
   test_resolve_mixed_overflows_via_isolation_spaces ();
+  test_unshare_children ();
   test_duplicate_leaf ();
   test_duplicate_interior ();
   test_virtual_link ();
@@ -3850,9 +4006,11 @@ main (int argc, char **argv)
   test_dont_duplicate_virtual ();
   test_resolve_with_liga_split_overlapping_clone ();
   test_resolve_with_liga_split_shared_liga_set ();
-  test_resolve_with_liga_split_shared_run ();
+  test_resolve_with_liga_split_shared_run (true);
+  test_resolve_with_liga_split_shared_run (false);
   test_resolve_with_liga_split_null_offsets ();
   test_liga_split_link_order ();
+  test_liga_split_many_ranges (512);
   test_resolve_with_liga_split_shared_table ();
   test_resolve_with_liga_split_shared_coverage ();
   test_deep_graph_traversal ();

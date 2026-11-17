@@ -120,8 +120,9 @@ struct KerxSubTableFormat0
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
   {
+    second_set_gates = false;
     for (const KernPair& pair : pairs)
     {
       first_set.add (pair.left);
@@ -446,10 +447,10 @@ struct KerxSubTableFormat1
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
   {
     machine.collect_initial_glyphs (first_set, num_glyphs, *this);
-    //machine.collect_glyphs (second_set, num_glyphs); // second_set is unused for machine kerning
+    second_set_gates = machine.collect_second_glyphs (second_set, num_glyphs, *this);
   }
 
   protected:
@@ -501,8 +502,9 @@ struct KerxSubTableFormat2
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
   {
+    second_set_gates = false;
     (this+leftClassTable).collect_glyphs (first_set, num_glyphs);
     (this+rightClassTable).collect_glyphs (second_set, num_glyphs);
   }
@@ -755,10 +757,10 @@ struct KerxSubTableFormat4
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
   {
     machine.collect_initial_glyphs (first_set, num_glyphs, *this);
-    //machine.collect_glyphs (second_set, num_glyphs); // second_set is unused for machine kerning
+    second_set_gates = machine.collect_second_glyphs (second_set, num_glyphs, *this);
   }
 
   protected:
@@ -846,8 +848,9 @@ struct KerxSubTableFormat6
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
   {
+    second_set_gates = false;
     if (is_long ())
     {
       const auto &t = u.l;
@@ -962,15 +965,16 @@ struct KerxSubTable
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
   {
+    second_set_gates = false;
     unsigned int subtable_type = get_type ();
     switch (subtable_type) {
-    case 0:	hb_barrier (); u.format0.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 1:	hb_barrier (); u.format1.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 2:	hb_barrier (); u.format2.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 4:	hb_barrier (); u.format4.collect_glyphs (first_set, second_set, num_glyphs); return;
-    case 6:	hb_barrier (); u.format6.collect_glyphs (first_set, second_set, num_glyphs); return;
+    case 0:	hb_barrier (); u.format0.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
+    case 1:	hb_barrier (); u.format1.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
+    case 2:	hb_barrier (); u.format2.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
+    case 4:	hb_barrier (); u.format4.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
+    case 6:	hb_barrier (); u.format6.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
     default:	return;
     }
   }
@@ -1009,6 +1013,7 @@ struct kern_subtable_accelerator_data_t
 {
   hb_bit_set_t first_set;
   hb_bit_set_t second_set;
+  bool second_set_gates = false;
   mutable hb_aat_class_cache_t class_cache;
 };
 
@@ -1103,11 +1108,18 @@ struct KerxTable
 
       c->first_set = &subtable_accel.first_set;
       c->second_set = &subtable_accel.second_set;
+      c->second_set_gates = subtable_accel.second_set_gates;
       c->machine_class_cache = &subtable_accel.class_cache;
 
       if (!c->buffer_intersects_machine ())
       {
 	(void) c->buffer->message (c->font, "skipped subtable %u because no glyph matches", c->lookup_index);
+	goto skip;
+      }
+
+      if (!c->buffer_intersects_second ())
+      {
+	(void) c->buffer->message (c->font, "skipped subtable %u because no completer glyph matches", c->lookup_index);
 	goto skip;
       }
 
@@ -1220,7 +1232,7 @@ struct KerxTable
       if (unlikely (accel_data.subtable_accels.in_error ()))
 	  return accel_data;
 
-      st->collect_glyphs (subtable_accel.first_set, subtable_accel.second_set, num_glyphs);
+      st->collect_glyphs (subtable_accel.first_set, subtable_accel.second_set, subtable_accel.second_set_gates, num_glyphs);
       subtable_accel.class_cache.clear ();
 
       st = &StructAfter<SubTable> (*st);

@@ -972,6 +972,8 @@ struct hb_accelerate_subtables_context_t :
 
     public:
     hb_bit_set_t glyph_set;
+    hb_bit_set_t second_set;
+    bool second_set_gates = false;
     mutable hb_aat_class_cache_t class_cache;
 
     template <typename T>
@@ -986,11 +988,26 @@ struct hb_accelerate_subtables_context_t :
       obj_.collect_initial_glyphs (glyph_set, num_glyphs);
     }
 
+    /* Only state-machine subtables have a completer ("second") set. */
+    template <typename T>
+    auto init_second_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
+    (
+      second_set_gates = obj_.machine.collect_second_glyphs (second_set, num_glyphs, obj_)
+    )
+
+    template <typename T>
+    void init_second_ (const T &obj_ HB_UNUSED, unsigned num_glyphs HB_UNUSED, hb_priority<0>)
+    {
+    }
+
     template <typename T>
     void init (const T &obj_, unsigned num_glyphs)
     {
       glyph_set.init ();
+      second_set.init ();
+      second_set_gates = false;
       init_ (obj_, num_glyphs, hb_prioritize);
+      init_second_ (obj_, num_glyphs, hb_prioritize);
       class_cache.clear ();
     }
 
@@ -998,6 +1015,7 @@ struct hb_accelerate_subtables_context_t :
     fini ()
     {
       glyph_set.fini ();
+      second_set.fini ();
     }
   };
 
@@ -1230,11 +1248,19 @@ struct Chain
 
       c->subtable_flags = subtable_flags;
       c->first_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
+      c->second_set = accel ? &accel->subtables[i].second_set : &Null(hb_bit_set_t);
+      c->second_set_gates = accel ? accel->subtables[i].second_set_gates : false;
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!c->buffer_intersects_machine ())
       {
 	(void) c->buffer->message (c->font, "skipped chainsubtable %u because no glyph matches", c->lookup_index);
+	goto skip;
+      }
+
+      if (!c->buffer_intersects_second ())
+      {
+	(void) c->buffer->message (c->font, "skipped chainsubtable %u because no completer glyph matches", c->lookup_index);
 	goto skip;
       }
 

@@ -33,7 +33,7 @@ main (int argc, char **argv)
   if (argc > 3)
   {
     hb_variation_t variations[] = {
-      { HB_TAG ('w', 'g', 'h', 't'), atoi (argv[3]) },
+      { HB_TAG ('w', 'g', 'h', 't'), (float) atoi (argv[3]) },
     };
     hb_font_set_variations (font, variations, 1);
   }

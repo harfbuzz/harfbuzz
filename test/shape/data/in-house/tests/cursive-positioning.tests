@@ -19,3 +19,8 @@
 # (A -> B -> C -> A); a following mark attachment used to loop forever
 # in resolve_cross_offset().  https://github.com/harfbuzz/harfbuzz/pull/6492
 ../fonts/cb6c536a0446aa9772672f0e1f872e47e9cb3915.ttf;;U+0041,U+0042,U+0043,U+0044;[A=0+100|B=1@-100,0+0|C=2@-100,0+400|D=3@-500,0+0]
+
+../fonts/cursive-anchor-rounding.ttf;--no-glyph-names --direction=ltr --font-size=600;41,42;[1=0+1|2=1@-1,-1+299]
+../fonts/cursive-anchor-rounding.ttf;--no-glyph-names --direction=ltr --font-size=-600;41,42;[1=0+-1|2=1@1,1+-299]
+../fonts/cursive-anchor-rounding.ttf;--no-glyph-names --direction=rtl --font-size=600;41,42;[2=1+1|1=0@-1,1+299]
+../fonts/cursive-anchor-rounding.ttf;--no-glyph-names --direction=rtl --font-size=-600;41,42;[2=1+-1|1=0@1,-1+-299]

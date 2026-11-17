@@ -133,6 +133,7 @@ struct hb_aat_apply_context_t :
   hb_bit_set_t *buffer_glyph_set = nullptr;
   const hb_bit_set_t *first_set = nullptr;
   const hb_bit_set_t *second_set = nullptr;
+  bool second_set_gates = false;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
 
   /* Unused. For debug tracing only. */
@@ -170,6 +171,23 @@ struct hb_aat_apply_context_t :
     // Faster for shorter buffers.
     for (unsigned i = 0; i < buffer->len; i++)
       if (first_set->has (buffer->info[i].codepoint))
+	return true;
+    return false;
+  }
+  /* Returns false (skip) only when second_set is a sufficient skip gate for the
+   * subtable (second_set_gates) AND the buffer contains none of its completer
+   * glyphs, so no action can fire. */
+  bool buffer_intersects_second () const
+  {
+    if (!second_set_gates)
+      return true;
+
+    if (likely (using_buffer_glyph_set))
+      return buffer_glyph_set->intersects (*second_set);
+
+    // Faster for shorter buffers.
+    for (unsigned i = 0; i < buffer->len; i++)
+      if (second_set->has (buffer->info[i].codepoint))
 	return true;
     return false;
   }
@@ -944,6 +962,62 @@ struct StateTable
       glyphs.add (DELETED_GLYPH);
 
     (this+classTable).collect_glyphs_filtered (glyphs, num_glyphs, filter);
+  }
+
+  /* Collect the "completer" glyphs: glyphs whose class makes an *actionable*
+   * transition from some reachable state.  Any action is triggered by the
+   * current glyph via get_entry(state, class), so if the buffer contains none
+   * of these, the machine can produce no action and the subtable is skippable.
+   *
+   * Returns true (second_set is a sufficient skip gate) only if that invariant
+   * holds.  Returns false when an action can fire without a real completer glyph
+   * in the buffer: on CLASS_END_OF_TEXT (end of buffer), CLASS_OUT_OF_BOUNDS
+   * (unenumerable), on non-extended machines (mort: negative states), or OOM. */
+  template <typename set_t, typename table_t>
+  bool collect_second_glyphs (set_t &glyphs, unsigned num_glyphs, const table_t &table) const
+  {
+    if (!Types::extended)
+      return false;
+
+    unsigned num_classes = nClasses;
+    if (unlikely (num_classes > hb_bit_page_t::BITS))
+      return false;
+
+    hb_bit_page_t filter;
+    hb_set_t visited;
+    hb_vector_t<unsigned> queue;
+    visited.add (STATE_START_OF_TEXT);
+    queue.push (STATE_START_OF_TEXT);
+    if (unlikely (visited.in_error () || queue.in_error ()))
+      return false;
+
+    while (queue.length)
+    {
+      unsigned s = queue.pop ();
+      for (unsigned k = 0; k < num_classes; k++)
+      {
+	const auto &entry = get_entry ((int) s, k);
+	if (table.is_actionable (entry))
+	{
+	  if (k == CLASS_END_OF_TEXT || k == CLASS_OUT_OF_BOUNDS)
+	    return false;
+	  filter.add (k);
+	}
+	int ns = new_state (entry.newState);
+	if (ns >= 0 && !visited.has ((unsigned) ns))
+	{
+	  visited.add ((unsigned) ns);
+	  queue.push ((unsigned) ns);
+	  if (unlikely (visited.in_error () || queue.in_error ()))
+	    return false;
+	}
+      }
+    }
+
+    if (filter (CLASS_DELETED_GLYPH))
+      glyphs.add (DELETED_GLYPH);
+    (this+classTable).collect_glyphs_filtered (glyphs, num_glyphs, filter);
+    return true;
   }
 
   int new_state (unsigned int newState) const

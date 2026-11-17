@@ -101,6 +101,88 @@ test_native_coretext_variations (void)
   CFRelease (ctfont);
 }
 
+static void
+check_coretext_collection (hb_bool_t collection)
+{
+  const char *filename = collection ? "coretext-collection.ttc" : "coretext-variable.ttf";
+  char *path = g_test_build_filename (G_TEST_DIST, "fonts", filename, NULL);
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
+  g_assert_nonnull (blob);
+
+  static const char *names[] = {
+    "HBCoreTextFirst-Regular", "HBCoreTextSecond-Regular", "HBCoreTextThird-Regular",
+  };
+  unsigned loaders = 1;
+#if (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000) || \
+    (defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500) || \
+    (defined(__TV_OS_VERSION_MIN_REQUIRED) && __TV_OS_VERSION_MIN_REQUIRED >= 110000) || \
+    (defined(__WATCH_OS_VERSION_MIN_REQUIRED) && __WATCH_OS_VERSION_MIN_REQUIRED >= 40000) || \
+    (defined(__MACCATALYST_VERSION_MIN_REQUIRED) && __MACCATALYST_VERSION_MIN_REQUIRED >= 130100) || \
+    (defined(__VISION_OS_VERSION_MIN_REQUIRED) && __VISION_OS_VERSION_MIN_REQUIRED >= 10000)
+  loaders = 2;
+#endif
+  for (unsigned loader = 0; loader < loaders; loader++)
+    for (unsigned member = 0; member < (collection ? G_N_ELEMENTS (names) : 1); member++)
+    {
+      unsigned instances = 1;
+#ifndef HB_NO_VAR
+      if (member < 2) instances = 4;
+#endif
+      for (unsigned instance = 0; instance < instances; instance++)
+      {
+        unsigned index = member | (instance << 16);
+        hb_face_t *face = loader ? hb_coretext_face_create_from_blob_or_fail (blob, index) :
+                                  hb_coretext_face_create_from_file_or_fail (path, index);
+        g_assert_nonnull (face);
+        g_assert_cmpuint (hb_face_get_index (face), ==, index);
+        CGFontRef cg_font = hb_coretext_face_get_cg_font (face);
+        CFStringRef name = CGFontCopyPostScriptName (cg_font);
+        char actual[64];
+        g_assert_true (CFStringGetCString (name, actual, sizeof (actual), kCFStringEncodingUTF8));
+        g_assert_cmpstr (actual, ==, names[member]);
+        CFRelease (name);
+
+        hb_font_t *font = hb_font_create (face);
+        hb_codepoint_t glyph;
+        g_assert_true (hb_font_get_nominal_glyph (font, 'A', &glyph));
+        int delta = instance == 1 ? 100 : instance == 2 ? -50 : 0;
+        int expected = 500 + member * 200 + delta;
+        g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==, expected);
+        hb_coretext_font_set_funcs (font);
+        g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), ==, expected);
+
+        static const char *shapers[] = {"coretext", NULL};
+        hb_buffer_t *buffer = hb_buffer_create ();
+        hb_buffer_add_utf8 (buffer, "A", -1, 0, -1);
+        hb_buffer_guess_segment_properties (buffer);
+        g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+        g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 1);
+        g_assert_cmpint (hb_buffer_get_glyph_positions (buffer, NULL)[0].x_advance, ==, expected);
+        hb_buffer_destroy (buffer);
+        hb_font_destroy (font);
+        hb_face_destroy (face);
+      }
+    }
+
+  unsigned invalid_index = collection ? 3 : 1;
+  g_assert_null (hb_coretext_face_create_from_file_or_fail (path, invalid_index));
+  g_assert_null (hb_coretext_face_create_from_blob_or_fail (blob, invalid_index));
+  hb_blob_destroy (blob);
+  g_free (path);
+}
+
+static void
+test_coretext_collection (void)
+{
+  check_coretext_collection (true);
+}
+
+static void
+test_coretext_named_instances (void)
+{
+  check_coretext_collection (false);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -108,6 +190,8 @@ main (int argc, char **argv)
 
   hb_test_add (test_native_coretext_basic);
   hb_test_add (test_native_coretext_variations);
+  hb_test_add (test_coretext_collection);
+  hb_test_add (test_coretext_named_instances);
 
   return hb_test_run ();
 }

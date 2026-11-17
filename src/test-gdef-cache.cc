@@ -24,7 +24,25 @@
  * Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-layout-gdef-table.hh"
+#include "hb-ot-layout-gsubgpos.hh"
+
+#if !defined(HB_NO_GDEF_CACHE) && !defined(HB_NO_OT_LAYOUT)
+struct matcher_context_t
+{
+  matcher_context_t (const OT::GDEF::accelerator_t &gdef, hb_buffer_t *buffer_) :
+    gdef_accel (gdef), buffer (buffer_) {}
+
+  const OT::GDEF::accelerator_t &gdef_accel;
+  hb_buffer_t *buffer;
+  unsigned lookup_props = 0, lookup_mask = 1, table_index = 0;
+  bool auto_zwnj = true, auto_zwj = true, per_syllable = false;
+};
+
+struct iterator_t : OT::skipping_iterator_t<matcher_context_t>
+{
+  const hb_bit_vector_t<> *get_mark_filter () const { return matcher.mark_filter; }
+};
+#endif
 
 int
 main ()
@@ -53,15 +71,29 @@ main ()
   hb_ot_layout_has_glyph_classes (face);
   const auto *accel = face->table.GDEF.get_relaxed ();
   hb_always_assert (accel && accel->mark_glyph_set_bitmaps.length == 7);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  matcher_context_t context (*accel, buffer);
+  iterator_t iter;
   for (unsigned set = 0; set < 7; set++)
   {
     bool exact = set == 1 || set == 2 || set == 3 || set == 5;
     hb_always_assert (accel->mark_glyph_set_bitmaps[set].glyphs.in_error () == !exact);
+    const auto *bitmap = exact ? &accel->mark_glyph_set_bitmaps[set].glyphs : nullptr;
+    unsigned props = (set << 16) | OT::LookupFlag::UseMarkFilteringSet;
+    context.lookup_props = props;
+    iter.init (&context);
+    hb_always_assert (iter.get_mark_filter () == bitmap);
+    /* Overriding lookup properties must refresh or clear the cached set. */
+    iter.set_lookup_props (0);
+    hb_always_assert (!iter.get_mark_filter ());
+    iter.set_lookup_props (props);
+    hb_always_assert (iter.get_mark_filter () == bitmap);
     for (unsigned glyph = 0; glyph <= 65536; glyph++)
       hb_always_assert (accel->mark_set_covers (set, glyph) ==
                         accel->table->mark_set_covers (set, glyph));
     hb_always_assert (!accel->mark_set_covers (set, UINT_MAX));
   }
+  hb_buffer_destroy (buffer);
   hb_face_destroy (face);
 #endif
 }

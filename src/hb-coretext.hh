@@ -38,9 +38,6 @@
 
 
 HB_INTERNAL CGFontRef
-create_cg_font (CFArrayRef ct_font_desc_array, unsigned int index);
-
-HB_INTERNAL CGFontRef
 create_cg_font (hb_blob_t *blob, unsigned int index);
 
 HB_INTERNAL CGFontRef

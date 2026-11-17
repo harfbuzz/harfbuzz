@@ -54,11 +54,12 @@ static bool shape (hb_buffer_t *buf,
 		   unsigned text_length,
 		   const char *shaper)
 {
-  const char *end;
-  while ((end = (const char *) memchr (text, '\n', text_length)))
+  while (text_length)
   {
+    const char *end = (const char *) memchr (text, '\n', text_length);
+    unsigned line_length = end ? end - text : text_length;
     hb_buffer_clear_contents (buf);
-    hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
+    hb_buffer_add_utf8 (buf, text, text_length, 0, line_length);
     hb_buffer_guess_segment_properties (buf);
     if (direction)
       hb_buffer_set_direction (buf, hb_direction_from_string (direction, -1));
@@ -66,7 +67,7 @@ static bool shape (hb_buffer_t *buf,
     if (!hb_shape_full (font, buf, nullptr, 0, shaper_list))
       return false;
 
-    unsigned skip = end - text + 1;
+    unsigned skip = line_length + (end ? 1 : 0);
     text_length -= skip;
     text += skip;
   }

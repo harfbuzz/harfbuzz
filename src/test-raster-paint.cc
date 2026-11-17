@@ -56,6 +56,35 @@ main ()
   hb_always_assert (hb_paint_set_budget (funcs, paint, HB_BUDGET_DEFAULT));
   hb_always_assert (paint->pixel_remaining == initial_budget);
 
+  /* An outline can surround the small visible surface while extending far
+   * past the automatic dimension cap.  Rasterize its visible part: a mask
+   * starting at -10000 and truncated to 4096 pixels misses the surface. */
+  hb_raster_paint_clear (paint);
+  hb_raster_paint_set_extents (paint, &root);
+  void *draw_data = nullptr;
+  hb_draw_funcs_t *draw_funcs = hb_paint_push_clip_path_start (funcs, paint, &draw_data);
+  hb_always_assert (draw_funcs);
+  hb_draw_state_t state = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (draw_funcs, draw_data, &state, -10000.f, -10000.f);
+  hb_draw_line_to (draw_funcs, draw_data, &state, 10000.f, -10000.f);
+  hb_draw_line_to (draw_funcs, draw_data, &state, 10000.f, 10000.f);
+  hb_draw_line_to (draw_funcs, draw_data, &state, -10000.f, 10000.f);
+  hb_draw_close_path (draw_funcs, draw_data, &state);
+  hb_paint_push_clip_path_end (funcs, paint);
+  hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255));
+  hb_paint_pop_clip (funcs, paint);
+  hb_raster_image_t *image = hb_raster_paint_render (paint);
+  hb_always_assert (image);
+  hb_raster_extents_t extents;
+  hb_raster_image_get_extents (image, &extents);
+  hb_always_assert (extents.width == root.width && extents.height == root.height);
+  const uint8_t *pixels = hb_raster_image_get_buffer (image);
+  for (unsigned y = 0; y < root.height; y++)
+    for (unsigned x = 0; x < root.width * 4; x++)
+      hb_always_assert (pixels[y * extents.stride + x] == 255);
+  hb_always_assert (paint->pixel_remaining >= 0);
+  hb_raster_image_destroy (image);
+
   hb_raster_paint_destroy (paint);
   return 0;
 }
