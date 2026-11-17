@@ -139,6 +139,43 @@ test_shape (void)
 }
 
 static void
+test_shape_not_found (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_font_funcs_t *funcs = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyph_func (funcs, glyph_func, NULL, NULL);
+  hb_font_funcs_set_glyph_h_advance_func (funcs, glyph_h_advance_func, NULL, NULL);
+  hb_font_set_funcs (font, funcs, NULL, NULL);
+  hb_font_funcs_destroy (funcs);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  const hb_codepoint_t not_found[] = {42, 65536, HB_CODEPOINT_INVALID, 0};
+  for (unsigned i = 0; i < G_N_ELEMENTS (not_found); i++)
+  {
+    hb_buffer_clear_contents (buffer);
+    hb_buffer_set_not_found_glyph (buffer, not_found[i]);
+    hb_buffer_add_utf8 (buffer, "Tx", -1, 0, -1);
+    hb_buffer_guess_segment_properties (buffer);
+    hb_shape (font, buffer, NULL, 0);
+
+    g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 2);
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+    g_assert_cmpuint (info[0].codepoint, ==, 1);
+    g_assert_cmpuint (info[1].codepoint, ==, not_found[i]);
+    g_assert_cmpuint (info[0].cluster, ==, 0);
+    g_assert_cmpuint (info[1].cluster, ==, 1);
+    hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+    g_assert_cmpint (pos[0].x_advance, ==, 10);
+    g_assert_cmpint (pos[1].x_advance, ==, 0);
+  }
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_shape_not_found_variation_selector (void)
 {
   hb_face_t *face = hb_face_create (NULL, 0);
@@ -594,6 +631,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_shape);
+  hb_test_add (test_shape_not_found);
   hb_test_add (test_shape_not_found_variation_selector);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);

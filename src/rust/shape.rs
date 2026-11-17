@@ -371,6 +371,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     hr_buffer.set_cluster_level(cluster_level);
     let flags = hb_buffer_get_flags(buffer);
     hr_buffer.set_flags(harfrust::BufferFlags::from_bits_truncate(flags as u32));
+    let not_found_glyph = hb_buffer_get_not_found_glyph(buffer);
+    hr_buffer.set_not_found_glyph((not_found_glyph != 0).then_some(not_found_glyph));
     let not_found_variation_selector_glyph =
         hb_buffer_get_not_found_variation_selector_glyph(buffer);
     hr_buffer.set_not_found_variation_selector_glyph(
