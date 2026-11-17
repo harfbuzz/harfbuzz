@@ -429,7 +429,12 @@ struct hb_buffer_t
     if (end - start < 2)
       return;
     if (!HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES (cluster_level))
+    {
+      unsigned cluster = _infos_find_min_cluster (out_info, start, end);
+      _infos_set_glyph_flags (out_info, start, end, cluster,
+                             HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
       return;
+    }
     merge_out_clusters_impl (start, end);
   }
   HB_INTERNAL void merge_out_clusters_impl (unsigned int start, unsigned int end);
