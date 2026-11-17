@@ -99,6 +99,9 @@ struct hb_extents_t
 
   hb_glyph_extents_t to_glyph_extents (bool xneg = false, bool yneg = false) const
   {
+    if (unlikely (is_void ()))
+      return hb_glyph_extents_t {0, 0, 0, 0};
+
     double x0 = round ((double) xmin);
     double y0 = round ((double) ymin);
     double x1 = round ((double) xmax);

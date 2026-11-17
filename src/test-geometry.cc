@@ -31,6 +31,25 @@ int
 main (int argc HB_UNUSED, char **argv HB_UNUSED)
 {
   {
+    hb_extents_t<> extents;
+    for (unsigned flags = 0; flags < 4; flags++)
+    {
+      hb_glyph_extents_t glyph_extents = extents.to_glyph_extents (flags & 1, flags & 2);
+      hb_always_assert (glyph_extents.x_bearing == 0);
+      hb_always_assert (glyph_extents.y_bearing == 0);
+      hb_always_assert (glyph_extents.width == 0);
+      hb_always_assert (glyph_extents.height == 0);
+    }
+
+    extents.add_point (2.f, 3.f);
+    hb_glyph_extents_t glyph_extents = extents.to_glyph_extents ();
+    hb_always_assert (glyph_extents.x_bearing == 2);
+    hb_always_assert (glyph_extents.y_bearing == 3);
+    hb_always_assert (glyph_extents.width == 0);
+    hb_always_assert (glyph_extents.height == 0);
+  }
+
+  {
     hb_extents_t<> extents (-0x1p31f, 0.f, 427.f, 1.f);
     hb_glyph_extents_t glyph_extents = extents.to_glyph_extents ();
 
