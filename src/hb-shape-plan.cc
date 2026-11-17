@@ -94,10 +94,10 @@ hb_shape_plan_key_t::init (bool                           copy,
     /* Make start/end uniform to easier catch bugs. */
     for (unsigned int i = 0; i < num_user_features; i++)
     {
-      if (features[0].start != HB_FEATURE_GLOBAL_START)
-	features[0].start = 1;
-      if (features[0].end   != HB_FEATURE_GLOBAL_END)
-	features[0].end   = 2;
+      if (features[i].start != HB_FEATURE_GLOBAL_START)
+	features[i].start = 1;
+      if (features[i].end   != HB_FEATURE_GLOBAL_END)
+	features[i].end   = 2;
     }
   }
   this->shaper_func = nullptr;
