@@ -10,12 +10,12 @@ ninja -Cfuzzbuild
 
 Then, run the fuzzer like this:
 
-fuzzbuild/test/fuzzing/hb-{shape,raster,vector,subset,repacker,depend}-fuzzer [-max_len=2048] [CORPUS_DIR]
+fuzzbuild/test/fuzzing/hb-{shape,raster,vector,gpu,subset,repacker,depend}-fuzzer [-max_len=2048] [CORPUS_DIR]
 
 Where max_len specifies the maximal length of font files to handle.
 The smaller the faster.
 
-Note: The `depend` fuzzer requires `-Ddepend_api=true` meson option.
+Note: The `depend` fuzzer requires `-Dexperimental_api=true` meson option.
 
 For more details consult the following locations:
   - http://llvm.org/docs/LibFuzzer.html
