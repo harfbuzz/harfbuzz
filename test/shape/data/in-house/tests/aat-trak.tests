@@ -16,3 +16,5 @@
 ../fonts/d5a115b5536472b9ab6582b4abf754abe14b7899.ttf;--direction=ttb --font-ptem=96 --font-size=500,1000;U+0041,U+0056;[A=0@-125,-500+0,-900|V=1@-125,-500+0,-900]
 ../fonts/d5a115b5536472b9ab6582b4abf754abe14b7899.ttf;--direction=ttb --font-ptem=12 --font-size=1000,500;U+0041,U+0056;[A=0@-250,-250+0,-550|V=1@-250,-250+0,-550]
 ../fonts/d5a115b5536472b9ab6582b4abf754abe14b7899.ttf;--direction=ttb --font-ptem=96 --font-size=1000,500;U+0041,U+0056;[A=0@-250,-250+0,-450|V=1@-250,-250+0,-450]
+../fonts/d5a115b5536472b9ab6582b4abf754abe14b7899.ttf;--direction=ttb --font-ptem=12 --shaper=coretext --font-funcs=ot;U+0041,U+0056;[A=0@-250,-500+0,-1100|V=1@-250,-500+0,-1100]
+../fonts/d5a115b5536472b9ab6582b4abf754abe14b7899.ttf;--direction=ttb --font-ptem=96 --shaper=coretext --font-funcs=ot;U+0041,U+0056;[A=0@-250,-500+0,-900|V=1@-250,-500+0,-900]
