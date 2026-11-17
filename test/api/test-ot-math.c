@@ -509,6 +509,26 @@ test_get_min_connector_overlap (void)
   g_assert_cmpint (hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_TTB), ==, 54);
   hb_font_destroy (font);
   hb_face_destroy (face);
+
+  const unsigned overlaps[] = {32767, 32768, 65535};
+  for (unsigned i = 0; i < G_N_ELEMENTS (overlaps); i++)
+  {
+    char math_data[20] = {
+      0, 1, 0, 0, 0, 0, 0, 0, 0, 10, /* MATH version and MathVariants offset. */
+    };
+    math_data[10] = (char) (overlaps[i] >> 8);
+    math_data[11] = (char) overlaps[i];
+    face = hb_face_builder_create ();
+    HB_FACE_ADD_TABLE (face, "MATH", math_data);
+    hb_face_set_upem (face, 1000);
+    font = hb_font_create (face);
+    hb_font_set_scale (font, 2000, 3000);
+    g_assert_cmpint (hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_LTR), ==, overlaps[i] * 2);
+    g_assert_cmpint (hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_TTB), ==, overlaps[i] * 3);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+
 }
 
 static void

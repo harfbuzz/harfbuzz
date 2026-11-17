@@ -166,7 +166,7 @@ struct hb_font_t
   float em_fscale_y (int32_t v) { return em_fmult (v, y_multf); }
   float em_fscalef_x (float v) { return em_fmultf (v, x_multf); }
   float em_fscalef_y (float v) { return em_fmultf (v, y_multf); }
-  hb_position_t em_scale_dir (int16_t v, hb_direction_t direction)
+  hb_position_t em_scale_dir (int32_t v, hb_direction_t direction)
   { return em_mult (v, dir_mult (direction)); }
 
   /* Convert from parent-font user-space to our user-space */
