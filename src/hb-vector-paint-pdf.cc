@@ -44,8 +44,8 @@
  *   - Glyph and rectangle clipping
  *   - Affine transforms
  *   - Groups (save/restore)
- *   - Linear gradients (PDF Type 2 axial shading)
- *   - Radial gradients (PDF Type 3 radial shading)
+ *   - Linear gradients (PDF Type 2 axial shading, PAD extension only)
+ *   - Radial gradients (PDF Type 3 radial shading, PAD extension only)
  *   - Sweep gradients (PDF Type 6 Coons-patch meshes)
  */
 
