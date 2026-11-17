@@ -588,6 +588,8 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
       /* See if we can improve the fit by adding an extra repeat and squeezing them together a bit. */
       hb_position_t extra_repeat_overlap = 0;
       int64_t shortfall = w_remaining_signed - w_repeating_signed * (n_copies + 1);
+      if (!shortfall)
+	w_remaining = 0;
       if (shortfall > 0 && n_repeating > 0)
       {
 	++n_copies;
