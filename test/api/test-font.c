@@ -68,7 +68,7 @@ test_default_funcs_environment (void)
   /* "ot" is the first entry of supported_font_funcs, so the same funcs
    * would be selected if the environment variable were ignored entirely.
    * Check that the FreeType funcs are not selected. */
-  g_assert_null (hb_ft_font_get_face (font));
+  g_assert_null (hb_ft_font_get_ft_face (font));
 #endif
 
   g_assert_true (hb_font_set_funcs_using (font, ""));
@@ -105,7 +105,7 @@ test_default_funcs_environment_nonfirst (void)
 
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
   hb_font_t *font = hb_font_create (face);
-  g_assert_nonnull (hb_ft_font_get_face (font));
+  g_assert_nonnull (hb_ft_font_get_ft_face (font));
   hb_codepoint_t glyph;
   g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
   g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), >, 0);
@@ -137,18 +137,18 @@ test_default_funcs_environment_snapshot (void)
 
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
   hb_font_t *font = hb_font_create (face);
-  g_assert_nonnull (hb_ft_font_get_face (font));
+  g_assert_nonnull (hb_ft_font_get_ft_face (font));
   hb_font_destroy (font);
 
   /* Keep the caller-owned storage alive and change only its valid value.
    * The cached default must remain the original snapshot. */
   memcpy (strchr (funcs_env, '=') + 1, "ot", 3);
   font = hb_font_create (face);
-  g_assert_nonnull (hb_ft_font_get_face (font));
+  g_assert_nonnull (hb_ft_font_get_ft_face (font));
 
   /* An explicit selection must still override the cached default. */
   g_assert_true (hb_font_set_funcs_using (font, "ot"));
-  g_assert_null (hb_ft_font_get_face (font));
+  g_assert_null (hb_ft_font_get_ft_face (font));
   hb_codepoint_t glyph;
   g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
   g_assert_cmpint (hb_font_get_glyph_h_advance (font, glyph), >, 0);
