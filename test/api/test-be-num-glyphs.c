@@ -225,8 +225,11 @@ quadratic_to (hb_draw_funcs_t *draw_funcs HB_UNUSED,
 	      hb_draw_state_t *draw_state HB_UNUSED,
 	      float control_x HB_UNUSED, float control_y HB_UNUSED,
 	      float to_x HB_UNUSED, float to_y HB_UNUSED,
-	  void *user_data HB_UNUSED)
-{}
+	  void *user_data)
+{
+  if (user_data)
+    (*(unsigned int *) user_data)++;
+}
 
 static void
 move_to (hb_draw_funcs_t *draw_funcs HB_UNUSED,
@@ -241,42 +244,38 @@ move_to (hb_draw_funcs_t *draw_funcs HB_UNUSED,
 static void
 test_GLYF_and_LOCA (void)
 {
-  hb_glyph_extents_t extents;
+  const struct {
+    hb_bool_t add_GLYF, add_LOCA;
+    unsigned width, cubics, quadratics;
+  } cases[] = {
+    {FALSE, FALSE, 3, 0, 2},
+    {TRUE,  FALSE, 3, 0, 2},
+    {FALSE, TRUE,  3, 0, 2},
+    {TRUE,  TRUE, 13, 1, 0},
+  };
   hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
-  hb_face_t *face;
-  hb_font_t *font;
-  unsigned int cubic_count;
+  unsigned int cubic_count, quadratic_count;
 
   hb_draw_funcs_set_cubic_to_func (draw_funcs, cubic_to, NULL, NULL);
-  hb_draw_funcs_set_quadratic_to_func (draw_funcs, quadratic_to, NULL, NULL);
+  hb_draw_funcs_set_quadratic_to_func (draw_funcs, quadratic_to, &quadratic_count, NULL);
 
-  face = create_glyf_face (TRUE, TRUE);
-  g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 1);
-  font = hb_font_create (face);
-  hb_face_destroy (face);
-  g_assert_true (hb_font_get_glyph_extents (font, 0, &extents));
-  g_assert_cmpint (extents.width, ==, 13);
-  cubic_count = 0;
-  hb_font_draw_glyph (font, 0, draw_funcs, &cubic_count);
-  g_assert_cmpuint (cubic_count, ==, 1);
-  hb_font_destroy (font);
-
-  face = create_glyf_face (TRUE, FALSE);
-  font = hb_font_create (face);
-  hb_face_destroy (face);
-  g_assert_true (hb_font_get_glyph_extents (font, 0, &extents));
-  g_assert_cmpint (extents.width, ==, 3);
-  cubic_count = 0;
-  hb_font_draw_glyph (font, 0, draw_funcs, &cubic_count);
-  g_assert_cmpuint (cubic_count, ==, 0);
-  hb_font_destroy (font);
-
-  face = create_glyf_face (FALSE, TRUE);
-  font = hb_font_create (face);
-  hb_face_destroy (face);
-  g_assert_true (hb_font_get_glyph_extents (font, 0, &extents));
-  g_assert_cmpint (extents.width, ==, 3);
-  hb_font_destroy (font);
+  /* Both tables contain the cubic flag. Only a complete GLYF/LOCA pair
+   * may interpret it as cubic; legacy glyf must still draw quadratics. */
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    hb_face_t *face = create_glyf_face (cases[i].add_GLYF, cases[i].add_LOCA);
+    g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 1);
+    hb_font_t *font = hb_font_create (face);
+    hb_glyph_extents_t extents;
+    g_assert_true (hb_font_get_glyph_extents (font, 0, &extents));
+    g_assert_cmpint (extents.width, ==, cases[i].width);
+    cubic_count = quadratic_count = 0;
+    hb_font_draw_glyph (font, 0, draw_funcs, &cubic_count);
+    g_assert_cmpuint (cubic_count, ==, cases[i].cubics);
+    g_assert_cmpuint (quadratic_count, ==, cases[i].quadratics);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
 
   hb_draw_funcs_destroy (draw_funcs);
 }
