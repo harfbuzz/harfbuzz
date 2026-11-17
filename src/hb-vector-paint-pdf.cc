@@ -1713,6 +1713,50 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   float ew = paint->extents.width;
   float eh = paint->extents.height;
 
+  /* Build background prefix first: a translucent background registers
+   * an ExtGState, which must be counted in the object table and listed
+   * in the page resources below.  Scope that ExtGState with q/Q so its
+   * alpha does not leak into glyph content. */
+  hb_vector_buf_t bg_prefix;
+  if (hb_color_get_alpha (paint->background))
+  {
+    float r = hb_color_get_red (paint->background) / 255.f;
+    float g = hb_color_get_green (paint->background) / 255.f;
+    float b = hb_color_get_blue (paint->background) / 255.f;
+    float a = hb_color_get_alpha (paint->background) / 255.f;
+    bool scoped = false;
+    if (a < 1.f - 1.f / 512.f)
+    {
+      if (res)
+      {
+	bg_prefix.append_str ("q\n");
+	scoped = true;
+	unsigned gs_idx = res->add_extgstate_alpha (a);
+	bg_prefix.append_str ("/GS");
+	bg_prefix.append_unsigned (gs_idx);
+	bg_prefix.append_str (" gs\n");
+      }
+    }
+    bg_prefix.append_num (r, 4);
+    bg_prefix.append_c (' ');
+    bg_prefix.append_num (g, 4);
+    bg_prefix.append_c (' ');
+    bg_prefix.append_num (b, 4);
+    bg_prefix.append_str (" rg\n");
+    bg_prefix.append_num (ex);
+    bg_prefix.append_c (' ');
+    bg_prefix.append_num (ey);
+    bg_prefix.append_c (' ');
+    bg_prefix.append_num (ew);
+    bg_prefix.append_c (' ');
+    bg_prefix.append_num (eh);
+    bg_prefix.append_str (" re f\n");
+    if (scoped)
+      bg_prefix.append_str ("Q\n");
+  }
+  if (unlikely (res && res->in_error ()))
+    return nullptr;
+
   unsigned num_extra = res ? res->objects.length : 0;
   unsigned total_objects = 4 + num_extra; /* 1-based: 1..total_objects */
 
@@ -1776,39 +1820,6 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
 
   out.append_str (" >>\nendobj\n");
 
-  /* Build content stream: optional background rect + glyph content. */
-  hb_vector_buf_t bg_prefix;
-  if (hb_color_get_alpha (paint->background))
-  {
-    float r = hb_color_get_red (paint->background) / 255.f;
-    float g = hb_color_get_green (paint->background) / 255.f;
-    float b = hb_color_get_blue (paint->background) / 255.f;
-    float a = hb_color_get_alpha (paint->background) / 255.f;
-    if (a < 1.f - 1.f / 512.f)
-    {
-      if (res)
-      {
-	unsigned gs_idx = res->add_extgstate_alpha (a);
-	bg_prefix.append_str ("/GS");
-	bg_prefix.append_unsigned (gs_idx);
-	bg_prefix.append_str (" gs\n");
-      }
-    }
-    bg_prefix.append_num (r, 4);
-    bg_prefix.append_c (' ');
-    bg_prefix.append_num (g, 4);
-    bg_prefix.append_c (' ');
-    bg_prefix.append_num (b, 4);
-    bg_prefix.append_str (" rg\n");
-    bg_prefix.append_num (ex);
-    bg_prefix.append_c (' ');
-    bg_prefix.append_num (ey);
-    bg_prefix.append_c (' ');
-    bg_prefix.append_num (ew);
-    bg_prefix.append_c (' ');
-    bg_prefix.append_num (eh);
-    bg_prefix.append_str (" re f\n");
-  }
   unsigned stream_len = bg_prefix.length + content.length;
 
   /* Object 4: Content stream */
