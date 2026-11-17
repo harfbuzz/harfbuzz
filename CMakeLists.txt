@@ -339,7 +339,7 @@ if (HB_HAVE_FREETYPE)
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
-  add_compile_definitions(HAVE_GRAPHITE2)
+  add_compile_definitions(HAVE_GRAPHITE)
 
   find_path(GRAPHITE2_INCLUDE_DIR graphite2/Font.h)
   find_library(GRAPHITE2_LIBRARY graphite2)

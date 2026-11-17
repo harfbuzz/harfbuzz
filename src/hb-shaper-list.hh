@@ -38,7 +38,7 @@
 HB_SHAPER_IMPLEMENT (wasm)
 #endif
 
-#ifdef HAVE_GRAPHITE2
+#ifdef HAVE_GRAPHITE
 /* Only picks up fonts that have a "Silf" table. */
 HB_SHAPER_IMPLEMENT (graphite2)
 #endif
