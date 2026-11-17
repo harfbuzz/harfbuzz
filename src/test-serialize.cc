@@ -35,7 +35,7 @@ using OT::Layout::Common::Coverage;
 static void
 test_empty_coverage_population ()
 {
-  static const char unknown_data[] = {(char) 0xFF, (char) 0xFF};
+  static const char unknown_data[sizeof (Coverage)] = {(char) 0xFF, (char) 0xFF};
   const auto &unknown = *reinterpret_cast<const Coverage *> (unknown_data);
 
   hb_always_assert (Null (Coverage).get_population () == 0);
@@ -335,8 +335,8 @@ test_device_dispatch ()
     0, 1, 0, 1, 0, 0, 0x40, 0, 0x40, 0,  /* One region: (0, 1, 1). */
     0, 1, 0, 1, 0, 1, 0, 0, 0, 100,       /* Delta 100 at index 0. */
   };
-  static const char var_data[] = {0, 0, 0, 0, (char) 0x80, 0};
-  char hint_data[] = {0, 0, 0, 0, 0, 1};
+  static const char var_data[sizeof (OT::Device)] = {0, 0, 0, 0, (char) 0x80, 0};
+  char hint_data[sizeof (OT::Device)] = {0, 0, 0, 0, 0, 1};
   const auto &store = *reinterpret_cast<const OT::ItemVariationStore *> (store_data);
   const auto &variation = *reinterpret_cast<const OT::Device *> (var_data);
   const auto &hinting = *reinterpret_cast<const OT::Device *> (hint_data);

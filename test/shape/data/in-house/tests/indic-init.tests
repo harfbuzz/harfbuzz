@@ -1,1 +1,10 @@
 ../fonts/1a3d8f381387dd29be1e897e4b5100ac8b4829e1.ttf;--no-glyph-names;U+09AC,U+09C7,U+09AC,U+09C7;[3=0+273|1=0+460|2=2+307|1=2+460]
+
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;;U+0915,U+093F;[iMatra.init=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;--unicodes-before=U+0915;U+0915,U+093F;[iMatra=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;--unicodes-before=U+0020;U+0915,U+093F;[iMatra.init=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;--unicodes-before=U+002E;U+0915,U+093F;[iMatra.init=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;--unicodes-before=U+093C;U+0915,U+093F;[iMatra=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;--unicodes-before=U+0020,U+0915;U+0915,U+093F;[iMatra=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;--unicodes-before=U+0915,U+0020;U+0915,U+093F;[iMatra.init=0+250|ka=0+600]
+../fonts/07987093c6917f29102c0089db20b8f438499d9f.ttf;;U+0915,U+0915,U+093F;[ka=0+600|iMatra=1+250|ka=1+600]

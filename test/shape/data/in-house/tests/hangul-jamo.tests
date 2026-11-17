@@ -1,2 +1,9 @@
 ../fonts/757ebd573617a24aa9dfbf0b885c54875c6fe06b.ttf;;U+115F,U+11A2;[gid3=0+920|gid4=0+0]
 ../fonts/7e14e7883ed152baa158b80e207b66114c823a8b.ttf;;U+11A2;[gid1=0+920]
+
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+1100,U+302E;[kiyeok=0+500|singleDot=0@-450,0+0|dottedcircle=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+1100,U+302F;[kiyeok=0+500|dottedcircle=0+500|doubleDot=0@-450,0+0]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+302E;[singleDot=0+200|dottedcircle=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+302F;[dottedcircle=0+500|doubleDot=0@-450,0+0]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+AC00,U+302E;[singleDot=0+200|ga=0+500]
+../fonts/da410c694bf4bd186d0b114a5587d0d20df6766c.ttf;;U+AC00,U+302F;[ga=0+500|doubleDot=0@-450,0+0]
