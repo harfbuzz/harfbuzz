@@ -135,7 +135,7 @@ struct Coverage
     case 3: hb_barrier (); return u.format3.get_population ();
     case 4: hb_barrier (); return u.format4.get_population ();
 #endif
-    default:return NOT_COVERED;
+    default:return 0;
     }
   }
 

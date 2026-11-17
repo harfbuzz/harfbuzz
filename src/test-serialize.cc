@@ -33,6 +33,17 @@
 using OT::Layout::Common::Coverage;
 
 static void
+test_empty_coverage_population ()
+{
+  static const char unknown_data[] = {(char) 0xFF, (char) 0xFF};
+  const auto &unknown = *reinterpret_cast<const Coverage *> (unknown_data);
+
+  hb_always_assert (Null (Coverage).get_population () == 0);
+  hb_always_assert (unknown.get_population () == 0);
+  hb_always_assert (unknown.get_coverage (0) == NOT_COVERED);
+}
+
+static void
 test_null_condition ()
 {
   static const char and_condition[sizeof (OT::Condition)] = {
@@ -477,6 +488,7 @@ test_delta_set_index_map_format1 ()
 int
 main (int argc, char **argv)
 {
+  test_empty_coverage_population ();
   test_null_condition ();
   test_lookup_condition_sharing ();
   test_lookup_condition_resolution ();
