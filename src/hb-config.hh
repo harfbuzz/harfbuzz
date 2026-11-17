@@ -95,7 +95,6 @@
 #define HB_NO_AAT
 #define HB_NO_LEGACY
 #define HB_NO_BEYOND_64K
-#define HB_NO_CUBIC_GLYF
 #endif
 
 #ifdef __OPTIMIZE_SIZE__

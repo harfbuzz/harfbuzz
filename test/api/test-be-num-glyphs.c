@@ -256,11 +256,9 @@ test_GLYF_and_LOCA (void)
   hb_face_destroy (face);
   g_assert_true (hb_font_get_glyph_extents (font, 0, &extents));
   g_assert_cmpint (extents.width, ==, 13);
-#ifndef HB_NO_CUBIC_GLYF
   cubic_count = 0;
   hb_font_draw_glyph (font, 0, draw_funcs, &cubic_count);
   g_assert_cmpuint (cubic_count, ==, 1);
-#endif
   hb_font_destroy (font);
 
   face = create_glyf_face (TRUE, FALSE);
@@ -283,7 +281,6 @@ test_GLYF_and_LOCA (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
-#ifndef HB_NO_CUBIC_GLYF
 static void
 record_cubic_move (hb_draw_funcs_t *draw_funcs HB_UNUSED,
 		   void *draw_data,
@@ -396,7 +393,6 @@ test_GLYF_cubic_contours (void)
   }
   hb_draw_funcs_destroy (draw_funcs);
 }
-#endif
 
 static hb_face_t *
 create_composite_face (hb_bool_t extended)
@@ -493,9 +489,7 @@ main (int argc, char **argv)
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_GLYF_and_LOCA);
   hb_test_add (test_GLYF_composite_gid);
-#ifndef HB_NO_CUBIC_GLYF
   hb_test_add (test_GLYF_cubic_contours);
-#endif
 #endif
 
   return hb_test_run();

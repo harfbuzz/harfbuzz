@@ -120,8 +120,8 @@ The [`hb-config.hh`](src/hb-config.hh) internal header supports three
 pre-defined configurations as well grouping of various configuration options.
 The pre-defined configurations are:
 
-  * `HB_MINI`: Disables AAT and legacy shaping, glyph IDs beyond 64K, and
-    cubic curves in `glyf`.  It produces a capable OpenType shaper only.
+  * `HB_MINI`: Disables AAT and legacy shaping and glyph IDs beyond 64K.
+    It produces a capable OpenType shaper only.
 
   * `HB_LEAN`: Disables various non-shaping functionality in the library, as well
     as esoteric or rarely-used shaping features.  See the definition for details.

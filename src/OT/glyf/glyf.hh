@@ -359,7 +359,6 @@ struct glyf_accelerator_t
 	    unsigned end = i;
 
 	    unsigned limit = end;
-#ifndef HB_NO_CUBIC_GLYF
 	    /* Rotating by one control point changes cubic pairing.  Preserve
 	     * the original order when the contour starts and ends off-curve
 	     * with cubic controls, including all-off-curve contours. */
@@ -369,9 +368,7 @@ struct glyf_accelerator_t
 				    glyf_impl::SimpleGlyph::FLAG_CUBIC)) ==
 		 glyf_impl::SimpleGlyph::FLAG_CUBIC)
 	      limit++;
-	    else
-#endif
-	    if (likely (end < count))
+	    else if (likely (end < count))
 	      consumer.consume_point (points[end]);
 
 	    for (i = start; i < limit; i++)
