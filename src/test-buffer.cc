@@ -77,9 +77,63 @@ test_cluster_flag_ranges ()
   hb_buffer_destroy (buffer);
 }
 
+static void
+test_output_flag_ranges ()
+{
+  hb_buffer_t *buffer = hb_buffer_create ();
+  for (unsigned i = 0; i < 24; i++)
+    hb_buffer_add (buffer, 'a', i);
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
+  hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, nullptr);
+  hb_always_assert (positions);
+
+  /* Model expansion of the consumed input: 12 input glyphs became 18
+   * output glyphs, with another 12 input glyphs still unconsumed. */
+  buffer->out_info = reinterpret_cast<hb_glyph_info_t *> (positions);
+  buffer->out_len = 18;
+  buffer->idx = 12;
+  buffer->have_output = true;
+  buffer->have_positions = false;
+
+  const hb_mask_t feature_mask = 1u << 10;
+  const hb_mask_t flags = HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+  const unsigned ranges[][2] = {{15, 18}, {9, 12}, {17, 18}, {18, 18}};
+  for (unsigned level = 0; level <= HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES; level++)
+    for (const auto &range : ranges)
+    {
+      buffer->cluster_level = (hb_buffer_cluster_level_t) level;
+      buffer->max_ops = 1000;
+      for (unsigned i = 0; i < buffer->len; i++)
+        buffer->info[i].mask = feature_mask;
+      for (unsigned i = 0; i < buffer->out_len; i++)
+      {
+        buffer->out_info[i] = {};
+        buffer->out_info[i].cluster = i / 3 * 2 + (i % 3 == 2);
+        buffer->out_info[i].mask = feature_mask;
+      }
+
+      buffer->unsafe_to_break_in_outbuffer (range[0], range[1]);
+      for (unsigned i = 0; i < buffer->len; i++)
+        hb_always_assert (buffer->info[i].mask == feature_mask);
+      for (unsigned i = 0; i < buffer->out_len; i++)
+      {
+        bool unsafe = range[1] - range[0] == 3 && i == range[1] - 1;
+        hb_always_assert (buffer->out_info[i].mask == (feature_mask | (unsafe ? flags : 0)));
+        hb_always_assert (buffer->out_info[i].cluster == i / 3 * 2 + (i % 3 == 2));
+      }
+      hb_always_assert (buffer->successful);
+    }
+
+  buffer->max_ops = 0;
+  buffer->unsafe_to_break_in_outbuffer (15, 18);
+  hb_always_assert (!buffer->successful);
+  hb_buffer_destroy (buffer);
+}
+
 int
 main (int argc HB_UNUSED, char **argv HB_UNUSED)
 {
   test_cluster_flag_ranges ();
+  test_output_flag_ranges ();
   return 0;
 }
