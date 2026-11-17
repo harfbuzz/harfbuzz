@@ -46,7 +46,7 @@
  *   - Groups (save/restore)
  *   - Linear gradients (PDF Type 2 axial shading)
  *   - Radial gradients (PDF Type 3 radial shading)
- *   - Sweep gradients (approximated via solid fallback)
+ *   - Sweep gradients (PDF Type 6 Coons-patch meshes)
  */
 
 
