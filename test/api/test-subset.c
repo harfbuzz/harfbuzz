@@ -639,6 +639,32 @@ test_subset_plan (void)
 
 #ifndef HB_NO_SUBSET_LAYOUT
 static void
+test_subset_closure_stages (void)
+{
+  /* A shared SingleSubst lookup runs in 15 shaping stages. Its final
+   * output, g15 (glyph 16), must survive the subset's closure. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/gsub-closure-stages.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_unicode_set (input), 0x0915);
+  hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_clear (features);
+  hb_set_invert (features);
+
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+  g_assert_nonnull (plan);
+  g_assert_true (hb_map_has (hb_subset_plan_old_to_new_glyph_mapping (plan), 16));
+
+  hb_face_t *subset = hb_subset_plan_execute_or_fail (plan);
+  g_assert_nonnull (subset);
+  g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 17);
+
+  hb_face_destroy (subset);
+  hb_subset_plan_destroy (plan);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_unsupported_layout_table_retains_gids (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/aat-morx.ttf");
@@ -1814,6 +1840,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_sets);
   hb_test_add (test_subset_plan);
 #ifndef HB_NO_SUBSET_LAYOUT
+  hb_test_add (test_subset_closure_stages);
   hb_test_add (test_subset_unsupported_layout_table_retains_gids);
   hb_test_add (test_subset_graphite_table_retains_gids);
   hb_test_add (test_subset_unsubsettable_glyph_tables);

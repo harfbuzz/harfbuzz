@@ -69,7 +69,7 @@
  * This must be larger than the number of times add_gsub_pause() is
  * called in a collect_features call of any shaper.
  */
-#define HB_CLOSURE_MAX_STAGES 12
+#define HB_CLOSURE_MAX_STAGES 16
 #endif
 
 #ifndef HB_MAX_SCRIPTS
