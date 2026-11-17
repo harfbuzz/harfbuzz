@@ -4,12 +4,12 @@
 
 import os, os.path, sys, subprocess, shutil
 
+if len (sys.argv) < 5:
+	sys.exit (__doc__)
+
 ragel = sys.argv[1]
 if not ragel:
 	sys.exit ('You have to install ragel if you are going to develop HarfBuzz itself')
-
-if len (sys.argv) < 4:
-	sys.exit (__doc__)
 
 OUTPUT = sys.argv[2]
 CURRENT_SOURCE_DIR = sys.argv[3]

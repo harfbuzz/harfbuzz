@@ -222,7 +222,6 @@ parse_text_before (const char *name G_GNUC_UNUSED,
   }
 
   opts->text_before = g_strdup (arg);
-  fprintf(stderr, "%s\n", opts->text_before);
   return true;
 }
 

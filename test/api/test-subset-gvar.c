@@ -313,8 +313,8 @@ test_subset_gvar_shared_glyph_data (void)
   /* Every even glyph is the same bytes of glyf, which hold 65536 points: a
    * simple glyph of repeated flags, or a composite glyph.  Partial instancing
    * keeps the points of all the retained glyphs in the plan; the plan must
-   * fail instead of holding ~150 MB for this 400 KB font. */
-  enum { NUM_GLYPHS = 200, NUM_POINTS = 65536 };
+   * fail instead of holding ~300 MB for this 400 KB font. */
+  enum { NUM_GLYPHS = 400, NUM_POINTS = 65536 };
   static char head[54] = {
     0, 1, 0, 0,                 /* version 1.0 */
     0, 0, 0, 0,                 /* fontRevision */
@@ -326,7 +326,7 @@ test_subset_gvar_shared_glyph_data (void)
   };
   static const char maxp[] = {
     0, 0, 0x50, 0,              /* version 0.5 */
-    0, (char) NUM_GLYPHS,       /* numGlyphs */
+    NUM_GLYPHS >> 8, (char) NUM_GLYPHS, /* numGlyphs */
   };
   static const char fvar[] = {
     0, 1, 0, 0,                 /* version 1.0 */

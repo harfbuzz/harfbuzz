@@ -841,6 +841,39 @@ test_font_properties (void)
   hb_font_destroy (subfont);
 }
 
+static void
+test_scaled_glyph_extents_round_outward (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  const struct {
+    int x_scale, y_scale;
+    hb_position_t x_bearing, y_bearing, width, height;
+  } cases[] = {
+    {13, 13, 0, 7, 7, -8},
+    {-13, 13, 0, 7, -7, -8},
+    {13, -13, 0, -7, 7, 8},
+    {-13, -13, 0, -7, -7, 8},
+    {0, 13, 0, 7, 0, -8},
+    {13, 0, 0, 0, 7, 0},
+    {0, 0, 0, 0, 0, 0},
+  };
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    hb_font_set_scale (font, cases[i].x_scale, cases[i].y_scale);
+    hb_glyph_extents_t extents;
+    g_assert_true (hb_font_get_glyph_extents (font, glyph, &extents));
+    g_assert_cmpint (extents.x_bearing, ==, cases[i].x_bearing);
+    g_assert_cmpint (extents.y_bearing, ==, cases[i].y_bearing);
+    g_assert_cmpint (extents.width, ==, cases[i].width);
+    g_assert_cmpint (extents.height, ==, cases[i].height);
+  }
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static hb_bool_t
 _extreme_glyph_extents_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 			     hb_codepoint_t glyph HB_UNUSED,
@@ -1701,6 +1734,7 @@ main (int argc, char **argv)
   hb_test_add (test_font_empty);
   hb_test_add (test_font_create_without_funcs);
   hb_test_add (test_font_properties);
+  hb_test_add (test_scaled_glyph_extents_round_outward);
   hb_test_add (test_synthetic_glyph_extents_overflow);
   hb_test_add (test_synthetic_bold_saturates);
   hb_test_add (test_synthetic_slant_saturates);

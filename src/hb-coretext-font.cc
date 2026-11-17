@@ -210,7 +210,7 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font,
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
-  hb_position_t tracking = font->face->table.trak->get_tracking (font, HB_DIRECTION_LTR, 0.f);
+  hb_position_t tracking = font->face->table.trak->get_coretext_tracking (font, HB_DIRECTION_LTR, 0.f);
 
   CGGlyph cg_glyph[MAX_GLYPHS];
   CGSize advances[MAX_GLYPHS];
@@ -247,7 +247,7 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font,
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat y_mult = -(CGFloat) font->y_scale / ct_font_size;
-  hb_position_t tracking = font->face->table.trak->get_tracking (font, HB_DIRECTION_TTB, 0.f);
+  hb_position_t tracking = font->face->table.trak->get_coretext_tracking (font, HB_DIRECTION_TTB, 0.f);
 
   CGGlyph cg_glyph[MAX_GLYPHS];
   CGSize advances[MAX_GLYPHS];
@@ -263,7 +263,7 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font,
     for (unsigned j = 0; j < c; j++)
     {
       *first_advance = hb_clamp_to<hb_position_t> (
-	  round (advances[j].width * y_mult) - (double) tracking);
+	  round (advances[j].width * y_mult) + (double) tracking);
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
     }
   }
