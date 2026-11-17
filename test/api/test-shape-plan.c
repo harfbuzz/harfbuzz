@@ -29,6 +29,30 @@
 /* Unit tests for hb-shape-plan.h */
 
 static void
+test_shape_plan_null_arguments (void)
+{
+  hb_face_t *face = hb_face_create (hb_blob_get_empty (), 0);
+  hb_face_t *faces[] = {NULL, hb_face_get_empty (), face};
+  for (unsigned i = 0; i < G_N_ELEMENTS (faces); i++)
+  {
+    g_assert_true (hb_shape_plan_create2 (faces[i], NULL, NULL, 0, NULL, 0, NULL) ==
+                   hb_shape_plan_get_empty ());
+    g_assert_true (hb_shape_plan_create_cached2 (faces[i], NULL, NULL, 0, NULL, 0, NULL) ==
+                   hb_shape_plan_get_empty ());
+  }
+
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
+  props.direction = HB_DIRECTION_LTR;
+  hb_shape_plan_t *expected = hb_shape_plan_create2 (NULL, &props, NULL, 0, NULL, 0, NULL);
+  hb_shape_plan_t *actual = hb_shape_plan_create_cached2 (NULL, &props, NULL, 0, NULL, 0, NULL);
+  g_assert_cmpstr (hb_shape_plan_get_shaper (actual), ==, hb_shape_plan_get_shaper (expected));
+
+  hb_shape_plan_destroy (actual);
+  hb_shape_plan_destroy (expected);
+  hb_face_destroy (face);
+}
+
+static void
 test_ot_shape_plan_get_feature_tags_rtl (void)
 {
   /* Test getting features enabled for horizontal RTL text */
@@ -509,6 +533,7 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+  hb_test_add (test_shape_plan_null_arguments);
   hb_test_add (test_ot_shape_plan_get_feature_tags_rtl);
   hb_test_add (test_ot_shape_plan_get_feature_tags_ltr);
   hb_test_add (test_ot_shape_plan_get_feature_tags_ttb);

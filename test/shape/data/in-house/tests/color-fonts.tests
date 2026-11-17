@@ -7,4 +7,4 @@
 # at the origin and changing mark placement (harfbuzz/harfrust#553).
 ../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents;U+1E49,0306;[nmacronbelow=0+1060<-40,968,1140,-1152>|uni0306=0@-1024,199+0<128,1168,732,-274>]
 ../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --font-size=4000;U+1E49,0306;[nmacronbelow=0+2120<-80,1936,2280,-2304>|uni0306=0@-2048,398+0<256,2336,1464,-548>]
-../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --direction=ttb;U+1E49,0306;[nmacronbelow=0@-530,-1612+0,-2440<-40,968,1140,-1152>|uni0306=0@36,1733+0<128,1168,732,-274>]
+../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --direction=ttb;U+1E49,0306;[nmacronbelow=0@-530,-1612+0,-2440<-40,968,1140,-1152>|uni0306=0@-494,1733+0<128,1168,732,-274>]

@@ -23,6 +23,7 @@ in_house_tests = [
   'emoji.tests',
   'emoji-clusters.tests',
   'fallback-positioning.tests',
+  'feature-masks.tests',
   'glyph-props-no-gdef.tests',
   'graphite2-clusters.tests',
   'hangul-calt.tests',

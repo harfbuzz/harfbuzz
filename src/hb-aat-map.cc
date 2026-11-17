@@ -168,9 +168,12 @@ hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
     {
       active_features.push (event->feature);
     } else {
-      feature_info_t *feature = active_features.lsearch (event->feature);
-      if (feature)
-	active_features.remove_ordered (feature - active_features.arrayZ);
+      for (unsigned int j = 0; j < active_features.length; j++)
+	if (active_features[j].seq == event->feature.seq)
+	{
+	  active_features.remove_ordered (j);
+	  break;
+	}
     }
   }
 

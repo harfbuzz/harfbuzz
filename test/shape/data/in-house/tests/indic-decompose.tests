@@ -1,1 +1,11 @@
 ../fonts/932ad5132c2761297c74e9976fe25b08e5ffa10b.ttf;--font-funcs=ot;U+09DC,U+0020,U+09DD,U+0020,U+09A1,U+09BC,U+0020,U+09A2,U+09BC;[bn_rha=0+512|space=1+512|bn_yya=2+512|space=3+512|bn_dda=4+512|bn_nukta=4+512|space=6+512|bn_ddha=7+512|bn_nukta=7+512]
+
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=deva;U+0929;[nnna=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=deva;U+0929,U+093E;[nnna=0+500|aaMatra=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=deva;U+00E9;[eacute=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=deva;U+00E9,U+0061,U+0301;[eacute=0+500|aacute=1+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=khmr;U+00E9;[eacute=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=mymr;U+00E9;[eacute=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=bali;U+00E9;[eacute=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=latn;U+00E9;[eacute=0+500]
+../fonts/7037c827f88af07c60ef42dc5838593a7f5a22ad.ttf;--script=deva;U+0061,U+0061;[a=0+500|a=1+500]

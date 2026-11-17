@@ -2156,7 +2156,7 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
 {
   GPOSProxy proxy (font->face);
   char tag[5] = {0};
-  hb_tag_to_string (chosen_script[0], tag);
+  hb_tag_to_string (chosen_script[1], tag);
   if (buffer->messaging () &&
       !buffer->message (font, "start table GPOS script tag '%s'", tag)) return;
   apply (proxy, plan, font, buffer);
