@@ -35,9 +35,9 @@
 
 #include "hb-multimap.hh"
 
-/* hb_subset_depend_edge_flags_t is defined in hb-depend.h (public header).
+/* hb_subset_depend_edge_flags_t is defined in hb-subset-depend.h (public header).
  * We redeclare it here under the same include-guard so internal code that
- * includes hb-depend-data.hh without going through hb-depend.h still gets
+ * includes hb-depend-data.hh without going through hb-subset-depend.h still gets
  * the type. The definitions must stay in sync. */
 #ifndef HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
 #define HB_SUBSET_DEPEND_EDGE_FLAGS_T_DEFINED
@@ -63,7 +63,7 @@ HB_MARK_AS_FLAG_T (hb_subset_depend_edge_flags_t);
  *
  * - table_tag: Source table (GSUB, glyf, CFF, COLR, MATH, VARC)
  * - dependent: Target glyph ID
- * - layout_tag: Feature tag (for GSUB), else 0
+ * - layout_tag: Feature tag (for GSUB), else HB_CODEPOINT_INVALID
  * - ligature_set: Index into sets array for ligature components, else INVALID
  * - context_set: Index into sets array for context requirements, else INVALID
  * - flags: Edge flags (FROM_CONTEXT_POSITION, FROM_NESTED_CONTEXT)

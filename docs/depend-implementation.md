@@ -16,7 +16,8 @@ This document describes the depend implementation by contrasting it with the clo
 
 Given a ligature rule: `f + i → fi`
 
-- **Closure** with input `{f}`: Returns `{f, fi}` (reachable glyphs)
+- **Closure** with input `{f}`: Returns `{f}`; the `i` component is missing.
+- **Closure** with input `{f, i}`: Returns `{f, i, fi}`.
 - **Depend**: Records edges `f → fi` and `i → fi` (the dependency graph)
 
 The closure only tells you what's reachable from a specific starting point. The depend graph captures all possible relationships regardless of starting point.
@@ -57,7 +58,7 @@ The depend API marks these edges with flags so closure implementations can disti
 between "expected" over-approximation (a known limitation) and "unexpected" over-approximation
 (a bug).
 
-Two flags are defined (as `hb_subset_depend_edge_flags_t` in `hb-depend.h`):
+Two flags are defined (as `hb_subset_depend_edge_flags_t` in `hb-subset-depend.h`):
 
 - **`HB_SUBSET_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Set when an edge comes
   from a multi-position contextual rule (inputCount > 1). Depend extraction records edges
@@ -126,12 +127,18 @@ Depend builds a persistent graph with deduplication:
 
 ```c++
 struct hb_depend_data_t {
-  hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;  // Per-glyph edge lists
-  hb_map_t<uint64_t, hb_vector_t<uint32_t>> edge_hashes;    // Deduplication
-  hb_vector_t<hb_set_t> sets;                                // Ligature and context sets
-  hb_map_t lookup_features[256];                             // Feature tracking
-  hb_codepoint_t current_context_set_index;                  // Current context during extraction
-  uint8_t current_edge_flags;                                // Flags for edges being extracted
+  hb_vector_t<hb::unique_ptr<hb_set_t>> sets;              // Ligature and context sets
+  hb_vector_t<hb_depend_glyph_record_t> glyph_dependencies; // Per-glyph edge lists
+};
+
+// Selected temporary fields of hb_depend_data_builder_t:
+struct hb_depend_data_builder_t {
+  hb_vector_t<uint64_t> edge_slots;             // Edge deduplication
+  hb_vector_t<uint64_t> lookup_features;        // Packed lookup index / feature tag pairs
+  hb_vector_t<unsigned> lookup_feature_offsets; // Per-lookup slices in lookup_features
+  hb_codepoint_t current_context_set_index;
+  hb_subset_depend_edge_flags_t current_edge_flags;
+  // Other builder fields omitted.
 };
 ```
 
@@ -149,10 +156,9 @@ The depend graph is immutable after construction:
 
 1. **Construction**: `hb_subset_depend_from_face_or_fail()` walks all relevant OpenType tables once to build the complete graph
 2. **Temporary structures freed**: After graph extraction, temporary structures used only during construction are freed:
-   - `edge_hashes` - deduplication hash table
-   - `unicodes` - Unicode codepoint set
-   - `nominal_glyphs` - codepoint-to-glyph mapping
-   - `lookup_features` - lookup-to-feature mapping
+   - `edge_slots` - edge deduplication table
+   - `set_to_index` - dependency set deduplication map
+   - `lookup_features` and `lookup_feature_offsets` - lookup-to-feature mapping
 3. **Persistent structures retained**:
    - `glyph_dependencies` - the core dependency graph
    - `sets` - ligature sets for querying
@@ -220,34 +226,21 @@ Depend tracks which OpenType features are associated with each dependency edge. 
 
 ### Implementation
 
-During GSUB initialization in `hb_depend_data_builder_t::get_gsub_dependencies()`:
+During GSUB initialization, `GSUB_accelerator_t::depend()` records every lookup/feature
+pair through `hb_depend_data_builder_t::add_lookup_feature()`. It includes the base
+feature tables and feature/lookup variation alternatives. `finish_lookup_features()` sorts
+and deduplicates the packed pairs and records a slice for each lookup.
+
+When a substitution records a dependency, it calls:
 
 ```c++
-// Map features to lookups
-for (unsigned i = 0; i < feature_count; i++) {
-  hb_tag_t ft = gsub.get_feature_tag(i);
-  const Feature* feature_ptr = &(fv.get_feature(i));
-
-  for (auto lookup_index : lookup_indexes) {
-    data.lookup_features[lookup_index].add(ft);
-  }
-}
+builder.add_gsub_lookup (gid, lookup_index, dependent, ligature_set, context_set);
 ```
 
-When recording dependencies:
-
-```c++
-// Look up which features activate this lookup
-hb_tag_t layout_tag = HB_TAG_NONE;
-if (!data.lookup_features[lookup_index].is_empty()) {
-  layout_tag = *data.lookup_features[lookup_index].iter();
-}
-
-// Record edge with feature tag
-data.add_depend_layout(gid, HB_OT_TAG_GSUB, layout_tag, dependent, ...);
-```
-
-This is stored in the `layout_tag` field of each `hb_subset_depend_entry_t` and can be queried via `hb_subset_depend_lookup_glyph()`.
+`add_gsub_lookup()` iterates that lookup's feature slice and records one edge per
+feature tag. Each tag is stored in the `layout_tag` field of the resulting
+`hb_subset_depend_entry_t`. Non-GSUB edges use `HB_CODEPOINT_INVALID` for this field.
+Entries can be queried through `hb_subset_depend_lookup_glyph()`.
 
 ## Ligature Sets
 
@@ -324,7 +317,7 @@ The depend API trades space for time - it pays the cost of extracting the full g
 
 ### Key Files
 
-- **src/hb-depend.h** - Public C API
+- **src/hb-subset-depend.h** - Public C API
 - **src/hb-depend.hh** - Internal C++ API
 - **src/hb-depend.cc** - Main implementation (table dispatching)
 - **src/hb-depend-data.hh** - Data structures and edge storage
@@ -332,7 +325,7 @@ The depend API trades space for time - it pays the cost of extracting the full g
 - **src/OT/Layout/GSUB/*.hh** - GSUB format-specific depend methods
 - **src/OT/Color/COLR/colrv1-depend.hh** - COLRv1 depend implementation
 
-**Note**: The public API does not include a print function. For programmatic access use `hb_subset_depend_lookup_glyph()`; the `util/hb-subset-depend` utility (TODO) will provide command-line graph inspection.
+**Note**: The public API does not include a print function. For programmatic access use `hb_subset_depend_lookup_glyph()`; the `hb-subset-depend` utility provides command-line graph inspection (source: `util/hb-subset-depend.cc`).
 
 ### Parallel Structure
 
