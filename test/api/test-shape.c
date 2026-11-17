@@ -139,6 +139,41 @@ test_shape (void)
 }
 
 static void
+test_shape_not_found_variation_selector (void)
+{
+  hb_face_t *face = hb_face_create (NULL, 0);
+  hb_font_t *font = hb_font_create (face);
+  hb_font_funcs_t *funcs = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyph_func (funcs, glyph_func, NULL, NULL);
+  hb_font_set_funcs (font, funcs, NULL, NULL);
+  hb_font_funcs_destroy (funcs);
+
+  const hb_codepoint_t texts[][4] = {
+    {'x', 0, 0, 0},
+    {'x', 0xFE00, 0, 0},
+    {'x', 0xFE00, 0xFE01, 0},
+    {'x', 0x0301, 0xFE00, 0},
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (texts); i++)
+  {
+    unsigned len = 0;
+    while (texts[i][len]) len++;
+    hb_buffer_t *buffer = hb_buffer_create ();
+    hb_buffer_set_not_found_glyph (buffer, 42);
+    hb_buffer_add_utf32 (buffer, texts[i], len, 0, len);
+    hb_buffer_guess_segment_properties (buffer);
+    hb_shape (font, buffer, NULL, 0);
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+    g_assert_cmpuint (hb_buffer_get_length (buffer), >, 0);
+    g_assert_cmpuint (info[0].codepoint, ==, 42);
+    hb_buffer_destroy (buffer);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_shape_clusters (void)
 {
   hb_face_t *face;
@@ -559,6 +594,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_shape);
+  hb_test_add (test_shape_not_found_variation_selector);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
   hb_test_add (test_shape_overlong_cluster_remerge);
