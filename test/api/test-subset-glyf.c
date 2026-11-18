@@ -786,6 +786,65 @@ test_subset_glyf_instancing_budget (void)
   }
 }
 
+
+static void
+test_subset_glyf_missing_component (void)
+{
+  /* A closure limit may retain a composite without visiting its children.
+   * Leaving an old component ID in a compacted subset can point at an
+   * unrelated glyph, or even turn an acyclic source into a cycle. */
+  for (unsigned extra_roots = 0; extra_roots < 2; extra_roots++)
+    for (unsigned chain = 8; chain <= 80; chain += 72)
+    {
+      uint8_t maxp_data[6] = {0, 0, 0x50, 0, 0, 100};
+      uint8_t head_data[54] = {0};
+      head_data[0] = 0; head_data[1] = 1;
+      head_data[12] = 0x5F; head_data[13] = 0x0F;
+      head_data[14] = 0x3C; head_data[15] = 0xF5;
+      head_data[18] = 3; head_data[19] = 0xE8;
+      head_data[51] = 1; /* long loca */
+      uint8_t glyf_data[80 * 16] = {0};
+      uint8_t loca_data[101 * 4] = {0};
+      unsigned offset = 0;
+      for (unsigned gid = 0; gid < 100; gid++)
+      {
+        loca_data[gid * 4 + 2] = offset >> 8;
+        loca_data[gid * 4 + 3] = offset & 0xFF;
+        if (gid && gid <= chain)
+          offset += add_composite_glyph (glyf_data + offset, 1, gid - 1);
+      }
+      loca_data[402] = offset >> 8;
+      loca_data[403] = offset & 0xFF;
+      hb_face_t *face = hb_face_builder_create ();
+      const char *data[] = {(const char *) maxp_data, (const char *) head_data,
+                            (const char *) glyf_data, (const char *) loca_data};
+      unsigned sizes[] = {sizeof (maxp_data), sizeof (head_data),
+                          sizeof (glyf_data), sizeof (loca_data)};
+      hb_tag_t tags[] = {HB_TAG ('m','a','x','p'), HB_TAG ('h','e','a','d'),
+                         HB_TAG ('g','l','y','f'), HB_TAG ('l','o','c','a')};
+      for (unsigned i = 0; i < 4; i++)
+      {
+        hb_blob_t *blob = hb_blob_create (data[i], sizes[i], HB_MEMORY_MODE_READONLY, NULL, NULL);
+        hb_face_builder_add_table (face, tags[i], blob);
+        hb_blob_destroy (blob);
+      }
+
+      hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+      hb_set_add (hb_subset_input_glyph_set (input), chain);
+      /* Raise the operation allowance to isolate the nesting limit. */
+      if (extra_roots)
+        hb_set_add_range (hb_subset_input_glyph_set (input), 81, 99);
+      hb_face_t *subset = hb_subset_or_fail (face, input);
+      if (chain == 8)
+        g_assert_nonnull (subset);
+      else
+        g_assert_null (subset);
+      hb_face_destroy (subset);
+      hb_subset_input_destroy (input);
+      hb_face_destroy (face);
+    }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -811,6 +870,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_recompute_default_instance_bounds);
   hb_test_add (test_subset_glyf_aliased_loca);
   hb_test_add (test_subset_glyf_instancing_budget);
+  hb_test_add (test_subset_glyf_missing_component);
 
 #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_glyf_iftb_requirements);
