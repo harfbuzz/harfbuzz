@@ -253,6 +253,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes_in,
     !(plan->flags & HB_SUBSET_FLAGS_NO_BIDI_CLOSURE));
 
   OT::cmap_accelerator_t cmap (plan->source);
+  cmap.closure_symbol_unicodes (&unicodes);
   unsigned size_threshold = plan->source->get_num_glyphs ();
 
   if (glyphs->is_empty () && unicodes.get_population () < size_threshold)

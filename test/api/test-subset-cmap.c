@@ -30,6 +30,54 @@
 /* Unit tests for cmap subsetting */
 
 static void
+test_subset_cmap_symbol (void)
+{
+  const char *files[] = {"fonts/symbol-cmap4.ttf", "fonts/symbol-cmap12.ttf"};
+  for (unsigned f = 0; f < G_N_ELEMENTS (files); f++)
+    for (unsigned preprocess = 0; preprocess < 2; preprocess++)
+    {
+      hb_face_t *face = hb_test_open_font_file (files[f]);
+      if (preprocess)
+      {
+        hb_face_t *preprocessed = hb_subset_preprocess (face);
+        g_assert_nonnull (preprocessed);
+        hb_face_destroy (face);
+        face = preprocessed;
+      }
+      for (unsigned mode = 0; mode < 6; mode++)
+      {
+        hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+        hb_set_t *unicodes = hb_subset_input_unicode_set (input);
+        switch (mode)
+        {
+          case 0: hb_set_add (unicodes, 0xF041); break;
+          case 1: hb_set_add (unicodes, 'A'); break;
+          case 2: hb_set_add_range (unicodes, 0, 255); break;
+          case 3: hb_set_invert (unicodes); break;
+          case 4: hb_set_invert (unicodes); hb_set_del (unicodes, 0xF042); break;
+          case 5: hb_set_add (hb_subset_input_glyph_set (input), 1); break;
+        }
+        hb_face_t *subset = hb_subset_or_fail (face, input);
+        g_assert_nonnull (subset);
+        hb_blob_t *cmap = hb_face_reference_table (subset, HB_TAG ('c','m','a','p'));
+        g_assert_cmpuint (hb_blob_get_length (cmap), >, 0);
+        hb_blob_destroy (cmap);
+        hb_font_t *font = hb_font_create (subset);
+        hb_codepoint_t glyph, alias;
+        g_assert_true (hb_font_get_nominal_glyph (font, 0xF041, &glyph));
+        g_assert_true (hb_font_get_nominal_glyph (font, 'A', &alias));
+        g_assert_cmpuint (glyph, ==, alias);
+        g_assert_cmpint (hb_font_get_nominal_glyph (font, 'B', &glyph), ==,
+                         mode == 2 || mode == 3);
+        hb_font_destroy (font);
+        hb_face_destroy (subset);
+        hb_subset_input_destroy (input);
+      }
+      hb_face_destroy (face);
+    }
+}
+
+static void
 test_subset_cmap (void)
 {
   hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
@@ -604,6 +652,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_subset_cmap);
+  hb_test_add (test_subset_cmap_symbol);
   hb_test_add (test_subset_cmap_noop);
   hb_test_add (test_subset_cmap_default_uvs_range_limit);
   hb_test_add (test_subset_cmap_non_consecutive_glyphs);

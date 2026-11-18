@@ -2134,6 +2134,7 @@ struct cmap
     if (unlikely (!encodingrec_iter.len ())) return_trace (false);
 
     const EncodingRecord *unicode_bmp= nullptr, *unicode_ucs4 = nullptr, *ms_bmp = nullptr, *ms_ucs4 = nullptr;
+    const EncodingRecord *ms_symbol = nullptr;
     bool has_format12 = false;
 
     for (const EncodingRecord& _ : encodingrec_iter)
@@ -2146,10 +2147,11 @@ struct cmap
       else if (_.platformID == 0 && _.encodingID ==  4) unicode_ucs4 = table;
       else if (_.platformID == 3 && _.encodingID ==  1) ms_bmp = table;
       else if (_.platformID == 3 && _.encodingID == 10) ms_ucs4 = table;
+      else if (_.platformID == 3 && _.encodingID ==  0) ms_symbol = table;
     }
 
-    if (unlikely (!is_dmap && !has_format12 && !unicode_bmp && !ms_bmp)) return_trace (false);
-    if (unlikely (!is_dmap && has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
+    if (unlikely (!is_dmap && !has_format12 && !unicode_bmp && !ms_bmp && !ms_symbol)) return_trace (false);
+    if (unlikely (!is_dmap && has_format12 && (!unicode_ucs4 && !ms_ucs4 && !ms_symbol))) return_trace (false);
 
     auto it =
     + c->plan->unicode_to_new_gid_list.iter ()
@@ -2409,6 +2411,24 @@ struct cmap
     void collect_mapping (hb_set_t *unicodes, hb_map_t *mapping,
 			  unsigned num_glyphs = UINT_MAX) const
     { subtable->collect_mapping (unicodes, mapping, num_glyphs, get_subtable_data_size (subtable)); }
+    void closure_symbol_unicodes (hb_set_t *unicodes) const
+    {
+      /* Inverted sets explicitly exclude source codepoints. */
+      if (unicodes->is_inverted ()) return;
+      bool symbol = false;
+      table->find_best_subtable (&symbol);
+      if (!symbol) return;
+
+      unsigned data_size = get_subtable_data_size (subtable);
+      for (unsigned cp = 0; cp <= 0xFF; cp++)
+      {
+	hb_codepoint_t glyph;
+	unsigned mapped = _hb_symbol_pua_map (cp);
+	if (unicodes->has (cp) && !subtable->get_glyph (cp, &glyph, data_size) &&
+	    subtable->get_glyph (mapped, &glyph, data_size))
+	  unicodes->add (mapped);
+      }
+    }
     void collect_variation_selectors (hb_set_t *out) const
     { subtable_uvs->collect_variation_selectors (out); }
     void collect_variation_unicodes (hb_codepoint_t variation_selector,
@@ -2556,6 +2576,7 @@ struct cmap
     return
         (_.platformID == 0 && _.encodingID == 3) ||
         (_.platformID == 0 && _.encodingID == 4) ||
+        (_.platformID == 3 && _.encodingID == 0) ||
         (_.platformID == 3 && _.encodingID == 1) ||
         (_.platformID == 3 && _.encodingID == 10) ||
         (cmap + _.subtable).is_variation_selector ();
@@ -2603,6 +2624,12 @@ struct cmap_accelerator_t
     dmap (face, HB_OT_TAG_DMAP),
     base (face)
   {}
+
+  void closure_symbol_unicodes (hb_set_t *unicodes) const
+  {
+    dmap.closure_symbol_unicodes (unicodes);
+    base.closure_symbol_unicodes (unicodes);
+  }
 
   bool get_nominal_glyph (hb_codepoint_t  unicode,
 			  hb_codepoint_t *glyph) const
