@@ -549,26 +549,35 @@ retry:
     }
   }
 
-  void _get_baseline ()
+  bool _get_baseline_value (hb_ot_layout_baseline_tag_t tag, hb_position_t *position)
   {
+    if (!ot_script_str && !ot_language_str)
+    {
+      if (hb_ot_layout_get_baseline2 (font, tag, direction, script, language, position))
+        return true;
+      hb_ot_layout_get_baseline_with_fallback2 (font, tag, direction, script, language, position);
+      return false;
+    }
+
     hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
     hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
     unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
     unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
-
     hb_ot_tags_from_script_and_language (script, language,
-					 &script_count, script_tags,
-					 &language_count, language_tags);
+                                        &script_count, script_tags,
+                                        &language_count, language_tags);
+    hb_tag_t script_tag = ot_script_str ? hb_tag_from_string (ot_script_str, -1) :
+                          script_count ? script_tags[script_count - 1] : HB_TAG_NONE;
+    hb_tag_t language_tag = ot_language_str ? hb_tag_from_string (ot_language_str, -1) :
+                            language_count ? language_tags[0] : HB_TAG_NONE;
+    if (hb_ot_layout_get_baseline (font, tag, direction, script_tag, language_tag, position))
+      return true;
+    hb_ot_layout_get_baseline_with_fallback (font, tag, direction, script_tag, language_tag, position);
+    return false;
+  }
 
-    hb_tag_t script_tag = script_count ? script_tags[script_count - 1] : HB_TAG_NONE;
-    hb_tag_t language_tag = language_count ? language_tags[0] : HB_TAG_NONE;
-
-    if (ot_script_str)
-      script_tag = hb_tag_from_string (ot_script_str, -1);
-    if (ot_language_str)
-      language_tag = hb_tag_from_string (ot_language_str, -1);
-
-
+  void _get_baseline ()
+  {
     bool fallback = false;
     for (char **p = get_baseline; *p; p++)
     {
@@ -578,11 +587,10 @@ retry:
       if (verbose)
 	printf ("Baseline %c%c%c%c: ", HB_UNTAG (tag));
 
-      if (hb_ot_layout_get_baseline (font, tag, direction, script_tag, language_tag, &position))
+      if (_get_baseline_value (tag, &position))
 	printf ("%d	\n", position);
       else
       {
-	hb_ot_layout_get_baseline_with_fallback (font, tag, direction, script_tag, language_tag, &position);
 	printf ("%d	*\n", position);
 	fallback = true;
       }
@@ -728,24 +736,6 @@ retry:
 
   void _list_baselines ()
   {
-    hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
-    hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
-    unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
-    unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
-
-    hb_ot_tags_from_script_and_language (script, language,
-					 &script_count, script_tags,
-					 &language_count, language_tags);
-
-    hb_tag_t script_tag = script_count ? script_tags[script_count - 1] : HB_TAG_NONE;
-    hb_tag_t language_tag = language_count ? language_tags[0] : HB_TAG_NONE;
-
-    if (ot_script_str)
-      script_tag = hb_tag_from_string (ot_script_str, -1);
-    if (ot_language_str)
-      language_tag = hb_tag_from_string (ot_language_str, -1);
-
-
     if (verbose)
     {
       separator ();
@@ -763,15 +753,8 @@ retry:
     {
 	bool fallback = false;
 	hb_position_t v;
-	if (!hb_ot_layout_get_baseline (font, (hb_ot_layout_baseline_tag_t) entries[i].value,
-					direction, script_tag, language_tag,
-					&v))
-	{
-	  hb_ot_layout_get_baseline_with_fallback (font, (hb_ot_layout_baseline_tag_t) entries[i].value,
-						   direction, script_tag, language_tag,
-						   &v);
+	if (!_get_baseline_value ((hb_ot_layout_baseline_tag_t) entries[i].value, &v))
 	  any_fallback = fallback = true;
-	}
 	printf ("%c%c%c%c", HB_UNTAG(entries[i].value));
 	if (verbose)
 	  printf (": %-33s", entries[i].value_nick);
