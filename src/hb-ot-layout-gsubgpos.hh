@@ -1121,67 +1121,96 @@ struct skipping_iterator_t
 
   bool next (unsigned *unsafe_to = nullptr)
   {
+    if ((signed) idx < (signed) end - 1)
+    {
+      unsigned start = idx;
+      idx++;
+      switch (match (c->buffer->info[idx]))
+      {
+        case MATCH: advance_glyph_data (); return true;
+        case NOT_MATCH:
+          if (unsafe_to) *unsafe_to = idx + 1;
+          return false;
+        case SKIP: return next_slow (start, unsafe_to);
+      }
+    }
+    if (unsafe_to) *unsafe_to = end;
+    return false;
+  }
+
+  HB_NEVER_INLINE
+  bool next_slow (unsigned start, unsigned *unsafe_to)
+  {
     auto *info = c->buffer->info;
-    const signed stop = (signed) end - 1;
-    while ((signed) idx < stop)
+    while ((signed) idx < (signed) end - 1)
     {
       idx++;
       switch (match (info[idx]))
       {
-	case MATCH:
-	{
-	  advance_glyph_data ();
-	  return true;
-	}
-	case NOT_MATCH:
-	{
-	  if (unsafe_to)
-	    *unsafe_to = idx + 1;
-	  return false;
-	}
-	case SKIP:
-	  /* Only skipping charges. Flag exhaustion but keep walking (no early
-	   * return), so the loop-end still sets *unsafe_to; the callers that loop
-	   * stop repeated walks once successful clears. */
-	  if (unlikely (--c->buffer->max_ops < 0))
-	    c->buffer->successful = false;
-	  continue;
+        case MATCH:
+          charge_skipped (idx - start - 1);
+          advance_glyph_data ();
+          return true;
+        case NOT_MATCH:
+          charge_skipped (idx - start - 1);
+          if (unsafe_to) *unsafe_to = idx + 1;
+          return false;
+        case SKIP: continue;
       }
     }
-    if (unsafe_to)
-      *unsafe_to = end;
+    charge_skipped (idx - start);
+    if (unsafe_to) *unsafe_to = end;
     return false;
   }
+
   bool prev (unsigned *unsafe_from = nullptr)
   {
+    if (idx > 0)
+    {
+      unsigned start = idx;
+      idx--;
+      switch (match (c->buffer->out_info[idx]))
+      {
+        case MATCH: advance_glyph_data (); return true;
+        case NOT_MATCH:
+          if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
+          return false;
+        case SKIP: return prev_slow (start, unsafe_from);
+      }
+    }
+    if (unsafe_from) *unsafe_from = 0;
+    return false;
+  }
+
+  HB_NEVER_INLINE
+  bool prev_slow (unsigned start, unsigned *unsafe_from)
+  {
     auto *out_info = c->buffer->out_info;
-    const unsigned stop = 0;
-    while (idx > stop)
+    while (idx > 0)
     {
       idx--;
       switch (match (out_info[idx]))
       {
-	case MATCH:
-	{
-	  advance_glyph_data ();
-	  return true;
-	}
-	case NOT_MATCH:
-	{
-	  if (unsafe_from)
-	    *unsafe_from = hb_max (1u, idx) - 1u;
-	  return false;
-	}
-	case SKIP:
-	  /* Charged as in next(). */
-	  if (unlikely (--c->buffer->max_ops < 0))
-	    c->buffer->successful = false;
-	  continue;
+        case MATCH:
+          charge_skipped (start - idx - 1);
+          advance_glyph_data ();
+          return true;
+        case NOT_MATCH:
+          charge_skipped (start - idx - 1);
+          if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
+          return false;
+        case SKIP: continue;
       }
     }
-    if (unsafe_from)
-      *unsafe_from = 0;
+    charge_skipped (start - idx);
+    if (unsafe_from) *unsafe_from = 0;
     return false;
+  }
+
+  void charge_skipped (unsigned count)
+  {
+    c->buffer->max_ops -= count;
+    c->buffer->successful &= c->buffer->max_ops >= 0;
   }
 
   HB_ALWAYS_INLINE
