@@ -1704,6 +1704,61 @@ test_fontations_advances (void)
 }
 #endif
 
+
+#ifndef HB_NO_HINTING
+static hb_bool_t
+contour_point_ppem_guard (hb_font_t *font HB_UNUSED, void *font_data,
+                          hb_codepoint_t glyph, unsigned point_index HB_UNUSED,
+                          hb_position_t *x, hb_position_t *y,
+                          void *user_data HB_UNUSED)
+{
+  (*(unsigned *) font_data)++;
+  *x = glyph == 1 ? 300 : 0;
+  *y = glyph == 1 ? 500 : 0;
+  return true;
+}
+
+static void
+test_gpos_contour_point_ppem_guard (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/gpos-contour-ppem.ttf");
+  hb_font_t *parent = hb_font_create (face);
+  hb_ot_font_set_funcs (parent);
+  hb_font_t *font = hb_font_create_sub_font (parent);
+  unsigned calls = 0;
+  hb_font_funcs_t *funcs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_contour_point_func (funcs, contour_point_ppem_guard, NULL, NULL);
+  hb_font_set_funcs (font, funcs, &calls, NULL);
+  hb_font_funcs_destroy (funcs);
+  const struct { unsigned x_ppem, y_ppem; int x, y; } cases[] = {
+    {0, 0, -200, 580},
+    {12, 0, -300, 580},
+    {0, 12, -200, 500},
+    {12, 12, -300, 500},
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    calls = 0;
+    hb_font_set_ppem (font, cases[i].x_ppem, cases[i].y_ppem);
+    hb_buffer_t *buffer = hb_buffer_create ();
+    hb_buffer_add_utf8 (buffer, "A\xCC\x81", -1, 0, -1);
+    hb_buffer_guess_segment_properties (buffer);
+    /* Exercise the OT AnchorFormat2 callback guard. */
+    const char *shapers[] = {"ot", NULL};
+    g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+    g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 2);
+    const hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+    g_assert_cmpint (pos[1].x_offset, ==, cases[i].x);
+    g_assert_cmpint (pos[1].y_offset, ==, cases[i].y);
+    g_assert_cmpuint (calls, ==, i ? 2 : 0);
+    hb_buffer_destroy (buffer);
+  }
+  hb_font_destroy (font);
+  hb_font_destroy (parent);
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -1730,6 +1785,9 @@ main (int argc, char **argv)
   hb_test_add (test_fontfuncs_nil);
   hb_test_add (test_fontfuncs_subclassing);
   hb_test_add (test_fontfuncs_parallels);
+#ifndef HB_NO_HINTING
+  hb_test_add (test_gpos_contour_point_ppem_guard);
+#endif
 
   hb_test_add (test_font_empty);
   hb_test_add (test_font_create_without_funcs);

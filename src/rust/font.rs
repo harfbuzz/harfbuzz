@@ -19,7 +19,7 @@ use read_fonts::types::{BoundingBox as FontBounds, F48Dot16, GlyphId};
 use read_fonts::TableProvider;
 
 #[cfg(feature = "draw")]
-use skrifa::{DrawMemory, PathSink, ScalerFont};
+use skrifa::{DrawMemory, MetadataProvider, PathSink, ScalerFont};
 
 #[cfg(feature = "paint")]
 use read_fonts::model::glyph::{
@@ -1393,6 +1393,55 @@ extern "C" fn _hb_fontations_glyph_from_name(
     }
 }
 
+#[cfg(feature = "draw")]
+extern "C" fn _hb_fontations_get_glyph_contour_point(
+    font: *mut hb_font_t,
+    font_data: *mut c_void,
+    glyph: hb_codepoint_t,
+    point_index: ::std::os::raw::c_uint,
+    x: *mut hb_position_t,
+    y: *mut hb_position_t,
+    _user_data: *mut c_void,
+) -> hb_bool_t {
+    let data = unsafe { &mut *font_data.cast::<FontationsData>() };
+    data.check_for_updates();
+    let face = unsafe { hb_font_get_face(font) };
+    let blob = HbBlob(unsafe { hb_face_reference_blob(face) });
+    let Ok(raw) =
+        read_fonts::FontRef::from_index(blob.as_ref(), unsafe { hb_face_get_index(face) })
+    else {
+        return false as hb_bool_t;
+    };
+    let outlines = raw.outline_glyphs();
+    let Some(outline) = outlines.get(GlyphId::new(glyph)) else {
+        return false as hb_bool_t;
+    };
+    let point = outline
+        .with_scaled_glyf_outline(
+            skrifa::instance::Size::unscaled(),
+            skrifa::instance::LocationRef::new(data.instance.normalized_coords()),
+            None,
+            |outline| {
+                Ok(outline.points.get(point_index as usize).map(|p| {
+                    (
+                        round_to_position(p.x.to_f32() * data.x_mult),
+                        round_to_position(p.y.to_f32() * data.y_mult),
+                    )
+                }))
+            },
+        )
+        .ok()
+        .flatten();
+    let Some((px, py)) = point else {
+        return false as hb_bool_t;
+    };
+    unsafe {
+        *x = px;
+        *y = py;
+    }
+    true as hb_bool_t
+}
+
 fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
     static STATIC_FFUNCS: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
@@ -1442,6 +1491,15 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
                 null_mut(),
                 None,
             );
+            #[cfg(feature = "draw")]
+            if false {
+                hb_font_funcs_set_glyph_contour_point_func(
+                    ffuncs,
+                    Some(_hb_fontations_get_glyph_contour_point),
+                    null_mut(),
+                    None,
+                );
+            }
             hb_font_funcs_set_font_h_extents_func(
                 ffuncs,
                 Some(_hb_fontations_get_font_h_extents),
