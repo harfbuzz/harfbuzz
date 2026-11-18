@@ -479,7 +479,15 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
-  hb_set_t cur_glyphset = plan->_glyphset_gsub;
+  /* GSUB outputs can have MATH metrics and variants of their own. */
+  plan->_glyphset_mathed = plan->_glyphset_gsub;
+  if (!drop_tables->has (HB_OT_TAG_MATH))
+  {
+    _math_closure (plan, &plan->_glyphset_mathed);
+    _remove_invalid_gids (&plan->_glyphset_mathed, plan->source->get_num_glyphs ());
+  }
+
+  hb_set_t cur_glyphset = plan->_glyphset_mathed;
   if (!drop_tables->has (HB_OT_TAG_COLR))
   {
     _colr_closure (plan, &cur_glyphset);
