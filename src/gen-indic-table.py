@@ -155,7 +155,7 @@ category_map = {
   'Consonant_Final'		: 'CM',
   'Consonant_Head_Letter'	: 'C',
   'Consonant_Initial_Postfixed'	: 'C', # TODO
-  'Consonant_Killer'		: 'M', # U+17CD only.
+  'Consonant_Killer'		: 'M',
   'Consonant_Medial'		: 'CM',
   'Consonant_Placeholder'	: 'PLACEHOLDER',
   'Consonant_Preceding_Repha'	: 'Repha',
