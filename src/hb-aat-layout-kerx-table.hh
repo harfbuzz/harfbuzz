@@ -1101,6 +1101,11 @@ struct KerxTable
 
       auto &subtable_accel = accel_data.subtable_accels[i];
 
+      /* Cross-stream kerning replaces the attachment chains used by GPOS. */
+      if (c->plan->apply_gpos &&
+	  (st->u.header.coverage & st->u.header.CrossStream))
+	goto skip;
+
       if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
 	goto skip;
 
