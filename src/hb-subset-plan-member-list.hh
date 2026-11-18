@@ -71,7 +71,6 @@ HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_gsub)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_mathed)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_colred)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_varced)
-HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_cmaped)
 
 //active lookups we'd like to retain
 HB_SUBSET_PLAN_MEMBER (hb_map_t, gsub_lookups)
