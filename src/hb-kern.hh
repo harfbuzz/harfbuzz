@@ -98,15 +98,19 @@ struct hb_kern_machine_t
       }
       else if (horizontal)
       {
-	if (scale)
-	  kern = font->em_scale_x (kern);
 	if (crossStream)
 	{
+	  /* Cross-stream kerning shifts perpendicular to the run, so scale
+	   * it by the perpendicular (vertical) axis, not the advance axis. */
+	  if (scale)
+	    kern = font->em_scale_y (kern);
 	  pos[j].y_offset = kern;
 	  buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	}
 	else
 	{
+	  if (scale)
+	    kern = font->em_scale_x (kern);
 	  hb_position_t kern1 = kern >> 1;
 	  hb_position_t kern2 = kern - kern1;
 	  pos[i].x_advance = hb_saturate_add (pos[i].x_advance, kern1);
@@ -116,15 +120,19 @@ struct hb_kern_machine_t
       }
       else
       {
-	if (scale)
-	  kern = font->em_scale_y (kern);
 	if (crossStream)
 	{
+	  /* Cross-stream kerning shifts perpendicular to the run, so scale
+	   * it by the perpendicular (horizontal) axis, not the advance axis. */
+	  if (scale)
+	    kern = font->em_scale_x (kern);
 	  pos[j].x_offset = kern;
 	  buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	}
 	else
 	{
+	  if (scale)
+	    kern = font->em_scale_y (kern);
 	  hb_position_t kern1 = kern >> 1;
 	  hb_position_t kern2 = kern - kern1;
 	  pos[i].y_advance = hb_saturate_add (pos[i].y_advance, kern1);
