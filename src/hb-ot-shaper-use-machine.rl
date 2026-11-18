@@ -86,6 +86,7 @@ export HVM	= 53; # HALANT_OR_VOWEL_MODIFIER
 export HM	= 54; # HIEROGLYPH_MOD
 export HR	= 55; # HIEROGLYPH_MIRROR
 export RK	= 56; # REORDERING_KILLER
+export SP	= 57; # SPACE (independent cluster)
 
 export FAbv	= 24; # CONS_FINAL_ABOVE
 export FBlw	= 25; # CONS_FINAL_BELOW
