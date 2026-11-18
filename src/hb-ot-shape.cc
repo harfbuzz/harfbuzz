@@ -173,10 +173,6 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   if (!plan.apply_kerx && (!has_gpos_kern || !plan.apply_gpos))
   {
     if (false) {}
-#ifndef HB_NO_AAT_SHAPE
-    else if (has_kerx)
-      plan.apply_kerx = true;
-#endif
 #ifndef HB_NO_OT_KERN
     else if (hb_ot_layout_has_kerning (face))
       plan.apply_kern = script_fallback_position; // Not all shapers apply legacy `kern`
