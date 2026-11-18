@@ -51,8 +51,8 @@ _hb_subset_table_try (const TableType *table,
   }
 
   /* Compact tables can expand substantially under glyph renumbering. */
-  uint64_t max_size = hb_max ((uint64_t) c->source_blob->length * 256,
-			     (uint64_t) 1 << 20);
+  uint64_t max_size = hb_max ((uint64_t) c->source_blob->length * HB_SUBSET_MAX_TABLE_SIZE_FACTOR,
+			     (uint64_t) HB_SUBSET_MAX_TABLE_SIZE_MIN);
   max_size = hb_min (max_size, (uint64_t) INT_MAX);
   unsigned old_size = buf->allocated;
   unsigned buf_size = (unsigned) hb_min ((uint64_t) old_size * 2 + 16, max_size);

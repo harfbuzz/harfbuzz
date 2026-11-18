@@ -157,6 +157,16 @@
 #define HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH 64
 #endif
 
+/* Maximum serialized subset table size, as a multiple of the source table
+ * length, with a floor for compact tables that expand under renumbering.
+ * The serializer's INT_MAX allocation ceiling still applies. */
+#ifndef HB_SUBSET_MAX_TABLE_SIZE_FACTOR
+#define HB_SUBSET_MAX_TABLE_SIZE_FACTOR 256
+#endif
+#ifndef HB_SUBSET_MAX_TABLE_SIZE_MIN
+#define HB_SUBSET_MAX_TABLE_SIZE_MIN ((uint64_t) 1 << 20)
+#endif
+
 /* Source bytes of all the glyphs the subsetter retains, as a multiple of
  * the glyf table length; exceeding it fails the plan.  A monotonic loca
  * never needs more than one; a loca that aliases the same bytes to many
