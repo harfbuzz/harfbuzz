@@ -301,6 +301,13 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
     }
 
     last_start = start;
+    /* ZWNJ can be retained inside the preceding syllable. */
+    for (unsigned int i = start; i < end; i++)
+      if (info[i].use_category() == USE(ZWNJ))
+      {
+	last_form = _JOINING_FORM_NONE;
+	break;
+      }
   }
 }
 
