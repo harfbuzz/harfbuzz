@@ -159,31 +159,31 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   bool has_gsub = !apply_morx && hb_ot_layout_has_substitution (face);
 #endif
   bool has_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
-  if (false)
-    {}
+  plan.apply_gpos = has_gpos;
 #ifndef HB_NO_AAT_SHAPE
   /* Prefer GPOS over kerx if GSUB is present;
    * https://github.com/harfbuzz/harfbuzz/issues/3008 */
-  else if (has_kerx && !(has_gsub && has_gpos))
+  if (has_kerx && !(has_gsub && has_gpos))
+  {
+    plan.apply_kerx = true;
+    plan.apply_gpos = false;
+  }
+#endif
+
+  bool needs_kerning HB_UNUSED = !has_gpos_kern || !plan.apply_gpos;
+#ifndef HB_NO_AAT_SHAPE
+  if (needs_kerning && has_kerx)
     plan.apply_kerx = true;
 #endif
-  else if (has_gpos)
-    plan.apply_gpos = true;
-
-  if (!plan.apply_kerx && (!has_gpos_kern || !plan.apply_gpos))
-  {
-    if (false) {}
 #ifndef HB_NO_OT_KERN
-    else if (hb_ot_layout_has_kerning (face))
-      plan.apply_kern = script_fallback_position; // Not all shapers apply legacy `kern`
+  if (needs_kerning && !plan.apply_kerx && hb_ot_layout_has_kerning (face))
+    plan.apply_kern = script_fallback_position; // Not all shapers apply legacy `kern`
 #endif
-    else {}
-  }
 
   plan.apply_fallback_kern = script_fallback_position && !(plan.apply_gpos || plan.apply_kerx || plan.apply_kern);
 
   plan.zero_marks = script_zero_marks &&
-		    !plan.apply_kerx &&
+                    (!plan.apply_kerx || plan.apply_gpos) &&
 		    (!plan.apply_kern
 #ifndef HB_NO_OT_KERN
 		     || !hb_ot_layout_has_machine_kerning (face)
@@ -270,7 +270,7 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
   if (this->apply_gpos)
     map.position (this, font, buffer);
 #ifndef HB_NO_AAT_SHAPE
-  else if (this->apply_kerx)
+  if (this->apply_kerx)
     hb_aat_layout_position (this, font, buffer);
 #endif
 
