@@ -94,5 +94,6 @@ in_house_tests = [
   'variations.tests',
   'variations-rvrn.tests',
   'vertical.tests',
+  'vowel-constraint-joiners.tests',
   'zero-width-marks.tests',
 ]
