@@ -225,7 +225,7 @@ position_mark (const hb_ot_shape_plan_t *plan HB_UNUSED,
   pos.x_offset = pos.y_offset = 0;
 
 
-  /* We don't position LEFT and RIGHT marks. */
+  /* Classes without dedicated placement are centered horizontally. */
 
   /* X positioning */
   switch (combining_class)
