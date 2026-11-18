@@ -528,6 +528,39 @@ test_hb_ot_color_png_paint_order (void)
     hb_face_destroy (face);
   }
 }
+
+static void
+test_hb_ot_color_png_fixed_metrics (void)
+{
+  static const struct {
+    const char *font;
+    unsigned int lengths[3];
+  } cases[] = {
+    {"fonts/cbdt-format19-index2.ttf", {74, 73, 0}},
+    {"fonts/cbdt-format19-index5.ttf", {74, 0, 73}},
+  };
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_image_func (funcs, capture_png, NULL, NULL);
+  for (unsigned int i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (cases[i].font);
+    hb_font_t *font = hb_font_create (face);
+    for (unsigned int gid = 1; gid <= 3; gid++)
+    {
+      hb_blob_t *png = hb_ot_color_glyph_reference_png (font, gid);
+      hb_blob_t *painted = NULL;
+      g_assert_cmpuint (hb_blob_get_length (png), ==, cases[i].lengths[gid - 1]);
+      hb_font_paint_glyph (font, gid, funcs, &painted, 0, HB_COLOR (0, 0, 0, 255));
+      g_assert_cmpint (!!painted, ==, !!cases[i].lengths[gid - 1]);
+      if (painted) hb_test_assert_blobs_equal (png, painted);
+      hb_blob_destroy (painted);
+      hb_blob_destroy (png);
+    }
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+  hb_paint_funcs_destroy (funcs);
+}
 #endif
 
 static void
@@ -776,6 +809,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_png);
 #if !defined(HB_NO_PAINT) && !defined(HB_NO_COLOR) && !defined(HB_NO_OT_FONT_BITMAP)
   hb_test_add (test_hb_ot_color_png_paint_order);
+  hb_test_add (test_hb_ot_color_png_fixed_metrics);
 #endif
   hb_test_add (test_hb_ot_color_png_cbdt_records);
   hb_test_add (test_hb_ot_color_png_cbdt_max_strikes);
