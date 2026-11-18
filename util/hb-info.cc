@@ -642,9 +642,9 @@ retry:
     {
       char name[16384];
       unsigned name_len = sizeof name;
-      _hb_ot_name_get_utf8 (face, entries[i].name_id,
-			    language,
-			    &name_len, name);
+      hb_ot_name_get_utf8 (face, entries[i].name_id,
+			  entries[i].language,
+			  &name_len, name);
 
 #ifdef HB_HAS_GOBJECT
       if (verbose)
