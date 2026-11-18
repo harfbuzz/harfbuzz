@@ -742,6 +742,7 @@ hb_vector_sources = files(
   'hb-vector-paint.cc',
   'hb-vector-paint-svg.cc',
   'hb-vector-paint-pdf.cc',
+  'hb-vector-paint-pdf-image.hh',
   'hb-vector-path.hh',
   'hb-vector-buf.hh',
   'hb-static.cc',

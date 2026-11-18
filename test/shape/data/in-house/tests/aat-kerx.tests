@@ -164,3 +164,9 @@
 # Mixed GPOS/kerx cross-stream pair; mark-chain composition remains under review.
 ../fonts/7b8fa611ac24d73c8359e23d25c33aa9269351b6.ttf;--features=kern=0;U+0041,U+0056;[A=0+600|V=1+600]
 ../fonts/7b8fa611ac24d73c8359e23d25c33aa9269351b6.ttf;--features=kern=1;U+0041,U+0056;[A=0+600|V=1@0,80+600]
+
+# How HarfBuzz Works report 40: default OT contour-point support remains disabled.
+../fonts/e3fbfe1110e277b89dc44ad184c4362b6764b237.ttf;--font-funcs=ot;U+0041,U+0301;[A=0+600|acute=0+200]
+../fonts/e3fbfe1110e277b89dc44ad184c4362b6764b237.ttf;--font-funcs=ot --variations=wght=1;U+0042,U+0301;[B=0+600|acute=0+200]
+../fonts/7834fd0341351d1e51332870432b51b3e66876ed.ttf;--font-funcs=ot;U+0041,U+0301;[A=0+600|acute=0+200]
+../fonts/e3fbfe1110e277b89dc44ad184c4362b6764b237.ttf;--font-funcs=ot --direction=ttb;U+0041,U+0301;[A=0@-300,-800+0,-1000|acute=0@-100,-800+0,-1000]

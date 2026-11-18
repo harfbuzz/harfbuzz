@@ -610,6 +610,9 @@ struct BaseScriptRecord
 
 struct BaseScriptList
 {
+  bool has_script (hb_tag_t script) const
+  { return baseScriptRecords.bsearch (script).has_data (); }
+
   const BaseScript &get_base_script (hb_tag_t script) const
   {
     const BaseScriptRecord *record = &baseScriptRecords.bsearch (script);
@@ -664,6 +667,15 @@ struct BaseScriptList
 
 struct Axis
 {
+  hb_tag_t select_script (hb_array_t<const hb_tag_t> script_tags) const
+  {
+    for (hb_tag_t tag : script_tags)
+      if ((this+baseScriptList).has_script (tag))
+        return tag;
+    /* Keep the Unicode script available to baseline synthesis on a miss. */
+    return script_tags.length ? script_tags[script_tags.length - 1] : HB_OT_TAG_DEFAULT_SCRIPT;
+  }
+
   bool get_baseline (hb_tag_t          baseline_tag,
 		     hb_tag_t          script_tag,
 		     hb_tag_t          language_tag,

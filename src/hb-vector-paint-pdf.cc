@@ -29,13 +29,11 @@
 #include "hb-vector-paint.hh"
 #include "hb-vector-draw.hh"
 #include "hb-paint.hh"
+#include "hb-vector-paint-pdf-image.hh"
 
 #include <math.h>
 #include <stdio.h>
 
-#ifdef HAVE_ZLIB
-#include <zlib.h>
-#endif
 
 /* PDF paint backend for COLRv0/v1 color font rendering.
  *
@@ -60,12 +58,6 @@ struct hb_pdf_obj_t
 /* Collects extra PDF objects (shadings, functions, ExtGState)
  * during painting.  Referenced from the content stream by name
  * (e.g. /SH0, /GS0) and emitted at render time. */
-static bool
-hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
-			    const char *idat_data, unsigned idat_len,
-			    unsigned width, unsigned height,
-			    const uint8_t *trns, unsigned trns_len);
-
 struct hb_pdf_resources_t
 {
   hb_vector_t<hb_pdf_obj_t> objects;   /* extra objects, starting at id 5 */
@@ -215,16 +207,22 @@ struct hb_pdf_resources_t
 
   /* Add an XObject image, return resource name index.
    * idat_data/idat_len is the concatenated PNG IDAT payload (zlib data).
-   * colors is 1 (gray), 3 (RGB), or 4 (RGBA); for indexed, pass colors=1.
+   * colors counts PNG channels, including alpha; for indexed, pass 1.
    * plte/plte_len is the PLTE chunk data for indexed images (may be null). */
   unsigned add_xobject_png_image (const char *idat_data, unsigned idat_len,
 				  unsigned width, unsigned height,
-				  unsigned colors, bool has_alpha,
+				  unsigned colors, bool has_alpha, int64_t *budget,
 				  const uint8_t *plte = nullptr,
 				  unsigned plte_len = 0,
 				  const uint8_t *trns = nullptr,
 				  unsigned trns_len = 0)
   {
+    hb_vector_buf_t color_stream, smask_stream;
+    if (has_alpha &&
+        !hb_pdf_split_png_alpha (&color_stream, &smask_stream,
+                                 idat_data, idat_len, width, height, colors, budget))
+      return UINT_MAX;
+
     unsigned idx = xobject_count++;
     hb_vector_buf_t obj;
     obj.append_str ("<< /Type /XObject /Subtype /Image\n");
@@ -256,31 +254,34 @@ struct hb_pdf_resources_t
       obj.append_c ('\n');
     }
 
-    /* Build SMask for indexed images with tRNS transparency. */
+    /* Build a soft mask for explicit alpha or indexed tRNS transparency. */
     unsigned smask_id = 0;
-    if (plte && trns && trns_len)
+    bool have_smask = has_alpha;
+    if (!has_alpha && plte && trns && trns_len)
+      have_smask = hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
+                                              width, height, trns, trns_len, budget);
+    bool color_compressed = has_alpha && hb_pdf_compress_image_stream (&color_stream, budget);
+    bool mask_compressed = have_smask && hb_pdf_compress_image_stream (&smask_stream, budget);
+    if (*budget < 0) return UINT_MAX;
+    if (have_smask)
     {
-      hb_vector_buf_t smask_stream;
-      if (hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
-				      width, height, trns, trns_len))
-      {
-	hb_vector_buf_t smask_obj;
-	smask_obj.append_str ("<< /Type /XObject /Subtype /Image\n");
-	smask_obj.append_str ("/Width ");
-	smask_obj.append_unsigned (width);
-	smask_obj.append_str (" /Height ");
-	smask_obj.append_unsigned (height);
-	smask_obj.append_str ("\n/ColorSpace /DeviceGray /BitsPerComponent 8\n");
-	smask_obj.append_str ("/Length ");
-	smask_obj.append_unsigned (smask_stream.length);
-	smask_obj.append_str (" >>\nstream\n");
-	smask_obj.append_len (smask_stream.arrayZ, smask_stream.length);
-	smask_obj.append_str ("\nendstream");
-	/* A mask that tripped the document cap has an empty stream; embed the
-	 * image without it rather than reference a truncated object. */
-	if (likely (!smask_obj.in_error ()))
-	  smask_id = add_object (std::move (smask_obj));
-      }
+      hb_vector_buf_t smask_obj;
+      smask_obj.append_str ("<< /Type /XObject /Subtype /Image\n");
+      smask_obj.append_str ("/Width ");
+      smask_obj.append_unsigned (width);
+      smask_obj.append_str (" /Height ");
+      smask_obj.append_unsigned (height);
+      smask_obj.append_str ("\n/ColorSpace /DeviceGray /BitsPerComponent 8\n");
+      if (mask_compressed) smask_obj.append_str ("/Filter /FlateDecode\n");
+      smask_obj.append_str ("/Length ");
+      smask_obj.append_unsigned (smask_stream.length);
+      smask_obj.append_str (" >>\nstream\n");
+      smask_obj.append_len (smask_stream.arrayZ, smask_stream.length);
+      smask_obj.append_str ("\nendstream");
+      /* An oversized indexed mask may be omitted; explicit alpha must not
+       * be embedded as color samples or reference a truncated mask. */
+      if (likely (!smask_obj.in_error ()))
+        smask_id = add_object (std::move (smask_obj));
     }
 
     if (smask_id)
@@ -290,21 +291,29 @@ struct hb_pdf_resources_t
       obj.append_str (" 0 R\n");
     }
 
-    obj.append_str ("/Filter /FlateDecode\n");
-    obj.append_str ("/DecodeParms << /Predictor 15 /Colors ");
-    obj.append_unsigned (colors);
-    obj.append_str (" /BitsPerComponent 8 /Columns ");
-    obj.append_unsigned (width);
-    obj.append_str (" >>\n");
+    if (has_alpha && !smask_id) return UINT_MAX;
+
+    if (!has_alpha)
+    {
+      obj.append_str ("/Filter /FlateDecode\n");
+      obj.append_str ("/DecodeParms << /Predictor 15 /Colors ");
+      obj.append_unsigned (colors);
+      obj.append_str (" /BitsPerComponent 8 /Columns ");
+      obj.append_unsigned (width);
+      obj.append_str (" >>\n");
+    }
+    else if (color_compressed)
+      obj.append_str ("/Filter /FlateDecode\n");
+    const char *image_data = has_alpha ? color_stream.arrayZ : idat_data;
+    unsigned image_len = has_alpha ? color_stream.length : idat_len;
     obj.append_str ("/Length ");
-    obj.append_unsigned (idat_len);
+    obj.append_unsigned (image_len);
     obj.append_str (" >>\nstream\n");
-    obj.append_len (idat_data, idat_len);
+    obj.append_len (image_data, image_len);
     obj.append_str ("\nendstream");
 
-    (void) has_alpha;
-
     unsigned obj_id = add_object (std::move (obj));
+    if (!obj_id) return UINT_MAX;
 
     xobject_dict.append_str ("/Im");
     xobject_dict.append_unsigned (idx);
@@ -619,118 +628,6 @@ hb_pdf_paint_color (hb_paint_funcs_t *,
   hb_pdf_paint_solid_color (paint, color);
 }
 
-/* Build an uncompressed alpha mask from indexed PNG IDAT data + tRNS.
- * Decompresses IDAT, un-filters PNG rows, maps palette indices to alpha. */
-static bool
-hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
-			    const char *idat_data, unsigned idat_len,
-			    unsigned width, unsigned height,
-			    const uint8_t *trns, unsigned trns_len)
-{
-#ifndef HAVE_ZLIB
-  (void) out; (void) idat_data; (void) idat_len;
-  (void) width; (void) height; (void) trns; (void) trns_len;
-  return false;
-#else
-  /* Guard the size arithmetic below against 32-bit overflow.  width/height come
-   * from the attacker-controlled PNG IHDR; without this, (width + 1) * height or
-   * width * height can wrap and under-size buffers that are then indexed per
-   * pixel (raw + y * (width + 1), out->arrayZ[y * width + x]).
-   *
-   * The mask is emitted uncompressed into a document-capped hb_vector_buf_t,
-   * so one larger than HB_VECTOR_MAX_DOCUMENT_SIZE can never be appended:
-   * reject it here, before inflating and un-filtering width * height bytes
-   * (4 GB from a ~4 MB font) that would only be dropped afterwards.  This also
-   * bounds raw_len, which is mask_len + height. */
-  unsigned raw_len, mask_len;
-  if (!width || !height ||
-      width == 0xFFFFFFFFu ||
-      hb_unsigned_mul_overflows (width + 1, height, &raw_len) ||
-      hb_unsigned_mul_overflows (width, height, &mask_len) ||
-      mask_len > HB_VECTOR_MAX_DOCUMENT_SIZE)
-    return false;
-
-  /* Decompress IDAT (zlib). */
-  /* raw_len = (width + 1) * height: 1 filter byte per row + width bytes. */
-  uint8_t *raw = (uint8_t *) hb_malloc (raw_len);
-  if (!raw) return false;
-  HB_SCOPE_GUARD (hb_free (raw));
-
-  z_stream stream = {};
-  stream.next_in = (Bytef *) idat_data;
-  stream.avail_in = idat_len;
-  stream.next_out = (Bytef *) raw;
-  stream.avail_out = raw_len;
-
-  if (inflateInit (&stream) != Z_OK)
-    return false;
-  int status = inflate (&stream, Z_FINISH);
-  unsigned long total_out = stream.total_out;
-  inflateEnd (&stream);
-  if (status != Z_STREAM_END || total_out != raw_len)
-    return false;
-
-  /* Un-filter and map to alpha. */
-  if (!out->resize (mask_len))
-    return false;
-
-  uint8_t *unfiltered = (uint8_t *) hb_malloc (width);
-  if (!unfiltered)
-    return false;
-  HB_SCOPE_GUARD (hb_free (unfiltered));
-
-  uint8_t *prev_unfiltered = (uint8_t *) hb_calloc (width, 1);
-  if (!prev_unfiltered)
-    return false;
-  HB_SCOPE_GUARD (hb_free (prev_unfiltered));
-
-  for (unsigned y = 0; y < height; y++)
-  {
-    uint8_t *row = raw + y * (width + 1);
-    uint8_t filter = row[0];
-    uint8_t *pixels = row + 1;
-
-    for (unsigned x = 0; x < width; x++)
-    {
-      uint8_t a = (x > 0) ? unfiltered[x - 1] : 0;
-      uint8_t b = prev_unfiltered[x];
-      uint8_t c = (x > 0) ? prev_unfiltered[x - 1] : 0;
-      uint8_t val = pixels[x];
-
-      switch (filter)
-      {
-      case 0: unfiltered[x] = val; break; /* None */
-      case 1: unfiltered[x] = val + a; break; /* Sub */
-      case 2: unfiltered[x] = val + b; break; /* Up */
-      case 3: unfiltered[x] = val + (uint8_t) (((unsigned) a + b) / 2); break; /* Average */
-      case 4: /* Paeth */
-      {
-	int p = (int) a + (int) b - (int) c;
-	int pa = abs (p - (int) a);
-	int pb = abs (p - (int) b);
-	int pc = abs (p - (int) c);
-	uint8_t pr = (pa <= pb && pa <= pc) ? a : (pb <= pc) ? b : c;
-	unfiltered[x] = val + pr;
-	break;
-      }
-      default: unfiltered[x] = val; break;
-      }
-
-      /* Map palette index to alpha. */
-      uint8_t idx = unfiltered[x];
-      out->arrayZ[y * width + x] = (idx < trns_len) ? trns[idx] : 0xFF;
-    }
-
-    /* Swap buffers. */
-    uint8_t *tmp = prev_unfiltered;
-    prev_unfiltered = unfiltered;
-    unfiltered = tmp;
-  }
-
-  return true;
-#endif
-}
-
 /* Read a big-endian uint32 from a byte pointer. */
 static inline uint32_t
 hb_pdf_png_u32 (const uint8_t *p)
@@ -760,7 +657,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
     return false;
   auto *res = hb_pdf_get_resources (paint);
   /* Over the document cap: stop emitting resource-backed content. */
-  if (unlikely (!res || res->in_error ()))
+  if (unlikely (!res || res->in_error () || paint->budget_remaining < 0))
     return false;
 
   unsigned len = 0;
@@ -814,6 +711,8 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
       case 6: colors = 4; has_alpha = true;  break; /* RGBA */
       default: return false;
       }
+      if (has_alpha && (chunk_data[10] || chunk_data[11] || chunk_data[12]))
+        return false; /* Only noninterlaced PNG filter/compression method 0. */
     }
     else if (chunk_type == 0x504C5445u) /* PLTE */
     {
@@ -835,14 +734,19 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
     pos += 12 + chunk_len;
   }
 
-  if (!png_w || !png_h || !idat.length)
+  if (!png_w || !png_h || !idat.length || idat.in_error ())
     return false;
+
+  /* A truecolor PLTE is advisory, not an indexed color space. */
+  if (color_type != 3) { plte_data = nullptr; plte_len = 0; }
 
   unsigned im_idx = res->add_xobject_png_image (idat.arrayZ, idat.length,
 						 png_w, png_h,
-						 colors, has_alpha,
+						 colors, has_alpha, &paint->budget_remaining,
 						 plte_data, plte_len,
 						 trns_data, trns_len);
+
+  if (im_idx == UINT_MAX) return false;
 
   /* Emit: save state, set CTM to map image (0,0)-(1,1) to extents, paint. */
   auto &body = paint->current_body ();

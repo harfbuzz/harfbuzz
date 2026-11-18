@@ -303,6 +303,7 @@ set (vector_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-svg.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf-image.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-path.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-buf.hh
      ${PROJECT_SOURCE_DIR}/src/hb-static.cc
