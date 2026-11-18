@@ -443,6 +443,10 @@ struct subr_flattener_t
       };
       if (unlikely (!interp.interpret (param, budget)))
 	return false;
+      if (!i && !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+        OPSET::drop_glyph_outline (env, param);
+      if (unlikely (flat_charstrings[i].in_error ()))
+	return false;
     }
     return true;
   }
@@ -1050,6 +1054,20 @@ struct subr_subsetter_t
 	}
 
       last++; // Skip over gid
+      if (!gid && !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+      {
+	str_encoder_t encoder (buffArray.arrayZ[gid]);
+	encoder.reset ();
+	if (endchar_op != OpCode_Invalid)
+	{
+	  const auto &str = get_parsed_charstring (gid);
+	  if (str.has_prefix ())
+	    encoder.encode_num_cs (str.prefix_num ());
+	  encoder.encode_op (endchar_op);
+	}
+	if (unlikely (buffArray.arrayZ[gid].in_error ())) return false;
+	continue;
+      }
       unsigned int  fd = subset_get_fd (acc, old_glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;

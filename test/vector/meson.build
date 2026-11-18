@@ -21,6 +21,13 @@ test('reset', test_vector_reset,
   suite: 'vector',
 )
 
+if zlib_dep.found()
+  test_vector_png = executable('test-vector-png', 'test-vector-png.c',
+    dependencies: [libharfbuzz_vector_dep, zlib_dep],
+  )
+  test('png', test_vector_png, suite: 'vector')
+endif
+
 tests = [
   'basic',
   'varc',

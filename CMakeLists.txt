@@ -76,6 +76,13 @@ set(HB_HAVE_SUBSET ${HB_BUILD_SUBSET})
 set(HB_HAVE_RASTER ${HB_BUILD_RASTER})
 set(HB_HAVE_VECTOR ${HB_BUILD_VECTOR})
 set(HB_HAVE_GPU ${HB_BUILD_GPU})
+set(HB_HAVE_GRAPHITE ${HB_HAVE_GRAPHITE2})
+
+foreach(feature RASTER VECTOR GPU)
+  if (HB_BUILD_${feature})
+    add_compile_definitions(HAVE_${feature}=1)
+  endif ()
+endforeach()
 
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
@@ -296,6 +303,7 @@ set (vector_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-svg.cc
      ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-paint-pdf-image.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-path.hh
      ${PROJECT_SOURCE_DIR}/src/hb-vector-buf.hh
      ${PROJECT_SOURCE_DIR}/src/hb-static.cc
@@ -338,7 +346,7 @@ if (HB_HAVE_FREETYPE)
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
-  add_compile_definitions(HAVE_GRAPHITE2)
+  add_compile_definitions(HAVE_GRAPHITE)
 
   find_path(GRAPHITE2_INCLUDE_DIR graphite2/Font.h)
   find_library(GRAPHITE2_LIBRARY graphite2)

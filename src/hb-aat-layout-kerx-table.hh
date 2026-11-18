@@ -656,13 +656,14 @@ struct KerxSubTableFormat4
 	  hb_position_t markY = 0;
 	  hb_position_t currX = 0;
 	  hb_position_t currY = 0;
+	  /* Positioning uses horizontal glyph origins, also in vertical runs. */
 	  if (!c->font->get_glyph_contour_point_for_origin (c->buffer->info[mark].codepoint,
 							    markControlPoint,
-							    HB_DIRECTION_LTR /*XXX*/,
+							    HB_DIRECTION_LTR,
 							    &markX, &markY) ||
 	      !c->font->get_glyph_contour_point_for_origin (c->buffer->cur ().codepoint,
 							    currControlPoint,
-							    HB_DIRECTION_LTR /*XXX*/,
+							    HB_DIRECTION_LTR,
 							    &currX, &currY))
 	    return false;
 
@@ -948,6 +949,7 @@ struct KerxSubTable
 
   size_t get_size () const { return u.header.length; }
   unsigned int get_type () const { return u.header.coverage & u.header.SubtableType; }
+  bool is_machine_kern () const { return get_type () == 1 || get_type () == 4; }
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
@@ -1100,6 +1102,12 @@ struct KerxTable
 
       auto &subtable_accel = accel_data.subtable_accels[i];
 
+      /* Only simple, in-stream kerning may run alongside GPOS. */
+      if (c->plan->apply_gpos &&
+	  (st->is_machine_kern () ||
+	   (st->u.header.coverage & st->u.header.CrossStream)))
+	goto skip;
+
       if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
 	goto skip;
 
@@ -1163,8 +1171,14 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+
     if (c->buffer_is_reversed)
       c->reverse_buffer ();
+
+    /* Cross-stream offsets propagate beyond the matched pairs. */
+    if (seenCrossStream &&
+	(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT))
+      c->buffer->unsafe_to_break ();
 
     return ret;
   }

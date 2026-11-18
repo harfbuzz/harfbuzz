@@ -206,10 +206,9 @@ struct SubstLookup : Lookup
 
     hb_closure_context_t::return_t ret = closure_glyphs_recurse_func (c, lookup_index, covered_seq_indices, seq_index, end_index);
 
-    /* While in theory we should flush here, it will cause timeouts because a recursive
-     * lookup can keep growing the glyph set.  Skip, and outer loop will retry up to
-     * HB_CLOSURE_MAX_STAGES time, which should be enough for every realistic font. */
-    //c->flush ();
+    /* Keep global flushing outside recursion so a recursive lookup cannot
+     * keep expanding the global set. Contextual sequences include pending
+     * outputs when revisiting an input position. */
 
     return ret;
   }

@@ -398,6 +398,12 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
       }
     }
 
+    else if (u == 0x25CCu)
+    {
+      /* A dotted circle is already a placeholder base for a tone mark. */
+      end = start + 1;
+    }
+
     /* Didn't find a recognizable syllable, so we leave end <= start;
      * this will prevent tone-mark reordering happening.
      */

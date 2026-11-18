@@ -2,7 +2,7 @@
 
 """Generates the code for a sorted unicode range array as used in hb-ot-os2-unicode-ranges.hh
 Input is a tab separated list of unicode ranges from the otspec
-(https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur).
+(https://learn.microsoft.com/en-us/typography/opentype/spec/os2#ur).
 """
 
 import re

@@ -285,8 +285,16 @@ struct AxisValueRecord
 
 struct AxisValueFormat4
 {
-  const AxisValueRecord &get_axis_record (unsigned int axis_index) const
-  { return axisValues.as_array (axisCount)[axis_index]; }
+  bool get_value (unsigned int axis_index, float *value) const
+  {
+    for (const auto &record : axisValues.as_array (axisCount))
+      if (record.get_axis_index () == axis_index)
+      {
+        if (value) *value = record.get_value ();
+        return true;
+      }
+    return false;
+  }
 
   bool keep_axis_value (const hb_array_t<const StatAxisRecord> axis_records,
                         const hb_hashmap_t<hb_tag_t, Triple> *user_axes_location) const
@@ -349,16 +357,25 @@ struct AxisValueFormat4
 
 struct AxisValue
 {
-  float get_value (unsigned int axis_index) const
+  bool get_value (unsigned int axis_index, float *value) const
   {
+    if (u.format.v < 1 || u.format.v > 4) return false;
+    hb_barrier ();
+    if (u.header.flags & OLDER_SIBLING_FONT_ATTRIBUTE) return false;
+
+    if (u.format.v != 4 && get_axis_index () != axis_index) return false;
+
+    float result;
     switch (u.format.v)
     {
-    case 1: hb_barrier (); return u.format1.get_value ();
-    case 2: hb_barrier (); return u.format2.get_value ();
-    case 3: hb_barrier (); return u.format3.get_value ();
-    case 4: hb_barrier (); return u.format4.get_axis_record (axis_index).get_value ();
-    default:return 0.f;
+    case 1: hb_barrier (); result = u.format1.get_value (); break;
+    case 2: hb_barrier (); result = u.format2.get_value (); break;
+    case 3: hb_barrier (); result = u.format3.get_value (); break;
+    case 4: hb_barrier (); return u.format4.get_value (axis_index, value);
+    default:return false;
     }
+    if (value) *value = result;
+    return true;
   }
 
   unsigned int get_axis_index () const
@@ -368,7 +385,7 @@ struct AxisValue
     case 1: hb_barrier (); return u.format1.get_axis_index ();
     case 2: hb_barrier (); return u.format2.get_axis_index ();
     case 3: hb_barrier (); return u.format3.get_axis_index ();
-    /* case 4: Makes more sense for variable fonts which are handled by fvar in hb-style */
+    /* Format 4 does not have a single axis index. */
     default:return -1;
     }
   }
@@ -433,6 +450,12 @@ struct AxisValue
   union
   {
   struct { HBUINT16 v; }	format;
+  struct
+  {
+    HBUINT16 format;
+    HBUINT16 axisIndexOrCount;
+    HBUINT16 flags;
+  } header;
   AxisValueFormat1	format1;
   AxisValueFormat2	format2;
   AxisValueFormat3	format3;
@@ -486,12 +509,8 @@ struct STAT
     for (unsigned int i = 0; i < axis_values.length; i++)
     {
       const AxisValue& axis_value = this+offsetToAxisValueOffsets+axis_values[i];
-      if (axis_value.get_axis_index () == axis_index)
-      {
-	if (value)
-	  *value = axis_value.get_value (axis_index);
+      if (axis_value.get_value (axis_index, value))
 	return true;
-      }
     }
     return false;
   }

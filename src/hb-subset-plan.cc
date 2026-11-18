@@ -253,6 +253,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes_in,
     !(plan->flags & HB_SUBSET_FLAGS_NO_BIDI_CLOSURE));
 
   OT::cmap_accelerator_t cmap (plan->source);
+  cmap.closure_symbol_unicodes (&unicodes);
   unsigned size_threshold = plan->source->get_num_glyphs ();
 
   if (glyphs->is_empty () && unicodes.get_population () < size_threshold)
@@ -464,7 +465,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   plan->_glyphset_gsub.add (0); // Not-def
 
   _cmap_closure (plan->source, &plan->unicodes, &plan->_glyphset_gsub);
-  plan->_glyphset_cmaped = plan->_glyphset_gsub;
 
   if (!drop_tables->has (HB_OT_TAG_MATH))
   {
@@ -479,7 +479,15 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
-  hb_set_t cur_glyphset = plan->_glyphset_gsub;
+  /* GSUB outputs can have MATH metrics and variants of their own. */
+  plan->_glyphset_mathed = plan->_glyphset_gsub;
+  if (!drop_tables->has (HB_OT_TAG_MATH))
+  {
+    _math_closure (plan, &plan->_glyphset_mathed);
+    _remove_invalid_gids (&plan->_glyphset_mathed, plan->source->get_num_glyphs ());
+  }
+
+  hb_set_t cur_glyphset = plan->_glyphset_mathed;
   if (!drop_tables->has (HB_OT_TAG_COLR))
   {
     _colr_closure (plan, &cur_glyphset);

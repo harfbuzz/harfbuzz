@@ -24,7 +24,7 @@
  * 3. Asserts that both closures are identical (or that any extra glyphs in the
  *    depend closure can be explained by a known over-approximation).
  *
- * The depend closure mirrors subset's table order: cmap UVS → GSUB → MATH → COLR → glyf/CFF.
+ * The depend closure mirrors subset's table order: cmap UVS → MATH → GSUB → MATH → COLR → glyf/CFF.
  */
 
 
@@ -206,12 +206,14 @@ check_context_satisfied (hb_subset_depend_t *depend,
 }
 
 /* Process edges for glyphs in |to_process| that belong to tables in |table_filter|.
- * Appends newly reachable glyphs to ctx.glyphs and back to |to_process| for further expansion.
+ * Appends newly reachable glyphs to ctx.glyphs and, if recursive, back to
+ * |to_process| for further expansion.
  * Returns true if any new glyphs were added. */
 static bool
 process_edges_for_tables (depend_closure_ctx_t &ctx,
                           hb_set_t *to_process,
-                          hb_set_t *table_filter)
+                          hb_set_t *table_filter,
+                          bool recursive = true)
 {
   bool added_any = false;
 
@@ -309,7 +311,8 @@ process_edges_for_tables (depend_closure_ctx_t &ctx,
             DEBUG_MSG_DEPEND ("Depend: %u -> %u (table=%c%c%c%c, feature=%c%c%c%c)",
                         gid, dependent, HB_UNTAG (table_tag), HB_UNTAG (layout_tag));
           hb_set_add (ctx.glyphs, dependent);
-          hb_set_add (to_process, dependent);
+          if (recursive)
+            hb_set_add (to_process, dependent);
           added_any = true;
         }
       }
@@ -323,7 +326,7 @@ process_edges_for_tables (depend_closure_ctx_t &ctx,
  *
  * On entry ctx.glyphs is the initial glyph set; on exit it holds the full closure.
  * input_unicodes (may be NULL) is used for UVS (cmap format 14) handling only.
- * Closure is built in table order: cmap UVS → GSUB → MATH → COLR → glyf/CFF.
+ * Closure is built in table order: cmap UVS → MATH → GSUB → MATH → COLR → glyf/CFF.
  * There is no loop back to GSUB after glyf/CFF: component glyphs are rendering
  * details, not shaping inputs, and subset doesn't loop back either. */
 static void
@@ -384,6 +387,13 @@ compute_depend_closure (hb_face_t *face, depend_closure_ctx_t &ctx,
       DEBUG_MSG_DEPEND ("After UVS (cmap format 14): closure has %u glyphs",
                   hb_set_get_population (ctx.glyphs));
   }
+
+  /* Expand the original MATH variants before GSUB, as the subsetter does.
+   * Each MATH pass expands only its input set, without following new edges. */
+  hb_set_t *math_filter = hb_set_create ();
+  hb_set_add (math_filter, HB_OT_TAG_MATH);
+  hb_set_union (to_process, ctx.glyphs);
+  process_edges_for_tables (ctx, to_process, math_filter, false);
 
   /* Stage 2: GSUB closure — iterate until stable, matching subset's internal behavior.
    * Ligatures are resolved here (not after glyf/CFF): add a ligature only once all of
@@ -455,10 +465,8 @@ compute_depend_closure (hb_face_t *face, depend_closure_ctx_t &ctx,
 
   /* Stage 3: MATH closure */
   {
-    hb_set_t *math_filter = hb_set_create ();
-    hb_set_add (math_filter, HB_OT_TAG_MATH);
     hb_set_union (to_process, ctx.glyphs);
-    process_edges_for_tables (ctx, to_process, math_filter);
+    process_edges_for_tables (ctx, to_process, math_filter, false);
     hb_set_destroy (math_filter);
     if (trace_closure)
       DEBUG_MSG_DEPEND ("After MATH: closure has %u glyphs", hb_set_get_population (ctx.glyphs));

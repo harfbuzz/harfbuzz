@@ -57,7 +57,7 @@
 #include <hb-glib.h>
 #endif
 
-#ifdef HAVE_GRAPHITE2
+#ifdef HAVE_GRAPHITE
 #include <hb-graphite2.h>
 #endif
 

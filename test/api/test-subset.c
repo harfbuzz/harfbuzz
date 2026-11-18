@@ -638,6 +638,71 @@ test_subset_plan (void)
 }
 
 #ifndef HB_NO_SUBSET_LAYOUT
+#ifndef HB_NO_MATH
+static void
+test_subset_gsub_math_closure (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/gsub-math-closure.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_unicode_set (input), 'a');
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+
+  hb_font_t *font = hb_font_create (subset);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "a", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  static const char *shapers[] = {"ot", NULL};
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 1);
+  hb_codepoint_t glyph = hb_buffer_get_glyph_infos (buffer, NULL)[0].codepoint;
+  g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 75);
+  g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 125);
+
+  unsigned count = 1;
+  hb_ot_math_glyph_variant_t variant;
+  g_assert_cmpuint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_TTB,
+                                                 0, &count, &variant), ==, 1);
+  g_assert_cmpuint (count, ==, 1);
+  g_assert_cmpint (variant.advance, ==, 1200);
+  g_assert_cmpuint (variant.glyph, <, hb_face_get_glyph_count (subset));
+  /* Includes the GSUB output of the original glyph's MATH variant too. */
+  g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 6);
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+#endif
+
+static void
+test_subset_closure_stages (void)
+{
+  /* A shared SingleSubst lookup runs in 15 shaping stages. Its final
+   * output, g15 (glyph 16), must survive the subset's closure. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/gsub-closure-stages.ttf");
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add (hb_subset_input_unicode_set (input), 0x0915);
+  hb_set_t *features = hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_clear (features);
+  hb_set_invert (features);
+
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (face, input);
+  g_assert_nonnull (plan);
+  g_assert_true (hb_map_has (hb_subset_plan_old_to_new_glyph_mapping (plan), 16));
+
+  hb_face_t *subset = hb_subset_plan_execute_or_fail (plan);
+  g_assert_nonnull (subset);
+  g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, 17);
+
+  hb_face_destroy (subset);
+  hb_subset_plan_destroy (plan);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
 static void
 test_subset_unsupported_layout_table_retains_gids (void)
 {
@@ -1814,6 +1879,10 @@ main (int argc, char **argv)
   hb_test_add (test_subset_sets);
   hb_test_add (test_subset_plan);
 #ifndef HB_NO_SUBSET_LAYOUT
+#ifndef HB_NO_MATH
+  hb_test_add (test_subset_gsub_math_closure);
+#endif
+  hb_test_add (test_subset_closure_stages);
   hb_test_add (test_subset_unsupported_layout_table_retains_gids);
   hb_test_add (test_subset_graphite_table_retains_gids);
   hb_test_add (test_subset_unsubsettable_glyph_tables);

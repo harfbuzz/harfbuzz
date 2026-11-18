@@ -2999,12 +2999,9 @@ _hb_avar2_region_is_dead (const hb_hashmap_t<hb_tag_t, Triple> &axis_tuples,
     if (start < 0 && end > 0) continue;
     int lo = (int) roundf ((float) range->minimum * 16384.f);
     int hi = (int) roundf ((float) range->maximum * 16384.f);
-    /* Strict comparisons: the scalar is 1 (not 0) at v == peak, so a tent
-     * whose peak sits exactly on the range boundary is still live there.
-     * (Reachable ranges are padded by one F2Dot14 unit at their producer,
-     * which already covers this; strictness keeps the predicate correct on
-     * its own terms.) */
-    if (hi < start || lo > end)
+    /* Endpoints have zero support unless they are also the peak.
+     * Preserve one-sided peaks exactly on a reachable boundary. */
+    if ((hi <= start && hi < peak) || (lo >= end && lo > peak))
       return true;
   }
   return false;

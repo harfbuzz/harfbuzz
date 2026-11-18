@@ -210,7 +210,7 @@ paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
   char buf[5] = { 0, };
 
   hb_tag_to_string (format, buf);
-  print (data, "image type %s size %u %u slant %.3g extents %d %d %d %d\n",
+  print (data, "image type %s size %u %u slant %.3g extents %d %d %d %d",
          buf, width, height, slant,
          extents->x_bearing, extents->y_bearing, extents->width, extents->height);
 
@@ -430,6 +430,15 @@ static paint_test_t paint_tests[] = {
   { ROCHER_ABC, 0.3f, 1,   0, "rocher-1" },
   { ROCHER_ABC, 0.3f, 2,   2, "rocher-2" },
   { ROCHER_ABC, 0,    3, 200, "rocher-3" },
+};
+
+/* Exercise the OT PNG path; FreeType returns decoded BGRA images instead. */
+static paint_test_t bitmap_paint_tests[] = {
+  { "fonts/cbdt-format19-index2.ttf", 0, 1, 0, "cbdt-format19-index2-a" },
+  { "fonts/cbdt-format19-index2.ttf", 0, 2, 0, "cbdt-format19-index2-b" },
+  { "fonts/cbdt-format19-index5.ttf", 0, 1, 0, "cbdt-format19-index5-a" },
+  { "fonts/cbdt-format19-index5.ttf", 0, 2, 0, "cbdt-format19-index5-gap" },
+  { "fonts/cbdt-format19-index5.ttf", 0, 3, 0, "cbdt-format19-index5-c" },
 };
 
 static void
@@ -1388,6 +1397,8 @@ main (int argc, char **argv)
     hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ot);
     hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ft);
   }
+  for (unsigned int i = 0; i < G_N_ELEMENTS (bitmap_paint_tests); i++)
+    hb_test_add_data_flavor (&bitmap_paint_tests[i], bitmap_paint_tests[i].output, test_hb_paint_ot);
 
   hb_face_t *face = hb_test_open_font_file (TEST_GLYPHS);
   unsigned glyph_count = hb_face_get_glyph_count (face);

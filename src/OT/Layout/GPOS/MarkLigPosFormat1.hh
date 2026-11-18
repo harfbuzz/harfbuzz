@@ -109,9 +109,9 @@ struct MarkLigPosFormat1_2
 	    NOT_COVERED == (this+ligatureCoverage).get_coverage  (buffer->info[j - 1].codepoint))
 	  match = skippy_iter.SKIP;
       }
-      if (match == skippy_iter.MATCH)
+      if (match != skippy_iter.SKIP)
       {
-	c->last_base = (signed) j - 1;
+	c->last_base = match == skippy_iter.MATCH ? (signed) j - 1 : -1;
 	break;
       }
     }

@@ -28,7 +28,7 @@
 
 #include "hb.hh"
 
-#ifdef HAVE_GRAPHITE2
+#ifdef HAVE_GRAPHITE
 
 #include "hb-shaper-impl.hh"
 

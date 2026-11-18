@@ -449,6 +449,7 @@ struct Glyph
       break;
     case COMPOSITE:
     {
+      unsigned int start_point = all_points.length;
       hb_decycler_node_t decycler_node (scratch.decycler);
 
       /* Each USE_MY_METRICS component overwrites the phantoms copied from
@@ -540,11 +541,11 @@ struct Glyph
 	{
 	  unsigned int p1, p2;
 	  item.get_anchor_points (p1, p2, extended);
-	  if (likely (p1 < all_points.length && p2 < comp_points.length))
+	  if (likely (p1 < all_points.length - start_point && p2 < comp_points.length))
 	  {
 	    contour_point_t delta;
-	    delta.init (all_points[p1].x - comp_points[p2].x,
-			all_points[p1].y - comp_points[p2].y);
+	    delta.init (all_points[start_point + p1].x - comp_points[p2].x,
+			all_points[start_point + p1].y - comp_points[p2].y);
 
 	    item.translate (delta, comp_points);
 	  }

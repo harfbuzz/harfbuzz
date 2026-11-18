@@ -11,3 +11,8 @@ SUBSETS:
 U+2f,U+7c,U+305
 U+21D4
 *
+
+OPTIONS:
+# FontTools also closes MATH before GSUB and loses MATH data on GSUB outputs.
+# Keep the output regressions; generate their goldens with the corrected subsetter.
+no_fonttools

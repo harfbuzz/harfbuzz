@@ -447,6 +447,14 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 {
   static constexpr bool preserve_blends = true;
 
+  static void drop_glyph_outline (cff2_cs_interp_env_t<blend_arg_t> &env HB_UNUSED,
+				 flatten_param_t &param)
+  {
+    param.flatStr.clear ();
+    if (param.commands)
+      param.commands->clear ();
+  }
+
   static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
     bool skip_command = false;
@@ -1297,6 +1305,8 @@ struct cff2_subset_plan
 	  param.instancer = partial_instancing ? &instancing : nullptr;
 	  if (unlikely (!interp.interpret (param, budget)))
 	    return false;
+	  if (!i && !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+	    cff2_cs_opset_flatten_t::drop_glyph_outline (env, param);
 	}
       }
       else

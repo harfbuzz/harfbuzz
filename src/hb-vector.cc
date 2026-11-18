@@ -63,6 +63,10 @@
  * hb_blob_t *svg = hb_vector_paint_render (paint);
  * ]|
  *
+ * For linear and radial gradients, PDF output supports only
+ * %HB_PAINT_EXTEND_PAD. %HB_PAINT_EXTEND_REPEAT and
+ * %HB_PAINT_EXTEND_REFLECT are not supported for these gradients.
+ *
  * Both contexts accumulate multiple glyphs into a single document.
  * Call hb_vector_draw_render() / hb_vector_paint_render() to
  * retrieve the final blob.  Rendering clears all accumulated

@@ -55,6 +55,14 @@ _hb_ratio_to_angle (float r)
   return atanf (r) * -180.f / HB_PI;
 }
 
+static inline float
+_hb_style_apply_synthetic_slant (hb_font_t *font, hb_style_tag_t style_tag, float value)
+{
+  if (style_tag == HB_STYLE_TAG_SLANT_ANGLE && font->slant)
+    return _hb_ratio_to_angle (font->slant + _hb_angle_to_ratio (value));
+  return value;
+}
+
 /**
  * hb_style_get_value:
  * @font: a #hb_font_t object.
@@ -80,9 +88,10 @@ hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
   hb_ot_var_axis_info_t axis;
   if (hb_ot_var_find_axis_info (face, style_tag, &axis))
   {
-    if (axis.axis_index < font->num_coords) return font->design_coords[axis.axis_index];
     /* If a face is variable, fvar's default_value is better than STAT records */
-    return axis.default_value;
+    float value = axis.axis_index < font->num_coords ?
+		  font->design_coords[axis.axis_index] : axis.default_value;
+    return _hb_style_apply_synthetic_slant (font, style_tag, value);
   }
 #endif
 
@@ -92,7 +101,7 @@ hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
   /* STAT */
   float value;
   if (face->table.STAT->get_value (style_tag, &value))
-    return value;
+    return _hb_style_apply_synthetic_slant (font, style_tag, value);
 
   switch ((unsigned) style_tag)
   {
@@ -109,14 +118,8 @@ hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
 	   : 12.f;
   }
   case HB_STYLE_TAG_SLANT_ANGLE:
-  {
-    float angle = face->table.post->table->italicAngle.to_float ();
-
-    if (font->slant)
-      angle = _hb_ratio_to_angle (font->slant + _hb_angle_to_ratio (angle));
-
-    return angle;
-  }
+    return _hb_style_apply_synthetic_slant (font, style_tag,
+					  face->table.post->table->italicAngle.to_float ());
   case HB_STYLE_TAG_WIDTH:
     return face->table.OS2->has_data ()
 	   ? face->table.OS2->get_width ()
