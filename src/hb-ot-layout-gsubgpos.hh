@@ -1979,6 +1979,7 @@ static inline bool match_glyph (hb_glyph_info_t &info, unsigned value, const voi
 {
   return info.codepoint == value;
 }
+HB_HOT
 static inline bool match_class (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
@@ -2059,6 +2060,7 @@ static inline unsigned get_class_cached2_value (hb_glyph_info_t &info, const voi
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *> (data);
   return get_class_cached2 (class_def, info);
 }
+HB_HOT
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   Offset32To<Coverage> coverage;
