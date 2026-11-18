@@ -51,6 +51,8 @@ _hb_subset_table_try (const TableType *table,
   }
 
   unsigned buf_size = buf->allocated;
+  if (unlikely (buf_size > (UINT_MAX - 16) / 2))
+    return needed;
   buf_size = buf_size * 2 + 16;
 
 
@@ -59,8 +61,7 @@ _hb_subset_table_try (const TableType *table,
   DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.",
              HB_UNTAG (c->table_tag), buf_size);
 
-  if (unlikely (buf_size > c->source_blob->length * 256 ||
-		!buf->alloc_exact (buf_size)))
+  if (unlikely (!buf->alloc_exact (buf_size)))
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.",
                HB_UNTAG (c->table_tag), buf_size);

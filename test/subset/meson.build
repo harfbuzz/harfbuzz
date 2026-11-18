@@ -44,6 +44,7 @@ tests = [
   'layout.unsorted_featurelist',
   'layout.drop_feature',
   'no_layout_closure',
+  'expanded_single_subst',
   'sbix',
   'colr',
   'colr_glyphs',
