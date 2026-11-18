@@ -1119,6 +1119,10 @@ struct skipping_iterator_t
     return SKIP;
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  HB_HOT
   bool next (unsigned *unsafe_to = nullptr)
   {
     if ((signed) idx < (signed) end - 1)
@@ -1163,6 +1167,10 @@ struct skipping_iterator_t
     return false;
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  HB_HOT
   bool prev (unsigned *unsafe_from = nullptr)
   {
     if (idx > 0)
