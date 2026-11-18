@@ -18,7 +18,7 @@ propagate_attachment_offsets (hb_buffer_t *buffer,
                               unsigned int len,
                               unsigned int i,
                               hb_direction_t direction,
-                              unsigned nesting_level = HB_MAX_NESTING_LEVEL);
+                              hb_vector_t<unsigned> &stack);
 
 /*
  * GPOS -- Glyph Positioning
@@ -70,30 +70,15 @@ struct GPOS : GSUBGPOS
 
 
 static void
-propagate_attachment_offsets (hb_buffer_t *buffer,
-                              hb_glyph_position_t *pos,
-                              unsigned int len,
-                              unsigned int i,
-                              hb_direction_t direction,
-                              unsigned nesting_level)
+propagate_attachment_offset (hb_buffer_t *buffer,
+                             hb_glyph_position_t *pos,
+                             unsigned int i,
+                             unsigned int j,
+                             hb_direction_t direction)
 {
   /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
    * offset of glyph they are attached to. */
-  int chain = pos[i].attach_chain();
   int type = pos[i].attach_type();
-
-  pos[i].attach_chain() = 0;
-
-  unsigned int j = (int) i + chain;
-
-  if (unlikely (j >= len))
-    return;
-
-  if (unlikely (!nesting_level))
-    return;
-
-  if (pos[j].attach_chain())
-    propagate_attachment_offsets (buffer, pos, len, j, direction, nesting_level - 1);
 
   assert (!!(type & GPOS_impl::ATTACH_TYPE_MARK) ^ !!(type & GPOS_impl::ATTACH_TYPE_CURSIVE));
 
@@ -155,6 +140,44 @@ propagate_attachment_offsets (hb_buffer_t *buffer,
   }
 }
 
+static void
+propagate_attachment_offsets (hb_buffer_t *buffer,
+                              hb_glyph_position_t *pos,
+                              unsigned int len,
+                              unsigned int i,
+                              hb_direction_t direction,
+                              hb_vector_t<unsigned> &stack)
+{
+  /* Clear edges while walking to break cycles, then resolve the pending
+   * children from their already-resolved parent back toward the start. */
+  for (;;)
+  {
+    unsigned int j = i + pos[i].attach_chain();
+    pos[i].attach_chain() = 0;
+    if (unlikely (j >= len)) break;
+
+    if (!pos[j].attach_chain())
+    {
+      propagate_attachment_offset (buffer, pos, i, j, direction);
+      break;
+    }
+
+    if (unlikely (!stack.push (i)))
+    {
+      buffer->successful = false;
+      return;
+    }
+    i = j;
+  }
+
+  while (stack.length && buffer->successful)
+  {
+    unsigned int child = stack.pop ();
+    propagate_attachment_offset (buffer, pos, child, i, direction);
+    i = child;
+  }
+}
+
 void
 GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 {
@@ -182,16 +205,17 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT)
   {
     auto *pos = buffer->pos;
+    hb_vector_t<unsigned> stack;
     // https://github.com/harfbuzz/harfbuzz/issues/5514
     if (HB_DIRECTION_IS_FORWARD (direction))
     {
       for (unsigned i = 0; i < len && buffer->successful; i++)
 	if (pos[i].attach_chain())
-	  propagate_attachment_offsets (buffer, pos, len, i, direction);
+	  propagate_attachment_offsets (buffer, pos, len, i, direction, stack);
     } else {
       for (unsigned i = len; i-- > 0 && buffer->successful; )
 	if (pos[i].attach_chain())
-	  propagate_attachment_offsets (buffer, pos, len, i, direction);
+	  propagate_attachment_offsets (buffer, pos, len, i, direction, stack);
     }
   }
 
