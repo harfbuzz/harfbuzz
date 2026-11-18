@@ -639,20 +639,13 @@ struct hb_depend_data_builder_t
                        context_set, flags);
   }
 
-  hb_codepoint_t get_nominal_glyph (hb_codepoint_t cp)
-  { return hb_map_get (&nominal_glyphs, cp); }
-
   HB_INTERNAL bool compile (hb_face_t *face);
 
   bool fail () { successful = false; return false; }
   hb_codepoint_t fail_invalid () { fail (); return HB_CODEPOINT_INVALID; }
   bool check_success (bool s) { successful = (successful && s); return successful; }
 
-  HB_INTERNAL void get_gsub_dependencies (hb_face_t *face);
-
   bool successful = true;
-  hb_set_t unicodes;
-  hb_map_t nominal_glyphs;
   hb_vector_t<uint64_t> lookup_features;
   hb_vector_t<unsigned> lookup_feature_offsets;
   hb_vector_t<uint64_t> edge_slots;
