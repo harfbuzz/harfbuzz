@@ -254,21 +254,19 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   hb_glyph_info_t *info = buffer->info;
   foreach_syllable (buffer, start, end)
   {
-    /* Space separators end the topographical word. */
-    if (_hb_glyph_info_get_general_category (&info[start]) == HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR)
-    {
-      if (last_form != _JOINING_FORM_NONE)
-	buffer->unsafe_to_concat (last_start, end);
-      last_form = _JOINING_FORM_NONE;
-      last_start = start;
-      continue;
-    }
-
     use_syllable_type_t syllable_type = (use_syllable_type_t) (info[start].syllable() & 0x0F);
+    /* Generic bases can take marks, but don't join neighbouring words. */
+    unsigned int base = start;
+    if (info[base].use_category() == USE(R) || info[base].use_category() == USE(CS))
+      base++;
+    if (base < end && info[base].use_category() == USE(GB))
+      syllable_type = use_non_cluster;
+
     switch (syllable_type)
     {
       case use_hieroglyph_cluster:
       case use_non_cluster:
+      case use_symbol_cluster:
 	/* These don't join. */
 	if (last_form != _JOINING_FORM_NONE)
 	  buffer->unsafe_to_concat (last_start, end);
@@ -280,7 +278,6 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_standard_cluster:
       case use_number_joiner_terminated_cluster:
       case use_numeral_cluster:
-      case use_symbol_cluster:
       case use_broken_cluster:
 
 	bool join = last_form == JOINING_FORM_FINA || last_form == JOINING_FORM_ISOL;
