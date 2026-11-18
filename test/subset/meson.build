@@ -60,6 +60,7 @@ tests = [
   'colr_with_components',
   'cbdt',
   'variable',
+  'avar_input_precision',
   'glyph_names',
   'glyph_map',
   'post',

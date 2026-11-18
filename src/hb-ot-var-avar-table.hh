@@ -309,27 +309,10 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 #undef fromCoord
   }
 
-  float unmap_float (float value) const { return map_float (value, 1, 0); }
-
-
-  // TODO Kill this.
-  Triple unmap_axis_range (const Triple& axis_range) const
-  {
-    float unmapped_min = unmap_float (axis_range.minimum);
-    float unmapped_middle = unmap_float (axis_range.middle);
-    float unmapped_max = unmap_float (axis_range.maximum);
-
-    return Triple{unmapped_min, unmapped_middle, unmapped_max};
-  }
-
   bool subset (hb_subset_context_t *c, hb_tag_t axis_tag,
                hb_vector_t<AxisValueMap> *out_mappings = nullptr) const
   {
     TRACE_SUBSET (this);
-
-    /* This function cannot work on avar2 table (and currently doesn't).
-     * We should instead keep the design coords in the shape plan and use
-     * those. unmap_axis_range needs to be killed. */
 
     /* avar mapped normalized axis range. Under avar2, axes_location holds
      * only the self-contained pins for the other tables; avar itself uses
@@ -348,17 +331,21 @@ struct SegmentMaps : Array16Of<AxisValueMap>
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    Triple unmapped_range = unmap_axis_range (*axis_range);
+    /* Reconstructing the input limits by inverting the rounded avar
+     * output loses precision. Use the original quantized input limits. */
+    Triple *unmapped_range;
+    if (!c->plan->axes_location_pre_avar.has (axis_tag, &unmapped_range))
+      return_trace (false);
 
     /* create a vector of retained mappings and sort */
     hb_vector_t<AxisValueMap> value_mappings;
     for (const auto& _ : as_array ())
     {
-      if (_.is_outside_axis_range (unmapped_range))
+      if (_.is_outside_axis_range (*unmapped_range))
         continue;
       AxisValueMap mapping;
       mapping = _;
-      mapping.instantiate (*axis_range, unmapped_range, *axis_triple_distances);
+      mapping.instantiate (*axis_range, *unmapped_range, *axis_triple_distances);
       /* (-1, -1), (0, 0), (1, 1) mappings will be added later, so avoid
        * duplicates here */
       if (mapping.must_include ())

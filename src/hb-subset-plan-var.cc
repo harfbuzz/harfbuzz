@@ -573,6 +573,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
 
       if (has_avar)
       {
+        if (!plan->check_success (plan->axes_location_pre_avar.set (
+              axis_tag, Triple (normalized_min, normalized_default, normalized_max))))
+          return false;
         normalized_mins[i] = normalized_min;
         normalized_defaults[i] = normalized_default;
         normalized_maxs[i] = normalized_max;
