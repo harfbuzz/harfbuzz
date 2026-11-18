@@ -267,6 +267,36 @@ test_synthetic_slant_style_tables (void)
   }
 }
 
+static void
+test_stat_current_font_values (void)
+{
+  static const struct {
+    const char *font;
+    float optical_size, slant;
+  } cases[] = {
+    {"fonts/stat-current-scalar.ttf", 18, -12},
+    {"fonts/stat-current-combined.ttf", 18, -12},
+    {"fonts/stat-current-partial.ttf", 18, 0},
+    {"fonts/stat-current-unknown.ttf", 12, 0},
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (cases[i].font);
+    hb_font_t *font = hb_font_create (face);
+    assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 700);
+    assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 75);
+    assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), cases[i].optical_size);
+    assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), cases[i].slant);
+    float ratio = hb_style_get_value (font, HB_STYLE_TAG_SLANT_RATIO);
+    hb_font_set_synthetic_slant (font, 0.2f);
+    assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_RATIO), (ratio + 0.2f));
+    hb_font_set_ptem (font, 24);
+    assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 24);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -279,6 +309,7 @@ main (int argc, char **argv)
   hb_test_add (test_face_user_setting);
   hb_test_add (test_synthetic_slant);
   hb_test_add (test_synthetic_slant_style_tables);
+  hb_test_add (test_stat_current_font_values);
 
   return hb_test_run ();
 }
