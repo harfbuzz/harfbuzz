@@ -129,6 +129,7 @@ struct KernSubTable
 {
   size_t get_size () const { return u.header.length; }
   unsigned int get_type () const { return u.header.format; }
+  bool is_machine_kern () const { return get_type () == 1; }
 
   int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {

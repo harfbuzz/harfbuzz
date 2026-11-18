@@ -235,6 +235,14 @@
 ../fonts/bedbc7aacfe874c3968aa3d9662159fdd574b2f7.ttf;--show-flags --unsafe-to-concat --safe-to-insert-tatweel --cluster-level=3 --features=kern=1;U+0041,U+0301,U+0056;[A=0+560#2|acute=0@-260,600+0#2|V=2@-40,0+560#3]
 ../fonts/bedbc7aacfe874c3968aa3d9662159fdd574b2f7.ttf;--show-flags --unsafe-to-concat --safe-to-insert-tatweel --cluster-level=3 --features=kern=1;U+0041,U+0056,U+0301;[A=0+560#2|V=1@-40,0+560#3|acute=1@-300,600+0#3]
 
+# With GPOS, skip kerx state machines and attachments but retain ordinary pairs.
+# Format 1 plus GPOS dist positioning and a format 0 pair.
+../fonts/5f418a3270c1dea219eb6a455deda7b47c0a7642.ttf;;U+0061,U+0061,U+0062;[a=0@20,30+561|a=1@20,30+521|b=2@-40,0+575]
+../fonts/5f418a3270c1dea219eb6a455deda7b47c0a7642.ttf;--features=kern=0;U+0061,U+0061,U+0062;[a=0@20,30+561|a=1@20,30+561|b=2+615]
+# Format 4 without CrossStream plus GPOS mark positioning and a format 0 pair.
+../fonts/aa12cb2b7cc2ebe0a83bf41174e733e268ce63d3.ttf;;U+0041,U+0078,U+0301;[A=0+460|x=1@-40,0+460|acute=1@-200,600+0]
+../fonts/aa12cb2b7cc2ebe0a83bf41174e733e268ce63d3.ttf;--features=kern=0;U+0041,U+0078,U+0301;[A=0+500|x=1+500|acute=1@-200,600+0]
+
 # How HarfBuzz Works report 40: default OT contour-point support remains disabled.
 ../fonts/e3fbfe1110e277b89dc44ad184c4362b6764b237.ttf;--font-funcs=ot;U+0041,U+0301;[A=0+600|acute=0+200]
 ../fonts/e3fbfe1110e277b89dc44ad184c4362b6764b237.ttf;--font-funcs=ot --variations=wght=1;U+0042,U+0301;[B=0+600|acute=0+200]
