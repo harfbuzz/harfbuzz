@@ -298,6 +298,14 @@ struct Coverage
     }
   }
 
+  bool intersect_set (hb_subset_context_t *c, const hb_set_t &glyphs,
+		      hb_set_t &intersection) const
+  {
+    if (unlikely (!c->check_ops (get_record_count ()))) return false;
+    intersect_set (glyphs, intersection);
+    return c->check_ops (intersection.get_population ());
+  }
+
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
