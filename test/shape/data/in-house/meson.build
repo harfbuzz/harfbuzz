@@ -1,4 +1,5 @@
 in_house_tests = [
+  'aat-kern-cross-stream.tests',
   'aat-kerx.tests',
   'aat-morx.tests',
   'aat-trak.tests',

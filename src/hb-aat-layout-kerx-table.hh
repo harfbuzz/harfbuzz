@@ -1163,8 +1163,14 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+
     if (c->buffer_is_reversed)
       c->reverse_buffer ();
+
+    /* Cross-stream offsets propagate beyond the matched pairs. */
+    if (seenCrossStream &&
+	(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT))
+      c->buffer->unsafe_to_break ();
 
     return ret;
   }
