@@ -254,12 +254,24 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   hb_glyph_info_t *info = buffer->info;
   foreach_syllable (buffer, start, end)
   {
+    /* Space separators end the topographical word. */
+    if (_hb_glyph_info_get_general_category (&info[start]) == HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR)
+    {
+      if (last_form != _JOINING_FORM_NONE)
+	buffer->unsafe_to_concat (last_start, end);
+      last_form = _JOINING_FORM_NONE;
+      last_start = start;
+      continue;
+    }
+
     use_syllable_type_t syllable_type = (use_syllable_type_t) (info[start].syllable() & 0x0F);
     switch (syllable_type)
     {
       case use_hieroglyph_cluster:
       case use_non_cluster:
-	/* These don't join.  Nothing to do. */
+	/* These don't join. */
+	if (last_form != _JOINING_FORM_NONE)
+	  buffer->unsafe_to_concat (last_start, end);
 	last_form = _JOINING_FORM_NONE;
 	break;
 
@@ -272,9 +284,11 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_broken_cluster:
 
 	bool join = last_form == JOINING_FORM_FINA || last_form == JOINING_FORM_ISOL;
+	buffer->unsafe_to_concat (last_start, end);
 
 	if (join)
 	{
+	  buffer->unsafe_to_break (last_start, end);
 	  /* Fixup previous syllable's form. */
 	  last_form = last_form == JOINING_FORM_FINA ? JOINING_FORM_MEDI : JOINING_FORM_INIT;
 	  for (unsigned int i = last_start; i < start; i++)
