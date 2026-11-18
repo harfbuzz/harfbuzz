@@ -1425,13 +1425,16 @@ struct hb_ot_apply_context_t :
   HB_HOT
   bool match_properties_mark (const hb_glyph_info_t *info,
 			      unsigned int    glyph_props,
-			      unsigned int    match_props) const
+			      unsigned int    match_props,
+                              const hb_bit_vector_t<> *mark_filter) const
   {
     /* If using mark filtering sets, the high short of
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
     {
+      if (mark_filter)
+        return mark_filter->has (info->codepoint);
       unsigned set_index = match_props >> 16;
       return gdef_accel.mark_set_covers (set_index, info->codepoint);
     }
@@ -1462,11 +1465,7 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK)
-    {
-      if (mark_filter)
-        return mark_filter->has (info->codepoint);
-      return match_properties_mark (info, glyph_props, match_props);
-    }
+      return match_properties_mark (info, glyph_props, match_props, mark_filter);
 
     return true;
   }
