@@ -80,6 +80,43 @@ hb_subset_test_create_subset (hb_face_t *source,
 }
 
 static inline void
+hb_subset_test_check_notdef_outline (hb_face_t *source, hb_subset_input_t *input)
+{
+  hb_bool_t keep = hb_subset_input_get_flags (input) & HB_SUBSET_FLAGS_NOTDEF_OUTLINE;
+  hb_face_t *subset = hb_subset_or_fail (source, input);
+  g_assert_nonnull (subset);
+  hb_font_t *source_font = hb_font_create (source);
+  hb_font_t *font = hb_font_create (subset);
+  g_assert_cmpint (hb_font_get_glyph_h_advance (font, 0), ==,
+                   hb_font_get_glyph_h_advance (source_font, 0));
+  hb_glyph_extents_t extents = {0};
+  hb_font_get_glyph_extents (font, 0, &extents);
+  if (keep)
+    g_assert_cmpint (extents.width, >, 0);
+  else
+  {
+    g_assert_cmpint (extents.width, ==, 0);
+    g_assert_cmpint (extents.height, ==, 0);
+  }
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_true (hb_font_get_glyph_extents (font, glyph, &extents));
+  g_assert_cmpint (extents.width, >, 0);
+  hb_font_destroy (font);
+  hb_font_destroy (source_font);
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+}
+
+static inline hb_face_t *
+hb_subset_test_create_subset_keep_notdef (hb_face_t *source, hb_subset_input_t *input)
+{
+  hb_subset_input_set_flags (input, (hb_subset_flags_t) (hb_subset_input_get_flags (input) |
+                                                      HB_SUBSET_FLAGS_NOTDEF_OUTLINE));
+  return hb_subset_test_create_subset (source, input);
+}
+
+static inline void
 hb_subset_test_check (hb_face_t *expected,
 		      hb_face_t *actual,
 		      hb_tag_t   table)
