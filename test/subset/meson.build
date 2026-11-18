@@ -62,6 +62,7 @@ tests = [
   'variable',
   'avar2_region_endpoints',
   'avar2_region_endpoints_negative',
+  'avar_input_precision',
   'glyph_names',
   'glyph_map',
   'post',

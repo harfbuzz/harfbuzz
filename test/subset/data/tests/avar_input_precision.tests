@@ -1,0 +1,21 @@
+# How HarfBuzz Works report 61: preserve pre-avar limits rather than
+# inverting the rounded post-avar limits. FontTools provides the oracle.
+FONTS:
+avar-input-precision.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=400:800
+wght=200:400:800
+wght=100:400:700
+wght=400:800,wdth=100
+wght=400:800,wdth=80:100:120
+
+IUP_OPTIONS:
+Yes
+No

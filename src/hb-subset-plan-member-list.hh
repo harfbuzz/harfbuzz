@@ -71,7 +71,6 @@ HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_gsub)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_mathed)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_colred)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_varced)
-HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_cmaped)
 
 //active lookups we'd like to retain
 HB_SUBSET_PLAN_MEMBER (hb_map_t, gsub_lookups)
@@ -136,6 +135,9 @@ HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<uintptr_t, hb_pair_t E(<unsigned,
 HB_SUBSET_PLAN_MEMBER (hb_vector_t<hb_inc_bimap_t>, gdef_varstore_inner_maps)
 
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, hb::unique_ptr<hb_blob_t>>), sanitized_table_cache)
+
+//normalized axes range before avar mapping
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), axes_location_pre_avar)
 
 //normalized axes range map
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), axes_location)
