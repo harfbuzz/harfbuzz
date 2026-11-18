@@ -285,12 +285,15 @@ struct AxisValueRecord
 
 struct AxisValueFormat4
 {
-  const AxisValueRecord *get_axis_record (unsigned int axis_index) const
+  bool get_value (unsigned int axis_index, float *value) const
   {
     for (const auto &record : axisValues.as_array (axisCount))
       if (record.get_axis_index () == axis_index)
-        return &record;
-    return nullptr;
+      {
+        if (value) *value = record.get_value ();
+        return true;
+      }
+    return false;
   }
 
   bool keep_axis_value (const hb_array_t<const StatAxisRecord> axis_records,
@@ -368,14 +371,7 @@ struct AxisValue
     case 1: hb_barrier (); result = u.format1.get_value (); break;
     case 2: hb_barrier (); result = u.format2.get_value (); break;
     case 3: hb_barrier (); result = u.format3.get_value (); break;
-    case 4:
-    {
-      hb_barrier ();
-      const AxisValueRecord *record = u.format4.get_axis_record (axis_index);
-      if (!record) return false;
-      result = record->get_value ();
-      break;
-    }
+    case 4: hb_barrier (); return u.format4.get_value (axis_index, value);
     default:return false;
     }
     if (value) *value = result;
