@@ -193,7 +193,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 		     || !hb_ot_layout_has_machine_kerning (face)
 #endif
 		    );
-  plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
+  plan.has_gpos_mark = plan.apply_gpos && plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
   plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos &&
 					      !plan.apply_kerx &&
