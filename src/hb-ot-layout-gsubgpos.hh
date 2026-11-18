@@ -2530,6 +2530,15 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
     }
 
     covered_seq_indicies.add (seqIndex);
+    if (!has_pos_glyphs)
+    {
+      /* A previous lookup at this position may have produced new glyphs.
+       * Keep them visible without flushing the active context stack. */
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, c->glyphs->get_population ()) ||
+                    !c->spend_budget (HB_BUDGET_1 * 2, c->output->get_population ())))
+        return;
+      c->output->del_range (c->face->get_num_glyphs (), HB_SET_VALUE_INVALID);
+    }
     hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
       return;
@@ -2537,6 +2546,14 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
       *cur_active_glyphs = std::move (pos_glyphs);
     } else {
       *cur_active_glyphs = *c->glyphs;
+      cur_active_glyphs->union_ (*c->output);
+    }
+
+    if (unlikely (cur_active_glyphs->in_error ()))
+    {
+      c->glyphs->err ();
+      c->pop_cur_done_glyphs ();
+      return;
     }
 
     unsigned endIndex = inputCount;

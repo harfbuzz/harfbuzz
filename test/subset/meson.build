@@ -45,6 +45,7 @@ tests = [
   'layout.drop_feature',
   'no_layout_closure',
   'expanded_single_subst',
+  'nested_context_closure',
   'sbix',
   'colr',
   'colr_glyphs',
