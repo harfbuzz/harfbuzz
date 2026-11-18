@@ -360,23 +360,26 @@ struct AxisValue
     hb_barrier ();
     if (u.header.flags & OLDER_SIBLING_FONT_ATTRIBUTE) return false;
 
-    if (u.format.v == 4)
-    {
-      const AxisValueRecord *record = u.format4.get_axis_record (axis_index);
-      if (!record) return false;
-      if (value) *value = record->get_value ();
-      return true;
-    }
+    if (u.format.v != 4 && get_axis_index () != axis_index) return false;
 
-    if (get_axis_index () != axis_index) return false;
-    if (!value) return true;
+    float result;
     switch (u.format.v)
     {
-    case 1: hb_barrier (); *value = u.format1.get_value (); return true;
-    case 2: hb_barrier (); *value = u.format2.get_value (); return true;
-    case 3: hb_barrier (); *value = u.format3.get_value (); return true;
+    case 1: hb_barrier (); result = u.format1.get_value (); break;
+    case 2: hb_barrier (); result = u.format2.get_value (); break;
+    case 3: hb_barrier (); result = u.format3.get_value (); break;
+    case 4:
+    {
+      hb_barrier ();
+      const AxisValueRecord *record = u.format4.get_axis_record (axis_index);
+      if (!record) return false;
+      result = record->get_value ();
+      break;
+    }
     default:return false;
     }
+    if (value) *value = result;
+    return true;
   }
 
   unsigned int get_axis_index () const
@@ -451,7 +454,8 @@ struct AxisValue
   union
   {
   struct { HBUINT16 v; }	format;
-  struct {
+  struct
+  {
     HBUINT16 format;
     HBUINT16 axisIndexOrCount;
     HBUINT16 flags;
