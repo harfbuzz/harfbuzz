@@ -656,13 +656,14 @@ struct KerxSubTableFormat4
 	  hb_position_t markY = 0;
 	  hb_position_t currX = 0;
 	  hb_position_t currY = 0;
+	  /* Positioning uses horizontal glyph origins, also in vertical runs. */
 	  if (!c->font->get_glyph_contour_point_for_origin (c->buffer->info[mark].codepoint,
 							    markControlPoint,
-							    HB_DIRECTION_LTR /*XXX*/,
+							    HB_DIRECTION_LTR,
 							    &markX, &markY) ||
 	      !c->font->get_glyph_contour_point_for_origin (c->buffer->cur ().codepoint,
 							    currControlPoint,
-							    HB_DIRECTION_LTR /*XXX*/,
+							    HB_DIRECTION_LTR,
 							    &currX, &currY))
 	    return false;
 

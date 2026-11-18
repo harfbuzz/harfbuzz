@@ -284,12 +284,10 @@ struct glyf_accelerator_t
   }
 
   protected:
-  template<typename T>
-  bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer,
-		   hb_array_t<const int> coords,
-		   hb_glyf_scratch_t &scratch,
-		   hb_scalar_cache_t *gvar_cache = nullptr,
-		   int64_t *budget = nullptr) const
+  bool load_points (hb_font_t *font, hb_codepoint_t gid, bool phantom_only,
+                    hb_array_t<const int> coords, hb_glyf_scratch_t &scratch,
+                    hb_scalar_cache_t *gvar_cache = nullptr,
+                    int64_t *budget = nullptr) const
   {
     if (gid >= num_glyphs) return false;
 
@@ -302,12 +300,23 @@ struct glyf_accelerator_t
      * component points behind. */
     scratch.comp_points.clear ();
 
-    bool phantom_only = !consumer.is_consuming_contour_points ();
     if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache, 0, nullptr, budget)))
       return false;
 
-    if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, all_points.length)))
+    return hb_budget_spend (*budget, HB_BUDGET_1, all_points.length);
+  }
+
+  template<typename T>
+  bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer,
+                   hb_array_t<const int> coords,
+                   hb_glyf_scratch_t &scratch,
+                   hb_scalar_cache_t *gvar_cache = nullptr,
+                   int64_t *budget = nullptr) const
+  {
+    if (unlikely (!load_points (font, gid, !consumer.is_consuming_contour_points (),
+                                coords, scratch, gvar_cache, budget)))
       return false;
+    auto &all_points = scratch.all_points;
 
     unsigned count = all_points.length;
     assert (count >= glyf_impl::PHANTOM_COUNT);
@@ -393,6 +402,27 @@ struct glyf_accelerator_t
   }
 
   public:
+
+  bool get_contour_point (hb_font_t *font, hb_codepoint_t gid, unsigned point_index,
+                          hb_position_t *x, hb_position_t *y) const
+  {
+    hb_glyf_scratch_t *scratch = acquire_scratch ();
+    if (unlikely (!scratch)) return false;
+    bool ret = load_points (font, gid, false,
+                            hb_array (font->coords, font->has_nonzero_coords ? font->num_coords : 0),
+                            *scratch);
+    const auto &points = scratch->all_points;
+    ret = ret && points.length >= glyf_impl::PHANTOM_COUNT &&
+          point_index < points.length - glyf_impl::PHANTOM_COUNT;
+    if (ret)
+    {
+      /* Use stored point numbering, before drawing inserts implied points. */
+      *x = font->em_scalef_x (points[point_index].x);
+      *y = font->em_scalef_y (points[point_index].y);
+    }
+    release_scratch (scratch);
+    return ret;
+  }
 
   struct points_aggregator_t
   {
