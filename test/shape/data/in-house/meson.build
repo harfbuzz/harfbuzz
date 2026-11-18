@@ -87,6 +87,7 @@ in_house_tests = [
   'use-javanese.tests',
   'use-marchen.tests',
   'use-syllable.tests',
+  'use-joiners.tests',
   'use-vowel-letter-spoofing.tests',
   'use.tests',
   'use.tests',

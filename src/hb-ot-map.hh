@@ -189,7 +189,7 @@ struct hb_ot_map_t
 enum hb_ot_map_feature_flags_t
 {
   F_NONE		= 0x0000u,
-  F_GLOBAL		= 0x0001u, /* Feature applies to all characters; results in no mask allocated for it. */
+  F_GLOBAL		= 0x0001u, /* Feature is enabled globally by default. */
   F_HAS_FALLBACK	= 0x0002u, /* Has fallback implementation, so include mask bit even if feature not found. */
   F_MANUAL_ZWNJ		= 0x0004u, /* Don't skip over ZWNJ when matching **context**. */
   F_MANUAL_ZWJ		= 0x0008u, /* Don't skip over ZWJ when matching **input**. */
@@ -198,7 +198,8 @@ enum hb_ot_map_feature_flags_t
   F_GLOBAL_HAS_FALLBACK = F_GLOBAL | F_HAS_FALLBACK,
   F_GLOBAL_SEARCH	= 0x0010u, /* If feature not found in LangSys, look for it in global feature list and pick one. */
   F_RANDOM		= 0x0020u, /* Randomly select a glyph from an AlternateSubstFormat1 subtable. */
-  F_PER_SYLLABLE	= 0x0040u  /* Contain lookup application to within syllable. */
+  F_PER_SYLLABLE	= 0x0040u, /* Contain lookup application to within syllable. */
+  F_NEEDS_MASK		= 0x0080u  /* Allocate a separate mask even when enabled globally. */
 };
 HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
 

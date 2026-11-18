@@ -42,7 +42,7 @@
  * https://docs.microsoft.com/en-us/typography/script-development/use
  */
 
-static const hb_tag_t
+static const hb_ot_map_feature_t
 use_basic_features[] =
 {
   /*
@@ -50,13 +50,13 @@ use_basic_features[] =
    * These features are applied all at once, before reordering, constrained
    * to the syllable.
    */
-  HB_TAG('r','k','r','f'),
-  HB_TAG('a','b','v','f'),
-  HB_TAG('b','l','w','f'),
-  HB_TAG('h','a','l','f'),
-  HB_TAG('p','s','t','f'),
-  HB_TAG('v','a','t','u'),
-  HB_TAG('c','j','c','t'),
+  {HB_TAG('r','k','r','f'), F_NONE},
+  {HB_TAG('a','b','v','f'), F_NONE},
+  {HB_TAG('b','l','w','f'), F_NONE},
+  {HB_TAG('h','a','l','f'), F_NEEDS_MASK | F_MANUAL_ZWNJ},
+  {HB_TAG('p','s','t','f'), F_NONE},
+  {HB_TAG('v','a','t','u'), F_NONE},
+  {HB_TAG('c','j','c','t'), F_NONE},
 };
 static const hb_tag_t
 use_topographical_features[] =
@@ -130,7 +130,8 @@ collect_features_use (hb_ot_shape_planner_t *plan)
 
   /* "Orthographic unit shaping group" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (use_basic_features); i++)
-    map->enable_feature (use_basic_features[i], F_MANUAL_ZWJ | F_PER_SYLLABLE);
+    map->enable_feature (use_basic_features[i].tag,
+			 use_basic_features[i].flags | F_MANUAL_ZWJ | F_PER_SYLLABLE);
 
   map->add_gsub_pause (reorder_use);
   map->add_gsub_pause (hb_syllabic_clear_var); // Don't need syllables anymore, use stop to free buffer var
@@ -148,6 +149,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
 struct use_shape_plan_t
 {
   hb_mask_t rphf_mask;
+  hb_mask_t half_mask;
 
   arabic_shape_plan_t *arabic_plan;
 };
@@ -160,6 +162,7 @@ data_create_use (const hb_ot_shape_plan_t *plan)
     return nullptr;
 
   use_plan->rphf_mask = plan->map.get_1_mask (HB_TAG('r','p','h','f'));
+  use_plan->half_mask = plan->map.get_1_mask (HB_TAG('h','a','l','f'));
 
   if (has_arabic_joining (plan->props.script))
   {
@@ -225,6 +228,34 @@ setup_rphf_mask (const hb_ot_shape_plan_t *plan,
     unsigned int limit = info[start].use_category() == USE(R) ? 1 : hb_min (3u, end - start);
     for (unsigned int i = start; i < start + limit; i++)
       info[i].mask |= mask;
+  }
+}
+
+static void
+setup_half_mask (const hb_ot_shape_plan_t *plan,
+		 hb_buffer_t *buffer)
+{
+  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
+  hb_mask_t mask = use_plan->half_mask;
+  if (!mask) return;
+
+  hb_glyph_info_t *info = buffer->info;
+  foreach_syllable (buffer, start, end)
+  {
+    unsigned int base = start, cleared = start;
+    for (unsigned int i = start; i < end; i++)
+    {
+      if (info[i].use_category() == USE(B) || info[i].use_category() == USE(GB))
+	base = i;
+      else if (info[i].use_category() == USE(ZWNJ))
+      {
+	/* Like Indic, suppress HALF back to the preceding base only.
+	 * Repeated joiners must not rescan an already-cleared prefix. */
+	for (unsigned int j = hb_max (base, cleared); j < i; j++)
+	  info[j].mask &= ~mask;
+	cleared = i + 1;
+      }
+    }
   }
 }
 
@@ -306,6 +337,7 @@ setup_syllables_use (const hb_ot_shape_plan_t *plan,
     buffer->unsafe_to_break (start, end);
   }
   setup_rphf_mask (plan, buffer);
+  setup_half_mask (plan, buffer);
   setup_topographical_masks (plan, buffer);
   return false;
 }

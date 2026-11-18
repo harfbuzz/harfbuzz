@@ -248,7 +248,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 	  f[j].max_value = hb_max (f[j].max_value, f[i].max_value);
 	  /* Inherit default_value from j */
 	}
-	f[j].flags |= (f[i].flags & F_HAS_FALLBACK);
+	f[j].flags |= (f[i].flags & (F_HAS_FALLBACK | F_NEEDS_MASK));
 	f[j].stage[0] = hb_min (f[j].stage[0], f[i].stage[0]);
 	f[j].stage[1] = hb_min (f[j].stage[1], f[i].stage[1]);
       }
@@ -272,9 +272,11 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
   {
     const feature_info_t *info = &feature_infos[i];
 
+    bool use_global_bit = (info->flags & F_GLOBAL) && info->max_value == 1 &&
+			  !(info->flags & F_NEEDS_MASK);
     unsigned int bits_needed;
 
-    if ((info->flags & F_GLOBAL) && info->max_value == 1)
+    if (use_global_bit)
       /* Uses the global bit */
       bits_needed = 0;
     else
@@ -325,7 +327,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
     map->auto_zwj = !(info->flags & F_MANUAL_ZWJ);
     map->random = !!(info->flags & F_RANDOM);
     map->per_syllable = !!(info->flags & F_PER_SYLLABLE);
-    if ((info->flags & F_GLOBAL) && info->max_value == 1) {
+    if (use_global_bit) {
       /* Uses the global bit */
       map->shift = global_bit_shift;
       map->mask = global_bit_mask;
