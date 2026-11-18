@@ -84,6 +84,28 @@ struct ValueFormat : HBUINT16
     return result;
   }
 
+  /* Most first-glyph pair values are simple horizontal kerning. */
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  bool apply_pair_value (hb_ot_apply_context_t *c,
+                         const ValueBase *base,
+                         const Value *values,
+                         hb_glyph_position_t &glyph_pos) const
+  {
+    if ((unsigned) *this == xAdvance)
+    {
+      bool ret = false;
+#ifndef HB_NO_VERTICAL
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
+#endif
+        glyph_pos.x_advance = hb_saturate_add (glyph_pos.x_advance,
+            c->font->em_scale_x (get_short (values, &ret)));
+      return ret;
+    }
+    return apply_value (c, base, values, glyph_pos);
+  }
+
   bool apply_value (hb_ot_apply_context_t *c,
                     const ValueBase       *base,
                     const Value           *values,

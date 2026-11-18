@@ -183,7 +183,7 @@ struct PairSet : ValueBase
 			    c->buffer->idx, pos);
       }
 
-      bool applied_first = len1 && valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos());
+      bool applied_first = len1 && valueFormats[0].apply_pair_value (c, this, &record->values[0], buffer->cur_pos());
       bool applied_second = len2 && valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]);
 
       if (applied_first || applied_second)

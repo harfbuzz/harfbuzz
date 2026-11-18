@@ -772,6 +772,125 @@ test_ot_layout_lookups_substitute_closure_large_coverage (void)
   test_ot_layout_lookups_substitute_closure_large_coverage_one (3); /* AlternateSubst */
 }
 
+static hb_bool_t
+simple_kern_nominal (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+                     hb_codepoint_t unicode, hb_codepoint_t *glyph,
+                     void *user_data HB_UNUSED)
+{
+  *glyph = unicode == 'a' ? 1 : 2;
+  return unicode == 'a' || unicode == 'b';
+}
+
+static hb_position_t
+simple_kern_advance (hb_font_t *font, void *font_data,
+                     hb_codepoint_t glyph HB_UNUSED, void *user_data HB_UNUSED)
+{
+  int x_scale;
+  hb_font_get_scale (font, &x_scale, NULL);
+  int advance = *(const int *) font_data;
+  return advance ? advance : x_scale / 2;
+}
+
+static void
+test_ot_layout_simple_pair_advance (void)
+{
+  /* DFLT/kern, with one PairPos lookup. Offsets below are relative to GPOS. */
+  static const unsigned char header[] = {
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x1e, 0x00, 0x2c, 0x00, 0x01,
+    0x44, 0x46, 0x4c, 0x54, 0x00, 0x08, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x6b, 0x65, 0x72, 0x6e,
+    0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x04,
+    0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x08,
+  };
+  /* Format 1: a/b pair; format 2: class-1 a / class-1 b matrix entry. */
+  static const unsigned char subtables[2][46] = {
+    {
+    0x00, 0x01, 0x00, 0x12, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x0c,
+    0x00, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01,
+    },
+    {
+    0x00, 0x02, 0x00, 0x18, 0x00, 0x04, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x26,
+    0x00, 0x02, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01,
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x01,
+    }
+  };
+  const unsigned lengths[] = {24, 46};
+  const unsigned value_offsets[] = {16, 22};
+  const int kerns[] = {0, -50, 50, -32768, 32767};
+  const int scales[] = {-2000, 0, 1000, 2000};
+  const int advances[] = {0, G_MAXINT - 10, G_MININT + 10};
+  const hb_direction_t dirs[] = {HB_DIRECTION_LTR, HB_DIRECTION_RTL,
+#ifndef HB_NO_VERTICAL
+                                HB_DIRECTION_TTB, HB_DIRECTION_BTT,
+#endif
+                               };
+  const hb_feature_t feature = {HB_TAG ('k','e','r','n'), 1, 0, (unsigned) -1};
+  const char *shapers[] = {"ot", NULL};
+  hb_font_funcs_t *funcs = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyph_func (funcs, simple_kern_nominal, NULL, NULL);
+  hb_font_funcs_set_glyph_h_advance_func (funcs, simple_kern_advance, NULL, NULL);
+  for (unsigned f = 0; f < 2; f++)
+    for (unsigned k = 0; k < G_N_ELEMENTS (kerns); k++)
+    {
+      char gpos[102];
+      memcpy (gpos, header, sizeof (header));
+      memcpy (gpos + sizeof (header), subtables[f], lengths[f]);
+      unsigned offset = sizeof (header) + value_offsets[f];
+      gpos[offset] = (unsigned) kerns[k] >> 8;
+      gpos[offset + 1] = kerns[k];
+      hb_face_t *face = hb_face_builder_create ();
+      hb_blob_t *blob = hb_blob_create (gpos, sizeof (header) + lengths[f],
+                                      HB_MEMORY_MODE_DUPLICATE, NULL, NULL);
+      g_assert_true (hb_face_builder_add_table (face, HB_TAG ('G','P','O','S'), blob));
+      hb_blob_destroy (blob);
+      hb_face_set_glyph_count (face, 3);
+      hb_face_set_upem (face, 1000);
+      for (unsigned a = 0; a < G_N_ELEMENTS (advances); a++)
+      {
+        int advance = advances[a];
+        hb_font_t *font = hb_font_create (face);
+        hb_font_set_funcs (font, funcs, &advance, NULL);
+        for (unsigned d = 0; d < G_N_ELEMENTS (dirs); d++)
+          for (unsigned z = 0; z < G_N_ELEMENTS (scales); z++)
+          {
+            int scale = scales[z];
+            hb_font_set_scale (font, scale, scale);
+            hb_buffer_t *buffer = hb_buffer_create ();
+            hb_buffer_set_flags (buffer, HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT);
+            hb_buffer_add_utf8 (buffer, "aabbaa", -1, 0, -1);
+            hb_buffer_guess_segment_properties (buffer);
+            hb_buffer_set_direction (buffer, dirs[d]);
+            g_assert_true (hb_shape_full (font, buffer, &feature, 1, shapers));
+            g_assert_true (hb_buffer_allocation_successful (buffer));
+            unsigned count;
+            hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &count);
+            hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+            g_assert_cmpuint (count, ==, 6);
+            hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (dirs[d]);
+            int base = horizontal ? (advance ? advance : scale / 2) : 0;
+            int64_t adjusted = base;
+            if (horizontal) adjusted += (int64_t) kerns[k] * scale / 1000;
+            if (adjusted > G_MAXINT) adjusted = G_MAXINT;
+            if (adjusted < G_MININT) adjusted = G_MININT;
+            unsigned changed = 0, unsafe = 0;
+            for (unsigned i = 0; i < count; i++)
+            {
+              g_assert_true (pos[i].x_advance == base || pos[i].x_advance == adjusted);
+              changed += pos[i].x_advance != base;
+              unsafe += !!(hb_glyph_info_get_glyph_flags (&info[i]) & HB_GLYPH_FLAG_UNSAFE_TO_BREAK);
+            }
+            g_assert_cmpuint (changed, ==, adjusted != base);
+            g_assert_cmpuint (unsafe, ==, horizontal && kerns[k] != 0);
+            hb_buffer_destroy (buffer);
+          }
+        hb_font_destroy (font);
+      }
+      hb_face_destroy (face);
+    }
+  hb_font_funcs_destroy (funcs);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -794,6 +913,7 @@ main (int argc, char **argv)
 #endif
   hb_test_add (test_ot_layout_get_extender_glyphs);
   hb_test_add (test_ot_layout_gpos_mark_base_rescan_budget);
+  hb_test_add (test_ot_layout_simple_pair_advance);
   hb_test_add (test_ot_layout_lookups_substitute_closure_large_coverage);
   return hb_test_run ();
 }
