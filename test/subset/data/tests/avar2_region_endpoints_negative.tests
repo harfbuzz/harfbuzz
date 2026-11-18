@@ -1,0 +1,26 @@
+# How HarfBuzz Works report 61: a coupled axis can leave a pinned axis's
+# final coordinate variable. Prune a tent whose only reachable endpoint
+# has zero support, while preserving the live tent on the other side.
+FONTS:
+avar2-region-endpoints-negative.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=400
+wght=100
+wght=900
+
+IUP_OPTIONS:
+Yes
+No
+
+# HB emits an explicit identity avar2 VarIdxMap; FontTools omits it.
+# This is a valid encoding difference, not a metric difference. Both
+# implementations also compare MVAR/HVAR deltas against the source font.
+OPTIONS:
+no_fonttools

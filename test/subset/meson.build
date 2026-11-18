@@ -60,6 +60,8 @@ tests = [
   'colr_with_components',
   'cbdt',
   'variable',
+  'avar2_region_endpoints',
+  'avar2_region_endpoints_negative',
   'glyph_names',
   'glyph_map',
   'post',

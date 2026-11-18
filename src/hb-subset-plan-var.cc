@@ -159,6 +159,8 @@
       * behaves as "no variation" at runtime, so it contributes no regions;
       * this also covers a NULL VarStore. */
      hb_vector_t<hb_pair_t<int, unsigned>> active; /* (delta, region index) */
+     bool nonnegative = identity->first >= 0.0;
+     bool nonpositive = identity->second <= 0.0;
      uint32_t varidx = varidx_map->map (i);
      /* Runtime treats out-of-range delta-set indices as zero. */
      if (varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX &&
@@ -183,6 +185,8 @@
 	 unsigned region_idx = vd.get_region_index (r);
 	 if (region_idx >= regions.length) return false;
 	 active.push (hb_pair (delta, region_idx));
+	 nonnegative &= delta >= 0;
+	 nonpositive &= delta <= 0;
        }
        if (active.in_error ()) return false;
      }
@@ -364,6 +368,10 @@
      double hi = hb_clamp (vmax + 1.0 / 16384.0, -1.0, +1.0);
      lo = floor (lo * 16384.0) / 16384.0;
      hi = ceil (hi * 16384.0) / 16384.0;
+     /* A sum of nonnegative (or nonpositive) terms cannot cross zero,
+      * even after runtime rounding. Do not pad across that exact bound. */
+     if (nonnegative) lo = hb_max (lo, 0.0);
+     if (nonpositive) hi = hb_min (hi, 0.0);
      if (lo <= -1.0 && hi >= +1.0)
        continue; /* not constraining */
      if (!plan->avar2_reachable_ranges.set (tag, Triple (lo, hb_clamp (0.0, lo, hi), hi)))
