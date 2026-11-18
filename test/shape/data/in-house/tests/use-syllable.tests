@@ -60,4 +60,4 @@
 ../fonts/120745604aba737bce5ef73212c04de117b9fba3.ttf;--shapers=ot --font-funcs=ot --show-flags --unsafe-to-concat --safe-to-insert-tatweel;U+0915,U+25CC,U+0915;[ka.init=0+600#2|dottedcircle=1+600#3|ka.fina=2+600#3]
 ../fonts/120745604aba737bce5ef73212c04de117b9fba3.ttf;--shapers=ot --font-funcs=ot --show-flags --unsafe-to-concat --safe-to-insert-tatweel;U+0915,U+25CC,U+093F,U+0915;[ka.init=0+600#2|iMatra=1+0#3|dottedcircle=1+600#3|ka.fina=3+600#3]
 ../fonts/120745604aba737bce5ef73212c04de117b9fba3.ttf;--shapers=ot --font-funcs=ot --show-flags --unsafe-to-concat --safe-to-insert-tatweel;U+0915,U+00A0,U+093F,U+0915;[ka.isol=0+600#2|iMatra=1+0#2|space=1+250#2|ka.isol=3+600#2]
-../fonts/120745604aba737bce5ef73212c04de117b9fba3.ttf;--shapers=ot --font-funcs=ot --show-flags --unsafe-to-concat --safe-to-insert-tatweel;U+0915,U+0020,U+093F,U+0915;[ka.isol=0+600#2|iMatra=1+0#2|space=1+250#2|ka.isol=3+600#2]
+../fonts/120745604aba737bce5ef73212c04de117b9fba3.ttf;--shapers=ot --font-funcs=ot --show-flags --unsafe-to-concat --safe-to-insert-tatweel;U+0915,U+0020,U+25CC,U+093F,U+0915;[ka.isol=0+600#2|space=1+250#2|iMatra=2+0#2|dottedcircle=2+600#2|ka.fina=4+600#3]
