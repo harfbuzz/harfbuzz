@@ -76,11 +76,8 @@ test_paint_reset (hb_vector_format_t format)
   assert (hb_vector_paint_get_background (paint) == background);
   assert (hb_vector_paint_get_palette (paint) == 2);
   assert (!strcmp (hb_vector_paint_get_svg_prefix (paint), "old-"));
-  if (format == HB_VECTOR_FORMAT_SVG)
-  {
-    assert (hb_paint_custom_palette_color (funcs, paint, 7, &color));
-    assert (color == custom);
-  }
+  assert (hb_paint_custom_palette_color (funcs, paint, 7, &color));
+  assert (color == custom);
 
   hb_vector_paint_reset (paint);
   assert (hb_vector_paint_get_format (paint) == format);
@@ -88,8 +85,7 @@ test_paint_reset (hb_vector_format_t format)
   assert (hb_vector_paint_get_background (paint) == hb_vector_paint_get_background (fresh));
   assert (hb_vector_paint_get_palette (paint) == hb_vector_paint_get_palette (fresh));
   assert (!strcmp (hb_vector_paint_get_svg_prefix (paint), hb_vector_paint_get_svg_prefix (fresh)));
-  if (format == HB_VECTOR_FORMAT_SVG)
-    assert (!hb_paint_custom_palette_color (funcs, paint, 7, &color));
+  assert (!hb_paint_custom_palette_color (funcs, paint, 7, &color));
 
   hb_vector_paint_destroy (paint);
   hb_vector_paint_destroy (fresh);

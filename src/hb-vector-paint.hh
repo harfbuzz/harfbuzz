@@ -152,6 +152,24 @@ hb_vector_paint_get_budget_remaining_callback (hb_paint_funcs_t *,
   return &((hb_vector_paint_t *) paint_data)->budget_remaining;
 }
 
+static inline hb_bool_t
+hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
+				      void *paint_data,
+				      unsigned color_index,
+				      hb_color_t *color,
+				      void *user_data HB_UNUSED)
+{
+  hb_vector_paint_t *paint = (hb_vector_paint_t *) paint_data;
+  if (!color)
+    return false;
+
+  hb_color_t *value = nullptr;
+  if (!paint->custom_palette_colors.has (color_index, &value) || !value)
+    return false;
+  *color = *value;
+  return true;
+}
+
 /* Implemented in hb-vector-paint-svg.cc */
 HB_INTERNAL hb_paint_funcs_t * hb_vector_paint_svg_funcs_get ();
 HB_INTERNAL hb_blob_t * hb_vector_paint_render_svg (hb_vector_paint_t *paint);
