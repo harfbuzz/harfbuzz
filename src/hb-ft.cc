@@ -234,8 +234,11 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
     FT_Fixed *ft_coords = (FT_Fixed *) hb_calloc (num_coords, sizeof (FT_Fixed));
     if (ft_coords)
     {
+      /* Within 16.16, which is what FreeType takes it for and all that
+       * FT_Fixed holds where long is 32 bits.  FreeType then brings it
+       * into the range of the axis. */
       for (unsigned int i = 0; i < num_coords; i++)
-	  ft_coords[i] = coords[i] * 65536.f;
+	  ft_coords[i] = hb_clamp_to<int32_t> (coords[i] * 65536.f);
       FT_Set_Var_Design_Coordinates (ft_face, num_coords, ft_coords);
       hb_free (ft_coords);
     }
