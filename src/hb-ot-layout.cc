@@ -2886,7 +2886,7 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
  *
  * Return value: Total number of extender glyphs for the given script.
  *
- * XSince: REPLACEME
+ * Since: 15.2.0
  */
 HB_EXTERN unsigned
 hb_ot_layout_get_extender_glyphs (hb_face_t      *face,

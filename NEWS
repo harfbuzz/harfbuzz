@@ -1,15 +1,146 @@
-Overview of changes leading to REPLACEME
-======================================
-- Add a font constructor for clients that install their own font functions,
-  avoiding the overhead of setting up default font functions first.
-- Avoid loading a second FreeType face in `hb_ft_font_create()` when FreeType
-  is the default font backend.
-- The deprecated `hb_font_set_face()` now does nothing. To use another face,
-  create a new font with `hb_font_create()`.
+Overview of changes leading to 15.2.0
+Friday, November 20, 2026
+=====================================
+- Performance and hardening:
+  * Make `GSUB` and `GPOS` lookups, AAT kerning, and UTF decoding faster.
+  * Raise the default work limits for shaping, rendering, and subsetting. Very
+    complex fonts exceeded the old limits.
+  * Fix various crashes, hangs, and high memory use with malformed fonts.
+
+- New features:
+  * Add a font constructor that does not install default font functions, for
+    clients that install their own font functions.
+  * Add an API to get the `JSTF` extender glyphs of a script.
+  * Support bitmap glyphs in `CBDT` format 19.
+
+- Shaping:
+  * Fix per-syllable `GSUB` lookups that matched a glyph 15 syllables later,
+    for example in long Myanmar text.
+  * Fix `GPOS` marks that attached to an earlier base when a ranged feature did
+    not apply to the nearest base, a regression from 7.0.0.
+  * Fix precomposed characters that stayed decomposed in text with no marks, in
+    the Indic, Khmer, Myanmar, and USE shapers.
+  * A global feature request now overrides earlier ranged requests for the same
+    feature. Before, the ranged request kept its value and could disable
+    unrelated features.
+  * An unsupported character followed by a variation selector now gets the
+    not-found glyph set on the buffer, instead of always getting glyph 0.
+  * Fix fallback mark positioning to use the x offset of the base.
+  * Fix cross-stream kerning from the `kern` table. The reset value caused a
+    large shift. The offset used the scale of the wrong axis.
+  * Fix missing unsafe-to-break flags in text with cross-stream kerning from
+    `kern` or `kerx`.
+  * Apply the `kern` table in vertical text when the client requests `vkrn` and
+    `GPOS` does not have it.
+  * Fix missing unsafe-to-break flags with `HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES`.
+
+- Script-specific shaping:
+  * The Indic shaper no longer applies `init` to a first syllable that follows
+    a letter or mark in the pre-context.
+  * The USE shaper no longer uses a space as the base of a dependent vowel.
+    The vowel now gets a dotted circle.
+  * The USE shaper now ends a word at spaces and symbols when it selects
+    `isol`, `init`, `medi`, and `fina` forms.
+  * The Khmer shaper now moves only one Coeng Ro before the base, and only
+    when it is the first or second coeng of the syllable.
+  * A Hangul tone mark at the start of the text now gets only one dotted circle.
+  * An archaic trailing jamo after a Hangul syllable now gets the
+    unsafe-to-break flag at the character cluster levels.
+  * Dotted circles for Hangul tone marks and prohibited vowel sequences now
+    keep their advance in fonts without `GDEF`.
+  * Prohibited vowel sequences now get a dotted circle also when a default
+    ignorable, such as ZWJ, is between the vowels.
+  * The Hebrew shaper now composes presentation forms in fonts that have
+    `mark` only under the `DFLT` script.
+  * The Arabic shaper now centers `stch` tiles on short words and exact fits.
+
+- AAT shaping:
+  * Fix `trak` tracking in vertical text, where positive tracking decreased
+    the spacing.
+  * Apply the pair and class kerning of `kerx` together with `GPOS` when `GPOS`
+    has no kerning feature. Before, HarfBuzz did not apply `kerx` in such
+    fonts.
+  * A later request for a feature now overrides earlier requests, as in
+    OpenType shaping.
+
+- Other shapers and font functions:
+  * Update HarfRust to 0.16.1. The HarfRust shaper now uses the not-found glyph
+    set on the buffer.
+  * Fix vertical advances of `trak` fonts with the CoreText font functions.
+  * Fix the CoreText face loader, which could select the wrong face of a font
+    collection, or a named instance.
+  * Fix vertical glyph origins with the FreeType font functions in fonts with
+    vertical bearings that are not centered, a regression from 15.1.0.
+  * `hb_ft_font_create()` no longer loads a second FreeType face when FreeType
+    provides the default font functions.
+
+- Core library:
+  * The deprecated `hb_font_set_face()` now does nothing. To use another face,
+    create a new font with `hb_font_create()`.
+  * Fix scaled glyph extents, which could be smaller than the glyph. The
+    extents now round outward on both axes, after scaling. The extents of
+    fractional outlines can grow by one unit.
+  * Empty glyphs now have zero extents. Before, they could have a negative
+    width and a positive height.
+  * Fix `hb_style_get_value()`:
+    - The `OS/2` optical size is now in points, not in twentieths of a point.
+    - The slant angle from `fvar` or `STAT` now includes the synthetic slant.
+    - The function now skips `STAT` values that are for older sibling fonts.
+  * Fix `hb_face_collect_unicodes()`, which missed most code points of `cmap`
+    format 13 subtables.
+  * Fix the position of nested `glyf` components that use anchor points.
+  * `hb_buffer_get_glyph_positions()` now returns zero positions for items that
+    the client added after the first call. Before, those positions could be
+    uninitialized or old.
+
+- Subsetting:
+  * Subsetting now keeps glyph IDs if it keeps a table whose glyph IDs it
+    cannot change, such as an AAT, Graphite, `SVG`, or bitmap table. Before,
+    such a table referred to the wrong glyphs.
+  * Subsetting now keeps hinting in fonts that require it for correct
+    rendering, even with `HB_SUBSET_FLAGS_NO_HINTING`.
+  * Subsetting now removes the `.notdef` outline from `CFF` and `CFF2` fonts,
+    as it does from `glyf` fonts, unless the client sets
+    `HB_SUBSET_FLAGS_NOTDEF_OUTLINE`.
+  * Fix subsets that did not keep all glyphs produced by context rules with
+    many lookups, or by Indic features.
+  * Fix subsets that did not keep the `MATH` data of glyphs that `GSUB`
+    produces.
+  * Fix subsetting `CFF2` fonts with `FDSelect` format 4, which kept only the
+    first Font DICT. Glyphs of other Font DICTs had wrong or no outlines.
+  * Keep `cmap` subtables with the Microsoft Symbol encoding when subsetting.
+    Before, a font with only such subtables lost its `cmap` table.
+  * Fix various subsetting problems, mostly for `CFF`, `CFF2`, and variable
+    fonts. Subsetting is also faster.
+
+- Rendering libraries:
+  * Fix the BGRA byte order of the raster library on big-endian systems.
+  * Fix color glyphs with many clipped layers, such as Bitcount Ink glyphs,
+    which exceeded the work limit of the raster library.
+  * `hb_raster_draw_render()` now returns `NULL` when a glyph exceeds the work
+    limit, instead of an empty image.
+  * Fix invalid PDF output of the vector library for translucent backgrounds.
+  * Fix PNG images with an alpha channel in the PDF output of the vector
+    library, which wrote the alpha as a color channel.
+  * Fix the PDF output of the vector library, which did not use the colors
+    from `hb_vector_paint_set_custom_palette_color()`.
+  * Fix a use-after-free in the GPU and vector libraries when the client
+    recycles a blob and keeps a sub-blob of it.
+  * Fix the GPU library, which did not reset the group depth after a paint with
+    open groups. Later `hb_gpu_paint_encode()` calls that use groups then
+    returned `NULL`.
+  * Fix color glyphs that the Cairo integration rendered blank, such as the
+    Spain flag of Noto Color Emoji, a regression from 15.1.0.
+
+- Tools, documentation, and build:
+  * Fix `hb-info --list-names` repeating one string for every language of a
+    name.
+  * Fix various documentation problems.
+  * Fix various build and CI problems.
 
 - New API:
   +hb_font_create_without_funcs_or_fail()
-- +hb_ot_layout_get_extender_glyphs()
+  +hb_ot_layout_get_extender_glyphs()
 
 
 Overview of changes leading to 15.1.0

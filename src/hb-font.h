@@ -1133,7 +1133,7 @@ hb_font_create (hb_face_t *face);
  * Return value: (transfer full) (nullable): The new font object, or `NULL`
  * if allocation fails
  *
- * XSince: REPLACEME
+ * Since: 15.2.0
  **/
 HB_EXTERN hb_font_t *
 hb_font_create_without_funcs_or_fail (hb_face_t *face);
