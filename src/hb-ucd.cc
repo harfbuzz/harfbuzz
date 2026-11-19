@@ -33,6 +33,10 @@ hb_ucd_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			 hb_codepoint_t unicode,
 			 void *user_data HB_UNUSED)
 {
+#ifndef HB_OPTIMIZE_SIZE
+  if (unicode < ARRAY_LENGTH (_hb_ucd_ascii_gc))
+    return (hb_unicode_general_category_t) _hb_ucd_ascii_gc[unicode];
+#endif
   return (hb_unicode_general_category_t) _hb_ucd_gc (unicode);
 }
 

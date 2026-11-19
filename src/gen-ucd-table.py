@@ -269,6 +269,8 @@ for step, text in modes.items():
                 sc[i] = sc[i + 1]
 
     code = packTab.Code(code_prefix)
+    if language.name == "c" and step == DEFAULT:
+        code.addArray("uint8_t", "ascii_gc", [gc_order[v] for v in gc[:128]])
 
     for name, data, default, mapping in datasets:
         sol = packTab.pack_table(
