@@ -958,6 +958,32 @@ static const utf32_conversion_test_t utf32_conversion_tests[] = {
 };
 
 static void
+test_buffer_utf16_growth (void)
+{
+  uint16_t text[300];
+  for (unsigned i = 0; i < G_N_ELEMENTS (text); i += 3)
+  {
+    text[i] = 0xD83D;
+    text[i + 1] = 0xDE00;
+    text[i + 2] = 'a';
+  }
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf16 (buffer, text, G_N_ELEMENTS (text), 0, -1);
+  unsigned count;
+  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &count);
+  g_assert_cmpuint (count, ==, 200);
+  for (unsigned i = 0; i < count; i += 2)
+  {
+    g_assert_cmpuint (info[i].codepoint, ==, 0x1F600);
+    g_assert_cmpuint (info[i].cluster, ==, i / 2 * 3);
+    g_assert_cmpuint (info[i + 1].codepoint, ==, 'a');
+    g_assert_cmpuint (info[i + 1].cluster, ==, i / 2 * 3 + 2);
+  }
+  hb_buffer_destroy (buffer);
+}
+
+static void
 test_buffer_utf32_conversion (void)
 {
   hb_buffer_t *b;
@@ -1310,6 +1336,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf8_conversion);
   hb_test_add (test_buffer_utf8_validity);
   hb_test_add (test_buffer_utf16_conversion);
+  hb_test_add (test_buffer_utf16_growth);
   hb_test_add (test_buffer_utf32_conversion);
   hb_test_add (test_buffer_empty);
   hb_test_add (test_buffer_diff_positions);

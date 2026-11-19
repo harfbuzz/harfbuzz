@@ -1901,10 +1901,27 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   const T *end = next + item_length;
   while (next < end)
   {
-    hb_codepoint_t u;
-    const T *old_next = next;
-    next = utf_t::next (next, end, &u, replacement);
-    buffer->add (u, old_next - (const T *) text);
+    if (unlikely (!buffer->ensure (buffer->len + 1)))
+    {
+      next = end;
+      break;
+    }
+    /* Each remaining code unit produces at most one glyph. Decode up to
+     * the available space before checking capacity again. */
+    const T *limit = next + hb_min ((unsigned) (end - next),
+				    buffer->allocated - buffer->len - 1);
+    hb_glyph_info_t *out = buffer->info + buffer->len;
+    do
+    {
+      hb_codepoint_t u;
+      const T *old_next = next;
+      next = utf_t::next (next, end, &u, replacement);
+      *out = {};
+      out->codepoint = u;
+      out->cluster = old_next - text;
+      out++;
+    } while (next < limit);
+    buffer->len = out - buffer->info;
   }
 
   /* Add post-context */
