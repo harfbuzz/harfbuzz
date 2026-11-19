@@ -383,6 +383,59 @@ test_recycle_blob (void)
   hb_gpu_draw_destroy (draw);
 }
 
+static void
+test_recycle_blob_immutable (void)
+{
+  /* A sub-blob makes its parent immutable.  Recycling such a blob
+   * must not let the next encode overwrite or free its data. */
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (draw);
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 1.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 0.f, 1.f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
+  g_assert_nonnull (blob);
+  unsigned first_length = hb_blob_get_length (blob);
+  g_assert_cmpuint (first_length, >, 0);
+  char *copy = (char *) g_malloc (first_length);
+  memcpy (copy, hb_blob_get_data (blob, nullptr), first_length);
+
+  hb_blob_t *kept = hb_blob_create_sub_blob (blob, 0, first_length);
+  g_assert_true (hb_blob_is_immutable (blob));
+
+  hb_gpu_draw_recycle_blob (draw, blob);
+
+  for (unsigned i = 0; i < 8; i++)
+  {
+    float x = 3.f * i;
+    hb_draw_move_to (funcs, draw, &st, x, 0.f);
+    hb_draw_line_to (funcs, draw, &st, x + 2.f, 0.f);
+    hb_draw_quadratic_to (funcs, draw, &st, x + 3.f, 1.f, x + 2.f, 2.f);
+    hb_draw_line_to (funcs, draw, &st, x, 2.f);
+    hb_draw_close_path (funcs, draw, &st);
+  }
+  hb_blob_t *blob2 = hb_gpu_draw_encode (draw, nullptr);
+  g_assert_nonnull (blob2);
+  g_assert_true (blob2 != blob);
+  g_assert_cmpuint (hb_blob_get_length (blob2), >, first_length);
+
+  unsigned kept_length;
+  const char *kept_data = hb_blob_get_data (kept, &kept_length);
+  g_assert_cmpuint (kept_length, ==, first_length);
+  g_assert_true (0 == memcmp (kept_data, copy, first_length));
+
+  g_free (copy);
+  hb_blob_destroy (kept);
+  hb_blob_destroy (blob2);
+  hb_gpu_draw_destroy (draw);
+}
+
 /* The fragment shader picks a single horizontal and a single vertical
  * band from the fragment position and only walks that band's curve
  * list.  So every curve must be listed in every band that its
@@ -1128,6 +1181,7 @@ main (int argc, char **argv)
   hb_test_add (test_encode_quantizes_extents_outward);
   hb_test_add (test_encode_preserves_touching_contours);
   hb_test_add (test_recycle_blob);
+  hb_test_add (test_recycle_blob_immutable);
   hb_test_add (test_encode_band_membership);
   hb_test_add (test_extents_saturate_overflow);
   hb_test_add (test_shapes);

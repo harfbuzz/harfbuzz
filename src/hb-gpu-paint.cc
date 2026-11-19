@@ -1722,6 +1722,12 @@ hb_gpu_paint_reset (hb_gpu_paint_t *paint)
  * will be reused by the next call to hb_gpu_paint_encode(),
  * avoiding a malloc / blob allocation per glyph.
  *
+ * Finish accessing @blob and its data before recycling, and do
+ * not keep other references to it: later encodes may reuse the
+ * blob and overwrite its data.  An immutable blob, such as one
+ * that a sub-blob was created from, is not reused; it is simply
+ * destroyed.
+ *
  * Since: 14.2.0
  **/
 void

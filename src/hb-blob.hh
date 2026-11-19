@@ -215,7 +215,8 @@ struct hb_blob_t
   /* Stash @blob in @slot as the recycled output for the next
    * encode.  Destroys any previously stashed blob.  Safe to call
    * with @blob = nullptr or the empty-singleton blob (treated as
-   * "drop"). */
+   * "drop").  An immutable blob is dropped as well: its data is
+   * not ours to rewrite. */
   static inline void
   recycle_stash (hb_blob_t **slot, hb_blob_t *blob)
   {
@@ -223,6 +224,11 @@ struct hb_blob_t
     *slot = nullptr;
     if (!blob || blob == hb_blob_get_empty ())
       return;
+    if (hb_blob_is_immutable (blob))
+    {
+      hb_blob_destroy (blob);
+      return;
+    }
     *slot = blob;
   }
 };

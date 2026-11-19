@@ -26,6 +26,7 @@
 #undef NDEBUG
 #endif
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <hb.h>
@@ -298,6 +299,64 @@ test_recycle_blob_across_contexts (void)
   }
 }
 
+static void
+test_recycle_blob_immutable (hb_vector_format_t format)
+{
+  /* A sub-blob makes its parent immutable.  Recycling such a blob
+   * must not let the next render overwrite or free its data. */
+  hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (format);
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (format);
+  assert (draw && paint);
+  hb_vector_extents_t extents = {0, 0, 10, 10};
+
+  for (unsigned use_paint = 0; use_paint < 2; use_paint++)
+  {
+    draw_triangle (draw);
+    hb_blob_t *blob = hb_vector_draw_render (draw);
+    assert (blob);
+    unsigned length;
+    const char *data = hb_blob_get_data (blob, &length);
+    assert (length);
+    char *copy = (char *) malloc (length);
+    assert (copy);
+    memcpy (copy, data, length);
+
+    hb_blob_t *kept = hb_blob_create_sub_blob (blob, 0, length);
+    assert (hb_blob_is_immutable (blob));
+
+    hb_blob_t *blob2;
+    if (use_paint)
+    {
+      hb_vector_paint_recycle_blob (paint, blob);
+      hb_vector_paint_set_extents (paint, &extents);
+      for (unsigned i = 0; i < 8; i++)
+	paint_rectangle (paint, HB_COLOR (i, 0, 255, 128));
+      blob2 = hb_vector_paint_render (paint);
+    }
+    else
+    {
+      hb_vector_draw_recycle_blob (draw, blob);
+      for (unsigned i = 0; i < 8; i++)
+	draw_triangle (draw);
+      blob2 = hb_vector_draw_render (draw);
+    }
+    assert (blob2 && blob2 != blob);
+    assert (hb_blob_get_length (blob2) > length);
+
+    unsigned kept_length;
+    const char *kept_data = hb_blob_get_data (kept, &kept_length);
+    assert (kept_length == length);
+    assert (!memcmp (kept_data, copy, length));
+
+    free (copy);
+    hb_blob_destroy (kept);
+    hb_blob_destroy (blob2);
+  }
+
+  hb_vector_paint_destroy (paint);
+  hb_vector_draw_destroy (draw);
+}
+
 int
 main (void)
 {
@@ -311,5 +370,7 @@ main (void)
   test_paint_render_failure (HB_VECTOR_FORMAT_SVG);
   test_paint_render_failure (HB_VECTOR_FORMAT_PDF);
   test_recycle_blob_across_contexts ();
+  test_recycle_blob_immutable (HB_VECTOR_FORMAT_SVG);
+  test_recycle_blob_immutable (HB_VECTOR_FORMAT_PDF);
   return 0;
 }

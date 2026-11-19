@@ -1157,9 +1157,15 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
  * Returns a blob to the encoder for potential reuse.
  * The caller transfers ownership of @blob.
  *
- * Currently this simply destroys the blob.  A future version
- * may reclaim the underlying buffer to avoid allocation on the
- * next hb_gpu_draw_encode() call.
+ * If @blob came from hb_gpu_draw_encode() its underlying buffer
+ * will be reused by the next call to hb_gpu_draw_encode(),
+ * avoiding a malloc / blob allocation per glyph.
+ *
+ * Finish accessing @blob and its data before recycling, and do
+ * not keep other references to it: later encodes may reuse the
+ * blob and overwrite its data.  An immutable blob, such as one
+ * that a sub-blob was created from, is not reused; it is simply
+ * destroyed.
  *
  * Since: 14.0.0
  **/

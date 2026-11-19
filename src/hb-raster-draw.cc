@@ -568,6 +568,10 @@ hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw)
  * call, avoiding per-render memory allocation.  The caller transfers
  * ownership of @image to @draw and must not use it afterwards.
  *
+ * Finish accessing @image and its buffer before recycling, and do
+ * not keep other references to it: later renders may reuse the
+ * image and overwrite its contents.
+ *
  * If @draw already holds a recycled image, the previously recycled
  * image is destroyed.
  *

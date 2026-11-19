@@ -2650,7 +2650,12 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
  * @image: a raster image to recycle
  *
  * Recycles @image for reuse by subsequent render calls.
- * The caller transfers ownership of @image to @paint.
+ * The caller transfers ownership of @image to @paint and must not
+ * use it afterwards.
+ *
+ * Finish accessing @image and its buffer before recycling, and do
+ * not keep other references to it: later renders may reuse the
+ * image and overwrite its contents.
  *
  * Since: 13.0.0
  **/
