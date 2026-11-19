@@ -424,7 +424,7 @@ test_shape_harfrust_budget (void)
 
   /* One ranged feature per entry; count times the text length exceeds the
    * per-text op budget, which HarfRust charges in setup_masks(). */
-  const unsigned num_features = 20000;
+  const unsigned num_features = 100000;
   hb_feature_t *features = g_new0 (hb_feature_t, num_features);
   for (unsigned i = 0; i < num_features; i++)
   {

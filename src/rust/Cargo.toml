@@ -4,9 +4,7 @@ edition = "2021"
 rust-version = "1.87.0"
 
 [dependencies]
-# Use the not-found glyph API from https://github.com/harfbuzz/harfrust/pull/613
-# until it is available in a published release.
-harfrust = { git = "https://github.com/harfbuzz/harfrust", rev = "4ca28769683b6bf8f4d0bd72fbe762080d0ff485", optional = true }
+harfrust = { version = "0.16.1", optional = true }
 # harfrust = { git = "https://github.com/harfbuzz/harfrust", optional = true }
 read-fonts = { version = "0.46.*", optional = true }
 skrifa = { version = "0.49.*", optional = true, default-features = false, features = ["std"] }
