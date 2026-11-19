@@ -90,6 +90,7 @@
 #pragma GCC diagnostic error   "-Wredundant-decls"
 #pragma GCC diagnostic error   "-Wreorder"
 #pragma GCC diagnostic error   "-Wsign-compare"
+#pragma GCC diagnostic error   "-Wstrict-aliasing"
 #pragma GCC diagnostic error   "-Wstrict-flex-arrays"
 #pragma GCC diagnostic error   "-Wstrict-prototypes"
 #pragma GCC diagnostic error   "-Wstring-conversion"
@@ -155,7 +156,6 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
 #pragma GCC diagnostic ignored "-Wrange-loop-analysis" // https://github.com/harfbuzz/harfbuzz/issues/2834
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #pragma GCC diagnostic ignored "-Wunused-template"
 #pragma GCC diagnostic ignored "-Wc++11-compat" // only gcc raises it
