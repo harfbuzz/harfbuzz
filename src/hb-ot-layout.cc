@@ -1975,6 +1975,9 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 {
   bool use_hot_subtable_cache = accel.cache_enter (c);
 
+  /* The lookup digest is immutable. Keep its masks in registers while
+   * scanning glyphs, including across table-access compiler barriers. */
+  const hb_set_digest_t digest = accel.digest;
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   while (buffer->successful)
@@ -1982,7 +1985,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     hb_glyph_info_t *info = buffer->info;
     unsigned j = buffer->idx;
     while (j < buffer->len &&
-	   !(accel.digest.may_have (info[j].codepoint) &&
+	   !(digest.may_have (info[j].codepoint) &&
 	     (info[j].mask & c->lookup_mask) &&
 	     c->check_glyph_property (&info[j], c->lookup_props)))
       j++;
