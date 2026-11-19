@@ -35,7 +35,10 @@
 /* hb_raster_clip_t — alpha mask for clipping */
 struct hb_raster_clip_t
 {
-  hb_vector_t<uint8_t> alpha;	/* A8 mask, same extents as root surface */
+  /* A8 mask, same extents as root surface.  It is zero outside the
+   * bounding box below: building a mask writes only the pixels it can
+   * cover, and the buffer is zeroed again before it is cached. */
+  hb_vector_t<uint8_t> alpha;
   unsigned width  = 0;
   unsigned height = 0;
   unsigned stride = 0;
@@ -64,6 +67,10 @@ struct hb_raster_clip_t
     max_x = w;
     max_y = h;
   }
+
+  /* Nothing is painted through an empty clip. */
+  bool is_empty () const
+  { return min_x >= max_x || min_y >= max_y; }
 
   void update_bounds_from_rect ()
   {
@@ -95,6 +102,25 @@ struct hb_raster_clip_t
     if (height && stride > (size_t) -1 / height)
       return false;
     return (size_t) stride * height <= alpha.length;
+  }
+
+  /* Makes the alpha buffer cover the surface.  A cached buffer is all
+   * zero, so only growth needs initializing. */
+  bool alloc_alpha ()
+  {
+    size_t size = (size_t) stride * height;
+    if (unlikely (size > HB_RASTER_MAX_BUFFER_SIZE))
+      return false;
+    return size <= alpha.length || alpha.resize ((unsigned) size);
+  }
+
+  /* Zeroes the mask, returning the buffer to its cached state. */
+  void clear_alpha ()
+  {
+    if (is_rect || min_x >= max_x || !has_valid_alpha_mask ())
+      return;
+    for (unsigned y = min_y; y < max_y; y++)
+      hb_memset (alpha.arrayZ + (size_t) y * stride + min_x, 0, max_x - min_x);
   }
 };
 
@@ -193,7 +219,10 @@ struct hb_raster_paint_t
     return true;
   }
 
-  hb_raster_image_t *acquire_surface ()
+  /* Takes a surface out of the cache, or makes one, laid out as the root
+   * is.  It still holds what was painted on it, within its painted box;
+   * one that had another layout may hold anything anywhere. */
+  hb_raster_image_t *take_surface ()
   {
     hb_raster_image_t *img;
     if (surface_cache.length)
@@ -204,14 +233,35 @@ struct hb_raster_paint_t
       if (unlikely (!img)) return nullptr;
     }
 
+    hb_raster_format_t format = img->format;
+    hb_raster_extents_t layout = img->extents;
     const hb_raster_extents_t &extents = get_surface_extents ();
     if (unlikely (!img->configure (HB_RASTER_FORMAT_BGRA32, extents)))
     {
       hb_raster_image_destroy (img);
       return nullptr;
     }
-    img->clear ();
+    if (img->format != format ||
+	img->extents.width != layout.width ||
+	img->extents.height != layout.height ||
+	img->extents.stride != layout.stride)
+      img->painted = {0, 0, img->extents.width, img->extents.height};
     return img;
+  }
+
+  hb_raster_image_t *acquire_surface ()
+  {
+    hb_raster_image_t *img = take_surface ();
+    if (likely (img))
+      img->clear_painted ();
+    return img;
+  }
+
+  /* Notes that painting through the current clip can touch @surf. */
+  void mark_painted (hb_raster_image_t *surf)
+  {
+    const hb_raster_clip_t &clip = current_clip ();
+    surf->painted.add ({clip.min_x, clip.min_y, clip.max_x, clip.max_y});
   }
 
   void release_surface (hb_raster_image_t *img)
@@ -238,7 +288,10 @@ struct hb_raster_paint_t
   void release_clip (hb_raster_clip_t &&clip)
   {
     if (clip.alpha.arrayZ)
+    {
+      clip.clear_alpha ();
       clip_cache.push (std::move (clip));
+    }
   }
 
   void release_all_clips ()

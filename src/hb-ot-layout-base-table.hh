@@ -479,10 +479,18 @@ struct BaseLangSysRecord
 
 struct BaseScript
 {
-  const MinMax &get_min_max (hb_tag_t language_tag) const
+  void get_min_max (hb_tag_t language_tag, hb_tag_t feature_tag,
+		    const BaseCoord **min, const BaseCoord **max) const
   {
+    (this+defaultMinMax).get_min_max (feature_tag, min, max);
     const BaseLangSysRecord& record = baseLangSysRecords.bsearch (language_tag);
-    return record.has_data () ? record.get_min_max (this) : this+defaultMinMax;
+    if (record.has_data ())
+    {
+      const BaseCoord *lang_min, *lang_max;
+      record.get_min_max (this).get_min_max (feature_tag, &lang_min, &lang_max);
+      if (lang_min->has_data ()) *min = lang_min;
+      if (lang_max->has_data ()) *max = lang_max;
+    }
   }
 
   const BaseCoord &get_base_coord (int baseline_tag_index) const
@@ -602,6 +610,9 @@ struct BaseScriptRecord
 
 struct BaseScriptList
 {
+  bool has_script (hb_tag_t script) const
+  { return baseScriptRecords.bsearch (script).has_data (); }
+
   const BaseScript &get_base_script (hb_tag_t script) const
   {
     const BaseScriptRecord *record = &baseScriptRecords.bsearch (script);
@@ -656,6 +667,15 @@ struct BaseScriptList
 
 struct Axis
 {
+  hb_tag_t select_script (hb_array_t<const hb_tag_t> script_tags) const
+  {
+    for (hb_tag_t tag : script_tags)
+      if ((this+baseScriptList).has_script (tag))
+        return tag;
+    /* Keep the Unicode script available to baseline synthesis on a miss. */
+    return script_tags.length ? script_tags[script_tags.length - 1] : HB_OT_TAG_DEFAULT_SCRIPT;
+  }
+
   bool get_baseline (hb_tag_t          baseline_tag,
 		     hb_tag_t          script_tag,
 		     hb_tag_t          language_tag,
@@ -695,7 +715,7 @@ struct Axis
       return false;
     }
 
-    base_script.get_min_max (language_tag).get_min_max (feature_tag, min_coord, max_coord);
+    base_script.get_min_max (language_tag, feature_tag, min_coord, max_coord);
 
     return true;
   }
@@ -843,7 +863,9 @@ struct BASE
   {
     const BaseCoord *min_coord, *max_coord;
     if (!get_axis (direction).get_min_max (script_tag, language_tag, feature_tag,
-					   &min_coord, &max_coord))
+					   &min_coord, &max_coord) ||
+	(min && (!min_coord || !min_coord->has_data ())) ||
+	(max && (!max_coord || !max_coord->has_data ())))
       return false;
 
     const ItemVariationStore &var_store = get_var_store ();

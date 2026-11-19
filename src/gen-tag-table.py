@@ -20,7 +20,7 @@ case, the fallback behavior will choose the right tag anyway.
 usage: ./gen-tag-table.py [--rust] languagetags language-subtag-registry
 
 Input files:
-* https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags
+* https://learn.microsoft.com/en-us/typography/opentype/spec/languagetags
 * https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
 """
 

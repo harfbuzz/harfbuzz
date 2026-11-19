@@ -50,7 +50,7 @@ test_instance_cff2 (void)
                                      HB_TAG ('C', 'N', 'T', 'R'),
                                      0);
 
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (expected, face_abc_subset, HB_TAG ('C','F','F', '2'));

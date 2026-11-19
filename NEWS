@@ -4,6 +4,8 @@ Overview of changes leading to REPLACEME
   avoiding the overhead of setting up default font functions first.
 - Avoid loading a second FreeType face in `hb_ft_font_create()` when FreeType
   is the default font backend.
+- The deprecated `hb_font_set_face()` now does nothing. To use another face,
+  create a new font with `hb_font_create()`.
 
 - New API:
   +hb_font_create_without_funcs_or_fail()

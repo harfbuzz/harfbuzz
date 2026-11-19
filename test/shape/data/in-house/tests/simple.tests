@@ -8,3 +8,17 @@
 ../fonts/8f0b8947e8c9bc0c11ac95d91654bd1b769e494a.ttf;--features=salt[1:2]=2,salt=1;U+0061,U+0061,U+0061;[a.one=0+500|a.one=1+500|a.one=2+500]
 ../fonts/8f0b8947e8c9bc0c11ac95d91654bd1b769e494a.ttf;--features=salt[1:2]=2,salt=0;U+0061,U+0061,U+0061;[a=0+500|a=1+500|a=2+500]
 ../fonts/8f0b8947e8c9bc0c11ac95d91654bd1b769e494a.ttf;--features=salt=0,salt[1:2]=2;U+0061,U+0061,U+0061;[a=0+500|a.two=1+500|a=2+500]
+
+# Range-compressed SingleSubst/SinglePos tables are valid despite large populations.
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01 --font-size=1000 --no-glyph-names;U+4E00;[2=0+510]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss02 --font-size=1000 --no-glyph-names;U+4E00;[3=0+520]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss03 --font-size=1000 --no-glyph-names;U+4E00;[4=0+530]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01,ss02,ss03 --font-size=1000 --no-glyph-names;U+4E00;[7=0+560]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01=0,ss02=0,ss03=0 --font-size=1000 --no-glyph-names;U+4E00;[1=0+500]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01[1:] --font-size=1000 --no-glyph-names;U+4E00,U+4E00;[1=0+500|2=1+510]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01 --font-size=2000 --no-glyph-names;U+4E00;[2=0+1020]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss02 --font-size=2000 --no-glyph-names;U+4E00;[3=0+1040]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss03 --font-size=2000 --no-glyph-names;U+4E00;[4=0+1060]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01,ss02,ss03 --font-size=2000 --no-glyph-names;U+4E00;[7=0+1120]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01=0,ss02=0,ss03=0 --font-size=2000 --no-glyph-names;U+4E00;[1=0+1000]
+../fonts/3f3c4796063cb004183868fbf9cd25ab8bc259f6.ttf;--features=ss01[1:] --font-size=2000 --no-glyph-names;U+4E00,U+4E00;[1=0+1000|2=1+1020]

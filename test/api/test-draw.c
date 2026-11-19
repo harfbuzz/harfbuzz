@@ -1151,6 +1151,31 @@ test_hb_draw_cff_budget (void)
 }
 
 static void
+test_hb_draw_cff_truncated_charstrings (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1-truncated-charstrings.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  draw_budget_data_t data = {HB_BUDGET_DEFAULT, 0};
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_set_budget_func (draw_funcs, draw_set_budget, NULL, NULL);
+  hb_draw_funcs_set_get_budget_remaining_func (draw_funcs, draw_get_budget_remaining, NULL, NULL);
+  g_assert_true (hb_draw_set_budget (draw_funcs, &data, 1000));
+
+  /* Missing endchar and truncated escaped operators must fail promptly,
+   * leaving the shared drawing budget available for the valid glyph. */
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 1, draw_funcs, &data));
+  g_assert_cmpint (data.live, >, 0);
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 3, draw_funcs, &data));
+  g_assert_cmpint (data.live, >, 0);
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 2, draw_funcs, &data));
+
+  hb_draw_funcs_destroy (draw_funcs);
+  hb_font_destroy (font);
+}
+
+static void
 test_hb_draw_cff2_blend_budget (void)
 {
   /* A charstring that pushes 100 numbers and then blends all of them 100
@@ -1539,6 +1564,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_immutable);
   hb_test_add (test_hb_draw_budget);
   hb_test_add (test_hb_draw_cff_budget);
+  hb_test_add (test_hb_draw_cff_truncated_charstrings);
   hb_test_add (test_hb_draw_cff2_blend_budget);
   hb_test_add (test_hb_draw_glyf_composite_budget);
   hb_test_add (test_hb_draw_cff2_blend_region_budget);

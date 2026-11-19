@@ -1,0 +1,8 @@
+FONTS:
+gsub-expanded-single-subst.ttf
+
+PROFILES:
+expanded-single-subst.txt
+
+SUBSETS:
+no-unicodes

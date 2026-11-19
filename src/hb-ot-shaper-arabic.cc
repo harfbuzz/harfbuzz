@@ -588,6 +588,8 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
       /* See if we can improve the fit by adding an extra repeat and squeezing them together a bit. */
       hb_position_t extra_repeat_overlap = 0;
       int64_t shortfall = w_remaining_signed - w_repeating_signed * (n_copies + 1);
+      if (shortfall <= 0)
+	w_remaining = hb_clamp_to<hb_position_t> (-shortfall * sign);
       if (shortfall > 0 && n_repeating > 0)
       {
 	++n_copies;
@@ -623,6 +625,8 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
       {
 	buffer->unsafe_to_break (context, end);
 	hb_position_t x_offset = w_remaining / 2;
+	if (!rtl)
+	  x_offset = -x_offset;
 	for (unsigned int k = end; k > start; k--)
 	{
           hb_position_t width = pos[k - 1].stch_advance();

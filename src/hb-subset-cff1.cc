@@ -227,6 +227,14 @@ struct cff1_font_dict_op_serializer_t : cff_font_dict_op_serializer_t
 
 struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatten_param_t>
 {
+  static void drop_glyph_outline (cff1_cs_interp_env_t &env, flatten_param_t &param)
+  {
+    param.flatStr.clear ();
+    if (env.has_width)
+      flush_width (env, param);
+    flush_op (OpCode_endchar, env, param);
+  }
+
   static void flush_args_and_op (op_code_t op, cff1_cs_interp_env_t &env, flatten_param_t& param)
   {
     if (env.arg_start > 0)

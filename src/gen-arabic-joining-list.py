@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""usage: ./gen-arabic-joining-table.py ArabicShaping.txt Scripts.txt
+"""usage: ./gen-arabic-joining-list.py ArabicShaping.txt Scripts.txt
 
 Input files:
 * https://unicode.org/Public/UCD/latest/ucd/ArabicShaping.txt

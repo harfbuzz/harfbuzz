@@ -1061,7 +1061,7 @@ struct MathVariants
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = c->plan->_glyphset_cmaped;
+    const hb_set_t &glyphset = c->plan->_glyphset_gsub;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     auto *out = c->serializer->start_embed (*this);

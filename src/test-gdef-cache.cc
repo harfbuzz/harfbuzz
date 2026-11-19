@@ -42,6 +42,47 @@ struct iterator_t : OT::skipping_iterator_t<matcher_context_t>
 {
   const hb_bit_vector_t<> *get_mark_filter () const { return matcher.mark_filter; }
 };
+
+struct skip_context_t : matcher_context_t
+{
+  using matcher_context_t::matcher_context_t;
+  bool check_glyph_property (const hb_glyph_info_t *info,
+                            unsigned HB_UNUSED,
+                            const hb_bit_vector_t<> * HB_UNUSED) const
+  { return info->codepoint != 1; }
+};
+
+static void test_skip_budget (const OT::GDEF::accelerator_t &gdef)
+{
+  hb_buffer_t *buffer = hb_buffer_create ();
+  skip_context_t context (gdef, buffer);
+  for (bool backward : {false, true})
+    for (unsigned ending = 0; ending < 3; ending++)
+      for (int budget = 0; budget <= 3; budget++)
+      {
+        hb_buffer_clear_contents (buffer);
+        for (unsigned i = 0; i < 4; i++)
+          hb_buffer_add (buffer, ending == 2 || (i != 0 && i != 3) ? 1 : 0, i);
+        for (unsigned i = 0; i < 4; i++) buffer->info[i].mask = 1;
+        buffer->idx = backward ? 3 : 0;
+        buffer->out_info = buffer->info;
+        buffer->out_len = buffer->len;
+        if (ending == 1) buffer->info[backward ? 0 : 3].mask = 0;
+        buffer->max_ops = budget;
+        OT::skipping_iterator_t<skip_context_t> iter;
+        iter.init (&context);
+        if (backward) iter.reset_back (3);
+        else iter.reset (0);
+        unsigned unsafe = UINT_MAX;
+        bool matched = backward ? iter.prev (&unsafe) : iter.next (&unsafe);
+        unsigned skipped = ending == 2 ? 3 : 2;
+        hb_always_assert (matched == (ending == 0));
+        hb_always_assert (buffer->max_ops == budget - (int) skipped);
+        hb_always_assert (buffer->successful == (budget >= (int) skipped));
+        if (!matched) hb_always_assert (unsafe == (backward ? 0u : 4u));
+      }
+  hb_buffer_destroy (buffer);
+}
 #endif
 
 int
@@ -93,6 +134,7 @@ main ()
                         accel->table->mark_set_covers (set, glyph));
     hb_always_assert (!accel->mark_set_covers (set, UINT_MAX));
   }
+  test_skip_budget (*accel);
   hb_buffer_destroy (buffer);
   hb_face_destroy (face);
 #endif

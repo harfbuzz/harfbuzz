@@ -72,7 +72,7 @@ struct MarkBasePosFormat1_2
 
   const Coverage &get_coverage () const { return this+markCoverage; }
 
-  static bool accept (hb_buffer_t *buffer, unsigned idx)
+  static inline bool accept (hb_buffer_t *buffer, unsigned idx)
   {
     /* We only want to attach to the first of a MultipleSubst sequence.
      * https://github.com/harfbuzz/harfbuzz/issues/740
@@ -120,9 +120,9 @@ struct MarkBasePosFormat1_2
 	    NOT_COVERED == (this+baseCoverage).get_coverage  (buffer->info[j - 1].codepoint))
 	  match = skippy_iter.SKIP;
       }
-      if (match == skippy_iter.MATCH)
+      if (match != skippy_iter.SKIP)
       {
-	c->last_base = (signed) j - 1;
+	c->last_base = match == skippy_iter.MATCH ? (signed) j - 1 : -1;
 	break;
       }
     }

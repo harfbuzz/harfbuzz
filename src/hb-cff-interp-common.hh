@@ -592,12 +592,18 @@ struct interp_env_t
   {
     op_code_t  op = OpCode_Invalid;
     if (unlikely (!str_ref.avail ()))
+    {
+      set_error ();
       return OpCode_Invalid;
+    }
     op = (op_code_t) str_ref.head_unchecked ();
     str_ref.inc ();
     if (op == OpCode_escape) {
       if (unlikely (!str_ref.avail ()))
+      {
+	set_error ();
 	return OpCode_Invalid;
+      }
       op = Make_OpCode_ESC (str_ref.head_unchecked ());
       str_ref.inc ();
     }

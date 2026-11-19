@@ -30,13 +30,6 @@ struct SinglePosFormat1_3 : ValueBase
     return_trace (c->check_struct (this) &&
                   coverage.sanitize (c, this) &&
 		  hb_barrier () &&
-                  /* The coverage  table may use a range to represent a set
-                   * of glyphs, which means a small number of bytes can
-                   * generate a large glyph set. Manually modify the
-                   * sanitizer max ops to take this into account.
-                   *
-                   * Note: This check *must* be right after coverage sanitize. */
-                  c->check_ops ((this + coverage).get_population () >> 1) &&
                   valueFormat.sanitize_value (c, this, values));
 
   }
@@ -142,7 +135,8 @@ struct SinglePosFormat1_3 : ValueBase
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_set_t intersection;
-    (this+coverage).intersect_set (glyphset, intersection);
+    if (unlikely (!(this+coverage).intersect_set (c, glyphset, intersection)))
+      return_trace (false);
 
     unsigned new_format = valueFormat;
 

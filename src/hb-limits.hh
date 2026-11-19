@@ -73,7 +73,7 @@
  * This must be larger than the number of times add_gsub_pause() is
  * called in a collect_features call of any shaper.
  */
-#define HB_CLOSURE_MAX_STAGES 12
+#define HB_CLOSURE_MAX_STAGES 16
 #endif
 
 #ifndef HB_MAX_SCRIPTS
@@ -161,16 +161,22 @@
 #define HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH 64
 #endif
 
+/* Maximum serialized subset table size, as a multiple of the source table
+ * length, with a floor for compact tables that expand under renumbering.
+ * The serializer's INT_MAX allocation ceiling still applies. */
+#ifndef HB_SUBSET_MAX_TABLE_SIZE_FACTOR
+#define HB_SUBSET_MAX_TABLE_SIZE_FACTOR 256
+#endif
+#ifndef HB_SUBSET_MAX_TABLE_SIZE_MIN
+#define HB_SUBSET_MAX_TABLE_SIZE_MIN ((uint64_t) 1 << 20)
+#endif
+
 /* Source bytes of all the glyphs the subsetter retains, as a multiple of
  * the glyf table length; exceeding it fails the plan.  A monotonic loca
  * never needs more than one; a loca that aliases the same bytes to many
  * glyph IDs makes trimming and hint dropping cost that many table scans. */
 #ifndef HB_SUBSET_GLYF_MAX_BYTES_FACTOR
 #define HB_SUBSET_GLYF_MAX_BYTES_FACTOR 16
-#endif
-
-#ifndef HB_SVG_MAX_PATH_SEGMENTS
-#define HB_SVG_MAX_PATH_SEGMENTS 262144
 #endif
 
 #ifndef HB_GPU_DRAW_MAX_CURVES
@@ -217,7 +223,7 @@
  * which the outline work budget cannot see.  Unsigned (not size_t like the
  * SVG-table limit above) to match hb_vector_buf_t's unsigned length arithmetic. */
 #ifndef HB_VECTOR_MAX_DOCUMENT_SIZE
-#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 16 << 20)
+#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 40 << 20)
 #endif
 
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
@@ -264,7 +270,7 @@
 /* The common finite default for one top-level glyph rendering session.
  * Nested outline and paint work shares the same live counter. */
 #ifndef HB_BUDGET_GLYPH
-#define HB_BUDGET_GLYPH ((int64_t) 1 << 24)
+#define HB_BUDGET_GLYPH ((int64_t) 1 << 25)
 #endif
 
 /* Precharge COST * MULT.  Callers bound COST and MULT structurally, and live
@@ -321,14 +327,32 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 
 /* The flat pixel-work floor for one raster draw or paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
- * the common outline budget above. */
+ * the common outline budget above.
+ *
+ * Small surfaces live off this.  What a layer of a color paint costs does
+ * not shrink as fast as the area of the surface does, so the smaller the
+ * surface, the more times its area a glyph needs: Bitcount Ink with every
+ * axis at its maximum needs 680 times at 64 pixels per em, 3 million in
+ * all, and 18 million at 256. */
 #ifndef HB_BUDGET_RASTER_PIXELS
 #define HB_BUDGET_RASTER_PIXELS ((int64_t) 1 << 26)
 #endif
 
-/* Very large raster surfaces still get a few full-surface operations. */
+/* Larger paint surfaces get pixel work in proportion to their area.  A
+ * layer is charged for its mask, its clip and its fill, over the box it
+ * can show in.  The most that takes at 2048 pixels per em is 122 times
+ * the area of the surface, for Bitcount Ink with every axis at its
+ * maximum; allow four times that.  Its default instance needs 18 times,
+ * and the heaviest glyph of Noto Color Emoji 110. */
 #ifndef HB_BUDGET_RASTER_PAINT_PASSES
-#define HB_BUDGET_RASTER_PAINT_PASSES 4
+#define HB_BUDGET_RASTER_PAINT_PASSES 512
+#endif
+
+/* Sweeping an outline costs a small fraction of the area of its mask, and
+ * far less than the floor at any size, so a very large mask gets just a
+ * few times its own. */
+#ifndef HB_BUDGET_RASTER_DRAW_PASSES
+#define HB_BUDGET_RASTER_DRAW_PASSES 4
 #endif
 
 /* One raster draw session, in accumulated non-horizontal edges. */

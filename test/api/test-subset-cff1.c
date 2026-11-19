@@ -39,7 +39,7 @@ test_subset_cff1_noop (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
-  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('C','F','F',' '));
@@ -58,7 +58,7 @@ test_subset_cff1 (void)
   hb_face_t *face_abc_subset;
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
-  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C','F','F',' '));
@@ -81,7 +81,7 @@ test_subset_cff1_strip_hints (void)
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C', 'F', 'F', ' '));
@@ -104,7 +104,7 @@ test_subset_cff1_desubr (void)
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_DESUBROUTINIZE);
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C','F','F',' '));
@@ -128,7 +128,7 @@ test_subset_cff1_desubr_strip_hints (void)
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input,
                              HB_SUBSET_FLAGS_NO_HINTING | HB_SUBSET_FLAGS_DESUBROUTINIZE);
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C', 'F', 'F', ' '));
@@ -148,7 +148,7 @@ test_subset_cff1_j (void)
   hb_face_t *face_41_3041_4c2e_subset;
   hb_set_add (codepoints, 0x41);
   hb_set_add (codepoints, 0x4C2E);
-  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, hb_subset_test_create_input (codepoints));
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset_keep_notdef (face_41_3041_4c2e, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
@@ -171,7 +171,7 @@ test_subset_cff1_j_strip_hints (void)
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
-  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset_keep_notdef (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
@@ -194,7 +194,7 @@ test_subset_cff1_j_desubr (void)
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_DESUBROUTINIZE);
-  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset_keep_notdef (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
@@ -218,7 +218,7 @@ test_subset_cff1_j_desubr_strip_hints (void)
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input,
                              HB_SUBSET_FLAGS_NO_HINTING | HB_SUBSET_FLAGS_DESUBROUTINIZE);
-  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset_keep_notdef (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
@@ -239,7 +239,7 @@ test_subset_cff1_expert (void)
   hb_set_add (codepoints, 0x2D);
   hb_set_add (codepoints, 0xF6E9);
   hb_set_add (codepoints, 0xFB00);
-  face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  face_test = hb_subset_test_create_subset_keep_notdef (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
@@ -258,7 +258,7 @@ test_subset_cff1_seac (void)
 
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 0xC0);  /* Agrave */
-  face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  face_test = hb_subset_test_create_subset_keep_notdef (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
@@ -304,7 +304,7 @@ test_subset_cff1_seac_precheck (void)
     hb_face_t *face = hb_test_open_font_file (fonts[i]);
     hb_set_t *codepoints = hb_set_create ();
     hb_set_add (codepoints, 0xC1);  /* Aacute */
-    hb_face_t *subset = hb_subset_test_create_subset (face,
+    hb_face_t *subset = hb_subset_test_create_subset_keep_notdef (face,
                                                        hb_subset_test_create_input (codepoints));
     hb_set_destroy (codepoints);
 
@@ -328,7 +328,7 @@ test_subset_cff1_encoding_supplement (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 0x42);  /* B */
   hb_set_add (codepoints, 0x43);  /* C */
-  face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  face_test = hb_subset_test_create_subset_keep_notdef (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
@@ -350,7 +350,7 @@ test_subset_cff1_dotsection (void)
   hb_set_add (codepoints, 0x69);  /* i */
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
-  face_test = hb_subset_test_create_subset (face, input);
+  face_test = hb_subset_test_create_subset_keep_notdef (face, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
@@ -398,7 +398,7 @@ test_subset_cff1_retaingids (void)
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C','F','F',' '));
@@ -422,7 +422,7 @@ test_subset_cff1_encoding_many_codes_retaingids (void)
   hb_set_add (glyphs, 300);
   input = hb_subset_test_create_input_from_glyphs (glyphs);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
-  face_subset = hb_subset_test_create_subset (face, input);
+  face_subset = hb_subset_test_create_subset_keep_notdef (face, input);
   hb_set_destroy (glyphs);
 
   hb_subset_test_check (face_expected, face_subset, HB_TAG ('C','F','F',' '));
@@ -510,7 +510,7 @@ test_subset_cff1_j_retaingids (void)
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
-  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset_keep_notdef (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
@@ -535,7 +535,7 @@ test_subset_cff1_identity_charset (void)
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET);
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C','F','F',' '));
@@ -558,7 +558,7 @@ test_subset_cff1_j_identity_charset (void)
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET);
-  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset_keep_notdef (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
@@ -818,7 +818,7 @@ test_subset_cff1_iftb_requirements (void)
 
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_IFTB_REQUIREMENTS);
-  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  face_abc_subset = hb_subset_test_create_subset_keep_notdef (face_abc, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_long_off, face_abc_subset, HB_TAG ('C','F','F', ' '));
@@ -875,6 +875,38 @@ test_subset_cff1_index_count_overflow (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_cff1_notdef_outline (void)
+{
+  for (unsigned preprocess = 0; preprocess < 2; preprocess++)
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/cff1-notdef-outline.otf");
+    if (preprocess)
+    {
+      hb_face_t *preprocessed = hb_subset_preprocess (face);
+      g_assert_nonnull (preprocessed);
+      hb_face_destroy (face);
+      face = preprocessed;
+    }
+    for (unsigned all = 0; all < 2; all++)
+      for (unsigned mode = 0; mode < 16; mode++)
+      {
+        hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+        unsigned flags = (mode & 1 ? HB_SUBSET_FLAGS_NO_HINTING : 0) |
+                         (mode & 2 ? HB_SUBSET_FLAGS_DESUBROUTINIZE : 0) |
+                         (mode & 4 ? HB_SUBSET_FLAGS_RETAIN_GIDS : 0) |
+                         (mode & 8 ? HB_SUBSET_FLAGS_NOTDEF_OUTLINE : 0);
+        if (all)
+          hb_set_invert (hb_subset_input_unicode_set (input));
+        else
+          hb_set_add (hb_subset_input_unicode_set (input), 'a');
+        hb_subset_input_set_flags (input, flags);
+        hb_subset_test_check_notdef_outline (face, input);
+      }
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -883,6 +915,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_cff1_caller_supplied_subr);
 
+  hb_test_add (test_subset_cff1_notdef_outline);
   hb_test_add (test_subset_cff1_noop);
   hb_test_add (test_subset_cff1);
   hb_test_add (test_subset_cff1_strip_hints);

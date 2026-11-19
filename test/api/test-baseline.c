@@ -169,6 +169,74 @@ test_ot_layout_base_format4 (void)
   hb_face_destroy (face);
 }
 
+
+static void
+test_ot_layout_base_script_versions (void)
+{
+  /* DFLT must not hide a matching versioned Indic script. Each axis
+   * deliberately has a different script tag and baseline value. */
+  static const char BASE_data[] = {
+    0, 1, 0, 0, 0, 8, 0, 64, /* version, horizontal and vertical axes */
+    0, 4, 0, 10, 0, 1, 'r', 'o', 'm', 'n',
+    0, 2, 'D', 'F', 'L', 'T', 0, 14, 'd', 'e', 'v', '2', 0, 30,
+    0, 6, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6, 0, 1, 0, 11,
+    0, 6, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6, 0, 1, 0, 123,
+    0, 4, 0, 10, 0, 1, 'r', 'o', 'm', 'n',
+    0, 2, 'D', 'F', 'L', 'T', 0, 14, 'd', 'e', 'v', 'a', 0, 30,
+    0, 6, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6, 0, 1, 0, 22,
+    0, 6, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6, 0, 1, 0, 124,
+  };
+  for (unsigned version = 0; version < 4; version++)
+  {
+    static const char minmax[] = {0, 6, 0, 10, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0};
+    const unsigned scripts[] = {32, 48, 88, 104};
+    const char values[] = {11, 123, 22, 124};
+    char data[sizeof (BASE_data) + 4 * sizeof (minmax)];
+    memcpy (data, BASE_data, sizeof (BASE_data));
+    for (unsigned i = 0; i < 4; i++)
+    {
+      unsigned offset = sizeof (BASE_data) + i * sizeof (minmax);
+      data[scripts[i] + 3] = offset - scripts[i];
+      memcpy (data + offset, minmax, sizeof (minmax));
+      data[offset + sizeof (minmax) - 1] = values[i];
+    }
+    data[29] = "23aa"[version];
+    if (version == 3)
+      memcpy (data + 20, "dev2", 4); /* Both dev2 and deva: prefer dev2. */
+    hb_face_t *face = hb_face_builder_create ();
+    HB_FACE_ADD_TABLE (face, "BASE", data);
+    hb_font_t *font = hb_font_create (face);
+    for (unsigned vertical = 0; vertical < 2; vertical++)
+    {
+      hb_direction_t direction = vertical ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
+      hb_position_t position;
+      int expected = vertical ? 124 : version == 3 ? 11 : 123;
+      g_assert_true (hb_ot_layout_get_baseline2 (font, HB_OT_LAYOUT_BASELINE_TAG_ROMAN,
+                                                direction, HB_SCRIPT_DEVANAGARI,
+                                                HB_LANGUAGE_INVALID, &position));
+      g_assert_cmpint (position, ==, expected);
+      hb_ot_layout_get_baseline_with_fallback2 (font, HB_OT_LAYOUT_BASELINE_TAG_ROMAN,
+                                               direction, HB_SCRIPT_DEVANAGARI,
+                                               HB_LANGUAGE_INVALID, &position);
+      g_assert_cmpint (position, ==, expected);
+      hb_font_extents_t extents;
+      g_assert_true (hb_ot_layout_get_font_extents2 (font, direction, HB_SCRIPT_DEVANAGARI,
+                                                    HB_LANGUAGE_INVALID, &extents));
+      g_assert_cmpint (extents.ascender, ==, expected);
+      g_assert_cmpint (extents.descender, ==, 0);
+      if (version != 3 || vertical)
+      {
+        g_assert_true (hb_ot_layout_get_baseline2 (font, HB_OT_LAYOUT_BASELINE_TAG_ROMAN,
+                                                  direction, HB_SCRIPT_LATIN,
+                                                  HB_LANGUAGE_INVALID, &position));
+        g_assert_cmpint (position, ==, vertical ? 22 : 11);
+      }
+    }
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -178,6 +246,7 @@ main (int argc, char **argv)
   hb_test_add (test_ot_layout_base);
   hb_test_add (test_ot_layout_base_with_fallback);
   hb_test_add (test_ot_layout_base_format4);
+  hb_test_add (test_ot_layout_base_script_versions);
 
   return hb_test_run();
 }

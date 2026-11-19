@@ -368,11 +368,8 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
   if (!buffer->message (font, "start table kerx")) return;
-  c.buffer_glyph_set = accel.scratch.create_buffer_glyph_set ();
   c.set_ankr_table (font->face->table.ankr.get ());
   accel.apply (&c);
-  accel.scratch.destroy_buffer_glyph_set (c.buffer_glyph_set);
-  c.buffer_glyph_set = nullptr;
   (void) buffer->message (font, "end table kerx");
 }
 

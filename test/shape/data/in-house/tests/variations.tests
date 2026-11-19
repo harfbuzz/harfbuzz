@@ -10,3 +10,11 @@
 ../fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf;--variations=TEST=.6;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[A.alt=0+600|B.alt=1+600|C.alt=2+600|D=3+600|E=4+610|F.alt=5+600]
 ../fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf;--variations=TEST=.8;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[A.alt=0+600|B.alt=1+600|C.alt=2+600|D.alt=3+600|E=4+610|F.alt=5+600]
 ../fonts/4e9f0bc6a8f25b5fd3547bbc17423ce8cedb915f.ttf;--variations=TEST=0;U+0041,U+0042,U+0043,U+0044,U+0045,U+0046;[A.alt=0+600|B=1+600|C=2+600|D=3+600|E=4+610|F=5+600]
+
+# Nested point-matched composites must use their own parent point numbering.
+../fonts/27b2c982e9b2f1c44b2ca0aa5cb5abc830d5181b.ttf;--variations=wght=0 --font-size=1000 --show-extents;U+0069,U+0078,U+0079,U+007A;[inner=0+1000<0,400,200,-400>|outer=1+1000<0,400,400,-700>|double=2+1000<-200,450,900,-950>|shifted=3+1000<0,500,400,-800>]
+../fonts/27b2c982e9b2f1c44b2ca0aa5cb5abc830d5181b.ttf;--variations=wght=0 --font-size=2000 --show-extents;U+0069,U+0078,U+0079,U+007A;[inner=0+2000<0,800,400,-800>|outer=1+2000<0,800,800,-1400>|double=2+2000<-400,900,1800,-1900>|shifted=3+2000<0,1000,800,-1600>]
+../fonts/27b2c982e9b2f1c44b2ca0aa5cb5abc830d5181b.ttf;--variations=wght=0.5 --font-size=1000 --show-extents;U+0069,U+0078,U+0079,U+007A;[inner=0+1000<0,400,200,-400>|outer=1+1000<0,400,400,-700>|double=2+1000<-200,450,900,-950>|shifted=3+1000<0,500,400,-800>]
+../fonts/27b2c982e9b2f1c44b2ca0aa5cb5abc830d5181b.ttf;--variations=wght=0.5 --font-size=2000 --show-extents;U+0069,U+0078,U+0079,U+007A;[inner=0+2000<0,800,400,-800>|outer=1+2000<0,800,800,-1400>|double=2+2000<-400,900,1800,-1900>|shifted=3+2000<0,1000,800,-1600>]
+../fonts/27b2c982e9b2f1c44b2ca0aa5cb5abc830d5181b.ttf;--variations=wght=1 --font-size=1000 --show-extents;U+0069,U+0078,U+0079,U+007A;[inner=0+1000<0,400,200,-400>|outer=1+1000<0,400,400,-700>|double=2+1000<-200,450,900,-950>|shifted=3+1000<0,500,400,-800>]
+../fonts/27b2c982e9b2f1c44b2ca0aa5cb5abc830d5181b.ttf;--variations=wght=1 --font-size=2000 --show-extents;U+0069,U+0078,U+0079,U+007A;[inner=0+2000<0,800,400,-800>|outer=1+2000<0,800,800,-1400>|double=2+2000<-400,900,1800,-1900>|shifted=3+2000<0,1000,800,-1600>]

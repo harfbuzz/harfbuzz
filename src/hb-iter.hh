@@ -748,7 +748,7 @@ struct hb_range_iter_t :
   { return v != o.v; }
 
   private:
-  static T end_for (T start, T end_, S step)
+  static inline T end_for (T start, T end_, S step)
   {
     if (!step)
       return end_;

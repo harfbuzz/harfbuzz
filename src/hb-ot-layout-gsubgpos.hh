@@ -1119,69 +1119,106 @@ struct skipping_iterator_t
     return SKIP;
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  HB_HOT
   bool next (unsigned *unsafe_to = nullptr)
   {
+    if ((signed) idx < (signed) end - 1)
+    {
+      unsigned start = idx;
+      idx++;
+      switch (match (c->buffer->info[idx]))
+      {
+        case MATCH: advance_glyph_data (); return true;
+        case NOT_MATCH:
+          if (unsafe_to) *unsafe_to = idx + 1;
+          return false;
+        case SKIP: return next_slow (start, unsafe_to);
+      }
+    }
+    if (unsafe_to) *unsafe_to = end;
+    return false;
+  }
+
+  HB_NEVER_INLINE
+  bool next_slow (unsigned start, unsigned *unsafe_to)
+  {
     auto *info = c->buffer->info;
-    const signed stop = (signed) end - 1;
-    while ((signed) idx < stop)
+    while ((signed) idx < (signed) end - 1)
     {
       idx++;
       switch (match (info[idx]))
       {
-	case MATCH:
-	{
-	  advance_glyph_data ();
-	  return true;
-	}
-	case NOT_MATCH:
-	{
-	  if (unsafe_to)
-	    *unsafe_to = idx + 1;
-	  return false;
-	}
-	case SKIP:
-	  /* Only skipping charges. Flag exhaustion but keep walking (no early
-	   * return), so the loop-end still sets *unsafe_to; the callers that loop
-	   * stop repeated walks once successful clears. */
-	  if (unlikely (--c->buffer->max_ops < 0))
-	    c->buffer->successful = false;
-	  continue;
+        case MATCH:
+          charge_skipped (idx - start - 1);
+          advance_glyph_data ();
+          return true;
+        case NOT_MATCH:
+          charge_skipped (idx - start - 1);
+          if (unsafe_to) *unsafe_to = idx + 1;
+          return false;
+        case SKIP: continue;
       }
     }
-    if (unsafe_to)
-      *unsafe_to = end;
+    charge_skipped (idx - start);
+    if (unsafe_to) *unsafe_to = end;
     return false;
   }
+
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  HB_HOT
   bool prev (unsigned *unsafe_from = nullptr)
   {
+    if (idx > 0)
+    {
+      unsigned start = idx;
+      idx--;
+      switch (match (c->buffer->out_info[idx]))
+      {
+        case MATCH: advance_glyph_data (); return true;
+        case NOT_MATCH:
+          if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
+          return false;
+        case SKIP: return prev_slow (start, unsafe_from);
+      }
+    }
+    if (unsafe_from) *unsafe_from = 0;
+    return false;
+  }
+
+  HB_NEVER_INLINE
+  bool prev_slow (unsigned start, unsigned *unsafe_from)
+  {
     auto *out_info = c->buffer->out_info;
-    const unsigned stop = 0;
-    while (idx > stop)
+    while (idx > 0)
     {
       idx--;
       switch (match (out_info[idx]))
       {
-	case MATCH:
-	{
-	  advance_glyph_data ();
-	  return true;
-	}
-	case NOT_MATCH:
-	{
-	  if (unsafe_from)
-	    *unsafe_from = hb_max (1u, idx) - 1u;
-	  return false;
-	}
-	case SKIP:
-	  /* Charged as in next(). */
-	  if (unlikely (--c->buffer->max_ops < 0))
-	    c->buffer->successful = false;
-	  continue;
+        case MATCH:
+          charge_skipped (start - idx - 1);
+          advance_glyph_data ();
+          return true;
+        case NOT_MATCH:
+          charge_skipped (start - idx - 1);
+          if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
+          return false;
+        case SKIP: continue;
       }
     }
-    if (unsafe_from)
-      *unsafe_from = 0;
+    charge_skipped (start - idx);
+    if (unsafe_from) *unsafe_from = 0;
     return false;
+  }
+
+  void charge_skipped (unsigned count)
+  {
+    c->buffer->max_ops -= count;
+    c->buffer->successful &= c->buffer->max_ops >= 0;
   }
 
   HB_ALWAYS_INLINE
@@ -1225,9 +1262,9 @@ struct hb_ot_apply_context_t :
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
   template <typename T>
-  static auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (return_t, obj.apply (c, nullptr) )
+  static inline auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (return_t, obj.apply (c, nullptr) )
   template <typename T>
-  static auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (return_t, obj.apply (c) )
+  static inline auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (return_t, obj.apply (c) )
   template <typename T>
   return_t dispatch (const T &obj) { return apply_(obj, this, hb_prioritize); }
 
@@ -1388,13 +1425,16 @@ struct hb_ot_apply_context_t :
   HB_HOT
   bool match_properties_mark (const hb_glyph_info_t *info,
 			      unsigned int    glyph_props,
-			      unsigned int    match_props) const
+			      unsigned int    match_props,
+                              const hb_bit_vector_t<> *mark_filter) const
   {
     /* If using mark filtering sets, the high short of
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
     {
+      if (mark_filter)
+        return mark_filter->has (info->codepoint);
       unsigned set_index = match_props >> 16;
       return gdef_accel.mark_set_covers (set_index, info->codepoint);
     }
@@ -1425,11 +1465,7 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK)
-    {
-      if (mark_filter)
-        return mark_filter->has (info->codepoint);
-      return match_properties_mark (info, glyph_props, match_props);
-    }
+      return match_properties_mark (info, glyph_props, match_props, mark_filter);
 
     return true;
   }
@@ -1519,21 +1555,21 @@ struct hb_accelerate_subtables_context_t :
        hb_dispatch_context_t<hb_accelerate_subtables_context_t>
 {
   template <typename T>
-  static auto collect_second_glyphs_ (const T &obj,
-				      hb_set_digest_t *digest,
-				      hb_priority<1>) HB_RETURN (void, obj.collect_second_glyphs (digest) )
+  static inline auto collect_second_glyphs_ (const T &obj,
+					     hb_set_digest_t *digest,
+					     hb_priority<1>) HB_RETURN (void, obj.collect_second_glyphs (digest) )
   template <typename T>
-  static void collect_second_glyphs_ (const T &obj HB_UNUSED,
-				      hb_set_digest_t *digest,
-				      hb_priority<0>)
+  static inline void collect_second_glyphs_ (const T &obj HB_UNUSED,
+					     hb_set_digest_t *digest,
+					     hb_priority<0>)
   { *digest = hb_set_digest_t::full (); }
 
   template <typename T>
-  static auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
+  static inline auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
   template <typename T>
-  static auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  static inline auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename T>
-  static bool apply_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
+  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
   {
     const T *typed_obj = (const T *) obj;
     return apply_ (typed_obj, c, external_cache, hb_prioritize);
@@ -1541,30 +1577,32 @@ struct hb_accelerate_subtables_context_t :
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
-  static auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<2>) HB_RETURN (bool, obj->apply_cached (c, external_cache) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<2>) HB_RETURN (bool, obj->apply_cached (c, external_cache) )
   template <typename T>
-  static auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
   template <typename T>
-  static auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename T>
-  static bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
+  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
   {
     const T *typed_obj = (const T *) obj;
     return apply_cached_ (typed_obj, c, external_cache, hb_prioritize);
   }
 
   template <typename T>
-  static auto cache_func_ (hb_ot_apply_context_t *c,
-			   hb_ot_subtable_cache_op_t op,
-			   hb_priority<1>) HB_RETURN (bool, T::cache_func (c, op) )
+  static inline auto cache_func_ (hb_ot_apply_context_t *c,
+				  hb_ot_subtable_cache_op_t op,
+				  hb_priority<1>) HB_RETURN (bool, T::cache_func (c, op) )
   template <typename T=void>
-  static bool cache_func_ (hb_ot_apply_context_t *c,
-			   hb_ot_subtable_cache_op_t op HB_UNUSED,
-			   hb_priority<0>) { return false; }
+  static inline bool cache_func_ (hb_ot_apply_context_t *c,
+				  hb_ot_subtable_cache_op_t op HB_UNUSED,
+				  hb_priority<0>) { return false; }
   template <typename Type>
-  static bool cache_func_to (hb_ot_apply_context_t *c,
-			     hb_ot_subtable_cache_op_t op)
-  { return cache_func_<Type> (c, op, hb_prioritize); }
+  static inline bool cache_func_to (hb_ot_apply_context_t *c,
+				    hb_ot_subtable_cache_op_t op)
+  {
+    return cache_func_<Type> (c, op, hb_prioritize);
+  }
 #endif
 
   typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c, void *external_cache);
@@ -1941,6 +1979,7 @@ static inline bool match_glyph (hb_glyph_info_t &info, unsigned value, const voi
 {
   return info.codepoint == value;
 }
+HB_HOT
 static inline bool match_class (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
@@ -2021,6 +2060,7 @@ static inline unsigned get_class_cached2_value (hb_glyph_info_t &info, const voi
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *> (data);
   return get_class_cached2 (class_def, info);
 }
+HB_HOT
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   Offset32To<Coverage> coverage;
@@ -2530,6 +2570,15 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
     }
 
     covered_seq_indicies.add (seqIndex);
+    if (!has_pos_glyphs)
+    {
+      /* A previous lookup at this position may have produced new glyphs.
+       * Keep them visible without flushing the active context stack. */
+      if (unlikely (!c->spend_budget (HB_BUDGET_1, c->glyphs->get_population ()) ||
+                    !c->spend_budget (HB_BUDGET_1 * 2, c->output->get_population ())))
+        return;
+      c->output->del_range (c->face->get_num_glyphs (), HB_SET_VALUE_INVALID);
+    }
     hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
       return;
@@ -2537,6 +2586,14 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
       *cur_active_glyphs = std::move (pos_glyphs);
     } else {
       *cur_active_glyphs = *c->glyphs;
+      cur_active_glyphs->union_ (*c->output);
+    }
+
+    if (unlikely (cur_active_glyphs->in_error ()))
+    {
+      c->glyphs->err ();
+      c->pop_cur_done_glyphs ();
+      return;
     }
 
     unsigned endIndex = inputCount;
@@ -6160,12 +6217,30 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+  void *external_cache_create () const
+  {
+    /* Cache first-input membership only when there is enough to search. */
+    if (get_coverage ().get_record_count () < 4)
+      return nullptr;
+    auto *cache = (hb_ot_layout_binary_cache_t *) hb_malloc (sizeof (hb_ot_layout_binary_cache_t));
+    if (likely (cache))
+      cache->clear ();
+    return cache;
+  }
+#endif
+
+  bool apply (hb_ot_apply_context_t *c, void *external_cache) const
   {
     TRACE_APPLY (this);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    auto *cache = (hb_ot_layout_binary_cache_t *) external_cache;
+    unsigned int index = (this+input[0]).get_coverage_binary (c->buffer->cur().codepoint, cache);
+#else
     unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
+#endif
     if (index == NOT_COVERED) return_trace (false);
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
@@ -6485,23 +6560,26 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
       return subtables[0].apply_no_digest (c);
     }
+    if (unlikely (!c->buffer->successful)) return false;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
-      return
-      + hb_iter (hb_iter (subtables, count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, count))
+      {
+        if (!subtable.digest.may_have (c->buffer->cur().codepoint)) continue;
+        if (subtable.apply_cached_no_digest (c)) return true;
+        if (unlikely (!c->buffer->successful)) return false;
+      }
     }
     else
 #endif
     {
-      return
-      + hb_iter (hb_iter (subtables, count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, count))
+      {
+        if (!subtable.digest.may_have (c->buffer->cur().codepoint)) continue;
+        if (subtable.apply_no_digest (c)) return true;
+        if (unlikely (!c->buffer->successful)) return false;
+      }
     }
     return false;
   }

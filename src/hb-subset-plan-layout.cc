@@ -553,7 +553,7 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
     hb_blob_ptr_t<OT::MATH> math = plan->source_table<OT::MATH> ();
     auto *glyph_set = c.glyph_set;
     c.glyph_set = &plan->_glyphset_mathed;
-    math->collect_variation_indices (&c, &plan->_glyphset_cmaped);
+    math->collect_variation_indices (&c, &plan->_glyphset_gsub);
     c.glyph_set = glyph_set;
   }
 #endif

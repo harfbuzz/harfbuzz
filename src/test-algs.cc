@@ -68,6 +68,15 @@ struct qsort_adversary_t
   unsigned next = 0;
 };
 
+/* Hashes a key the way multi-field keys are: fields gathered into a local
+ * buffer holding objects of another type than the words fasthash reads. */
+static HB_NEVER_INLINE uint32_t
+hash_fields (uint32_t a, uint32_t b, uint32_t c)
+{
+  const uint32_t fields[] = {a, b, c, a, b, c};
+  return fasthash32 (fields, sizeof (fields), 0xf437ffe6);
+}
+
 static void
 test_qsort_adversary ()
 {
@@ -233,6 +242,19 @@ main (int argc, char **argv)
   hb_always_assert (hb_hash (set1) == hb_hash (&set1));
   hb_always_assert (hb_hash (set1) == hb_hash (hb::shared_ptr<hb_set_t> {hb_set_reference (&set1)}));
   hb_always_assert (hb_hash (set1) == hb_hash (hb::unique_ptr<hb_set_t> {hb_set_reference (&set1)}));
+
+  /* The hash is of what was just stored in the buffer, even though
+   * fasthash reads it as words rather than as the objects it holds.  Each
+   * field repeats one byte, so that the same buffer can be spelled out
+   * in bytes whatever the byte order. */
+  for (unsigned i = 1; i < 16; i++)
+  {
+    uint8_t x = i, y = i + 16, z = i + 32;
+    const uint8_t bytes[] = {x, x, x, x, y, y, y, y, z, z, z, z,
+			     x, x, x, x, y, y, y, y, z, z, z, z};
+    hb_always_assert (hash_fields (x * 0x01010101u, y * 0x01010101u, z * 0x01010101u) ==
+		      fasthash32 (bytes, sizeof (bytes), 0xf437ffe6));
+  }
 
   test_qsort_adversary ();
 

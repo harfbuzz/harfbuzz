@@ -52,8 +52,11 @@ struct SubsetGlyph
     for (auto &_ : Glyph (dest_glyph, old_gid, extended).get_composite_iterator ())
     {
       hb_codepoint_t new_gid;
-      if (plan->new_gid_for_old_gid (_.get_gid (extended), &new_gid))
-	const_cast<CompositeGlyphRecord &> (_).set_gid (new_gid, extended);
+      /* A closure limit may have left this component out. Never leave its
+       * source ID pointing at an unrelated glyph after renumbering. */
+      if (unlikely (!c->check_success (plan->new_gid_for_old_gid (_.get_gid (extended), &new_gid))))
+        return_trace (false);
+      const_cast<CompositeGlyphRecord &> (_).set_gid (new_gid, extended);
     }
 
 #ifndef HB_NO_BEYOND_64K

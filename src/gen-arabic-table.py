@@ -28,7 +28,6 @@ headers.append (["UnicodeData.txt does not have a header."])
 while files[0].readline ().find ('##################') < 0:
 	pass
 
-blocks = {}
 # Keep this in sync with hb_arabic_joiner_type_t in hb-ot-shaper-arabic.cc.
 JOINING_CODE = {
 	"JOINING_TYPE_U": 0,
@@ -41,30 +40,6 @@ JOINING_CODE = {
 	"JOINING_TYPE_T": 6,
 	"JOINING_TYPE_X": 7,
 }
-
-def read_blocks(f):
-	global blocks
-	for line in f:
-
-		j = line.find ('#')
-		if j >= 0:
-			line = line[:j]
-
-		fields = [x.strip () for x in line.split (';')]
-		if len (fields) == 1:
-			continue
-
-		uu = fields[0].split ('..')
-		start = int (uu[0], 16)
-		if len (uu) == 1:
-			end = start
-		else:
-			end = int (uu[1], 16)
-
-		t = fields[1]
-
-		for u in range (start, end + 1):
-			blocks[u] = t
 
 def print_joining_table(f):
 
@@ -144,7 +119,7 @@ LIGATURES = (
 	0xFCAC, 0xFCB0, 0xFCC9, 0xFCCA, 0xFCCB, 0xFCCC, 0xFCCD, 0xFCCE, 0xFCCF,
 	0xFCD0, 0xFCD1, 0xFCD2, 0xFCD3, 0xFCD5, 0xFCDA, 0xFCDB, 0xFCDC, 0xFCDD,
 	0xFD30, 0xFD88, 0xFEF5, 0xFEF6, 0xFEF7, 0xFEF8, 0xFEF9, 0xFEFA, 0xFEFB,
-	0xFEFC, 0xF201, 0xF211, 0xF2EE,
+	0xFEFC, 0xF201, 0xF211,
 )
 
 def read_shaping_table(f):
@@ -376,7 +351,6 @@ for h in headers:
 		print (" * %s" % (l.strip()))
 print (" */")
 print ()
-read_blocks (files[2])
 if language.name == "c":
 	print ("#ifndef HB_OT_SHAPER_ARABIC_TABLE_HH")
 	print ("#define HB_OT_SHAPER_ARABIC_TABLE_HH")

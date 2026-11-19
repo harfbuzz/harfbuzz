@@ -8,3 +8,22 @@
 ../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents;U+1E49,0306;[nmacronbelow=0+1060<-40,968,1140,-1152>|uni0306=0@-1024,199+0<128,1168,732,-274>]
 ../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --font-size=4000;U+1E49,0306;[nmacronbelow=0+2120<-80,1936,2280,-2304>|uni0306=0@-2048,398+0<256,2336,1464,-548>]
 ../fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;--show-extents --direction=ttb;U+1E49,0306;[nmacronbelow=0@-530,-1612+0,-2440<-40,968,1140,-1152>|uni0306=0@-494,1733+0<128,1168,732,-274>]
+
+# Fixed-metrics CBDT format 19: contiguous and sparse bitmap glyphs.
+../fonts/74794bf40f59dc39046132ac29098961c61f5b16.ttf;--font-funcs=ot --font-size=1000 --font-ppem=0 --show-extents;U+0061,U+0062,U+0063;[a=0+400<-100,200,200,-300>|b=1+400<-100,200,200,-300>|c=2+400<0,0,0,0>]
+../fonts/74794bf40f59dc39046132ac29098961c61f5b16.ttf;--font-funcs=ot --font-size=1000 --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+400<-100,200,200,-300>|b=1+400<-100,200,200,-300>|c=2+400<0,0,0,0>]
+../fonts/74794bf40f59dc39046132ac29098961c61f5b16.ttf;--font-funcs=ot --font-size=1000 --font-ppem=20 --show-extents;U+0061,U+0062,U+0063;[a=0+400<-100,200,200,-300>|b=1+400<-100,200,200,-300>|c=2+400<0,0,0,0>]
+../fonts/74794bf40f59dc39046132ac29098961c61f5b16.ttf;--font-funcs=ot --font-size=2000 --font-ppem=0 --show-extents;U+0061,U+0062,U+0063;[a=0+800<-200,400,400,-600>|b=1+800<-200,400,400,-600>|c=2+800<0,0,0,0>]
+../fonts/74794bf40f59dc39046132ac29098961c61f5b16.ttf;--font-funcs=ot --font-size=2000 --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+800<-200,400,400,-600>|b=1+800<-200,400,400,-600>|c=2+800<0,0,0,0>]
+../fonts/74794bf40f59dc39046132ac29098961c61f5b16.ttf;--font-funcs=ot --font-size=2000 --font-ppem=20 --show-extents;U+0061,U+0062,U+0063;[a=0+800<-200,400,400,-600>|b=1+800<-200,400,400,-600>|c=2+800<0,0,0,0>]
+../fonts/d849d6e53e845842b6fc5ed95b16712be164f6d7.ttf;--font-funcs=ot --font-size=1000 --font-ppem=0 --show-extents;U+0061,U+0062,U+0063;[a=0+400<-100,200,200,-300>|b=1+400<0,0,0,0>|c=2+400<-100,200,200,-300>]
+../fonts/d849d6e53e845842b6fc5ed95b16712be164f6d7.ttf;--font-funcs=ot --font-size=1000 --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+400<-100,200,200,-300>|b=1+400<0,0,0,0>|c=2+400<-100,200,200,-300>]
+../fonts/d849d6e53e845842b6fc5ed95b16712be164f6d7.ttf;--font-funcs=ot --font-size=1000 --font-ppem=20 --show-extents;U+0061,U+0062,U+0063;[a=0+400<-100,200,200,-300>|b=1+400<0,0,0,0>|c=2+400<-100,200,200,-300>]
+../fonts/d849d6e53e845842b6fc5ed95b16712be164f6d7.ttf;--font-funcs=ot --font-size=2000 --font-ppem=0 --show-extents;U+0061,U+0062,U+0063;[a=0+800<-200,400,400,-600>|b=1+800<0,0,0,0>|c=2+800<-200,400,400,-600>]
+../fonts/d849d6e53e845842b6fc5ed95b16712be164f6d7.ttf;--font-funcs=ot --font-size=2000 --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+800<-200,400,400,-600>|b=1+800<0,0,0,0>|c=2+800<-200,400,400,-600>]
+../fonts/d849d6e53e845842b6fc5ed95b16712be164f6d7.ttf;--font-funcs=ot --font-size=2000 --font-ppem=20 --show-extents;U+0061,U+0062,U+0063;[a=0+800<-200,400,400,-600>|b=1+800<0,0,0,0>|c=2+800<-200,400,400,-600>]
+
+# Malformed fixed-metrics CBLC tables fail without exposing images.
+../fonts/f1c904114e47ed4b8cea4eea75cf62d7e86f11e0.ttf;--font-funcs=ot --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+400<0,0,0,0>|b=1+400<0,0,0,0>|c=2+400<0,0,0,0>]
+../fonts/7b6ce3c3344258d040b3d7031de89b093c3951b7.ttf;--font-funcs=ot --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+400<0,0,0,0>|b=1+400<0,0,0,0>|c=2+400<0,0,0,0>]
+../fonts/738df86ab5ea7e369dd0788f46bec03e5dd0162b.ttf;--font-funcs=ot --font-ppem=10 --show-extents;U+0061,U+0062,U+0063;[a=0+400<0,0,0,0>|b=1+400<0,0,0,0>|c=2+400<0,0,0,0>]

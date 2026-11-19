@@ -120,8 +120,8 @@ The [`hb-config.hh`](src/hb-config.hh) internal header supports three
 pre-defined configurations as well grouping of various configuration options.
 The pre-defined configurations are:
 
-  * `HB_MINI`: Disables shaping of AAT as well as legacy fonts.  Ie. it produces
-    a capable OpenType shaper only.
+  * `HB_MINI`: Disables AAT and legacy shaping and glyph IDs beyond 64K.
+    It produces a capable OpenType shaper only.
 
   * `HB_LEAN`: Disables various non-shaping functionality in the library, as well
     as esoteric or rarely-used shaping features.  See the definition for details.
@@ -145,8 +145,11 @@ configurations from the command-line.
 However, configuration can still be overridden from a file.  To do that, add your
 override instructions (mostly `undef` instructions) to a header file and define
 the macro `HB_CONFIG_OVERRIDE_H` to the string containing to that header file's
-name.  HarfBuzz will then include that file at the appropriate place during
-configuration.
+name.  HarfBuzz includes this file after the profiles, before applying
+feature-option dependencies.
+
+For overrides after those dependencies have been applied, use
+`HB_CONFIG_OVERRIDE_LAST_H` instead.
 
 Up until HarfBuzz 3.1.2, the configuration override header file's name was
 fixed and called `config-override.h`, and was activated by defining the macro

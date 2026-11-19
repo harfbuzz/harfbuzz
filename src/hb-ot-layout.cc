@@ -137,9 +137,7 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
   AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
 
   if (!buffer->message (font, "start table kern")) return;
-  c.buffer_glyph_set = accel.scratch.create_buffer_glyph_set ();
   accel.apply (&c);
-  accel.scratch.destroy_buffer_glyph_set (c.buffer_glyph_set);
   (void) buffer->message (font, "end table kern");
 }
 #endif
@@ -1975,6 +1973,9 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 {
   bool use_hot_subtable_cache = accel.cache_enter (c);
 
+  /* The lookup digest is immutable. Keep its masks in registers while
+   * scanning glyphs, including across table-access compiler barriers. */
+  const hb_set_digest_t digest = accel.digest;
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   while (buffer->successful)
@@ -1982,7 +1983,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     hb_glyph_info_t *info = buffer->info;
     unsigned j = buffer->idx;
     while (j < buffer->len &&
-	   !(accel.digest.may_have (info[j].codepoint) &&
+	   !(digest.may_have (info[j].codepoint) &&
 	     (info[j].mask & c->lookup_mask) &&
 	     c->check_glyph_property (&info[j], c->lookup_props)))
       j++;
@@ -2177,7 +2178,8 @@ static void
 choose_layout_tags (hb_script_t    script,
 		    hb_language_t  language,
 		    hb_tag_t      *script_tag,
-		    hb_tag_t      *language_tag)
+		    hb_tag_t      *language_tag,
+                    const OT::Axis *base_axis = nullptr)
 {
   hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
   unsigned script_count = ARRAY_LENGTH (script_tags);
@@ -2189,7 +2191,8 @@ choose_layout_tags (hb_script_t    script,
 				       &script_count, script_tags,
 				       &language_count, language_tags);
 
-  *script_tag = script_count ? script_tags[script_count - 1] : HB_OT_TAG_DEFAULT_SCRIPT;
+  *script_tag = base_axis ? base_axis->select_script (hb_array (script_tags, script_count)) :
+                script_count ? script_tags[script_count - 1] : HB_OT_TAG_DEFAULT_SCRIPT;
   *language_tag = language_count ? language_tags[language_count - 1] : HB_OT_TAG_DEFAULT_LANGUAGE;
 }
 #endif
@@ -2273,7 +2276,8 @@ hb_ot_layout_get_font_extents2 (hb_font_t         *font,
 				hb_font_extents_t *extents)
 {
   hb_tag_t script_tag, language_tag;
-  choose_layout_tags (script, language, &script_tag, &language_tag);
+  choose_layout_tags (script, language, &script_tag, &language_tag,
+                      &font->face->table.BASE->get_axis (direction));
   return hb_ot_layout_get_font_extents (font,
 					direction,
 					script_tag,
@@ -2408,7 +2412,8 @@ hb_ot_layout_get_baseline2 (hb_font_t                   *font,
 			    hb_position_t               *coord        /* OUT.  May be NULL. */)
 {
   hb_tag_t script_tag, language_tag;
-  choose_layout_tags (script, language, &script_tag, &language_tag);
+  choose_layout_tags (script, language, &script_tag, &language_tag,
+                      &font->face->table.BASE->get_axis (direction));
   return hb_ot_layout_get_baseline (font,
 				    baseline_tag,
 				    direction,
@@ -2669,7 +2674,8 @@ hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,
 					  hb_position_t               *coord        /* OUT */)
 {
   hb_tag_t script_tag, language_tag;
-  choose_layout_tags (script, language, &script_tag, &language_tag);
+  choose_layout_tags (script, language, &script_tag, &language_tag,
+                      &font->face->table.BASE->get_axis (direction));
   hb_ot_layout_get_baseline_with_fallback (font,
 					   baseline_tag,
 					   direction,

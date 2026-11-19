@@ -413,6 +413,31 @@ test_shape_plan_execute_buffer_limits (void)
 
 #ifndef HB_NO_VAR
 static void
+test_ot_shape_plan_cached_default_variations (void)
+{
+  hb_face_t *face = hb_test_open_font_file (
+      "../subset/data/fonts/AnekBangla-question-subset.ttf");
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
+  props.script = HB_SCRIPT_BENGALI;
+  props.direction = HB_DIRECTION_LTR;
+
+  /* This face selects a nonzero GSUB variation index at the default location. */
+  unsigned index;
+  g_assert_true (hb_ot_layout_table_find_feature_variations (
+      face, HB_OT_TAG_GSUB, NULL, 0, &index));
+  g_assert_cmpuint (index, ==, 2);
+
+  hb_shape_plan_t *first = hb_shape_plan_create_cached (face, &props, NULL, 0, NULL);
+  hb_shape_plan_t *again = hb_shape_plan_create_cached (face, &props, NULL, 0, NULL);
+  g_assert_true (first != hb_shape_plan_get_empty ());
+  g_assert_true (first == again);
+
+  hb_shape_plan_destroy (again);
+  hb_shape_plan_destroy (first);
+  hb_face_destroy (face);
+}
+
+static void
 test_ot_shape_plan_default_condition_deltas (void)
 {
   hb_face_t *source = hb_test_open_font_file (
@@ -543,6 +568,7 @@ main (int argc, char **argv)
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult);
   hb_test_add (test_shape_plan_execute_buffer_limits);
 #ifndef HB_NO_VAR
+  hb_test_add (test_ot_shape_plan_cached_default_variations);
   hb_test_add (test_ot_shape_plan_default_condition_deltas);
   hb_test_add (test_ot_shape_plan_lookup_variations_cache);
 #endif
