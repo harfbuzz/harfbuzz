@@ -2497,46 +2497,19 @@ hb_font_get_parent (hb_font_t *font)
 #ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_font_set_face:
- * @font: #hb_font_t to work upon
- * @face: The #hb_face_t to assign
+ * @font: A font
+ * @face: (nullable): A face
  *
- * Sets @face as the font-face value of @font.
- *
- * Font functions and their data may hold pointers into the old face,
- * so the font functions of @font are released and replaced with the
- * default ones for @face, as hb_font_create() would set up.  Other
- * font properties, such as scale and variations, are kept.
+ * This function does nothing. To use another face, create a new font
+ * with hb_font_create().
  *
  * Since: 1.4.3
  * Deprecated: 15.0.0: Use hb_font_create() instead.
  **/
 void
-hb_font_set_face (hb_font_t *font,
-		  hb_face_t *face)
+hb_font_set_face (hb_font_t *font HB_UNUSED,
+		  hb_face_t *face HB_UNUSED)
 {
-  if (hb_object_is_immutable (font))
-    return;
-
-  if (face == font->face)
-    return;
-
-  if (unlikely (!face))
-    face = hb_face_get_empty ();
-
-  hb_face_t *old = font->face;
-
-  hb_face_make_immutable (face);
-  font->face = hb_face_reference (face);
-  font->changed ();
-
-  /* Release the old font funcs while the old face is still alive. */
-  hb_font_set_funcs (font, nullptr, nullptr, nullptr);
-  hb_font_set_funcs_using (font, nullptr);
-
-  hb_face_destroy (old);
-
-  font->changed ();
-  font->serial_coords = font->serial;
 }
 #endif
 
@@ -3206,8 +3179,7 @@ hb_font_set_variation (hb_font_t *font,
     return;
   }
 
-  /* Initialize design coords.
-   * The font's coords may belong to another face after hb_font_set_face(). */
+  /* Initialize design coords. */
   if (font->design_coords && font->num_coords == coords_length)
   {
     for (unsigned int i = 0; i < coords_length; i++)
