@@ -1293,6 +1293,27 @@ struct hb_ot_apply_context_t :
   }
 
   skipping_iterator_t<hb_ot_apply_context_t> iter_input, iter_context;
+  /* Pair positioning can try several subtables at one buffer index. An
+   * adjacent match remains valid until the lookup iterator is reinitialized.
+   * Remember only that case, where there were no skipped glyphs to charge. */
+  unsigned last_pair_start;
+
+  HB_ALWAYS_INLINE
+  bool next_pair_glyph (unsigned *unsafe_to)
+  {
+    unsigned start = buffer->idx;
+    if (last_pair_start == start)
+    {
+      iter_input.idx = start + 1;
+      return true;
+    }
+    iter_input.reset_fast (start);
+    if (!iter_input.next (unsafe_to))
+      return false;
+    if (iter_input.idx == start + 1)
+      last_pair_start = start;
+    return true;
+  }
 
   unsigned int table_index; /* GSUB/GPOS */
   hb_font_t *font;
@@ -1385,6 +1406,7 @@ struct hb_ot_apply_context_t :
 
   void init_iters ()
   {
+    last_pair_start = (unsigned) -1;
     iter_input.init (this, false);
     iter_context.init (this, true);
   }
@@ -1415,6 +1437,7 @@ struct hb_ot_apply_context_t :
   }
   void buffer_changed ()
   {
+    last_pair_start = (unsigned) -1;
     buffer->update_digest ();
     if (likely (has_glyph_classes))
       for (unsigned i = 0; i < buffer->len; i++)

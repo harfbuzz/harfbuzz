@@ -157,9 +157,8 @@ struct PairPosFormat1_3
     if (index == NOT_COVERED) return_trace (false);
 
     auto &skippy_iter = c->iter_input;
-    skippy_iter.reset_fast (buffer->idx);
     unsigned unsafe_to;
-    if (unlikely (!skippy_iter.next (&unsafe_to)))
+    if (unlikely (!c->next_pair_glyph (&unsafe_to)))
     {
       buffer->unsafe_to_concat (buffer->idx, unsafe_to);
       return_trace (false);
