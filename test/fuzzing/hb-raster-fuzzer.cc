@@ -40,6 +40,24 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     hb_raster_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, x, y);
     hb_raster_draw_glyph (draw, input.font, gid);
     hb_raster_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, x, y);
+    /* The paint budget grows with the area of the surface.  Keep the
+     * surface within 256x256, where it is still the flat budget that
+     * bounds the work a font can ask for.  Extents that are refused
+     * make for an empty surface, not for ones taken from the glyph
+     * unclamped. */
+    hb_glyph_extents_t extents;
+    if (hb_font_get_glyph_extents (input.font, gid, &extents))
+    {
+      if (extents.width > 256) extents.width = 256;
+      if (extents.width < -256) extents.width = -256;
+      if (extents.height > 256) extents.height = 256;
+      if (extents.height < -256) extents.height = -256;
+      if (!hb_raster_paint_set_glyph_extents (paint, &extents))
+      {
+	hb_raster_extents_t empty = {0, 0, 0, 0, 0};
+	hb_raster_paint_set_extents (paint, &empty);
+      }
+    }
     hb_raster_paint_glyph (paint, input.font, gid);
 
     hb_raster_image_t *draw_image = hb_raster_draw_render (draw);

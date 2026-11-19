@@ -35,7 +35,10 @@
 /* hb_raster_clip_t — alpha mask for clipping */
 struct hb_raster_clip_t
 {
-  hb_vector_t<uint8_t> alpha;	/* A8 mask, same extents as root surface */
+  /* A8 mask, same extents as root surface.  It is zero outside the
+   * bounding box below: building a mask writes only the pixels it can
+   * cover, and the buffer is zeroed again before it is cached. */
+  hb_vector_t<uint8_t> alpha;
   unsigned width  = 0;
   unsigned height = 0;
   unsigned stride = 0;
@@ -64,6 +67,10 @@ struct hb_raster_clip_t
     max_x = w;
     max_y = h;
   }
+
+  /* Nothing is painted through an empty clip. */
+  bool is_empty () const
+  { return min_x >= max_x || min_y >= max_y; }
 
   void update_bounds_from_rect ()
   {
@@ -95,6 +102,25 @@ struct hb_raster_clip_t
     if (height && stride > (size_t) -1 / height)
       return false;
     return (size_t) stride * height <= alpha.length;
+  }
+
+  /* Makes the alpha buffer cover the surface.  A cached buffer is all
+   * zero, so only growth needs initializing. */
+  bool alloc_alpha ()
+  {
+    size_t size = (size_t) stride * height;
+    if (unlikely (size > HB_RASTER_MAX_BUFFER_SIZE))
+      return false;
+    return size <= alpha.length || alpha.resize ((unsigned) size);
+  }
+
+  /* Zeroes the mask, returning the buffer to its cached state. */
+  void clear_alpha ()
+  {
+    if (is_rect || min_x >= max_x || !has_valid_alpha_mask ())
+      return;
+    for (unsigned y = min_y; y < max_y; y++)
+      hb_memset (alpha.arrayZ + (size_t) y * stride + min_x, 0, max_x - min_x);
   }
 };
 
@@ -238,7 +264,10 @@ struct hb_raster_paint_t
   void release_clip (hb_raster_clip_t &&clip)
   {
     if (clip.alpha.arrayZ)
+    {
+      clip.clear_alpha ();
       clip_cache.push (std::move (clip));
+    }
   }
 
   void release_all_clips ()

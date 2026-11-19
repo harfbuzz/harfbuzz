@@ -810,6 +810,62 @@ test_budget_sweep (void)
   hb_raster_paint_destroy (paint);
 }
 
+/* ── Test: a glyph of many clipped layers renders in full ──────────── */
+
+static hb_raster_image_t *
+paint_with_budget (hb_font_t *font, hb_codepoint_t glyph, int64_t budget)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  g_assert_true (hb_paint_set_budget (hb_raster_paint_get_funcs (paint), paint, budget));
+  hb_raster_paint_glyph (paint, font, glyph);
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  hb_raster_paint_destroy (paint);
+  return img;
+}
+
+/* Bitcount Ink paints a glyph from hundreds of layers, each clipped to a
+ * small element of it.  A layer costs what it can show, not a pass over
+ * the surface, so even where the surface is large the glyph renders in
+ * full within the default budget: just as it does with none. */
+static void
+test_paint_clipped_layers (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/BitcountInk.H.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_scale (font, 1024, 1024);
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'H', &glyph));
+
+  hb_variation_t variations[] = {{HB_TAG ('E','L','X','P'), 0.f},
+				 {HB_TAG ('E','L','X','P'), 100.f}};
+  for (unsigned i = 0; i < G_N_ELEMENTS (variations); i++)
+  {
+    hb_font_set_variations (font, &variations[i], 1);
+
+    hb_raster_image_t *img = paint_with_budget (font, glyph, HB_BUDGET_DEFAULT);
+    hb_raster_image_t *full = paint_with_budget (font, glyph, HB_BUDGET_UNLIMITED);
+    g_assert_nonnull (img);
+    g_assert_nonnull (full);
+
+    hb_raster_extents_t ext, full_ext;
+    hb_raster_image_get_extents (img, &ext);
+    hb_raster_image_get_extents (full, &full_ext);
+    g_assert_cmpuint (ext.width, >, 400);
+    g_assert_cmpuint (ext.height, >, 400);
+    g_assert_cmpuint (ext.stride * ext.height, ==, full_ext.stride * full_ext.height);
+    g_assert_true (!memcmp (hb_raster_image_get_buffer (img),
+			    hb_raster_image_get_buffer (full),
+			    ext.stride * ext.height));
+
+    hb_raster_image_destroy (img);
+    hb_raster_image_destroy (full);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -836,6 +892,7 @@ main (int argc, char **argv)
   hb_test_add (test_image_png_byte_order);
   hb_test_add (test_image_png_size);
   hb_test_add (test_budget_sweep);
+  hb_test_add (test_paint_clipped_layers);
 
   return hb_test_run ();
 }

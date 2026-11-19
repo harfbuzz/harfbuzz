@@ -24,6 +24,24 @@
 
 #include "hb-raster-paint.hh"
 
+/* Clips to a box given as a path, which takes the mask route rather than
+ * the rectangle fast path. */
+static void
+push_box_clip (hb_paint_funcs_t *funcs, hb_raster_paint_t *paint,
+	       float x0, float y0, float x1, float y1)
+{
+  void *draw_data = nullptr;
+  hb_draw_funcs_t *draw_funcs = hb_paint_push_clip_path_start (funcs, paint, &draw_data);
+  hb_always_assert (draw_funcs);
+  hb_draw_state_t state = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (draw_funcs, draw_data, &state, x0, y0);
+  hb_draw_line_to (draw_funcs, draw_data, &state, x1, y0);
+  hb_draw_line_to (draw_funcs, draw_data, &state, x1, y1);
+  hb_draw_line_to (draw_funcs, draw_data, &state, x0, y1);
+  hb_draw_close_path (draw_funcs, draw_data, &state);
+  hb_paint_push_clip_path_end (funcs, paint);
+}
+
 int
 main ()
 {
@@ -61,16 +79,7 @@ main ()
    * starting at -10000 and truncated to 4096 pixels misses the surface. */
   hb_raster_paint_clear (paint);
   hb_raster_paint_set_extents (paint, &root);
-  void *draw_data = nullptr;
-  hb_draw_funcs_t *draw_funcs = hb_paint_push_clip_path_start (funcs, paint, &draw_data);
-  hb_always_assert (draw_funcs);
-  hb_draw_state_t state = HB_DRAW_STATE_DEFAULT;
-  hb_draw_move_to (draw_funcs, draw_data, &state, -10000.f, -10000.f);
-  hb_draw_line_to (draw_funcs, draw_data, &state, 10000.f, -10000.f);
-  hb_draw_line_to (draw_funcs, draw_data, &state, 10000.f, 10000.f);
-  hb_draw_line_to (draw_funcs, draw_data, &state, -10000.f, 10000.f);
-  hb_draw_close_path (draw_funcs, draw_data, &state);
-  hb_paint_push_clip_path_end (funcs, paint);
+  push_box_clip (funcs, paint, -10000.f, -10000.f, 10000.f, 10000.f);
   hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255));
   hb_paint_pop_clip (funcs, paint);
   hb_raster_image_t *image = hb_raster_paint_render (paint);
@@ -83,6 +92,95 @@ main ()
     for (unsigned x = 0; x < root.width * 4; x++)
       hb_always_assert (pixels[y * extents.stride + x] == 255);
   hb_always_assert (paint->pixel_remaining >= 0);
+  hb_raster_image_destroy (image);
+
+  /* A clip mask is built, and charged, over the box it can cover rather
+   * than over the whole surface, so that many small clipped layers do not
+   * each cost a pass over it. */
+  hb_raster_extents_t wide = {0, 0, 1024, 1024, 0};
+  hb_raster_paint_set_extents (paint, &wide);
+  hb_paint_push_transform (funcs, paint, 1, 0, 0, 1, 0, 0);
+  int64_t before = paint->pixel_remaining;
+  push_box_clip (funcs, paint, 100.f, 100.f, 108.f, 108.f);
+  hb_always_assert (before - paint->pixel_remaining < 16 * 8 * 8);
+
+  /* An axis-aligned rectangle copies only what it shares with a mask... */
+  before = paint->pixel_remaining;
+  hb_paint_push_clip_rectangle (funcs, paint, 0.f, 0.f, 1024.f, 1024.f);
+  hb_always_assert (before - paint->pixel_remaining == 8 * 8);
+
+  /* ...and a transformed one tests only those pixels of its bounding box. */
+  hb_paint_push_transform (funcs, paint, .6f, .8f, -.8f, .6f, 0, 0);
+  before = paint->pixel_remaining;
+  hb_paint_push_clip_rectangle (funcs, paint, -2048.f, -2048.f, 2048.f, 2048.f);
+  hb_always_assert (before - paint->pixel_remaining == 8 * 8);
+  hb_paint_pop_transform (funcs, paint);
+
+  hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255));
+  for (unsigned i = 0; i < 3; i++)
+    hb_paint_pop_clip (funcs, paint);
+  hb_paint_pop_transform (funcs, paint);
+  image = hb_raster_paint_render (paint);
+  hb_always_assert (image);
+  hb_raster_image_get_extents (image, &extents);
+  pixels = hb_raster_image_get_buffer (image);
+  for (unsigned y = 0; y < wide.height; y++)
+    for (unsigned x = 0; x < wide.width; x++)
+      hb_always_assert (pixels[y * extents.stride + x * 4 + 3] ==
+			(x >= 100 && x < 108 && y >= 100 && y < 108 ? 255 : 0));
+  hb_raster_image_destroy (image);
+
+  /* Cached masks are zero again, so a mask built in one, here for a
+   * surface of another size, starts out empty. */
+  hb_always_assert (paint->clip_cache.length == 3);
+  for (const hb_raster_clip_t &clip : paint->clip_cache)
+    for (uint8_t alpha : clip.alpha)
+      hb_always_assert (!alpha);
+  hb_raster_paint_set_extents (paint, &root);
+  push_box_clip (funcs, paint, 8.f, 8.f, 24.f, 24.f);
+  hb_always_assert (paint->clip_cache.length == 2);
+  hb_always_assert (paint->clip_stack.arrayZ[paint->clip_stack.length - 1].alpha.length >
+		    root.width * root.height);
+  hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255));
+  hb_paint_pop_clip (funcs, paint);
+  image = hb_raster_paint_render (paint);
+  hb_always_assert (image);
+  hb_raster_image_get_extents (image, &extents);
+  pixels = hb_raster_image_get_buffer (image);
+  for (unsigned y = 0; y < root.height; y++)
+    for (unsigned x = 0; x < root.width; x++)
+      hb_always_assert (pixels[y * extents.stride + x * 4 + 3] ==
+			(x >= 8 && x < 24 && y >= 8 && y < 24 ? 255 : 0));
+  hb_raster_image_destroy (image);
+
+  /* A mask is rendered only as far as the clip it is used within can
+   * show it, so a layer costs what it paints, however large its outline... */
+  hb_raster_paint_set_extents (paint, &wide);
+  push_box_clip (funcs, paint, 100.f, 100.f, 108.f, 108.f);
+  before = paint->pixel_remaining;
+  push_box_clip (funcs, paint, -4096.f, -4096.f, 4096.f, 4096.f);
+  hb_always_assert (before - paint->pixel_remaining < 16 * 8 * 8);
+  hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255));
+  hb_paint_pop_clip (funcs, paint);
+  hb_paint_pop_clip (funcs, paint);
+
+  /* ...and next to nothing within a clip that shows nothing. */
+  push_box_clip (funcs, paint, 2000.f, 2000.f, 2008.f, 2008.f);
+  before = paint->pixel_remaining;
+  push_box_clip (funcs, paint, -4096.f, -4096.f, 4096.f, 4096.f);
+  hb_always_assert (before - paint->pixel_remaining < 8 * 8);
+  hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255));
+  hb_paint_pop_clip (funcs, paint);
+  hb_paint_pop_clip (funcs, paint);
+
+  image = hb_raster_paint_render (paint);
+  hb_always_assert (image);
+  hb_raster_image_get_extents (image, &extents);
+  pixels = hb_raster_image_get_buffer (image);
+  for (unsigned y = 0; y < wide.height; y++)
+    for (unsigned x = 0; x < wide.width; x++)
+      hb_always_assert (pixels[y * extents.stride + x * 4 + 3] ==
+			(x >= 100 && x < 108 && y >= 100 && y < 108 ? 255 : 0));
   hb_raster_image_destroy (image);
 
   hb_raster_paint_destroy (paint);
