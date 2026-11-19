@@ -96,6 +96,9 @@
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"
 #pragma GCC diagnostic error   "-Wtautological-overlap-compare"
+#ifdef __clang__
+#pragma GCC diagnostic error   "-Wuninitialized" // A warning under gcc; see below
+#endif
 #pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
 #pragma GCC diagnostic error   "-Wunused"
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
@@ -121,15 +124,18 @@
 #pragma GCC diagnostic warning "-Wundef"
 #pragma GCC diagnostic warning "-Wunsafe-loop-optimizations"
 #pragma GCC diagnostic warning "-Wunused-but-set-variable"
-#ifdef __clang__
-// The following are too buggy on gcc
+#ifndef __clang__
+// gcc finds uninitialized uses in its optimizers, so what it reports
+// depends on its version, the target and the options, and it has
+// reported uses that were not there, failing builds while this was an
+// error:
 // https://github.com/harfbuzz/harfbuzz/issues/5589
 // https://github.com/harfbuzz/harfbuzz/pull/5367
-#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
+// So -Wuninitialized is a warning here, and an error under clang only.
+// It turns -Wmaybe-uninitialized back on, which is the less reliable of
+// the two: keep them in this order.
 #pragma GCC diagnostic warning "-Wuninitialized"
-#else
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 #endif
 
