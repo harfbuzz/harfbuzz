@@ -1215,9 +1215,12 @@ struct skipping_iterator_t
     return false;
   }
 
+  /* A work-budget unit stands for roughly a hundred nanoseconds of
+   * shaping; skipping a glyph costs a few.  Charge runs of skipped
+   * glyphs accordingly; short runs are free. */
   void charge_skipped (unsigned count)
   {
-    c->buffer->max_ops -= count;
+    c->buffer->max_ops -= count / 32;
     c->buffer->successful &= c->buffer->max_ops >= 0;
   }
 

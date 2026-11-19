@@ -54,6 +54,8 @@ struct skip_context_t : matcher_context_t
 
 static void test_skip_budget (const OT::GDEF::accelerator_t &gdef)
 {
+  /* Skipped glyphs are charged in runs of 32. */
+  const unsigned len = 66;
   hb_buffer_t *buffer = hb_buffer_create ();
   skip_context_t context (gdef, buffer);
   for (bool backward : {false, true})
@@ -61,25 +63,25 @@ static void test_skip_budget (const OT::GDEF::accelerator_t &gdef)
       for (int budget = 0; budget <= 3; budget++)
       {
         hb_buffer_clear_contents (buffer);
-        for (unsigned i = 0; i < 4; i++)
-          hb_buffer_add (buffer, ending == 2 || (i != 0 && i != 3) ? 1 : 0, i);
-        for (unsigned i = 0; i < 4; i++) buffer->info[i].mask = 1;
-        buffer->idx = backward ? 3 : 0;
+        for (unsigned i = 0; i < len; i++)
+          hb_buffer_add (buffer, ending == 2 || (i != 0 && i != len - 1) ? 1 : 0, i);
+        for (unsigned i = 0; i < len; i++) buffer->info[i].mask = 1;
+        buffer->idx = backward ? len - 1 : 0;
         buffer->out_info = buffer->info;
         buffer->out_len = buffer->len;
-        if (ending == 1) buffer->info[backward ? 0 : 3].mask = 0;
+        if (ending == 1) buffer->info[backward ? 0 : len - 1].mask = 0;
         buffer->max_ops = budget;
         OT::skipping_iterator_t<skip_context_t> iter;
         iter.init (&context);
-        if (backward) iter.reset_back (3);
+        if (backward) iter.reset_back (len - 1);
         else iter.reset (0);
         unsigned unsafe = UINT_MAX;
         bool matched = backward ? iter.prev (&unsafe) : iter.next (&unsafe);
-        unsigned skipped = ending == 2 ? 3 : 2;
+        unsigned skipped = (ending == 2 ? len - 1 : len - 2) / 32;
         hb_always_assert (matched == (ending == 0));
         hb_always_assert (buffer->max_ops == budget - (int) skipped);
         hb_always_assert (buffer->successful == (budget >= (int) skipped));
-        if (!matched) hb_always_assert (unsafe == (backward ? 0u : 4u));
+        if (!matched) hb_always_assert (unsafe == (backward ? 0u : len));
       }
   hb_buffer_destroy (buffer);
 }

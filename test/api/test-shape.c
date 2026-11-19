@@ -352,7 +352,7 @@ test_shape_kerx_control_point_actions_are_charged (void)
 
   /* 131074 before the budget was charged. */
   g_assert_cmpuint (calls, >=, 2);
-  g_assert_cmpuint (calls, <=, 20000);
+  g_assert_cmpuint (calls, <=, 2048);
 
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
@@ -515,7 +515,7 @@ test_shape_lookup_budget (void)
    * the buffer far beyond the text, so a small font can make the shaper
    * walk a long buffer thousands of times for one character.  Those passes
    * must be charged to the buffer's work budget, which one character sizes
-   * at 5000000, and cut off when it runs out; each costs 65025 / 16. */
+   * at 524288, and cut off when it runs out; each costs 65025 / 16. */
   hb_face_t *face;
   hb_font_t *font;
   hb_buffer_t *buffer;
@@ -557,8 +557,9 @@ test_shape_complex_font_budget (void)
   hb_buffer_t *buffer = hb_buffer_create ();
   const char *shapers[] = {"ot", NULL};
 
-  /* The dist lookups of this reduced monster font need more work than
-   * the old per-character allowance, even for this short sentence. */
+  /* The dist lookups of this reduced monster font skip long runs of
+   * glyphs.  Charging each skipped glyph a full unit of work exhausted
+   * the allowance, even for this short sentence. */
   const hb_codepoint_t text[] = {
     0x1BC47, 0x1BC23, 0x20, 0x1BC02, 0x1BC46, 0x20, 0x1BC06,
     0x1BC44, 0x1BC09, 0x1BC05, 0x1BC0B, 0x1BC41, 0x1BC04, 0x1BC03
@@ -582,14 +583,15 @@ test_shape_large_work_budget (void)
   const char *shapers[] = {"ot", NULL};
 
   /* The per-character allowance exceeds both signed and unsigned 32-bit
-   * arithmetic here.  Clamp it before assigning to the signed counter. */
+   * arithmetic here.  It is clamped before assigning to the signed
+   * counter. */
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
-  for (unsigned i = 0; i < 5000; i++)
+  for (unsigned i = 0; i < 70000; i++)
     hb_buffer_add (buffer, 'a', i);
   hb_buffer_guess_segment_properties (buffer);
   g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
   g_assert_true (hb_buffer_allocation_successful (buffer));
-  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 5000);
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 70000);
 
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
