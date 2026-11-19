@@ -721,6 +721,53 @@ test_paint_recycle_blob (void)
 
 
 static void
+test_paint_group_depth_reset (void)
+{
+  /* Groups left open by an abandoned paint must not count against
+   * the group-depth limit of the next encode, whether the encoder
+   * was reset, cleared, or auto-cleared by a successful encode. */
+  hb_face_t *face = hb_test_open_font_file (FONT_FILE);
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &gid));
+
+  for (unsigned mode = 0; mode < 3; mode++)
+  {
+    hb_gpu_paint_t *p = hb_gpu_paint_create_or_fail ();
+    g_assert_nonnull (p);
+    hb_paint_funcs_t *pf = hb_gpu_paint_get_funcs (p);
+
+    /* Leave three groups open. */
+    for (unsigned i = 0; i < 3; i++)
+      hb_paint_push_group (pf, p);
+    hb_gpu_paint_glyph (p, font, gid);
+
+    if (mode == 0)
+      hb_gpu_paint_reset (p);
+    else if (mode == 1)
+      hb_gpu_paint_clear (p);
+    else
+      hb_blob_destroy (hb_gpu_paint_encode (p, nullptr));
+
+    /* Two balanced groups are within the limit. */
+    for (unsigned i = 0; i < 2; i++)
+      hb_paint_push_group (pf, p);
+    hb_gpu_paint_glyph (p, font, gid);
+    for (unsigned i = 0; i < 2; i++)
+      hb_paint_pop_group (pf, p, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+    hb_blob_t *blob = hb_gpu_paint_encode (p, nullptr);
+    g_assert_nonnull (blob);
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    hb_blob_destroy (blob);
+
+    hb_gpu_paint_destroy (p);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_paint_clip_path_depth_overflow (void)
 {
   /* push_clip_path_end must honor the same clip-depth cap as
@@ -1141,6 +1188,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_auto_clear_on_encode);
   hb_test_add (test_paint_reset);
   hb_test_add (test_paint_recycle_blob);
+  hb_test_add (test_paint_group_depth_reset);
   hb_test_add (test_paint_clip_path_depth_overflow);
   hb_test_add (test_paint_clip_rectangle_pop_balance);
   hb_test_add (test_paint_layers_under_shared_clip);

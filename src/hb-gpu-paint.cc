@@ -1677,6 +1677,7 @@ hb_gpu_paint_clear (hb_gpu_paint_t *paint)
   paint->sub_blobs.reset ();
   paint->sub_bytes = 0;
   paint->clip_depth = 0;
+  paint->group_depth = 0;
   hb_memset (paint->rect_clips, 0, sizeof (paint->rect_clips));
   paint->pending_clip_path = false;
   paint->unsupported = false;
