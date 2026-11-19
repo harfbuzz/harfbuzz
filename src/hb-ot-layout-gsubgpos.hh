@@ -1030,10 +1030,6 @@ struct skipping_iterator_t
   {
     c = c_;
     end = c->buffer->len;
-    match_glyph_data16 = nullptr;
-#ifndef HB_NO_BEYOND_64K
-    match_glyph_data24 = nullptr;
-#endif
     matcher.init (c, context_match);
   }
   void set_lookup_props (unsigned int lookup_props)
@@ -1045,16 +1041,6 @@ struct skipping_iterator_t
   {
     matcher.set_match_func (match_func_, match_data_);
   }
-  void set_glyph_data (glyph_data_t glyph_data)
-  {
-#ifndef HB_NO_BEYOND_64K
-    match_glyph_data16 = glyph_data.wide ? nullptr : (const HBUINT16 *) glyph_data.data;
-    match_glyph_data24 = glyph_data.wide ? (const HBUINT24 *) glyph_data.data : nullptr;
-#else
-    match_glyph_data16 = (const HBUINT16 *) glyph_data.data;
-#endif
-  }
-
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
@@ -1096,7 +1082,7 @@ struct skipping_iterator_t
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  match_t match (hb_glyph_info_t &info)
+  match_t match (hb_glyph_info_t &info, hb_codepoint_t glyph_data = 0)
   {
     /* Do not skip glyphs from another syllable. */
     if (matcher.per_syllable && matcher.syllable &&
@@ -1107,7 +1093,7 @@ struct skipping_iterator_t
     if (unlikely (skip == matcher_t::SKIP_YES))
       return SKIP;
 
-    matcher_t::may_match_t match = matcher.may_match (info, get_glyph_data ());
+    matcher_t::may_match_t match = matcher.may_match (info, glyph_data);
     if (match == matcher_t::MATCH_YES ||
 	(match == matcher_t::MATCH_MAYBE &&
 	 skip == matcher_t::SKIP_NO))
@@ -1123,19 +1109,19 @@ struct skipping_iterator_t
   HB_ALWAYS_INLINE
 #endif
   HB_HOT
-  bool next (unsigned *unsafe_to = nullptr)
+  bool next (unsigned *unsafe_to = nullptr, hb_codepoint_t glyph_data = 0)
   {
     if ((signed) idx < (signed) end - 1)
     {
       unsigned start = idx;
       idx++;
-      switch (match (c->buffer->info[idx]))
+      switch (match (c->buffer->info[idx], glyph_data))
       {
-        case MATCH: advance_glyph_data (); return true;
+        case MATCH: return true;
         case NOT_MATCH:
           if (unsafe_to) *unsafe_to = idx + 1;
           return false;
-        case SKIP: return next_slow (start, unsafe_to);
+        case SKIP: return next_slow (start, unsafe_to, glyph_data);
       }
     }
     if (unsafe_to) *unsafe_to = end;
@@ -1143,17 +1129,16 @@ struct skipping_iterator_t
   }
 
   HB_NEVER_INLINE
-  bool next_slow (unsigned start, unsigned *unsafe_to)
+  bool next_slow (unsigned start, unsigned *unsafe_to, hb_codepoint_t glyph_data)
   {
     auto *info = c->buffer->info;
     while ((signed) idx < (signed) end - 1)
     {
       idx++;
-      switch (match (info[idx]))
+      switch (match (info[idx], glyph_data))
       {
         case MATCH:
           charge_skipped (idx - start - 1);
-          advance_glyph_data ();
           return true;
         case NOT_MATCH:
           charge_skipped (idx - start - 1);
@@ -1171,19 +1156,19 @@ struct skipping_iterator_t
   HB_ALWAYS_INLINE
 #endif
   HB_HOT
-  bool prev (unsigned *unsafe_from = nullptr)
+  bool prev (unsigned *unsafe_from = nullptr, hb_codepoint_t glyph_data = 0)
   {
     if (idx > 0)
     {
       unsigned start = idx;
       idx--;
-      switch (match (c->buffer->out_info[idx]))
+      switch (match (c->buffer->out_info[idx], glyph_data))
       {
-        case MATCH: advance_glyph_data (); return true;
+        case MATCH: return true;
         case NOT_MATCH:
           if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
           return false;
-        case SKIP: return prev_slow (start, unsafe_from);
+        case SKIP: return prev_slow (start, unsafe_from, glyph_data);
       }
     }
     if (unsafe_from) *unsafe_from = 0;
@@ -1191,17 +1176,16 @@ struct skipping_iterator_t
   }
 
   HB_NEVER_INLINE
-  bool prev_slow (unsigned start, unsigned *unsafe_from)
+  bool prev_slow (unsigned start, unsigned *unsafe_from, hb_codepoint_t glyph_data)
   {
     auto *out_info = c->buffer->out_info;
     while (idx > 0)
     {
       idx--;
-      switch (match (out_info[idx]))
+      switch (match (out_info[idx], glyph_data))
       {
         case MATCH:
           charge_skipped (start - idx - 1);
-          advance_glyph_data ();
           return true;
         case NOT_MATCH:
           charge_skipped (start - idx - 1);
@@ -1221,36 +1205,10 @@ struct skipping_iterator_t
     c->buffer->successful &= c->buffer->max_ops >= 0;
   }
 
-  HB_ALWAYS_INLINE
-  hb_codepoint_t
-  get_glyph_data ()
-  {
-    if (match_glyph_data16) return *match_glyph_data16;
-#ifndef HB_NO_BEYOND_64K
-    else
-    if (match_glyph_data24) return *match_glyph_data24;
-#endif
-    return 0;
-  }
-  HB_ALWAYS_INLINE
-  void
-  advance_glyph_data ()
-  {
-    if (match_glyph_data16) match_glyph_data16++;
-#ifndef HB_NO_BEYOND_64K
-    else
-    if (match_glyph_data24) match_glyph_data24++;
-#endif
-  }
-
   unsigned int idx;
   protected:
   context_t *c;
   matcher_t matcher;
-  const HBUINT16 *match_glyph_data16;
-#ifndef HB_NO_BEYOND_64K
-  const HBUINT24 *match_glyph_data24;
-#endif
 
   unsigned int end;
 };
@@ -2118,7 +2076,6 @@ static bool match_input (hb_ot_apply_context_t *c,
   auto &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx);
   skippy_iter.set_match_func (match_func, match_data);
-  skippy_iter.set_glyph_data (input);
 
   /*
    * This is perhaps the trickiest part of OpenType...  Remarks:
@@ -2158,7 +2115,7 @@ static bool match_input (hb_ot_apply_context_t *c,
   for (unsigned int i = 1; i < count; i++)
   {
     unsigned unsafe_to;
-    if (!skippy_iter.next (&unsafe_to))
+    if (!skippy_iter.next (&unsafe_to, input[i - 1]))
     {
       *end_position = unsafe_to;
       return_trace (false);
@@ -2381,12 +2338,11 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
   auto &skippy_iter = c->iter_context;
   skippy_iter.reset_back (c->buffer->backtrack_len ());
   skippy_iter.set_match_func (match_func, match_data);
-  skippy_iter.set_glyph_data (backtrack);
 
   for (unsigned int i = 0; i < count; i++)
   {
     unsigned unsafe_from;
-    if (!skippy_iter.prev (&unsafe_from))
+    if (!skippy_iter.prev (&unsafe_from, backtrack[i]))
     {
       *match_start = unsafe_from;
       return_trace (false);
@@ -2422,12 +2378,11 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
   assert (start_index >= 1);
   skippy_iter.reset (start_index - 1);
   skippy_iter.set_match_func (match_func, match_data);
-  skippy_iter.set_glyph_data (lookahead);
 
   for (unsigned int i = 0; i < count; i++)
   {
     unsigned unsafe_to;
-    if (!skippy_iter.next (&unsafe_to))
+    if (!skippy_iter.next (&unsafe_to, lookahead[i]))
     {
       *end_index = unsafe_to;
       return_trace (false);
@@ -3559,7 +3514,6 @@ struct RuleSetOf
     auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
-    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1, unsafe_to2 = 0;
     hb_glyph_info_t *first = nullptr, *second = nullptr;
     bool matched = skippy_iter.next (&unsafe_to1);
@@ -5214,7 +5168,6 @@ struct ChainRuleSetOf
     auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
-    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1, unsafe_to2 = 0;
     hb_glyph_info_t *first = nullptr, *second = nullptr;
     bool matched = skippy_iter.next (&unsafe_to1);
