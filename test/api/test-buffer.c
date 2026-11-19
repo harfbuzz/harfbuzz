@@ -498,6 +498,56 @@ test_buffer_diff_positions (void)
 }
 
 static void
+check_added_positions_zero (hb_buffer_t *b)
+{
+  unsigned len, i;
+  hb_glyph_position_t *pos;
+
+  /* The array is zero-filled the first time positions are requested;
+   * items added afterwards must not expose uninitialized memory or
+   * positions left from earlier contents. */
+  hb_buffer_add_utf8 (b, "a", -1, 0, -1);
+  pos = hb_buffer_get_glyph_positions (b, &len);
+  g_assert_cmpuint (len, ==, 1);
+  g_assert_cmpint (pos[0].x_advance, ==, 0);
+
+  hb_buffer_add_utf8 (b, "bcdefghijklmnopqrstuvwxyz", -1, 0, -1);
+  hb_buffer_add (b, 'z', 0);
+  pos = hb_buffer_get_glyph_positions (b, &len);
+  g_assert_cmpuint (len, ==, 27);
+  for (i = 1; i < len; i++)
+  {
+    g_assert_cmpint (pos[i].x_advance, ==, 0);
+    g_assert_cmpint (pos[i].y_advance, ==, 0);
+    g_assert_cmpint (pos[i].x_offset, ==, 0);
+    g_assert_cmpint (pos[i].y_offset, ==, 0);
+  }
+}
+
+static void
+test_buffer_added_positions (void)
+{
+  hb_buffer_t *b = hb_buffer_create ();
+  unsigned len, i;
+  hb_glyph_position_t *pos;
+
+  check_added_positions_zero (b);
+
+  /* Leave positions behind, then reuse the buffer. */
+  pos = hb_buffer_get_glyph_positions (b, &len);
+  for (i = 0; i < len; i++)
+    pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 1000 + i;
+
+  hb_buffer_reset (b);
+  check_added_positions_zero (b);
+
+  hb_buffer_clear_contents (b);
+  check_added_positions_zero (b);
+
+  hb_buffer_destroy (b);
+}
+
+static void
 test_buffer_allocation (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
   fixture_t *fixture = fixture_;
@@ -1340,6 +1390,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf32_conversion);
   hb_test_add (test_buffer_empty);
   hb_test_add (test_buffer_diff_positions);
+  hb_test_add (test_buffer_added_positions);
   hb_test_add (test_buffer_create_similar);
 #if !defined(HB_NO_BUFFER_MESSAGE) && !defined(HB_NO_OT_SHAPE)
   hb_test_add (test_buffer_message_lifetime);

@@ -361,6 +361,8 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
   glyph->codepoint = codepoint;
   glyph->mask = 0;
   glyph->cluster = cluster;
+  if (unlikely (have_positions))
+    hb_memset (&pos[len], 0, sizeof (pos[len]));
 
   len++;
 }
@@ -1909,7 +1911,8 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
      * the available space before checking capacity again. */
     const T *limit = next + hb_min ((unsigned) (end - next),
 				    buffer->allocated - buffer->len - 1);
-    hb_glyph_info_t *out = buffer->info + buffer->len;
+    unsigned start = buffer->len;
+    hb_glyph_info_t *out = buffer->info + start;
     do
     {
       hb_codepoint_t u;
@@ -1921,6 +1924,9 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
       out++;
     } while (next < limit);
     buffer->len = out - buffer->info;
+    if (unlikely (buffer->have_positions))
+      hb_memset (buffer->pos + start, 0,
+		 (buffer->len - start) * sizeof (buffer->pos[0]));
   }
 
   /* Add post-context */
