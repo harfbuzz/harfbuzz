@@ -83,4 +83,14 @@ struct hb_shape_plan_t
 };
 
 
+HB_INTERNAL hb_shape_plan_t *
+_hb_shape_plan_get_cached (hb_face_t                     *face,
+                           const hb_segment_properties_t *props,
+                           const hb_feature_t            *user_features,
+                           unsigned int                   num_user_features,
+                           const int                     *coords,
+                           unsigned int                   num_coords,
+                           const char * const            *shaper_list,
+                           hb_shape_plan_t              **uncached_plan);
+
 #endif /* HB_SHAPE_PLAN_HH */

@@ -30,6 +30,7 @@
 
 #include "hb-shaper.hh"
 #include "hb-shape-plan.hh"
+#include "hb-shape-plan.hh"
 #include "hb-buffer.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
@@ -140,14 +141,22 @@ hb_shape_full (hb_font_t          *font,
     hb_buffer_append (text_buffer, buffer, 0, -1);
   }
 
-  hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached2 (font->face, &buffer->props,
-							      features, num_features,
-							      font->coords, font->has_nonzero_coords ? font->num_coords : 0,
-							      shaper_list);
+  hb_shape_plan_t *uncached_plan;
+  hb_shape_plan_t *shape_plan = _hb_shape_plan_get_cached (font->face, &buffer->props,
+                                                           features, num_features,
+                                                           font->coords, font->has_nonzero_coords ? font->num_coords : 0,
+                                                           shaper_list, &uncached_plan);
+
+#ifndef HB_DISABLE_DEPRECATED
+  /* hb_font_set_face() can release a mutable font's face during a callback. */
+  if (!hb_object_is_immutable (font) && !uncached_plan)
+    uncached_plan = hb_shape_plan_reference (shape_plan);
+#endif
 
   hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
 
-  hb_shape_plan_destroy (shape_plan);
+  if (unlikely (uncached_plan))
+    hb_shape_plan_destroy (uncached_plan);
 
   if (text_buffer)
   {

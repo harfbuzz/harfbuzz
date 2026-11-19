@@ -541,6 +541,25 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 			      unsigned int                   num_coords,
 			      const char * const            *shaper_list)
 {
+  hb_shape_plan_t *uncached_plan;
+  hb_shape_plan_t *plan = _hb_shape_plan_get_cached (face, props, user_features, num_user_features,
+                                                     coords, num_coords, shaper_list, &uncached_plan);
+  return uncached_plan ? uncached_plan : hb_shape_plan_reference (plan);
+}
+
+/* The face owns all published plans. If a new plan cannot be cached,
+ * give its reference to the caller instead. */
+hb_shape_plan_t *
+_hb_shape_plan_get_cached (hb_face_t                     *face,
+                           const hb_segment_properties_t *props,
+                           const hb_feature_t            *user_features,
+                           unsigned int                   num_user_features,
+                           const int                     *coords,
+                           unsigned int                   num_coords,
+                           const char * const            *shaper_list,
+                           hb_shape_plan_t              **uncached_plan)
+{
+  *uncached_plan = nullptr;
   DEBUG_MSG_FUNC (SHAPE_PLAN, nullptr,
 		  "face=%p num_features=%u shaper_list=%p",
 		  face,
@@ -574,7 +593,7 @@ retry:
     if (cached && cached->shape_plan->key.equal (&key))
     {
       DEBUG_MSG_FUNC (SHAPE_PLAN, cached->shape_plan, "fulfilled from last-plan cache");
-      return hb_shape_plan_reference (cached->shape_plan);
+      return cached->shape_plan;
     }
 
     for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
@@ -582,7 +601,7 @@ retry:
       {
 	DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
 	face->last_shape_plan.set_release (node);
-	return hb_shape_plan_reference (node->shape_plan);
+	return node->shape_plan;
       }
   }
 
@@ -592,11 +611,17 @@ retry:
 						       shaper_list);
 
   if (unlikely (dont_cache))
+  {
+    *uncached_plan = shape_plan;
     return shape_plan;
+  }
 
   hb_face_t::plan_node_t *node = (hb_face_t::plan_node_t *) hb_calloc (1, sizeof (hb_face_t::plan_node_t));
   if (unlikely (!node))
+  {
+    *uncached_plan = shape_plan;
     return shape_plan;
+  }
 
   node->shape_plan = shape_plan;
   node->next = cached_plan_nodes;
@@ -610,7 +635,7 @@ retry:
   DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan, "inserted into cache");
   face->last_shape_plan.set_release (node);
 
-  return hb_shape_plan_reference (shape_plan);
+  return shape_plan;
 }
 
 
