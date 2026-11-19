@@ -2637,5 +2637,6 @@ void
 hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,
 			       hb_raster_image_t  *image)
 {
+  if (unlikely (!image)) return;
   paint->release_surface (image);
 }

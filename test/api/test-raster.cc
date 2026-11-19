@@ -551,6 +551,27 @@ test_paint_reset (void)
 /* Changing extents while a paint is in progress must not shrink group
  * surfaces below the root surface and initial clip they composite onto. */
 static void
+test_paint_recycle_null (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+
+  /* A render that fails gives no image.  Recycling that does nothing,
+   * and leaves nothing for the next render to trip over. */
+  hb_raster_image_t *image = hb_raster_paint_render (paint);
+  g_assert_null (image);
+  hb_raster_paint_recycle_image (paint, image);
+
+  hb_raster_extents_t ext = {0, 0, 1, 1, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  image = hb_raster_paint_render (paint);
+  g_assert_nonnull (image);
+  hb_raster_image_destroy (image);
+
+  hb_raster_paint_destroy (paint);
+}
+
+static void
 test_set_extents_while_painting (void)
 {
   hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
@@ -886,6 +907,7 @@ main (int argc, char **argv)
   hb_test_add (test_background_premultiplied);
   hb_test_add (test_background_stride);
   hb_test_add (test_paint_reset);
+  hb_test_add (test_paint_recycle_null);
   hb_test_add (test_set_extents_while_painting);
   hb_test_add (test_clip_rectangle_transformed);
   hb_test_add (test_image_bgra);
