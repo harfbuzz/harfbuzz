@@ -6542,23 +6542,26 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
       return subtables[0].apply_no_digest (c);
     }
+    if (unlikely (!c->buffer->successful)) return false;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
-      return
-      + hb_iter (hb_iter (subtables, count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, count))
+      {
+        if (!subtable.digest.may_have (c->buffer->cur().codepoint)) continue;
+        if (subtable.apply_cached_no_digest (c)) return true;
+        if (unlikely (!c->buffer->successful)) return false;
+      }
     }
     else
 #endif
     {
-      return
-      + hb_iter (hb_iter (subtables, count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, count))
+      {
+        if (!subtable.digest.may_have (c->buffer->cur().codepoint)) continue;
+        if (subtable.apply_no_digest (c)) return true;
+        if (unlikely (!c->buffer->successful)) return false;
+      }
     }
     return false;
   }
