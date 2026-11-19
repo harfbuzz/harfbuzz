@@ -176,10 +176,10 @@ protected:
 
 #define HB_ADD_MVAR_VAR(tag, field) \
        c->serializer->check_assign (table->field, \
-				    roundf (table->field + \
+				    hb_clamp_to<int> (roundf (table->field + \
 					    MVAR.get_var (tag, \
 							  c->plan->normalized_coords.arrayZ, \
-							  c->plan->normalized_coords.length)), \
+							  c->plan->normalized_coords.length))), \
 				    HB_SERIALIZE_ERROR_INT_OVERFLOW)
 
 

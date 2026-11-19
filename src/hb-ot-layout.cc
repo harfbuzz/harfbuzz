@@ -137,9 +137,7 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
   AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
 
   if (!buffer->message (font, "start table kern")) return;
-  c.buffer_glyph_set = accel.scratch.create_buffer_glyph_set ();
   accel.apply (&c);
-  accel.scratch.destroy_buffer_glyph_set (c.buffer_glyph_set);
   (void) buffer->message (font, "end table kern");
 }
 #endif
@@ -1975,6 +1973,9 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 {
   bool use_hot_subtable_cache = accel.cache_enter (c);
 
+  /* The lookup digest is immutable. Keep its masks in registers while
+   * scanning glyphs, including across table-access compiler barriers. */
+  const hb_set_digest_t digest = accel.digest;
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   while (buffer->successful)
@@ -1982,7 +1983,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     hb_glyph_info_t *info = buffer->info;
     unsigned j = buffer->idx;
     while (j < buffer->len &&
-	   !(accel.digest.may_have (info[j].codepoint) &&
+	   !(digest.may_have (info[j].codepoint) &&
 	     (info[j].mask & c->lookup_mask) &&
 	     c->check_glyph_property (&info[j], c->lookup_props)))
       j++;

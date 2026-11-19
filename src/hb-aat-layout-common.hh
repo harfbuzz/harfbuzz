@@ -46,6 +46,7 @@ namespace AAT {
 using namespace OT;
 
 struct ankr;
+struct kern_pair_filter_t;
 
 using hb_aat_class_cache_t = hb_ot_layout_mapping_cache_t;
 
@@ -134,7 +135,10 @@ struct hb_aat_apply_context_t :
   const hb_bit_set_t *first_set = nullptr;
   const hb_bit_set_t *second_set = nullptr;
   bool second_set_gates = false;
-  hb_aat_class_cache_t *machine_class_cache = nullptr;
+  union {
+    hb_aat_class_cache_t *machine_class_cache = nullptr;
+    const kern_pair_filter_t *kern_pair_filter;
+  };
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;

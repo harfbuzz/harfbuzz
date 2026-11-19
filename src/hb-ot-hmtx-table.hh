@@ -148,15 +148,15 @@ struct hmtxvmtx
             table->descender == OS2.sTypoDescender &&
             table->lineGap == OS2.sTypoLineGap)
         {
-          table->ascender = static_cast<int> (roundf (OS2.sTypoAscender +
+          table->ascender = hb_clamp_to<int> (roundf (OS2.sTypoAscender +
                                                       MVAR.get_var (HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER,
                                                                     c->plan->normalized_coords.arrayZ,
                                                                     c->plan->normalized_coords.length)));
-          table->descender = static_cast<int> (roundf (OS2.sTypoDescender +
+          table->descender = hb_clamp_to<int> (roundf (OS2.sTypoDescender +
                                                        MVAR.get_var (HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER,
                                                                      c->plan->normalized_coords.arrayZ,
                                                                      c->plan->normalized_coords.length)));
-          table->lineGap = static_cast<int> (roundf (OS2.sTypoLineGap +
+          table->lineGap = hb_clamp_to<int> (roundf (OS2.sTypoLineGap +
                                                      MVAR.get_var (HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP,
                                                                    c->plan->normalized_coords.arrayZ,
                                                                    c->plan->normalized_coords.length)));

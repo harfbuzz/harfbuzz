@@ -91,7 +91,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(i)",		glyph_outline_free),
 
   /* shape */
-  NATIVE_SYMBOL ("(iiii$)i",	shape_with),
+  NATIVE_SYMBOL ("(iiiii)i",	shape_with),
   NATIVE_SYMBOL ("(iii)i",	feature_copy_contents),
   NATIVE_SYMBOL ("(i)",		features_free),
 

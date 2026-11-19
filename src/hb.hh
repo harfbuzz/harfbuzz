@@ -90,11 +90,15 @@
 #pragma GCC diagnostic error   "-Wredundant-decls"
 #pragma GCC diagnostic error   "-Wreorder"
 #pragma GCC diagnostic error   "-Wsign-compare"
+#pragma GCC diagnostic error   "-Wstrict-aliasing"
 #pragma GCC diagnostic error   "-Wstrict-flex-arrays"
 #pragma GCC diagnostic error   "-Wstrict-prototypes"
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"
 #pragma GCC diagnostic error   "-Wtautological-overlap-compare"
+#ifdef __clang__
+#pragma GCC diagnostic error   "-Wuninitialized" // A warning under gcc; see below
+#endif
 #pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
 #pragma GCC diagnostic error   "-Wunused"
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
@@ -120,15 +124,18 @@
 #pragma GCC diagnostic warning "-Wundef"
 #pragma GCC diagnostic warning "-Wunsafe-loop-optimizations"
 #pragma GCC diagnostic warning "-Wunused-but-set-variable"
-#ifdef __clang__
-// The following are too buggy on gcc
+#ifndef __clang__
+// gcc finds uninitialized uses in its optimizers, so what it reports
+// depends on its version, the target and the options, and it has
+// reported uses that were not there, failing builds while this was an
+// error:
 // https://github.com/harfbuzz/harfbuzz/issues/5589
 // https://github.com/harfbuzz/harfbuzz/pull/5367
-#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
+// So -Wuninitialized is a warning here, and an error under clang only.
+// It turns -Wmaybe-uninitialized back on, which is the less reliable of
+// the two: keep them in this order.
 #pragma GCC diagnostic warning "-Wuninitialized"
-#else
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 #endif
 
@@ -155,7 +162,6 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
 #pragma GCC diagnostic ignored "-Wrange-loop-analysis" // https://github.com/harfbuzz/harfbuzz/issues/2834
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #pragma GCC diagnostic ignored "-Wunused-template"
 #pragma GCC diagnostic ignored "-Wc++11-compat" // only gcc raises it

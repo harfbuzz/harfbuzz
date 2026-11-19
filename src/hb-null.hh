@@ -112,7 +112,12 @@ struct Null {
   static Type const & get_null ()
   {
     static_assert (hb_null_size (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+    /* The pool is all zeros and is never written, so reading it as an
+     * object of any type is safe whatever aliasing the compiler assumes. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
     return *reinterpret_cast<Type const *> (_hb_NullPool);
+#pragma GCC diagnostic pop
   }
 };
 template <typename QType>

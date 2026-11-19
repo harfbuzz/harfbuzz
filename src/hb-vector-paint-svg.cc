@@ -288,24 +288,6 @@ static void hb_vector_paint_sweep_gradient (hb_paint_funcs_t *, void *, hb_color
 static void hb_vector_paint_push_group (hb_paint_funcs_t *, void *, void *);
 static void hb_vector_paint_pop_group (hb_paint_funcs_t *, void *, hb_paint_composite_mode_t, void *);
 static hb_bool_t hb_vector_paint_color_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, void *);
-static hb_bool_t
-hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
-				      void *paint_data,
-				      unsigned color_index,
-				      hb_color_t *color,
-				      void *user_data HB_UNUSED)
-{
-  hb_vector_paint_t *paint = (hb_vector_paint_t *) paint_data;
-  if (!color)
-    return false;
-
-  hb_color_t *value = nullptr;
-  if (!paint->custom_palette_colors.has (color_index, &value) || !value)
-    return false;
-  *color = *value;
-  return true;
-}
-
 static inline void free_static_vector_paint_funcs ();
 static struct hb_vector_paint_funcs_lazy_loader_t
   : hb_paint_funcs_lazy_loader_t<hb_vector_paint_funcs_lazy_loader_t>

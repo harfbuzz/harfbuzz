@@ -118,7 +118,6 @@ struct LigatureSet
     auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
-    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to;
     hb_codepoint_t second = (unsigned) -1;
     bool matched = skippy_iter.next (&unsafe_to);

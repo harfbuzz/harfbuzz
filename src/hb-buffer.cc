@@ -333,10 +333,9 @@ hb_buffer_t::enter ()
   {
     max_len = hb_max (mul, (unsigned) HB_BUFFER_MAX_LEN_MIN);
   }
-  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_OPS_FACTOR, &mul)))
-  {
-    max_ops = hb_max (mul, (unsigned) HB_BUFFER_MAX_OPS_MIN);
-  }
+  max_ops = (int) hb_clamp ((uint64_t) len * HB_BUFFER_MAX_OPS_FACTOR,
+			  (uint64_t) HB_BUFFER_MAX_OPS_MIN,
+			  (uint64_t) HB_BUFFER_MAX_OPS_DEFAULT);
 }
 void
 hb_buffer_t::leave ()
@@ -362,6 +361,8 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
   glyph->codepoint = codepoint;
   glyph->mask = 0;
   glyph->cluster = cluster;
+  if (unlikely (have_positions))
+    hb_memset (&pos[len], 0, sizeof (pos[len]));
 
   len++;
 }
@@ -1901,10 +1902,31 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   const T *end = next + item_length;
   while (next < end)
   {
-    hb_codepoint_t u;
-    const T *old_next = next;
-    next = utf_t::next (next, end, &u, replacement);
-    buffer->add (u, old_next - (const T *) text);
+    if (unlikely (!buffer->ensure (buffer->len + 1)))
+    {
+      next = end;
+      break;
+    }
+    /* Each remaining code unit produces at most one glyph. Decode up to
+     * the available space before checking capacity again. */
+    const T *limit = next + hb_min ((unsigned) (end - next),
+				    buffer->allocated - buffer->len - 1);
+    unsigned start = buffer->len;
+    hb_glyph_info_t *out = buffer->info + start;
+    do
+    {
+      hb_codepoint_t u;
+      const T *old_next = next;
+      next = utf_t::next (next, end, &u, replacement);
+      *out = {};
+      out->codepoint = u;
+      out->cluster = old_next - text;
+      out++;
+    } while (next < limit);
+    buffer->len = out - buffer->info;
+    if (unlikely (buffer->have_positions))
+      hb_memset (buffer->pos + start, 0,
+		 (buffer->len - start) * sizeof (buffer->pos[0]));
   }
 
   /* Add post-context */

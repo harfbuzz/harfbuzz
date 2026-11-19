@@ -29,7 +29,7 @@
 
 
 #ifndef HB_BUFFER_MAX_LEN_FACTOR
-#define HB_BUFFER_MAX_LEN_FACTOR 256
+#define HB_BUFFER_MAX_LEN_FACTOR 512
 #endif
 #ifndef HB_BUFFER_MAX_LEN_MIN
 #define HB_BUFFER_MAX_LEN_MIN 65536
@@ -39,13 +39,17 @@
 #endif
 
 #ifndef HB_BUFFER_MAX_OPS_FACTOR
-#define HB_BUFFER_MAX_OPS_FACTOR 4096
+/* Duployan fonts spend up to ~4.3K operations per input character on
+ * words and sentences.  Allow over ten times that. */
+#define HB_BUFFER_MAX_OPS_FACTOR 65536
 #endif
 #ifndef HB_BUFFER_MAX_OPS_MIN
-#define HB_BUFFER_MAX_OPS_MIN 65536
+/* Short Duployan inputs spend up to ~37K operations before the linear
+ * allowance takes over. */
+#define HB_BUFFER_MAX_OPS_MIN 524288
 #endif
 #ifndef HB_BUFFER_MAX_OPS_DEFAULT
-#define HB_BUFFER_MAX_OPS_DEFAULT 0x1FFFFFFF /* Shaping more than a billion operations? Let us know! */
+#define HB_BUFFER_MAX_OPS_DEFAULT 0x3FFFFFFF /* Shaping more than a billion operations? Let us know! */
 #endif
 
 
@@ -219,7 +223,7 @@
  * which the outline work budget cannot see.  Unsigned (not size_t like the
  * SVG-table limit above) to match hb_vector_buf_t's unsigned length arithmetic. */
 #ifndef HB_VECTOR_MAX_DOCUMENT_SIZE
-#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 16 << 20)
+#define HB_VECTOR_MAX_DOCUMENT_SIZE ((unsigned) 40 << 20)
 #endif
 
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
@@ -266,7 +270,7 @@
 /* The common finite default for one top-level glyph rendering session.
  * Nested outline and paint work shares the same live counter. */
 #ifndef HB_BUDGET_GLYPH
-#define HB_BUDGET_GLYPH ((int64_t) 1 << 24)
+#define HB_BUDGET_GLYPH ((int64_t) 1 << 25)
 #endif
 
 /* Precharge COST * MULT.  Callers bound COST and MULT structurally, and live
@@ -323,14 +327,32 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 
 /* The flat pixel-work floor for one raster draw or paint session.  Pixel and
  * outline work use separate live counters, so keep this independent of
- * the common outline budget above. */
+ * the common outline budget above.
+ *
+ * Small surfaces live off this.  What a layer of a color paint costs does
+ * not shrink as fast as the area of the surface does, so the smaller the
+ * surface, the more times its area a glyph needs: Bitcount Ink with every
+ * axis at its maximum needs 680 times at 64 pixels per em, 3 million in
+ * all, and 18 million at 256. */
 #ifndef HB_BUDGET_RASTER_PIXELS
 #define HB_BUDGET_RASTER_PIXELS ((int64_t) 1 << 26)
 #endif
 
-/* Very large raster surfaces still get a few full-surface operations. */
+/* Larger paint surfaces get pixel work in proportion to their area.  A
+ * layer is charged for its mask, its clip and its fill, over the box it
+ * can show in.  The most that takes at 2048 pixels per em is 122 times
+ * the area of the surface, for Bitcount Ink with every axis at its
+ * maximum; allow four times that.  Its default instance needs 18 times,
+ * and the heaviest glyph of Noto Color Emoji 110. */
 #ifndef HB_BUDGET_RASTER_PAINT_PASSES
-#define HB_BUDGET_RASTER_PAINT_PASSES 4
+#define HB_BUDGET_RASTER_PAINT_PASSES 512
+#endif
+
+/* Sweeping an outline costs a small fraction of the area of its mask, and
+ * far less than the floor at any size, so a very large mask gets just a
+ * few times its own. */
+#ifndef HB_BUDGET_RASTER_DRAW_PASSES
+#define HB_BUDGET_RASTER_DRAW_PASSES 4
 #endif
 
 /* One raster draw session, in accumulated non-horizontal edges. */

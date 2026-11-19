@@ -38,8 +38,15 @@ HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
 				        ptr_d(buffer_t, buffer),
 				        ptr_d(const feature_t, features),
 				        uint32_t num_features,
-					const char *shaper)
+					ptr_d(const char, shaper))
 {
+  /* Validate the guest-provided shaper string pointer before dereferencing it;
+   * validate_app_str_addr() also ensures it is NUL-terminated within bounds. */
+  const char *shaper = (const char *) (validate_app_str_addr (shaperptr) ?
+				       addr_app_to_native (shaperptr) : nullptr);
+  if (unlikely (!shaper))
+    return false;
+
   if (unlikely (0 == strcmp (shaper, "wasm")))
     return false;
 

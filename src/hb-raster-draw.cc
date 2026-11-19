@@ -568,6 +568,10 @@ hb_raster_draw_get_pixel_work (const hb_raster_draw_t *draw)
  * call, avoiding per-render memory allocation.  The caller transfers
  * ownership of @image to @draw and must not use it afterwards.
  *
+ * Finish accessing @image and its buffer before recycling, and do
+ * not keep other references to it: later renders may reuse the
+ * image and overwrite its contents.
+ *
  * If @draw already holds a recycled image, the previously recycled
  * image is destroyed.
  *
@@ -1705,7 +1709,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 		draw->budget != HB_BUDGET_UNLIMITED &&
 		hb_raster_draw_get_pixel_work (draw) >
 		hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
-			(int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
+			(int64_t) HB_BUDGET_RASTER_DRAW_PASSES *
 			ext.width * ext.height)))
     return nullptr;
 

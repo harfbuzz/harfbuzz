@@ -139,6 +139,43 @@ test_shape (void)
 }
 
 static void
+test_shape_not_found (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_font_funcs_t *funcs = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyph_func (funcs, glyph_func, NULL, NULL);
+  hb_font_funcs_set_glyph_h_advance_func (funcs, glyph_h_advance_func, NULL, NULL);
+  hb_font_set_funcs (font, funcs, NULL, NULL);
+  hb_font_funcs_destroy (funcs);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  const hb_codepoint_t not_found[] = {42, 65536, HB_CODEPOINT_INVALID, 0};
+  for (unsigned i = 0; i < G_N_ELEMENTS (not_found); i++)
+  {
+    hb_buffer_clear_contents (buffer);
+    hb_buffer_set_not_found_glyph (buffer, not_found[i]);
+    hb_buffer_add_utf8 (buffer, "Tx", -1, 0, -1);
+    hb_buffer_guess_segment_properties (buffer);
+    hb_shape (font, buffer, NULL, 0);
+
+    g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 2);
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+    g_assert_cmpuint (info[0].codepoint, ==, 1);
+    g_assert_cmpuint (info[1].codepoint, ==, not_found[i]);
+    g_assert_cmpuint (info[0].cluster, ==, 0);
+    g_assert_cmpuint (info[1].cluster, ==, 1);
+    hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+    g_assert_cmpint (pos[0].x_advance, ==, 10);
+    g_assert_cmpint (pos[1].x_advance, ==, 0);
+  }
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_shape_not_found_variation_selector (void)
 {
   hb_face_t *face = hb_face_create (NULL, 0);
@@ -255,11 +292,11 @@ test_shape_overlong_cluster_remerge (void)
   hb_buffer_t *buffer = hb_buffer_create ();
 
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
-  for (unsigned i = 0; i < 20000; i++)
+  for (unsigned i = 0; i < 50000; i++)
     hb_buffer_add (buffer, 0x00AD, i);
-  hb_buffer_add (buffer, 'a', 20000);
-  for (unsigned i = 0; i < 20000; i++)
-    hb_buffer_add (buffer, 0x0301, 20001 + i);
+  hb_buffer_add (buffer, 'a', 50000);
+  for (unsigned i = 0; i < 50000; i++)
+    hb_buffer_add (buffer, 0x0301, 50001 + i);
   hb_buffer_guess_segment_properties (buffer);
   hb_buffer_set_direction (buffer, HB_DIRECTION_RTL);
 
@@ -350,7 +387,7 @@ test_shape_kerx_control_point_actions_are_charged (void)
 
   /* 131074 before the budget was charged. */
   g_assert_cmpuint (calls, >=, 2);
-  g_assert_cmpuint (calls, <=, 256);
+  g_assert_cmpuint (calls, <=, 2048);
 
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
@@ -513,7 +550,7 @@ test_shape_lookup_budget (void)
    * the buffer far beyond the text, so a small font can make the shaper
    * walk a long buffer thousands of times for one character.  Those passes
    * must be charged to the buffer's work budget, which one character sizes
-   * at 65536, and cut off when it runs out; each costs 65025 / 16. */
+   * at 524288, and cut off when it runs out; each costs 65025 / 16. */
   hb_face_t *face;
   hb_font_t *font;
   hb_buffer_t *buffer;
@@ -542,6 +579,55 @@ test_shape_lookup_budget (void)
   g_assert_false (hb_buffer_allocation_successful (buffer));
   /* The glyphs made so far are kept. */
   g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 65025);
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_shape_complex_font_budget (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Duployan-Regular.dist.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  const char *shapers[] = {"ot", NULL};
+
+  /* The dist lookups of this reduced monster font skip long runs of
+   * glyphs.  Charging each skipped glyph a full unit of work exhausted
+   * the allowance, even for this short sentence. */
+  const hb_codepoint_t text[] = {
+    0x1BC47, 0x1BC23, 0x20, 0x1BC02, 0x1BC46, 0x20, 0x1BC06,
+    0x1BC44, 0x1BC09, 0x1BC05, 0x1BC0B, 0x1BC41, 0x1BC04, 0x1BC03
+  };
+  hb_buffer_add_codepoints (buffer, text, G_N_ELEMENTS (text), 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+  g_assert_true (hb_buffer_allocation_successful (buffer));
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_shape_large_work_budget (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  const char *shapers[] = {"ot", NULL};
+
+  /* The per-character allowance exceeds both signed and unsigned 32-bit
+   * arithmetic here.  It is clamped before assigning to the signed
+   * counter. */
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+  for (unsigned i = 0; i < 70000; i++)
+    hb_buffer_add (buffer, 'a', i);
+  hb_buffer_guess_segment_properties (buffer);
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+  g_assert_true (hb_buffer_allocation_successful (buffer));
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 70000);
+
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -594,6 +680,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_shape);
+  hb_test_add (test_shape_not_found);
   hb_test_add (test_shape_not_found_variation_selector);
   hb_test_add (test_shape_clusters);
   hb_test_add (test_shape_overlong_mark_cluster);
@@ -603,6 +690,8 @@ main (int argc, char **argv)
   hb_test_add (test_shape_kerx_control_point_actions_are_charged);
 #endif
   hb_test_add (test_shape_lookup_budget);
+  hb_test_add (test_shape_complex_font_budget);
+  hb_test_add (test_shape_large_work_budget);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);

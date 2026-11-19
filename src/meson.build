@@ -972,7 +972,6 @@ if get_option('tests').enabled()
   # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
   if not cpp_is_microsoft_compiler
     noinst_programs = {
-      'main': 'main.cc',
       'test-basics': 'test.cc',
       'test-buffer-serialize': 'test-buffer-serialize.cc',
       'test-ot-meta': 'test-ot-meta.cc',

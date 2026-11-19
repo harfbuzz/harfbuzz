@@ -812,8 +812,10 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
  * Provides a blob for internal buffer reuse by later render calls.
  * The caller transfers ownership of one reference to @paint and must
  * not destroy that reference after this call. Finish accessing @blob
- * and its data before recycling: later renders may reuse the blob
- * and overwrite its data.
+ * and its data before recycling, and do not keep other references
+ * to it: later renders may reuse the blob and overwrite its data.
+ * An immutable blob, such as one that a sub-blob was created from,
+ * is not reused; it is simply destroyed.
  *
  * Since: 13.0.0
  */
@@ -825,5 +827,10 @@ hb_vector_paint_recycle_blob (hb_vector_paint_t *paint,
   paint->recycled_blob = nullptr;
   if (!blob || blob == hb_blob_get_empty ())
     return;
+  if (hb_blob_is_immutable (blob))
+  {
+    hb_blob_destroy (blob);
+    return;
+  }
   paint->recycled_blob = blob;
 }

@@ -1030,10 +1030,6 @@ struct skipping_iterator_t
   {
     c = c_;
     end = c->buffer->len;
-    match_glyph_data16 = nullptr;
-#ifndef HB_NO_BEYOND_64K
-    match_glyph_data24 = nullptr;
-#endif
     matcher.init (c, context_match);
   }
   void set_lookup_props (unsigned int lookup_props)
@@ -1045,16 +1041,6 @@ struct skipping_iterator_t
   {
     matcher.set_match_func (match_func_, match_data_);
   }
-  void set_glyph_data (glyph_data_t glyph_data)
-  {
-#ifndef HB_NO_BEYOND_64K
-    match_glyph_data16 = glyph_data.wide ? nullptr : (const HBUINT16 *) glyph_data.data;
-    match_glyph_data24 = glyph_data.wide ? (const HBUINT24 *) glyph_data.data : nullptr;
-#else
-    match_glyph_data16 = (const HBUINT16 *) glyph_data.data;
-#endif
-  }
-
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
@@ -1096,7 +1082,7 @@ struct skipping_iterator_t
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  match_t match (hb_glyph_info_t &info)
+  match_t match (hb_glyph_info_t &info, hb_codepoint_t glyph_data = 0)
   {
     /* Do not skip glyphs from another syllable. */
     if (matcher.per_syllable && matcher.syllable &&
@@ -1107,7 +1093,7 @@ struct skipping_iterator_t
     if (unlikely (skip == matcher_t::SKIP_YES))
       return SKIP;
 
-    matcher_t::may_match_t match = matcher.may_match (info, get_glyph_data ());
+    matcher_t::may_match_t match = matcher.may_match (info, glyph_data);
     if (match == matcher_t::MATCH_YES ||
 	(match == matcher_t::MATCH_MAYBE &&
 	 skip == matcher_t::SKIP_NO))
@@ -1119,101 +1105,113 @@ struct skipping_iterator_t
     return SKIP;
   }
 
-  bool next (unsigned *unsafe_to = nullptr)
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  HB_HOT
+  bool next (unsigned *unsafe_to = nullptr, hb_codepoint_t glyph_data = 0)
   {
-    auto *info = c->buffer->info;
-    const signed stop = (signed) end - 1;
-    while ((signed) idx < stop)
+    if ((signed) idx < (signed) end - 1)
     {
+      unsigned start = idx;
       idx++;
-      switch (match (info[idx]))
+      switch (match (c->buffer->info[idx], glyph_data))
       {
-	case MATCH:
-	{
-	  advance_glyph_data ();
-	  return true;
-	}
-	case NOT_MATCH:
-	{
-	  if (unsafe_to)
-	    *unsafe_to = idx + 1;
-	  return false;
-	}
-	case SKIP:
-	  /* Only skipping charges. Flag exhaustion but keep walking (no early
-	   * return), so the loop-end still sets *unsafe_to; the callers that loop
-	   * stop repeated walks once successful clears. */
-	  if (unlikely (--c->buffer->max_ops < 0))
-	    c->buffer->successful = false;
-	  continue;
+        case MATCH: return true;
+        case NOT_MATCH:
+          if (unsafe_to) *unsafe_to = idx + 1;
+          return false;
+        case SKIP: return next_slow (start, unsafe_to, glyph_data);
       }
     }
-    if (unsafe_to)
-      *unsafe_to = end;
-    return false;
-  }
-  bool prev (unsigned *unsafe_from = nullptr)
-  {
-    auto *out_info = c->buffer->out_info;
-    const unsigned stop = 0;
-    while (idx > stop)
-    {
-      idx--;
-      switch (match (out_info[idx]))
-      {
-	case MATCH:
-	{
-	  advance_glyph_data ();
-	  return true;
-	}
-	case NOT_MATCH:
-	{
-	  if (unsafe_from)
-	    *unsafe_from = hb_max (1u, idx) - 1u;
-	  return false;
-	}
-	case SKIP:
-	  /* Charged as in next(). */
-	  if (unlikely (--c->buffer->max_ops < 0))
-	    c->buffer->successful = false;
-	  continue;
-      }
-    }
-    if (unsafe_from)
-      *unsafe_from = 0;
+    if (unsafe_to) *unsafe_to = end;
     return false;
   }
 
-  HB_ALWAYS_INLINE
-  hb_codepoint_t
-  get_glyph_data ()
+  HB_NEVER_INLINE
+  bool next_slow (unsigned start, unsigned *unsafe_to, hb_codepoint_t glyph_data)
   {
-    if (match_glyph_data16) return *match_glyph_data16;
-#ifndef HB_NO_BEYOND_64K
-    else
-    if (match_glyph_data24) return *match_glyph_data24;
-#endif
-    return 0;
+    auto *info = c->buffer->info;
+    while ((signed) idx < (signed) end - 1)
+    {
+      idx++;
+      switch (match (info[idx], glyph_data))
+      {
+        case MATCH:
+          charge_skipped (idx - start - 1);
+          return true;
+        case NOT_MATCH:
+          charge_skipped (idx - start - 1);
+          if (unsafe_to) *unsafe_to = idx + 1;
+          return false;
+        case SKIP: continue;
+      }
+    }
+    charge_skipped (idx - start);
+    if (unsafe_to) *unsafe_to = end;
+    return false;
   }
+
+#ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
-  void
-  advance_glyph_data ()
-  {
-    if (match_glyph_data16) match_glyph_data16++;
-#ifndef HB_NO_BEYOND_64K
-    else
-    if (match_glyph_data24) match_glyph_data24++;
 #endif
+  HB_HOT
+  bool prev (unsigned *unsafe_from = nullptr, hb_codepoint_t glyph_data = 0)
+  {
+    if (idx > 0)
+    {
+      unsigned start = idx;
+      idx--;
+      switch (match (c->buffer->out_info[idx], glyph_data))
+      {
+        case MATCH: return true;
+        case NOT_MATCH:
+          if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
+          return false;
+        case SKIP: return prev_slow (start, unsafe_from, glyph_data);
+      }
+    }
+    if (unsafe_from) *unsafe_from = 0;
+    return false;
+  }
+
+  HB_NEVER_INLINE
+  bool prev_slow (unsigned start, unsigned *unsafe_from, hb_codepoint_t glyph_data)
+  {
+    auto *out_info = c->buffer->out_info;
+    while (idx > 0)
+    {
+      idx--;
+      switch (match (out_info[idx], glyph_data))
+      {
+        case MATCH:
+          charge_skipped (start - idx - 1);
+          return true;
+        case NOT_MATCH:
+          charge_skipped (start - idx - 1);
+          if (unsafe_from) *unsafe_from = hb_max (1u, idx) - 1u;
+          return false;
+        case SKIP: continue;
+      }
+    }
+    charge_skipped (start - idx);
+    if (unsafe_from) *unsafe_from = 0;
+    return false;
+  }
+
+  /* A work-budget unit stands for roughly a hundred nanoseconds of
+   * shaping; skipping a glyph costs a few.  Charge runs of skipped
+   * glyphs accordingly; short runs are free. */
+  void charge_skipped (unsigned count)
+  {
+    c->buffer->max_ops -= count / 32;
+    c->buffer->successful &= c->buffer->max_ops >= 0;
   }
 
   unsigned int idx;
   protected:
   context_t *c;
   matcher_t matcher;
-  const HBUINT16 *match_glyph_data16;
-#ifndef HB_NO_BEYOND_64K
-  const HBUINT24 *match_glyph_data24;
-#endif
 
   unsigned int end;
 };
@@ -1225,9 +1223,9 @@ struct hb_ot_apply_context_t :
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
   template <typename T>
-  static auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (return_t, obj.apply (c, nullptr) )
+  static inline auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (return_t, obj.apply (c, nullptr) )
   template <typename T>
-  static auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (return_t, obj.apply (c) )
+  static inline auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (return_t, obj.apply (c) )
   template <typename T>
   return_t dispatch (const T &obj) { return apply_(obj, this, hb_prioritize); }
 
@@ -1388,13 +1386,16 @@ struct hb_ot_apply_context_t :
   HB_HOT
   bool match_properties_mark (const hb_glyph_info_t *info,
 			      unsigned int    glyph_props,
-			      unsigned int    match_props) const
+			      unsigned int    match_props,
+                              const hb_bit_vector_t<> *mark_filter) const
   {
     /* If using mark filtering sets, the high short of
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
     {
+      if (mark_filter)
+        return mark_filter->has (info->codepoint);
       unsigned set_index = match_props >> 16;
       return gdef_accel.mark_set_covers (set_index, info->codepoint);
     }
@@ -1425,11 +1426,7 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK)
-    {
-      if (mark_filter)
-        return mark_filter->has (info->codepoint);
-      return match_properties_mark (info, glyph_props, match_props);
-    }
+      return match_properties_mark (info, glyph_props, match_props, mark_filter);
 
     return true;
   }
@@ -1519,21 +1516,21 @@ struct hb_accelerate_subtables_context_t :
        hb_dispatch_context_t<hb_accelerate_subtables_context_t>
 {
   template <typename T>
-  static auto collect_second_glyphs_ (const T &obj,
-				      hb_set_digest_t *digest,
-				      hb_priority<1>) HB_RETURN (void, obj.collect_second_glyphs (digest) )
+  static inline auto collect_second_glyphs_ (const T &obj,
+					     hb_set_digest_t *digest,
+					     hb_priority<1>) HB_RETURN (void, obj.collect_second_glyphs (digest) )
   template <typename T>
-  static void collect_second_glyphs_ (const T &obj HB_UNUSED,
-				      hb_set_digest_t *digest,
-				      hb_priority<0>)
+  static inline void collect_second_glyphs_ (const T &obj HB_UNUSED,
+					     hb_set_digest_t *digest,
+					     hb_priority<0>)
   { *digest = hb_set_digest_t::full (); }
 
   template <typename T>
-  static auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
+  static inline auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
   template <typename T>
-  static auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  static inline auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename T>
-  static bool apply_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
+  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
   {
     const T *typed_obj = (const T *) obj;
     return apply_ (typed_obj, c, external_cache, hb_prioritize);
@@ -1541,30 +1538,32 @@ struct hb_accelerate_subtables_context_t :
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
-  static auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<2>) HB_RETURN (bool, obj->apply_cached (c, external_cache) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<2>) HB_RETURN (bool, obj->apply_cached (c, external_cache) )
   template <typename T>
-  static auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
   template <typename T>
-  static auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename T>
-  static bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
+  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
   {
     const T *typed_obj = (const T *) obj;
     return apply_cached_ (typed_obj, c, external_cache, hb_prioritize);
   }
 
   template <typename T>
-  static auto cache_func_ (hb_ot_apply_context_t *c,
-			   hb_ot_subtable_cache_op_t op,
-			   hb_priority<1>) HB_RETURN (bool, T::cache_func (c, op) )
+  static inline auto cache_func_ (hb_ot_apply_context_t *c,
+				  hb_ot_subtable_cache_op_t op,
+				  hb_priority<1>) HB_RETURN (bool, T::cache_func (c, op) )
   template <typename T=void>
-  static bool cache_func_ (hb_ot_apply_context_t *c,
-			   hb_ot_subtable_cache_op_t op HB_UNUSED,
-			   hb_priority<0>) { return false; }
+  static inline bool cache_func_ (hb_ot_apply_context_t *c,
+				  hb_ot_subtable_cache_op_t op HB_UNUSED,
+				  hb_priority<0>) { return false; }
   template <typename Type>
-  static bool cache_func_to (hb_ot_apply_context_t *c,
-			     hb_ot_subtable_cache_op_t op)
-  { return cache_func_<Type> (c, op, hb_prioritize); }
+  static inline bool cache_func_to (hb_ot_apply_context_t *c,
+				    hb_ot_subtable_cache_op_t op)
+  {
+    return cache_func_<Type> (c, op, hb_prioritize);
+  }
 #endif
 
   typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c, void *external_cache);
@@ -1941,6 +1940,7 @@ static inline bool match_glyph (hb_glyph_info_t &info, unsigned value, const voi
 {
   return info.codepoint == value;
 }
+HB_HOT
 static inline bool match_class (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
@@ -2021,6 +2021,7 @@ static inline unsigned get_class_cached2_value (hb_glyph_info_t &info, const voi
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *> (data);
   return get_class_cached2 (class_def, info);
 }
+HB_HOT
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   Offset32To<Coverage> coverage;
@@ -2078,7 +2079,6 @@ static bool match_input (hb_ot_apply_context_t *c,
   auto &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx);
   skippy_iter.set_match_func (match_func, match_data);
-  skippy_iter.set_glyph_data (input);
 
   /*
    * This is perhaps the trickiest part of OpenType...  Remarks:
@@ -2118,7 +2118,7 @@ static bool match_input (hb_ot_apply_context_t *c,
   for (unsigned int i = 1; i < count; i++)
   {
     unsigned unsafe_to;
-    if (!skippy_iter.next (&unsafe_to))
+    if (!skippy_iter.next (&unsafe_to, input[i - 1]))
     {
       *end_position = unsafe_to;
       return_trace (false);
@@ -2341,12 +2341,11 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
   auto &skippy_iter = c->iter_context;
   skippy_iter.reset_back (c->buffer->backtrack_len ());
   skippy_iter.set_match_func (match_func, match_data);
-  skippy_iter.set_glyph_data (backtrack);
 
   for (unsigned int i = 0; i < count; i++)
   {
     unsigned unsafe_from;
-    if (!skippy_iter.prev (&unsafe_from))
+    if (!skippy_iter.prev (&unsafe_from, backtrack[i]))
     {
       *match_start = unsafe_from;
       return_trace (false);
@@ -2382,12 +2381,11 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
   assert (start_index >= 1);
   skippy_iter.reset (start_index - 1);
   skippy_iter.set_match_func (match_func, match_data);
-  skippy_iter.set_glyph_data (lookahead);
 
   for (unsigned int i = 0; i < count; i++)
   {
     unsigned unsafe_to;
-    if (!skippy_iter.next (&unsafe_to))
+    if (!skippy_iter.next (&unsafe_to, lookahead[i]))
     {
       *end_index = unsafe_to;
       return_trace (false);
@@ -3519,7 +3517,6 @@ struct RuleSetOf
     auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
-    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1, unsafe_to2 = 0;
     hb_glyph_info_t *first = nullptr, *second = nullptr;
     bool matched = skippy_iter.next (&unsafe_to1);
@@ -5174,7 +5171,6 @@ struct ChainRuleSetOf
     auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
-    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1, unsafe_to2 = 0;
     hb_glyph_info_t *first = nullptr, *second = nullptr;
     bool matched = skippy_iter.next (&unsafe_to1);
@@ -6177,12 +6173,30 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+  void *external_cache_create () const
+  {
+    /* Cache first-input membership only when there is enough to search. */
+    if (get_coverage ().get_record_count () < 4)
+      return nullptr;
+    auto *cache = (hb_ot_layout_binary_cache_t *) hb_malloc (sizeof (hb_ot_layout_binary_cache_t));
+    if (likely (cache))
+      cache->clear ();
+    return cache;
+  }
+#endif
+
+  bool apply (hb_ot_apply_context_t *c, void *external_cache) const
   {
     TRACE_APPLY (this);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    auto *cache = (hb_ot_layout_binary_cache_t *) external_cache;
+    unsigned int index = (this+input[0]).get_coverage_binary (c->buffer->cur().codepoint, cache);
+#else
     unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
+#endif
     if (index == NOT_COVERED) return_trace (false);
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
@@ -6502,23 +6516,26 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
       return subtables[0].apply_no_digest (c);
     }
+    if (unlikely (!c->buffer->successful)) return false;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
-      return
-      + hb_iter (hb_iter (subtables, count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, count))
+      {
+        if (!subtable.digest.may_have (c->buffer->cur().codepoint)) continue;
+        if (subtable.apply_cached_no_digest (c)) return true;
+        if (unlikely (!c->buffer->successful)) return false;
+      }
     }
     else
 #endif
     {
-      return
-      + hb_iter (hb_iter (subtables, count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, count))
+      {
+        if (!subtable.digest.may_have (c->buffer->cur().codepoint)) continue;
+        if (subtable.apply_no_digest (c)) return true;
+        if (unlikely (!c->buffer->successful)) return false;
+      }
     }
     return false;
   }

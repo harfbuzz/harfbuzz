@@ -69,16 +69,23 @@ struct hb_kern_machine_t
 	continue;
       }
 
-      skippy_iter.reset_fast (idx);
-      unsigned unsafe_to;
-      if (unlikely (!skippy_iter.next (&unsafe_to)))
-      {
-	idx = unsafe_to;
-	continue;
-      }
-
       unsigned int i = idx;
-      unsigned int j = skippy_iter.idx;
+      unsigned int j = i + 1;
+      /* An enabled neighbor is an immediate match unless IgnoreMarks or
+       * default-ignorable handling requires the skipping iterator. */
+      if (unlikely (j == count || !(info[j].mask & kern_mask) ||
+		    _hb_glyph_info_is_mark (&info[j]) ||
+		    _hb_glyph_info_is_default_ignorable (&info[j])))
+      {
+	skippy_iter.reset_fast (i);
+	unsigned unsafe_to;
+	if (unlikely (!skippy_iter.next (&unsafe_to)))
+	{
+	  idx = unsafe_to;
+	  continue;
+	}
+	j = skippy_iter.idx;
+      }
 
       hb_position_t kern = driver.get_kerning (info[i].codepoint,
 					       info[j].codepoint);
@@ -144,7 +151,7 @@ struct hb_kern_machine_t
       buffer->unsafe_to_break (i, j + 1);
 
     skip:
-      idx = skippy_iter.idx;
+      idx = j;
     }
 
     (void) buffer->message (font, "end kern");

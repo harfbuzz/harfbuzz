@@ -691,7 +691,10 @@ retry:
 
   /* MinGW32 doesn't define fMergeNeutralItems, so we bruteforce */
   //bidi_control.fMergeNeutralItems = true;
-  *(uint32_t*)&bidi_control |= 1u<<24;
+  uint32_t bidi_control_bits;
+  hb_memcpy (&bidi_control_bits, &bidi_control, sizeof (bidi_control_bits));
+  bidi_control_bits |= 1u<<24;
+  hb_memcpy (&bidi_control, &bidi_control_bits, sizeof (bidi_control_bits));
 
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
   bidi_state.fOverrideDirection = 1;

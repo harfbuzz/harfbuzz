@@ -566,7 +566,8 @@ struct cff2
 				     hb_codepoint_t glyph,
 				     hb_glyph_extents_t *extents,
 				     hb_array_t<const int> coords,
-				     int64_t *budget = nullptr) const;
+				     int64_t *budget = nullptr,
+				     bool scaled = true) const;
     HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session, int64_t *budget = nullptr) const;
     HB_INTERNAL bool get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session, hb_array_t<const int> coords, int64_t *budget = nullptr) const;
   };

@@ -27,7 +27,10 @@
 
 #include "hb-test.h"
 
+#include <math.h>
+
 #include "hb-ft.h"
+#include "hb-ot.h"
 
 #include FT_FONT_FORMATS_H
 
@@ -780,6 +783,53 @@ test_native_ft_v_metrics_batched (void)
   cleanup_freetype ();
 }
 
+/* As in hb-ft.cc: without these, FreeType is not told the coordinates. */
+#if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
+static hb_position_t
+get_ft_advance_at (hb_face_t *face, hb_tag_t tag, float value, hb_codepoint_t gid)
+{
+  hb_font_t *font = hb_font_create (face);
+  hb_ft_font_set_funcs (font);
+  hb_variation_t variation = {tag, value};
+  hb_font_set_variations (font, &variation, 1);
+  hb_position_t advance = hb_font_get_glyph_h_advance (font, gid);
+  hb_font_destroy (font);
+  return advance;
+}
+
+static void
+test_ft_variations_out_of_range (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.anchor.ttf");
+  hb_ot_var_axis_info_t axis;
+  unsigned count = 1;
+  hb_ot_var_get_axis_infos (face, 0, &count, &axis);
+  g_assert_cmpuint (count, ==, 1);
+
+  /* A glyph whose advance the axis moves. */
+  hb_codepoint_t gid;
+  hb_position_t at_min = 0, at_max = 0;
+  for (gid = 0; gid < hb_face_get_glyph_count (face); gid++)
+  {
+    at_min = get_ft_advance_at (face, axis.tag, axis.min_value, gid);
+    at_max = get_ft_advance_at (face, axis.tag, axis.max_value, gid);
+    if (at_min != at_max) break;
+  }
+  g_assert_cmpint (at_min, !=, at_max);
+
+  /* A design coordinate too large for FreeType's 16.16 goes to the end of
+   * the axis it is past, as a smaller one past it does; one that is not a
+   * number goes to the minimum, as in our own normalization. */
+  g_assert_cmpint (get_ft_advance_at (face, axis.tag, 1e30f, gid), ==, at_max);
+  g_assert_cmpint (get_ft_advance_at (face, axis.tag, INFINITY, gid), ==, at_max);
+  g_assert_cmpint (get_ft_advance_at (face, axis.tag, -1e30f, gid), ==, at_min);
+  g_assert_cmpint (get_ft_advance_at (face, axis.tag, -INFINITY, gid), ==, at_min);
+  g_assert_cmpint (get_ft_advance_at (face, axis.tag, NAN, gid), ==, at_min);
+
+  hb_face_destroy (face);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -796,6 +846,9 @@ main (int argc, char **argv)
   hb_test_add (test_native_ft_create_from_blob_table_outlives_face);
   hb_test_add (test_static_ft_library_multithreaded);
   hb_test_add (test_native_ft_v_metrics_cache);
+#if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
+  hb_test_add (test_ft_variations_out_of_range);
+#endif
   hb_test_add (test_native_ft_v_metrics_batched);
 
   return hb_test_run ();

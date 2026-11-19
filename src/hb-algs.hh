@@ -451,25 +451,33 @@ HB_FUNCOBJ (hb_bool);
 			(void) ((h) *= 0x2127599bf4325c37ULL),	\
 			(h) ^= (h) >> 47)
 
+/* Lets an aligned word be fetched as cheaply as it was before words were
+ * fetched with memcpy, on machines where an unaligned load costs more. */
+#if hb_has_builtin(__builtin_assume_aligned)
+#define fasthash_aligned(p) __builtin_assume_aligned ((p), 8)
+#else
+#define fasthash_aligned(p) (p)
+#endif
+
 static inline uint64_t fasthash64(const void *buf, size_t len, uint64_t seed)
 {
-	struct __attribute__((packed)) packed_uint64_t { uint64_t v; };
 	const uint64_t    m = 0x880355f21e6d1965ULL;
-	const packed_uint64_t *pos = (const packed_uint64_t *)buf;
-	const packed_uint64_t *end = pos + (len / 8);
+	const unsigned char *pos = (const unsigned char *)buf;
+	const unsigned char *end = pos + (len / 8) * 8;
 	const unsigned char *pos2;
 	uint64_t h = seed ^ (len * m);
 	uint64_t v;
 
+	/* The buffer holds objects of any type.  Fetch its words with memcpy:
+	 * reading them through a uint64_t pointer would let the compiler
+	 * assume that the reads never see what was stored there as another
+	 * type, and drop the stores that filled a caller's local buffer. */
 #ifndef HB_OPTIMIZE_SIZE
 	if (((uintptr_t) pos & 7) == 0)
 	{
-	  while (pos != end)
+	  for (; pos != end; pos += 8)
 	  {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-	    v  = * (const uint64_t *) (pos++);
-#pragma GCC diagnostic pop
+	    memcpy (&v, fasthash_aligned (pos), sizeof (v));
 	    h ^= fasthash_mix(v);
 	    h *= m;
 	  }
@@ -477,15 +485,15 @@ static inline uint64_t fasthash64(const void *buf, size_t len, uint64_t seed)
 	else
 #endif
 	{
-	  while (pos != end)
+	  for (; pos != end; pos += 8)
 	  {
-	    v  = pos++->v;
+	    memcpy (&v, pos, sizeof (v));
 	    h ^= fasthash_mix(v);
 	    h *= m;
 	  }
 	}
 
-	pos2 = (const unsigned char*)pos;
+	pos2 = pos;
 	v = 0;
 
 	switch (len & 7) {

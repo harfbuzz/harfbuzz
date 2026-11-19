@@ -91,6 +91,22 @@ struct KernPair
   DEFINE_SIZE_STATIC (6);
 };
 
+/* A clear bit rules out the pair. Aliases modulo 64 still get an exact lookup. */
+struct kern_pair_filter_t
+{
+  uint64_t rows[64];
+
+  void add (hb_codepoint_t left, hb_codepoint_t right)
+  {
+    if ((left | right) < 256)
+      rows[left & 63] |= uint64_t (1) << (right & 63);
+  }
+
+  bool may_have (hb_codepoint_t left, hb_codepoint_t right) const
+  { return rows[left & 63] & (uint64_t (1) << (right & 63)); }
+};
+static_assert (sizeof (kern_pair_filter_t) == sizeof (hb_aat_class_cache_t), "");
+
 template <typename KernSubTableHeader>
 struct KerxSubTableFormat0
 {
@@ -120,13 +136,13 @@ struct KerxSubTableFormat0
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, kern_pair_filter_t &filter) const
   {
-    second_set_gates = false;
     for (const KernPair& pair : pairs)
     {
       first_set.add (pair.left);
       second_set.add (pair.right);
+      filter.add (pair.left, pair.right);
     }
   }
 
@@ -141,7 +157,12 @@ struct KerxSubTableFormat0
 
     int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     {
-      if (!(*c->first_set)[left] || !(*c->second_set)[right]) return 0;
+      /* Tuple-valued kerx subtables resolve offsets through their original lookup. */
+      if (likely ((left | right) < 256) && !table.header.tuple_count ())
+      {
+        if (!c->kern_pair_filter->may_have (left, right)) return 0;
+      }
+      else if (!(*c->first_set)[left] || !(*c->second_set)[right]) return 0;
       return table.get_kerning (left, right, c);
     }
   };
@@ -967,12 +988,13 @@ struct KerxSubTable
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates, unsigned num_glyphs) const
+  void collect_glyphs (set_t &first_set, set_t &second_set, bool &second_set_gates,
+                       kern_pair_filter_t &filter, unsigned num_glyphs) const
   {
     second_set_gates = false;
     unsigned int subtable_type = get_type ();
     switch (subtable_type) {
-    case 0:	hb_barrier (); u.format0.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
+    case 0:	hb_barrier (); u.format0.collect_glyphs (first_set, second_set, filter); return;
     case 1:	hb_barrier (); u.format1.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
     case 2:	hb_barrier (); u.format2.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
     case 4:	hb_barrier (); u.format4.collect_glyphs (first_set, second_set, second_set_gates, num_glyphs); return;
@@ -1016,7 +1038,13 @@ struct kern_subtable_accelerator_data_t
   hb_bit_set_t first_set;
   hb_bit_set_t second_set;
   bool second_set_gates = false;
-  mutable hb_aat_class_cache_t class_cache;
+  union {
+    kern_pair_filter_t pair_filter;
+    mutable hb_aat_class_cache_t class_cache;
+  };
+
+  kern_subtable_accelerator_data_t () : pair_filter {} {}
+  static constexpr bool realloc_move = true; /* Neither cache holds pointers into this struct. */
 };
 
 struct kern_accelerator_data_t
@@ -1087,8 +1115,6 @@ struct KerxTable
   {
     c->buffer->unsafe_to_concat ();
 
-    c->setup_buffer_glyph_set ();
-
     typedef typename T::SubTable SubTable;
 
     bool ret = false;
@@ -1096,6 +1122,11 @@ struct KerxTable
     c->set_lookup_index (0);
     const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
+    if (count > 1 && c->buffer->len >= 4)
+    {
+      c->buffer_glyph_set = accel_data.scratch.create_buffer_glyph_set ();
+      c->setup_buffer_glyph_set ();
+    }
     for (unsigned int i = 0; i < count; i++)
     {
       bool reverse;
@@ -1117,7 +1148,10 @@ struct KerxTable
       c->first_set = &subtable_accel.first_set;
       c->second_set = &subtable_accel.second_set;
       c->second_set_gates = subtable_accel.second_set_gates;
-      c->machine_class_cache = &subtable_accel.class_cache;
+      if (st->get_type () == 0)
+        c->kern_pair_filter = &subtable_accel.pair_filter;
+      else
+        c->machine_class_cache = &subtable_accel.class_cache;
 
       if (!c->buffer_intersects_machine ())
       {
@@ -1171,6 +1205,9 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+
+    accel_data.scratch.destroy_buffer_glyph_set (c->buffer_glyph_set);
+    c->buffer_glyph_set = nullptr;
 
     if (c->buffer_is_reversed)
       c->reverse_buffer ();
@@ -1246,8 +1283,9 @@ struct KerxTable
       if (unlikely (accel_data.subtable_accels.in_error ()))
 	  return accel_data;
 
-      st->collect_glyphs (subtable_accel.first_set, subtable_accel.second_set, subtable_accel.second_set_gates, num_glyphs);
-      subtable_accel.class_cache.clear ();
+      st->collect_glyphs (subtable_accel.first_set, subtable_accel.second_set, subtable_accel.second_set_gates, subtable_accel.pair_filter, num_glyphs);
+      if (st->get_type () != 0)
+        new (&subtable_accel.class_cache) hb_aat_class_cache_t;
 
       st = &StructAfter<SubTable> (*st);
     }
@@ -1277,7 +1315,6 @@ struct KerxTable
 
     hb_blob_ptr_t<T> table;
     kern_accelerator_data_t accel_data;
-    hb_aat_scratch_t scratch;
   };
 };
 

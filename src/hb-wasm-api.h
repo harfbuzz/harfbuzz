@@ -317,7 +317,7 @@ HB_WASM_API (bool_t, shape_with) (HB_WASM_EXEC_ENV
 				  ptr_d(buffer_t, buffer),
 				  ptr_d(const feature_t, features),
 				  uint32_t num_features,
-				  const char *shaper);
+				  ptr_d(const char, shaper));
 
 /* Implement these in your shaper. */
 

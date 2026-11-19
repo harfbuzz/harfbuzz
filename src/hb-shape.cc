@@ -140,14 +140,16 @@ hb_shape_full (hb_font_t          *font,
     hb_buffer_append (text_buffer, buffer, 0, -1);
   }
 
-  hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached2 (font->face, &buffer->props,
-							      features, num_features,
-							      font->coords, font->has_nonzero_coords ? font->num_coords : 0,
-							      shaper_list);
+  hb_shape_plan_t *uncached_plan;
+  hb_shape_plan_t *shape_plan = _hb_shape_plan_get_cached (font->face, &buffer->props,
+                                                           features, num_features,
+                                                           font->coords, font->has_nonzero_coords ? font->num_coords : 0,
+                                                           shaper_list, &uncached_plan);
 
   hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
 
-  hb_shape_plan_destroy (shape_plan);
+  if (unlikely (uncached_plan))
+    hb_shape_plan_destroy (uncached_plan);
 
   if (text_buffer)
   {

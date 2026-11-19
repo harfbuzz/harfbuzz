@@ -84,6 +84,28 @@ struct ValueFormat : HBUINT16
     return result;
   }
 
+  /* Most first-glyph pair values are simple horizontal kerning. */
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  bool apply_pair_value (hb_ot_apply_context_t *c,
+                         const ValueBase *base,
+                         const Value *values,
+                         hb_glyph_position_t &glyph_pos) const
+  {
+    if ((unsigned) *this == xAdvance)
+    {
+      bool ret = false;
+#ifndef HB_NO_VERTICAL
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
+#endif
+        glyph_pos.x_advance = hb_saturate_add (glyph_pos.x_advance,
+            c->font->em_scale_x (get_short (values, &ret)));
+      return ret;
+    }
+    return apply_value (c, base, values, glyph_pos);
+  }
+
   bool apply_value (hb_ot_apply_context_t *c,
                     const ValueBase       *base,
                     const Value           *values,
@@ -322,14 +344,18 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  static Offset16To<Device, ValueBase>& get_device (Value* value)
-  { return *static_cast<Offset16To<Device, ValueBase> *> (value); }
-  static const Offset16To<Device, ValueBase>& get_device (const Value* value)
-  { return *static_cast<const Offset16To<Device, ValueBase> *> (value); }
-  static const Device& get_device (const Value* value,
-				   bool *worked,
-				   const ValueBase *base,
-				   hb_sanitize_context_t &c)
+  static inline Offset16To<Device, ValueBase>& get_device (Value* value)
+  {
+    return *static_cast<Offset16To<Device, ValueBase> *> (value);
+  }
+  static inline const Offset16To<Device, ValueBase>& get_device (const Value* value)
+  {
+    return *static_cast<const Offset16To<Device, ValueBase> *> (value);
+  }
+  static inline const Device& get_device (const Value* value,
+					  bool *worked,
+					  const ValueBase *base,
+					  hb_sanitize_context_t &c)
   {
     if (worked) *worked |= bool (*value);
     auto &offset = *static_cast<const Offset16To<Device> *> (value);
@@ -382,7 +408,7 @@ struct ValueFormat : HBUINT16
     }
   }
 
-  static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
+  static inline const HBINT16& get_short (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
     return *reinterpret_cast<const HBINT16 *> (value);

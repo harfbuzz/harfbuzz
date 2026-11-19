@@ -422,30 +422,14 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
   if (!_get_bounds (this, glyph, bounds, false, budget))
     return false;
 
-  if (bounds.min.x >= bounds.max.x)
-  {
-    extents->width = 0;
-    extents->x_bearing = 0;
-  }
-  else
-  {
-    double x_bearing = roundf (bounds.min.x.to_real ());
-    extents->x_bearing = hb_clamp_to<hb_position_t> (x_bearing);
-    extents->width = hb_clamp_to<hb_position_t> ((double) roundf (bounds.max.x.to_real ()) - x_bearing);
-  }
-  if (bounds.min.y >= bounds.max.y)
-  {
-    extents->height = 0;
-    extents->y_bearing = 0;
-  }
-  else
-  {
-    double y_bearing = roundf (bounds.max.y.to_real ());
-    extents->y_bearing = hb_clamp_to<hb_position_t> (y_bearing);
-    extents->height = hb_clamp_to<hb_position_t> ((double) roundf (bounds.min.y.to_real ()) - y_bearing);
-  }
-
-  font->scale_glyph_extents (extents);
+  /* An axis with no extent collapses to the origin. */
+  bool has_x = bounds.min.x < bounds.max.x;
+  bool has_y = bounds.min.y < bounds.max.y;
+  hb_extents_t<> box (has_x ? (float) bounds.min.x.to_real () : 0.f,
+		      has_y ? (float) bounds.min.y.to_real () : 0.f,
+		      has_x ? (float) bounds.max.x.to_real () : 0.f,
+		      has_y ? (float) bounds.max.y.to_real () : 0.f);
+  font->scale_glyph_extents (box, extents);
 
   return true;
 }
