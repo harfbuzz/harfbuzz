@@ -453,7 +453,7 @@ HB_FUNCOBJ (hb_bool);
 
 /* Lets an aligned word be fetched as cheaply as it was before words were
  * fetched with memcpy, on machines where an unaligned load costs more. */
-#if defined(__GNUC__) || defined(__clang__)
+#if hb_has_builtin(__builtin_assume_aligned)
 #define fasthash_aligned(p) __builtin_assume_aligned ((p), 8)
 #else
 #define fasthash_aligned(p) (p)
