@@ -954,6 +954,10 @@ struct GDEF
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
    * glyph class and other bits, and high 8-bit the mark attachment type (if any).
    * Not to be confused with lookup_props which is very similar. */
+#ifndef HB_NO_GDEF_CACHE
+  /* Keep the accelerator's cache hit small enough to inline. */
+  HB_NEVER_INLINE
+#endif
   unsigned int get_glyph_props (hb_codepoint_t glyph) const
   {
     unsigned int klass = get_glyph_class (glyph);
