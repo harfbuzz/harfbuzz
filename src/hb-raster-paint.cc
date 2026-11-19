@@ -139,6 +139,7 @@ ensure_initialized (hb_raster_paint_t *c)
       for (unsigned x = 0; x < ext.width; x++)
 	row[x] = hb_raster_pixel_t (bg);
     }
+    root->painted = {0, 0, ext.width, ext.height};
   }
 
   if (unlikely (!c->surface_stack.push_or_fail (root)))
@@ -776,13 +777,18 @@ hb_raster_paint_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   ensure_initialized (c);
 
-  /* acquire_surface() clears a full surface; charge its area. */
-  const hb_raster_extents_t &extents = c->get_surface_extents ();
-  if (unlikely (!c->charge_work ((int64_t) extents.width * extents.height)))
-    return;
+  if (unlikely (c->pixel_remaining < 0)) return;
 
-  hb_raster_image_t *new_surf = c->acquire_surface ();
+  /* Clearing the surface costs what was last painted on it. */
+  hb_raster_image_t *new_surf = c->take_surface ();
   if (unlikely (!new_surf)) return;
+  if (unlikely (!c->charge_work (new_surf->painted.get_area ())))
+  {
+    c->release_surface (new_surf);
+    return;
+  }
+  new_surf->clear_painted ();
+
   if (unlikely (!c->surface_stack.push_or_fail (new_surf)))
     c->release_surface (new_surf);
 }
@@ -800,9 +806,19 @@ hb_raster_paint_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *src = c->surface_stack.pop ();
   hb_raster_image_t *dst = c->current_surface ();
 
-  if (dst && src &&
-      likely (c->charge_work ((int64_t) dst->extents.width * dst->extents.height)))
-    hb_raster_image_composite (dst, src, mode);
+  if (dst && src)
+  {
+    /* Compositing can only change what either surface has painted on
+     * it; in some modes, only what the source has. */
+    hb_raster_box_t box = src->painted;
+    if (!hb_raster_composite_mode_ignores_clear_source (mode))
+      box.add (dst->painted);
+    if (likely (c->charge_work (box.get_area ())))
+    {
+      hb_raster_image_composite (dst, src, mode, box);
+      dst->painted.add (box);
+    }
+  }
 
   c->release_surface (src);
 }
@@ -839,6 +855,7 @@ hb_raster_paint_solid (hb_raster_paint_t *c,
 
   if (unlikely (!c->charge_work ((int64_t) (ix1 - ix0) * (iy1 - iy0))))
     return;
+  c->mark_painted (surf);
 
   if (likely (!clip.is_rect))
   {
@@ -1060,6 +1077,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 				   (int64_t) src_width * src_height)))
       return false;
   }
+  c->mark_painted (surf);
 
   if (clip.is_rect)
   {
@@ -1294,6 +1312,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
   if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
     return;
+  c->mark_painted (surf);
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
   if (use_lut)
@@ -1445,6 +1464,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
   if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
     return;
+  c->mark_painted (surf);
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
   if (use_lut)
@@ -1723,6 +1743,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
   if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
     return;
+  c->mark_painted (surf);
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
   if (use_lut)
@@ -2638,5 +2659,7 @@ hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,
 			       hb_raster_image_t  *image)
 {
   if (unlikely (!image)) return;
+  /* What it holds is not ours to know. */
+  image->painted = {0, 0, image->extents.width, image->extents.height};
   paint->release_surface (image);
 }
