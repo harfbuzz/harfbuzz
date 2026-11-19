@@ -6217,12 +6217,30 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+  void *external_cache_create () const
+  {
+    /* Cache first-input membership only when there is enough to search. */
+    if (get_coverage ().get_record_count () < 4)
+      return nullptr;
+    auto *cache = (hb_ot_layout_binary_cache_t *) hb_malloc (sizeof (hb_ot_layout_binary_cache_t));
+    if (likely (cache))
+      cache->clear ();
+    return cache;
+  }
+#endif
+
+  bool apply (hb_ot_apply_context_t *c, void *external_cache) const
   {
     TRACE_APPLY (this);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    auto *cache = (hb_ot_layout_binary_cache_t *) external_cache;
+    unsigned int index = (this+input[0]).get_coverage_binary (c->buffer->cur().codepoint, cache);
+#else
     unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
+#endif
     if (index == NOT_COVERED) return_trace (false);
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
