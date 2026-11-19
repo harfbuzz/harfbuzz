@@ -205,6 +205,25 @@ struct hb_font_t
     float x2 = x1 + em_fscale_x (extents->width);
     float y2 = y1 + em_fscale_y (extents->height);
 
+    round_glyph_extents (x1, y1, x2, y2, extents);
+  }
+
+  /* Scales unrounded font-unit bounds.  Scaling before rounding keeps the
+   * box tight around fractional outlines, such as those of variable-font
+   * instances. */
+  void scale_glyph_extents (const hb_extents_t<> &bounds,
+			    hb_glyph_extents_t *extents)
+  {
+    round_glyph_extents (em_fscalef_x (bounds.xmin), em_fscalef_y (bounds.ymax),
+			 em_fscalef_x (bounds.xmax), em_fscalef_y (bounds.ymin),
+			 extents);
+  }
+
+  /* Takes the scaled origin corner (x1,y1) and opposite corner (x2,y2). */
+  static void round_glyph_extents (float x1, float y1,
+				   float x2, float y2,
+				   hb_glyph_extents_t *extents)
+  {
     /* Round outward even when scaling reverses an axis. */
     bool x_forward = x1 <= x2;
     bool y_forward = y1 >= y2;

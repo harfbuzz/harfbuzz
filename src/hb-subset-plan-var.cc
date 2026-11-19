@@ -770,7 +770,8 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
     hb_codepoint_t new_gid = p.second;
     if (!cff2.get_extents_at (font, old_gid, &extents,
 			      hb_array (font->coords, font->num_coords),
-			      budget))
+			      budget,
+			      false /* Font units, rounded to nearest. */))
       continue;
     bool has_bounds_info = true;
     if (extents.x_bearing == 0 && extents.width == 0 &&

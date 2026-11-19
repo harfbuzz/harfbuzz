@@ -53,9 +53,28 @@ test_extents_tt_var (void)
   g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 0);
-  g_assert_cmpint (extents.y_bearing, ==, 874);
+  g_assert_cmpint (extents.y_bearing, ==, 875);
   g_assert_cmpint (extents.width, ==, 551);
-  g_assert_cmpint (extents.height, ==, -874);
+  g_assert_cmpint (extents.height, ==, -875);
+
+  /* Fractional bounds are scaled before they are rounded. */
+  hb_font_set_scale (font, 10000, 10000);
+  result = hb_font_get_glyph_extents (font, 2, &extents);
+  g_assert_true (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 3);
+  g_assert_cmpint (extents.y_bearing, ==, 8741);
+  g_assert_cmpint (extents.width, ==, 5504);
+  g_assert_cmpint (extents.height, ==, -8741);
+
+  hb_font_set_scale (font, -10000, -10000);
+  result = hb_font_get_glyph_extents (font, 2, &extents);
+  g_assert_true (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, -3);
+  g_assert_cmpint (extents.y_bearing, ==, -8741);
+  g_assert_cmpint (extents.width, ==, -5504);
+  g_assert_cmpint (extents.height, ==, 8741);
 
   hb_font_destroy (font);
 }
@@ -154,9 +173,9 @@ test_advance_tt_var_anchor (void)
   g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 50);
-  g_assert_cmpint (extents.y_bearing, ==, 667);
-  g_assert_cmpint (extents.width, ==, 592);
-  g_assert_cmpint (extents.height, ==, -679);
+  g_assert_cmpint (extents.y_bearing, ==, 668);
+  g_assert_cmpint (extents.width, ==, 593);
+  g_assert_cmpint (extents.height, ==, -680);
 
   hb_font_destroy (font);
 }

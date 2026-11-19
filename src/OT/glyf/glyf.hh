@@ -455,17 +455,11 @@ struct glyf_accelerator_t
 	  extents->y_bearing = 0;
 	  return;
 	}
-	{
-	  double x_bearing = (double) roundf (min_x);
-	  double y_bearing = (double) roundf (max_y);
-	  extents->x_bearing = hb_clamp_to<hb_position_t> (x_bearing);
-	  extents->width = hb_clamp_to<hb_position_t> ((double) roundf (max_x) - x_bearing);
-	  extents->y_bearing = hb_clamp_to<hb_position_t> (y_bearing);
-	  extents->height = hb_clamp_to<hb_position_t> ((double) roundf (min_y) - y_bearing);
-
-	  if (scaled)
-	    font->scale_glyph_extents (extents);
-	}
+	hb_extents_t<> bounds (min_x, min_y, max_x, max_y);
+	if (scaled)
+	  font->scale_glyph_extents (bounds, extents);
+	else
+	  *extents = bounds.to_glyph_extents ();
       }
 
       protected:

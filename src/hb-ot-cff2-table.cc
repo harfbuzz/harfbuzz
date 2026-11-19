@@ -114,7 +114,8 @@ bool OT::cff2::accelerator_t::get_extents_at (hb_font_t *font,
 					      hb_codepoint_t glyph,
 					      hb_glyph_extents_t *extents,
 					      hb_array_t<const int> coords,
-					      int64_t *budget) const
+					      int64_t *budget,
+					      bool scaled) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
@@ -133,30 +134,17 @@ bool OT::cff2::accelerator_t::get_extents_at (hb_font_t *font,
   cff2_extents_param_t  param;
   if (unlikely (!interp.interpret (param, budget))) return false;
 
-  if (param.min_x >= param.max_x)
-  {
-    extents->width = 0;
-    extents->x_bearing = 0;
-  }
+  /* An axis with no extent collapses to the origin. */
+  bool has_x = param.min_x < param.max_x;
+  bool has_y = param.min_y < param.max_y;
+  hb_extents_t<> bounds (has_x ? (float) param.min_x.to_real () : 0.f,
+			 has_y ? (float) param.min_y.to_real () : 0.f,
+			 has_x ? (float) param.max_x.to_real () : 0.f,
+			 has_y ? (float) param.max_y.to_real () : 0.f);
+  if (scaled)
+    font->scale_glyph_extents (bounds, extents);
   else
-  {
-    double x_bearing = roundf (param.min_x.to_real ());
-    extents->x_bearing = hb_clamp_to<hb_position_t> (x_bearing);
-    extents->width = hb_clamp_to<hb_position_t> ((double) roundf (param.max_x.to_real ()) - x_bearing);
-  }
-  if (param.min_y >= param.max_y)
-  {
-    extents->height = 0;
-    extents->y_bearing = 0;
-  }
-  else
-  {
-    double y_bearing = roundf (param.max_y.to_real ());
-    extents->y_bearing = hb_clamp_to<hb_position_t> (y_bearing);
-    extents->height = hb_clamp_to<hb_position_t> ((double) roundf (param.min_y.to_real ()) - y_bearing);
-  }
-
-  font->scale_glyph_extents (extents);
+    *extents = bounds.to_glyph_extents ();
 
   return true;
 }
