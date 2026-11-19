@@ -79,7 +79,8 @@ hb_shape_plan_key_t::init (bool                           copy,
 			   unsigned int                   num_user_features,
 			   const int                     *coords,
 			   unsigned int                   num_coords,
-			   const char * const            *shaper_list)
+			   const char * const            *shaper_list,
+			   const hb_shape_plan_key_t     *cached HB_UNUSED)
 {
   hb_feature_t *features = nullptr;
   if (copy && num_user_features && !(features = (hb_feature_t *) hb_calloc (num_user_features, sizeof (hb_feature_t))))
@@ -103,7 +104,17 @@ hb_shape_plan_key_t::init (bool                           copy,
   this->shaper_func = nullptr;
   this->shaper_name = nullptr;
 #ifndef HB_NO_OT_SHAPE
-  if (unlikely (!this->ot.init (face, coords, num_coords)))
+  default_coords = !num_coords;
+  /* The same face and coordinates have the same variation state. At the
+   * default location we can reuse the indices if both condition lists are empty. */
+  if (cached && default_coords && cached->default_coords &&
+      !cached->ot.lookup_conditions[0].length &&
+      !cached->ot.lookup_conditions[1].length)
+  {
+    ot.variations_index[0] = cached->ot.variations_index[0];
+    ot.variations_index[1] = cached->ot.variations_index[1];
+  }
+  else if (unlikely (!ot.init (face, coords, num_coords)))
     goto bail;
 #endif
 
@@ -559,6 +570,7 @@ retry:
 
   if (likely (!dont_cache))
   {
+    hb_face_t::plan_node_t *cached = face->last_shape_plan.get_acquire ();
     hb_shape_plan_key_t key;
     if (!key.init (false,
 		   face,
@@ -567,10 +579,10 @@ retry:
 		   num_user_features,
 		   coords,
 		   num_coords,
-		   shaper_list))
+		   shaper_list,
+		   cached ? &cached->shape_plan->key : nullptr))
       return hb_shape_plan_get_empty ();
 
-    hb_face_t::plan_node_t *cached = face->last_shape_plan.get_acquire ();
     if (cached && cached->shape_plan->key.equal (&key))
     {
       DEBUG_MSG_FUNC (SHAPE_PLAN, cached->shape_plan, "fulfilled from last-plan cache");

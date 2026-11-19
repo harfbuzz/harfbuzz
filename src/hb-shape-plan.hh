@@ -39,6 +39,7 @@ struct hb_shape_plan_key_t
   unsigned int             num_user_features;
 
 #ifndef HB_NO_OT_SHAPE
+  bool                     default_coords;
   hb_ot_shape_plan_key_t   ot;
 #endif
 
@@ -52,7 +53,8 @@ struct hb_shape_plan_key_t
 			 unsigned int                   num_user_features,
 			 const int                     *coords,
 			 unsigned int                   num_coords,
-			 const char * const            *shaper_list);
+			 const char * const            *shaper_list,
+			 const hb_shape_plan_key_t     *cached = nullptr);
 
   HB_INTERNAL void fini ()
   {
