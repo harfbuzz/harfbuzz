@@ -322,16 +322,9 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_RASTER_PIXELS ((int64_t) 1 << 26)
 #endif
 
-/* Color paints can rasterize and combine many masks over one surface.
- * Bitcount Ink uses roughly 2,800 surface areas of pixel work; allow
- * about ten times that, rounded up to 32,768. */
+/* Very large raster surfaces still get a few full-surface operations. */
 #ifndef HB_BUDGET_RASTER_PAINT_PASSES
-#define HB_BUDGET_RASTER_PAINT_PASSES 32768
-#endif
-
-/* A standalone outline does not need the color paint allowance. */
-#ifndef HB_BUDGET_RASTER_DRAW_PASSES
-#define HB_BUDGET_RASTER_DRAW_PASSES 4
+#define HB_BUDGET_RASTER_PAINT_PASSES 4
 #endif
 
 /* One raster draw session, in accumulated non-horizontal edges. */
