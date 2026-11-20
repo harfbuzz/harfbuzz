@@ -460,6 +460,9 @@ endif
 if not get_option('vector').disabled()
   libs += [libharfbuzz_vector]
 endif
+if not get_option('gpu').disabled()
+  libs += [libharfbuzz_gpu]
+endif
 alias_target('libs', libs)
 
 # Re glib, see https://github.com/harfbuzz/harfbuzz/issues/4153#issuecomment-2646347531
