@@ -917,6 +917,67 @@ test_paint_clipped_layers (void)
   hb_face_destroy (face);
 }
 
+/* ── Test: a sweep whose color line has no length ──────────────────── */
+
+/* Count the opaque blue and opaque red pixels of a painted glyph. */
+static void
+count_blue_red (hb_font_t *font, hb_codepoint_t unicode,
+		unsigned *blue, unsigned *red)
+{
+  hb_codepoint_t glyph;
+  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &glyph));
+  hb_raster_image_t *img = paint_with_budget (font, glyph, HB_BUDGET_DEFAULT);
+
+  *blue = *red = 0;
+  if (!img) return;
+  hb_raster_extents_t ext;
+  hb_raster_image_get_extents (img, &ext);
+  const uint8_t *buf = hb_raster_image_get_buffer (img);
+  for (unsigned y = 0; y < ext.height; y++)
+    for (unsigned x = 0; x < ext.width; x++)
+    {
+      uint32_t px;
+      memcpy (&px, buf + y * ext.stride + x * 4, 4);
+      if (px == 0xFF0000FFu) (*blue)++;
+      if (px == 0xFFFF0000u) (*red)++;
+    }
+  hb_raster_image_destroy (img);
+}
+
+/* With equal start and end angles, or all stops at one offset, a sweep's
+ * color line has no length.  Padded, it still paints: the first color up
+ * to the angle and the last from it on.  Repeated or reflected, it paints
+ * nothing. */
+static void
+test_paint_sweep_coincident (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/test_glyphs-glyf_colr_1.ttf");
+  hb_font_t *font = hb_font_create (face);
+  unsigned blue, red;
+
+  /* sweep_coincident_{angles,stops}_{forward,reverse}_blue_red_pad:
+   * a quarter of a circle in one color, the rest in the other. */
+  const hb_codepoint_t pad[] = {0xF1300, 0xF1306, 0xF130C, 0xF1312};
+  for (unsigned i = 0; i < G_N_ELEMENTS (pad); i++)
+  {
+    count_blue_red (font, pad[i], &blue, &red);
+    g_assert_cmpuint (MIN (blue, red), >, 10000);
+    g_assert_cmpuint (MAX (blue, red), >, 2 * MIN (blue, red));
+  }
+
+  /* ..._reflect and ..._repeat */
+  const hb_codepoint_t empty[] = {0xF1301, 0xF1302, 0xF130D, 0xF130E};
+  for (unsigned i = 0; i < G_N_ELEMENTS (empty); i++)
+  {
+    count_blue_red (font, empty[i], &blue, &red);
+    g_assert_cmpuint (blue, ==, 0);
+    g_assert_cmpuint (red, ==, 0);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
@@ -946,6 +1007,7 @@ main (int argc, char **argv)
   hb_test_add (test_budget_sweep);
   hb_test_add (test_paint_clipped_layers);
   hb_test_add (test_paint_hsl_luminosity_weights);
+  hb_test_add (test_paint_sweep_coincident);
 
   return hb_test_run ();
 }

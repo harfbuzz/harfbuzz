@@ -1743,16 +1743,39 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
   if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
     return;
-  c->mark_painted (surf);
-  bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
-  uint32_t lut[GRADIENT_LUT_SIZE];
-  if (use_lut)
-    build_gradient_lut (stops, len, lut);
 
   /* Apply normalization to angle range */
   float a0 = start_angle + mn * (end_angle - start_angle);
   float a1 = start_angle + mx * (end_angle - start_angle);
   float angle_range = a1 - a0;
+
+  if (fabsf (angle_range) < 1e-10f)
+  {
+    /* The color line has no length: the angles are equal, or all
+     * stops share one offset.  Repeating or reflecting it draws
+     * nothing.  Padding it draws the first color up to the angle
+     * and the last color from it on, which a color line of those
+     * two colors over a sliver of an angle does. */
+    if (extend != HB_PAINT_EXTEND_PAD || !len)
+      return;
+    if (len > 1)
+    {
+      hb_color_t first = stops[0].color, last = stops[len - 1].color;
+      bool reversed = end_angle < start_angle;
+      stops[0].offset = 0.f;
+      stops[0].color = reversed ? last : first;
+      stops[1].offset = 1.f;
+      stops[1].color = reversed ? first : last;
+      len = 2;
+    }
+    angle_range = 1e-6f;
+  }
+
+  c->mark_painted (surf);
+  bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
+  uint32_t lut[GRADIENT_LUT_SIZE];
+  if (use_lut)
+    build_gradient_lut (stops, len, lut);
 
   /* Inverse transform */
   hb_transform_t<> t = c->current_effective_transform ();
