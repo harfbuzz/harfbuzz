@@ -36,7 +36,9 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 				   unsigned int broken_syllable_type,
 				   unsigned int dottedcircle_category,
 				   int repha_category = -1,
-				   int dottedcircle_position = -1);
+				   int dottedcircle_position = -1,
+				   int ra_category = -1,
+				   int halant_category = -1);
 
 HB_INTERNAL void
 hb_syllabic_record_cut_slow (hb_buffer_t *buffer,

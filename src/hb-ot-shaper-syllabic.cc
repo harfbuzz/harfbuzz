@@ -35,7 +35,9 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 				   unsigned int broken_syllable_type,
 				   unsigned int dottedcircle_category,
 				   int repha_category,
-				   int dottedcircle_position)
+				   int dottedcircle_position,
+				   int ra_category,
+				   int halant_category)
 {
   if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
     return false;
@@ -84,6 +86,17 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 	       last_syllable == buffer->cur().syllable() &&
 	       buffer->cur().ot_shaper_var_u8_category() == (unsigned) repha_category)
 	  (void) buffer->next_glyph ();
+      }
+      /* Likewise after a reph written as Ra + Halant.  A broken
+       * syllable has no base, so a Ra at its start can only be that. */
+      if (ra_category != -1 &&
+	  buffer->idx + 1 < buffer->len && buffer->successful &&
+	  buffer->cur().ot_shaper_var_u8_category() == (unsigned) ra_category &&
+	  last_syllable == buffer->cur(1).syllable() &&
+	  buffer->cur(1).ot_shaper_var_u8_category() == (unsigned) halant_category)
+      {
+	(void) buffer->next_glyph ();
+	(void) buffer->next_glyph ();
       }
 
       (void) buffer->output_info (ginfo);

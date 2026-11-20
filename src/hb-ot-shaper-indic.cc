@@ -987,7 +987,9 @@ initial_reordering_indic (const hb_ot_shape_plan_t *plan,
 					 indic_broken_cluster,
 					 I_Cat(DOTTEDCIRCLE),
 					 I_Cat(Repha),
-					 POS_END))
+					 POS_END,
+					 I_Cat(Ra),
+					 I_Cat(H)))
     ret = true;
 
   foreach_syllable (buffer, start, end)
