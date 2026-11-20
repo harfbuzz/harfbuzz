@@ -67,6 +67,13 @@ struct hb_pdf_resources_t
   unsigned extgstate_count = 0;
   unsigned shading_count = 0;
   unsigned xobject_count = 0;
+  unsigned form_count = 0;
+
+  /* Form XObjects for groups are written while painting, before the
+   * resource dictionary is complete, so they refer to it as an
+   * object of its own.  Created with the first group; its data is
+   * filled in at render time. */
+  unsigned resources_obj_id = 0;
 
   /* Every object is a buffer of its own, so the per-buffer document cap
    * bounds each object but not their number.  Charge all objects against the
@@ -135,6 +142,47 @@ struct hb_pdf_resources_t
     extgstate_dict.append_unsigned (obj_id);
     extgstate_dict.append_str (" 0 R ");
     return idx;
+  }
+
+  /* Add a Form XObject that is an isolated transparency group with
+   * @stream as its content, to be painted with `/FmN Do`.  Stores
+   * the resource name index in @idx. */
+  bool add_form_group (const hb_vector_buf_t &stream, unsigned *idx)
+  {
+    if (!resources_obj_id)
+    {
+      hb_vector_buf_t placeholder;
+      resources_obj_id = add_object (std::move (placeholder));
+      if (unlikely (!resources_obj_id))
+	return false;
+    }
+
+    /* The form is painted where its content would have been, so it
+     * inherits the transform and clip in effect there.  Its bounds
+     * in that space are not known; use the same all-covering box as
+     * the unbounded fills. */
+    hb_vector_buf_t form;
+    form.append_str ("<< /Type /XObject /Subtype /Form\n");
+    form.append_str ("/BBox [-32767 -32767 32767 32767]\n");
+    form.append_str ("/Group << /S /Transparency /CS /DeviceRGB /I true >>\n");
+    form.append_str ("/Resources ");
+    form.append_unsigned (resources_obj_id);
+    form.append_str (" 0 R\n/Length ");
+    form.append_unsigned (stream.length);
+    form.append_str (" >>\nstream\n");
+    form.append_len (stream.arrayZ, stream.length);
+    form.append_str ("endstream");
+    unsigned form_id = add_object (std::move (form));
+    if (unlikely (!form_id))
+      return false;
+
+    *idx = form_count++;
+    xobject_dict.append_str ("/Fm");
+    xobject_dict.append_unsigned (*idx);
+    xobject_dict.append_c (' ');
+    xobject_dict.append_unsigned (form_id);
+    xobject_dict.append_str (" 0 R ");
+    return true;
   }
 
   /* Add ExtGState with an SMask (soft mask) referencing a Form XObject
@@ -1496,6 +1544,12 @@ hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
   }
 }
 
+/* COLR composites a group onto what the enclosing group has painted
+ * so far, and onto nothing else.  In PDF that is an isolated
+ * transparency group: each group is collected in a buffer of its
+ * own and written as a Form XObject, which pop_group paints with
+ * the blend mode.  Writing the group's content inline instead would
+ * blend it with everything already on the page. */
 static void
 hb_pdf_paint_push_group (hb_paint_funcs_t *,
 			 void *paint_data,
@@ -1504,46 +1558,55 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("q\n");
-}
-
-static void
-hb_pdf_paint_push_group_for (hb_paint_funcs_t *,
-			     void *paint_data,
-			     hb_paint_composite_mode_t mode,
-			     void *)
-{
-  auto *paint = (hb_vector_paint_t *) paint_data;
-  if (unlikely (!paint->ensure_initialized ()))
+  /* The group becomes an object of the same document, so it shares
+   * the document cap with everything already held by the open groups. */
+  hb_vector_buf_t group;
+  group.precision = paint->current_body ().precision;
+  group.base = paint->current_body ().base + paint->current_body ().length;
+  if (unlikely (!paint->group_stack.push_or_fail (std::move (group))))
     return;
-
-  auto &body = paint->current_body ();
-  body.append_str ("q\n");
-
-  const char *bm = hb_pdf_blend_mode_name (mode);
-  if (bm)
-  {
-    auto *res = hb_pdf_get_resources (paint);
-    if (likely (res))
-    {
-      unsigned gs_idx = res->add_extgstate_blend (bm);
-      body.append_str ("/GS");
-      body.append_unsigned (gs_idx);
-      body.append_str (" gs\n");
-    }
-  }
 }
 
 static void
 hb_pdf_paint_pop_group (hb_paint_funcs_t *,
 			void *paint_data,
-			hb_paint_composite_mode_t mode HB_UNUSED,
+			hb_paint_composite_mode_t mode,
 			void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("Q\n");
+  if (paint->group_stack.length < 2)
+    return;
+
+  hb_vector_buf_t group = paint->group_stack.pop ();
+  if (!group.length)
+    return;
+
+  auto *res = hb_pdf_get_resources (paint);
+  if (unlikely (!res))
+    return;
+  unsigned form_idx;
+  if (unlikely (group.in_error () || !res->add_form_group (group, &form_idx)))
+  {
+    /* Make render fail rather than give a document missing a group. */
+    res->overflowed = true;
+    return;
+  }
+
+  auto &body = paint->current_body ();
+  body.append_str ("q\n");
+  const char *bm = hb_pdf_blend_mode_name (mode);
+  if (bm)
+  {
+    unsigned gs_idx = res->add_extgstate_blend (bm);
+    body.append_str ("/GS");
+    body.append_unsigned (gs_idx);
+    body.append_str (" gs\n");
+  }
+  body.append_str ("/Fm");
+  body.append_unsigned (form_idx);
+  body.append_str (" Do\nQ\n");
 }
 
 
@@ -1571,7 +1634,6 @@ static struct hb_pdf_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_radial_gradient_func (funcs, hb_pdf_paint_radial_gradient, nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func (funcs, hb_pdf_paint_sweep_gradient, nullptr, nullptr);
     hb_paint_funcs_set_push_group_func (funcs, hb_pdf_paint_push_group, nullptr, nullptr);
-    hb_paint_funcs_set_push_group_for_func (funcs, hb_pdf_paint_push_group_for, nullptr, nullptr);
     hb_paint_funcs_set_pop_group_func (funcs, hb_pdf_paint_pop_group, nullptr, nullptr);
     hb_paint_funcs_set_custom_palette_color_func (funcs, hb_vector_paint_custom_palette_color, nullptr, nullptr);
     hb_paint_funcs_set_set_budget_func (funcs, hb_vector_paint_set_budget_callback, nullptr, nullptr);
@@ -1662,6 +1724,42 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   if (unlikely (res && res->in_error ()))
     return nullptr;
 
+  /* The resource dictionary, for the page and, as an object of its
+   * own, for the groups' Form XObjects. */
+  hb_vector_buf_t res_dict;
+  if (res &&
+      (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length))
+  {
+    res_dict.append_str (" <<");
+    if (res->extgstate_dict.length)
+    {
+      res_dict.append_str (" /ExtGState << ");
+      res_dict.append_len (res->extgstate_dict.arrayZ, res->extgstate_dict.length);
+      res_dict.append_str (">>");
+    }
+    if (res->shading_dict.length)
+    {
+      res_dict.append_str (" /Shading << ");
+      res_dict.append_len (res->shading_dict.arrayZ, res->shading_dict.length);
+      res_dict.append_str (">>");
+    }
+    if (res->xobject_dict.length)
+    {
+      res_dict.append_str (" /XObject << ");
+      res_dict.append_len (res->xobject_dict.arrayZ, res->xobject_dict.length);
+      res_dict.append_str (">>");
+    }
+    res_dict.append_str (" >>");
+  }
+  if (res && res->resources_obj_id)
+  {
+    auto &obj = res->objects.arrayZ[res->resources_obj_id - 5];
+    obj.data.clear ();
+    obj.data.append_len (res_dict.arrayZ, res_dict.length);
+  }
+  if (unlikely (res_dict.in_error () || (res && res->in_error ())))
+    return nullptr;
+
   unsigned num_extra = res ? res->objects.length : 0;
   unsigned total_objects = 4 + num_extra; /* 1-based: 1..total_objects */
 
@@ -1697,30 +1795,10 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
   out.append_str ("]\n/Contents 4 0 R");
 
   /* Resources. */
-  bool has_resources = res &&
-    (res->extgstate_dict.length || res->shading_dict.length || res->xobject_dict.length);
-  if (has_resources)
+  if (res_dict.length)
   {
-    out.append_str ("\n/Resources <<");
-    if (res->extgstate_dict.length)
-    {
-      out.append_str (" /ExtGState << ");
-      out.append_len (res->extgstate_dict.arrayZ, res->extgstate_dict.length);
-      out.append_str (">>");
-    }
-    if (res->shading_dict.length)
-    {
-      out.append_str (" /Shading << ");
-      out.append_len (res->shading_dict.arrayZ, res->shading_dict.length);
-      out.append_str (">>");
-    }
-    if (res->xobject_dict.length)
-    {
-      out.append_str (" /XObject << ");
-      out.append_len (res->xobject_dict.arrayZ, res->xobject_dict.length);
-      out.append_str (">>");
-    }
-    out.append_str (" >>");
+    out.append_str ("\n/Resources");
+    out.append_len (res_dict.arrayZ, res_dict.length);
   }
 
   out.append_str (" >>\nendobj\n");
