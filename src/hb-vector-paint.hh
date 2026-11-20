@@ -33,6 +33,7 @@
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 #include "hb-map.hh"
+#include "hb-paint.hh"
 #include "hb-vector-path.hh"
 #include "hb-vector-buf.hh"
 #include "hb-vector-internal.hh"
@@ -111,6 +112,32 @@ struct hb_vector_paint_t
   }
 
   unsigned get_precision () const { return path.precision; }
+
+  /* Cuts the color line in color_stops_scratch, which is sorted and
+   * goes from 0 to 1, down to the stretch from @from to @to. */
+  bool cut_color_stops (float from, float to)
+  {
+    unsigned len = color_stops_scratch.length;
+    if (!hb_color_stops_cut (color_stops_scratch.arrayZ, &len, from, to))
+      return false;
+    color_stops_scratch.shrink (len);
+    return true;
+  }
+
+  /* Gives the radial gradient whose color line is in
+   * color_stops_scratch two circles that can be written; see
+   * hb_paint_radial_gradient_circles(). */
+  bool radial_gradient_circles (hb_paint_extend_t extend,
+				float *x0, float *y0, float *r0,
+				float *x1, float *y1, float *r1)
+  {
+    unsigned len = color_stops_scratch.length;
+    if (!hb_paint_radial_gradient_circles (color_stops_scratch.arrayZ, &len, extend,
+					   x0, y0, r0, x1, y1, r1))
+      return false;
+    color_stops_scratch.shrink (len);
+    return true;
+  }
 
   bool ensure_initialized ()
   {

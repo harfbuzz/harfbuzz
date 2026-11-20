@@ -21,6 +21,14 @@ test('reset', test_vector_reset,
   suite: 'vector',
 )
 
+test_vector_radial_tip = executable('test-vector-radial-tip', 'test-vector-radial-tip.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('radial-tip', test_vector_radial_tip,
+  suite: 'vector',
+)
+
 test_vector_sweep = executable('test-vector-sweep', 'test-vector-sweep.c',
   dependencies: [libharfbuzz_vector_dep],
 )

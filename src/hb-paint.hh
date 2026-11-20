@@ -286,6 +286,144 @@ struct hb_paint_funcs_t
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 
 
+static inline hb_color_t
+hb_color_lerp (hb_color_t c0, hb_color_t c1, float t);
+
+/* Cuts a color line whose stops are sorted, and which goes from 0 to 1,
+ * down to the stretch from @from to @to, in place; it goes from 0 to 1
+ * again, in no more stops.  An end that is not cut keeps its stops, and
+ * with them the color that goes on from it.  Returns false if there is
+ * no such stretch. */
+static inline bool
+hb_color_stops_cut (hb_color_stop_t *stops, unsigned *len,
+		    float from, float to)
+{
+  unsigned count = *len;
+  if (unlikely (!count || !(from < to) ||
+		!(from < stops[count - 1].offset) || !(to > stops[0].offset)))
+    return false;
+
+  if (to < stops[count - 1].offset)
+  {
+    /* The first stop that is not before @to ends the line: where it
+     * is, if that is at @to, as it is the one that says what the color
+     * is up to there; and with the color at @to, if it is after it. */
+    unsigned j = 1;
+    while (stops[j].offset < to)
+      j++;
+    if (stops[j].offset > to)
+    {
+      stops[j].color = hb_color_lerp (stops[j - 1].color, stops[j].color,
+				      (to - stops[j - 1].offset) /
+				      (stops[j].offset - stops[j - 1].offset));
+      stops[j].is_foreground = false;
+      stops[j].offset = to;
+    }
+    count = j + 1;
+  }
+
+  unsigned first = 0;
+  if (from > stops[0].offset)
+  {
+    /* The last stop that is not after @from starts it, likewise. */
+    first = count - 2;
+    while (stops[first].offset > from)
+      first--;
+    if (stops[first].offset < from)
+    {
+      stops[first].color = hb_color_lerp (stops[first].color, stops[first + 1].color,
+					  (from - stops[first].offset) /
+					  (stops[first + 1].offset - stops[first].offset));
+      stops[first].is_foreground = false;
+      stops[first].offset = from;
+    }
+  }
+
+  for (unsigned i = 0; first + i < count; i++)
+  {
+    stops[i] = stops[first + i];
+    stops[i].offset = (stops[i].offset - from) / (to - from);
+  }
+  *len = count - first;
+  return true;
+}
+
+/* A radial gradient is given by the two circles where its color line
+ * starts and ends, and paints the circles between and beyond them that
+ * have a radius.  One of the two may not: its radius is negative if a
+ * color stop lies past the tip of the cone.  Such a circle cannot be
+ * given to what takes two circles to paint a gradient.
+ *
+ * Gives the gradient whose color line is @stops, sorted and going from
+ * 0 to 1, two circles that can be.  A color line that repeats is taken
+ * a whole number of periods further along, an even number if it
+ * reflects, which paints the same.  One that does not is cut where the
+ * radius is zero, in place.  Returns false if nothing is to be
+ * painted. */
+static inline bool
+hb_paint_radial_gradient_circles (hb_color_stop_t *stops, unsigned *len,
+				  hb_paint_extend_t extend,
+				  float *x0, float *y0, float *r0,
+				  float *x1, float *y1, float *r1)
+{
+  if (likely (*r0 >= 0.f && *r1 >= 0.f))
+    return true;
+
+  float dx = *x1 - *x0, dy = *y1 - *y0, dr = *r1 - *r0;
+  /* No circle has a radius, or the radii are not numbers. */
+  if ((!(dr > 0.f) && !(dr < 0.f)) || unlikely (!*len))
+    return false;
+
+  /* Where the radius is zero.  The circles that have one are those
+   * past it if they grow, and those before it if they shrink. */
+  float tip = -*r0 / dr;
+  if (unlikely (!std::isfinite (tip)))
+    return false;
+
+  float from = 0.f, to = 1.f;
+  if (extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    float periods = dr > 0.f ? ceilf (tip) : floorf (tip) - 1.f;
+    if (extend == HB_PAINT_EXTEND_REFLECT && fmodf (periods, 2.f) != 0.f)
+      periods += dr > 0.f ? 1.f : -1.f;
+    from += periods;
+    to += periods;
+  }
+  else if (tip > 0.f && tip < 1.f)
+  {
+    /* The tip is on the color line. */
+    if (dr > 0.f) from = tip; else to = tip;
+    if (unlikely (!hb_color_stops_cut (stops, len, from, to)))
+      return false;
+  }
+  else
+  {
+    /* All of the color line is past the tip.  The color at its nearer
+     * end goes on from there: one color, from the tip on. */
+    if (unlikely (*len < 2))
+      return false;
+    hb_color_t color = stops[dr > 0.f ? *len - 1 : 0].color;
+    for (unsigned i = 0; i < 2; i++)
+    {
+      hb_color_stop_t stop = {(float) i, false, color};
+      stops[i] = stop;
+    }
+    *len = 2;
+    if (dr > 0.f) { from = tip; to = tip + 1.f; }
+    else { from = tip - 1.f; to = tip; }
+  }
+
+  float x = *x0, y = *y0, r = *r0;
+  *x0 = x + from * dx;
+  *y0 = y + from * dy;
+  *r0 = hb_max (r + from * dr, 0.f);
+  *x1 = x + to * dx;
+  *y1 = y + to * dy;
+  *r1 = hb_max (r + to * dr, 0.f);
+  return true;
+}
+
+
 /* Linearly interpolate between two hb_color_t values, component-wise,
  * in byte-channel space with rounding. */
 static inline hb_color_t

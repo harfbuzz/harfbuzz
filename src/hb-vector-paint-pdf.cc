@@ -1236,6 +1236,10 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   float gy1 = y0 + mx * (y1 - y0);
   float gr1 = r0 + mx * (r1 - r0);
 
+  if (!paint->radial_gradient_circles (hb_color_line_get_extend (color_line),
+				       &gx0, &gy0, &gr0, &gx1, &gy1, &gr1))
+    return;
+
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
