@@ -157,19 +157,6 @@ hb_vector_svg_lerp_rgba (const hb_vector_svg_rgba_t &c0,
           hb_vector_svg_lerp (c0.a, c1.a, t)};
 }
 
-static inline float hb_vector_svg_dot (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
-static inline hb_vector_svg_point_t hb_vector_svg_add (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
-static inline hb_vector_svg_point_t hb_vector_svg_sub (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
-static inline hb_vector_svg_point_t hb_vector_svg_scale (const hb_vector_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
-
-static inline hb_vector_svg_point_t
-hb_vector_svg_normalize (const hb_vector_svg_point_t &p)
-{
-  float len = sqrtf (hb_vector_svg_dot (p, p));
-  if (len == 0.f) return {0.f, 0.f};
-  return hb_vector_svg_scale (p, 1.f / len);
-}
-
 static void
 hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
 			       unsigned precision,
@@ -177,12 +164,34 @@ hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
 			       float a0, const hb_vector_svg_rgba_t &c0_in,
 			       float a1, const hb_vector_svg_rgba_t &c1_in)
 {
+  /* A wedge is a triangle of one color.  It is no wider than
+   * max_angle, so that its far side stays near the circle, and no
+   * narrower than min_angle.  Between those, there are as many
+   * wedges as it takes for neighbors to be color_step apart. */
   static const float max_angle = HB_PI / 16.f;
-  hb_vector_svg_point_t center = {cx, cy};
-  int num_splits = (int) ceilf (fabsf (a1 - a0) / max_angle);
-  if (num_splits < 1) num_splits = 1;
+  static const float min_angle = HB_PI / 360.f;
+  static const float color_step = 4.f / 255.f;
 
-  hb_vector_svg_point_t p0 = {cosf (a0), sinf (a0)};
+  float span = fabsf (a1 - a0);
+  if (unlikely (!(span > 0.f && span < 7.f)))
+    return;
+  float dc = hb_max (hb_max (fabsf (c1_in.r - c0_in.r), fabsf (c1_in.g - c0_in.g)),
+		     hb_max (fabsf (c1_in.b - c0_in.b), fabsf (c1_in.a - c0_in.a)));
+  int num_splits = hb_max ((int) ceilf (span / max_angle),
+			   hb_min ((int) ceilf (dc / color_step),
+				   (int) (span / min_angle)));
+
+  /* The far side of the widest wedge touches the circle of @radius. */
+  radius /= cosf (max_angle / 2.f);
+
+  /* The wedges tile the plane.  Antialiased one by one, each would
+   * let what is under it show through along its edges, so ask for
+   * them not to be.  For a viewer that antialiases them anyway, an
+   * opaque wedge also reaches under the one painted after it. */
+  body->append_str ("<g shape-rendering=\"crispEdges\">\n");
+  bool opaque = c0_in.a >= 1.f && c1_in.a >= 1.f;
+
+  hb_vector_svg_point_t sp0 = {cx + radius * cosf (a0), cy + radius * sinf (a0)};
   hb_vector_svg_rgba_t color0 = c0_in;
 
   for (int a = 0; a < num_splits; a++)
@@ -190,57 +199,39 @@ hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
     float k = (a + 1.f) / num_splits;
     float angle1 = hb_vector_svg_lerp (a0, a1, k);
     hb_vector_svg_rgba_t color1 = hb_vector_svg_lerp_rgba (c0_in, c1_in, k);
-
-    hb_vector_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
-    hb_vector_svg_point_t sp0 = hb_vector_svg_add (center, hb_vector_svg_scale (p0, radius));
-    hb_vector_svg_point_t sp1 = hb_vector_svg_add (center, hb_vector_svg_scale (p1, radius));
-
-    hb_vector_svg_point_t A = hb_vector_svg_normalize (hb_vector_svg_add (p0, p1));
-    hb_vector_svg_point_t U = {-A.y, A.x};
-    float up0 = hb_vector_svg_dot (U, p0);
-    float up1 = hb_vector_svg_dot (U, p1);
-    if (fabsf (up0) < 1e-6f || fabsf (up1) < 1e-6f)
-    {
-      p0 = p1;
-      color0 = color1;
-      continue;
-    }
-    hb_vector_svg_point_t C0 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p0, A), p0) / up0));
-    hb_vector_svg_point_t C1 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p1, A), p1) / up1));
-
-    hb_vector_svg_point_t sc0 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C0, hb_vector_svg_scale (hb_vector_svg_sub (C0, p0), 0.33333f)), radius));
-    hb_vector_svg_point_t sc1 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C1, hb_vector_svg_scale (hb_vector_svg_sub (C1, p1), 0.33333f)), radius));
+    hb_vector_svg_point_t sp1 = {cx + radius * cosf (angle1), cy + radius * sinf (angle1)};
 
     hb_vector_svg_rgba_t mid_color = hb_vector_svg_lerp_rgba (color0, color1, 0.5f);
     hb_color_t mid = hb_vector_svg_hb_color_from_rgba (mid_color);
 
     body->append_str ("<path d=\"M");
-    body->append_num (center.x, precision);
+    body->append_num (cx, precision);
     body->append_c (',');
-    body->append_num (center.y, precision);
+    body->append_num (cy, precision);
     body->append_str ("L");
     body->append_num (sp0.x, precision);
     body->append_c (',');
     body->append_num (sp0.y, precision);
-    body->append_str ("C");
-    body->append_num (sc0.x, precision);
-    body->append_c (',');
-    body->append_num (sc0.y, precision);
-    body->append_c (' ');
-    body->append_num (sc1.x, precision);
-    body->append_c (',');
-    body->append_num (sc1.y, precision);
-    body->append_c (' ');
+    body->append_str ("L");
     body->append_num (sp1.x, precision);
     body->append_c (',');
     body->append_num (sp1.y, precision);
+    if (opaque && a + 1 < num_splits)
+    {
+      float angle2 = hb_vector_svg_lerp (a0, a1, (a + 2.f) / num_splits);
+      body->append_str ("L");
+      body->append_num (cx + radius * cosf (angle2), precision);
+      body->append_c (',');
+      body->append_num (cy + radius * sinf (angle2), precision);
+    }
     body->append_str ("Z\" fill=\"");
     body->append_svg_color (mid, true);
     body->append_str ("\"/>\n");
 
-    p0 = p1;
+    sp0 = sp1;
     color0 = color1;
   }
+  body->append_str ("</g>\n");
 }
 
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */

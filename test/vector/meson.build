@@ -4,6 +4,14 @@ endif
 
 run_test = find_program('run-tests.py')
 
+test_vector_sweep_svg = executable('test-vector-sweep-svg', 'test-vector-sweep-svg.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('sweep-svg', test_vector_sweep_svg,
+  suite: 'vector',
+)
+
 test_vector_budget = executable('test-vector-budget', 'test-vector-budget.c',
   dependencies: [libharfbuzz_vector_dep],
 )
