@@ -884,9 +884,9 @@ test_paint_clip_rectangle_only (void)
   g_assert_nonnull (blob);
   unsigned texel_count;
   const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
-  g_assert_cmpuint (texel_count, >, 0);
-  /* Header texel 0 .r holds num_ops. */
-  g_assert_cmpint (texels[0].r, ==, 1);
+  g_assert_cmpuint (texel_count, >, 1);
+  /* Header texel 1 .r holds num_ops. */
+  g_assert_cmpint (texels[1].r, ==, 1);
 
   /* The layer covers the rectangle. */
   g_assert_cmpint (extents.x_bearing, ==, 100);

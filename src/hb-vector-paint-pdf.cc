@@ -1285,7 +1285,6 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
 			float a1, hb_color_t c1_in)
 {
   const float R = 32767.f;
-  const float eps = 0.5f;
   const float MAX_SECTOR = (float) M_PI / 2.f;
 
   int num_splits = (int) ceilf (fabsf (a1 - a0) / MAX_SECTOR);
@@ -1306,10 +1305,14 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
     float cos0 = cosf (sa0), sin0 = sinf (sa0);
     float cos1 = cosf (sa1), sin1 = sinf (sa1);
 
-    float p0x = cx + eps * cos0, p0y = cy + eps * sin0;
-    float p3x = cx + R * cos0,   p3y = cy + R * sin0;
-    float p6x = cx + R * cos1,   p6y = cy + R * sin1;
-    float p9x = cx + eps * cos1, p9y = cy + eps * sin1;
+    /* The patch is a wedge: its inner edge is collapsed onto the
+     * center.  The mesh coordinates are 16-bit, too coarse to hold
+     * a small inner radius: the inner corners would round to
+     * different grid points and leave a hole between the patches. */
+    float p0x = cx,            p0y = cy;
+    float p3x = cx + R * cos0, p3y = cy + R * sin0;
+    float p6x = cx + R * cos1, p6y = cy + R * sin1;
+    float p9x = cx,            p9y = cy;
 
     /* Edge 1: p0→p3, radial straight line. */
     float e1_1x = p0x + (p3x - p0x) / 3.f;
@@ -1329,11 +1332,9 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
     float e3_2x = p6x + 2.f * (p9x - p6x) / 3.f;
     float e3_2y = p6y + 2.f * (p9y - p6y) / 3.f;
 
-    /* Edge 4: p9→p0, inner arc. */
-    float e4_1x = p9x + kappa * eps * (-sin1);
-    float e4_1y = p9y + kappa * eps * ( cos1);
-    float e4_2x = p0x - kappa * eps * (-sin0);
-    float e4_2y = p0y - kappa * eps * ( cos0);
+    /* Edge 4: p9→p0, collapsed onto the center. */
+    float e4_1x = cx, e4_1y = cy;
+    float e4_2x = cx, e4_2y = cy;
 
     mesh->append_c ('\0'); /* flag = 0, new patch */
 
