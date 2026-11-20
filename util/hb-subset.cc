@@ -935,7 +935,7 @@ subset_main_t::add_options ()
 
   GOptionEntry other_entries[] =
   {
-    {"gid-map", 0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyph_map, "Specify a glyph mapping to use, any unmapped gids will be automatically assigned.", "List of pairs old_gid1:new_gid1,old_gid2:new_gid2,..."},
+    {"gid-map", 0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyph_map, "Specify a glyph mapping to use, any unmapped gids will be automatically assigned.  A mapping that reorders glyphs breaks the layout tables.", "List of pairs old_gid1:new_gid1,old_gid2:new_gid2,..."},
     {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids. Use --name-IDs-=... to subtract from the current set.", "list of int numbers or *"},
     {"name-IDs-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
     {"name-IDs+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
