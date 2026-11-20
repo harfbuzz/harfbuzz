@@ -1436,6 +1436,43 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 }
 
+/* Solves A t^2 + B t + C = 0 for the offset on the color line of the
+ * circle of a radial gradient that passes through a point.  A circle
+ * has the radius r0 + t dr, and one with a negative radius is not
+ * painted; of the others, the one furthest along the line is on top.
+ * Returns false if no circle is to be painted there: outside the cone
+ * that the circles sweep, and on the far side of its tip. */
+static inline bool
+hb_raster_radial_gradient_t (float A, float B, float C,
+			     float r0, float dr,
+			     float *t)
+{
+  if (fabsf (A) > 1e-10f)
+  {
+    float disc = B * B - 4.f * A * C;
+    if (disc < 0.f)
+      return false;
+    float sq = sqrtf (disc);
+    float t1 = (-B + sq) / (2.f * A);
+    float t2 = (-B - sq) / (2.f * A);
+    if (t1 < t2)
+      hb_swap (t1, t2);
+    if (r0 + t1 * dr >= 0.f)
+      *t = t1;
+    else if (r0 + t2 * dr >= 0.f)
+      *t = t2;
+    else
+      return false;
+    return true;
+  }
+
+  /* One circle through each point. */
+  if (fabsf (B) < 1e-10f)
+    return false;
+  *t = -C / B;
+  return r0 + *t * dr >= 0.f;
+}
+
 static void
 hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 				 void *paint_data,
@@ -1525,35 +1562,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      /* Pick the larger root (t closer to 1 = outer circle) */
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      /* Choose the root that gives a positive radius */
-	      if (cr0 + t1 * dr >= 0.f)
-		grad_t = t1;
-	      else
-		grad_t = t2;
-	    }
-	    else
-	    {
-	      /* Linear case: Bt + C = 0 */
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
@@ -1571,29 +1584,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
-	    }
-	    else
-	    {
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
@@ -1628,29 +1623,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
-	    }
-	    else
-	    {
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
@@ -1676,29 +1653,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
-	    }
-	    else
-	    {
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);

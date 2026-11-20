@@ -601,6 +601,69 @@ test_paint_hsl_luminosity_weights (void)
   hb_raster_paint_destroy (paint);
 }
 
+/* ── Test: a radial gradient ends at the tip of its cone ─────────── */
+
+static unsigned
+two_color_stops (hb_color_line_t *, void *,
+		 unsigned start, unsigned *count,
+		 hb_color_stop_t *stops, void *)
+{
+  static const hb_color_stop_t line[2] = {
+    {0.f, false, HB_COLOR (0, 0, 255, 255)},
+    {1.f, false, HB_COLOR (255, 0, 0, 255)},
+  };
+  if (count)
+  {
+    unsigned n = 0;
+    for (; n < *count && start + n < 2; n++)
+      stops[n] = line[start + n];
+    *count = n;
+  }
+  return 2;
+}
+
+static hb_paint_extend_t
+pad_extend (hb_color_line_t *, void *, void *)
+{ return HB_PAINT_EXTEND_PAD; }
+
+static void
+test_paint_radial_gradient_tip (void)
+{
+  /* A circle of radius 10 at x = 60 and one of radius 30 at x = 100:
+   * the radius is zero at x = 40, the tip of the cone they sweep.
+   * Past the tip the radius is negative, and a circle of negative
+   * radius is not painted: no mirror image of the cone. */
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_raster_extents_t extents = {0, 0, 120, 100, 0};
+  hb_raster_paint_set_extents (paint, &extents);
+
+  hb_color_line_t line = {};
+  line.get_color_stops = two_color_stops;
+  line.get_extend = pad_extend;
+
+  hb_paint_push_clip_rectangle (funcs, paint, 0, 0, 120, 100);
+  hb_paint_radial_gradient (funcs, paint, &line, 60, 50, 10, 100, 50, 30);
+  hb_paint_pop_clip (funcs, paint);
+
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  hb_raster_extents_t ext;
+  hb_raster_image_get_extents (img, &ext);
+  const uint8_t *buf = hb_raster_image_get_buffer (img);
+  /* Alpha along the axis of the cone. */
+  auto alpha = [&] (unsigned x) -> unsigned { return buf[50 * ext.stride + x * 4 + 3]; };
+  g_assert_cmpuint (alpha (110), ==, 255);
+  g_assert_cmpuint (alpha (80), ==, 255);
+  g_assert_cmpuint (alpha (45), ==, 255);
+  g_assert_cmpuint (alpha (35), ==, 0);
+  g_assert_cmpuint (alpha (10), ==, 0);
+
+  hb_raster_image_destroy (img);
+  hb_raster_paint_destroy (paint);
+}
+
 static void
 test_set_extents_while_painting (void)
 {
@@ -940,6 +1003,7 @@ main (int argc, char **argv)
   hb_test_add (test_paint_recycle_null);
   hb_test_add (test_set_extents_while_painting);
   hb_test_add (test_clip_rectangle_transformed);
+  hb_test_add (test_paint_radial_gradient_tip);
   hb_test_add (test_image_bgra);
   hb_test_add (test_image_png_byte_order);
   hb_test_add (test_image_png_size);
