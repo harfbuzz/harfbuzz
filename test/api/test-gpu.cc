@@ -714,6 +714,44 @@ test_extents_saturate_overflow (void)
   hb_gpu_draw_destroy (draw);
 }
 
+static void
+test_encode_rejects_nan_point (void)
+{
+  /* A COLRv1 PaintTransform chain can overflow the transform a clip
+   * glyph is drawn through, so that one outline point comes out as
+   * inf - inf = NaN while the points after it stay finite.  The NaN
+   * does not show in the extents that bound every point before the
+   * int16 quantization, so it was converted to int16 (undefined
+   * behavior).  The outline must fail to encode, as with an infinite
+   * point. */
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  g_assert_nonnull (draw);
+
+  hb_draw_funcs_t *funcs = hb_gpu_draw_get_funcs (draw);
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, NAN, 500.f);
+  hb_draw_line_to (funcs, draw, &st, 1.f, 1.f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  g_assert_null (hb_gpu_draw_encode (draw, nullptr));
+
+  /* The failed encode leaves the encoder usable. */
+  st = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 1.f, 0.f);
+  hb_draw_line_to (funcs, draw, &st, 0.f, 1.f);
+  hb_draw_close_path (funcs, draw, &st);
+
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
+  g_assert_nonnull (blob);
+  g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+  hb_blob_destroy (blob);
+
+  hb_gpu_draw_destroy (draw);
+}
+
 /* ===== Paint encoder tests ===== */
 
 static void
@@ -1422,6 +1460,7 @@ main (int argc, char **argv)
   hb_test_add (test_recycle_blob_immutable);
   hb_test_add (test_encode_band_membership);
   hb_test_add (test_extents_saturate_overflow);
+  hb_test_add (test_encode_rejects_nan_point);
   hb_test_add (test_shapes);
 
   hb_test_add (test_paint_create_destroy);

@@ -61,6 +61,18 @@ acc_emit (hb_gpu_draw_t *g,
     return;
   }
 
+  /* hb_gpu_draw_encode() bounds every point by the extents before
+   * quantizing to int16, but a NaN point (an overflowed transform
+   * gives inf - inf) does not show in the extents.  Infinite points
+   * fail that check anyway. */
+  if (unlikely (!std::isfinite (p1x) || !std::isfinite (p1y) ||
+		!std::isfinite (p2x) || !std::isfinite (p2y) ||
+		!std::isfinite (p3x) || !std::isfinite (p3y)))
+  {
+    g->success = false;
+    return;
+  }
+
   hb_gpu_curve_t c = {p1x, p1y, p2x, p2y, p3x, p3y, contour_start};
   if (unlikely (!g->curves.push_or_fail (c)))
   {
