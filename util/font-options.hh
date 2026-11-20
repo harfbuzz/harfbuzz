@@ -191,9 +191,23 @@ parse_variations (const char *name G_GNUC_UNUSED,
   p = s;
   font_opts->num_variations = 0;
   while (p && *p) {
-    char *end = strpbrk (p, ", ");
-    if (hb_variation_from_string (p, end ? end - p : -1, &font_opts->variations[font_opts->num_variations]))
+    /* Commas separate variations.  Try each item whole first, since the
+     * CSS forms have a space inside them; an item that is not one
+     * variation is a space-separated list of them. */
+    char *end = strchr (p, ',');
+    char *item_end = end ? end : p + strlen (p);
+    if (hb_variation_from_string (p, item_end - p, &font_opts->variations[font_opts->num_variations]))
       font_opts->num_variations++;
+    else
+      for (char *q = p; q < item_end;)
+      {
+	char *e = (char *) memchr (q, ' ', item_end - q);
+	if (!e)
+	  e = item_end;
+	if (e > q && hb_variation_from_string (q, e - q, &font_opts->variations[font_opts->num_variations]))
+	  font_opts->num_variations++;
+	q = e + 1;
+      }
     p = end ? end + 1 : nullptr;
   }
 
