@@ -728,13 +728,17 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
   if (a < 1.f / 255.f)
     return;
 
-  /* Set alpha via ExtGState if needed. */
+  bool scoped = false;
+  /* Set alpha via ExtGState if needed, scoped so it does not leak
+   * into later paints. */
   if (a < 1.f - 1.f / 512.f)
   {
     auto *res = hb_pdf_get_resources (paint);
     if (res)
     {
       unsigned gs_idx = res->add_extgstate_alpha (a);
+      body.append_str ("q\n");
+      scoped = true;
       body.append_str ("/GS");
       body.append_unsigned (gs_idx);
       body.append_str (" gs\n");
@@ -751,6 +755,8 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
 
   /* Paint a huge rect (will be clipped). */
   body.append_str ("-32767 -32767 65534 65534 re f\n");
+  if (scoped)
+    body.append_str ("Q\n");
 }
 
 static void
@@ -1196,7 +1202,8 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 						scx - R - 1, scy - R - 1,
 						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
-    body.append_str ("/GS");
+    /* Scoped, so the soft mask does not leak into later paints. */
+    body.append_str ("q\n/GS");
     body.append_unsigned (gs_idx);
     body.append_str (" gs\n");
   }
@@ -1204,6 +1211,8 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   body.append_str ("/SH");
   body.append_unsigned (sh_idx);
   body.append_str (" sh\n");
+  if (needs_alpha)
+    body.append_str ("Q\n");
 }
 
 static void
@@ -1305,7 +1314,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 						scx - R - 1, scy - R - 1,
 						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
-    body.append_str ("/GS");
+    /* Scoped, so the soft mask does not leak into later paints. */
+    body.append_str ("q\n/GS");
     body.append_unsigned (gs_idx);
     body.append_str (" gs\n");
   }
@@ -1313,6 +1323,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   body.append_str ("/SH");
   body.append_unsigned (sh_idx);
   body.append_str (" sh\n");
+  if (needs_alpha)
+    body.append_str ("Q\n");
 }
 
 
@@ -1633,7 +1645,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
 
-  if (needs_alpha && alpha_mesh.length)
+  bool masked = needs_alpha && alpha_mesh.length;
+  if (masked)
   {
     unsigned alpha_sh_id = hb_pdf_build_mesh_shading (alpha_mesh, "DeviceGray",
 						       " 0 1");
@@ -1641,7 +1654,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 						xlo, ylo,
 						xhi - xlo, yhi - ylo,
 						paint->get_precision ());
-    body.append_str ("/GS");
+    /* Scoped, so the soft mask does not leak into later paints. */
+    body.append_str ("q\n/GS");
     body.append_unsigned (gs_idx);
     body.append_str (" gs\n");
   }
@@ -1649,6 +1663,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   body.append_str ("/SH");
   body.append_unsigned (sh_idx);
   body.append_str (" sh\n");
+  if (masked)
+    body.append_str ("Q\n");
 }
 
 static const char *

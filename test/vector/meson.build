@@ -13,6 +13,14 @@ test('budget', test_vector_budget,
   suite: 'vector',
 )
 
+test_vector_pdf_alpha = executable('test-vector-pdf-alpha', 'test-vector-pdf-alpha.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-alpha', test_vector_pdf_alpha,
+  suite: 'vector',
+)
+
 test_vector_reset = executable('test-vector-reset', 'test-vector-reset.c',
   dependencies: [libharfbuzz_vector_dep],
 )
