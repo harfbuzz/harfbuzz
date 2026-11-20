@@ -1,7 +1,7 @@
 ## Build and Test
 
 ```shell
-meson build
+meson setup build
 ninja -Cbuild
 meson test -Cbuild
 ```
@@ -33,7 +33,7 @@ meson test -C build
 ### Enable Debug Logging
 
 ```shell
-CPPFLAGS=-DHB_DEBUG_SUBSET=100 meson build --reconfigure
+CPPFLAGS=-DHB_DEBUG_SUBSET=100 meson setup build --reconfigure
 ninja -C build
 ```
 

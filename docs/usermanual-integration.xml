@@ -213,7 +213,7 @@ hb_buffer_set_unicode_funcs(buf, glibufunctions);
 ...
 FT_New_Face(ft_library, font_path, index, &amp;face);
 FT_Set_Char_Size(face, 0, 1000, 0, 0);
-hb_font_t *font = hb_ft_font_create(face);
+hb_font_t *font = hb_ft_font_create(face, NULL);
 </programlisting>
     <para>
       <function>hb_ft_font_create_referenced()</function> is
@@ -256,7 +256,7 @@ hb_font_t *font = hb_ft_font_create(face);
       <function>hb_ft_font_changed()</function> that you should
       call whenever you have altered the properties of your underlying
       <type>FT_Face</type>, as well as a
-      <function>hb_ft_font_get_face()</function> that you can call on an
+      <function>hb_ft_font_get_ft_face()</function> that you can call on an
       <type>hb_font_t</type> font object to fetch its underlying <type>FT_Face</type>.
     </para>
     <para>
@@ -606,8 +606,8 @@ hb_buffer_set_unicode_funcs(buf, icufunctions);
       adding ICU as a dependency. You can also build HarfBuzz with ICU
       support built directly into the main HarfBuzz shared library
       (<filename class="libraryfile">libharfbuzz.so</filename>),
-      by specifying the <literal>--with-icu=builtin</literal>
-      compile-time option.
+      by specifying the <literal>-Dicu_builtin=true</literal>
+      option when configuring the build with Meson.
     </para>
 
   </section>
@@ -627,7 +627,7 @@ hb_buffer_set_unicode_funcs(buf, icufunctions);
       through its Python interface.
     </para>
     <para>
-      HarfBuzz's Python bindings support Python 2 and Python 3. To use
+      HarfBuzz's Python bindings support Python 3. To use
       them, you will need to have the <literal>pygobject</literal>
       package installed. Then you should import
       <literal>HarfBuzz</literal> from
