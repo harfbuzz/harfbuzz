@@ -37,6 +37,14 @@ if zlib_dep.found()
   test('png', test_vector_png, suite: 'vector')
 endif
 
+test_vector_gradient = executable('test-vector-gradient', 'test-vector-gradient.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('gradient', test_vector_gradient,
+  suite: 'vector',
+)
+
 tests = [
   'basic',
   'varc',

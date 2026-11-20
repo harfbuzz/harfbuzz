@@ -1040,11 +1040,6 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
     return res->add_object (std::move (obj));
   }
 
-  /* Sort by offset. */
-  paint->color_stops_scratch.as_array ().qsort (
-    [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
-    { return (a.offset > b.offset) - (a.offset < b.offset); });
-
   if (count == 2)
   {
     /* Two stops: single interpolation function. */
@@ -1125,6 +1120,7 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
   /* Reduce COLR's 3-anchor (P0, P1, P2) to the 2-point axis of a Type 2
    * (axial) shading, as the SVG, raster, GPU and cairo backends do. */
   float lx0, ly0, lx1, ly1;
@@ -1229,6 +1225,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
   float gx0 = x0 + mn * (x1 - x0);
   float gy0 = y0 + mn * (y1 - y0);
   float gr0 = r0 + mn * (r1 - r0);
@@ -1575,6 +1572,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
     { return (a.offset > b.offset) - (a.offset < b.offset); });
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  paint->premultiply_color_stops ();
 
   float scx = paint->sx (cx), scy = paint->sy (cy);
   float R = hb_pdf_sweep_radius (res, scx, scy);

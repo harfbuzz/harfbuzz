@@ -103,6 +103,101 @@ struct hb_vector_paint_t
     return true;
   }
 
+  /* COLR interpolates the colors of a gradient with alpha multiplied
+   * into them.  SVG and PDF viewers interpolate the color and the
+   * alpha of the stops as written, which is not the same between two
+   * stops that differ in alpha: a color fading out to transparent
+   * black would turn dark on its way.
+   *
+   * Rewrites the stops, which have to be sorted, so that interpolating
+   * them the viewers' way gives what COLR asks for.  A transparent
+   * stop has no color of its own, so it takes its neighbor's, on each
+   * side.  Between two other stops that differ in alpha, the color is
+   * not linear in the offset; stops are added along its curve, as many
+   * as it takes to stay within a level or two of it. */
+  void premultiply_color_stops ()
+  {
+    auto &stops = color_stops_scratch;
+    unsigned count = stops.length;
+
+    bool differ = false;
+    for (unsigned i = 1; i < count && !differ; i++)
+      differ = hb_color_get_alpha (stops.arrayZ[i].color) !=
+	       hb_color_get_alpha (stops.arrayZ[0].color);
+    if (!differ)
+      return;
+
+    /* Long color lines only get the transparent stops fixed. */
+    unsigned max_segments = count <= 256 ? 16 : 1;
+
+    hb_vector_t<hb_color_stop_t> out;
+    if (unlikely (!out.alloc (count + count / 2)))
+      return;
+    auto with_alpha = [] (hb_color_t c, unsigned a)
+    { return HB_COLOR (hb_color_get_blue (c), hb_color_get_green (c), hb_color_get_red (c), a); };
+    for (unsigned i = 0; i < count; i++)
+    {
+      const hb_color_stop_t &s = stops.arrayZ[i];
+      unsigned a = hb_color_get_alpha (s.color);
+      const hb_color_stop_t *next = i + 1 < count ? &stops.arrayZ[i + 1] : nullptr;
+      unsigned next_a = next ? hb_color_get_alpha (next->color) : 0;
+
+      if (!a)
+      {
+	unsigned prev_a = i ? hb_color_get_alpha (stops.arrayZ[i - 1].color) : 0;
+	hb_color_stop_t t = s;
+	if (prev_a)
+	{
+	  t.color = with_alpha (stops.arrayZ[i - 1].color, 0);
+	  out.push (t);
+	}
+	if (next_a)
+	{
+	  t.color = with_alpha (next->color, 0);
+	  out.push (t);
+	}
+	if (!prev_a && !next_a)
+	  out.push (s);
+	continue;
+      }
+
+      out.push (s);
+      if (!next_a || next_a == a || !(next->offset > s.offset))
+	continue;
+
+      /* Midway, the premultiplied color is off by a quarter of the
+       * difference in color times the difference in alpha. */
+      unsigned dc = 0;
+      for (unsigned shift = 8; shift <= 24; shift += 8)
+      {
+	int d = (int) ((s.color >> shift) & 0xFF) - (int) ((next->color >> shift) & 0xFF);
+	dc = hb_max (dc, (unsigned) (d < 0 ? -d : d));
+      }
+      unsigned da = a > next_a ? a - next_a : next_a - a;
+      unsigned segments = hb_min (max_segments, (dc * da + 2039) / 2040);
+      for (unsigned k = 1; k < segments; k++)
+      {
+	float u = (float) k / segments;
+	float alpha = a + u * ((float) next_a - (float) a);
+	auto channel = [&] (unsigned shift) -> unsigned
+	{
+	  float c0 = (float) ((s.color >> shift) & 0xFF) * a;
+	  float c1 = (float) ((next->color >> shift) & 0xFF) * next_a;
+	  return (unsigned) hb_clamp ((c0 + u * (c1 - c0)) / alpha + .5f, 0.f, 255.f);
+	};
+	hb_color_stop_t t;
+	t.offset = s.offset + u * (next->offset - s.offset);
+	t.is_foreground = false;
+	t.color = HB_COLOR (channel (24), channel (16), channel (8),
+			    (unsigned) (alpha + .5f));
+	out.push (t);
+      }
+    }
+    if (unlikely (out.in_error ()))
+      return;
+    hb_swap (stops, out);
+  }
+
   void set_precision (unsigned p)
   {
     p = hb_min (p, 12u);

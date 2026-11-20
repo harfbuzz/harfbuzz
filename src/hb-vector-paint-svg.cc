@@ -679,6 +679,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
    * out-of-range stops would otherwise be silently clamped. */
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
 
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
@@ -738,6 +739,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
 
   /* Shift centers + radii by (mn, mx) along the gradient axis
    * to compensate for rescaling stops to [0, 1]. */
@@ -803,6 +805,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
 
   /* Shift the angle range to compensate for rescaling stops
    * to [0, 1]. */
