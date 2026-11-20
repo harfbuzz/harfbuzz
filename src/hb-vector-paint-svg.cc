@@ -827,12 +827,7 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  /* The group is appended to the enclosing body when popped, so it shares
-   * the document cap with everything already held by the open groups. */
-  hb_vector_buf_t group;
-  group.base = paint->current_body ().base + paint->current_body ().length;
-  if (unlikely (!paint->group_stack.push_or_fail (std::move (group))))
-    return;
+  paint->push_group ();
 }
 
 static void
@@ -847,15 +842,31 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   if (paint->group_stack.length < 2)
     return;
 
-  hb_vector_buf_t group = paint->group_stack.pop ();
-  auto &body = paint->current_body ();
+  hb_vector_paint_group_t group = paint->group_stack.pop ();
+  auto &body = paint->current_group ();
 
+  /* COLR composites a group onto what the enclosing group has painted
+   * so far, and onto nothing else.  A <g> with a blend mode blends with
+   * everything beneath it up to the nearest isolated group, and a <g> is
+   * not one by default: without isolation the source would also blend
+   * with earlier layers of the glyph, and with the page. */
   const char *blend = hb_vector_svg_composite_mode_str (mode);
   if (blend)
   {
     body.append_str ("<g style=\"mix-blend-mode:");
     body.append_str (blend);
+    /* A blend mode other than normal isolates the group by itself. */
+    if (group.blended && mode == HB_PAINT_COMPOSITE_MODE_SRC_OVER)
+      body.append_str (";isolation:isolate");
     body.append_str ("\">\n");
+    body.append_len (group.arrayZ, group.length);
+    body.append_str ("</g>\n");
+    if (mode != HB_PAINT_COMPOSITE_MODE_SRC_OVER)
+      body.blended = true;
+  }
+  else if (group.blended)
+  {
+    body.append_str ("<g style=\"isolation:isolate\">\n");
     body.append_len (group.arrayZ, group.length);
     body.append_str ("</g>\n");
   }
@@ -947,7 +958,10 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     out.append_str ("/>\n");
   }
 
-  out.append_str ("<g transform=\"scale(1,-1)\">\n");
+  /* The background is not part of what the glyphs blend with. */
+  out.append_str (paint->group_stack.arrayZ[0].blended
+		  ? "<g transform=\"scale(1,-1)\" style=\"isolation:isolate\">\n"
+		  : "<g transform=\"scale(1,-1)\">\n");
   out.append_len (paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
   out.append_str ("</g>\n");
 

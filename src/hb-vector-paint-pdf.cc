@@ -1705,13 +1705,7 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  /* The group becomes an object of the same document, so it shares
-   * the document cap with everything already held by the open groups. */
-  hb_vector_buf_t group;
-  group.precision = paint->current_body ().precision;
-  group.base = paint->current_body ().base + paint->current_body ().length;
-  if (unlikely (!paint->group_stack.push_or_fail (std::move (group))))
-    return;
+  paint->push_group ();
 }
 
 static void

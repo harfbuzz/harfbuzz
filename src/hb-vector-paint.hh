@@ -38,6 +38,16 @@
 #include "hb-vector-internal.hh"
 
 
+/* A paint group being collected: its content so far, and what
+ * compositing it needs to know. */
+struct hb_vector_paint_group_t : hb_vector_buf_t
+{
+  /* Something in the group is painted with a blend mode.  Blending
+   * reaches everything beneath it up to the nearest isolated group,
+   * so this group has to be written as one. */
+  bool blended = false;
+};
+
 struct hb_vector_paint_t
 {
   hb_object_header_t header;
@@ -58,7 +68,7 @@ struct hb_vector_paint_t
 
   hb_vector_buf_t defs;
   hb_vector_buf_t path;
-  hb_vector_t<hb_vector_buf_t> group_stack;
+  hb_vector_t<hb_vector_paint_group_t> group_stack;
   uint64_t transform_group_open_mask = 0;
   unsigned transform_group_depth = 0;
   unsigned transform_group_overflow_depth = 0;
@@ -81,6 +91,18 @@ struct hb_vector_paint_t
   hb_blob_t *recycled_blob = nullptr;
 
   hb_vector_buf_t &current_body () { return group_stack.tail (); }
+  hb_vector_paint_group_t &current_group () { return group_stack.tail (); }
+
+  /* Starts collecting a group in a buffer of its own. */
+  bool push_group ()
+  {
+    /* The group is written into the same document when popped, so it shares
+     * the document cap with everything already held by the open groups. */
+    hb_vector_paint_group_t group;
+    group.precision = current_body ().precision;
+    group.base = current_body ().base + current_body ().length;
+    return group_stack.push_or_fail (std::move (group));
+  }
 
   void recharge_budget ()
   {
