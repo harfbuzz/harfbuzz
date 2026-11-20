@@ -79,7 +79,7 @@ helper_image_get_implicit_output_format (FILE                    *fp,
 {
   *protocol = helper_image_protocol_t::NONE;
 
-#if HAVE_ISATTY
+#ifdef HAVE_ISATTY
   if (isatty (fileno (fp)))
   {
 #ifdef HAVE_PNG

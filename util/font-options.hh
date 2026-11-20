@@ -218,7 +218,7 @@ parse_font_size (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one or two space-separated numbers",
+		   "%s argument should be one or two numbers, separated by a space or comma",
 		   name);
       return false;
   }
@@ -236,7 +236,7 @@ parse_font_ppem (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one or two space-separated numbers",
+		   "%s argument should be one or two numbers, separated by a space or comma",
 		   name);
       return false;
   }
@@ -254,7 +254,7 @@ parse_font_embolden (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one or two space-separated numbers",
+		   "%s argument should be one or two numbers, separated by a space or comma",
 		   name);
       return false;
   }
@@ -318,7 +318,7 @@ font_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries[] =
   {
     {"font-size",	0, font_size_flags,
-			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 numbers or 'upem'"},
     {"font-ppem",	0, font_size_flags,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, font_size_flags,

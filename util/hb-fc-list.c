@@ -90,7 +90,7 @@ usage (char *program, int error)
     fprintf (file, "  -v         (verbose) display entire font pattern verbosely\n");
     fprintf (file, "  -f FORMAT  (format)  use the given output format\n");
     fprintf (file, "  -q,        (quiet)   suppress all normal output, exit 1 if no fonts matched\n");
-    fprintf (file, "  -V         (version) display HarfBuzz version and exit\n");
+    fprintf (file, "  -V         (version) display font config version and exit\n");
     fprintf (file, "  -h         (help)    display this help and exit\n");
 #endif
     exit (error);
