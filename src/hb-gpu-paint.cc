@@ -119,17 +119,21 @@ hb_gpu_paint_pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
 
 /* Clip rectangles are not encoded in v1 (see the design notes in
  * hb-gpu-paint.hh).  Only count the push so that the matching
- * pop_clip does not pop the glyph/path clip below it. */
+ * pop_clip does not pop the glyph/path clip below it, and remember
+ * a rectangle pushed outside every glyph/path clip, for layers
+ * that have no other clip (see hb_gpu_paint_push_root_rect_clip). */
 static void
 hb_gpu_paint_push_clip_rectangle (hb_paint_funcs_t *funcs HB_UNUSED,
 				  void             *paint_data,
-				  float             xmin HB_UNUSED,
-				  float             ymin HB_UNUSED,
-				  float             xmax HB_UNUSED,
-				  float             ymax HB_UNUSED,
+				  float             xmin,
+				  float             ymin,
+				  float             xmax,
+				  float             ymax,
 				  void             *user_data HB_UNUSED)
 {
   hb_gpu_paint_t *c = (hb_gpu_paint_t *) paint_data;
+  if (c->clip_depth == 0 && c->rect_clips[0] < ARRAY_LENGTH (c->root_rects))
+    c->root_rects[c->rect_clips[0]] = {xmin, ymin, xmax, ymax, c->cur_transform};
   c->rect_clips[hb_min (c->clip_depth, (unsigned) HB_GPU_PAINT_MAX_CLIP_DEPTH)]++;
 }
 
@@ -631,6 +635,35 @@ emit_all_clip_sub_blobs (hb_gpu_paint_t *c, int out[HB_GPU_PAINT_MAX_CLIP_DEPTH]
   return true;
 }
 
+/* A layer needs a clip outline to have a shape.  With no glyph or
+ * path clip on the stack, use the innermost rectangle clip in
+ * effect, if any, encoded as a path clip.  Returns true if it
+ * pushed one; the caller pops it by decrementing clip_depth. */
+static bool
+hb_gpu_paint_push_root_rect_clip (hb_gpu_paint_t *c)
+{
+  unsigned n = hb_min (c->rect_clips[0], (unsigned) ARRAY_LENGTH (c->root_rects));
+  if (!n)
+    return false;
+  const hb_gpu_paint_t::root_rect_t rect = c->root_rects[n - 1];
+
+  void *dd;
+  hb_draw_funcs_t *df = hb_gpu_paint_push_clip_path_start (nullptr, c, &dd, nullptr);
+  if (unlikely (!df))
+    return false;
+  c->pending_clip_path_transform = rect.transform;
+
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (df, dd, &st, rect.xmin, rect.ymin);
+  hb_draw_line_to (df, dd, &st, rect.xmax, rect.ymin);
+  hb_draw_line_to (df, dd, &st, rect.xmax, rect.ymax);
+  hb_draw_line_to (df, dd, &st, rect.xmin, rect.ymax);
+  hb_draw_close_path (df, dd, &st);
+
+  hb_gpu_paint_push_clip_path_end (nullptr, c, nullptr);
+  return c->clip_depth != 0;
+}
+
 /* Emit a 3-texel LAYER_GRADIENT op header (excluding the
  * gradient-meta texel which the caller fills in).  @subtype is
  * 0 = linear, 1 = radial, 2 = sweep. */
@@ -662,8 +695,14 @@ hb_gpu_paint_emit_solid (hb_gpu_paint_t *c,
 {
   if (unlikely (c->unsupported))
     return;
+  bool root_rect_clip = false;
   if (unlikely (c->clip_depth == 0))
-    return;
+  {
+    if (!hb_gpu_paint_push_root_rect_clip (c))
+      return;
+    root_rect_clip = true;
+  }
+  HB_SCOPE_GUARD (if (root_rect_clip) c->clip_depth--);
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
     c->unsupported = true;
@@ -742,8 +781,14 @@ hb_gpu_paint_emit_linear (hb_gpu_paint_t  *c,
 {
   if (unlikely (c->unsupported))
     return;
+  bool root_rect_clip = false;
   if (unlikely (c->clip_depth == 0))
-    return;
+  {
+    if (!hb_gpu_paint_push_root_rect_clip (c))
+      return;
+    root_rect_clip = true;
+  }
+  HB_SCOPE_GUARD (if (root_rect_clip) c->clip_depth--);
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
     c->unsupported = true;
@@ -832,8 +877,14 @@ hb_gpu_paint_emit_radial (hb_gpu_paint_t  *c,
 {
   if (unlikely (c->unsupported))
     return;
+  bool root_rect_clip = false;
   if (unlikely (c->clip_depth == 0))
-    return;
+  {
+    if (!hb_gpu_paint_push_root_rect_clip (c))
+      return;
+    root_rect_clip = true;
+  }
+  HB_SCOPE_GUARD (if (root_rect_clip) c->clip_depth--);
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
     c->unsupported = true;
@@ -955,8 +1006,14 @@ hb_gpu_paint_emit_sweep (hb_gpu_paint_t  *c,
 {
   if (unlikely (c->unsupported))
     return;
+  bool root_rect_clip = false;
   if (unlikely (c->clip_depth == 0))
-    return;
+  {
+    if (!hb_gpu_paint_push_root_rect_clip (c))
+      return;
+    root_rect_clip = true;
+  }
+  HB_SCOPE_GUARD (if (root_rect_clip) c->clip_depth--);
   if (unlikely (c->num_ops >= HB_GPU_PAINT_MAX_OPS))
   {
     c->unsupported = true;
@@ -1063,9 +1120,10 @@ hb_gpu_paint_sweep_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 
 /* PaintImage isn't representable by our slug+gradient encoder; mark
  * unsupported so the caller learns the glyph won't render rather
- * than getting a partial blob.  PaintRectangleClip is intentionally
- * left to the default no-op: the encoder simply ignores the
- * rectangle (output is bigger than it should be, but renders). */
+ * than getting a partial blob.  PaintRectangleClip is not encoded:
+ * the encoder ignores the rectangle (output is bigger than it
+ * should be, but renders), except for a layer with no other clip,
+ * which takes its shape from the rectangle. */
 static hb_bool_t
 hb_gpu_paint_image (hb_paint_funcs_t   *funcs   HB_UNUSED,
 		    void               *paint_data,

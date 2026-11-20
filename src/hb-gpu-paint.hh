@@ -231,7 +231,10 @@
  *   - Clip-rectangle paints (push_clip_rectangle / pop_clip).
  *     COLRv1 allows them but they are rare; v1 emits nothing for
  *     them and the caller loses clipping precision.  v2 adds a
- *     RECT_CLIP op with four fixed-point extents.
+ *     RECT_CLIP op with four fixed-point extents.  The exception
+ *     is a layer whose only clip is a rectangle: v1 encodes the
+ *     rectangle as a path clip for it, since otherwise the layer
+ *     has no shape and is lost.
  *   - Paint images (hb_paint_funcs_set_image_func).  Always
  *     returns unhandled.  Images are better served by a separate
  *     bitmap path.
@@ -333,6 +336,19 @@ struct hb_gpu_paint_t
    * a non-zero count at the current depth identifies a rectangle
    * pop.  The last slot collects everything pushed past the cap. */
   unsigned       rect_clips[3 + 1] = {};
+
+  /* The exception: a layer painted with no glyph/path clip on the
+   * stack has nothing to give it a shape, and would be dropped.  If
+   * a rectangle clip is in effect there, the rectangle is encoded as
+   * a path clip for that layer.  root_rects holds the rectangles
+   * pushed while clip_depth was 0, innermost last, with the
+   * transform each was pushed under. */
+  struct root_rect_t
+  {
+    float                 xmin, ymin, xmax, ymax;
+    hb_transform_t<float> transform;
+  };
+  root_rect_t    root_rects[4];
 
   /* Carries the cur_transform captured at push_clip_path_start
    * through to push_clip_path_end, where the encoded clip is
