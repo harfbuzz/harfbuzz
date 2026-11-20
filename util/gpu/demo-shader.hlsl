@@ -43,6 +43,10 @@ float4 ps_main (PSInput input) : SV_Target {
   float cov = hb_gpu_draw (input.texcoord, input.glyphLoc);
   float4 c = float4 (foreground.rgb * foreground.a, foreground.a) * cov;
 #else
+  /* Pixels per em, taken up front: it uses fwidth, which belongs
+   * outside the branches below. */
+  float ppem = hb_gpu_ppem (input.texcoord, input.glyphLoc);
+
   float cov;
   float4 c = hb_gpu_paint (input.texcoord, input.glyphLoc, foreground, cov);
 
@@ -51,9 +55,7 @@ float4 ps_main (PSInput input) : SV_Target {
     if (stem_darkening > 0.0) {
       float brightness = c.a > 0.0
         ? dot (c.rgb, float3 (1.0/3.0, 1.0/3.0, 1.0/3.0)) / c.a : 0.0;
-      float2 fw = fwidth (input.texcoord);
-      adj = hb_gpu_stem_darken (adj, brightness,
-        1.0 / max (fw.x, fw.y));
+      adj = hb_gpu_stem_darken (adj, brightness, ppem);
     }
     if (gamma != 1.0)
       adj = pow (adj, gamma);

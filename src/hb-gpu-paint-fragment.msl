@@ -269,10 +269,10 @@ float4 hb_gpu_paint (float2 renderCoord, uint glyphLoc_, float4 foreground,
   float2 pixelsPerEm = 1.0 / fwidth (renderCoord);
 
   int base    = int (glyphLoc_);
-  int4 h0     = int4 (hb_gpu_atlas[base]);       /* (num_ops, _, _, _) */
-  int4 h2     = int4 (hb_gpu_atlas[base + 2]);   /* (ops_offset, _, _, _) */
-  int num_ops = h0.r;
-  int cursor  = base + h2.r;
+  /* (num_ops, ops_offset, x_scale, y_scale) */
+  int4 h1     = int4 (hb_gpu_atlas[base + 1]);
+  int num_ops = h1.r;
+  int cursor  = base + h1.g;
 
   float4 acc = float4 (0.0);
   float4 group_stack[HB_GPU_PAINT_GROUP_DEPTH];

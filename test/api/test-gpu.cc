@@ -897,8 +897,13 @@ test_paint_clip_rectangle_pop_balance (void)
   unsigned texel_count;
   const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
   g_assert_cmpuint (texel_count, >, 0);
-  /* Header texel 0 .r holds num_ops. */
-  g_assert_cmpint (texels[0].r, ==, 1);
+  /* Header texel 1 holds num_ops, the offset of the ops, and the
+   * font scale in the slots where a draw blob has it, so that the
+   * shader's hb_gpu_ppem() reads it from either kind of blob. */
+  g_assert_cmpint (texels[1].r, ==, 1);
+  g_assert_cmpint (texels[1].g, ==, 2);
+  g_assert_cmpint (texels[1].b, ==, 1000);
+  g_assert_cmpint (texels[1].a, ==, 1000);
   hb_blob_destroy (blob);
 
   hb_gpu_paint_destroy (p);
@@ -1099,12 +1104,13 @@ test_paint_empty_clip (void)
   g_assert_nonnull (blob);
   unsigned texel_count;
   const hb_gpu_test_texel_t *texels = blob_as_texels (blob, &texel_count);
-  g_assert_cmpuint (texel_count, >, 6);
-  g_assert_cmpint (texels[0].r, ==, 1); /* num_ops */
-  g_assert_cmpint (texels[3].r, ==, 0); /* LAYER_SOLID */
+  g_assert_cmpuint (texel_count, >, 5);
+  g_assert_cmpint (texels[1].r, ==, 1); /* num_ops */
+  g_assert_cmpint (texels[1].g, ==, 2); /* ops_offset */
+  g_assert_cmpint (texels[2].r, ==, 0); /* LAYER_SOLID */
   /* The layer references a real outline after the op stream. */
-  unsigned clip_offset = (uint16_t) texels[3].a;
-  g_assert_cmpuint (clip_offset, ==, 6);
+  unsigned clip_offset = (uint16_t) texels[2].a;
+  g_assert_cmpuint (clip_offset, ==, 5);
   g_assert_cmpuint (clip_offset + 2, <, texel_count);
   g_assert_cmpint (texels[clip_offset + 1].r, >, 0); /* horizontal bands */
   g_assert_cmpint (texels[clip_offset + 1].g, >, 0); /* vertical bands */

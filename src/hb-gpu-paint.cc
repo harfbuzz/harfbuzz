@@ -1514,12 +1514,12 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
   }
 
   /* Layout:
-   *   header          (3 texels = 24 bytes)
+   *   header          (2 texels = 16 bytes)
    *   op stream       (ops.length i16 words, multiple of 4)
    *   sub-payloads    (concat of each sub_blob's data, 8-byte
    *                    aligned since draw blobs are RGBA16I)
    */
-  const unsigned header_texels = 3;
+  const unsigned header_texels = 2;
   const unsigned texel_bytes   = 8;
 
   unsigned ops_texels = paint->ops.length / 4;
@@ -1563,19 +1563,17 @@ hb_gpu_paint_encode (hb_gpu_paint_t     *paint,
     cursor += hb_blob_get_length (paint->sub_blobs[i]) / texel_bytes;
   }
 
-  /* Header. */
-  buf[0] = (int16_t) paint->num_ops;
-  buf[1] = 0;
-  buf[2] = 0;
-  buf[3] = 0;
-  buf[4] = (int16_t) hb_clamp (paint->ext_min_x, -0x7fff, 0x7fff);
-  buf[5] = (int16_t) hb_clamp (paint->ext_min_y, -0x7fff, 0x7fff);
-  buf[6] = (int16_t) hb_clamp (paint->ext_max_x, -0x7fff, 0x7fff);
-  buf[7] = (int16_t) hb_clamp (paint->ext_max_y, -0x7fff, 0x7fff);
-  buf[8] = (int16_t) header_texels;
-  buf[9]  = 0;
-  buf[10] = 0;
-  buf[11] = 0;
+  /* Header.  The font scale is in the last two slots of the second
+   * texel, where a draw blob has it too, so that the shader's
+   * hb_gpu_ppem() works on either kind of blob. */
+  buf[0] = (int16_t) hb_clamp (paint->ext_min_x, -0x7fff, 0x7fff);
+  buf[1] = (int16_t) hb_clamp (paint->ext_min_y, -0x7fff, 0x7fff);
+  buf[2] = (int16_t) hb_clamp (paint->ext_max_x, -0x7fff, 0x7fff);
+  buf[3] = (int16_t) hb_clamp (paint->ext_max_y, -0x7fff, 0x7fff);
+  buf[4] = (int16_t) paint->num_ops;
+  buf[5] = (int16_t) header_texels;
+  buf[6] = (int16_t) hb_clamp (paint->x_scale, -32768, 32767);
+  buf[7] = (int16_t) hb_clamp (paint->y_scale, -32768, 32767);
 
   /* Op stream: copy raw, then patch payload slots to texel
    * offsets where op_type indicates a sub_blob reference. */

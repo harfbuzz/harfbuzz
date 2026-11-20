@@ -65,11 +65,14 @@
  *
  * --- Header -------------------------------------------------------
  *
- *   texel 0: (num_ops:i16, reserved:i16, reserved:i16, reserved:i16)
- *   texel 1: (ext_min_x:i16, ext_min_y:i16,
- *             ext_max_x:i16, ext_max_y:i16)   -- in HB_GPU units
- *   texel 2: (ops_offset:i16, reserved:i16,
- *             reserved:i16, reserved:i16)
+ *   texel 0: (ext_min_x:i16, ext_min_y:i16,
+ *             ext_max_x:i16, ext_max_y:i16)   -- in font units
+ *   texel 1: (num_ops:i16, ops_offset:i16,
+ *             x_scale:i16, y_scale:i16)
+ *
+ * The font scale is in the last two slots of texel 1, where a draw
+ * blob has it too, so that the shader's hb_gpu_ppem() works on
+ * either kind of blob.
  *
  * --- Op record ----------------------------------------------------
  *

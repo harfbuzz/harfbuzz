@@ -346,16 +346,18 @@
  *   screen for this fragment, in [0, 1], computed as
  *   `dot (straight_color.rgb, vec3 (1.0 / 3.0))`.
  *
- * - ppem: pixels per em at this fragment, computed as
- *   `1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y)`.
+ * - ppem: pixels per em at this fragment, as returned by
+ *   `hb_gpu_ppem (v_texcoord, v_glyphLoc)`, which works on draw and
+ *   paint blobs alike.  It takes a screen-space derivative, so call
+ *   it outside any branch.  Above 48 pixels per em the coverage is
+ *   returned unchanged.
  *
  * Example — draw path:
  *
  * |[<!-- language="plain" -->
  * float coverage = hb_gpu_draw (v_texcoord, v_glyphLoc);
  * float brightness = dot (u_foreground.rgb, vec3 (1.0 / 3.0));
- * float ppem = 1.0 / max (fwidth (v_texcoord).x,
- *                          fwidth (v_texcoord).y);
+ * float ppem = hb_gpu_ppem (v_texcoord, v_glyphLoc);
  * coverage = hb_gpu_stem_darken (coverage, brightness, ppem);
  * ]|
  *
@@ -366,13 +368,12 @@
  * Interior fragments (coverage == 1) are left untouched.
  *
  * |[<!-- language="plain" -->
+ * float ppem = hb_gpu_ppem (v_texcoord, v_glyphLoc);
  * float cov;
  * vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground, cov);
  * if (cov > 0.0 && cov < 1.0) {
  *   float brightness = c.a > 0.0
  *     ? dot (c.rgb, vec3 (1.0 / 3.0)) / c.a : 0.0;
- *   float ppem = 1.0 / max (fwidth (v_texcoord).x,
- *                            fwidth (v_texcoord).y);
  *   float adj = hb_gpu_stem_darken (cov, brightness, ppem);
  *   c *= adj / cov;
  * }
@@ -500,6 +501,7 @@
  * out vec4 fragColor;
  *
  * void main () {
+ *   float ppem = hb_gpu_ppem (v_texcoord, v_glyphLoc);
  *   float cov;
  *   vec4 c = hb_gpu_paint (v_texcoord, v_glyphLoc, u_foreground, cov);
  *   if (cov > 0.0 && cov < 1.0) {
@@ -507,8 +509,7 @@
  *     if (u_stem_darkening > 0.0) {
  *       float brightness = c.a > 0.0
  *         ? dot (c.rgb, vec3 (1.0 / 3.0)) / c.a : 0.0;
- *       adj = hb_gpu_stem_darken (adj, brightness,
- *         1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
+ *       adj = hb_gpu_stem_darken (adj, brightness, ppem);
  *     }
  *     if (u_gamma != 1.0)
  *       adj = pow (adj, u_gamma);
