@@ -71,42 +71,24 @@
  *   texel 2: (ops_offset:i16, reserved:i16,
  *             reserved:i16, reserved:i16)
  *
- * --- Op record ----------------------------------------------------
+ * --- Op records ---------------------------------------------------
  *
- * Each op is exactly one RGBA16I texel (4 int16s):
+ * Ops are RGBA16I texels, and start with (op_type:i16, aux:i16).
+ * The op_type says how many texels the op takes, so ops are
+ * mixed-size but self-delimiting:
  *
- *   (op_type:i16, op_aux:i16, payload_hi:i16, payload_lo:i16)
+ *   0  LAYER_SOLID      three texels
+ *   1  LAYER_GRADIENT   three texels
+ *   2  PUSH_GROUP       one texel
+ *   3  POP_GROUP        one texel; aux = composite mode, matching
+ *                       hb_paint_composite_mode_t
  *
- * op_type values:
- *
- *   0  LAYER_SOLID
- *        aux      = flags (bit 0 = is_foreground)
- *        payload  = clip_glyph_offset (texel index)
- *        followed by one extra texel:
- *          (r_q15:i16, g_q15:i16, b_q15:i16, a_q15:i16)
- *        flags bit 0: is_foreground -- use the shader's foreground
- *                     uniform/varying instead of the baked color
- *                     (so runtime foreground changes still work)
- *
- *   1  LAYER_GRADIENT
- *        aux      = gradient subtype  (0=linear, 1=radial, 2=sweep)
- *        payload  = clip_glyph_offset (texel index)
- *        followed by one extra texel:
- *          (grad_offset_hi:i16, grad_offset_lo:i16,
- *           reserved:i16, reserved:i16)
- *
- *   2  PUSH_GROUP
- *        aux      = 0
- *        payload  = 0
- *
- *   3  POP_GROUP
- *        aux      = composite mode, enumerated 0..27 matching
- *                   hb_paint_composite_mode_t
- *        payload  = 0
- *
- * The fragment shader reads the first texel, inspects op_type,
- * and knows from the type whether a trailing texel follows.  Ops
- * are therefore mixed-size but self-delimiting.
+ * A layer op refers to up to three clip outlines, which the shader
+ * intersects, and carries either a color baked as Q15 RGBA (with a
+ * flag to use the shader's foreground instead) or a reference to a
+ * gradient parameter blob.  The exact fields are documented where
+ * they are written: hb_gpu_paint_emit_solid(), emit_gradient_op()
+ * and emit_control_op() in hb-gpu-paint.cc.
  *
  * --- Sub-payload: clip-glyph Slug draw blob ----------------------
  *
@@ -121,34 +103,18 @@
  *
  * --- Sub-payload: gradient parameter blob ------------------------
  *
- *   texels 0..2  : inverse affine transform, 6 components as
- *                  q15.16 fixed point (two int16 per component,
- *                  int part then fraction)
- *   texel 3      : (grad_subtype:i16, extend_mode:i16,
- *                   reserved:i16, reserved:i16)
- *   texels 4..N  : subtype-specific params
- *                  linear: (x0, y0, px, py)  -- two texels
- *                          where p is the foot of perpendicular
- *                          from p2 onto the p0..p1 line
- *                  radial: (x0, y0, x1, y1), (r0, r1, _, _)
- *                  sweep:  (x0, y0, start_q14, end_q14)
- *                          angles in q14 fractions of pi
- *   texels ...   : color stops, each one texel:
- *                    (offset_q8<<1 | last_stop_bit,
- *                     palette_index:i16,
- *                     flags:i16,
- *                     alpha_q15:i16)
- *                  flags / alpha_q15 semantics match LAYER_SOLID.
- *                  The last stop is marked by the LSB of
- *                  offset_q8 being 1 (offsets quantized to q8 so
- *                  the bit is free for the marker).
+ * The gradient's geometry, its extend mode and its color stops,
+ * with the stops' colors resolved at encode time.  The layout is
+ * documented where it is written, in the linear, radial and sweep
+ * emitters in hb-gpu-paint.cc.
  *
  * --- Shader entry point -----------------------------------------
  *
  *   vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc,
- *                      vec4 foreground);
+ *                      vec4 foreground, out float coverage);
  *
- * Returns premultiplied RGBA.  The caller passes foreground in
+ * Returns premultiplied RGBA, and in coverage the edge coverage
+ * across the layers.  The caller passes foreground in
  * explicitly; sourcing it from a uniform, a per-quad flat varying,
  * or anywhere else is the caller's decision.
  *
@@ -171,11 +137,11 @@
  *
  *   for op in ops:
  *     LAYER_SOLID:
- *       cov = hb_gpu_draw (texcoord, clip_glyph_offset)
+ *       cov = coverage of the layer's clip outlines, intersected
  *       col = is_foreground ? v_foreground : rgba_q15 / 32767
  *       acc = src_over (col * cov, acc)
  *     LAYER_GRADIENT:
- *       cov = hb_gpu_draw (texcoord, clip_glyph_offset)
+ *       cov = coverage of the layer's clip outlines, intersected
  *       col = sample_gradient (texcoord, grad_offset, subtype)
  *       acc = src_over (col * cov, acc)
  *     PUSH_GROUP:
@@ -195,10 +161,10 @@
  * hb_gpu_paint_t accumulates, during hb_font_paint_glyph_or_fail:
  *
  *   - transform stack (visited push/pop_transform)
- *   - current clip-glyph snapshot captured on push_clip_glyph:
- *       (font, codepoint, transform_at_push)
- *     consumed by the next color / gradient callback to emit a
- *     LAYER_SOLID or LAYER_GRADIENT op
+ *   - stack of up to three pending clips, each captured on
+ *     push_clip_glyph or push_clip_path with the transform at push;
+ *     every color / gradient callback under them emits a
+ *     LAYER_SOLID or LAYER_GRADIENT op that refers to all of them
  *   - flat op buffer
  *   - flat sub-payload buffer (bytes; offsets recorded as ops emit)
  *   - scratch hb_gpu_draw_t used to rasterize each clip-glyph
@@ -207,16 +173,6 @@
  *   - current group depth counter (for validation against
  *     HB_GPU_PAINT_GROUP_DEPTH)
  *   - recycled output blob
- *
- * To preserve palette indices across harfbuzz's paint pipeline
- * (which resolves them to hb_color_t before the color / color-stop
- * callbacks fire), the encoder registers a custom_palette_color
- * callback that returns a sentinel hb_color_t with the palette
- * index embedded.  Downstream color / color-stop callbacks decode
- * the sentinel to recover the index.  Foreground colors are
- * signalled independently by the is_foreground flag that harfbuzz
- * supplies, so the sentinel never collides with a genuine
- * foreground request.
  *
  * On hb_gpu_paint_encode:
  *   - emit header (num_ops, extents, ops_offset)
