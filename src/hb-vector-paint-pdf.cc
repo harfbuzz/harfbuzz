@@ -41,7 +41,10 @@
  *   - Solid colors with alpha (via ExtGState)
  *   - Glyph and rectangle clipping
  *   - Affine transforms
- *   - Groups (save/restore)
+ *   - Groups (Form XObjects that are isolated transparency groups)
+ *   - Compositing modes: the blend modes as PDF's own, and the
+ *     Porter-Duff modes with soft masks (SRC_ATOP, DEST_ATOP, XOR and
+ *     PLUS only approximately)
  *   - Linear gradients (PDF Type 2 axial shading, PAD extension only)
  *   - Radial gradients (PDF Type 3 radial shading, PAD extension only)
  *   - Sweep gradients (PDF Type 6 Coons-patch meshes)
@@ -158,53 +161,81 @@ struct hb_pdf_resources_t
     return id;
   }
 
+  /* Add an ExtGState, return resource name index. */
+  unsigned add_extgstate (hb_vector_buf_t &&obj)
+  {
+    unsigned idx = extgstate_count++;
+    unsigned obj_id = add_object (std::move (obj));
+
+    extgstate_dict.append_str ("/GS");
+    extgstate_dict.append_unsigned (idx);
+    extgstate_dict.append_c (' ');
+    extgstate_dict.append_unsigned (obj_id);
+    extgstate_dict.append_str (" 0 R ");
+    return idx;
+  }
+
   /* Add ExtGState for fill opacity, return resource name index. */
   unsigned add_extgstate_alpha (float alpha)
   {
-    unsigned idx = extgstate_count++;
     hb_vector_buf_t obj;
     obj.append_str ("<< /Type /ExtGState /ca ");
     obj.append_num (alpha, 4);
     obj.append_str (" >>");
-    unsigned obj_id = add_object (std::move (obj));
-
-    extgstate_dict.append_str ("/GS");
-    extgstate_dict.append_unsigned (idx);
-    extgstate_dict.append_c (' ');
-    extgstate_dict.append_unsigned (obj_id);
-    extgstate_dict.append_str (" 0 R ");
-    return idx;
+    return add_extgstate (std::move (obj));
   }
 
-  /* Add ExtGState for blend mode, return resource name index. */
-  unsigned add_extgstate_blend (const char *bm)
+  /* Add ExtGState for painting a group: with blend mode @bm, if not
+   * null, and through a soft mask, if @mask_id is not zero.  The mask
+   * is the alpha of the transparency group that is object @mask_id or,
+   * with @inverse, one minus it.  Return resource name index. */
+  unsigned add_extgstate_group (const char *bm,
+				unsigned mask_id = 0,
+				bool inverse = false)
   {
-    unsigned idx = extgstate_count++;
-    hb_vector_buf_t obj;
-    obj.append_str ("<< /Type /ExtGState /BM /");
-    obj.append_str (bm);
-    obj.append_str (" >>");
-    unsigned obj_id = add_object (std::move (obj));
+    if (mask_id && inverse)
+    {
+      /* A soft mask is inverted by a transfer function, but poppler's
+       * cairo backend does not apply one to an alpha mask.  So take
+       * the luminosity of a group that is white, with black painted
+       * over it through the alpha mask. */
+      unsigned alpha_idx = add_extgstate_group (nullptr, mask_id);
+      hb_vector_buf_t stream;
+      stream.append_str ("1 g\n-32767 -32767 65534 65534 re f\n/GS");
+      stream.append_unsigned (alpha_idx);
+      stream.append_str (" gs\n0 g\n-32767 -32767 65534 65534 re f\n");
+      mask_id = add_group (stream, true);
+    }
 
-    extgstate_dict.append_str ("/GS");
-    extgstate_dict.append_unsigned (idx);
-    extgstate_dict.append_c (' ');
-    extgstate_dict.append_unsigned (obj_id);
-    extgstate_dict.append_str (" 0 R ");
-    return idx;
+    hb_vector_buf_t obj;
+    obj.append_str ("<< /Type /ExtGState");
+    if (bm)
+    {
+      obj.append_str (" /BM /");
+      obj.append_str (bm);
+    }
+    if (mask_id)
+    {
+      obj.append_str (inverse ? " /SMask << /Type /Mask /S /Luminosity /G "
+			      : " /SMask << /Type /Mask /S /Alpha /G ");
+      obj.append_unsigned (mask_id);
+      obj.append_str (" 0 R >>");
+    }
+    obj.append_str (" >>");
+    return add_extgstate (std::move (obj));
   }
 
   /* Add a Form XObject that is an isolated transparency group with
-   * @stream as its content, to be painted with `/FmN Do`.  Stores
-   * the resource name index in @idx. */
-  bool add_form_group (const hb_vector_buf_t &stream, unsigned *idx)
+   * @stream as its content, in DeviceRGB or, for a group whose
+   * luminosity is a soft mask, DeviceGray.  Return object id. */
+  unsigned add_group (const hb_vector_buf_t &stream, bool gray = false)
   {
     if (!resources_obj_id)
     {
       hb_vector_buf_t placeholder;
       resources_obj_id = add_object (std::move (placeholder));
       if (unlikely (!resources_obj_id))
-	return false;
+	return 0;
     }
 
     /* The form is painted where its content would have been, so it
@@ -214,7 +245,8 @@ struct hb_pdf_resources_t
     hb_vector_buf_t form;
     form.append_str ("<< /Type /XObject /Subtype /Form\n");
     form.append_str ("/BBox [-32767 -32767 32767 32767]\n");
-    form.append_str ("/Group << /S /Transparency /CS /DeviceRGB /I true >>\n");
+    form.append_str (gray ? "/Group << /S /Transparency /CS /DeviceGray /I true >>\n"
+			  : "/Group << /S /Transparency /CS /DeviceRGB /I true >>\n");
     form.append_str ("/Resources ");
     form.append_unsigned (resources_obj_id);
     form.append_str (" 0 R\n/Length ");
@@ -222,9 +254,20 @@ struct hb_pdf_resources_t
     form.append_str (" >>\nstream\n");
     form.append_len (stream.arrayZ, stream.length);
     form.append_str ("endstream");
-    unsigned form_id = add_object (std::move (form));
+    return add_object (std::move (form));
+  }
+
+  /* Add a group, as above, to be painted with `/FmN Do`.  Stores the
+   * resource name index in @idx and, if not null, the object id in
+   * @obj_id. */
+  bool add_form_group (const hb_vector_buf_t &stream, unsigned *idx,
+		       unsigned *obj_id = nullptr)
+  {
+    unsigned form_id = add_group (stream);
     if (unlikely (!form_id))
       return false;
+    if (obj_id)
+      *obj_id = form_id;
 
     *idx = form_count++;
     xobject_dict.append_str ("/Fm");
@@ -268,20 +311,12 @@ struct hb_pdf_resources_t
     unsigned form_id = add_object (std::move (form));
 
     /* ExtGState with luminosity soft mask. */
-    unsigned idx = extgstate_count++;
     hb_vector_buf_t gs;
     gs.append_str ("<< /Type /ExtGState\n");
     gs.append_str ("/SMask << /Type /Mask /S /Luminosity /G ");
     gs.append_unsigned (form_id);
     gs.append_str (" 0 R >> >>");
-    unsigned gs_id = add_object (std::move (gs));
-
-    extgstate_dict.append_str ("/GS");
-    extgstate_dict.append_unsigned (idx);
-    extgstate_dict.append_c (' ');
-    extgstate_dict.append_unsigned (gs_id);
-    extgstate_dict.append_str (" 0 R ");
-    return idx;
+    return add_extgstate (std::move (gs));
   }
 
   /* Add a shading, return resource name index. */
@@ -493,6 +528,16 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 
 /* ---- paint callbacks ---- */
 
+/* Closes a transform or clip that scope_closed() found open: the
+ * graphics state it saved ends with it. */
+static void
+hb_pdf_close_scope (hb_vector_paint_t *paint)
+{
+  paint->current_body ().append_str ("Q\n");
+  if (auto *res = hb_pdf_get_resources (paint))
+    res->pop_gstate ();
+}
+
 static void
 hb_pdf_paint_push_transform (hb_paint_funcs_t *,
 			     void *paint_data,
@@ -506,6 +551,7 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   unsigned sprec = body.scale_precision ();
   body.append_str ("q\n");
   body.append_num (xx, sprec);
@@ -520,6 +566,7 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (paint->sy (dy));
   body.append_str (" cm\n");
+  paint->scope_opened (start);
 
   if (auto *res = hb_pdf_get_resources (paint))
   {
@@ -538,9 +585,8 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("Q\n");
-  if (auto *res = hb_pdf_get_resources (paint))
-    res->pop_gstate ();
+  if (paint->scope_closed ())
+    hb_pdf_close_scope (paint);
 }
 
 static void
@@ -607,10 +653,12 @@ hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   body.append_str ("q\n");
   hb_extents_t<> extents;
   hb_pdf_emit_glyph_path (paint, font, glyph, &body, &extents);
   body.append_str ("W n\n");
+  paint->scope_opened (start);
 
   if (auto *res = hb_pdf_get_resources (paint))
     res->push_clip (extents);
@@ -628,6 +676,7 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   body.append_str ("q\n");
   body.append_num (paint->sx (xmin));
   body.append_c (' ');
@@ -637,6 +686,7 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (paint->sy (ymax - ymin));
   body.append_str (" re W n\n");
+  paint->scope_opened (start);
 
   if (auto *res = hb_pdf_get_resources (paint))
     res->push_clip ({hb_min (paint->sx (xmin), paint->sx (xmax)),
@@ -659,7 +709,9 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   body.append_str ("q\n");
+  paint->scope_opened (start);
   /* Stream path operators straight into the body; end() seals
    * the path with "W n" to turn it into the clip region.
    * Coordinates arrive in font-scale; the sink divides by
@@ -690,6 +742,8 @@ hb_pdf_paint_push_clip_path_end (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("W n\n");
+  /* The path is part of what opened the clip. */
+  paint->scope_extended ();
 
   auto *res = hb_pdf_get_resources (paint);
   if (res && paint->clip_path_sink.extents)
@@ -709,9 +763,8 @@ hb_pdf_paint_pop_clip (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("Q\n");
-  if (auto *res = hb_pdf_get_resources (paint))
-    res->pop_gstate ();
+  if (paint->scope_closed ())
+    hb_pdf_close_scope (paint);
 }
 
 /* Paint a solid color, including alpha via ExtGState. */
@@ -1671,11 +1724,12 @@ hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
   case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: return "Saturation";
   case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:      return "Color";
   case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: return "Luminosity";
-  /* Porter-Duff modes have no PDF blend-mode equivalent; approximate
-   * the two that have a plausible color-blend analog, and let the
-   * rest fall through to Normal (SRC_OVER). */
+  /* PLUS adds the source to the backdrop, and no blend mode adds.
+   * Screen is the nearest: the sum, less the product. */
   case HB_PAINT_COMPOSITE_MODE_PLUS:           return "Screen";
-  case HB_PAINT_COMPOSITE_MODE_XOR:            return "Difference";
+  /* The other Porter-Duff modes are not blend modes at all;
+   * hb_pdf_composite() writes those that are not SRC_OVER. */
+  case HB_PAINT_COMPOSITE_MODE_XOR:
   case HB_PAINT_COMPOSITE_MODE_CLEAR:
   case HB_PAINT_COMPOSITE_MODE_SRC:
   case HB_PAINT_COMPOSITE_MODE_DEST:
@@ -1708,6 +1762,198 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
   paint->push_group ();
 }
 
+/* A group written as a Form XObject. */
+struct hb_pdf_form_t
+{
+  unsigned idx = 0;	/* It is painted with `/Fm<idx> Do`. */
+  unsigned obj_id = 0;	/* Zero if the group was empty and was not written. */
+};
+
+static bool
+hb_pdf_add_form (hb_pdf_resources_t *res,
+		 const hb_vector_buf_t &group,
+		 hb_pdf_form_t *form)
+{
+  if (!group.length)
+    return true;
+  if (unlikely (group.in_error () ||
+		!res->add_form_group (group, &form->idx, &form->obj_id)))
+  {
+    /* Make render fail rather than give a document missing a group. */
+    res->overflowed = true;
+    return false;
+  }
+  return true;
+}
+
+enum hb_pdf_mask_t
+{
+  HB_PDF_MASK_NONE,
+  HB_PDF_MASK_IN,	/* Where the other group is, by its alpha. */
+  HB_PDF_MASK_OUT,	/* Where the other group is not. */
+};
+
+/* Paints @form into @body, with blend mode @bm if that is not null,
+ * and through @mask of @other. */
+static void
+hb_pdf_paint_form (hb_pdf_resources_t *res,
+		   hb_vector_buf_t &body,
+		   const hb_pdf_form_t &form,
+		   const char *bm = nullptr,
+		   hb_pdf_mask_t mask = HB_PDF_MASK_NONE,
+		   const hb_pdf_form_t &other = hb_pdf_form_t ())
+{
+  if (!form.obj_id)
+    return;
+  if (mask != HB_PDF_MASK_NONE && !other.obj_id)
+  {
+    if (mask == HB_PDF_MASK_IN)
+      return; /* In nothing. */
+    mask = HB_PDF_MASK_NONE; /* Out of nothing. */
+  }
+
+  body.append_str ("q\n");
+  if (bm || mask != HB_PDF_MASK_NONE)
+  {
+    unsigned gs_idx = res->add_extgstate_group (bm,
+						mask != HB_PDF_MASK_NONE ? other.obj_id : 0,
+						mask == HB_PDF_MASK_OUT);
+    body.append_str ("/GS");
+    body.append_unsigned (gs_idx);
+    body.append_str (" gs\n");
+  }
+  body.append_str ("/Fm");
+  body.append_unsigned (form.idx);
+  body.append_str (" Do\nQ\n");
+}
+
+/* Composites @group onto the current group in a Porter-Duff mode that
+ * no blend mode stands for.  They all come to keeping, dropping,
+ * reordering or masking the two groups:
+ *
+ *   CLEAR      nothing
+ *   SRC        the source
+ *   DEST_OVER  the source, then the backdrop
+ *   SRC_IN     the source, masked by the backdrop's alpha
+ *   DEST_IN    the backdrop, masked by the source's alpha
+ *   SRC_OUT    the source, masked by the inverse of the backdrop's alpha
+ *   DEST_OUT   the backdrop, masked by the inverse of the source's alpha
+ *   SRC_ATOP   the backdrop, then SRC_IN
+ *   DEST_ATOP  the source, then DEST_IN
+ *   XOR        DEST_OUT, then SRC_OUT
+ *
+ * The last three are sums of two of the others, and PDF has no way to
+ * add: painted one over the other, the upper hides some of the lower
+ * where both are partly transparent.  Written as above, SRC_ATOP is
+ * exact where the backdrop is opaque or absent, DEST_ATOP where the
+ * source is, and XOR, painting its upper part in Screen, where either
+ * is. */
+static void
+hb_pdf_composite (hb_vector_paint_t *paint,
+		  hb_pdf_resources_t *res,
+		  const hb_vector_paint_group_t &group,
+		  hb_paint_composite_mode_t mode)
+{
+  auto &dst = paint->current_group ();
+
+  hb_pdf_form_t src;
+  if (mode != HB_PAINT_COMPOSITE_MODE_CLEAR &&
+      unlikely (!hb_pdf_add_form (res, group, &src)))
+    return;
+
+  /* The backdrop is all that the current group has painted, and the
+   * result takes its place.  If the group has transforms or clips
+   * open, the source was painted under them: close them, to make the
+   * backdrop a unit, put the source under copies of them, and open
+   * them again after the result for what is painted next. */
+  hb_vector_buf_t opening;
+  unsigned n_scopes = paint->close_scopes ("Q\n", &opening);
+  if (unlikely (dst.in_error ()))
+    return;
+  if (n_scopes && src.obj_id)
+  {
+    hb_vector_buf_t under;
+    under.append_len (opening.arrayZ, opening.length);
+    under.append_str ("/Fm");
+    under.append_unsigned (src.idx);
+    under.append_str (" Do\n");
+    for (unsigned i = 0; i < n_scopes; i++)
+      under.append_str ("Q\n");
+    src = hb_pdf_form_t ();
+    if (unlikely (!hb_pdf_add_form (res, under, &src)))
+      return;
+  }
+
+  hb_vector_paint_group_t backdrop_group = std::move (dst);
+  dst.referred = 0;
+  dst.blended = false;
+  hb_pdf_form_t backdrop;
+  if (mode != HB_PAINT_COMPOSITE_MODE_CLEAR &&
+      mode != HB_PAINT_COMPOSITE_MODE_SRC &&
+      unlikely (!hb_pdf_add_form (res, backdrop_group, &backdrop)))
+    return;
+
+  uint64_t s = group.work (), d = backdrop_group.work ();
+  switch ((unsigned) mode)
+  {
+    case HB_PAINT_COMPOSITE_MODE_SRC:
+      hb_pdf_paint_form (res, dst, src);
+      dst.referred = s;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      hb_pdf_paint_form (res, dst, src);
+      hb_pdf_paint_form (res, dst, backdrop);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      hb_pdf_paint_form (res, dst, src, nullptr, HB_PDF_MASK_IN, backdrop);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_IN, src);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+      hb_pdf_paint_form (res, dst, src, nullptr, HB_PDF_MASK_OUT, backdrop);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_OUT, src);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+      hb_pdf_paint_form (res, dst, backdrop);
+      hb_pdf_paint_form (res, dst, src, nullptr, HB_PDF_MASK_IN, backdrop);
+      dst.referred = s + 2 * d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+      hb_pdf_paint_form (res, dst, src);
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_IN, src);
+      dst.referred = 2 * s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_XOR:
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_OUT, src);
+      hb_pdf_paint_form (res, dst, src, "Screen", HB_PDF_MASK_OUT, backdrop);
+      dst.referred = 2 * (s + d);
+      dst.blended = true;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_CLEAR:
+    default:
+      break;
+  }
+
+  paint->reopen_scopes (opening);
+}
+
 static void
 hb_pdf_paint_pop_group (hb_paint_funcs_t *,
 			void *paint_data,
@@ -1720,34 +1966,52 @@ hb_pdf_paint_pop_group (hb_paint_funcs_t *,
   if (paint->group_stack.length < 2)
     return;
 
-  hb_vector_buf_t group = paint->group_stack.pop ();
-  if (!group.length)
-    return;
+  /* Close what the group left open, so that it is a unit. */
+  while (paint->scope_closed ())
+    hb_pdf_close_scope (paint);
+
+  hb_vector_paint_group_t group = paint->group_stack.pop ();
+  auto &body = paint->current_group ();
+
+  if (mode == HB_PAINT_COMPOSITE_MODE_DEST)
+    return; /* The source is not used. */
+
+  /* What is not a mode is painted source-over. */
+  if (unlikely ((unsigned) mode > HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY))
+    mode = HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+
+  /* Three modes are written with a group used twice.  When the
+   * document cannot take that, write the mode nearest to them that
+   * uses each once. */
+  if ((mode == HB_PAINT_COMPOSITE_MODE_SRC_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_XOR) &&
+      unlikely (!paint->affords (2 * group.work () + body.work ())))
+    mode = mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP
+	 ? HB_PAINT_COMPOSITE_MODE_DEST_OVER
+	 : HB_PAINT_COMPOSITE_MODE_SRC_OVER;
 
   auto *res = hb_pdf_get_resources (paint);
   if (unlikely (!res))
     return;
-  unsigned form_idx;
-  if (unlikely (group.in_error () || !res->add_form_group (group, &form_idx)))
+
+  const char *bm = hb_pdf_blend_mode_name (mode);
+  if (!bm && mode != HB_PAINT_COMPOSITE_MODE_SRC_OVER)
   {
-    /* Make render fail rather than give a document missing a group. */
-    res->overflowed = true;
+    hb_pdf_composite (paint, res, group, mode);
     return;
   }
 
-  auto &body = paint->current_body ();
-  body.append_str ("q\n");
-  const char *bm = hb_pdf_blend_mode_name (mode);
+  /* Source-over, or a blend mode, which blends with all that the
+   * current group has painted, whatever is open in it. */
+  hb_pdf_form_t form;
+  if (unlikely (!hb_pdf_add_form (res, group, &form)))
+    return;
+  hb_pdf_paint_form (res, body, form, bm);
+  if (form.obj_id)
+    body.referred += group.work ();
   if (bm)
-  {
-    unsigned gs_idx = res->add_extgstate_blend (bm);
-    body.append_str ("/GS");
-    body.append_unsigned (gs_idx);
-    body.append_str (" gs\n");
-  }
-  body.append_str ("/Fm");
-  body.append_unsigned (form_idx);
-  body.append_str (" Do\nQ\n");
+    body.blended = true;
 }
 
 
@@ -1810,11 +2074,30 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
       !paint->group_stack.arrayZ[0].length)
     return nullptr;
 
-  hb_vector_buf_t &content = paint->group_stack.arrayZ[0];
   hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
   /* Over the document cap: the content stream refers to dropped objects. */
   if (unlikely (res && res->in_error ()))
     return nullptr;
+  /* A content stream cut short would not restore what it saved. */
+  if (unlikely (paint->group_stack.in_error () ||
+		paint->group_stack.arrayZ[0].in_error ()))
+    return nullptr;
+
+  /* What blends in the root group blends with what the root group has
+   * painted, and the background is not part of that: when there is
+   * blending, paint the root as a group of its own. */
+  hb_vector_buf_t &root = paint->group_stack.arrayZ[0];
+  hb_vector_buf_t isolated;
+  if (paint->group_stack.arrayZ[0].blended)
+  {
+    hb_pdf_form_t form;
+    if (unlikely (!res || !hb_pdf_add_form (res, root, &form)))
+      return nullptr;
+    hb_pdf_paint_form (res, isolated, form);
+    if (unlikely (isolated.in_error ()))
+      return nullptr;
+  }
+  hb_vector_buf_t &content = isolated.length ? isolated : root;
 
   float ex = paint->extents.x;
   float ey = paint->extents.y;

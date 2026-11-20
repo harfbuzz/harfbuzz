@@ -154,6 +154,19 @@ struct hb_vector_paint_t
   hb_array_t<hb_vector_paint_scope_t> open_scopes ()
   { return scopes.as_array ().sub_array (current_group ().scope_base); }
 
+  /* Extends the innermost transform or clip that is open in the current
+   * group to the end of the group's buffer, for one whose opening text
+   * is written in parts. */
+  void scope_extended ()
+  {
+    if (!open_scopes ().length)
+      return;
+    auto &group = current_group ();
+    auto &scope = scopes.tail ();
+    if (likely (scope.start <= group.length))
+      scope.length = group.length - scope.start;
+  }
+
   /* Closes the transforms and clips that are open in the current group
    * with @closer, which leaves what the group has painted so far a unit.
    * The text that opened them is copied to @opening, for whatever was

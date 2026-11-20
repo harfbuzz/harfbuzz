@@ -41,9 +41,13 @@
 #define RED  HB_COLOR (0, 0, 255, 255)
 #define BLUE HB_COLOR (255, 0, 0, 255)
 
-/* How the two colors are written in SVG. */
+#define GREEN HB_COLOR (0, 255, 0, 255)
+
+/* How the two colors are written in SVG and in PDF. */
 #define SVG_RED  "fill=\"#F00\""
 #define SVG_BLUE "fill=\"#00F\""
+#define PDF_RED  "\n1 0 0 rg\n"
+#define PDF_BLUE "\n0 0 1 rg\n"
 
 typedef void (*scene_func_t) (hb_paint_funcs_t *funcs, void *paint, int arg);
 
@@ -143,6 +147,63 @@ check_svg (const char *doc)
       snprintf (def, sizeof (def), " id=\"%.*s\"", (int) n, p);
       assert (find (doc, doc_end, def));
     }
+}
+
+/* Asserts that @doc holds together as a PDF: every content stream
+ * restores as many graphics states as it saves, every resource that is
+ * used is in the resource dictionary, and every object referred to
+ * exists. */
+static void
+check_pdf (const char *doc)
+{
+  unsigned n_objects = count (doc, " 0 obj\n");
+  assert (n_objects >= 4);
+  const char *doc_end = doc + strlen (doc);
+
+  for (const char *p = doc; (p = find (p, doc_end, " 0 R")); p += 4)
+  {
+    const char *q = p;
+    while (q > doc && q[-1] >= '0' && q[-1] <= '9')
+      q--;
+    unsigned id = (unsigned) atoi (q);
+    assert (id >= 1 && id <= n_objects);
+  }
+
+  for (const char *p = doc; (p = find (p, doc_end, "\nstream\n")); )
+  {
+    p += 8;
+    const char *end = find (p, doc_end, "endstream");
+    assert (end);
+    int depth = 0;
+    while (p < end)
+    {
+      const char *eol = strchr (p, '\n');
+      assert (eol && eol <= end);
+      size_t len = (size_t) (eol - p);
+      if (len == 1 && p[0] == 'q')
+	depth++;
+      else if (len == 1 && p[0] == 'Q')
+      {
+	depth--;
+	assert (depth >= 0);
+      }
+      else if ((len > 3 && !strncmp (eol - 3, " Do", 3)) ||
+	       (len > 3 && !strncmp (eol - 3, " gs", 3)))
+      {
+	/* "/Fm3 Do" or "/GS2 gs": the name must be defined. */
+	char def[32];
+	size_t n = len - 3;
+	assert (p[0] == '/' && n < sizeof (def) - 1);
+	memcpy (def, p, n);
+	def[n] = ' ';
+	def[n + 1] = '\0';
+	const char *found = find (doc, doc_end, def);
+	assert (found && found[n + 1] >= '0' && found[n + 1] <= '9');
+      }
+      p = eol + 1;
+    }
+    assert (!depth);
+  }
 }
 
 static void
@@ -432,6 +493,182 @@ test_nested_svg (void)
   free (doc);
 }
 
+/* A PDF with nothing painted is not rendered, so paint something else
+ * first for the modes that leave nothing. */
+static void
+composite_scene_pdf (hb_paint_funcs_t *funcs, void *paint, int mode)
+{
+  square (funcs, paint, 0, 0, GREEN);
+  composite_scene (funcs, paint, mode);
+}
+
+static void
+test_modes_pdf (void)
+{
+  for (int mode = HB_PAINT_COMPOSITE_MODE_CLEAR; mode <= HB_PAINT_COMPOSITE_MODE_PLUS; mode++)
+  {
+    char *doc = render (HB_VECTOR_FORMAT_PDF, composite_scene_pdf, mode);
+    check_pdf (doc);
+
+    unsigned red = count (doc, PDF_RED), blue = count (doc, PDF_BLUE);
+    unsigned masks = count (doc, "/SMask"), inverted = count (doc, "/S /Luminosity");
+    unsigned screen = count (doc, "/BM /Screen");
+    switch (mode)
+    {
+      case HB_PAINT_COMPOSITE_MODE_CLEAR:
+	assert (!red && !blue && !masks && !screen);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC:
+	assert (red == 1 && !blue && !masks && !screen);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_DEST:
+	assert (!red && blue == 1 && !masks && !screen);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+	assert (red == 1 && blue == 1 && !masks && !screen);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+      case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+	/* One group through the alpha of the other. */
+	assert (red == 1 && blue == 1 && masks == 1 && !inverted && !screen);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+	/* Through the inverse of it, which takes a second mask. */
+	assert (red == 1 && blue == 1 && masks == 2 && inverted == 1 && !screen);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_XOR:
+	assert (red == 1 && blue == 1 && masks == 4 && inverted == 2 && screen == 1);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_PLUS:
+	assert (red == 1 && blue == 1 && !masks && screen == 1);
+	break;
+    }
+
+    /* Which group is painted, and which is only a mask, or painted
+     * first: the group that the outer one paints last. */
+    const char *outer = NULL;
+    for (const char *p = doc; (p = strstr (p, "\nstream\n")); p++)
+      outer = p;
+    assert (outer);
+    unsigned painted = count (outer, " Do\n");
+    switch (mode)
+    {
+      case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+      case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+      case HB_PAINT_COMPOSITE_MODE_SRC:
+	assert (painted == 1);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+      case HB_PAINT_COMPOSITE_MODE_XOR:
+	assert (painted == 2);
+	break;
+      default:
+	break;
+    }
+
+    free (doc);
+  }
+}
+
+static void
+test_open_scopes_pdf (void)
+{
+  static const char transform[] = "\n0.5 0 0 0.5 7 9 cm\n";
+  for (int mode = HB_PAINT_COMPOSITE_MODE_CLEAR; mode <= HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY; mode++)
+  {
+    char *doc = render (HB_VECTOR_FORMAT_PDF, open_scopes_scene, mode);
+    check_pdf (doc);
+    switch (mode)
+    {
+      case HB_PAINT_COMPOSITE_MODE_CLEAR:
+	assert (!count (doc, PDF_BLUE) && count (doc, PDF_RED) == 1);
+	assert (count (doc, transform) == 1);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+	/* In the backdrop, around the source, and open again. */
+	assert (count (doc, PDF_BLUE) == 2 && count (doc, PDF_RED) == 2);
+	assert (count (doc, transform) == 3);
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+      case HB_PAINT_COMPOSITE_MODE_MULTIPLY:
+	/* Nothing to rearrange: a blend mode blends with all that the
+	 * group has painted, whatever is open. */
+	assert (count (doc, transform) == 1);
+	break;
+      default:
+	break;
+    }
+    free (doc);
+  }
+}
+
+static void
+test_root_pdf (void)
+{
+  static const struct { int mode; hb_bool_t isolated; } tests[] = {
+    {HB_PAINT_COMPOSITE_MODE_SRC_OVER, 0},
+    {HB_PAINT_COMPOSITE_MODE_SRC_IN, 0},
+    {HB_PAINT_COMPOSITE_MODE_DEST_OUT, 0},
+    {HB_PAINT_COMPOSITE_MODE_XOR, 1},
+    {HB_PAINT_COMPOSITE_MODE_PLUS, 1},
+    {HB_PAINT_COMPOSITE_MODE_MULTIPLY, 1},
+  };
+  for (unsigned i = 0; i < sizeof (tests) / sizeof (tests[0]); i++)
+  {
+    char *doc = render (HB_VECTOR_FORMAT_PDF, root_scene, tests[i].mode);
+    check_pdf (doc);
+    /* The page's own content stream is the first.  When something in
+     * the root blends, it holds nothing but the root as one group. */
+    const char *page = strstr (doc, "\nstream\n");
+    assert (page);
+    page += 8;
+    assert (!strncmp (page, "q\n/Fm", 5) == !!tests[i].isolated);
+    if (tests[i].isolated)
+    {
+      const char *end = strstr (page, "endstream");
+      assert (end && count (page, " Do\n") >= 1 && strstr (page, " Do\nQ\n") + 6 == end);
+    }
+    free (doc);
+  }
+}
+
+static void
+test_unbalanced_pdf (void)
+{
+  for (int mode = HB_PAINT_COMPOSITE_MODE_CLEAR; mode <= HB_PAINT_COMPOSITE_MODE_PLUS; mode++)
+  {
+    char *doc = render (HB_VECTOR_FORMAT_PDF, unbalanced_scene, mode);
+    check_pdf (doc);
+    free (doc);
+  }
+}
+
+static void
+test_nested_pdf (void)
+{
+  /* Each level paints what is under it, and the source through its
+   * alpha. */
+  char *doc = render (HB_VECTOR_FORMAT_PDF, nested_scene, 1);
+  check_pdf (doc);
+  assert (count (doc, "/SMask") == NESTING);
+  free (doc);
+
+  doc = render (HB_VECTOR_FORMAT_PDF, nested_scene, 12000);
+  check_pdf (doc);
+  unsigned masks = count (doc, "/SMask");
+  assert (masks && masks < NESTING);
+  assert (count (doc, PDF_RED) == 12000 * NESTING);
+  free (doc);
+}
+
 /* A context gives the same document again after it has rendered one. */
 static void
 test_reuse (hb_vector_format_t format)
@@ -466,5 +703,12 @@ main (void)
   test_unbalanced_svg ();
   test_nested_svg ();
   test_reuse (HB_VECTOR_FORMAT_SVG);
+
+  test_modes_pdf ();
+  test_open_scopes_pdf ();
+  test_root_pdf ();
+  test_unbalanced_pdf ();
+  test_nested_pdf ();
+  test_reuse (HB_VECTOR_FORMAT_PDF);
   return 0;
 }

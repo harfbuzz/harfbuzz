@@ -67,6 +67,18 @@
  * %HB_PAINT_EXTEND_PAD. %HB_PAINT_EXTEND_REPEAT and
  * %HB_PAINT_EXTEND_REFLECT are not supported for these gradients.
  *
+ * The blend modes of #hb_paint_composite_mode_t are written as the
+ * blend modes that SVG and PDF have, and the Porter-Duff modes with
+ * masks. SVG output relies on CSS for both, so its viewer has to
+ * support `mix-blend-mode`, `isolation` and `mask-type`. Four modes
+ * add two layers together, which only the `plus-lighter` blend mode
+ * of SVG does: %HB_PAINT_COMPOSITE_MODE_SRC_ATOP,
+ * %HB_PAINT_COMPOSITE_MODE_DEST_ATOP, %HB_PAINT_COMPOSITE_MODE_XOR and
+ * %HB_PAINT_COMPOSITE_MODE_PLUS. In PDF output, and in an SVG viewer
+ * without `plus-lighter`, these four are approximations: the first
+ * three where partly transparent content overlaps, and
+ * %HB_PAINT_COMPOSITE_MODE_PLUS wherever content overlaps.
+ *
  * Both contexts accumulate multiple glyphs into a single document.
  * Call hb_vector_draw_render() / hb_vector_paint_render() to
  * retrieve the final blob.  Rendering clears all accumulated
