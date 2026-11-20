@@ -301,7 +301,7 @@ hb_color_lerp (hb_color_t c0, hb_color_t c1, float t)
     if (v > 255.f) return 255;
     return (unsigned) v;
   };
-  return HB_COLOR (lerp (0), lerp (8), lerp (16), lerp (24));
+  return HB_COLOR (lerp (24), lerp (16), lerp (8), lerp (0));
 }
 
 #endif /* HB_PAINT_HH */

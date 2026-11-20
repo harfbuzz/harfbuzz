@@ -1374,6 +1374,50 @@ test_hb_paint_sweep_gradient_tiles_clipped (void)
   }
 }
 
+typedef struct {
+  hb_bool_t seen;
+  hb_color_t color;
+} sweep_seam_data_t;
+
+static void
+record_sweep_seam (float a0, hb_color_t c0,
+		   float a1 HB_UNUSED, hb_color_t c1 HB_UNUSED,
+		   void *user_data)
+{
+  sweep_seam_data_t *data = (sweep_seam_data_t *) user_data;
+
+  if (a0 == 0.f)
+  {
+    data->seen = TRUE;
+    data->color = c0;
+  }
+}
+
+static void
+test_hb_paint_sweep_gradient_tiles_seam_color (void)
+{
+  /* A sweep from -90° to 270° reaches 0° a quarter of the way from
+   * its first stop to its second.  The color there is interpolated,
+   * and must keep each channel in its own place. */
+  hb_color_stop_t stops[2] = {
+    { 0.f, FALSE, HB_COLOR (0, 0, 255, 255) },   /* red */
+    { 1.f, FALSE, HB_COLOR (255, 0, 0, 255) },   /* blue */
+  };
+  sweep_seam_data_t data = {FALSE, 0};
+
+  hb_paint_sweep_gradient_tiles (stops, 2, HB_PAINT_EXTEND_PAD,
+				 (float) (-G_PI / 2), (float) (3 * G_PI / 2),
+				 record_sweep_seam, &data);
+
+  g_assert_true (data.seen);
+  g_assert_cmpint (hb_color_get_red (data.color), >=, 190);
+  g_assert_cmpint (hb_color_get_red (data.color), <=, 192);
+  g_assert_cmpint (hb_color_get_green (data.color), ==, 0);
+  g_assert_cmpint (hb_color_get_blue (data.color), >=, 63);
+  g_assert_cmpint (hb_color_get_blue (data.color), <=, 65);
+  g_assert_cmpint (hb_color_get_alpha (data.color), ==, 255);
+}
+
 
 int
 main (int argc, char **argv)
@@ -1391,6 +1435,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_paint_budget);
   hb_test_add (test_hb_paint_color_stops_budget);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_clipped);
+  hb_test_add (test_hb_paint_sweep_gradient_tiles_seam_color);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {
