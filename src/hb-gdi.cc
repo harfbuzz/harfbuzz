@@ -45,9 +45,9 @@ _hb_gdi_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_dat
   DWORD length = 0;
 
   HDC hdc = GetDC (nullptr);
+  HB_SCOPE_GUARD (ReleaseDC (nullptr, hdc));
   if (unlikely (!SelectObject (hdc, (HFONT) user_data)))
     return hb_blob_get_empty ();
-  HB_SCOPE_GUARD (ReleaseDC (nullptr, hdc));
 
   length = GetFontData (hdc, hb_uint32_swap (tag), 0, buffer, length);
   if (unlikely (length == GDI_ERROR))
