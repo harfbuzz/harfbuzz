@@ -1918,9 +1918,10 @@ hb_ft_face_create_from_blob_or_fail (hb_blob_t    *blob,
  * is preconfigured for FreeType font functions and does not
  * require this function to be used.
  *
- * Note that if you modify the underlying #hb_font_t after
- * calling this function, you need to call hb_ft_hb_font_changed()
- * to update the underlying FT_Face.
+ * Note that as of version 11.0.0, if you modify the underlying
+ * #hb_font_t after calling this function, HarfBuzz detects the
+ * change and updates the underlying FT_Face as needed; calling
+ * hb_ft_hb_font_changed() is no longer necessary.
  *
  * <note>Note: Internally, this function creates an FT_Face.
 * </note>

@@ -73,6 +73,7 @@
  *
  * Return value: the #hb_script_t script found
  *
+ * Since: 0.9.2
  **/
 
 hb_script_t
@@ -93,6 +94,7 @@ hb_icu_script_to_script (UScriptCode script)
  *
  * Return value: the UScriptCode identifier found
  *
+ * Since: 0.9.2
  **/
 UScriptCode
 hb_icu_script_from_script (hb_script_t script)

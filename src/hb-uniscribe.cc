@@ -555,6 +555,7 @@ _hb_uniscribe_shaper_font_data_destroy (hb_uniscribe_font_data_t *data)
  *
  * Return value: a pointer to the LOGFONTW retrieved
  *
+ * Since: 0.9.2
  **/
 LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
@@ -570,8 +571,9 @@ hb_uniscribe_font_get_logfontw (hb_font_t *font)
  * Fetches the HFONT handle that corresponds to the
  * specified #hb_font_t font.
  *
- * Return value: the HFONT retreieved
+ * Return value: the HFONT retrieved
  *
+ * Since: 0.9.2
  **/
 HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font)

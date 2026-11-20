@@ -1753,14 +1753,12 @@ hb_gpu_paint_recycle_blob (hb_gpu_paint_t *paint,
  * specified stage and language.  The returned string is static
  * and must not be freed.
  *
- * This source assumes both the shared helpers
- * (hb_gpu_shader_source()) and the draw-renderer helpers
- * (hb_gpu_draw_shader_source()) are concatenated ahead of it --
- * the paint interpreter invokes hb_gpu_draw() to compute
- * clip-glyph coverage.  Full assembly:
+ * This source assumes the shared helpers (hb_gpu_shader_source())
+ * are concatenated ahead of it -- the paint interpreter computes
+ * clip-glyph coverage with them.  The draw-renderer helpers
+ * (hb_gpu_draw_shader_source()) are not needed.  Full assembly:
  *
  *   [#version] + hb_gpu_shader_source ()
- *             + hb_gpu_draw_shader_source ()
  *             + hb_gpu_paint_shader_source ()
  *             + caller's main ()
  *

@@ -433,9 +433,10 @@ _hb_gpu_draw_get_extents (hb_gpu_draw_t      *draw,
  * RGBA16I texels (8 bytes each) to be uploaded to a texture
  * buffer object.
  *
- * The returned blob owns its own copy of the data.  On success
- * @draw is auto-cleared so it can be reused for the next glyph;
- * user configuration (font scale) is preserved.
+ * The returned blob owns its own copy of the data.  @draw is
+ * auto-cleared, whether or not encoding succeeds, so it can be
+ * reused for the next glyph; user configuration (font scale) is
+ * preserved.
  *
  * Return value: (transfer full):
  * An #hb_blob_t containing the encoded data, or `NULL` if encoding

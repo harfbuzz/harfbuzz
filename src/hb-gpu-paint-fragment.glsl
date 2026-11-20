@@ -25,11 +25,11 @@
 
 /* Paint-renderer fragment shader.
  *
- * Assumes the shared fragment helpers (hb-gpu-fragment.glsl) and
- * the draw-renderer fragment helpers (hb-gpu-draw-fragment.glsl)
- * are prepended to this source.  The draw helper provides
- * hb_gpu_draw() which this interpreter calls to compute clip-glyph
- * coverage.
+ * Assumes the shared fragment helpers (hb-gpu-fragment.glsl) are
+ * prepended to this source.  They provide _hb_gpu_slug(), which
+ * this interpreter calls to compute clip-glyph coverage.  The
+ * draw-renderer fragment helpers (hb-gpu-draw-fragment.glsl) are
+ * not needed.
  */
 
 
