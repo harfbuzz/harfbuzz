@@ -322,8 +322,10 @@ parse_features (const char *name G_GNUC_UNUSED,
   g_free (shape_opts->features);
   shape_opts->features = nullptr;
 
-  /* if the string is quoted, strip the quotes */
-  if (s[0] == s[l - 1] && (s[0] == '\"' || s[0] == '\''))
+  /* if the whole string is quoted, strip the quotes; not if the
+   * quotes belong to its first and last features */
+  if (l >= 2 && s[0] == s[l - 1] && (s[0] == '\"' || s[0] == '\'') &&
+      !memchr (s + 1, s[0], l - 2))
   {
     s[l - 1] = '\0';
     s++;
@@ -349,9 +351,23 @@ parse_features (const char *name G_GNUC_UNUSED,
   p = s;
   shape_opts->num_features = 0;
   while (p && *p) {
-    char *end = strpbrk (p, ", ");
-    if (hb_feature_from_string (p, end ? end - p : -1, &shape_opts->features[shape_opts->num_features]))
+    /* Commas separate features.  Try each item whole first, since the
+     * CSS forms have a space inside them; an item that is not one
+     * feature is a space-separated list of them. */
+    char *end = strchr (p, ',');
+    char *item_end = end ? end : p + strlen (p);
+    if (hb_feature_from_string (p, item_end - p, &shape_opts->features[shape_opts->num_features]))
       shape_opts->num_features++;
+    else
+      for (char *q = p; q < item_end;)
+      {
+	char *e = (char *) memchr (q, ' ', item_end - q);
+	if (!e)
+	  e = item_end;
+	if (e > q && hb_feature_from_string (q, e - q, &shape_opts->features[shape_opts->num_features]))
+	  shape_opts->num_features++;
+	q = e + 1;
+      }
     p = end ? end + 1 : nullptr;
   }
 

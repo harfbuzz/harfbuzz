@@ -271,10 +271,10 @@ fn hb_gpu_paint (renderCoord: vec2f, glyphLoc_: u32, foreground: vec4f,
   let pixelsPerEm = 1.0 / emsPerPixel;
 
   let base    = i32 (glyphLoc_);
-  let h0      = hb_gpu_fetch (hb_gpu_atlas, base);     // (num_ops, _, _, _)
-  let h2      = hb_gpu_fetch (hb_gpu_atlas, base + 2); // (ops_offset, _, _, _)
-  let num_ops = h0.r;
-  var cursor  = base + h2.r;
+  // (num_ops, ops_offset, x_scale, y_scale)
+  let h1      = hb_gpu_fetch (hb_gpu_atlas, base + 1);
+  let num_ops = h1.r;
+  var cursor  = base + h1.g;
 
   var acc = vec4f (0.0);
   var group_stack: array<vec4f, HB_GPU_PAINT_GROUP_DEPTH>;

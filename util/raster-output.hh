@@ -256,7 +256,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	      if (hb_font_get_glyph_extents (font, g.gid, &ge))
 		util_emit_extents_overlay_into_draw (
 		  hb_raster_draw_get_funcs (rdr), rdr,
-		  &ge, pen_x, pen_y, extents_stroke_width ());
+		  &ge, /*pen_x*/ 0.f, /*pen_y*/ 0.f, extents_stroke_width ());
 	    }
 	  }
 	}
@@ -429,7 +429,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	    if (hb_font_get_glyph_extents (font, g.gid, &ge))
 	      util_emit_extents_overlay_into_draw (
 		hb_raster_draw_get_funcs (rdr), rdr,
-		&ge, g.x + off_x, g.y + off_y, extents_stroke_width ());
+		&ge, /*pen_x*/ 0.f, /*pen_y*/ 0.f, extents_stroke_width ());
 	  }
 
 	  hb_raster_image_t *img = hb_raster_draw_render (rdr);

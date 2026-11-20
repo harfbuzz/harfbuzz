@@ -450,7 +450,7 @@ hb_vector_paint_get_palette (const hb_vector_paint_t *paint)
  * (or replaced for the same index).
  *
  * These overrides are consulted by paint operations that resolve CPAL
- * entries, including SVG glyph content using `var(--colorN)`.
+ * entries.
  *
  * Since: 13.0.0
  */

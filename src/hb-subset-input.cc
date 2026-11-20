@@ -1169,10 +1169,16 @@ hb_subset_preprocess (hb_face_t *source)
  * in this mapping will be assigned glyph ids after the highest glyph
  * id in the mapping.
  *
- * Note: this will accept and apply non-monotonic mappings, however this
- * may result in unsorted Coverage tables. Such fonts may not work for all
- * use cases (for example ots will reject unsorted coverage tables). So it's
- * recommended, if possible, to supply a monotonic mapping.
+ * Note: this will accept and apply non-monotonic mappings, that is,
+ * mappings that change the order of the glyphs, but they break the
+ * layout tables of the subset.  The layout subsetters write their
+ * records in the order of the original glyph ids and rely on the new
+ * ids keeping that order: with a reordering mapping, Coverage tables
+ * come out unsorted, and pair positioning and class definitions lose
+ * data, so kerning and other lookups silently stop applying.  Such
+ * fonts are also rejected by validators (ots rejects unsorted Coverage
+ * tables).  Supply a monotonic mapping, or use a reordering one only
+ * for a subset whose layout tables are dropped.
  *
  * Return value: (transfer none): pointer to the #hb_map_t of the custom glyphs ID map.
  *

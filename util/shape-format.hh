@@ -196,7 +196,7 @@ shape_format_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					nullptr},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Output glyph extents",							nullptr},
     {"show-flags",	0, 0, G_OPTION_ARG_NONE,	&this->show_flags,		"Output glyph flags",							nullptr},
-    {"ned",	      'v', G_OPTION_FLAG_NO_ARG,
+    {"ned",		0, G_OPTION_FLAG_NO_ARG,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_ned,		"No Extra Data; Do not output clusters or advances",			nullptr},
     {"trace",	      'V', 0, G_OPTION_ARG_NONE,	&this->trace,			"Output interim shaping results",					nullptr},
     {nullptr}

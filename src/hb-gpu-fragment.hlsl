@@ -138,9 +138,12 @@ _hb_gpu_glyph_info _hb_gpu_decode_glyph (float2 renderCoord, uint glyphLoc_)
  */
 float hb_gpu_ppem (float2 renderCoord, uint glyphLoc_)
 {
-  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
+  /* The font scale is in the last two slots of the blob's second
+   * texel, in draw and paint blobs alike. */
+  int4 header1 = hb_gpu_fetch ((int) glyphLoc_ + 1);
+  float2 scale = float2 ((float) header1.b, (float) header1.a);
   float2 emsPerPixel = fwidth (renderCoord);
-  return min (gi.scale.x, gi.scale.y) /
+  return min (scale.x, scale.y) /
 	 max (emsPerPixel.x, emsPerPixel.y);
 }
 

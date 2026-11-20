@@ -14,6 +14,10 @@ out vec4 fragColor;
 
 void main ()
 {
+  /* Pixels per em, taken up front: it uses fwidth, which belongs
+   * outside the branches below. */
+  float ppem = hb_gpu_ppem (v_texcoord, v_glyphLoc);
+
   float cov;
 #ifdef HB_GPU_DEMO_DRAW
   cov = hb_gpu_draw (v_texcoord, v_glyphLoc);
@@ -31,8 +35,7 @@ void main ()
     {
       float brightness = c.a > 0.0
 	? dot (c.rgb, vec3 (1.0 / 3.0)) / c.a : 0.0;
-      adj = hb_gpu_stem_darken (adj, brightness,
-	1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y));
+      adj = hb_gpu_stem_darken (adj, brightness, ppem);
     }
     if (u_gamma != 1.0)
       adj = pow (adj, u_gamma);

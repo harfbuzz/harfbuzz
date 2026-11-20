@@ -46,8 +46,7 @@ struct VertexOutput {
 @fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
   /* Compute ppem up front so fwidth is called at uniform control
    * flow, before the non-uniform branches below. */
-  let fw = fwidth (in.texcoord);
-  let ppem = 1.0 / max (fw.x, fw.y);
+  let ppem = hb_gpu_ppem (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
 
   var cov: f32;
   var c = hb_gpu_paint (in.texcoord, in.glyphLoc, u.foreground,

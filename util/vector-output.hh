@@ -295,7 +295,7 @@ struct vector_output_t : output_options_t<>, view_options_t
             if (hb_font_get_glyph_extents (font, g.gid, &ge))
               util_emit_extents_overlay_into_draw (
                 hb_vector_draw_get_funcs (draw), draw,
-                &ge, pen_x, pen_y, (float) normalized_stroke_width);
+                &ge, /*pen_x*/ 0.f, /*pen_y*/ 0.f, (float) normalized_stroke_width);
           }
         }
       }

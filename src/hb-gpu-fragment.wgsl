@@ -139,9 +139,12 @@ fn _hb_gpu_decode_glyph (renderCoord: vec2f, glyphLoc_: u32,
 fn hb_gpu_ppem (renderCoord: vec2f, glyphLoc_: u32,
                 hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
-  let gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  /* The font scale is in the last two slots of the blob's second
+   * texel, in draw and paint blobs alike. */
+  let header1 = hb_gpu_fetch (hb_gpu_atlas, i32 (glyphLoc_) + 1);
+  let scale = vec2f (f32 (header1.b), f32 (header1.a));
   let emsPerPixel = fwidth (renderCoord);
-  return min (gi.scale.x, gi.scale.y) /
+  return min (scale.x, scale.y) /
          max (emsPerPixel.x, emsPerPixel.y);
 }
 

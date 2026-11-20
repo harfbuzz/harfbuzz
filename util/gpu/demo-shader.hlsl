@@ -39,26 +39,30 @@ PSInput vs_main (VSInput input) {
 }
 
 float4 ps_main (PSInput input) : SV_Target {
+  /* Pixels per em, taken up front: it uses fwidth, which belongs
+   * outside the branches below. */
+  float ppem = hb_gpu_ppem (input.texcoord, input.glyphLoc);
+
+  float cov;
 #ifdef HB_GPU_DEMO_DRAW
-  float cov = hb_gpu_draw (input.texcoord, input.glyphLoc);
+  cov = hb_gpu_draw (input.texcoord, input.glyphLoc);
   float4 c = float4 (foreground.rgb * foreground.a, foreground.a) * cov;
 #else
-  float cov;
   float4 c = hb_gpu_paint (input.texcoord, input.glyphLoc, foreground, cov);
+#endif
 
+  /* Apply stem darkening and gamma correction to the edge
+   * coverage only, so interior color is unaffected. */
   if (cov > 0.0 && cov < 1.0) {
     float adj = cov;
     if (stem_darkening > 0.0) {
       float brightness = c.a > 0.0
         ? dot (c.rgb, float3 (1.0/3.0, 1.0/3.0, 1.0/3.0)) / c.a : 0.0;
-      float2 fw = fwidth (input.texcoord);
-      adj = hb_gpu_stem_darken (adj, brightness,
-        1.0 / max (fw.x, fw.y));
+      adj = hb_gpu_stem_darken (adj, brightness, ppem);
     }
     if (gamma != 1.0)
       adj = pow (adj, gamma);
     c *= adj / cov;
   }
-#endif
   return c;
 }

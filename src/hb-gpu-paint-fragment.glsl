@@ -25,11 +25,11 @@
 
 /* Paint-renderer fragment shader.
  *
- * Assumes the shared fragment helpers (hb-gpu-fragment.glsl) and
- * the draw-renderer fragment helpers (hb-gpu-draw-fragment.glsl)
- * are prepended to this source.  The draw helper provides
- * hb_gpu_draw() which this interpreter calls to compute clip-glyph
- * coverage.
+ * Assumes the shared fragment helpers (hb-gpu-fragment.glsl) are
+ * prepended to this source.  They provide _hb_gpu_slug(), which
+ * this interpreter calls to compute clip-glyph coverage.  The
+ * draw-renderer fragment helpers (hb-gpu-draw-fragment.glsl) are
+ * not needed.
  */
 
 
@@ -302,10 +302,10 @@ vec4 hb_gpu_paint (vec2 renderCoord, uint glyphLoc, vec4 foreground,
   vec2 pixelsPerEm = 1.0 / fwidth (renderCoord);
 
   int base    = int (glyphLoc);
-  ivec4 h0    = hb_gpu_fetch (base);      /* (num_ops, _, _, _) */
-  ivec4 h2    = hb_gpu_fetch (base + 2);  /* (ops_offset, _, _, _) */
-  int num_ops = h0.r;
-  int cursor  = base + h2.r;
+  /* (num_ops, ops_offset, x_scale, y_scale) */
+  ivec4 h1    = hb_gpu_fetch (base + 1);
+  int num_ops = h1.r;
+  int cursor  = base + h1.g;
 
   vec4 acc = vec4 (0.0);
   vec4 group_stack[HB_GPU_PAINT_GROUP_DEPTH];

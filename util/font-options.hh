@@ -191,9 +191,23 @@ parse_variations (const char *name G_GNUC_UNUSED,
   p = s;
   font_opts->num_variations = 0;
   while (p && *p) {
-    char *end = strpbrk (p, ", ");
-    if (hb_variation_from_string (p, end ? end - p : -1, &font_opts->variations[font_opts->num_variations]))
+    /* Commas separate variations.  Try each item whole first, since the
+     * CSS forms have a space inside them; an item that is not one
+     * variation is a space-separated list of them. */
+    char *end = strchr (p, ',');
+    char *item_end = end ? end : p + strlen (p);
+    if (hb_variation_from_string (p, item_end - p, &font_opts->variations[font_opts->num_variations]))
       font_opts->num_variations++;
+    else
+      for (char *q = p; q < item_end;)
+      {
+	char *e = (char *) memchr (q, ' ', item_end - q);
+	if (!e)
+	  e = item_end;
+	if (e > q && hb_variation_from_string (q, e - q, &font_opts->variations[font_opts->num_variations]))
+	  font_opts->num_variations++;
+	q = e + 1;
+      }
     p = end ? end + 1 : nullptr;
   }
 
@@ -218,7 +232,7 @@ parse_font_size (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one or two space-separated numbers",
+		   "%s argument should be one or two numbers, separated by a space or comma",
 		   name);
       return false;
   }
@@ -236,7 +250,7 @@ parse_font_ppem (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one or two space-separated numbers",
+		   "%s argument should be one or two numbers, separated by a space or comma",
 		   name);
       return false;
   }
@@ -254,7 +268,7 @@ parse_font_embolden (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one or two space-separated numbers",
+		   "%s argument should be one or two numbers, separated by a space or comma",
 		   name);
       return false;
   }
@@ -318,7 +332,7 @@ font_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries[] =
   {
     {"font-size",	0, font_size_flags,
-			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 numbers or 'upem'"},
     {"font-ppem",	0, font_size_flags,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, font_size_flags,

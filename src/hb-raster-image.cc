@@ -295,7 +295,7 @@ apply_separable_blend (uint32_t src, uint32_t dst,
 /* HSL helpers */
 static inline float
 hsl_luminosity (float r, float g, float b)
-{ return 0.299f * r + 0.587f * g + 0.114f * b; }
+{ return 0.3f * r + 0.59f * g + 0.11f * b; }
 
 static inline float
 hsl_saturation (float r, float g, float b)

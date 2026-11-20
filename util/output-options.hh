@@ -99,14 +99,6 @@ struct output_options_t
       setmode (fileno (stdout), O_BINARY);
 #endif
       out_fp = stdout;
-#if HAVE_ISATTY
-      if (refuse_tty && isatty (fileno (stdout)))
-      {
-	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
-		     "Refusing to write to a terminal. Use --output-file / -o, or pipe.");
-	return;
-      }
-#endif
     }
     if (!out_fp)
     {
@@ -121,7 +113,6 @@ struct output_options_t
   char *output_format = nullptr;
 
   bool explicit_output_format = false;
-  bool refuse_tty = false;
   FILE *out_fp = nullptr;
 };
 

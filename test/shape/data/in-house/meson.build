@@ -32,6 +32,7 @@ in_house_tests = [
   'harfbust.tests',
   'hebrew-diacritics.tests',
   'hyphens.tests',
+  'indic-broken-cluster-reph.tests',
   'indic-consonant-with-stacker.tests',
   'indic-decompose.tests',
   'indic-feature-order.tests',

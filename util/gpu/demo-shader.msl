@@ -44,29 +44,33 @@ vertex VertexOut vertex_main(VertexIn in [[stage_in]],
 fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
                               device const short4* atlas [[buffer(0)]]) {
+  /* Pixels per em, taken up front: it uses fwidth, which belongs
+   * outside the branches below. */
+  float ppem = hb_gpu_ppem(in.texcoord, in.glyphLoc, atlas);
+
+  float cov;
 #ifdef HB_GPU_DEMO_DRAW
-  float cov = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
+  cov = hb_gpu_draw(in.texcoord, in.glyphLoc, atlas);
   float4 c = float4(uniforms.foreground.rgb * uniforms.foreground.a,
                     uniforms.foreground.a) * cov;
 #else
-  float cov;
   float4 c = hb_gpu_paint(in.texcoord, in.glyphLoc, uniforms.foreground,
                           atlas, cov);
+#endif
 
+  /* Apply stem darkening and gamma correction to the edge
+   * coverage only, so interior color is unaffected. */
   if (cov > 0.0 && cov < 1.0) {
     float adj = cov;
     if (uniforms.stem_darkening > 0.0) {
       float brightness = c.a > 0.0
         ? dot(c.rgb, float3(1.0 / 3.0)) / c.a : 0.0;
-      float2 fw = fwidth(in.texcoord);
-      adj = hb_gpu_stem_darken(adj, brightness,
-        1.0 / max(fw.x, fw.y));
+      adj = hb_gpu_stem_darken(adj, brightness, ppem);
     }
     if (uniforms.gamma != 1.0)
       adj = pow(adj, uniforms.gamma);
     c *= adj / cov;
   }
-#endif
 
   if (uniforms.debug > 0.0) {
     int2 counts = _hb_gpu_curve_counts(in.texcoord, in.glyphLoc, atlas);

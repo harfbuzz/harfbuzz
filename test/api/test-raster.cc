@@ -571,6 +571,36 @@ test_paint_recycle_null (void)
   hb_raster_paint_destroy (paint);
 }
 
+/* The HSL modes take their luminosity weights from the W3C
+ * Compositing and Blending specification: 0.3, 0.59, 0.11. */
+static void
+test_paint_hsl_luminosity_weights (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+
+  hb_raster_extents_t ext = {0, 0, 1, 1, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_paint_color (funcs, paint, true, HB_COLOR (255, 0, 0, 255)); /* blue */
+  hb_paint_push_group (funcs, paint);
+  hb_paint_color (funcs, paint, true, HB_COLOR (0, 0, 255, 255)); /* red */
+  hb_paint_pop_group (funcs, paint, HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY);
+
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  const uint8_t *pixel = hb_raster_image_get_buffer (img);
+  /* Red's luminosity, 0.3, put on blue: (0.19, 0.19, 1.19), clipped
+   * to (0.2135, 0.2135, 1). */
+  g_assert_cmpuint (pixel[0], ==, 255); /* blue */
+  g_assert_cmpuint (pixel[1], ==, 54);  /* green */
+  g_assert_cmpuint (pixel[2], ==, 54);  /* red */
+  g_assert_cmpuint (pixel[3], ==, 255); /* alpha */
+
+  hb_raster_image_destroy (img);
+  hb_raster_paint_destroy (paint);
+}
+
 static void
 test_set_extents_while_painting (void)
 {
@@ -915,6 +945,7 @@ main (int argc, char **argv)
   hb_test_add (test_image_png_size);
   hb_test_add (test_budget_sweep);
   hb_test_add (test_paint_clipped_layers);
+  hb_test_add (test_paint_hsl_luminosity_weights);
 
   return hb_test_run ();
 }

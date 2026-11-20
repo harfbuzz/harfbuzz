@@ -35,11 +35,11 @@ On macOS:
 
 Then use meson to build the project and run the tests, like:
 
-    meson build && ninja -Cbuild && meson test -Cbuild
+    meson setup build && ninja -Cbuild && meson test -Cbuild
 
 On Windows, meson can build the project like above if a working MSVC's cl.exe
 (`vcvarsall.bat`) or gcc/clang is already on your path, and if you use
-something like `meson build --wrap-mode=default` it fetches and compiles most
+something like `meson setup build --wrap-mode=default` it fetches and compiles most
 of the dependencies also.  It is recommended to install CMake either manually
 or via the Visual Studio installer when building with MSVC, using meson.
 
