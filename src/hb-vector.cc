@@ -63,10 +63,6 @@
  * hb_blob_t *svg = hb_vector_paint_render (paint);
  * ]|
  *
- * For linear and radial gradients, PDF output supports only
- * %HB_PAINT_EXTEND_PAD. %HB_PAINT_EXTEND_REPEAT and
- * %HB_PAINT_EXTEND_REFLECT are not supported for these gradients.
- *
  * The blend modes of #hb_paint_composite_mode_t are written as the
  * blend modes that SVG and PDF have, and the Porter-Duff modes with
  * masks. SVG output relies on CSS for both, so its viewer has to

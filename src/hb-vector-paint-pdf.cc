@@ -45,8 +45,9 @@
  *   - Compositing modes: the blend modes as PDF's own, and the
  *     Porter-Duff modes with soft masks (SRC_ATOP, DEST_ATOP, XOR and
  *     PLUS only approximately)
- *   - Linear gradients (PDF Type 2 axial shading, PAD extension only)
- *   - Radial gradients (PDF Type 3 radial shading, PAD extension only)
+ *   - Linear gradients (PDF Type 2 axial shadings; one for each period
+ *     of a color line that repeats or reflects)
+ *   - Radial gradients (PDF Type 3 radial shadings; likewise)
  *   - Sweep gradients (PDF Type 6 Coons-patch meshes)
  */
 
@@ -1069,6 +1070,587 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
   return res->add_object (std::move (obj));
 }
 
+/* ---- Gradients that repeat ---- */
+
+/* PDF shadings do not repeat.  A linear or radial gradient whose color
+ * line repeats or reflects is painted a period of the color line at a
+ * time, for the periods that reach what is painted: a shading each,
+ * with the color line backwards in every other one if it reflects.
+ *
+ * One shading over a function that stitches the periods together would
+ * be less to write, but viewers do badly with it.  Many resolve the
+ * function of a shading in a fixed number of steps, whatever it holds.
+ * And poppler splits a shading for as long as the colors at the two
+ * ends of a piece differ, which those of a function that repeats do
+ * not when a whole number of periods lie between them: it then paints
+ * that piece in one color.
+ *
+ * No more periods are written than the open clips let through, and
+ * never more than this many, since a color line can be as short as it
+ * likes next to what it fills.  Those nearest the color line itself are
+ * kept then. */
+#define HB_PDF_GRADIENT_MAX_PERIODS 256
+
+/* Each period's shading goes this much of a period into the next, whose
+ * shading is painted over it.  Viewers decide pixel by pixel which side
+ * of the line between two shadings a pixel is on, and where their
+ * arithmetic for the one and for the other disagreed, a pixel would be
+ * left out of both. */
+#define HB_PDF_GRADIENT_PERIOD_OVERLAP (1. / 64)
+
+/* The stretch of a color line that a gradient is written for, the color
+ * line itself being the stretch from 0 to 1. */
+struct hb_pdf_gradient_span_t
+{
+  /* The periods: [first, last). */
+  int first = 0, last = 1;
+  /* Where the first one starts and the last one ends. */
+  double t0 = 0., t1 = 1.;
+
+  /* Sets the span to the periods that hold the stretch from @tmin to
+   * @tmax.  Returns false if there is no such stretch. */
+  bool set (double tmin, double tmax)
+  {
+    /* Catches NaNs, too. */
+    if (!(tmin <= tmax))
+      return false;
+
+    /* Whole numbers this size are exact as floats, and as ints. */
+    const double limit = 1 << 20;
+    tmin = hb_clamp (tmin, -limit, limit);
+    tmax = hb_clamp (tmax, -limit, limit);
+
+    int nearest = (int) floor (hb_clamp (0.5, tmin, tmax));
+    first = hb_max ((int) floor (tmin), nearest - HB_PDF_GRADIENT_MAX_PERIODS / 2);
+    last = hb_min ((int) ceil (tmax), nearest + HB_PDF_GRADIENT_MAX_PERIODS / 2);
+    if (first == last)
+      last++;
+
+    t0 = first;
+    t1 = last;
+    return true;
+  }
+};
+
+/* Sets @span to the periods that reach what the open clips let through
+ * of a color line that repeats along the line from (@x0, @y0) to
+ * (@x1, @y1).  Returns false if nothing is to be painted. */
+static bool
+hb_pdf_linear_gradient_span (const hb_vector_paint_t *paint,
+			     float x0, float y0,
+			     float x1, float y1,
+			     hb_pdf_gradient_span_t *span)
+{
+  double dx = (double) x1 - (double) x0, dy = (double) y1 - (double) y0;
+  double len2 = dx * dx + dy * dy;
+  /* A line of no length has no colors, as in hb-raster. */
+  if (!(len2 > 0.))
+    return false;
+
+  double tmin = -HUGE_VAL, tmax = HUGE_VAL;
+  float x[4], y[4];
+  switch (paint->clip_corners (x, y))
+  {
+    case hb_bounds_t<>::EMPTY:
+      return false;
+    case hb_bounds_t<>::UNBOUNDED:
+      break;
+    case hb_bounds_t<>::BOUNDED:
+      tmin = HUGE_VAL;
+      tmax = -HUGE_VAL;
+      for (unsigned i = 0; i < 4; i++)
+      {
+	double t = (((double) x[i] - (double) x0) * dx +
+		    ((double) y[i] - (double) y0) * dy) / len2;
+	tmin = hb_min (tmin, t);
+	tmax = hb_max (tmax, t);
+      }
+      break;
+  }
+
+  return span->set (tmin, tmax);
+}
+
+/* Finds the circles that touch the quadrilateral of corners (@qx, @qy),
+ * which are in order around it, among those centered at
+ * (@cx + t @dx, @cy + t @dy) with a radius of @r + t @dr that is not
+ * negative.  Sets @tmin and @tmax to the smallest and largest t of
+ * such circles, and @tmin above @tmax if there are none.
+ *
+ * The circles at the two ends are among those that go through a
+ * corner, those that touch a side from the outside, and the one of no
+ * radius. */
+static void
+hb_pdf_circles_touching (const float qx[4], const float qy[4],
+			 double cx, double cy, double r,
+			 double dx, double dy, double dr,
+			 double *tmin, double *tmax)
+{
+  double lo = HUGE_VAL, hi = -HUGE_VAL;
+  auto add = [&] (double t)
+  {
+    lo = hb_min (lo, t);
+    hi = hb_max (hi, t);
+  };
+  auto exists = [&] (double t) { return r + t * dr >= 0.; };
+
+  /* The corners, from the center of the first circle. */
+  double px[4], py[4];
+  for (unsigned i = 0; i < 4; i++)
+  {
+    px[i] = (double) qx[i] - cx;
+    py[i] = (double) qy[i] - cy;
+  }
+
+  /* A circle goes through (x, y) if a t^2 - 2 b t + c = 0, where
+   *
+   *   a = dx^2 + dy^2 - dr^2
+   *   b = x dx + y dy + r dr
+   *   c = x^2 + y^2 - r^2
+   *
+   * If a is zero the circles all touch one line at one point, where b
+   * is zero, and get bigger without end as they near the rest of it. */
+  double a = dx * dx + dy * dy - dr * dr;
+  bool flat = fabs (a) <= 1e-9 * (dx * dx + dy * dy + dr * dr);
+  bool before = false, after = false;
+  for (unsigned i = 0; i < 4; i++)
+  {
+    double b = px[i] * dx + py[i] * dy + r * dr;
+    double c = px[i] * px[i] + py[i] * py[i] - r * r;
+    if (flat)
+    {
+      if (b <= 0.) before = true;
+      if (b >= 0.) after = true;
+      if (b != 0. && exists (c / (2. * b)))
+	add (c / (2. * b));
+      continue;
+    }
+    double d = b * b - a * c;
+    if (d < 0.)
+      continue;
+    /* The two roots, without subtracting numbers that may be close. */
+    double q = b + (b < 0. ? -sqrt (d) : sqrt (d));
+    if (exists (q / a))
+      add (q / a);
+    if (q != 0. && exists (c / q))
+      add (c / q);
+  }
+  if (flat && before && after)
+    add (dr > 0. ? HUGE_VAL : -HUGE_VAL);
+
+  /* Which way around the corners go. */
+  double area = 0.;
+  for (unsigned i = 0; i < 4; i++)
+  {
+    unsigned j = (i + 1) & 3;
+    area += px[i] * py[j] - px[j] * py[i];
+  }
+  double out = area < 0. ? -1. : 1.;
+
+  /* The circle of no radius is a point. */
+  double tf = dr != 0. ? -r / dr : 0.;
+  bool point_inside = dr != 0.;
+
+  for (unsigned i = 0; i < 4; i++)
+  {
+    unsigned j = (i + 1) & 3;
+    double ex = px[j] - px[i], ey = py[j] - py[i];
+    double len = sqrt (ex * ex + ey * ey);
+    if (!(len > 0.))
+      continue;
+    /* The unit normal of the side that points out. */
+    double nx = out * ey / len, ny = -out * ex / len;
+
+    if ((tf * dx - px[i]) * nx + (tf * dy - py[i]) * ny > 0.)
+      point_inside = false;
+
+    /* A circle touches the line of the side from the outside where its
+     * center is its radius away on that side. */
+    double den = dx * nx + dy * ny - dr;
+    if (den == 0.)
+      continue;
+    double t = (r + px[i] * nx + py[i] * ny) / den;
+    if (!exists (t))
+      continue;
+    /* And the side itself, if that is where it touches the line. */
+    double rt = r + t * dr;
+    double along = (t * dx - rt * nx - px[i]) * ex + (t * dy - rt * ny - py[i]) * ey;
+    if (along >= 0. && along <= len * len)
+      add (t);
+  }
+  if (point_inside)
+    add (tf);
+
+  *tmin = lo;
+  *tmax = hi;
+}
+
+/* Sets @span to the periods that reach what the open clips let through
+ * of a color line that repeats over the circles from the one at
+ * (@x0, @y0) of radius @r0 to the one at (@x1, @y1) of radius @r1.
+ * Returns false if nothing is to be painted. */
+static bool
+hb_pdf_radial_gradient_span (const hb_vector_paint_t *paint,
+			     float x0, float y0, float r0,
+			     float x1, float y1, float r1,
+			     hb_pdf_gradient_span_t *span)
+{
+  double dx = (double) x1 - (double) x0;
+  double dy = (double) y1 - (double) y0;
+  double dr = (double) r1 - (double) r0;
+  /* One circle has no colors, as in hb-raster. */
+  if (dx == 0. && dy == 0. && dr == 0.)
+    return false;
+
+  double tmin = -HUGE_VAL, tmax = HUGE_VAL;
+  float x[4], y[4];
+  switch (paint->clip_corners (x, y))
+  {
+    case hb_bounds_t<>::EMPTY:
+      return false;
+    case hb_bounds_t<>::UNBOUNDED:
+      break;
+    case hb_bounds_t<>::BOUNDED:
+      hb_pdf_circles_touching (x, y,
+			       (double) x0, (double) y0, (double) r0,
+			       dx, dy, dr,
+			       &tmin, &tmax);
+      break;
+  }
+
+  /* There are no circles past the one of no radius. */
+  double tf = dr != 0. ? -(double) r0 / dr : 0.;
+  if (dr > 0.)
+    tmin = hb_max (tmin, tf);
+  else if (dr < 0.)
+    tmax = hb_min (tmax, tf);
+
+  if (!span->set (tmin, tmax))
+    return false;
+
+  /* The periods are whole; the gradient stops at that circle. */
+  if (dr > 0.)
+    span->t0 = hb_max (span->t0, tf);
+  else if (dr < 0.)
+    span->t1 = hb_min (span->t1, tf);
+  return span->t0 < span->t1;
+}
+
+/* Builds a function over two periods of a color line from @func_id,
+ * the function over the color line: the first of them and then the
+ * second, each backwards if so told. */
+static unsigned
+hb_pdf_build_period_function (hb_pdf_resources_t *res,
+			      unsigned func_id,
+			      bool first_backwards,
+			      bool second_backwards)
+{
+  hb_vector_buf_t obj;
+  obj.append_str ("<< /FunctionType 3 /Domain [0 2]\n/Functions [");
+  obj.append_unsigned (func_id);
+  obj.append_str (" 0 R ");
+  obj.append_unsigned (func_id);
+  obj.append_str (" 0 R]\n/Bounds [1]\n/Encode [");
+  obj.append_str (first_backwards ? "1 0 " : "0 1 ");
+  obj.append_str (second_backwards ? "1 0" : "0 1");
+  obj.append_str ("] >>");
+  return res->add_object (std::move (obj));
+}
+
+/* A linear or radial gradient whose color line repeats, as it is
+ * written: the periods of the color line that are painted. */
+struct hb_pdf_gradient_periods_t
+{
+  /* 2 for an axial shading, 3 for a radial one. */
+  unsigned shading_type;
+  /* Where the color line starts and ends: x, y and, if radial, the
+   * radius. */
+  float c0[3], c1[3];
+  hb_pdf_gradient_span_t span;
+  bool reflect;
+  /* Whether the circles are inside one another.  They do not overlap
+   * then, and a period of them is a ring. */
+  bool nested;
+  /* Whether the color line is taken from its end to its start. */
+  bool backwards;
+
+  hb_pdf_gradient_periods_t (unsigned shading_type_,
+			     const float c0_[3], const float c1_[3],
+			     const hb_pdf_gradient_span_t &span_,
+			     bool reflect_)
+    : shading_type (shading_type_), span (span_), reflect (reflect_)
+  {
+    double dx = (double) c1_[0] - (double) c0_[0];
+    double dy = (double) c1_[1] - (double) c0_[1];
+    double dr = (double) c1_[2] - (double) c0_[2];
+    nested = shading_type == 3 && dx * dx + dy * dy < dr * dr;
+
+    /* Rings are written growing: poppler does not paint a radial
+     * shading that shrinks and goes on at one end only, as these do.
+     * Seen from the other end of the color line, t is 1 - t. */
+    backwards = nested && dr < 0.;
+    for (unsigned i = 0; i < 3; i++)
+    {
+      c0[i] = backwards ? c1_[i] : c0_[i];
+      c1[i] = backwards ? c0_[i] : c1_[i];
+    }
+    if (backwards)
+    {
+      span.first = 1 - span_.last;
+      span.last = 1 - span_.first;
+      span.t0 = 1. - span_.t1;
+      span.t1 = 1. - span_.t0;
+    }
+  }
+
+  /* Adds shadings in @color_space for the periods, of the colors that
+   * @func_id is the function of over the color line, and appends the
+   * operators that paint them to @out. */
+  void add_shadings (hb_vector_paint_t *paint,
+		     hb_pdf_resources_t *res,
+		     const char *color_space,
+		     unsigned func_id,
+		     hb_vector_buf_t *out) const
+  {
+    /* The functions of the periods of even and of odd number, each
+     * over its period and the next. */
+    unsigned func_ids[2];
+    func_ids[0] = hb_pdf_build_period_function (res, func_id,
+						backwards, backwards != reflect);
+    func_ids[1] = !reflect ? func_ids[0] :
+		  hb_pdf_build_period_function (res, func_id,
+						!backwards, backwards);
+
+    if (shading_type == 2)
+      add_axial_shadings (paint, res, color_space, func_ids, out);
+    else
+      add_radial_shadings (paint, res, color_space, func_ids, out);
+  }
+
+  /* The periods of an axial gradient are all alike: one shading, or
+   * two if every other one is backwards, painted at one place after
+   * another.  They are then parallel to the last digit.  Each written
+   * with numbers of its own, rounded, they are not, and come apart
+   * away from the color line. */
+  void add_axial_shadings (hb_vector_paint_t *paint,
+			   hb_pdf_resources_t *res,
+			   const char *color_space,
+			   const unsigned func_ids[2],
+			   hb_vector_buf_t *out) const
+  {
+    /* Where the color line starts and how far a period goes. */
+    double x = (double) paint->sx (c0[0]), y = (double) paint->sy (c0[1]);
+    double dx = (double) paint->sx (c1[0]) - x;
+    double dy = (double) paint->sy (c1[1]) - y;
+    const double end = 1. + HB_PDF_GRADIENT_PERIOD_OVERLAP;
+    unsigned precision = paint->get_precision () + 2;
+
+    /* Ghostscript, as of 10.05, gets the length of an axial shading
+     * wrong under a transform that rotates, depending on how much of
+     * the shading the clip lets through.  So under such a transform
+     * the periods are painted in the space of the root: the transform
+     * is undone, and the gradient written as it is there. */
+    hb_transform_t<> ctm = paint->current_ctm ();
+    double det = (double) ctm.xx * (double) ctm.yy - (double) ctm.xy * (double) ctm.yx;
+    bool in_root = (ctm.xy != 0.f || ctm.yx != 0.f) && fabs (det) > 1e-12;
+    if (in_root)
+    {
+      /* How fast t grows there, and so the step that takes it up by
+       * one. */
+      double len2 = dx * dx + dy * dy;
+      double gx = ( (double) ctm.yy * dx - (double) ctm.yx * dy) / (det * len2);
+      double gy = (-(double) ctm.xy * dx + (double) ctm.xx * dy) / (det * len2);
+      double g2 = gx * gx + gy * gy;
+      double rx = (double) ctm.xx * x + (double) ctm.xy * y + (double) ctm.x0;
+      double ry = (double) ctm.yx * x + (double) ctm.yy * y + (double) ctm.y0;
+      x = rx;
+      y = ry;
+      dx = gx / g2;
+      dy = gy / g2;
+
+      unsigned sprec = out->scale_precision ();
+      out->append_str ("q\n");
+      out->append_num ((float) ( (double) ctm.yy / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) (-(double) ctm.yx / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) (-(double) ctm.xy / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) ( (double) ctm.xx / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) (((double) ctm.xy * (double) ctm.y0 - (double) ctm.yy * (double) ctm.x0) / det), precision);
+      out->append_c (' ');
+      out->append_num ((float) (((double) ctm.yx * (double) ctm.x0 - (double) ctm.xx * (double) ctm.y0) / det), precision);
+      out->append_str (" cm\n");
+    }
+
+    unsigned sh_idx[2];
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (i && func_ids[1] == func_ids[0])
+      {
+	sh_idx[1] = sh_idx[0];
+	break;
+      }
+      hb_vector_buf_t sh;
+      sh.append_str ("<< /ShadingType 2 /ColorSpace ");
+      sh.append_str (color_space);
+      sh.append_str ("\n/Coords [");
+      sh.append_num ((float) x, precision);
+      sh.append_c (' ');
+      sh.append_num ((float) y, precision);
+      sh.append_c (' ');
+      sh.append_num ((float) (x + end * dx), precision);
+      sh.append_c (' ');
+      sh.append_num ((float) (y + end * dy), precision);
+      sh.append_str ("]\n/Function ");
+      sh.append_unsigned (func_ids[i]);
+      sh.append_str (" 0 R\n/Domain [0 ");
+      sh.append_num ((float) end, 4);
+      sh.append_str ("]\n>>");
+      sh_idx[i] = res->add_shading (std::move (sh));
+    }
+
+    for (int k = span.first; k < span.last; k++)
+    {
+      if (k)
+      {
+	out->append_str ("q\n1 0 0 1 ");
+	out->append_num ((float) (k * dx), precision);
+	out->append_c (' ');
+	out->append_num ((float) (k * dy), precision);
+	out->append_str (" cm\n");
+      }
+      out->append_str ("/SH");
+      out->append_unsigned (sh_idx[(unsigned) k & 1u]);
+      out->append_str (k ? " sh\nQ\n" : " sh\n");
+    }
+
+    if (in_root)
+      out->append_str ("Q\n");
+  }
+
+  /* The periods of a radial gradient are a shading each.
+   *
+   * Later periods are painted over earlier ones, as later circles are
+   * to be, and go half a period into the next: where two periods meet
+   * is a curve within what both paint, and the nearer the one stops to
+   * it, the more of a seam viewers leave along it.
+   *
+   * Rings are painted from the outside in, each with its hole filled
+   * and the next one over that, so that nothing can show between two
+   * of them.  MuPDF, which draws a ring as a polygon, leaves holes
+   * between two that merely meet. */
+  void add_radial_shadings (hb_vector_paint_t *paint,
+			    hb_pdf_resources_t *res,
+			    const char *color_space,
+			    const unsigned func_ids[2],
+			    hb_vector_buf_t *out) const
+  {
+    double dx = (double) c1[0] - (double) c0[0];
+    double dy = (double) c1[1] - (double) c0[1];
+    double dr = (double) c1[2] - (double) c0[2];
+    double overlap = nested ? HB_PDF_GRADIENT_PERIOD_OVERLAP : 0.5;
+
+    for (int n = span.first; n < span.last; n++)
+    {
+      int k = nested ? span.first + span.last - 1 - n : n;
+      double t[2] = {hb_max ((double) k, span.t0),
+		     hb_min ((double) k + 1. + overlap, span.t1)};
+
+      hb_vector_buf_t sh;
+      sh.append_str ("<< /ShadingType 3 /ColorSpace ");
+      sh.append_str (color_space);
+      sh.append_str ("\n/Coords [");
+      for (unsigned i = 0; i < 2; i++)
+      {
+	if (i) sh.append_c (' ');
+	sh.append_num (paint->sx ((float) ((double) c0[0] + t[i] * dx)));
+	sh.append_c (' ');
+	sh.append_num (paint->sy ((float) ((double) c0[1] + t[i] * dy)));
+	sh.append_c (' ');
+	sh.append_num (paint->sx ((float) hb_max ((double) c0[2] + t[i] * dr, 0.)));
+      }
+      sh.append_str ("]\n/Function ");
+      sh.append_unsigned (func_ids[(unsigned) k & 1u]);
+      sh.append_str (" 0 R\n/Domain [");
+      sh.append_num ((float) (t[0] - k), 4);
+      sh.append_c (' ');
+      sh.append_num ((float) (t[1] - k), 4);
+      sh.append_str (nested ? "]\n/Extend [true false]\n>>" : "]\n>>");
+
+      out->append_str ("/SH");
+      out->append_unsigned (res->add_shading (std::move (sh)));
+      out->append_str (" sh\n");
+    }
+  }
+};
+
+/* Paints @periods, of a gradient whose color line is in
+ * paint->color_stops_scratch and whose colors @func_id is the function
+ * of over that color line. */
+static void
+hb_pdf_paint_gradient_periods (hb_vector_paint_t *paint,
+			       hb_pdf_resources_t *res,
+			       const hb_pdf_gradient_periods_t &periods,
+			       unsigned func_id)
+{
+  auto &body = paint->current_body ();
+
+  hb_vector_buf_t colors;
+  periods.add_shadings (paint, res, "/DeviceRGB", func_id, &colors);
+
+  /* The periods of an axial gradient hardly overlap, and are painted
+   * as they are if they are opaque.
+   *
+   * Otherwise the periods are painted in a group, and the group once.
+   * Those of a radial gradient are painted on top of each other, and
+   * under a clip each would add to what shows of the clip's edge,
+   * which is antialiased.  And colors are painted through a soft mask
+   * of their alphas, which would count twice where two periods
+   * overlap. */
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (paint->color_stops_scratch);
+  if (periods.shading_type == 2 && !needs_alpha)
+  {
+    body.append_len (colors.arrayZ, colors.length);
+    return;
+  }
+
+  unsigned form_idx;
+  if (unlikely (!res->add_form_group (colors, &form_idx)))
+    return;
+
+  if (needs_alpha)
+  {
+    hb_vector_buf_t alphas;
+    periods.add_shadings (paint, res, "/DeviceGray",
+			  hb_pdf_build_alpha_gradient_function_from_stops (res, paint),
+			  &alphas);
+
+    unsigned mask_id = res->add_group (alphas, true);
+    if (unlikely (!mask_id))
+      return;
+
+    hb_vector_buf_t gs;
+    gs.append_str ("<< /Type /ExtGState\n");
+    gs.append_str ("/SMask << /Type /Mask /S /Luminosity /G ");
+    gs.append_unsigned (mask_id);
+    gs.append_str (" 0 R >> >>");
+    unsigned gs_idx = res->add_extgstate (std::move (gs));
+
+    body.append_str ("q\n/GS");
+    body.append_unsigned (gs_idx);
+    body.append_str (" gs\n");
+  }
+
+  body.append_str ("/Fm");
+  body.append_unsigned (form_idx);
+  body.append_str (" Do\n");
+
+  if (needs_alpha)
+    body.append_str ("Q\n");
+}
+
 static void
 hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 			      void *paint_data,
@@ -1108,6 +1690,22 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const char *extend_str = (extend == HB_PAINT_EXTEND_PAD)
 			    ? "/Extend [true true]\n" : "";
+
+  if (extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    hb_pdf_gradient_span_t span;
+    if (hb_pdf_linear_gradient_span (paint,
+				     paint->sx (gx0), paint->sy (gy0),
+				     paint->sx (gx1), paint->sy (gy1),
+				     &span))
+    {
+      const float c0[3] = {gx0, gy0, 0.f}, c1[3] = {gx1, gy1, 0.f};
+      hb_pdf_gradient_periods_t periods (2, c0, c1, span,
+					 extend == HB_PAINT_EXTEND_REFLECT);
+      hb_pdf_paint_gradient_periods (paint, res, periods, func_id);
+    }
+    return;
+  }
 
   /* Build Type 2 (axial) shading — color only. */
   hb_vector_buf_t sh;
@@ -1209,6 +1807,22 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const char *extend_str = (extend == HB_PAINT_EXTEND_PAD)
 			    ? "/Extend [true true]\n" : "";
+
+  if (extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    hb_pdf_gradient_span_t span;
+    if (hb_pdf_radial_gradient_span (paint,
+				     paint->sx (gx0), paint->sy (gy0), paint->sx (gr0),
+				     paint->sx (gx1), paint->sy (gy1), paint->sx (gr1),
+				     &span))
+    {
+      const float c0[3] = {gx0, gy0, gr0}, c1[3] = {gx1, gy1, gr1};
+      hb_pdf_gradient_periods_t periods (3, c0, c1, span,
+					 extend == HB_PAINT_EXTEND_REFLECT);
+      hb_pdf_paint_gradient_periods (paint, res, periods, func_id);
+    }
+    return;
+  }
 
   /* Build Type 3 (radial) shading — color only. */
   hb_vector_buf_t sh;

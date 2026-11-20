@@ -213,6 +213,37 @@ struct hb_vector_paint_t
     scope.clip = clip_bounds (e);
   }
 
+  /* The bounds of what the open clips let through, as their corners in
+   * the current space, in order around them.  Returns BOUNDED if it has
+   * set them, EMPTY if the clips let nothing through, and UNBOUNDED if
+   * they do not bound it, or the transform in effect has no inverse to
+   * bring the bounds back through. */
+  hb_bounds_t<>::status_t clip_corners (float x[4], float y[4]) const
+  {
+    hb_bounds_t<> bounds;
+    for (const auto &scope : scopes)
+      bounds.intersect (scope.clip);
+
+    if (bounds.status != hb_bounds_t<>::BOUNDED)
+      return bounds.status;
+
+    hb_transform_t<> t = current_ctm ();
+    float det = t.xx * t.yy - t.xy * t.yx;
+    if (!(fabsf (det) > 1e-12f))
+      return hb_bounds_t<>::UNBOUNDED;
+
+    const hb_extents_t<> &e = bounds.extents;
+    const float xs[4] = {e.xmin, e.xmax, e.xmax, e.xmin};
+    const float ys[4] = {e.ymin, e.ymin, e.ymax, e.ymax};
+    for (unsigned i = 0; i < 4; i++)
+    {
+      float dx = xs[i] - t.x0, dy = ys[i] - t.y0;
+      x[i] = ( t.yy * dx - t.xy * dy) / det;
+      y[i] = (-t.yx * dx + t.xx * dy) / det;
+    }
+    return hb_bounds_t<>::BOUNDED;
+  }
+
   /* The radius that a sweep gradient centered at (@cx, @cy) has to
    * reach to cover everything the open clips let through: zero if that
    * is nothing, and @max_radius if the clips do not bound it.
@@ -225,31 +256,19 @@ struct hb_vector_paint_t
    * shapes whose coordinates, in pixels, get near 2^17. */
   float sweep_radius (float cx, float cy, float max_radius) const
   {
-    hb_bounds_t<> bounds;
-    for (const auto &scope : scopes)
-      bounds.intersect (scope.clip);
+    float x[4], y[4];
+    switch (clip_corners (x, y))
+    {
+      case hb_bounds_t<>::EMPTY:     return 0.f;
+      case hb_bounds_t<>::UNBOUNDED: return max_radius;
+      case hb_bounds_t<>::BOUNDED:   break;
+    }
 
-    if (bounds.status == hb_bounds_t<>::EMPTY)
-      return 0.f;
-    if (bounds.status == hb_bounds_t<>::UNBOUNDED)
-      return max_radius;
-
-    /* Bring the corners of the bounds into the gradient's space. */
-    hb_transform_t<> t = current_ctm ();
-    float det = t.xx * t.yy - t.xy * t.yx;
-    if (!(fabsf (det) > 1e-12f))
-      return max_radius;
-
-    const hb_extents_t<> &e = bounds.extents;
-    float xs[2] = {e.xmin, e.xmax};
-    float ys[2] = {e.ymin, e.ymax};
     float r2 = 0.f;
     for (unsigned i = 0; i < 4; i++)
     {
-      float dx = xs[i & 1] - t.x0, dy = ys[i >> 1] - t.y0;
-      float x = ( t.yy * dx - t.xy * dy) / det - cx;
-      float y = (-t.yx * dx + t.xx * dy) / det - cy;
-      r2 = hb_max (r2, x * x + y * y);
+      float dx = x[i] - cx, dy = y[i] - cy;
+      r2 = hb_max (r2, dx * dx + dy * dy);
     }
 
     float r = ceilf (sqrtf (r2)) + 1.f;

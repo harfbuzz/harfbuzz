@@ -30,6 +30,14 @@ test('sweep', test_vector_sweep,
   suite: 'vector',
 )
 
+test_vector_pdf_repeat = executable('test-vector-pdf-repeat', 'test-vector-pdf-repeat.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-repeat', test_vector_pdf_repeat,
+  suite: 'vector',
+)
+
 test_vector_composite = executable('test-vector-composite', 'test-vector-composite.c',
   dependencies: [libharfbuzz_vector_dep],
 )
