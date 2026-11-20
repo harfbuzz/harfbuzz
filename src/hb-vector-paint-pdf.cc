@@ -84,6 +84,56 @@ struct hb_pdf_resources_t
   unsigned objects_size = 0;
   bool overflowed = false;
 
+  /* The transform and clip stack, as the content stream's q/Q pairs
+   * nest them.  Kept so that a sweep gradient can be sized to what
+   * is visible of it.  Transforms and clip bounds are in root output
+   * space. */
+  struct gstate_t
+  {
+    hb_transform_t<> ctm = HB_TRANSFORM_IDENTITY;
+    /* This level's own clip. */
+    hb_bounds_t<> clip;
+  };
+  hb_vector_t<gstate_t> gstates;
+  /* Pushes that did not fit in gstates; while non-zero the stack
+   * does not describe the content stream. */
+  unsigned gstates_lost = 0;
+  /* Bounds of the clip path being streamed. */
+  hb_extents_t<> clip_path_extents;
+
+  hb_transform_t<> current_ctm () const
+  {
+    if (gstates.length) return gstates.tail ().ctm;
+    return HB_TRANSFORM_IDENTITY;
+  }
+
+  void push_gstate (const gstate_t &g)
+  {
+    if (unlikely (gstates_lost || !gstates.push_or_fail (g)))
+      gstates_lost++;
+  }
+  /* Push a clip whose bounds, in the current space, are e. */
+  void push_clip (hb_extents_t<> e)
+  {
+    gstate_t g;
+    g.ctm = current_ctm ();
+    if (e.is_empty ())
+      g.clip = hb_bounds_t<> (hb_bounds_t<>::EMPTY);
+    else
+    {
+      g.ctm.transform_extents (e);
+      g.clip = hb_bounds_t<> (e);
+    }
+    push_gstate (g);
+  }
+  void pop_gstate ()
+  {
+    if (unlikely (gstates_lost))
+      gstates_lost--;
+    else if (gstates.length)
+      gstates.pop ();
+  }
+
   bool in_error () const
   { return objects.in_error () || overflowed; }
 
@@ -421,7 +471,8 @@ static void
 hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 			 hb_font_t *font,
 			 hb_codepoint_t glyph,
-			 hb_vector_buf_t *buf)
+			 hb_vector_buf_t *buf,
+			 hb_extents_t<> *extents = nullptr)
 {
   paint->path.clear ();
   /* Skip the outline extraction when the session work budget is
@@ -430,7 +481,7 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
 				 paint->x_scale_factor, paint->y_scale_factor,
-				 &paint->budget_remaining};
+				 &paint->budget_remaining, extents};
     hb_font_draw_glyph (font, glyph,
 			hb_vector_pdf_path_draw_funcs_get (),
 			&sink);
@@ -469,6 +520,14 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (paint->sy (dy));
   body.append_str (" cm\n");
+
+  if (auto *res = hb_pdf_get_resources (paint))
+  {
+    hb_pdf_resources_t::gstate_t g;
+    g.ctm = res->current_ctm ();
+    g.ctm.multiply ({xx, yx, xy, yy, paint->sx (dx), paint->sy (dy)});
+    res->push_gstate (g);
+  }
 }
 
 static void
@@ -480,6 +539,8 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("Q\n");
+  if (auto *res = hb_pdf_get_resources (paint))
+    res->pop_gstate ();
 }
 
 static void
@@ -547,8 +608,12 @@ hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
   body.append_str ("q\n");
-  hb_pdf_emit_glyph_path (paint, font, glyph, &body);
+  hb_extents_t<> extents;
+  hb_pdf_emit_glyph_path (paint, font, glyph, &body, &extents);
   body.append_str ("W n\n");
+
+  if (auto *res = hb_pdf_get_resources (paint))
+    res->push_clip (extents);
 }
 
 static void
@@ -572,6 +637,12 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (paint->sy (ymax - ymin));
   body.append_str (" re W n\n");
+
+  if (auto *res = hb_pdf_get_resources (paint))
+    res->push_clip ({hb_min (paint->sx (xmin), paint->sx (xmax)),
+		     hb_min (paint->sy (ymin), paint->sy (ymax)),
+		     hb_max (paint->sx (xmin), paint->sx (xmax)),
+		     hb_max (paint->sy (ymin), paint->sy (ymax))});
 }
 
 static hb_draw_funcs_t *
@@ -596,7 +667,16 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
   paint->clip_path_sink = {&body, paint->get_precision (),
 			   paint->x_scale_factor,
 			   paint->y_scale_factor,
-			   &paint->budget_remaining};
+			   &paint->budget_remaining, nullptr};
+  /* The clip's bounds are known when the path ends. */
+  if (auto *res = hb_pdf_get_resources (paint))
+  {
+    res->clip_path_extents = hb_extents_t<> {};
+    paint->clip_path_sink.extents = &res->clip_path_extents;
+    hb_pdf_resources_t::gstate_t g;
+    g.ctm = res->current_ctm ();
+    res->push_gstate (g);
+  }
   *draw_data = &paint->clip_path_sink;
   return hb_vector_pdf_path_draw_funcs_get ();
 }
@@ -610,6 +690,15 @@ hb_pdf_paint_push_clip_path_end (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("W n\n");
+
+  auto *res = hb_pdf_get_resources (paint);
+  if (res && paint->clip_path_sink.extents)
+  {
+    paint->clip_path_sink.extents = nullptr;
+    /* Swap the placeholder pushed at the start for the real clip. */
+    res->pop_gstate ();
+    res->push_clip (res->clip_path_extents);
+  }
 }
 
 static void
@@ -621,6 +710,8 @@ hb_pdf_paint_pop_clip (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
   paint->current_body ().append_str ("Q\n");
+  if (auto *res = hb_pdf_get_resources (paint))
+    res->pop_gstate ();
 }
 
 /* Paint a solid color, including alpha via ExtGState. */
@@ -1279,12 +1370,11 @@ hb_pdf_encode_point (hb_vector_buf_t *buf,
 static void
 hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
 			hb_vector_buf_t *alpha_mesh,
-			float cx, float cy,
+			float cx, float cy, float R,
 			float xlo, float xhi, float ylo, float yhi,
 			float a0, hb_color_t c0_in,
 			float a1, hb_color_t c1_in)
 {
-  const float R = 32767.f;
   const float MAX_SECTOR = (float) M_PI / 2.f;
 
   int num_splits = (int) ceilf (fabsf (a1 - a0) / MAX_SECTOR);
@@ -1381,11 +1471,63 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
   }
 }
 
+/* The radius a sweep gradient centered at (cx, cy) has to reach to
+ * cover everything the current clips let through: zero if that is
+ * nothing, and the largest radius the mesh can encode if the clips
+ * do not bound it.
+ *
+ * The mesh is no bigger than it has to be because viewers resolve a
+ * patch, or the whole mesh, in a fixed number of steps whatever its
+ * size: around a glyph a thousand units across, patches reaching
+ * 32767 units come out as a handful of flat facets. */
+static float
+hb_pdf_sweep_radius (hb_pdf_resources_t *res,
+		     float cx, float cy)
+{
+  const float MAX_R = 32767.f;
+
+  if (unlikely (res->gstates_lost))
+    return MAX_R;
+
+  hb_bounds_t<> bounds;
+  for (const auto &g : res->gstates)
+    bounds.intersect (g.clip);
+
+  if (bounds.status == hb_bounds_t<>::EMPTY)
+    return 0.f;
+  if (bounds.status == hb_bounds_t<>::UNBOUNDED)
+    return MAX_R;
+
+  /* Bring the corners of the bounds into the gradient's space. */
+  hb_transform_t<> t = res->current_ctm ();
+  float det = t.xx * t.yy - t.xy * t.yx;
+  if (!(fabsf (det) > 1e-12f))
+    return MAX_R;
+
+  const hb_extents_t<> &e = bounds.extents;
+  float xs[2] = {e.xmin, e.xmax};
+  float ys[2] = {e.ymin, e.ymax};
+  float r2 = 0.f;
+  for (unsigned i = 0; i < 4; i++)
+  {
+    float dx = xs[i & 1] - t.x0, dy = ys[i >> 1] - t.y0;
+    float x = ( t.yy * dx - t.xy * dy) / det - cx;
+    float y = (-t.yx * dx + t.xx * dy) / det - cy;
+    r2 = hb_max (r2, x * x + y * y);
+  }
+
+  float r = ceilf (sqrtf (r2)) + 1.f;
+  /* Catches a NaN, too. */
+  if (!(r <= MAX_R))
+    return MAX_R;
+  return r;
+}
+
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
 struct hb_pdf_sweep_ctx_t {
   hb_vector_buf_t *mesh;
   hb_vector_buf_t *alpha_mesh;
-  float cx, cy, xlo, xhi, ylo, yhi;
+  float cx, cy, R, xlo, xhi, ylo, yhi;
 };
 
 static void
@@ -1402,7 +1544,7 @@ hb_pdf_sweep_emit_patch (float a0, hb_color_t c0,
 		(ctx->alpha_mesh && ctx->alpha_mesh->in_error ())))
     return;
   hb_pdf_add_sweep_patch (ctx->mesh, ctx->alpha_mesh,
-			  ctx->cx, ctx->cy,
+			  ctx->cx, ctx->cy, ctx->R,
 			  ctx->xlo, ctx->xhi, ctx->ylo, ctx->yhi,
 			  a0, c0, a1, c1);
 }
@@ -1434,10 +1576,14 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
-  const float R = 32767.f;
   float scx = paint->sx (cx), scy = paint->sy (cy);
-  float xlo = scx - R - 1, xhi = scx + R + 1;
-  float ylo = scy - R - 1, yhi = scy + R + 1;
+  float R = hb_pdf_sweep_radius (res, scx, scy);
+  if (R <= 0.f)
+    return;
+  /* Whole numbers, so that the /Decode array, written to two
+   * decimals, says exactly what the mesh was encoded against. */
+  float xlo = floorf (scx - R - 1), xhi = ceilf (scx + R + 1);
+  float ylo = floorf (scy - R - 1), yhi = ceilf (scy + R + 1);
 
   bool needs_alpha = hb_pdf_gradient_needs_alpha (stops);
 
@@ -1448,7 +1594,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
     alpha_mesh.alloc (256);
 
   hb_pdf_sweep_ctx_t ctx { &mesh, needs_alpha ? &alpha_mesh : nullptr,
-			    scx, scy, xlo, xhi, ylo, yhi };
+			    scx, scy, R, xlo, xhi, ylo, yhi };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length, extend,
 				 start_angle, end_angle,
 				 hb_pdf_sweep_emit_patch, &ctx);

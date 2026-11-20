@@ -21,6 +21,15 @@ test('reset', test_vector_reset,
   suite: 'vector',
 )
 
+test_vector_sweep = executable('test-vector-sweep', 'test-vector-sweep.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('sweep', test_vector_sweep,
+  args: [meson.project_source_root() / 'test' / 'api' / 'fonts' / 'test_glyphs-glyf_colr_1.ttf'],
+  suite: 'vector',
+)
+
 if zlib_dep.found()
   test_vector_png = executable('test-vector-png', 'test-vector-png.c',
     dependencies: [libharfbuzz_vector_dep, zlib_dep],

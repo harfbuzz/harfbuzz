@@ -112,6 +112,8 @@ hb_vector_pdf_path_append_xy (hb_vector_path_sink_t *s, float x, float y)
   s->path->append_num (x / s->x_scale, s->precision);
   s->path->append_c (' ');
   s->path->append_num (y / s->y_scale, s->precision);
+  if (s->extents)
+    s->extents->add_point (x / s->x_scale, y / s->y_scale);
 }
 
 static void

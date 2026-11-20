@@ -45,6 +45,8 @@ struct hb_vector_path_sink_t
   float x_scale;
   float y_scale;
   int64_t *budget;
+  /* If set, grown to the points written; PDF only. */
+  hb_extents_t<> *extents;
 
   bool begin_command ()
   {
