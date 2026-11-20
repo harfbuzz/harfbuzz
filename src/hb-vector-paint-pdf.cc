@@ -1206,6 +1206,41 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   body.append_str (" sh\n");
 }
 
+/* Gives a radial gradient, whose color line is in
+ * paint->color_stops_scratch and goes from 0 to 1, two circles to be
+ * written as a shading.  Returns false if nothing is to be painted. */
+static bool
+hb_pdf_radial_gradient_circles (hb_vector_paint_t *paint,
+				hb_color_line_t *color_line,
+				float *x0, float *y0, float *r0,
+				float *x1, float *y1, float *r1)
+{
+  hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  if (!paint->radial_gradient_circles (extend, x0, y0, r0, x1, y1, r1))
+    return false;
+
+  /* A cone that starts at its tip, and whose first color goes on
+   * before it, where there is nothing: pdfium draws a line through the
+   * tip then, across everything.  It does not if the cone starts a
+   * hair after its tip, far enough for the radius to be written as
+   * more than zero.  The first color then goes on to the tip. */
+  float dx = *x1 - *x0, dy = *y1 - *y0;
+  if (extend == HB_PAINT_EXTEND_PAD &&
+      *r0 == 0.f && *r1 > 0.f && dx * dx + dy * dy >= *r1 * *r1)
+  {
+    float hair = hb_max (1.f / 256, 0.02f * paint->x_scale_factor / *r1);
+    if (hair < 0.5f)
+    {
+      if (unlikely (!paint->cut_color_stops (hair, 1.f)))
+	return false;
+      *x0 += hair * dx;
+      *y0 += hair * dy;
+      *r0 = hair * *r1;
+    }
+  }
+  return true;
+}
+
 static void
 hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 			      void *paint_data,
@@ -1236,7 +1271,7 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   float gy1 = y0 + mx * (y1 - y0);
   float gr1 = r0 + mx * (r1 - r0);
 
-  if (!paint->radial_gradient_circles (hb_color_line_get_extend (color_line),
+  if (!hb_pdf_radial_gradient_circles (paint, color_line,
 				       &gx0, &gy0, &gr0, &gx1, &gy1, &gr1))
     return;
 

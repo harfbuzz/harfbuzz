@@ -96,11 +96,12 @@ has (const char *needle)
   return 0;
 }
 
-/* Paints circles around one center, of radius @r0 where the color line
- * is at 0 and @r1 where it is at 1, with its @count stops at
- * @offsets. */
+/* Paints circles of radius @r0 where the color line is at 0 and @r1
+ * where it is at 1, the one at the origin and the other @x1 to its
+ * right, with the @count stops of the color line at @offsets. */
 static hb_blob_t *
 render_stops (hb_vector_format_t format,
+	      float x1,
 	      float r0, float r1,
 	      unsigned count, const float *offsets,
 	      hb_paint_extend_t extend)
@@ -123,7 +124,7 @@ render_stops (hb_vector_format_t format,
   color_line.get_extend = get_extend;
 
   hb_paint_push_clip_rectangle (funcs, paint, -100, -100, 100, 100);
-  hb_paint_radial_gradient (funcs, paint, &color_line, 0, 0, r0, 0, 0, r1);
+  hb_paint_radial_gradient (funcs, paint, &color_line, 0, 0, r0, x1, 0, r1);
   hb_paint_pop_clip (funcs, paint);
 
   hb_blob_t *blob = hb_vector_paint_render (paint);
@@ -136,6 +137,7 @@ render_stops (hb_vector_format_t format,
 /* The same with two stops, at @offset0 and @offset1. */
 static hb_blob_t *
 render (hb_vector_format_t format,
+	float x1,
 	float r0, float r1,
 	float offset0, float offset1,
 	hb_paint_extend_t extend)
@@ -143,7 +145,7 @@ render (hb_vector_format_t format,
   float offsets[2];
   offsets[0] = offset0;
   offsets[1] = offset1;
-  return render_stops (format, r0, r1, 2, offsets, extend);
+  return render_stops (format, x1, r0, r1, 2, offsets, extend);
 }
 
 int
@@ -155,13 +157,13 @@ main (void)
    * before the first as it ends after it: at a radius of -30.  It is
    * cut where the radius is zero, three eighths along, and starts
    * there with the color it has there. */
-  blob = render (HB_VECTOR_FORMAT_PDF, 10, 50, -1, 1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_PDF, 0, 10, 50, -1, 1, HB_PAINT_EXTEND_PAD);
   assert (has ("/Coords [0 0 0 0 0 50]"));
   assert (has ("/C0 [0.6235 0 0.3765]"));
   assert (has ("/C1 [0 0 1]"));
   hb_blob_destroy (blob);
 
-  blob = render (HB_VECTOR_FORMAT_SVG, 10, 50, -1, 1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, 10, 50, -1, 1, HB_PAINT_EXTEND_PAD);
   assert (has (" r=\"50\" fx=\"0\" fy=\"0\" spreadMethod"));
   assert (has ("<stop offset=\"0\" stop-color=\"rgb(159,0,96)\"/>"));
   assert (has ("<stop offset=\"1\" stop-color=\"rgb(0,0,255)\"/>"));
@@ -169,13 +171,13 @@ main (void)
 
   /* The same from the other end: the circles shrink from 50 to 10,
    * and the color line goes on to where the radius would be -30. */
-  blob = render (HB_VECTOR_FORMAT_PDF, 50, 10, 0, 2, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_PDF, 0, 50, 10, 0, 2, HB_PAINT_EXTEND_PAD);
   assert (has ("/Coords [0 0 50 0 0 0]"));
   assert (has ("/C0 [1 0 0]"));
   assert (has ("/C1 [0.3765 0 0.6235]"));
   hb_blob_destroy (blob);
 
-  blob = render (HB_VECTOR_FORMAT_SVG, 50, 10, 0, 2, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, 50, 10, 0, 2, HB_PAINT_EXTEND_PAD);
   assert (has (" r=\"0\" fx=\"0\" fy=\"0\" fr=\"50\" spreadMethod"));
   assert (!has ("r=\"-"));
   hb_blob_destroy (blob);
@@ -185,7 +187,7 @@ main (void)
    * goes on before it. */
   {
     static const float offsets[3] = {0, 0, 2};
-    blob = render_stops (HB_VECTOR_FORMAT_SVG, 50, 10, 3, offsets, HB_PAINT_EXTEND_PAD);
+    blob = render_stops (HB_VECTOR_FORMAT_SVG, 0, 50, 10, 3, offsets, HB_PAINT_EXTEND_PAD);
     assert (has ("<stop offset=\"0\" stop-color=\"rgb(255,0,0)\"/>\n"
 		 "<stop offset=\"0\" stop-color=\"rgb(0,0,255)\"/>\n"
 		 "<stop offset=\"1\" stop-color=\"rgb(0,159,96)\"/>"));
@@ -194,13 +196,13 @@ main (void)
 
   /* All of the color line is past the tip.  Its last color goes on
    * from its end, so that color is painted from the tip on. */
-  blob = render (HB_VECTOR_FORMAT_PDF, 10, 30, -3, -1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_PDF, 0, 10, 30, -3, -1, HB_PAINT_EXTEND_PAD);
   assert (has ("/Coords [0 0 0 0 0 40]"));
   assert (has ("/C0 [0 0 1]"));
   assert (has ("/C1 [0 0 1]"));
   hb_blob_destroy (blob);
 
-  blob = render (HB_VECTOR_FORMAT_SVG, 10, 30, -3, -1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, 10, 30, -3, -1, HB_PAINT_EXTEND_PAD);
   assert (has (" r=\"40\" fx=\"0\" fy=\"0\" spreadMethod"));
   assert (has ("<stop offset=\"0\" stop-color=\"rgb(0,0,255)\"/>"));
   hb_blob_destroy (blob);
@@ -208,27 +210,43 @@ main (void)
   /* A color line that repeats is not cut: its period from a radius of
    * -10 to 30 paints the same as the next, from 30 to 70.  One that
    * reflects is taken two periods further. */
-  blob = render (HB_VECTOR_FORMAT_SVG, 10, 30, -1, 1, HB_PAINT_EXTEND_REPEAT);
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, 10, 30, -1, 1, HB_PAINT_EXTEND_REPEAT);
   assert (has (" r=\"70\" fx=\"0\" fy=\"0\" fr=\"30\" spreadMethod=\"repeat\""));
   assert (has ("<stop offset=\"0\" stop-color=\"rgb(255,0,0)\"/>"));
   hb_blob_destroy (blob);
 
-  blob = render (HB_VECTOR_FORMAT_SVG, 10, 30, -1, 1, HB_PAINT_EXTEND_REFLECT);
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, 10, 30, -1, 1, HB_PAINT_EXTEND_REFLECT);
   assert (has (" r=\"110\" fx=\"0\" fy=\"0\" fr=\"70\" spreadMethod=\"reflect\""));
   hb_blob_destroy (blob);
 
+  /* A cone that starts at its tip, and whose first color goes on
+   * before it, is started a hair after the tip in PDF, for pdfium. */
+  blob = render (HB_VECTOR_FORMAT_PDF, 100, 0, 50, 0, 1, HB_PAINT_EXTEND_PAD);
+  assert (has ("/Coords [0.39 0 0.2 100 0 50]"));
+  assert (has ("/C0 [0.9961 0 0.0039]"));
+  hb_blob_destroy (blob);
+
+  blob = render (HB_VECTOR_FORMAT_SVG, 100, 0, 50, 0, 1, HB_PAINT_EXTEND_PAD);
+  assert (has (" cx=\"100\" cy=\"0\" r=\"50\" fx=\"0\" fy=\"0\" spreadMethod"));
+  hb_blob_destroy (blob);
+
+  /* Circles inside one another make no cone. */
+  blob = render (HB_VECTOR_FORMAT_PDF, 10, 0, 50, 0, 1, HB_PAINT_EXTEND_PAD);
+  assert (has ("/Coords [0 0 0 10 0 50]"));
+  hb_blob_destroy (blob);
+
   /* Circles that all have a radius are written as they are. */
-  blob = render (HB_VECTOR_FORMAT_PDF, 10, 50, 0, 1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_PDF, 0, 10, 50, 0, 1, HB_PAINT_EXTEND_PAD);
   assert (has ("/Coords [0 0 10 0 0 50]"));
   assert (has ("/C0 [1 0 0]"));
   hb_blob_destroy (blob);
 
   /* And nothing is painted if none has. */
-  blob = render (HB_VECTOR_FORMAT_PDF, -10, -10, 0, 1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_PDF, 0, -10, -10, 0, 1, HB_PAINT_EXTEND_PAD);
   assert (!has ("/ShadingType"));
   hb_blob_destroy (blob);
 
-  blob = render (HB_VECTOR_FORMAT_SVG, -10, -10, 0, 1, HB_PAINT_EXTEND_PAD);
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, -10, -10, 0, 1, HB_PAINT_EXTEND_PAD);
   assert (!has ("<radialGradient"));
   hb_blob_destroy (blob);
 
