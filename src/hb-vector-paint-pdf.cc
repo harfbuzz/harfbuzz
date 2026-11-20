@@ -1040,11 +1040,6 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
     return res->add_object (std::move (obj));
   }
 
-  /* Sort by offset. */
-  paint->color_stops_scratch.as_array ().qsort (
-    [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
-    { return (a.offset > b.offset) - (a.offset < b.offset); });
-
   if (count == 2)
   {
     /* Two stops: single interpolation function. */
@@ -1570,9 +1565,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   if (!paint->fetch_color_stops (color_line))
     return;
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
-  stops.as_array ().qsort (
-    [] (const hb_color_stop_t &a, const hb_color_stop_t &b)
-    { return (a.offset > b.offset) - (a.offset < b.offset); });
+  hb_color_stops_sort (stops.arrayZ, stops.length);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 

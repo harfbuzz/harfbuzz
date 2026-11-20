@@ -603,10 +603,7 @@ _hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
 
-  hb_array_t<hb_color_stop_t> (stops, len)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return (a.offset > b.offset) - (a.offset < b.offset);
-    });
+  hb_color_stops_sort (stops, len);
 
   cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
   max_x = (float) hb_max ((x1 - (double) cx) * (x1 - (double) cx), (x2 - (double) cx) * (x2 - (double) cx));

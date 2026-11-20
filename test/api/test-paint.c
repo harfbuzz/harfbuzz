@@ -1418,6 +1418,52 @@ test_hb_paint_sweep_gradient_tiles_seam_color (void)
   g_assert_cmpint (hb_color_get_alpha (data.color), ==, 255);
 }
 
+static void
+test_hb_paint_normalize_color_line_hard_stops (void)
+{
+  /* Two stops that share an offset are a hard stop: the first is the
+   * color before the offset and the second the color after it.
+   * Sorting has to leave them in that order however many stops there
+   * are; these are stripes, each a pair of stops of one color. */
+#define STRIPES 40
+  hb_color_stop_t stops[2 * STRIPES + 1];
+  float min, max;
+
+  for (unsigned extra = 0; extra < 2; extra++)
+  {
+    unsigned len = 0;
+    for (unsigned i = 0; i < STRIPES; i++)
+      for (unsigned end = 0; end < 2; end++)
+      {
+	stops[len].offset = (float) (i + end) / STRIPES;
+	stops[len].is_foreground = FALSE;
+	stops[len].color = HB_COLOR (i, 0, 0, 255);
+	len++;
+      }
+    if (extra)
+    {
+      /* Out of order: one more stop of the first stripe, at the end. */
+      stops[len].offset = .5f / STRIPES;
+      stops[len].is_foreground = FALSE;
+      stops[len].color = HB_COLOR (0, 0, 0, 255);
+      len++;
+    }
+
+    hb_paint_normalize_color_line (stops, len, &min, &max);
+
+    g_assert_cmpfloat (min, ==, 0.f);
+    g_assert_cmpfloat (max, ==, 1.f);
+    for (unsigned i = 0; i < len; i++)
+    {
+      unsigned stripe = i < extra ? 0 : (i - extra) / 2;
+      if (i)
+	g_assert_cmpfloat (stops[i - 1].offset, <=, stops[i].offset);
+      g_assert_cmpuint (hb_color_get_blue (stops[i].color), ==, stripe);
+    }
+  }
+#undef STRIPES
+}
+
 
 int
 main (int argc, char **argv)
@@ -1436,6 +1482,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_paint_color_stops_budget);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_clipped);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_seam_color);
+  hb_test_add (test_hb_paint_normalize_color_line_hard_stops);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {

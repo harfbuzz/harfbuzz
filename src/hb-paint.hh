@@ -304,4 +304,50 @@ hb_color_lerp (hb_color_t c0, hb_color_t c1, float t)
   return HB_COLOR (lerp (24), lerp (16), lerp (8), lerp (0));
 }
 
+/* Sorts color stops by offset.  Stops that share an offset stay in the
+ * order they are in: that order says which color comes before the
+ * offset and which after it, and a sort that may swap them turns a
+ * hard stop inside out. */
+static inline void
+hb_color_stops_sort (hb_color_stop_t *stops, unsigned len)
+{
+  /* Color lines usually come sorted. */
+  bool sorted = true;
+  for (unsigned i = 1; i < len && sorted; i++)
+    sorted = !(stops[i].offset < stops[i - 1].offset);
+  if (sorted)
+    return;
+
+  /* Merge sort, bottom up, taking from the earlier run on a tie. */
+  hb_vector_t<hb_color_stop_t> scratch;
+  if (unlikely (len > (1u << 30) || !scratch.resize_dirty ((int) len)))
+  {
+    /* Out of memory: sorted with hard stops at risk beats unsorted. */
+    hb_array_t<hb_color_stop_t> (stops, len)
+      .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
+	return (a.offset > b.offset) - (a.offset < b.offset);
+      });
+    return;
+  }
+  hb_color_stop_t *from = stops, *to = scratch.arrayZ;
+  for (unsigned width = 1; width < len; width *= 2)
+  {
+    for (unsigned lo = 0; lo < len; lo += 2 * width)
+    {
+      unsigned mid = hb_min (lo + width, len);
+      unsigned hi = hb_min (mid + width, len);
+      unsigned i = lo, j = mid, k = lo;
+      while (i < mid && j < hi)
+	to[k++] = from[j].offset < from[i].offset ? from[j++] : from[i++];
+      while (i < mid)
+	to[k++] = from[i++];
+      while (j < hi)
+	to[k++] = from[j++];
+    }
+    hb_swap (from, to);
+  }
+  if (from != stops)
+    hb_memcpy (stops, from, len * sizeof (stops[0]));
+}
+
 #endif /* HB_PAINT_HH */

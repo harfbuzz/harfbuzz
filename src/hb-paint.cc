@@ -1049,10 +1049,7 @@ hb_paint_normalize_color_line (hb_color_stop_t *stops,
     return;
   }
 
-  hb_array_t<hb_color_stop_t> (stops, len)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return (a.offset > b.offset) - (a.offset < b.offset);
-    });
+  hb_color_stops_sort (stops, len);
 
   float mn = stops[0].offset, mx = stops[0].offset;
   for (unsigned i = 1; i < len; i++)
