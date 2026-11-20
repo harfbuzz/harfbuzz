@@ -30,6 +30,14 @@ test('sweep', test_vector_sweep,
   suite: 'vector',
 )
 
+test_vector_composite = executable('test-vector-composite', 'test-vector-composite.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('composite', test_vector_composite,
+  suite: 'vector',
+)
+
 if zlib_dep.found()
   test_vector_png = executable('test-vector-png', 'test-vector-png.c',
     dependencies: [libharfbuzz_vector_dep, zlib_dep],

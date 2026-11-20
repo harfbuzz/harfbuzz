@@ -71,16 +71,18 @@ hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
   }
 }
 
+/* mix-blend-mode has one Porter-Duff operator besides source-over:
+ * PLUS, as plus-lighter.  It is newer than the blend modes, so name
+ * screen, the closest of them, first, for viewers that lack it. */
+#define HB_VECTOR_SVG_BLEND_PLUS "screen;mix-blend-mode:plus-lighter"
+
+/* The mix-blend-mode that paints a group in @mode, or nullptr if that
+ * takes more than a blend mode. */
 static const char *
 hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
 {
   switch (mode)
   {
-    /* Porter-Duff modes have no SVG mix-blend-mode equivalent;
-     * approximate the two that have a plausible color-blend analog,
-     * and let the rest fall through to normal (SRC_OVER). */
-    case HB_PAINT_COMPOSITE_MODE_PLUS: return "screen";
-    case HB_PAINT_COMPOSITE_MODE_XOR: return "difference";
     case HB_PAINT_COMPOSITE_MODE_CLEAR:
     case HB_PAINT_COMPOSITE_MODE_SRC:
     case HB_PAINT_COMPOSITE_MODE_DEST:
@@ -91,7 +93,9 @@ hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
     case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
     case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
     case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+    case HB_PAINT_COMPOSITE_MODE_XOR:
       return nullptr;
+    case HB_PAINT_COMPOSITE_MODE_PLUS: return HB_VECTOR_SVG_BLEND_PLUS;
     case HB_PAINT_COMPOSITE_MODE_SRC_OVER: return "normal";
     case HB_PAINT_COMPOSITE_MODE_SCREEN: return "screen";
     case HB_PAINT_COMPOSITE_MODE_OVERLAY: return "overlay";
@@ -368,6 +372,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   unsigned sprec = paint->defs.scale_precision ();
   body.append_str ("<g transform=\"matrix(");
   body.append_num (xx, sprec);
@@ -382,6 +387,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (',');
   body.append_num (paint->sy (dy));
   body.append_str (")\">\n");
+  paint->scope_opened (start);
 }
 
 static void
@@ -402,7 +408,7 @@ hb_vector_paint_pop_transform (hb_paint_funcs_t *,
   paint->transform_group_depth--;
   hb_bool_t opened = !!(paint->transform_group_open_mask & 1ull);
   paint->transform_group_open_mask >>= 1;
-  if (opened)
+  if (opened && paint->scope_closed ())
     paint->current_body ().append_str ("</g>\n");
 }
 
@@ -481,11 +487,13 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   paint->defs.append_unsigned (def_id);
   paint->defs.append_str ("\"/></clipPath>\n");
 
+  unsigned start = paint->current_body ().length;
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("clip-p");
   paint->current_body ().append_unsigned (def_id);
   paint->current_body ().append_str (")\">\n");
+  paint->scope_opened (start);
 }
 
 static void
@@ -516,11 +524,13 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   paint->defs.append_num (paint->sy (ymax - ymin));
   paint->defs.append_str ("\"/></clipPath>\n");
 
+  unsigned start = paint->current_body ().length;
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_c ('c');
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
+  paint->scope_opened (start);
 }
 
 static hb_draw_funcs_t *
@@ -571,11 +581,13 @@ hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
   paint->defs.append_len (paint->path.arrayZ, paint->path.length);
   paint->defs.append_str ("\"/></clipPath>\n");
 
+  unsigned start = paint->current_body ().length;
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("cp");
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
+  paint->scope_opened (start);
 }
 
 static void
@@ -586,7 +598,8 @@ hb_vector_paint_pop_clip (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("</g>\n");
+  if (paint->scope_closed ())
+    paint->current_body ().append_str ("</g>\n");
 }
 
 static void
@@ -831,6 +844,245 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
 }
 
 static void
+hb_vector_svg_append_id (hb_vector_paint_t *paint,
+			 hb_vector_buf_t &buf,
+			 char kind, unsigned id)
+{
+  buf.append_len (paint->id_prefix, paint->id_prefix_length);
+  buf.append_c (kind);
+  buf.append_unsigned (id);
+}
+
+/* Appends @group to @buf, as a group of its own if blending inside it
+ * has to be kept from what is beneath it. */
+static void
+hb_vector_svg_append_group (hb_vector_buf_t &buf,
+			    const hb_vector_paint_group_t &group)
+{
+  if (group.blended)
+    buf.append_str ("<g style=\"isolation:isolate\">\n");
+  buf.append_len (group.arrayZ, group.length);
+  if (group.blended)
+    buf.append_str ("</g>\n");
+}
+
+/* Writes @group to <defs> as an element for the body and masks to
+ * refer to, when it is needed more than once.  Returns its id. */
+static unsigned
+hb_vector_svg_define_group (hb_vector_paint_t *paint,
+			    const hb_vector_paint_group_t &group)
+{
+  auto &defs = paint->defs;
+  unsigned id = paint->group_def_count++;
+  defs.append_str ("<g id=\"");
+  hb_vector_svg_append_id (paint, defs, 'g', id);
+  defs.append_str (group.blended ? "\" style=\"isolation:isolate\">\n" : "\">\n");
+  defs.append_len (group.arrayZ, group.length);
+  defs.append_str ("</g>\n");
+  return id;
+}
+
+static void
+hb_vector_svg_append_group_or_use (hb_vector_paint_t *paint,
+				   hb_vector_buf_t &buf,
+				   const hb_vector_paint_group_t *group,
+				   unsigned group_id)
+{
+  if (group)
+  {
+    buf.append_len (group->arrayZ, group->length);
+    return;
+  }
+  buf.append_str ("<use href=\"#");
+  hb_vector_svg_append_id (paint, buf, 'g', group_id);
+  buf.append_str ("\"/>\n");
+}
+
+/* Writes a mask to <defs> that is the alpha of a group or, with
+ * @inverse, one minus it.  The group is @group, which is written into
+ * the mask, or if that is null the defined group @group_id.  Returns
+ * the mask's id.
+ *
+ * The alpha comes from a mask of mask-type alpha, but that is not the
+ * mask returned.  It cannot be inverted, as no content has the inverse
+ * of another's alpha.  And Chrome ignores one that paints nothing
+ * when what it masks has clips of its own, where it should hide it.
+ * So the alpha mask is only ever put on a rectangle, in a luminance
+ * mask: white through it, or for the inverse, black through it over
+ * white. */
+static unsigned
+hb_vector_svg_define_mask (hb_vector_paint_t *paint,
+			   const hb_vector_paint_group_t *group,
+			   unsigned group_id,
+			   bool inverse)
+{
+  auto &defs = paint->defs;
+  unsigned alpha_id = paint->mask_counter++;
+  defs.append_str ("<mask id=\"");
+  hb_vector_svg_append_id (paint, defs, 'm', alpha_id);
+  defs.append_str ("\" mask-type=\"alpha\">\n");
+  hb_vector_svg_append_group_or_use (paint, defs, group, group_id);
+  defs.append_str ("</mask>\n");
+
+  unsigned id = paint->mask_counter++;
+  defs.append_str ("<mask id=\"");
+  hb_vector_svg_append_id (paint, defs, 'm', id);
+  defs.append_str ("\">\n");
+  if (inverse)
+    defs.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"#FFF\"/>\n");
+  defs.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\"");
+  if (!inverse)
+    defs.append_str (" fill=\"#FFF\"");
+  defs.append_str (" mask=\"url(#");
+  hb_vector_svg_append_id (paint, defs, 'm', alpha_id);
+  defs.append_str (")\"/>\n"
+		   "</mask>\n");
+  return id;
+}
+
+/* Paints a group into the current one through a mask: @group, which is
+ * written in place, or if that is null the defined group @group_id.
+ * With @plus it is added to what is beneath it, not painted over it. */
+static void
+hb_vector_svg_paint_masked (hb_vector_paint_t *paint,
+			    unsigned mask_id,
+			    const hb_vector_paint_group_t *group,
+			    unsigned group_id,
+			    bool plus = false)
+{
+  auto &body = paint->current_body ();
+  body.append_str ("<g mask=\"url(#");
+  hb_vector_svg_append_id (paint, body, 'm', mask_id);
+  body.append_str (plus ? ")\" style=\"mix-blend-mode:" HB_VECTOR_SVG_BLEND_PLUS "\">\n"
+			: ")\">\n");
+  hb_vector_svg_append_group_or_use (paint, body, group, group_id);
+  body.append_str ("</g>\n");
+}
+
+/* Makes what the current group has painted so far a unit to composite
+ * @src with, by closing the transforms and clips that are open in it.
+ * The source was painted under them, so it is put under copies of
+ * them; hb_vector_paint_t::reopen_scopes() opens them again, for what
+ * is painted next. */
+static void
+hb_vector_svg_close_scopes (hb_vector_paint_t *paint,
+			    hb_vector_paint_group_t &src,
+			    hb_vector_buf_t *opening)
+{
+  unsigned count = paint->close_scopes ("</g>\n", opening);
+  if (!count)
+    return;
+
+  hb_vector_paint_group_t under;
+  under.base = src.base;
+  under.referred = src.referred;
+  under.blended = src.blended;
+  under.append_len (opening->arrayZ, opening->length);
+  under.append_len (src.arrayZ, src.length);
+  for (unsigned i = 0; i < count; i++)
+    under.append_str ("</g>\n");
+  src = std::move (under);
+}
+
+/* Composites @src onto the current group in a Porter-Duff mode that
+ * no blend mode stands for.  They all come to keeping, dropping,
+ * reordering or masking the two groups:
+ *
+ *   CLEAR      nothing
+ *   SRC        the source
+ *   DEST_OVER  the source, then the backdrop
+ *   SRC_IN     the source, masked by the backdrop's alpha
+ *   DEST_IN    the backdrop, masked by the source's alpha
+ *   SRC_OUT    the source, masked by the inverse of the backdrop's alpha
+ *   DEST_OUT   the backdrop, masked by the inverse of the source's alpha
+ *   SRC_ATOP   DEST_OUT plus SRC_IN
+ *   DEST_ATOP  SRC_OUT plus DEST_IN
+ *   XOR        DEST_OUT plus SRC_OUT
+ *
+ * The two parts of the last three must be added: painted one over the
+ * other, the upper would hide some of the lower wherever both are
+ * partly transparent.  A viewer without plus-lighter does that. */
+static void
+hb_vector_svg_composite (hb_vector_paint_t *paint,
+			 hb_vector_paint_group_t &src,
+			 hb_paint_composite_mode_t mode)
+{
+  /* The backdrop is all that the current group has painted, and the
+   * result takes its place. */
+  auto &dst = paint->current_group ();
+  hb_vector_buf_t opening;
+  hb_vector_svg_close_scopes (paint, src, &opening);
+  if (unlikely (dst.in_error ()))
+    return;
+  hb_vector_paint_group_t backdrop = std::move (dst);
+  dst.referred = 0;
+  dst.blended = false;
+
+  switch ((unsigned) mode)
+  {
+    case HB_PAINT_COMPOSITE_MODE_SRC:
+      hb_vector_svg_append_group (dst, src);
+      dst.referred = src.referred;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      hb_vector_svg_append_group (dst, src);
+      hb_vector_svg_append_group (dst, backdrop);
+      dst.referred = src.referred + backdrop.referred;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+    case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+    {
+      unsigned mask = hb_vector_svg_define_mask (paint, &backdrop, 0,
+						 mode == HB_PAINT_COMPOSITE_MODE_SRC_OUT);
+      hb_vector_svg_paint_masked (paint, mask, &src, 0);
+      dst.referred = src.referred + backdrop.work ();
+      break;
+    }
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+    case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+    {
+      unsigned mask = hb_vector_svg_define_mask (paint, &src, 0,
+						 mode == HB_PAINT_COMPOSITE_MODE_DEST_OUT);
+      hb_vector_svg_paint_masked (paint, mask, &backdrop, 0);
+      dst.referred = backdrop.referred + src.work ();
+      break;
+    }
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+    case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+    case HB_PAINT_COMPOSITE_MODE_XOR:
+    {
+      /* The lower part is one group out of the other, and the upper
+       * part the other group in it, or for XOR out of it. */
+      unsigned lower = hb_vector_svg_define_group (paint, backdrop);
+      unsigned upper = hb_vector_svg_define_group (paint, src);
+      if (mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP)
+	hb_swap (lower, upper);
+      unsigned lower_mask = hb_vector_svg_define_mask (paint, nullptr, upper, true);
+      unsigned upper_mask = hb_vector_svg_define_mask (paint, nullptr, lower,
+						       mode == HB_PAINT_COMPOSITE_MODE_XOR);
+      hb_vector_svg_paint_masked (paint, lower_mask, nullptr, lower);
+      hb_vector_svg_paint_masked (paint, upper_mask, nullptr, upper, true);
+      dst.referred = 2 * (src.work () + backdrop.work ());
+      dst.blended = true;
+      break;
+    }
+
+    case HB_PAINT_COMPOSITE_MODE_CLEAR:
+    default:
+      break;
+  }
+
+  paint->reopen_scopes (opening);
+
+  if (unlikely (src.in_error () || backdrop.in_error () || paint->defs.in_error ()))
+    dst.overflowed = true; /* Fails the render. */
+}
+
+static void
 hb_vector_paint_pop_group (hb_paint_funcs_t *,
                            void *paint_data,
                            hb_paint_composite_mode_t mode,
@@ -842,36 +1094,65 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   if (paint->group_stack.length < 2)
     return;
 
+  /* Close what the group left open, so that it is a unit. */
+  while (paint->scope_closed ())
+    paint->current_body ().append_str ("</g>\n");
+
   hb_vector_paint_group_t group = paint->group_stack.pop ();
   auto &body = paint->current_group ();
+
+  if (mode == HB_PAINT_COMPOSITE_MODE_DEST)
+    return; /* The source is not used. */
+
+  /* What is not a mode is painted source-over. */
+  if (unlikely ((unsigned) mode > HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY))
+    mode = HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+
+  /* Three modes are written with both groups used twice.  When the
+   * document cannot take that, write the mode nearest to them that
+   * uses each once. */
+  if ((mode == HB_PAINT_COMPOSITE_MODE_SRC_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_XOR) &&
+      unlikely (!paint->affords (2 * group.work () + body.work ())))
+    mode = mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP
+	 ? HB_PAINT_COMPOSITE_MODE_DEST_OVER
+	 : HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+
+  const char *blend = hb_vector_svg_composite_mode_str (mode);
+  if (!blend)
+  {
+    hb_vector_svg_composite (paint, group, mode);
+    return;
+  }
 
   /* COLR composites a group onto what the enclosing group has painted
    * so far, and onto nothing else.  A <g> with a blend mode blends with
    * everything beneath it up to the nearest isolated group, and a <g> is
    * not one by default: without isolation the source would also blend
-   * with earlier layers of the glyph, and with the page. */
-  const char *blend = hb_vector_svg_composite_mode_str (mode);
-  if (blend)
+   * with earlier layers of the glyph, and with the page.  A clip is one,
+   * though, and one that is open in the enclosing group would keep the
+   * source from what was painted before it. */
+  bool blending = mode != HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+  hb_vector_buf_t opening;
+  if (blending)
+    hb_vector_svg_close_scopes (paint, group, &opening);
+  body.append_str ("<g style=\"mix-blend-mode:");
+  body.append_str (blend);
+  /* A blend mode other than normal isolates the group by itself. */
+  if (group.blended && !blending)
+    body.append_str (";isolation:isolate");
+  body.append_str ("\">\n");
+  body.append_len (group.arrayZ, group.length);
+  body.append_str ("</g>\n");
+  body.referred += group.referred;
+  if (blending)
   {
-    body.append_str ("<g style=\"mix-blend-mode:");
-    body.append_str (blend);
-    /* A blend mode other than normal isolates the group by itself. */
-    if (group.blended && mode == HB_PAINT_COMPOSITE_MODE_SRC_OVER)
-      body.append_str (";isolation:isolate");
-    body.append_str ("\">\n");
-    body.append_len (group.arrayZ, group.length);
-    body.append_str ("</g>\n");
-    if (mode != HB_PAINT_COMPOSITE_MODE_SRC_OVER)
-      body.blended = true;
+    body.blended = true;
+    paint->reopen_scopes (opening);
+    if (unlikely (group.in_error ()))
+      body.overflowed = true; /* Fails the render. */
   }
-  else if (group.blended)
-  {
-    body.append_str ("<g style=\"isolation:isolate\">\n");
-    body.append_len (group.arrayZ, group.length);
-    body.append_str ("</g>\n");
-  }
-  else
-    body.append_len (group.arrayZ, group.length);
 }
 
 static hb_bool_t
