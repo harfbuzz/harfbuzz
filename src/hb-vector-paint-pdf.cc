@@ -491,6 +491,16 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 }
 
 
+/* A path that encloses nothing, for clipping to an outline that has
+ * no points: the clip then lets nothing through, as it should, where
+ * `W` with no path at all would leave the clip as it was and let
+ * everything through. */
+static void
+hb_pdf_empty_path (hb_vector_buf_t &body)
+{
+  body.append_str ("0 0 0 0 re\n");
+}
+
 /* ---- paint callbacks ---- */
 
 static void
@@ -610,6 +620,8 @@ hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
   body.append_str ("q\n");
   hb_extents_t<> extents;
   hb_pdf_emit_glyph_path (paint, font, glyph, &body, &extents);
+  if (extents.is_void ())
+    hb_pdf_empty_path (body);
   body.append_str ("W n\n");
 
   if (auto *res = hb_pdf_get_resources (paint))
@@ -689,6 +701,8 @@ hb_pdf_paint_push_clip_path_end (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
+  if (paint->clip_path_sink.extents && paint->clip_path_sink.extents->is_void ())
+    hb_pdf_empty_path (paint->current_body ());
   paint->current_body ().append_str ("W n\n");
 
   auto *res = hb_pdf_get_resources (paint);

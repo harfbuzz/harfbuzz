@@ -55,3 +55,11 @@ foreach t : tests
     suite: 'vector',
   )
 endforeach
+
+test_vector_pdf_clip = executable('test-vector-pdf-clip', 'test-vector-pdf-clip.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-clip', test_vector_pdf_clip,
+  suite: 'vector',
+)
