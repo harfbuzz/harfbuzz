@@ -744,10 +744,13 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
   if (hb_color_get_alpha (draw->background))
   {
     float a = hb_color_get_alpha (draw->background) / 255.f;
-    if (a < 1.f - 1.f / 512.f)
+    bool scoped = a < 1.f - 1.f / 512.f;
+    if (scoped)
     {
-      stream.append_num (a, 4);
-      stream.append_str (" ca gs\n");
+      /* Scoped, so the alpha does not leak into the paths. */
+      stream.append_str ("q\n/GS");
+      stream.append_unsigned (draw->add_pdf_extgstate_alpha (a));
+      stream.append_str (" gs\n");
     }
     stream.append_num (hb_color_get_red (draw->background) / 255.f, 4);
     stream.append_c (' ');
@@ -763,6 +766,8 @@ hb_vector_draw_render_pdf (hb_vector_draw_t *draw)
     stream.append_c (' ');
     stream.append_num (eh);
     stream.append_str (" re f\n");
+    if (scoped)
+      stream.append_str ("Q\n");
   }
 
   draw->flush_path ();
