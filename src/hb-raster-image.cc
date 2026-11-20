@@ -827,12 +827,10 @@ hb_raster_image_t::serialize_to_png_or_fail () const
   if (!data && length)
     return nullptr;
 
-  hb_blob_t *blob = hb_blob_create_or_fail (data, length,
-					    HB_MEMORY_MODE_WRITABLE,
-					    data, hb_free);
-  if (!blob)
-    hb_free (data);
-  return blob;
+  /* Frees data if it fails. */
+  return hb_blob_create_or_fail (data, length,
+				 HB_MEMORY_MODE_WRITABLE,
+				 data, hb_free);
 #endif
 }
 
