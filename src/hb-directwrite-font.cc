@@ -400,7 +400,6 @@ hb_directwrite_font_set_funcs (hb_font_t *font)
     return;
   }
 
-  dw_face->AddRef ();
   hb_font_set_funcs (font,
 		     _hb_directwrite_get_font_funcs (),
 		     nullptr, nullptr);
