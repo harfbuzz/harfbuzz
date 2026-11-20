@@ -40,11 +40,17 @@
 
 /* A transform or clip that is open in a paint group, as the text that
  * opened it in the group's buffer: a <g> tag in SVG, `q` and the
- * operators that follow it in PDF. */
+ * operators that follow it in PDF.
+ *
+ * Also what it does, so that a sweep gradient can be sized to what is
+ * visible of it: the transform in effect inside it, and the bounds of
+ * its own clip, both in the space of the document's root. */
 struct hb_vector_paint_scope_t
 {
   unsigned start;
   unsigned length;
+  hb_transform_t<> ctm;
+  hb_bounds_t<> clip;
 };
 
 /* A paint group being collected: its content so far, and what
@@ -107,6 +113,8 @@ struct hb_vector_paint_t
   int64_t budget = HB_BUDGET_DEFAULT;
   int64_t budget_remaining = HB_BUDGET_GLYPH;
   hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f, nullptr};
+  /* Bounds of the clip path being streamed. */
+  hb_extents_t<> clip_path_extents;
   unsigned gradient_counter = 0;
   unsigned path_def_count = 0;
   unsigned group_def_count = 0;
@@ -130,12 +138,48 @@ struct hb_vector_paint_t
     return group_stack.push_or_fail (std::move (group));
   }
 
+  /* The transform from the current space to that of the document's
+   * root. */
+  hb_transform_t<> current_ctm () const
+  {
+    if (scopes.length) return scopes.tail ().ctm;
+    return HB_TRANSFORM_IDENTITY;
+  }
+
   /* Records that the text from @start to the end of the current group's
-   * buffer opened a transform or clip. */
+   * buffer opened a transform or clip: one that leaves the transform as
+   * it is and is not known to clip, unless the other two say more. */
   void scope_opened (unsigned start)
+  { scope_opened (start, current_ctm (), hb_bounds_t<> ()); }
+
+  /* That it opened the transform @t. */
+  void transform_opened (unsigned start, const hb_transform_t<> &t)
+  {
+    hb_transform_t<> ctm = current_ctm ();
+    ctm.multiply (t);
+    scope_opened (start, ctm, hb_bounds_t<> ());
+  }
+
+  /* That it opened a clip whose bounds, in the current space, are @e. */
+  void clip_opened (unsigned start, hb_extents_t<> e)
+  { scope_opened (start, current_ctm (), clip_bounds (e)); }
+
+  /* The bounds of a clip, given as @e in the current space, in that of
+   * the document's root. */
+  hb_bounds_t<> clip_bounds (hb_extents_t<> e) const
+  {
+    if (e.is_empty ())
+      return hb_bounds_t<> (hb_bounds_t<>::EMPTY);
+    current_ctm ().transform_extents (e);
+    return hb_bounds_t<> (e);
+  }
+
+  void scope_opened (unsigned start,
+		     const hb_transform_t<> &ctm,
+		     const hb_bounds_t<> &clip)
   {
     auto &group = current_group ();
-    hb_vector_paint_scope_t scope = {start, group.length - start};
+    hb_vector_paint_scope_t scope = {start, group.length - start, ctm, clip};
     if (unlikely (!scopes.push_or_fail (scope)))
       group.overflowed = true; /* Fails the render. */
   }
@@ -156,8 +200,9 @@ struct hb_vector_paint_t
 
   /* Extends the innermost transform or clip that is open in the current
    * group to the end of the group's buffer, for one whose opening text
-   * is written in parts. */
-  void scope_extended ()
+   * is written in parts.  It turns out to be a clip whose bounds, in
+   * the current space, are @e. */
+  void scope_extended (const hb_extents_t<> &e)
   {
     if (!open_scopes ().length)
       return;
@@ -165,6 +210,53 @@ struct hb_vector_paint_t
     auto &scope = scopes.tail ();
     if (likely (scope.start <= group.length))
       scope.length = group.length - scope.start;
+    scope.clip = clip_bounds (e);
+  }
+
+  /* The radius that a sweep gradient centered at (@cx, @cy) has to
+   * reach to cover everything the open clips let through: zero if that
+   * is nothing, and @max_radius if the clips do not bound it.
+   *
+   * A sweep is written no bigger than it has to be because viewers do
+   * badly with huge ones.  PDF viewers resolve a mesh patch, or the
+   * whole mesh, in a fixed number of steps whatever its size, and a
+   * mesh's coordinates are 16-bit, so the bigger the mesh the coarser
+   * the grid its points land on.  SVG viewers built on cairo drop
+   * shapes whose coordinates, in pixels, get near 2^17. */
+  float sweep_radius (float cx, float cy, float max_radius) const
+  {
+    hb_bounds_t<> bounds;
+    for (const auto &scope : scopes)
+      bounds.intersect (scope.clip);
+
+    if (bounds.status == hb_bounds_t<>::EMPTY)
+      return 0.f;
+    if (bounds.status == hb_bounds_t<>::UNBOUNDED)
+      return max_radius;
+
+    /* Bring the corners of the bounds into the gradient's space. */
+    hb_transform_t<> t = current_ctm ();
+    float det = t.xx * t.yy - t.xy * t.yx;
+    if (!(fabsf (det) > 1e-12f))
+      return max_radius;
+
+    const hb_extents_t<> &e = bounds.extents;
+    float xs[2] = {e.xmin, e.xmax};
+    float ys[2] = {e.ymin, e.ymax};
+    float r2 = 0.f;
+    for (unsigned i = 0; i < 4; i++)
+    {
+      float dx = xs[i & 1] - t.x0, dy = ys[i >> 1] - t.y0;
+      float x = ( t.yy * dx - t.xy * dy) / det - cx;
+      float y = (-t.yx * dx + t.xx * dy) / det - cy;
+      r2 = hb_max (r2, x * x + y * y);
+    }
+
+    float r = ceilf (sqrtf (r2)) + 1.f;
+    /* Catches a NaN, too. */
+    if (!(r <= max_radius))
+      return max_radius;
+    return r;
   }
 
   /* Closes the transforms and clips that are open in the current group

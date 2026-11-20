@@ -387,7 +387,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (',');
   body.append_num (paint->sy (dy));
   body.append_str (")\">\n");
-  paint->scope_opened (start);
+  paint->transform_opened (start, {xx, yx, xy, yy, paint->sx (dx), paint->sy (dy)});
 }
 
 static void
@@ -459,13 +459,14 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   unsigned pfx_len = paint->id_prefix_length;
 
   paint->path.clear ();
+  hb_extents_t<> extents;
   /* Skip the outline extraction when the session work budget is
    * spent; an empty clip path clips everything out. */
   if (likely (paint->budget_remaining >= 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
 				 paint->x_scale_factor, paint->y_scale_factor,
-				 &paint->budget_remaining};
+				 &paint->budget_remaining, &extents};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
   }
 
@@ -493,7 +494,7 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   paint->current_body ().append_str ("clip-p");
   paint->current_body ().append_unsigned (def_id);
   paint->current_body ().append_str (")\">\n");
-  paint->scope_opened (start);
+  paint->clip_opened (start, extents);
 }
 
 static void
@@ -530,7 +531,10 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   paint->current_body ().append_c ('c');
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
-  paint->scope_opened (start);
+  paint->clip_opened (start, {hb_min (paint->sx (xmin), paint->sx (xmax)),
+			      hb_min (paint->sy (ymin), paint->sy (ymax)),
+			      hb_max (paint->sx (xmin), paint->sx (xmax)),
+			      hb_max (paint->sy (ymin), paint->sy (ymax))});
 }
 
 static hb_draw_funcs_t *
@@ -547,10 +551,12 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   paint->path.clear ();
+  paint->clip_path_extents = hb_extents_t<> {};
   paint->clip_path_sink = {&paint->path, paint->get_precision (),
 			   paint->x_scale_factor,
 			   paint->y_scale_factor,
-			   &paint->budget_remaining};
+			   &paint->budget_remaining,
+			   &paint->clip_path_extents};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_svg_path_draw_funcs_get ();
 }
@@ -587,7 +593,13 @@ hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
   paint->current_body ().append_str ("cp");
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
-  paint->scope_opened (start);
+  if (paint->clip_path_sink.extents)
+  {
+    paint->clip_path_sink.extents = nullptr;
+    paint->clip_opened (start, paint->clip_path_extents);
+  }
+  else
+    paint->scope_opened (start);
 }
 
 static void
@@ -822,8 +834,15 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga0 = start_angle + mn * (end_angle - start_angle);
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
+  /* Wedges that reach as far as the clips let them be seen, and no
+   * further. */
+  float scx = paint->sx (cx), scy = paint->sy (cy);
+  float radius = paint->sweep_radius (scx, scy, 32767.f);
+  if (radius <= 0.f)
+    return;
+
   hb_vector_svg_sweep_ctx_t ctx {
-    &paint->current_body (), paint->get_precision (), paint->sx (cx), paint->sy (cy), 32767.f
+    &paint->current_body (), paint->get_precision (), scx, scy, radius
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),
