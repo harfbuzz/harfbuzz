@@ -87,7 +87,7 @@
  * intersects, and carries either a color baked as Q15 RGBA (with a
  * flag to use the shader's foreground instead) or a reference to a
  * gradient parameter blob.  The exact fields are documented where
- * they are written: hb_gpu_paint_emit_solid(), emit_gradient_op()
+ * they are written: hb_gpu_paint_emit_solid(), emit_gradient_op_header()
  * and emit_control_op() in hb-gpu-paint.cc.
  *
  * --- Sub-payload: clip-glyph Slug draw blob ----------------------
