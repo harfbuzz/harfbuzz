@@ -144,8 +144,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       canvas.height = height;
   }
   function requestRedraw () {
-    if (typeof _web_request_redraw === 'function')
-      _web_request_redraw();
+    if (typeof Module._web_request_redraw === 'function')
+      Module._web_request_redraw();
   }
   function handleResume () {
     resizeCanvas();
@@ -259,8 +259,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         /* Double-tap: start zoom drag.
          * Undo animation toggle from first tap. */
         e.preventDefault();
-        if (typeof _web_toggle_animation === 'function')
-          _web_toggle_animation();
+        if (typeof Module._web_toggle_animation === 'function')
+          Module._web_toggle_animation();
         doubleTapZoom = true;
         doubleTapY = e.touches[0].clientY;
         lastTapTime = 0;
@@ -272,7 +272,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         longPressTimer = setTimeout(function () {
           longPressTimer = null;
           longPressFired = true;
-          if (typeof _web_reset === 'function') _web_reset();
+          if (typeof Module._web_reset === 'function') Module._web_reset();
         }, 500);
       }
     } else if (longPressTimer) {
@@ -292,8 +292,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       pinchCY = (t[0].clientY + t[1].clientY) / 2;
       gestureX = pinchCX;
       gestureY = pinchCY;
-      if (typeof _web_cancel_gesture === 'function')
-        _web_cancel_gesture();
+      if (typeof Module._web_cancel_gesture === 'function')
+        Module._web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 0, clientX: pinchCX, clientY: pinchCY
       }));
@@ -309,8 +309,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
       gestureX = cx;
       gestureY = cy;
-      if (typeof _web_cancel_gesture === 'function')
-        _web_cancel_gesture();
+      if (typeof Module._web_cancel_gesture === 'function')
+        Module._web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 0, clientX: cx, clientY: cy
       }));
@@ -384,8 +384,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       if (dAngle > Math.PI) dAngle -= 2 * Math.PI;
       if (dAngle < -Math.PI) dAngle += 2 * Math.PI;
       var factor = pinchDist > 0 ? dist / pinchDist : 1;
-      if (typeof _web_pinch === 'function')
-        _web_pinch(cx - pinchCX, cy - pinchCY,
+      if (typeof Module._web_pinch === 'function')
+        Module._web_pinch(cx - pinchCX, cy - pinchCY,
                    factor, dAngle,
                    cx, cy, canvas.clientWidth, canvas.clientHeight);
       else {
@@ -434,8 +434,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         pinchActive = false;
         skipNextPinchMove = false;
       }
-      if (typeof _web_cancel_gesture === 'function')
-        _web_cancel_gesture();
+      if (typeof Module._web_cancel_gesture === 'function')
+        Module._web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 2, clientX: releaseX, clientY: releaseY
       }));
@@ -459,8 +459,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       }
     } else if (singlePanEnding) {
       singlePanActive = false;
-      if (typeof _web_cancel_gesture === 'function')
-        _web_cancel_gesture();
+      if (typeof Module._web_cancel_gesture === 'function')
+        Module._web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 0, clientX: gestureX, clientY: gestureY
       }));
@@ -481,8 +481,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     pinchActive = false;
     if (singlePanActive) {
       singlePanActive = false;
-      if (typeof _web_cancel_gesture === 'function')
-        _web_cancel_gesture();
+      if (typeof Module._web_cancel_gesture === 'function')
+        Module._web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 0, clientX: gestureX, clientY: gestureY
       }));
@@ -490,8 +490,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     skipNextPinchMove = false;
     if (threeFingerActive) {
       threeFingerActive = false;
-      if (typeof _web_cancel_gesture === 'function')
-        _web_cancel_gesture();
+      if (typeof Module._web_cancel_gesture === 'function')
+        Module._web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
         button: 2, clientX: gestureX, clientY: gestureY
       }));
@@ -632,7 +632,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
 
       var textOnOpen = '';
       textBtn.addEventListener('click', function () {
-        var ptr = _web_get_text();
+        var ptr = Module._web_get_text();
         textOnOpen = UTF8ToString(ptr);
         textArea.value = textOnOpen;
         textModal.style.display = 'flex';
@@ -666,51 +666,53 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         var reader = new FileReader();
         reader.onload = function () {
           var data = new Uint8Array(reader.result);
-          var buf = _malloc(data.length);
+          var buf = Module._malloc(data.length);
           HEAPU8.set(data, buf);
-          _web_load_font(buf, data.length);
-          _free(buf);
+          Module._web_load_font(buf, data.length);
+          Module._free(buf);
         };
         reader.readAsArrayBuffer(file);
       }
 
       function applyText(text) {
         var len = lengthBytesUTF8(text) + 1;
-        var buf = _malloc(len);
+        var buf = Module._malloc(len);
         stringToUTF8(text, buf, len);
-        _web_set_text(buf);
-        _free(buf);
+        Module._web_set_text(buf);
+        Module._free(buf);
         requestRedraw();
       }
 
       function applyFontBytes(bytes) {
         var data = new Uint8Array(bytes);
-        var buf = _malloc(data.length);
+        var buf = Module._malloc(data.length);
         HEAPU8.set(data, buf);
-        _web_load_font(buf, data.length);
-        _free(buf);
+        Module._web_load_font(buf, data.length);
+        Module._free(buf);
       }
 
       function applyVariations(settings) {
         var len = lengthBytesUTF8(settings) + 1;
-        var buf = _malloc(len);
+        var buf = Module._malloc(len);
         stringToUTF8(settings, buf, len);
-        _web_set_variations(buf);
-        _free(buf);
+        Module._web_set_variations(buf);
+        Module._free(buf);
         requestRedraw();
       }
 
       function applyFeatures(settings) {
+        /* Not implemented by the WebGPU build. */
+        if (!Module._web_set_features) return;
         var len = lengthBytesUTF8(settings) + 1;
-        var buf = _malloc(len);
+        var buf = Module._malloc(len);
         stringToUTF8(settings, buf, len);
-        _web_set_features(buf);
-        _free(buf);
+        Module._web_set_features(buf);
+        Module._free(buf);
         requestRedraw();
       }
 
       function applyPalette(idx) {
-        _web_set_palette(idx >>> 0);
+        Module._web_set_palette(idx >>> 0);
         requestRedraw();
       }
 
@@ -731,8 +733,9 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           applyPalette(d.value);
         else if (d.kind === 'features' && typeof d.value === 'string')
           applyFeatures(d.value);
-        else if (d.kind === 'dark' && typeof d.value === 'boolean')
-          _web_set_dark(d.value ? 1 : 0);
+        else if (d.kind === 'dark' && typeof d.value === 'boolean' &&
+                 Module._web_set_dark)
+          Module._web_set_dark(d.value ? 1 : 0);
       });
 
       /* Tell any parent frame we're ready to receive
@@ -755,10 +758,10 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           })
           .then(function (ab) {
             var data = new Uint8Array(ab);
-            var buf = _malloc(data.length);
+            var buf = Module._malloc(data.length);
             HEAPU8.set(data, buf);
-            _web_load_font(buf, data.length);
-            _free(buf);
+            Module._web_load_font(buf, data.length);
+            Module._free(buf);
             if (urlText) applyText(urlText);
           })
           .catch(function (err) {
