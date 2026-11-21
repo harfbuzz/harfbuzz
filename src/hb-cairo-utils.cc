@@ -398,16 +398,17 @@ _hb_cairo_unpremultiply (hb_cairo_color_t *c)
 }
 
 static void
-_hb_cairo_interpolate_colors (hb_cairo_color_t *c0, hb_cairo_color_t *c1, float k, hb_cairo_color_t *c)
+_hb_cairo_interpolate_colors (const hb_cairo_color_t *c0, const hb_cairo_color_t *c1, float k, hb_cairo_color_t *c)
 {
   // According to the COLR specification, gradients
   // should be interpolated in premultiplied form
-  _hb_cairo_premultiply (c0);
-  _hb_cairo_premultiply (c1);
-  c->r = c0->r + k * (c1->r - c0->r);
-  c->g = c0->g + k * (c1->g - c0->g);
-  c->b = c0->b + k * (c1->b - c0->b);
-  c->a = c0->a + k * (c1->a - c0->a);
+  hb_cairo_color_t p0 = *c0, p1 = *c1;
+  _hb_cairo_premultiply (&p0);
+  _hb_cairo_premultiply (&p1);
+  c->r = p0.r + k * (p1.r - p0.r);
+  c->g = p0.g + k * (p1.g - p0.g);
+  c->b = p0.b + k * (p1.b - p0.b);
+  c->a = p0.a + k * (p1.a - p0.a);
   _hb_cairo_unpremultiply (c);
 }
 

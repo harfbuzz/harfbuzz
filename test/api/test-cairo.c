@@ -199,6 +199,86 @@ test_hb_cairo_glyphs_from_buffer_clusters (void)
   }
 }
 
+static void
+test_hb_cairo_sweep_gradient_alpha (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* A sweep once around the center of the em, from red to blue, both
+   * at a half.  It is painted in sixteen patches, and alpha used to be
+   * multiplied into the two colors once more for each, so that it
+   * turned black on its way around. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-sweep-alpha.ttf");
+  hb_font_t *font = hb_font_create (face);
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 256, 256);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 256);
+
+  /* A glyph, which fills the picture; the alpha of its red and of its
+   * blue; and pixels of it, with how far along the sweep is at each. */
+  static const struct {
+    char unicode;
+    double red_alpha, blue_alpha;
+    struct {
+      int x, y;
+      double t;
+    } at[4];
+  } tests[] = {
+    /* Pixels in the 1st, 6th, 10th and 14th patch. */
+    {'a', .5, .5, {{222, 111, .02751}, {79, 45, .33458}, {47, 179, .59058}, {178, 209, .83829}}},
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    cairo_save (cr);
+    cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint (cr);
+    cairo_restore (cr);
+
+    hb_codepoint_t gid;
+    g_assert_true (hb_font_get_nominal_glyph (font, tests[i].unicode, &gid));
+    cairo_glyph_t glyph = {gid, 0, 256};
+    cairo_show_glyphs (cr, &glyph, 1);
+    g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+    cairo_surface_flush (surface);
+
+    for (unsigned j = 0; j < G_N_ELEMENTS (tests[i].at) && tests[i].at[j].x; j++)
+    {
+      uint32_t pixel;
+      memcpy (&pixel,
+	      cairo_image_surface_get_data (surface) +
+	      tests[i].at[j].y * cairo_image_surface_get_stride (surface) +
+	      tests[i].at[j].x * 4,
+	      sizeof (pixel));
+
+      /* The pixel has alpha multiplied into its color, which is how
+       * the two colors are to be interpolated. */
+      double red = 255 * tests[i].red_alpha * (1 - tests[i].at[j].t);
+      double blue = 255 * tests[i].blue_alpha * tests[i].at[j].t;
+      g_assert_cmpfloat_with_epsilon ((pixel >> 24) & 0xFF, red + blue, 5);
+      g_assert_cmpfloat_with_epsilon ((pixel >> 16) & 0xFF, red, 5);
+      g_assert_cmpfloat_with_epsilon ((pixel >> 8) & 0xFF, 0, 1);
+      g_assert_cmpfloat_with_epsilon (pixel & 0xFF, blue, 5);
+    }
+  }
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+  cairo_font_face_destroy (cairo_face);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -206,6 +286,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
+  hb_test_add (test_hb_cairo_sweep_gradient_alpha);
 
   return hb_test_run ();
 }
