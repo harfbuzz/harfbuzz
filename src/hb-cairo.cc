@@ -135,6 +135,17 @@ hb_cairo_draw_get_funcs ()
 
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
 
+/* Whether cairo takes @m for a matrix that has an inverse.  This is its
+ * own check, with room for the last bits of the determinant to come out
+ * differently there. */
+static bool
+hb_cairo_matrix_has_inverse (const cairo_matrix_t *m)
+{
+  double a = m->xx * m->yy, b = m->yx * m->xy;
+  double det = a - b;
+  return std::isfinite (det) && fabs (det) > 1e-12 * (fabs (a) + fabs (b));
+}
+
 static void
 hb_cairo_push_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			 void *paint_data,
@@ -152,6 +163,23 @@ hb_cairo_push_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
   cairo_matrix_init (&m, (double) xx, (double) yx,
                          (double) xy, (double) yy,
                          (double) dx, (double) dy);
+
+  /* A transform that has no inverse leaves no area to paint on.  cairo
+   * refuses such a matrix, and one that leaves the transformation it
+   * is added to without an inverse, and a context that has refused
+   * anything draws nothing more.  Clip everything out until the
+   * transform is popped instead. */
+  cairo_matrix_t ctm;
+  cairo_get_matrix (cr, &ctm);
+  cairo_matrix_multiply (&ctm, &m, &ctm);
+  if (unlikely (!hb_cairo_matrix_has_inverse (&m) ||
+		!hb_cairo_matrix_has_inverse (&ctm)))
+  {
+    cairo_rectangle (cr, 0, 0, 0, 0);
+    cairo_clip (cr);
+    return;
+  }
+
   cairo_transform (cr, &m);
 }
 

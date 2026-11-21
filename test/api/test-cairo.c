@@ -36,6 +36,68 @@
 #endif
 
 static void
+test_hb_cairo_transform_no_inverse (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Each glyph paints a red bar on the left, then a green square
+   * under a transform, then a blue bar on the right.  In all but the
+   * last glyph the transform has no inverse: a scale by zero, say, or
+   * forty scales one in another that come to zero.  What it paints
+   * has no area, so the glyph is the two bars.  cairo refuses such a
+   * matrix, and a context that has refused anything draws nothing
+   * more: not the blue bar, and not what the application shows after
+   * the glyph. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-transform-no-inverse.ttf");
+  hb_font_t *font = hb_font_create (face);
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+
+  for (hb_codepoint_t u = 'a'; u <= 'h'; u++)
+  {
+    hb_codepoint_t gid;
+    g_assert_true (hb_font_get_nominal_glyph (font, u, &gid));
+
+    cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+    cairo_t *cr = cairo_create (surface);
+    cairo_set_font_face (cr, cairo_face);
+    cairo_set_font_size (cr, 64);
+
+    cairo_glyph_t glyph = {gid, 0, 64};
+    cairo_show_glyphs (cr, &glyph, 1);
+
+    g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+    g_assert_cmpint (cairo_surface_status (surface), ==, CAIRO_STATUS_SUCCESS);
+
+    /* The middle row, as 0xAARRGGBB: in the red bar, in the middle of
+     * the square, and in the blue bar. */
+    cairo_surface_flush (surface);
+    uint32_t row[64];
+    memcpy (row,
+	    cairo_image_surface_get_data (surface) +
+	    32 * cairo_image_surface_get_stride (surface),
+	    sizeof (row));
+    g_assert_cmphex (row[8], ==, 0xFFFF0000u);
+    g_assert_cmphex (row[32], ==, u == 'h' ? 0xFF00FF00u : 0u);
+    g_assert_cmphex (row[56], ==, 0xFF0000FFu);
+
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+  }
+
+  cairo_font_face_destroy (cairo_face);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_hb_cairo_color_glyph_cycle (void)
 {
 #ifdef HB_TEST_CAIRO_TSAN
@@ -203,6 +265,7 @@ int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+  hb_test_add (test_hb_cairo_transform_no_inverse);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
