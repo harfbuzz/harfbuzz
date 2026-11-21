@@ -84,6 +84,7 @@ in_house_tests = [
   'tt-kern-gpos.tests',
   'uniscribe.tests',
   'unsafe-to-concat.tests',
+  'use-generic-bases.tests',
   'use-indic3.tests',
   'use-javanese.tests',
   'use-marchen.tests',

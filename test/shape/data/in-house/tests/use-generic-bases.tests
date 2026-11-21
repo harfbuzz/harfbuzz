@@ -1,0 +1,9 @@
+# The generic bases that USE names by code point (U+2015, U+2022, U+25FB..U+25FE)
+# take a repha like U+25CC, the last line, does. https://github.com/harfbuzz/harfbuzz/issues/6828
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+2015,U+11D31;[.notdef=0|MatraAaRepha.MGondi=0]
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+2022,U+11D31;[.notdef=0|MatraAaRepha.MGondi=0]
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+25FB,U+11D31;[.notdef=0|MatraAaRepha.MGondi=0]
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+25FC,U+11D31;[.notdef=0|MatraAaRepha.MGondi=0]
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+25FD,U+11D31;[.notdef=0|MatraAaRepha.MGondi=0]
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+25FE,U+11D31;[.notdef=0|MatraAaRepha.MGondi=0]
+../fonts/e8ab562f44ca0ab7cb4fd758c0dceaae33fc6869.ttf;--no-positions;U+11D46,U+25CC,U+11D31;[uni25CC=0|MatraAaRepha.MGondi=0]

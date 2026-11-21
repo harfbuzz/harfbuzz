@@ -95,6 +95,17 @@ for i, f in enumerate (files):
 
 defaults = ('Other', 'Not_Applicable', 'jt_X', '', 'Cn', 'No_Block', 'Unknown')
 
+# Characters that are not in the Unicode Indic files, but that USE gives
+# a class: the generic bases that is_BASE_OTHER lists.  A character gets a
+# class only if it has a record, which these would not have otherwise.
+# TODO: https://github.com/MicrosoftDocs/typography-issues/issues/1249
+unicode_data[0][0x2015] = defaults[0]
+unicode_data[0][0x2022] = defaults[0]
+unicode_data[0][0x25FB] = defaults[0]
+unicode_data[0][0x25FC] = defaults[0]
+unicode_data[0][0x25FD] = defaults[0]
+unicode_data[0][0x25FE] = defaults[0]
+
 # Merge data into one dict:
 for i,v in enumerate (defaults):
 	values[i][v] = values[i].get (v, 0) + 1
