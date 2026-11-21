@@ -29,6 +29,7 @@
 #include "hb-face.hh"
 #include "hb-font.hh"
 #include "hb-geometry.hh"
+#include "hb-vector.hh"
 
 #define HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS \
   HB_PAINT_FUNC_IMPLEMENT (push_transform) \
@@ -288,6 +289,75 @@ DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 
 static inline hb_color_t
 hb_color_lerp (hb_color_t c0, hb_color_t c1, float t);
+
+/* Whether the stops of a color line all share one offset, which leaves
+ * it without a length. */
+static inline bool
+hb_color_stops_share_offset (const hb_color_stop_t *stops, unsigned len)
+{
+  for (unsigned i = 1; i < len; i++)
+    if (stops[i].offset != stops[0].offset)
+      return false;
+  return true;
+}
+
+/* A color line whose stops all share one offset has no length.  If it
+ * pads, it still has two colors: that of the first stop before the
+ * offset, and that of the last from it on.  If it repeats or reflects
+ * it is ill-formed, and nothing is painted; that is how
+ * hb_paint_sweep_gradient_tiles() has it too.
+ *
+ * Takes the @stops of a color line as the font has them, before they
+ * are sorted, in an array with room for four.  Returns false if
+ * nothing is to be painted.  A color line without a length is given
+ * one of 1, around its offset, with its two colors meeting halfway
+ * along.  That is a color line like any other, so that what paints
+ * the gradient needs to know of nothing new; and its gradient is as
+ * long as the font's and runs the same way, which a sliver of one
+ * would not once its ends are written. */
+static inline bool
+hb_paint_color_line_give_length (hb_color_stop_t *stops, unsigned *len,
+				 hb_paint_extend_t extend)
+{
+  unsigned count = *len;
+  if (likely (!hb_color_stops_share_offset (stops, count)))
+    return true;
+  if (unlikely (!count) || extend != HB_PAINT_EXTEND_PAD)
+    return false;
+
+  hb_color_stop_t first = stops[0], last = stops[count - 1];
+  float offset = first.offset;
+  unsigned n = 0;
+  stops[n] = first;
+  stops[n++].offset = offset - 0.5f;
+  if (count > 1)
+  {
+    stops[n] = first;
+    stops[n++].offset = offset;
+    stops[n] = last;
+    stops[n++].offset = offset;
+  }
+  stops[n] = last;
+  stops[n++].offset = offset + 0.5f;
+  *len = n;
+  return true;
+}
+
+/* The same for stops in a vector, which makes the room. */
+static inline bool
+hb_paint_color_line_give_length (hb_vector_t<hb_color_stop_t> &stops,
+				 hb_paint_extend_t extend)
+{
+  unsigned len = stops.length;
+  if (likely (!hb_color_stops_share_offset (stops.arrayZ, len)))
+    return true;
+  if (unlikely (!stops.resize (hb_max (len, 4u))))
+    return false;
+  if (!hb_paint_color_line_give_length (stops.arrayZ, &len, extend))
+    return false;
+  stops.shrink (len);
+  return true;
+}
 
 /* Cuts a color line whose stops are sorted, and which goes from 0 to 1,
  * down to the stretch from @from to @to, in place; it goes from 0 to 1

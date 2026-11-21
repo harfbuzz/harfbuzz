@@ -1301,6 +1301,9 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   if (unlikely (!c->fetch_color_stops (color_line)))
     return;
+  if (unlikely (!hb_paint_color_line_give_length (c->scratch_color_stops,
+						   hb_color_line_get_extend (color_line))))
+    return;
   hb_color_stop_t *stops = c->scratch_color_stops.arrayZ;
   unsigned len = c->scratch_color_stops.length;
   float mn, mx;
@@ -1452,6 +1455,9 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (unlikely (!surf)) return;
 
   if (unlikely (!c->fetch_color_stops (color_line)))
+    return;
+  if (unlikely (!hb_paint_color_line_give_length (c->scratch_color_stops,
+						   hb_color_line_get_extend (color_line))))
     return;
   hb_color_stop_t *stops = c->scratch_color_stops.arrayZ;
   unsigned len = c->scratch_color_stops.length;
