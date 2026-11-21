@@ -926,6 +926,91 @@ hb_pdf_gradient_needs_alpha (hb_array_t<const hb_color_stop_t> stops)
   return false;
 }
 
+/* A color line that pads goes on before its first stop in that stop's
+ * color, and after its last stop in that one's.  A shading that extends
+ * goes on in what its function gives at 0 and at 1.  Where two stops
+ * share the first offset, or the last, that is the color of the inner
+ * one of the two in most viewers: the outer one has no stretch of the
+ * function to itself.
+ *
+ * Gives it one.  Lengthens the color line in paint->color_stops_scratch,
+ * which is sorted and goes from 0 to 1, by a stretch in the outer stop's
+ * color at such an end, and moves that end of the gradient out with it.
+ * The two stops are then a sixteenth in from the end, where a viewer
+ * that samples the function at every 256th, as pdfium does, has a
+ * sample.
+ *
+ * A radial gradient, which has radii, is lengthened no further than
+ * halfway to where its radius is zero.  One that starts or ends there
+ * paints nothing beyond, and does without the outer stop. */
+static void
+hb_pdf_pad_color_line (hb_vector_paint_t *paint,
+		       float *x0, float *y0, float *r0,
+		       float *x1, float *y1, float *r1)
+{
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  unsigned count = stops.length;
+
+  /* How many stops share the first offset, and the last. */
+  unsigned first = 1, last = 1;
+  while (first < count && stops.arrayZ[first].offset == stops.arrayZ[0].offset)
+    first++;
+  while (last < count && stops.arrayZ[count - 1 - last].offset == stops.arrayZ[count - 1].offset)
+    last++;
+  if ((first == 1 && last == 1) || first + last > count)
+    return;
+
+  float length = first > 1 && last > 1 ? 1.f / 14 : 1.f / 15;
+  float before = first > 1 ? length : 0.f, after = last > 1 ? length : 0.f;
+  if (r0)
+  {
+    float dr = *r1 - *r0;
+    if (dr > 0.f) before = hb_min (before, *r0 / (2 * dr));
+    if (dr < 0.f) after = hb_min (after, *r1 / (-2 * dr));
+  }
+
+  hb_vector_t<hb_color_stop_t> out;
+  if (unlikely (!out.alloc (count + 2)))
+    return;
+  unsigned i = 0, end = count;
+  if (first > 1)
+  {
+    if (before > 0.f)
+    {
+      hb_color_stop_t stop = stops.arrayZ[0];
+      stop.offset = -before;
+      out.push (stop);
+    }
+    else
+      i = first - 1;
+  }
+  if (last > 1 && !(after > 0.f))
+    end = count - (last - 1);
+  for (; i < end; i++)
+    out.push (stops.arrayZ[i]);
+  if (last > 1 && after > 0.f)
+  {
+    hb_color_stop_t stop = stops.arrayZ[count - 1];
+    stop.offset = 1.f + after;
+    out.push (stop);
+  }
+  for (auto &stop : out)
+    stop.offset = (stop.offset + before) / (1.f + before + after);
+  hb_swap (stops, out);
+
+  float dx = *x1 - *x0, dy = *y1 - *y0;
+  *x0 -= before * dx;
+  *y0 -= before * dy;
+  *x1 += after * dx;
+  *y1 += after * dy;
+  if (r0)
+  {
+    float dr = *r1 - *r0;
+    *r0 -= before * dr;
+    *r1 += after * dr;
+  }
+}
+
 /* Build a PDF Type 2 (exponential interpolation) function for
  * a single alpha stop pair (DeviceGray, scalar output). */
 static void
@@ -1141,6 +1226,9 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   if (gx0 == gx1 && gy0 == gy1)
     return;
 
+  if (hb_color_line_get_extend (color_line) == HB_PAINT_EXTEND_PAD)
+    hb_pdf_pad_color_line (paint, &gx0, &gy0, nullptr, &gx1, &gy1, nullptr);
+
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
@@ -1282,6 +1370,9 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   if (!hb_pdf_radial_gradient_circles (paint, color_line,
 				       &gx0, &gy0, &gr0, &gx1, &gy1, &gr1))
     return;
+
+  if (hb_color_line_get_extend (color_line) == HB_PAINT_EXTEND_PAD)
+    hb_pdf_pad_color_line (paint, &gx0, &gy0, &gr0, &gx1, &gy1, &gr1);
 
   unsigned func_id = hb_pdf_build_gradient_function_from_stops (res, paint);
 

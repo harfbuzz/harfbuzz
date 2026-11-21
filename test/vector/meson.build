@@ -38,6 +38,14 @@ test('color-line', test_vector_color_line,
   suite: 'vector',
 )
 
+test_vector_pdf_pad = executable('test-vector-pdf-pad', 'test-vector-pdf-pad.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-pad', test_vector_pdf_pad,
+  suite: 'vector',
+)
+
 test_vector_sweep = executable('test-vector-sweep', 'test-vector-sweep.c',
   dependencies: [libharfbuzz_vector_dep],
 )
