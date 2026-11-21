@@ -850,8 +850,11 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
       case 6: colors = 4; has_alpha = true;  break; /* RGBA */
       default: return false;
       }
-      if (has_alpha && (chunk_data[10] || chunk_data[11] || chunk_data[12]))
-        return false; /* Only noninterlaced PNG filter/compression method 0. */
+      /* Only noninterlaced PNG filter/compression method 0: the rows of
+       * the image are handed to the viewer as they are, or read here as
+       * they are. */
+      if (chunk_data[10] || chunk_data[11] || chunk_data[12])
+        return false;
     }
     else if (chunk_type == 0x504C5445u) /* PLTE */
     {
