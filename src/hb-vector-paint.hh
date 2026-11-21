@@ -38,6 +38,42 @@
 #include "hb-vector-internal.hh"
 
 
+/* A transform or clip that is open in a paint group, as the text that
+ * opened it in the group's buffer: a <g> tag in SVG, `q` and the
+ * operators that follow it in PDF.
+ *
+ * Also what it does, so that a sweep gradient can be sized to what is
+ * visible of it: the transform in effect inside it, and the bounds of
+ * its own clip, both in the space of the document's root. */
+struct hb_vector_paint_scope_t
+{
+  unsigned start;
+  unsigned length;
+  hb_transform_t<> ctm;
+  hb_bounds_t<> clip;
+};
+
+/* A paint group being collected: its content so far, and what
+ * compositing it needs to know. */
+struct hb_vector_paint_group_t : hb_vector_buf_t
+{
+  /* Index in hb_vector_paint_t::scopes of the first transform or clip
+   * opened in this group. */
+  unsigned scope_base = 0;
+
+  /* Bytes of content that the group does not hold but refers to, as a
+   * mask or by name, counted once for every use.  Together with its own
+   * length, this is what a viewer has to render to show the group. */
+  uint64_t referred = 0;
+
+  /* Something in the group is painted with a blend mode.  Blending
+   * reaches everything beneath it up to the nearest isolated group,
+   * so this group has to be written as one. */
+  bool blended = false;
+
+  uint64_t work () const { return length + referred; }
+};
+
 struct hb_vector_paint_t
 {
   hb_object_header_t header;
@@ -58,7 +94,10 @@ struct hb_vector_paint_t
 
   hb_vector_buf_t defs;
   hb_vector_buf_t path;
-  hb_vector_t<hb_vector_buf_t> group_stack;
+  hb_vector_t<hb_vector_paint_group_t> group_stack;
+  /* The transforms and clips that are open, innermost last.  Those of
+   * a group follow those of the groups it is in. */
+  hb_vector_t<hb_vector_paint_scope_t> scopes;
   uint64_t transform_group_open_mask = 0;
   unsigned transform_group_depth = 0;
   unsigned transform_group_overflow_depth = 0;
@@ -74,13 +113,226 @@ struct hb_vector_paint_t
   int64_t budget = HB_BUDGET_DEFAULT;
   int64_t budget_remaining = HB_BUDGET_GLYPH;
   hb_vector_path_sink_t clip_path_sink = {nullptr, 0, 1.f, 1.f, nullptr};
+  /* Bounds of the clip path being streamed. */
+  hb_extents_t<> clip_path_extents;
   unsigned gradient_counter = 0;
   unsigned path_def_count = 0;
+  unsigned group_def_count = 0;
+  unsigned mask_counter = 0;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
   hb_vector_buf_t captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
 
   hb_vector_buf_t &current_body () { return group_stack.tail (); }
+  hb_vector_paint_group_t &current_group () { return group_stack.tail (); }
+
+  /* Starts collecting a group in a buffer of its own. */
+  bool push_group ()
+  {
+    /* The group is written into the same document when popped, so it shares
+     * the document cap with everything already held by the open groups. */
+    hb_vector_paint_group_t group;
+    group.precision = current_body ().precision;
+    group.base = current_body ().base + current_body ().length;
+    group.scope_base = scopes.length;
+    return group_stack.push_or_fail (std::move (group));
+  }
+
+  /* The transform from the current space to that of the document's
+   * root. */
+  hb_transform_t<> current_ctm () const
+  {
+    if (scopes.length) return scopes.tail ().ctm;
+    return HB_TRANSFORM_IDENTITY;
+  }
+
+  /* Records that the text from @start to the end of the current group's
+   * buffer opened a transform or clip: one that leaves the transform as
+   * it is and is not known to clip, unless the other two say more. */
+  void scope_opened (unsigned start)
+  { scope_opened (start, current_ctm (), hb_bounds_t<> ()); }
+
+  /* That it opened the transform @t. */
+  void transform_opened (unsigned start, const hb_transform_t<> &t)
+  {
+    hb_transform_t<> ctm = current_ctm ();
+    ctm.multiply (t);
+    scope_opened (start, ctm, hb_bounds_t<> ());
+  }
+
+  /* That it opened a clip whose bounds, in the current space, are @e. */
+  void clip_opened (unsigned start, hb_extents_t<> e)
+  { scope_opened (start, current_ctm (), clip_bounds (e)); }
+
+  /* The bounds of a clip, given as @e in the current space, in that of
+   * the document's root. */
+  hb_bounds_t<> clip_bounds (hb_extents_t<> e) const
+  {
+    if (e.is_empty ())
+      return hb_bounds_t<> (hb_bounds_t<>::EMPTY);
+    current_ctm ().transform_extents (e);
+    return hb_bounds_t<> (e);
+  }
+
+  void scope_opened (unsigned start,
+		     const hb_transform_t<> &ctm,
+		     const hb_bounds_t<> &clip)
+  {
+    auto &group = current_group ();
+    hb_vector_paint_scope_t scope = {start, group.length - start, ctm, clip};
+    if (unlikely (!scopes.push_or_fail (scope)))
+      group.overflowed = true; /* Fails the render. */
+  }
+
+  /* Forgets the innermost transform or clip that is open in the current
+   * group.  Returns false if there is none, as when it was opened in a
+   * group that has been popped since. */
+  bool scope_closed ()
+  {
+    if (scopes.length <= current_group ().scope_base)
+      return false;
+    scopes.pop ();
+    return true;
+  }
+
+  hb_array_t<hb_vector_paint_scope_t> open_scopes ()
+  { return scopes.as_array ().sub_array (current_group ().scope_base); }
+
+  /* Extends the innermost transform or clip that is open in the current
+   * group to the end of the group's buffer, for one whose opening text
+   * is written in parts.  It turns out to be a clip whose bounds, in
+   * the current space, are @e. */
+  void scope_extended (const hb_extents_t<> &e)
+  {
+    if (!open_scopes ().length)
+      return;
+    auto &group = current_group ();
+    auto &scope = scopes.tail ();
+    if (likely (scope.start <= group.length))
+      scope.length = group.length - scope.start;
+    scope.clip = clip_bounds (e);
+  }
+
+  /* The bounds of what the open clips let through, as their corners in
+   * the current space, in order around them.  Returns BOUNDED if it has
+   * set them, EMPTY if the clips let nothing through, and UNBOUNDED if
+   * they do not bound it, or the transform in effect has no inverse to
+   * bring the bounds back through. */
+  hb_bounds_t<>::status_t clip_corners (float x[4], float y[4]) const
+  {
+    hb_bounds_t<> bounds;
+    for (const auto &scope : scopes)
+      bounds.intersect (scope.clip);
+
+    if (bounds.status != hb_bounds_t<>::BOUNDED)
+      return bounds.status;
+
+    hb_transform_t<> t = current_ctm ();
+    float det = t.xx * t.yy - t.xy * t.yx;
+    if (!(fabsf (det) > 1e-12f))
+      return hb_bounds_t<>::UNBOUNDED;
+
+    const hb_extents_t<> &e = bounds.extents;
+    const float xs[4] = {e.xmin, e.xmax, e.xmax, e.xmin};
+    const float ys[4] = {e.ymin, e.ymin, e.ymax, e.ymax};
+    for (unsigned i = 0; i < 4; i++)
+    {
+      float dx = xs[i] - t.x0, dy = ys[i] - t.y0;
+      x[i] = ( t.yy * dx - t.xy * dy) / det;
+      y[i] = (-t.yx * dx + t.xx * dy) / det;
+    }
+    return hb_bounds_t<>::BOUNDED;
+  }
+
+  /* The radius that a sweep gradient centered at (@cx, @cy) has to
+   * reach to cover everything the open clips let through: zero if that
+   * is nothing, and @max_radius if the clips do not bound it.
+   *
+   * A sweep is written no bigger than it has to be because viewers do
+   * badly with huge ones.  PDF viewers resolve a mesh patch, or the
+   * whole mesh, in a fixed number of steps whatever its size, and a
+   * mesh's coordinates are 16-bit, so the bigger the mesh the coarser
+   * the grid its points land on.  SVG viewers built on cairo drop
+   * shapes whose coordinates, in pixels, get near 2^17. */
+  float sweep_radius (float cx, float cy, float max_radius) const
+  {
+    float x[4], y[4];
+    switch (clip_corners (x, y))
+    {
+      case hb_bounds_t<>::EMPTY:     return 0.f;
+      case hb_bounds_t<>::UNBOUNDED: return max_radius;
+      case hb_bounds_t<>::BOUNDED:   break;
+    }
+
+    float r2 = 0.f;
+    for (unsigned i = 0; i < 4; i++)
+    {
+      float dx = x[i] - cx, dy = y[i] - cy;
+      r2 = hb_max (r2, dx * dx + dy * dy);
+    }
+
+    float r = ceilf (sqrtf (r2)) + 1.f;
+    /* Catches a NaN, too. */
+    if (!(r <= max_radius))
+      return max_radius;
+    return r;
+  }
+
+  /* Closes the transforms and clips that are open in the current group
+   * with @closer, which leaves what the group has painted so far a unit.
+   * The text that opened them is copied to @opening, for whatever was
+   * painted under them and for reopen_scopes().  Returns their number. */
+  unsigned close_scopes (const char *closer, hb_vector_buf_t *opening)
+  {
+    auto &group = current_group ();
+    for (const auto &scope : open_scopes ())
+    {
+      if (unlikely (scope.start > group.length ||
+		    scope.length > group.length - scope.start))
+      {
+	group.overflowed = true;
+	return 0;
+      }
+      opening->append_len (group.arrayZ + scope.start, scope.length);
+    }
+    unsigned count = open_scopes ().length;
+    for (unsigned i = 0; i < count; i++)
+      group.append_str (closer);
+    return count;
+  }
+
+  /* Opens the transforms and clips of the current group again, after
+   * close_scopes(), for what is painted next. */
+  void reopen_scopes (const hb_vector_buf_t &opening)
+  {
+    auto &group = current_group ();
+    unsigned offset = 0;
+    for (auto &scope : open_scopes ())
+    {
+      if (unlikely (opening.in_error () ||
+		    scope.length > opening.length - offset))
+      {
+	group.overflowed = true;
+	return;
+      }
+      scope.start = group.length;
+      group.append_len (opening.arrayZ + offset, scope.length);
+      offset += scope.length;
+    }
+  }
+
+  /* SRC_ATOP, DEST_ATOP and XOR are written with operands that are
+   * used twice, as content and as a mask.  Nest those, and a small
+   * document takes a viewer time that doubles with every level.  So
+   * what a viewer has to render counts against the document cap just
+   * as what the document holds does.  Returns whether the document
+   * can refer to @more bytes of it. */
+  bool affords (uint64_t more) const
+  {
+    for (const auto &group : group_stack)
+      more += group.work ();
+    return more <= HB_VECTOR_MAX_DOCUMENT_SIZE;
+  }
 
   void recharge_budget ()
   {

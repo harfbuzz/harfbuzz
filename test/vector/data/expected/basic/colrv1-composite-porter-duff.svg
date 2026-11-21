@@ -1,0 +1,375 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-16 -1016 13032 1032" width="13032" height="1032">
+<defs>
+<clipPath id="c0"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<clipPath id="c1"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<clipPath id="c2"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<clipPath id="c3"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<clipPath id="c4"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<clipPath id="c5"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<mask id="m0" mask-type="alpha">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</mask>
+<mask id="m1">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF" mask="url(#m0)"/>
+</mask>
+<clipPath id="c6"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<mask id="m2" mask-type="alpha">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</mask>
+<mask id="m3">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF" mask="url(#m2)"/>
+</mask>
+<clipPath id="c7"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<mask id="m4" mask-type="alpha">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</mask>
+<mask id="m5">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF"/>
+<rect x="-32767" y="-32767" width="65534" height="65534" mask="url(#m4)"/>
+</mask>
+<clipPath id="c8"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<mask id="m6" mask-type="alpha">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</mask>
+<mask id="m7">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF"/>
+<rect x="-32767" y="-32767" width="65534" height="65534" mask="url(#m6)"/>
+</mask>
+<clipPath id="c9"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<g id="g0">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+<g id="g1">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+<mask id="m8" mask-type="alpha">
+<use href="#g1"/>
+</mask>
+<mask id="m9">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF"/>
+<rect x="-32767" y="-32767" width="65534" height="65534" mask="url(#m8)"/>
+</mask>
+<mask id="m10" mask-type="alpha">
+<use href="#g0"/>
+</mask>
+<mask id="m11">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF" mask="url(#m10)"/>
+</mask>
+<clipPath id="c10"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<g id="g2">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+<g id="g3">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+<mask id="m12" mask-type="alpha">
+<use href="#g2"/>
+</mask>
+<mask id="m13">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF"/>
+<rect x="-32767" y="-32767" width="65534" height="65534" mask="url(#m12)"/>
+</mask>
+<mask id="m14" mask-type="alpha">
+<use href="#g3"/>
+</mask>
+<mask id="m15">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF" mask="url(#m14)"/>
+</mask>
+<clipPath id="c11"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+<g id="g4">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+<g id="g5">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+<mask id="m16" mask-type="alpha">
+<use href="#g5"/>
+</mask>
+<mask id="m17">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF"/>
+<rect x="-32767" y="-32767" width="65534" height="65534" mask="url(#m16)"/>
+</mask>
+<mask id="m18" mask-type="alpha">
+<use href="#g4"/>
+</mask>
+<mask id="m19">
+<rect x="-32767" y="-32767" width="65534" height="65534" fill="#FFF"/>
+<rect x="-32767" y="-32767" width="65534" height="65534" mask="url(#m18)"/>
+</mask>
+<clipPath id="c12"><rect x="0" y="0" width="15.62" height="15.62"/></clipPath>
+</defs>
+<rect x="-16" y="-1016" width="13032" height="1032" fill="rgb(255,255,255)"/>
+<g transform="scale(1,-1)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c0)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,1000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c1)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,2000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c2)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,3000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c3)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+<g style="mix-blend-mode:normal">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,4000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c4)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,5000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c5)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g mask="url(#m1)">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,6000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g mask="url(#m3)">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,7000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c7)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g mask="url(#m5)">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,8000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c8)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal">
+<g mask="url(#m7)">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,9000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c9)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal;isolation:isolate">
+<g mask="url(#m9)">
+<use href="#g0"/>
+</g>
+<g mask="url(#m11)" style="mix-blend-mode:screen;mix-blend-mode:plus-lighter">
+<use href="#g1"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,10000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c10)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal;isolation:isolate">
+<g mask="url(#m13)">
+<use href="#g3"/>
+</g>
+<g mask="url(#m15)" style="mix-blend-mode:screen;mix-blend-mode:plus-lighter">
+<use href="#g2"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,11000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c11)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal;isolation:isolate">
+<g mask="url(#m17)">
+<use href="#g4"/>
+</g>
+<g mask="url(#m19)" style="mix-blend-mode:screen;mix-blend-mode:plus-lighter">
+<use href="#g5"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1,0,0,1,12000,0)">
+<g transform="matrix(64,0,0,64,0,0)">
+<g clip-path="url(#c12)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M475,525L475,750L525,750L525,525L750,525L750,475L525,475L525,250L475,250L475,475L250,475L250,525L475,525Z" fill="#000"/>
+</g>
+<g style="mix-blend-mode:normal;isolation:isolate">
+<g transform="matrix(0.5,0,0,0.5,2.6,5.21)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#FFDC01"/>
+</g>
+</g>
+<g style="mix-blend-mode:screen;mix-blend-mode:plus-lighter">
+<g transform="matrix(0.5,0,0,0.5,5.21,2.6)">
+<g transform="matrix(0.015625,0,0,0.015625,0,0)">
+<path d="M0,0L0,1000L1000,1000L1000,0L0,0Z" fill="#68C7E8"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>

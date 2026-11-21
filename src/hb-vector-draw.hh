@@ -108,21 +108,28 @@ struct hb_vector_draw_t
     path.shrink (0);
   }
 
+  /* Adds an ExtGState that sets the fill alpha; returns its
+   * resource index. */
+  unsigned add_pdf_extgstate_alpha (float alpha)
+  {
+    unsigned gs_idx = pdf_extgstate_count++;
+    pdf_extgstate_dict.append_str ("/GS");
+    pdf_extgstate_dict.append_unsigned (gs_idx);
+    pdf_extgstate_dict.append_str (" << /Type /ExtGState /ca ");
+    pdf_extgstate_dict.append_num (alpha, 4);
+    pdf_extgstate_dict.append_str (" >> ");
+    return gs_idx;
+  }
+
   void flush_path_pdf ()
   {
     unsigned a = hb_color_get_alpha (foreground);
     if (a < 255)
     {
-      unsigned gs_idx = pdf_extgstate_count++;
-      body.append_str ("/GS");
-      body.append_unsigned (gs_idx);
+      /* Scoped, so the alpha does not leak into later paths. */
+      body.append_str ("q\n/GS");
+      body.append_unsigned (add_pdf_extgstate_alpha (a / 255.f));
       body.append_str (" gs\n");
-
-      pdf_extgstate_dict.append_str ("/GS");
-      pdf_extgstate_dict.append_unsigned (gs_idx);
-      pdf_extgstate_dict.append_str (" << /Type /ExtGState /ca ");
-      pdf_extgstate_dict.append_num (a / 255.f, 4);
-      pdf_extgstate_dict.append_str (" >> ");
     }
     body.append_num (hb_color_get_red (foreground) / 255.f, 4);
     body.append_c (' ');
@@ -132,6 +139,8 @@ struct hb_vector_draw_t
     body.append_str (" rg\n");
     body.append_len (path.arrayZ, path.length);
     body.append_str ("f\n");
+    if (a < 255)
+      body.append_str ("Q\n");
   }
 
   void flush_path_svg ()

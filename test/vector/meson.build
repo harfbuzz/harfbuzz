@@ -2,7 +2,23 @@ if get_option('vector').disabled()
   subdir_done()
 endif
 
+test_vector_svg_repeat = executable('test-vector-svg-repeat', 'test-vector-svg-repeat.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('svg-repeat', test_vector_svg_repeat,
+  suite: 'vector',
+)
+
 run_test = find_program('run-tests.py')
+
+test_vector_sweep_svg = executable('test-vector-sweep-svg', 'test-vector-sweep-svg.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('sweep-svg', test_vector_sweep_svg,
+  suite: 'vector',
+)
 
 test_vector_budget = executable('test-vector-budget', 'test-vector-budget.c',
   dependencies: [libharfbuzz_vector_dep],
@@ -10,6 +26,14 @@ test_vector_budget = executable('test-vector-budget', 'test-vector-budget.c',
 
 test('budget', test_vector_budget,
   args: [meson.project_source_root() / 'test' / 'api' / 'fonts' / 'glyphs.ttf'],
+  suite: 'vector',
+)
+
+test_vector_pdf_alpha = executable('test-vector-pdf-alpha', 'test-vector-pdf-alpha.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-alpha', test_vector_pdf_alpha,
   suite: 'vector',
 )
 
@@ -27,6 +51,22 @@ test_vector_sweep = executable('test-vector-sweep', 'test-vector-sweep.c',
 
 test('sweep', test_vector_sweep,
   args: [meson.project_source_root() / 'test' / 'api' / 'fonts' / 'test_glyphs-glyf_colr_1.ttf'],
+  suite: 'vector',
+)
+
+test_vector_pdf_repeat = executable('test-vector-pdf-repeat', 'test-vector-pdf-repeat.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-repeat', test_vector_pdf_repeat,
+  suite: 'vector',
+)
+
+test_vector_composite = executable('test-vector-composite', 'test-vector-composite.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('composite', test_vector_composite,
   suite: 'vector',
 )
 
@@ -55,3 +95,19 @@ foreach t : tests
     suite: 'vector',
   )
 endforeach
+
+test_vector_pdf_clip = executable('test-vector-pdf-clip', 'test-vector-pdf-clip.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-clip', test_vector_pdf_clip,
+  suite: 'vector',
+)
+
+test_vector_svg_clip = executable('test-vector-svg-clip', 'test-vector-svg-clip.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('svg-clip', test_vector_svg_clip,
+  suite: 'vector',
+)

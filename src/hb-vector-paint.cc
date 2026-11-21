@@ -737,6 +737,7 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->defs.clear ();
   paint->path.clear ();
   paint->group_stack.clear ();
+  paint->scopes.clear ();
   paint->transform_group_open_mask = 0;
   paint->transform_group_depth = 0;
   paint->transform_group_overflow_depth = 0;
@@ -745,6 +746,8 @@ hb_vector_paint_clear (hb_vector_paint_t *paint)
   paint->recharge_budget ();
   paint->gradient_counter = 0;
   paint->path_def_count = 0;
+  paint->group_def_count = 0;
+  paint->mask_counter = 0;
   paint->color_stops_scratch.clear ();
   paint->captured_scratch.clear ();
 }

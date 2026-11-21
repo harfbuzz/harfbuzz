@@ -1,5 +1,6 @@
 # font-file;options;unicodes;expected-file
 ../../../api/fonts/Roboto-Regular.abc.ttf;;U+0061,U+0062,U+0063;../expected/basic/default.svg
+../../../shape/data/in-house/fonts/ba51123c80fa9526c9c3032cd41c22700a4bc3e2.ttf;;U+0306;../expected/basic/colrv1-empty-layer.pdf
 ../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=upem;U+0061,U+0062,U+0063;../expected/basic/upem-default.svg
 ../../../api/fonts/Roboto-Regular.abc.ttf;--direction=ttb;U+0061,U+0062,U+0063;../expected/basic/ttb.svg
 ../../../api/fonts/Roboto-Regular.abc.ttf;;U+0061,U+000A,U+0062,U+0063;../expected/basic/multiline.svg
@@ -10,10 +11,16 @@
 ../../../api/fonts/SourceSerifVariable-Roman-VVAR.abc.ttf;--direction=ttb --variations=wght=900;U+0061,U+0062,U+0063;../expected/basic/glyf-vvar-ttb-wght900.svg
 ../fonts/2db082c6c462d5056544e56e7ea13bf58c33a832.ttf;--logical;U+0646,U+0633,U+062A,U+0639,U+0644,U+06CC,U+0642;../expected/basic/iran-nastaliq-y-offsets.svg
 ../../../fuzzing/fonts/noto_handwriting-sbix.ttf;;U+270D;../expected/basic/handwriting-sbix.svg
+../../../api/fonts/sbix-png-kinds.ttf;;U+0061,U+0062,U+0063,U+0064,U+0065,U+0066,U+0067,U+0068;../expected/basic/sbix-png-kinds.pdf
 ../../../fuzzing/fonts/noto_handwriting-glyf_colr_1.ttf;;U+270D;../expected/basic/handwriting-glyf-colr-1.svg
 ../../../fuzzing/fonts/noto_handwriting-cff_colr_1.otf;;U+270D;../expected/basic/handwriting-cff-colr-1.svg
 ../../../fuzzing/fonts/noto_handwriting-cff2_colr_1.otf;;U+270D;../expected/basic/handwriting-cff-colr-1.svg
 ../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=65536;U+0061,U+0062,U+0063;../expected/basic/glyf-quadratics.pdf
+../../../api/fonts/Roboto-Regular.abc.ttf;--foreground=#00000080 --background=#FF000080;U+0061,U+0062,U+0063;../expected/basic/glyf-translucent.pdf
 ../../../api/fonts/TwemojiMozilla.subset.default.32,3299.ttf;--font-size=65536;U+3299;../expected/basic/colrv0-large-scale.svg
 ../../../api/fonts/TwemojiMozilla.subset.default.32,3299.ttf;--font-size=65536;U+3299;../expected/basic/colrv0-large-scale.pdf
 ../../../api/fonts/Roboto-Regular.abc.ttf;--paint --show-extents;U+0061,U+0062,U+0063;../expected/basic/paint-show-extents.svg
+../../../api/fonts/test_glyphs-glyf_colr_1.ttf;;U+F0501,U+F0502,U+F0504,U+F0505,U+F0507,U+F0508;../expected/basic/colrv1-extend-repeat-reflect.pdf
+../../../api/fonts/test_glyphs-glyf_colr_1.ttf;;U+F0A17;../expected/basic/colrv1-composite-multiply.svg
+../../../api/fonts/test_glyphs-glyf_colr_1.ttf;;U+F0A00,U+F0A01,U+F0A02,U+F0A03,U+F0A04,U+F0A05,U+F0A06,U+F0A07,U+F0A08,U+F0A09,U+F0A0A,U+F0A0B,U+F0A0C;../expected/basic/colrv1-composite-porter-duff.svg
+../../../api/fonts/test_glyphs-glyf_colr_1.ttf;;U+F0A00,U+F0A01,U+F0A02,U+F0A03,U+F0A04,U+F0A05,U+F0A06,U+F0A07,U+F0A08,U+F0A09,U+F0A0A,U+F0A0B,U+F0A0C;../expected/basic/colrv1-composite-porter-duff.pdf

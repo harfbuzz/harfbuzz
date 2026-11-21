@@ -25,7 +25,10 @@
 
 /* A PDF sweep gradient is a mesh.  Check that the mesh is sized to
  * the glyph it paints, and so puts the sweep's center where the font
- * says, instead of spanning the whole 16-bit coordinate range. */
+ * says, instead of spanning the whole 16-bit coordinate range.
+ *
+ * An SVG sweep gradient is a fan of wedges.  Check that they are sized
+ * the same way: viewers built on cairo drop shapes that are huge. */
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -95,6 +98,32 @@ main (int argc, char **argv)
   float y = ylo + (float) ((p[3] << 8) | p[4]) / 65535.f * (yhi - ylo);
   assert (fabsf (x - 500.f) < 0.1f);
   assert (fabsf (y - 600.f) < 0.1f);
+
+  hb_blob_destroy (blob);
+  hb_vector_paint_destroy (paint);
+
+  paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG);
+  assert (paint);
+  hb_vector_paint_glyph (paint, font, glyph, HB_VECTOR_EXTENTS_MODE_EXPAND);
+  blob = hb_vector_paint_render (paint);
+  assert (blob);
+
+  /* The first wedge: from the center, out to the corners of the clip's
+   * bounding box, and not much further. */
+  data = hb_blob_get_data (blob, &len);
+  const char *body = find (data, len, "</defs>");
+  assert (body);
+  const char *wedge = find (body, len - (unsigned) (body - data), "<path d=\"M");
+  assert (wedge);
+  char start[64] = "";
+  unsigned n = len - (unsigned) (wedge - data);
+  memcpy (start, wedge, n < sizeof (start) - 1 ? n : sizeof (start) - 1);
+  float px, py;
+  assert (4 == sscanf (start, "<path d=\"M%f,%fL%f,%f", &x, &y, &px, &py));
+  assert (fabsf (x - 500.f) < 0.1f);
+  assert (fabsf (y - 600.f) < 0.1f);
+  float r = hypotf (px - x, py - y);
+  assert (r > 495 && r < 510);
 
   hb_blob_destroy (blob);
   hb_vector_paint_destroy (paint);

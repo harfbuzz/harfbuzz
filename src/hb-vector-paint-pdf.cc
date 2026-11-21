@@ -41,9 +41,13 @@
  *   - Solid colors with alpha (via ExtGState)
  *   - Glyph and rectangle clipping
  *   - Affine transforms
- *   - Groups (save/restore)
- *   - Linear gradients (PDF Type 2 axial shading, PAD extension only)
- *   - Radial gradients (PDF Type 3 radial shading, PAD extension only)
+ *   - Groups (Form XObjects that are isolated transparency groups)
+ *   - Compositing modes: the blend modes as PDF's own, and the
+ *     Porter-Duff modes with soft masks (SRC_ATOP, DEST_ATOP, XOR and
+ *     PLUS only approximately)
+ *   - Linear gradients (PDF Type 2 axial shadings; one for each period
+ *     of a color line that repeats or reflects)
+ *   - Radial gradients (PDF Type 3 radial shadings; likewise)
  *   - Sweep gradients (PDF Type 6 Coons-patch meshes)
  */
 
@@ -84,56 +88,6 @@ struct hb_pdf_resources_t
   unsigned objects_size = 0;
   bool overflowed = false;
 
-  /* The transform and clip stack, as the content stream's q/Q pairs
-   * nest them.  Kept so that a sweep gradient can be sized to what
-   * is visible of it.  Transforms and clip bounds are in root output
-   * space. */
-  struct gstate_t
-  {
-    hb_transform_t<> ctm = HB_TRANSFORM_IDENTITY;
-    /* This level's own clip. */
-    hb_bounds_t<> clip;
-  };
-  hb_vector_t<gstate_t> gstates;
-  /* Pushes that did not fit in gstates; while non-zero the stack
-   * does not describe the content stream. */
-  unsigned gstates_lost = 0;
-  /* Bounds of the clip path being streamed. */
-  hb_extents_t<> clip_path_extents;
-
-  hb_transform_t<> current_ctm () const
-  {
-    if (gstates.length) return gstates.tail ().ctm;
-    return HB_TRANSFORM_IDENTITY;
-  }
-
-  void push_gstate (const gstate_t &g)
-  {
-    if (unlikely (gstates_lost || !gstates.push_or_fail (g)))
-      gstates_lost++;
-  }
-  /* Push a clip whose bounds, in the current space, are e. */
-  void push_clip (hb_extents_t<> e)
-  {
-    gstate_t g;
-    g.ctm = current_ctm ();
-    if (e.is_empty ())
-      g.clip = hb_bounds_t<> (hb_bounds_t<>::EMPTY);
-    else
-    {
-      g.ctm.transform_extents (e);
-      g.clip = hb_bounds_t<> (e);
-    }
-    push_gstate (g);
-  }
-  void pop_gstate ()
-  {
-    if (unlikely (gstates_lost))
-      gstates_lost--;
-    else if (gstates.length)
-      gstates.pop ();
-  }
-
   bool in_error () const
   { return objects.in_error () || overflowed; }
 
@@ -158,53 +112,81 @@ struct hb_pdf_resources_t
     return id;
   }
 
+  /* Add an ExtGState, return resource name index. */
+  unsigned add_extgstate (hb_vector_buf_t &&obj)
+  {
+    unsigned idx = extgstate_count++;
+    unsigned obj_id = add_object (std::move (obj));
+
+    extgstate_dict.append_str ("/GS");
+    extgstate_dict.append_unsigned (idx);
+    extgstate_dict.append_c (' ');
+    extgstate_dict.append_unsigned (obj_id);
+    extgstate_dict.append_str (" 0 R ");
+    return idx;
+  }
+
   /* Add ExtGState for fill opacity, return resource name index. */
   unsigned add_extgstate_alpha (float alpha)
   {
-    unsigned idx = extgstate_count++;
     hb_vector_buf_t obj;
     obj.append_str ("<< /Type /ExtGState /ca ");
     obj.append_num (alpha, 4);
     obj.append_str (" >>");
-    unsigned obj_id = add_object (std::move (obj));
-
-    extgstate_dict.append_str ("/GS");
-    extgstate_dict.append_unsigned (idx);
-    extgstate_dict.append_c (' ');
-    extgstate_dict.append_unsigned (obj_id);
-    extgstate_dict.append_str (" 0 R ");
-    return idx;
+    return add_extgstate (std::move (obj));
   }
 
-  /* Add ExtGState for blend mode, return resource name index. */
-  unsigned add_extgstate_blend (const char *bm)
+  /* Add ExtGState for painting a group: with blend mode @bm, if not
+   * null, and through a soft mask, if @mask_id is not zero.  The mask
+   * is the alpha of the transparency group that is object @mask_id or,
+   * with @inverse, one minus it.  Return resource name index. */
+  unsigned add_extgstate_group (const char *bm,
+				unsigned mask_id = 0,
+				bool inverse = false)
   {
-    unsigned idx = extgstate_count++;
-    hb_vector_buf_t obj;
-    obj.append_str ("<< /Type /ExtGState /BM /");
-    obj.append_str (bm);
-    obj.append_str (" >>");
-    unsigned obj_id = add_object (std::move (obj));
+    if (mask_id && inverse)
+    {
+      /* A soft mask is inverted by a transfer function, but poppler's
+       * cairo backend does not apply one to an alpha mask.  So take
+       * the luminosity of a group that is white, with black painted
+       * over it through the alpha mask. */
+      unsigned alpha_idx = add_extgstate_group (nullptr, mask_id);
+      hb_vector_buf_t stream;
+      stream.append_str ("1 g\n-32767 -32767 65534 65534 re f\n/GS");
+      stream.append_unsigned (alpha_idx);
+      stream.append_str (" gs\n0 g\n-32767 -32767 65534 65534 re f\n");
+      mask_id = add_group (stream, true);
+    }
 
-    extgstate_dict.append_str ("/GS");
-    extgstate_dict.append_unsigned (idx);
-    extgstate_dict.append_c (' ');
-    extgstate_dict.append_unsigned (obj_id);
-    extgstate_dict.append_str (" 0 R ");
-    return idx;
+    hb_vector_buf_t obj;
+    obj.append_str ("<< /Type /ExtGState");
+    if (bm)
+    {
+      obj.append_str (" /BM /");
+      obj.append_str (bm);
+    }
+    if (mask_id)
+    {
+      obj.append_str (inverse ? " /SMask << /Type /Mask /S /Luminosity /G "
+			      : " /SMask << /Type /Mask /S /Alpha /G ");
+      obj.append_unsigned (mask_id);
+      obj.append_str (" 0 R >>");
+    }
+    obj.append_str (" >>");
+    return add_extgstate (std::move (obj));
   }
 
   /* Add a Form XObject that is an isolated transparency group with
-   * @stream as its content, to be painted with `/FmN Do`.  Stores
-   * the resource name index in @idx. */
-  bool add_form_group (const hb_vector_buf_t &stream, unsigned *idx)
+   * @stream as its content, in DeviceRGB or, for a group whose
+   * luminosity is a soft mask, DeviceGray.  Return object id. */
+  unsigned add_group (const hb_vector_buf_t &stream, bool gray = false)
   {
     if (!resources_obj_id)
     {
       hb_vector_buf_t placeholder;
       resources_obj_id = add_object (std::move (placeholder));
       if (unlikely (!resources_obj_id))
-	return false;
+	return 0;
     }
 
     /* The form is painted where its content would have been, so it
@@ -214,7 +196,8 @@ struct hb_pdf_resources_t
     hb_vector_buf_t form;
     form.append_str ("<< /Type /XObject /Subtype /Form\n");
     form.append_str ("/BBox [-32767 -32767 32767 32767]\n");
-    form.append_str ("/Group << /S /Transparency /CS /DeviceRGB /I true >>\n");
+    form.append_str (gray ? "/Group << /S /Transparency /CS /DeviceGray /I true >>\n"
+			  : "/Group << /S /Transparency /CS /DeviceRGB /I true >>\n");
     form.append_str ("/Resources ");
     form.append_unsigned (resources_obj_id);
     form.append_str (" 0 R\n/Length ");
@@ -222,9 +205,20 @@ struct hb_pdf_resources_t
     form.append_str (" >>\nstream\n");
     form.append_len (stream.arrayZ, stream.length);
     form.append_str ("endstream");
-    unsigned form_id = add_object (std::move (form));
+    return add_object (std::move (form));
+  }
+
+  /* Add a group, as above, to be painted with `/FmN Do`.  Stores the
+   * resource name index in @idx and, if not null, the object id in
+   * @obj_id. */
+  bool add_form_group (const hb_vector_buf_t &stream, unsigned *idx,
+		       unsigned *obj_id = nullptr)
+  {
+    unsigned form_id = add_group (stream);
     if (unlikely (!form_id))
       return false;
+    if (obj_id)
+      *obj_id = form_id;
 
     *idx = form_count++;
     xobject_dict.append_str ("/Fm");
@@ -268,20 +262,12 @@ struct hb_pdf_resources_t
     unsigned form_id = add_object (std::move (form));
 
     /* ExtGState with luminosity soft mask. */
-    unsigned idx = extgstate_count++;
     hb_vector_buf_t gs;
     gs.append_str ("<< /Type /ExtGState\n");
     gs.append_str ("/SMask << /Type /Mask /S /Luminosity /G ");
     gs.append_unsigned (form_id);
     gs.append_str (" 0 R >> >>");
-    unsigned gs_id = add_object (std::move (gs));
-
-    extgstate_dict.append_str ("/GS");
-    extgstate_dict.append_unsigned (idx);
-    extgstate_dict.append_c (' ');
-    extgstate_dict.append_unsigned (gs_id);
-    extgstate_dict.append_str (" 0 R ");
-    return idx;
+    return add_extgstate (std::move (gs));
   }
 
   /* Add a shading, return resource name index. */
@@ -309,7 +295,8 @@ struct hb_pdf_resources_t
    * plte/plte_len is the PLTE chunk data for indexed images (may be null). */
   unsigned add_xobject_png_image (const char *idat_data, unsigned idat_len,
 				  unsigned width, unsigned height,
-				  unsigned colors, bool has_alpha, int64_t *budget,
+				  unsigned colors, unsigned bits,
+				  bool has_alpha, int64_t *budget,
 				  const uint8_t *plte = nullptr,
 				  unsigned plte_len = 0,
 				  const uint8_t *trns = nullptr,
@@ -328,7 +315,9 @@ struct hb_pdf_resources_t
     obj.append_unsigned (width);
     obj.append_str (" /Height ");
     obj.append_unsigned (height);
-    obj.append_str ("\n/BitsPerComponent 8\n");
+    obj.append_str ("\n/BitsPerComponent ");
+    obj.append_unsigned (bits);
+    obj.append_c ('\n');
 
     if (plte && plte_len >= 3)
     {
@@ -357,7 +346,8 @@ struct hb_pdf_resources_t
     bool have_smask = has_alpha;
     if (!has_alpha && plte && trns && trns_len)
       have_smask = hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
-                                              width, height, trns, trns_len, budget);
+                                              width, height, bits,
+                                              trns, trns_len, budget);
     bool color_compressed = has_alpha && hb_pdf_compress_image_stream (&color_stream, budget);
     bool mask_compressed = have_smask && hb_pdf_compress_image_stream (&smask_stream, budget);
     if (*budget < 0) return UINT_MAX;
@@ -396,7 +386,9 @@ struct hb_pdf_resources_t
       obj.append_str ("/Filter /FlateDecode\n");
       obj.append_str ("/DecodeParms << /Predictor 15 /Colors ");
       obj.append_unsigned (colors);
-      obj.append_str (" /BitsPerComponent 8 /Columns ");
+      obj.append_str (" /BitsPerComponent ");
+      obj.append_unsigned (bits);
+      obj.append_str (" /Columns ");
       obj.append_unsigned (width);
       obj.append_str (" >>\n");
     }
@@ -491,7 +483,34 @@ hb_pdf_emit_glyph_path (hb_vector_paint_t *paint,
 }
 
 
+/* A path that encloses nothing, for clipping to an outline that has
+ * no points: the clip then lets nothing through, as it should, where
+ * `W` with no path at all would leave the clip as it was and let
+ * everything through. */
+static void
+hb_pdf_empty_path (hb_vector_buf_t &body)
+{
+  body.append_str ("0 0 0 0 re\n");
+}
+
 /* ---- paint callbacks ---- */
+
+static void
+hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
+				  void *paint_data,
+				  float xmin, float ymin,
+				  float xmax, float ymax,
+				  void *);
+
+/* Whether a transform has an inverse, with a margin for one that all but
+ * has none. */
+static bool
+hb_pdf_transform_has_inverse (float xx, float yx, float xy, float yy)
+{
+  float a = xx * yy, b = xy * yx;
+  float det = a - b;
+  return std::isfinite (det) && fabsf (det) > 1e-6f * (fabsf (a) + fabsf (b));
+}
 
 static void
 hb_pdf_paint_push_transform (hb_paint_funcs_t *,
@@ -505,7 +524,18 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
+  /* What is painted under a transform that has no inverse has no area.
+   * Not every viewer paints nothing under a `cm` of one: poppler paints
+   * what is under it as if the transform were not there.  Clip
+   * everything out instead, until the transform is popped. */
+  if (unlikely (!hb_pdf_transform_has_inverse (xx, yx, xy, yy)))
+  {
+    hb_pdf_paint_push_clip_rectangle (nullptr, paint_data, 0.f, 0.f, 0.f, 0.f, nullptr);
+    return;
+  }
+
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   unsigned sprec = body.scale_precision ();
   body.append_str ("q\n");
   body.append_num (xx, sprec);
@@ -520,14 +550,7 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (paint->sy (dy));
   body.append_str (" cm\n");
-
-  if (auto *res = hb_pdf_get_resources (paint))
-  {
-    hb_pdf_resources_t::gstate_t g;
-    g.ctm = res->current_ctm ();
-    g.ctm.multiply ({xx, yx, xy, yy, paint->sx (dx), paint->sy (dy)});
-    res->push_gstate (g);
-  }
+  paint->transform_opened (start, {xx, yx, xy, yy, paint->sx (dx), paint->sy (dy)});
 }
 
 static void
@@ -538,9 +561,8 @@ hb_pdf_paint_pop_transform (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("Q\n");
-  if (auto *res = hb_pdf_get_resources (paint))
-    res->pop_gstate ();
+  if (paint->scope_closed ())
+    paint->current_body ().append_str ("Q\n");
 }
 
 static void
@@ -607,13 +629,14 @@ hb_pdf_paint_push_clip_glyph (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   body.append_str ("q\n");
   hb_extents_t<> extents;
   hb_pdf_emit_glyph_path (paint, font, glyph, &body, &extents);
+  if (extents.is_void ())
+    hb_pdf_empty_path (body);
   body.append_str ("W n\n");
-
-  if (auto *res = hb_pdf_get_resources (paint))
-    res->push_clip (extents);
+  paint->clip_opened (start, extents);
 }
 
 static void
@@ -628,6 +651,7 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   body.append_str ("q\n");
   body.append_num (paint->sx (xmin));
   body.append_c (' ');
@@ -637,12 +661,10 @@ hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
   body.append_c (' ');
   body.append_num (paint->sy (ymax - ymin));
   body.append_str (" re W n\n");
-
-  if (auto *res = hb_pdf_get_resources (paint))
-    res->push_clip ({hb_min (paint->sx (xmin), paint->sx (xmax)),
-		     hb_min (paint->sy (ymin), paint->sy (ymax)),
-		     hb_max (paint->sx (xmin), paint->sx (xmax)),
-		     hb_max (paint->sy (ymin), paint->sy (ymax))});
+  paint->clip_opened (start, {hb_min (paint->sx (xmin), paint->sx (xmax)),
+			      hb_min (paint->sy (ymin), paint->sy (ymax)),
+			      hb_max (paint->sx (xmin), paint->sx (xmax)),
+			      hb_max (paint->sy (ymin), paint->sy (ymax))});
 }
 
 static hb_draw_funcs_t *
@@ -659,24 +681,20 @@ hb_pdf_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   body.append_str ("q\n");
+  paint->scope_opened (start);
   /* Stream path operators straight into the body; end() seals
    * the path with "W n" to turn it into the clip region.
    * Coordinates arrive in font-scale; the sink divides by
    * scale_factor so they land in output space. */
+  /* The clip's bounds are known when the path ends. */
+  paint->clip_path_extents = hb_extents_t<> {};
   paint->clip_path_sink = {&body, paint->get_precision (),
 			   paint->x_scale_factor,
 			   paint->y_scale_factor,
-			   &paint->budget_remaining, nullptr};
-  /* The clip's bounds are known when the path ends. */
-  if (auto *res = hb_pdf_get_resources (paint))
-  {
-    res->clip_path_extents = hb_extents_t<> {};
-    paint->clip_path_sink.extents = &res->clip_path_extents;
-    hb_pdf_resources_t::gstate_t g;
-    g.ctm = res->current_ctm ();
-    res->push_gstate (g);
-  }
+			   &paint->budget_remaining,
+			   &paint->clip_path_extents};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_pdf_path_draw_funcs_get ();
 }
@@ -689,15 +707,14 @@ hb_pdf_paint_push_clip_path_end (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
+  if (paint->clip_path_sink.extents && paint->clip_path_sink.extents->is_void ())
+    hb_pdf_empty_path (paint->current_body ());
   paint->current_body ().append_str ("W n\n");
-
-  auto *res = hb_pdf_get_resources (paint);
-  if (res && paint->clip_path_sink.extents)
+  /* The path is part of what opened the clip. */
+  if (paint->clip_path_sink.extents)
   {
     paint->clip_path_sink.extents = nullptr;
-    /* Swap the placeholder pushed at the start for the real clip. */
-    res->pop_gstate ();
-    res->push_clip (res->clip_path_extents);
+    paint->scope_extended (paint->clip_path_extents);
   }
 }
 
@@ -709,9 +726,8 @@ hb_pdf_paint_pop_clip (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("Q\n");
-  if (auto *res = hb_pdf_get_resources (paint))
-    res->pop_gstate ();
+  if (paint->scope_closed ())
+    paint->current_body ().append_str ("Q\n");
 }
 
 /* Paint a solid color, including alpha via ExtGState. */
@@ -728,13 +744,17 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
   if (a < 1.f / 255.f)
     return;
 
-  /* Set alpha via ExtGState if needed. */
+  bool scoped = false;
+  /* Set alpha via ExtGState if needed, scoped so it does not leak
+   * into later paints. */
   if (a < 1.f - 1.f / 512.f)
   {
     auto *res = hb_pdf_get_resources (paint);
     if (res)
     {
       unsigned gs_idx = res->add_extgstate_alpha (a);
+      body.append_str ("q\n");
+      scoped = true;
       body.append_str ("/GS");
       body.append_unsigned (gs_idx);
       body.append_str (" gs\n");
@@ -751,6 +771,8 @@ hb_pdf_paint_solid_color (hb_vector_paint_t *paint, hb_color_t c)
 
   /* Paint a huge rect (will be clipped). */
   body.append_str ("-32767 -32767 65534 65534 re f\n");
+  if (scoped)
+    body.append_str ("Q\n");
 }
 
 static void
@@ -812,6 +834,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   /* Parse PNG chunks: extract IHDR and concatenate IDAT payloads. */
   unsigned png_w = 0, png_h = 0;
   unsigned colors = 3; /* default RGB */
+  unsigned bits = 8;
   uint8_t color_type = 2;
   bool has_alpha = false;
   const uint8_t *plte_data = nullptr;
@@ -837,9 +860,14 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
       if (chunk_len < 13) return false;
       png_w = hb_pdf_png_u32 (chunk_data);
       png_h = hb_pdf_png_u32 (chunk_data + 4);
-      uint8_t bit_depth = chunk_data[8];
+      bits = chunk_data[8];
       color_type = chunk_data[9];
-      if (bit_depth != 8) return false; /* only 8-bit supported */
+      /* Samples of 8 bits; of 1, 2 and 4 as well where they are gray
+       * or indexes into a palette, which is where PNG has them. */
+      if (bits != 8 &&
+	  !((bits == 1 || bits == 2 || bits == 4) &&
+	    (color_type == 0 || color_type == 3)))
+	return false;
 
       switch (color_type)
       {
@@ -850,8 +878,11 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
       case 6: colors = 4; has_alpha = true;  break; /* RGBA */
       default: return false;
       }
-      if (has_alpha && (chunk_data[10] || chunk_data[11] || chunk_data[12]))
-        return false; /* Only noninterlaced PNG filter/compression method 0. */
+      /* Only noninterlaced PNG filter/compression method 0: the rows of
+       * the image are handed to the viewer as they are, or read here as
+       * they are. */
+      if (chunk_data[10] || chunk_data[11] || chunk_data[12])
+        return false;
     }
     else if (chunk_type == 0x504C5445u) /* PLTE */
     {
@@ -881,7 +912,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
 
   unsigned im_idx = res->add_xobject_png_image (idat.arrayZ, idat.length,
 						 png_w, png_h,
-						 colors, has_alpha, &paint->budget_remaining,
+						 colors, bits, has_alpha, &paint->budget_remaining,
 						 plte_data, plte_len,
 						 trns_data, trns_len);
 
@@ -1101,6 +1132,587 @@ hb_pdf_build_gradient_function_from_stops (hb_pdf_resources_t *res,
   return res->add_object (std::move (obj));
 }
 
+/* ---- Gradients that repeat ---- */
+
+/* PDF shadings do not repeat.  A linear or radial gradient whose color
+ * line repeats or reflects is painted a period of the color line at a
+ * time, for the periods that reach what is painted: a shading each,
+ * with the color line backwards in every other one if it reflects.
+ *
+ * One shading over a function that stitches the periods together would
+ * be less to write, but viewers do badly with it.  Many resolve the
+ * function of a shading in a fixed number of steps, whatever it holds.
+ * And poppler splits a shading for as long as the colors at the two
+ * ends of a piece differ, which those of a function that repeats do
+ * not when a whole number of periods lie between them: it then paints
+ * that piece in one color.
+ *
+ * No more periods are written than the open clips let through, and
+ * never more than this many, since a color line can be as short as it
+ * likes next to what it fills.  Those nearest the color line itself are
+ * kept then. */
+#define HB_PDF_GRADIENT_MAX_PERIODS 256
+
+/* Each period's shading goes this much of a period into the next, whose
+ * shading is painted over it.  Viewers decide pixel by pixel which side
+ * of the line between two shadings a pixel is on, and where their
+ * arithmetic for the one and for the other disagreed, a pixel would be
+ * left out of both. */
+#define HB_PDF_GRADIENT_PERIOD_OVERLAP (1. / 64)
+
+/* The stretch of a color line that a gradient is written for, the color
+ * line itself being the stretch from 0 to 1. */
+struct hb_pdf_gradient_span_t
+{
+  /* The periods: [first, last). */
+  int first = 0, last = 1;
+  /* Where the first one starts and the last one ends. */
+  double t0 = 0., t1 = 1.;
+
+  /* Sets the span to the periods that hold the stretch from @tmin to
+   * @tmax.  Returns false if there is no such stretch. */
+  bool set (double tmin, double tmax)
+  {
+    /* Catches NaNs, too. */
+    if (!(tmin <= tmax))
+      return false;
+
+    /* Whole numbers this size are exact as floats, and as ints. */
+    const double limit = 1 << 20;
+    tmin = hb_clamp (tmin, -limit, limit);
+    tmax = hb_clamp (tmax, -limit, limit);
+
+    int nearest = (int) floor (hb_clamp (0.5, tmin, tmax));
+    first = hb_max ((int) floor (tmin), nearest - HB_PDF_GRADIENT_MAX_PERIODS / 2);
+    last = hb_min ((int) ceil (tmax), nearest + HB_PDF_GRADIENT_MAX_PERIODS / 2);
+    if (first == last)
+      last++;
+
+    t0 = first;
+    t1 = last;
+    return true;
+  }
+};
+
+/* Sets @span to the periods that reach what the open clips let through
+ * of a color line that repeats along the line from (@x0, @y0) to
+ * (@x1, @y1).  Returns false if nothing is to be painted. */
+static bool
+hb_pdf_linear_gradient_span (const hb_vector_paint_t *paint,
+			     float x0, float y0,
+			     float x1, float y1,
+			     hb_pdf_gradient_span_t *span)
+{
+  double dx = (double) x1 - (double) x0, dy = (double) y1 - (double) y0;
+  double len2 = dx * dx + dy * dy;
+  /* A line of no length has no colors, as in hb-raster. */
+  if (!(len2 > 0.))
+    return false;
+
+  double tmin = -HUGE_VAL, tmax = HUGE_VAL;
+  float x[4], y[4];
+  switch (paint->clip_corners (x, y))
+  {
+    case hb_bounds_t<>::EMPTY:
+      return false;
+    case hb_bounds_t<>::UNBOUNDED:
+      break;
+    case hb_bounds_t<>::BOUNDED:
+      tmin = HUGE_VAL;
+      tmax = -HUGE_VAL;
+      for (unsigned i = 0; i < 4; i++)
+      {
+	double t = (((double) x[i] - (double) x0) * dx +
+		    ((double) y[i] - (double) y0) * dy) / len2;
+	tmin = hb_min (tmin, t);
+	tmax = hb_max (tmax, t);
+      }
+      break;
+  }
+
+  return span->set (tmin, tmax);
+}
+
+/* Finds the circles that touch the quadrilateral of corners (@qx, @qy),
+ * which are in order around it, among those centered at
+ * (@cx + t @dx, @cy + t @dy) with a radius of @r + t @dr that is not
+ * negative.  Sets @tmin and @tmax to the smallest and largest t of
+ * such circles, and @tmin above @tmax if there are none.
+ *
+ * The circles at the two ends are among those that go through a
+ * corner, those that touch a side from the outside, and the one of no
+ * radius. */
+static void
+hb_pdf_circles_touching (const float qx[4], const float qy[4],
+			 double cx, double cy, double r,
+			 double dx, double dy, double dr,
+			 double *tmin, double *tmax)
+{
+  double lo = HUGE_VAL, hi = -HUGE_VAL;
+  auto add = [&] (double t)
+  {
+    lo = hb_min (lo, t);
+    hi = hb_max (hi, t);
+  };
+  auto exists = [&] (double t) { return r + t * dr >= 0.; };
+
+  /* The corners, from the center of the first circle. */
+  double px[4], py[4];
+  for (unsigned i = 0; i < 4; i++)
+  {
+    px[i] = (double) qx[i] - cx;
+    py[i] = (double) qy[i] - cy;
+  }
+
+  /* A circle goes through (x, y) if a t^2 - 2 b t + c = 0, where
+   *
+   *   a = dx^2 + dy^2 - dr^2
+   *   b = x dx + y dy + r dr
+   *   c = x^2 + y^2 - r^2
+   *
+   * If a is zero the circles all touch one line at one point, where b
+   * is zero, and get bigger without end as they near the rest of it. */
+  double a = dx * dx + dy * dy - dr * dr;
+  bool flat = fabs (a) <= 1e-9 * (dx * dx + dy * dy + dr * dr);
+  bool before = false, after = false;
+  for (unsigned i = 0; i < 4; i++)
+  {
+    double b = px[i] * dx + py[i] * dy + r * dr;
+    double c = px[i] * px[i] + py[i] * py[i] - r * r;
+    if (flat)
+    {
+      if (b <= 0.) before = true;
+      if (b >= 0.) after = true;
+      if (b != 0. && exists (c / (2. * b)))
+	add (c / (2. * b));
+      continue;
+    }
+    double d = b * b - a * c;
+    if (d < 0.)
+      continue;
+    /* The two roots, without subtracting numbers that may be close. */
+    double q = b + (b < 0. ? -sqrt (d) : sqrt (d));
+    if (exists (q / a))
+      add (q / a);
+    if (q != 0. && exists (c / q))
+      add (c / q);
+  }
+  if (flat && before && after)
+    add (dr > 0. ? HUGE_VAL : -HUGE_VAL);
+
+  /* Which way around the corners go. */
+  double area = 0.;
+  for (unsigned i = 0; i < 4; i++)
+  {
+    unsigned j = (i + 1) & 3;
+    area += px[i] * py[j] - px[j] * py[i];
+  }
+  double out = area < 0. ? -1. : 1.;
+
+  /* The circle of no radius is a point. */
+  double tf = dr != 0. ? -r / dr : 0.;
+  bool point_inside = dr != 0.;
+
+  for (unsigned i = 0; i < 4; i++)
+  {
+    unsigned j = (i + 1) & 3;
+    double ex = px[j] - px[i], ey = py[j] - py[i];
+    double len = sqrt (ex * ex + ey * ey);
+    if (!(len > 0.))
+      continue;
+    /* The unit normal of the side that points out. */
+    double nx = out * ey / len, ny = -out * ex / len;
+
+    if ((tf * dx - px[i]) * nx + (tf * dy - py[i]) * ny > 0.)
+      point_inside = false;
+
+    /* A circle touches the line of the side from the outside where its
+     * center is its radius away on that side. */
+    double den = dx * nx + dy * ny - dr;
+    if (den == 0.)
+      continue;
+    double t = (r + px[i] * nx + py[i] * ny) / den;
+    if (!exists (t))
+      continue;
+    /* And the side itself, if that is where it touches the line. */
+    double rt = r + t * dr;
+    double along = (t * dx - rt * nx - px[i]) * ex + (t * dy - rt * ny - py[i]) * ey;
+    if (along >= 0. && along <= len * len)
+      add (t);
+  }
+  if (point_inside)
+    add (tf);
+
+  *tmin = lo;
+  *tmax = hi;
+}
+
+/* Sets @span to the periods that reach what the open clips let through
+ * of a color line that repeats over the circles from the one at
+ * (@x0, @y0) of radius @r0 to the one at (@x1, @y1) of radius @r1.
+ * Returns false if nothing is to be painted. */
+static bool
+hb_pdf_radial_gradient_span (const hb_vector_paint_t *paint,
+			     float x0, float y0, float r0,
+			     float x1, float y1, float r1,
+			     hb_pdf_gradient_span_t *span)
+{
+  double dx = (double) x1 - (double) x0;
+  double dy = (double) y1 - (double) y0;
+  double dr = (double) r1 - (double) r0;
+  /* One circle has no colors, as in hb-raster. */
+  if (dx == 0. && dy == 0. && dr == 0.)
+    return false;
+
+  double tmin = -HUGE_VAL, tmax = HUGE_VAL;
+  float x[4], y[4];
+  switch (paint->clip_corners (x, y))
+  {
+    case hb_bounds_t<>::EMPTY:
+      return false;
+    case hb_bounds_t<>::UNBOUNDED:
+      break;
+    case hb_bounds_t<>::BOUNDED:
+      hb_pdf_circles_touching (x, y,
+			       (double) x0, (double) y0, (double) r0,
+			       dx, dy, dr,
+			       &tmin, &tmax);
+      break;
+  }
+
+  /* There are no circles past the one of no radius. */
+  double tf = dr != 0. ? -(double) r0 / dr : 0.;
+  if (dr > 0.)
+    tmin = hb_max (tmin, tf);
+  else if (dr < 0.)
+    tmax = hb_min (tmax, tf);
+
+  if (!span->set (tmin, tmax))
+    return false;
+
+  /* The periods are whole; the gradient stops at that circle. */
+  if (dr > 0.)
+    span->t0 = hb_max (span->t0, tf);
+  else if (dr < 0.)
+    span->t1 = hb_min (span->t1, tf);
+  return span->t0 < span->t1;
+}
+
+/* Builds a function over two periods of a color line from @func_id,
+ * the function over the color line: the first of them and then the
+ * second, each backwards if so told. */
+static unsigned
+hb_pdf_build_period_function (hb_pdf_resources_t *res,
+			      unsigned func_id,
+			      bool first_backwards,
+			      bool second_backwards)
+{
+  hb_vector_buf_t obj;
+  obj.append_str ("<< /FunctionType 3 /Domain [0 2]\n/Functions [");
+  obj.append_unsigned (func_id);
+  obj.append_str (" 0 R ");
+  obj.append_unsigned (func_id);
+  obj.append_str (" 0 R]\n/Bounds [1]\n/Encode [");
+  obj.append_str (first_backwards ? "1 0 " : "0 1 ");
+  obj.append_str (second_backwards ? "1 0" : "0 1");
+  obj.append_str ("] >>");
+  return res->add_object (std::move (obj));
+}
+
+/* A linear or radial gradient whose color line repeats, as it is
+ * written: the periods of the color line that are painted. */
+struct hb_pdf_gradient_periods_t
+{
+  /* 2 for an axial shading, 3 for a radial one. */
+  unsigned shading_type;
+  /* Where the color line starts and ends: x, y and, if radial, the
+   * radius. */
+  float c0[3], c1[3];
+  hb_pdf_gradient_span_t span;
+  bool reflect;
+  /* Whether the circles are inside one another.  They do not overlap
+   * then, and a period of them is a ring. */
+  bool nested;
+  /* Whether the color line is taken from its end to its start. */
+  bool backwards;
+
+  hb_pdf_gradient_periods_t (unsigned shading_type_,
+			     const float c0_[3], const float c1_[3],
+			     const hb_pdf_gradient_span_t &span_,
+			     bool reflect_)
+    : shading_type (shading_type_), span (span_), reflect (reflect_)
+  {
+    double dx = (double) c1_[0] - (double) c0_[0];
+    double dy = (double) c1_[1] - (double) c0_[1];
+    double dr = (double) c1_[2] - (double) c0_[2];
+    nested = shading_type == 3 && dx * dx + dy * dy < dr * dr;
+
+    /* Rings are written growing: poppler does not paint a radial
+     * shading that shrinks and goes on at one end only, as these do.
+     * Seen from the other end of the color line, t is 1 - t. */
+    backwards = nested && dr < 0.;
+    for (unsigned i = 0; i < 3; i++)
+    {
+      c0[i] = backwards ? c1_[i] : c0_[i];
+      c1[i] = backwards ? c0_[i] : c1_[i];
+    }
+    if (backwards)
+    {
+      span.first = 1 - span_.last;
+      span.last = 1 - span_.first;
+      span.t0 = 1. - span_.t1;
+      span.t1 = 1. - span_.t0;
+    }
+  }
+
+  /* Adds shadings in @color_space for the periods, of the colors that
+   * @func_id is the function of over the color line, and appends the
+   * operators that paint them to @out. */
+  void add_shadings (hb_vector_paint_t *paint,
+		     hb_pdf_resources_t *res,
+		     const char *color_space,
+		     unsigned func_id,
+		     hb_vector_buf_t *out) const
+  {
+    /* The functions of the periods of even and of odd number, each
+     * over its period and the next. */
+    unsigned func_ids[2];
+    func_ids[0] = hb_pdf_build_period_function (res, func_id,
+						backwards, backwards != reflect);
+    func_ids[1] = !reflect ? func_ids[0] :
+		  hb_pdf_build_period_function (res, func_id,
+						!backwards, backwards);
+
+    if (shading_type == 2)
+      add_axial_shadings (paint, res, color_space, func_ids, out);
+    else
+      add_radial_shadings (paint, res, color_space, func_ids, out);
+  }
+
+  /* The periods of an axial gradient are all alike: one shading, or
+   * two if every other one is backwards, painted at one place after
+   * another.  They are then parallel to the last digit.  Each written
+   * with numbers of its own, rounded, they are not, and come apart
+   * away from the color line. */
+  void add_axial_shadings (hb_vector_paint_t *paint,
+			   hb_pdf_resources_t *res,
+			   const char *color_space,
+			   const unsigned func_ids[2],
+			   hb_vector_buf_t *out) const
+  {
+    /* Where the color line starts and how far a period goes. */
+    double x = (double) paint->sx (c0[0]), y = (double) paint->sy (c0[1]);
+    double dx = (double) paint->sx (c1[0]) - x;
+    double dy = (double) paint->sy (c1[1]) - y;
+    const double end = 1. + HB_PDF_GRADIENT_PERIOD_OVERLAP;
+    unsigned precision = paint->get_precision () + 2;
+
+    /* Ghostscript, as of 10.05, gets the length of an axial shading
+     * wrong under a transform that rotates, depending on how much of
+     * the shading the clip lets through.  So under such a transform
+     * the periods are painted in the space of the root: the transform
+     * is undone, and the gradient written as it is there. */
+    hb_transform_t<> ctm = paint->current_ctm ();
+    double det = (double) ctm.xx * (double) ctm.yy - (double) ctm.xy * (double) ctm.yx;
+    bool in_root = (ctm.xy != 0.f || ctm.yx != 0.f) && fabs (det) > 1e-12;
+    if (in_root)
+    {
+      /* How fast t grows there, and so the step that takes it up by
+       * one. */
+      double len2 = dx * dx + dy * dy;
+      double gx = ( (double) ctm.yy * dx - (double) ctm.yx * dy) / (det * len2);
+      double gy = (-(double) ctm.xy * dx + (double) ctm.xx * dy) / (det * len2);
+      double g2 = gx * gx + gy * gy;
+      double rx = (double) ctm.xx * x + (double) ctm.xy * y + (double) ctm.x0;
+      double ry = (double) ctm.yx * x + (double) ctm.yy * y + (double) ctm.y0;
+      x = rx;
+      y = ry;
+      dx = gx / g2;
+      dy = gy / g2;
+
+      unsigned sprec = out->scale_precision ();
+      out->append_str ("q\n");
+      out->append_num ((float) ( (double) ctm.yy / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) (-(double) ctm.yx / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) (-(double) ctm.xy / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) ( (double) ctm.xx / det), sprec);
+      out->append_c (' ');
+      out->append_num ((float) (((double) ctm.xy * (double) ctm.y0 - (double) ctm.yy * (double) ctm.x0) / det), precision);
+      out->append_c (' ');
+      out->append_num ((float) (((double) ctm.yx * (double) ctm.x0 - (double) ctm.xx * (double) ctm.y0) / det), precision);
+      out->append_str (" cm\n");
+    }
+
+    unsigned sh_idx[2];
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (i && func_ids[1] == func_ids[0])
+      {
+	sh_idx[1] = sh_idx[0];
+	break;
+      }
+      hb_vector_buf_t sh;
+      sh.append_str ("<< /ShadingType 2 /ColorSpace ");
+      sh.append_str (color_space);
+      sh.append_str ("\n/Coords [");
+      sh.append_num ((float) x, precision);
+      sh.append_c (' ');
+      sh.append_num ((float) y, precision);
+      sh.append_c (' ');
+      sh.append_num ((float) (x + end * dx), precision);
+      sh.append_c (' ');
+      sh.append_num ((float) (y + end * dy), precision);
+      sh.append_str ("]\n/Function ");
+      sh.append_unsigned (func_ids[i]);
+      sh.append_str (" 0 R\n/Domain [0 ");
+      sh.append_num ((float) end, 4);
+      sh.append_str ("]\n>>");
+      sh_idx[i] = res->add_shading (std::move (sh));
+    }
+
+    for (int k = span.first; k < span.last; k++)
+    {
+      if (k)
+      {
+	out->append_str ("q\n1 0 0 1 ");
+	out->append_num ((float) (k * dx), precision);
+	out->append_c (' ');
+	out->append_num ((float) (k * dy), precision);
+	out->append_str (" cm\n");
+      }
+      out->append_str ("/SH");
+      out->append_unsigned (sh_idx[(unsigned) k & 1u]);
+      out->append_str (k ? " sh\nQ\n" : " sh\n");
+    }
+
+    if (in_root)
+      out->append_str ("Q\n");
+  }
+
+  /* The periods of a radial gradient are a shading each.
+   *
+   * Later periods are painted over earlier ones, as later circles are
+   * to be, and go half a period into the next: where two periods meet
+   * is a curve within what both paint, and the nearer the one stops to
+   * it, the more of a seam viewers leave along it.
+   *
+   * Rings are painted from the outside in, each with its hole filled
+   * and the next one over that, so that nothing can show between two
+   * of them.  MuPDF, which draws a ring as a polygon, leaves holes
+   * between two that merely meet. */
+  void add_radial_shadings (hb_vector_paint_t *paint,
+			    hb_pdf_resources_t *res,
+			    const char *color_space,
+			    const unsigned func_ids[2],
+			    hb_vector_buf_t *out) const
+  {
+    double dx = (double) c1[0] - (double) c0[0];
+    double dy = (double) c1[1] - (double) c0[1];
+    double dr = (double) c1[2] - (double) c0[2];
+    double overlap = nested ? HB_PDF_GRADIENT_PERIOD_OVERLAP : 0.5;
+
+    for (int n = span.first; n < span.last; n++)
+    {
+      int k = nested ? span.first + span.last - 1 - n : n;
+      double t[2] = {hb_max ((double) k, span.t0),
+		     hb_min ((double) k + 1. + overlap, span.t1)};
+
+      hb_vector_buf_t sh;
+      sh.append_str ("<< /ShadingType 3 /ColorSpace ");
+      sh.append_str (color_space);
+      sh.append_str ("\n/Coords [");
+      for (unsigned i = 0; i < 2; i++)
+      {
+	if (i) sh.append_c (' ');
+	sh.append_num (paint->sx ((float) ((double) c0[0] + t[i] * dx)));
+	sh.append_c (' ');
+	sh.append_num (paint->sy ((float) ((double) c0[1] + t[i] * dy)));
+	sh.append_c (' ');
+	sh.append_num (paint->sx ((float) hb_max ((double) c0[2] + t[i] * dr, 0.)));
+      }
+      sh.append_str ("]\n/Function ");
+      sh.append_unsigned (func_ids[(unsigned) k & 1u]);
+      sh.append_str (" 0 R\n/Domain [");
+      sh.append_num ((float) (t[0] - k), 4);
+      sh.append_c (' ');
+      sh.append_num ((float) (t[1] - k), 4);
+      sh.append_str (nested ? "]\n/Extend [true false]\n>>" : "]\n>>");
+
+      out->append_str ("/SH");
+      out->append_unsigned (res->add_shading (std::move (sh)));
+      out->append_str (" sh\n");
+    }
+  }
+};
+
+/* Paints @periods, of a gradient whose color line is in
+ * paint->color_stops_scratch and whose colors @func_id is the function
+ * of over that color line. */
+static void
+hb_pdf_paint_gradient_periods (hb_vector_paint_t *paint,
+			       hb_pdf_resources_t *res,
+			       const hb_pdf_gradient_periods_t &periods,
+			       unsigned func_id)
+{
+  auto &body = paint->current_body ();
+
+  hb_vector_buf_t colors;
+  periods.add_shadings (paint, res, "/DeviceRGB", func_id, &colors);
+
+  /* The periods of an axial gradient hardly overlap, and are painted
+   * as they are if they are opaque.
+   *
+   * Otherwise the periods are painted in a group, and the group once.
+   * Those of a radial gradient are painted on top of each other, and
+   * under a clip each would add to what shows of the clip's edge,
+   * which is antialiased.  And colors are painted through a soft mask
+   * of their alphas, which would count twice where two periods
+   * overlap. */
+  bool needs_alpha = hb_pdf_gradient_needs_alpha (paint->color_stops_scratch);
+  if (periods.shading_type == 2 && !needs_alpha)
+  {
+    body.append_len (colors.arrayZ, colors.length);
+    return;
+  }
+
+  unsigned form_idx;
+  if (unlikely (!res->add_form_group (colors, &form_idx)))
+    return;
+
+  if (needs_alpha)
+  {
+    hb_vector_buf_t alphas;
+    periods.add_shadings (paint, res, "/DeviceGray",
+			  hb_pdf_build_alpha_gradient_function_from_stops (res, paint),
+			  &alphas);
+
+    unsigned mask_id = res->add_group (alphas, true);
+    if (unlikely (!mask_id))
+      return;
+
+    hb_vector_buf_t gs;
+    gs.append_str ("<< /Type /ExtGState\n");
+    gs.append_str ("/SMask << /Type /Mask /S /Luminosity /G ");
+    gs.append_unsigned (mask_id);
+    gs.append_str (" 0 R >> >>");
+    unsigned gs_idx = res->add_extgstate (std::move (gs));
+
+    body.append_str ("q\n/GS");
+    body.append_unsigned (gs_idx);
+    body.append_str (" gs\n");
+  }
+
+  body.append_str ("/Fm");
+  body.append_unsigned (form_idx);
+  body.append_str (" Do\n");
+
+  if (needs_alpha)
+    body.append_str ("Q\n");
+}
+
 static void
 hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 			      void *paint_data,
@@ -1140,6 +1752,22 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const char *extend_str = (extend == HB_PAINT_EXTEND_PAD)
 			    ? "/Extend [true true]\n" : "";
+
+  if (extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    hb_pdf_gradient_span_t span;
+    if (hb_pdf_linear_gradient_span (paint,
+				     paint->sx (gx0), paint->sy (gy0),
+				     paint->sx (gx1), paint->sy (gy1),
+				     &span))
+    {
+      const float c0[3] = {gx0, gy0, 0.f}, c1[3] = {gx1, gy1, 0.f};
+      hb_pdf_gradient_periods_t periods (2, c0, c1, span,
+					 extend == HB_PAINT_EXTEND_REFLECT);
+      hb_pdf_paint_gradient_periods (paint, res, periods, func_id);
+    }
+    return;
+  }
 
   /* Build Type 2 (axial) shading — color only. */
   hb_vector_buf_t sh;
@@ -1196,7 +1824,8 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
 						scx - R - 1, scy - R - 1,
 						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
-    body.append_str ("/GS");
+    /* Scoped, so the soft mask does not leak into later paints. */
+    body.append_str ("q\n/GS");
     body.append_unsigned (gs_idx);
     body.append_str (" gs\n");
   }
@@ -1204,6 +1833,8 @@ hb_pdf_paint_linear_gradient (hb_paint_funcs_t *,
   body.append_str ("/SH");
   body.append_unsigned (sh_idx);
   body.append_str (" sh\n");
+  if (needs_alpha)
+    body.append_str ("Q\n");
 }
 
 static void
@@ -1241,6 +1872,22 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
   const char *extend_str = (extend == HB_PAINT_EXTEND_PAD)
 			    ? "/Extend [true true]\n" : "";
+
+  if (extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    hb_pdf_gradient_span_t span;
+    if (hb_pdf_radial_gradient_span (paint,
+				     paint->sx (gx0), paint->sy (gy0), paint->sx (gr0),
+				     paint->sx (gx1), paint->sy (gy1), paint->sx (gr1),
+				     &span))
+    {
+      const float c0[3] = {gx0, gy0, gr0}, c1[3] = {gx1, gy1, gr1};
+      hb_pdf_gradient_periods_t periods (3, c0, c1, span,
+					 extend == HB_PAINT_EXTEND_REFLECT);
+      hb_pdf_paint_gradient_periods (paint, res, periods, func_id);
+    }
+    return;
+  }
 
   /* Build Type 3 (radial) shading — color only. */
   hb_vector_buf_t sh;
@@ -1305,7 +1952,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
 						scx - R - 1, scy - R - 1,
 						2 * (R + 1), 2 * (R + 1),
 						paint->get_precision ());
-    body.append_str ("/GS");
+    /* Scoped, so the soft mask does not leak into later paints. */
+    body.append_str ("q\n/GS");
     body.append_unsigned (gs_idx);
     body.append_str (" gs\n");
   }
@@ -1313,6 +1961,8 @@ hb_pdf_paint_radial_gradient (hb_paint_funcs_t *,
   body.append_str ("/SH");
   body.append_unsigned (sh_idx);
   body.append_str (" sh\n");
+  if (needs_alpha)
+    body.append_str ("Q\n");
 }
 
 
@@ -1471,58 +2121,6 @@ hb_pdf_add_sweep_patch (hb_vector_buf_t *mesh,
   }
 }
 
-/* The radius a sweep gradient centered at (cx, cy) has to reach to
- * cover everything the current clips let through: zero if that is
- * nothing, and the largest radius the mesh can encode if the clips
- * do not bound it.
- *
- * The mesh is no bigger than it has to be because viewers resolve a
- * patch, or the whole mesh, in a fixed number of steps whatever its
- * size: around a glyph a thousand units across, patches reaching
- * 32767 units come out as a handful of flat facets. */
-static float
-hb_pdf_sweep_radius (hb_pdf_resources_t *res,
-		     float cx, float cy)
-{
-  const float MAX_R = 32767.f;
-
-  if (unlikely (res->gstates_lost))
-    return MAX_R;
-
-  hb_bounds_t<> bounds;
-  for (const auto &g : res->gstates)
-    bounds.intersect (g.clip);
-
-  if (bounds.status == hb_bounds_t<>::EMPTY)
-    return 0.f;
-  if (bounds.status == hb_bounds_t<>::UNBOUNDED)
-    return MAX_R;
-
-  /* Bring the corners of the bounds into the gradient's space. */
-  hb_transform_t<> t = res->current_ctm ();
-  float det = t.xx * t.yy - t.xy * t.yx;
-  if (!(fabsf (det) > 1e-12f))
-    return MAX_R;
-
-  const hb_extents_t<> &e = bounds.extents;
-  float xs[2] = {e.xmin, e.xmax};
-  float ys[2] = {e.ymin, e.ymax};
-  float r2 = 0.f;
-  for (unsigned i = 0; i < 4; i++)
-  {
-    float dx = xs[i & 1] - t.x0, dy = ys[i >> 1] - t.y0;
-    float x = ( t.yy * dx - t.xy * dy) / det - cx;
-    float y = (-t.yx * dx + t.xx * dy) / det - cy;
-    r2 = hb_max (r2, x * x + y * y);
-  }
-
-  float r = ceilf (sqrtf (r2)) + 1.f;
-  /* Catches a NaN, too. */
-  if (!(r <= MAX_R))
-    return MAX_R;
-  return r;
-}
-
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
 struct hb_pdf_sweep_ctx_t {
   hb_vector_buf_t *mesh;
@@ -1577,7 +2175,7 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
 
   float scx = paint->sx (cx), scy = paint->sy (cy);
-  float R = hb_pdf_sweep_radius (res, scx, scy);
+  float R = paint->sweep_radius (scx, scy, 32767.f);
   if (R <= 0.f)
     return;
   /* Whole numbers, so that the /Decode array, written to two
@@ -1633,7 +2231,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 
   auto &body = paint->current_body ();
 
-  if (needs_alpha && alpha_mesh.length)
+  bool masked = needs_alpha && alpha_mesh.length;
+  if (masked)
   {
     unsigned alpha_sh_id = hb_pdf_build_mesh_shading (alpha_mesh, "DeviceGray",
 						       " 0 1");
@@ -1641,7 +2240,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
 						xlo, ylo,
 						xhi - xlo, yhi - ylo,
 						paint->get_precision ());
-    body.append_str ("/GS");
+    /* Scoped, so the soft mask does not leak into later paints. */
+    body.append_str ("q\n/GS");
     body.append_unsigned (gs_idx);
     body.append_str (" gs\n");
   }
@@ -1649,6 +2249,8 @@ hb_pdf_paint_sweep_gradient (hb_paint_funcs_t *,
   body.append_str ("/SH");
   body.append_unsigned (sh_idx);
   body.append_str (" sh\n");
+  if (masked)
+    body.append_str ("Q\n");
 }
 
 static const char *
@@ -1671,11 +2273,12 @@ hb_pdf_blend_mode_name (hb_paint_composite_mode_t mode)
   case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: return "Saturation";
   case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:      return "Color";
   case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: return "Luminosity";
-  /* Porter-Duff modes have no PDF blend-mode equivalent; approximate
-   * the two that have a plausible color-blend analog, and let the
-   * rest fall through to Normal (SRC_OVER). */
+  /* PLUS adds the source to the backdrop, and no blend mode adds.
+   * Screen is the nearest: the sum, less the product. */
   case HB_PAINT_COMPOSITE_MODE_PLUS:           return "Screen";
-  case HB_PAINT_COMPOSITE_MODE_XOR:            return "Difference";
+  /* The other Porter-Duff modes are not blend modes at all;
+   * hb_pdf_composite() writes those that are not SRC_OVER. */
+  case HB_PAINT_COMPOSITE_MODE_XOR:
   case HB_PAINT_COMPOSITE_MODE_CLEAR:
   case HB_PAINT_COMPOSITE_MODE_SRC:
   case HB_PAINT_COMPOSITE_MODE_DEST:
@@ -1705,13 +2308,199 @@ hb_pdf_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  /* The group becomes an object of the same document, so it shares
-   * the document cap with everything already held by the open groups. */
-  hb_vector_buf_t group;
-  group.precision = paint->current_body ().precision;
-  group.base = paint->current_body ().base + paint->current_body ().length;
-  if (unlikely (!paint->group_stack.push_or_fail (std::move (group))))
+  paint->push_group ();
+}
+
+/* A group written as a Form XObject. */
+struct hb_pdf_form_t
+{
+  unsigned idx = 0;	/* It is painted with `/Fm<idx> Do`. */
+  unsigned obj_id = 0;	/* Zero if the group was empty and was not written. */
+};
+
+static bool
+hb_pdf_add_form (hb_pdf_resources_t *res,
+		 const hb_vector_buf_t &group,
+		 hb_pdf_form_t *form)
+{
+  if (!group.length)
+    return true;
+  if (unlikely (group.in_error () ||
+		!res->add_form_group (group, &form->idx, &form->obj_id)))
+  {
+    /* Make render fail rather than give a document missing a group. */
+    res->overflowed = true;
+    return false;
+  }
+  return true;
+}
+
+enum hb_pdf_mask_t
+{
+  HB_PDF_MASK_NONE,
+  HB_PDF_MASK_IN,	/* Where the other group is, by its alpha. */
+  HB_PDF_MASK_OUT,	/* Where the other group is not. */
+};
+
+/* Paints @form into @body, with blend mode @bm if that is not null,
+ * and through @mask of @other. */
+static void
+hb_pdf_paint_form (hb_pdf_resources_t *res,
+		   hb_vector_buf_t &body,
+		   const hb_pdf_form_t &form,
+		   const char *bm = nullptr,
+		   hb_pdf_mask_t mask = HB_PDF_MASK_NONE,
+		   const hb_pdf_form_t &other = hb_pdf_form_t ())
+{
+  if (!form.obj_id)
     return;
+  if (mask != HB_PDF_MASK_NONE && !other.obj_id)
+  {
+    if (mask == HB_PDF_MASK_IN)
+      return; /* In nothing. */
+    mask = HB_PDF_MASK_NONE; /* Out of nothing. */
+  }
+
+  body.append_str ("q\n");
+  if (bm || mask != HB_PDF_MASK_NONE)
+  {
+    unsigned gs_idx = res->add_extgstate_group (bm,
+						mask != HB_PDF_MASK_NONE ? other.obj_id : 0,
+						mask == HB_PDF_MASK_OUT);
+    body.append_str ("/GS");
+    body.append_unsigned (gs_idx);
+    body.append_str (" gs\n");
+  }
+  body.append_str ("/Fm");
+  body.append_unsigned (form.idx);
+  body.append_str (" Do\nQ\n");
+}
+
+/* Composites @group onto the current group in a Porter-Duff mode that
+ * no blend mode stands for.  They all come to keeping, dropping,
+ * reordering or masking the two groups:
+ *
+ *   CLEAR      nothing
+ *   SRC        the source
+ *   DEST_OVER  the source, then the backdrop
+ *   SRC_IN     the source, masked by the backdrop's alpha
+ *   DEST_IN    the backdrop, masked by the source's alpha
+ *   SRC_OUT    the source, masked by the inverse of the backdrop's alpha
+ *   DEST_OUT   the backdrop, masked by the inverse of the source's alpha
+ *   SRC_ATOP   the backdrop, then SRC_IN
+ *   DEST_ATOP  the source, then DEST_IN
+ *   XOR        DEST_OUT, then SRC_OUT
+ *
+ * The last three are sums of two of the others, and PDF has no way to
+ * add: painted one over the other, the upper hides some of the lower
+ * where both are partly transparent.  Written as above, SRC_ATOP is
+ * exact where the backdrop is opaque or absent, DEST_ATOP where the
+ * source is, and XOR, painting its upper part in Screen, where either
+ * is. */
+static void
+hb_pdf_composite (hb_vector_paint_t *paint,
+		  hb_pdf_resources_t *res,
+		  const hb_vector_paint_group_t &group,
+		  hb_paint_composite_mode_t mode)
+{
+  auto &dst = paint->current_group ();
+
+  hb_pdf_form_t src;
+  if (mode != HB_PAINT_COMPOSITE_MODE_CLEAR &&
+      unlikely (!hb_pdf_add_form (res, group, &src)))
+    return;
+
+  /* The backdrop is all that the current group has painted, and the
+   * result takes its place.  If the group has transforms or clips
+   * open, the source was painted under them: close them, to make the
+   * backdrop a unit, put the source under copies of them, and open
+   * them again after the result for what is painted next. */
+  hb_vector_buf_t opening;
+  unsigned n_scopes = paint->close_scopes ("Q\n", &opening);
+  if (unlikely (dst.in_error ()))
+    return;
+  if (n_scopes && src.obj_id)
+  {
+    hb_vector_buf_t under;
+    under.append_len (opening.arrayZ, opening.length);
+    under.append_str ("/Fm");
+    under.append_unsigned (src.idx);
+    under.append_str (" Do\n");
+    for (unsigned i = 0; i < n_scopes; i++)
+      under.append_str ("Q\n");
+    src = hb_pdf_form_t ();
+    if (unlikely (!hb_pdf_add_form (res, under, &src)))
+      return;
+  }
+
+  hb_vector_paint_group_t backdrop_group = std::move (dst);
+  dst.referred = 0;
+  dst.blended = false;
+  hb_pdf_form_t backdrop;
+  if (mode != HB_PAINT_COMPOSITE_MODE_CLEAR &&
+      mode != HB_PAINT_COMPOSITE_MODE_SRC &&
+      unlikely (!hb_pdf_add_form (res, backdrop_group, &backdrop)))
+    return;
+
+  uint64_t s = group.work (), d = backdrop_group.work ();
+  switch ((unsigned) mode)
+  {
+    case HB_PAINT_COMPOSITE_MODE_SRC:
+      hb_pdf_paint_form (res, dst, src);
+      dst.referred = s;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      hb_pdf_paint_form (res, dst, src);
+      hb_pdf_paint_form (res, dst, backdrop);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      hb_pdf_paint_form (res, dst, src, nullptr, HB_PDF_MASK_IN, backdrop);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_IN, src);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+      hb_pdf_paint_form (res, dst, src, nullptr, HB_PDF_MASK_OUT, backdrop);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_OUT, src);
+      dst.referred = s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+      hb_pdf_paint_form (res, dst, backdrop);
+      hb_pdf_paint_form (res, dst, src, nullptr, HB_PDF_MASK_IN, backdrop);
+      dst.referred = s + 2 * d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+      hb_pdf_paint_form (res, dst, src);
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_IN, src);
+      dst.referred = 2 * s + d;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_XOR:
+      hb_pdf_paint_form (res, dst, backdrop, nullptr, HB_PDF_MASK_OUT, src);
+      hb_pdf_paint_form (res, dst, src, "Screen", HB_PDF_MASK_OUT, backdrop);
+      dst.referred = 2 * (s + d);
+      dst.blended = true;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_CLEAR:
+    default:
+      break;
+  }
+
+  paint->reopen_scopes (opening);
 }
 
 static void
@@ -1726,34 +2515,52 @@ hb_pdf_paint_pop_group (hb_paint_funcs_t *,
   if (paint->group_stack.length < 2)
     return;
 
-  hb_vector_buf_t group = paint->group_stack.pop ();
-  if (!group.length)
-    return;
+  /* Close what the group left open, so that it is a unit. */
+  while (paint->scope_closed ())
+    paint->current_body ().append_str ("Q\n");
+
+  hb_vector_paint_group_t group = paint->group_stack.pop ();
+  auto &body = paint->current_group ();
+
+  if (mode == HB_PAINT_COMPOSITE_MODE_DEST)
+    return; /* The source is not used. */
+
+  /* What is not a mode is painted source-over. */
+  if (unlikely ((unsigned) mode > HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY))
+    mode = HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+
+  /* Three modes are written with a group used twice.  When the
+   * document cannot take that, write the mode nearest to them that
+   * uses each once. */
+  if ((mode == HB_PAINT_COMPOSITE_MODE_SRC_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_XOR) &&
+      unlikely (!paint->affords (2 * group.work () + body.work ())))
+    mode = mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP
+	 ? HB_PAINT_COMPOSITE_MODE_DEST_OVER
+	 : HB_PAINT_COMPOSITE_MODE_SRC_OVER;
 
   auto *res = hb_pdf_get_resources (paint);
   if (unlikely (!res))
     return;
-  unsigned form_idx;
-  if (unlikely (group.in_error () || !res->add_form_group (group, &form_idx)))
+
+  const char *bm = hb_pdf_blend_mode_name (mode);
+  if (!bm && mode != HB_PAINT_COMPOSITE_MODE_SRC_OVER)
   {
-    /* Make render fail rather than give a document missing a group. */
-    res->overflowed = true;
+    hb_pdf_composite (paint, res, group, mode);
     return;
   }
 
-  auto &body = paint->current_body ();
-  body.append_str ("q\n");
-  const char *bm = hb_pdf_blend_mode_name (mode);
+  /* Source-over, or a blend mode, which blends with all that the
+   * current group has painted, whatever is open in it. */
+  hb_pdf_form_t form;
+  if (unlikely (!hb_pdf_add_form (res, group, &form)))
+    return;
+  hb_pdf_paint_form (res, body, form, bm);
+  if (form.obj_id)
+    body.referred += group.work ();
   if (bm)
-  {
-    unsigned gs_idx = res->add_extgstate_blend (bm);
-    body.append_str ("/GS");
-    body.append_unsigned (gs_idx);
-    body.append_str (" gs\n");
-  }
-  body.append_str ("/Fm");
-  body.append_unsigned (form_idx);
-  body.append_str (" Do\nQ\n");
+    body.blended = true;
 }
 
 
@@ -1816,11 +2623,30 @@ hb_vector_paint_render_pdf (hb_vector_paint_t *paint)
       !paint->group_stack.arrayZ[0].length)
     return nullptr;
 
-  hb_vector_buf_t &content = paint->group_stack.arrayZ[0];
   hb_pdf_resources_t *res = hb_pdf_get_resources (paint);
   /* Over the document cap: the content stream refers to dropped objects. */
   if (unlikely (res && res->in_error ()))
     return nullptr;
+  /* A content stream cut short would not restore what it saved. */
+  if (unlikely (paint->group_stack.in_error () ||
+		paint->group_stack.arrayZ[0].in_error ()))
+    return nullptr;
+
+  /* What blends in the root group blends with what the root group has
+   * painted, and the background is not part of that: when there is
+   * blending, paint the root as a group of its own. */
+  hb_vector_buf_t &root = paint->group_stack.arrayZ[0];
+  hb_vector_buf_t isolated;
+  if (paint->group_stack.arrayZ[0].blended)
+  {
+    hb_pdf_form_t form;
+    if (unlikely (!res || !hb_pdf_add_form (res, root, &form)))
+      return nullptr;
+    hb_pdf_paint_form (res, isolated, form);
+    if (unlikely (isolated.in_error ()))
+      return nullptr;
+  }
+  hb_vector_buf_t &content = isolated.length ? isolated : root;
 
   float ex = paint->extents.x;
   float ey = paint->extents.y;

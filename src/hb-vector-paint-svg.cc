@@ -44,6 +44,20 @@ hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
   }
 }
 
+/* How many decimals to write the ends of a gradient to.
+ *
+ * A gradient that repeats or reflects goes on in periods as long as
+ * it is, so what its length is off by is multiplied by the number of
+ * the period: written as coarsely as an outline, it is pixels off a
+ * few dozen periods on.  It is written as finely as a scale. */
+static unsigned
+hb_vector_svg_gradient_precision (const hb_vector_buf_t &buf,
+				  hb_paint_extend_t extend)
+{
+  return extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT
+	 ? buf.scale_precision () : buf.precision;
+}
+
 static void
 hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
 				hb_vector_buf_t *buf,
@@ -71,16 +85,18 @@ hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
   }
 }
 
+/* mix-blend-mode has one Porter-Duff operator besides source-over:
+ * PLUS, as plus-lighter.  It is newer than the blend modes, so name
+ * screen, the closest of them, first, for viewers that lack it. */
+#define HB_VECTOR_SVG_BLEND_PLUS "screen;mix-blend-mode:plus-lighter"
+
+/* The mix-blend-mode that paints a group in @mode, or nullptr if that
+ * takes more than a blend mode. */
 static const char *
 hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
 {
   switch (mode)
   {
-    /* Porter-Duff modes have no SVG mix-blend-mode equivalent;
-     * approximate the two that have a plausible color-blend analog,
-     * and let the rest fall through to normal (SRC_OVER). */
-    case HB_PAINT_COMPOSITE_MODE_PLUS: return "screen";
-    case HB_PAINT_COMPOSITE_MODE_XOR: return "difference";
     case HB_PAINT_COMPOSITE_MODE_CLEAR:
     case HB_PAINT_COMPOSITE_MODE_SRC:
     case HB_PAINT_COMPOSITE_MODE_DEST:
@@ -91,7 +107,9 @@ hb_vector_svg_composite_mode_str (hb_paint_composite_mode_t mode)
     case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
     case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
     case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+    case HB_PAINT_COMPOSITE_MODE_XOR:
       return nullptr;
+    case HB_PAINT_COMPOSITE_MODE_PLUS: return HB_VECTOR_SVG_BLEND_PLUS;
     case HB_PAINT_COMPOSITE_MODE_SRC_OVER: return "normal";
     case HB_PAINT_COMPOSITE_MODE_SCREEN: return "screen";
     case HB_PAINT_COMPOSITE_MODE_OVERLAY: return "overlay";
@@ -157,19 +175,6 @@ hb_vector_svg_lerp_rgba (const hb_vector_svg_rgba_t &c0,
           hb_vector_svg_lerp (c0.a, c1.a, t)};
 }
 
-static inline float hb_vector_svg_dot (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
-static inline hb_vector_svg_point_t hb_vector_svg_add (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
-static inline hb_vector_svg_point_t hb_vector_svg_sub (const hb_vector_svg_point_t &p, const hb_vector_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
-static inline hb_vector_svg_point_t hb_vector_svg_scale (const hb_vector_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
-
-static inline hb_vector_svg_point_t
-hb_vector_svg_normalize (const hb_vector_svg_point_t &p)
-{
-  float len = sqrtf (hb_vector_svg_dot (p, p));
-  if (len == 0.f) return {0.f, 0.f};
-  return hb_vector_svg_scale (p, 1.f / len);
-}
-
 static void
 hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
 			       unsigned precision,
@@ -177,12 +182,34 @@ hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
 			       float a0, const hb_vector_svg_rgba_t &c0_in,
 			       float a1, const hb_vector_svg_rgba_t &c1_in)
 {
+  /* A wedge is a triangle of one color.  It is no wider than
+   * max_angle, so that its far side stays near the circle, and no
+   * narrower than min_angle.  Between those, there are as many
+   * wedges as it takes for neighbors to be color_step apart. */
   static const float max_angle = HB_PI / 16.f;
-  hb_vector_svg_point_t center = {cx, cy};
-  int num_splits = (int) ceilf (fabsf (a1 - a0) / max_angle);
-  if (num_splits < 1) num_splits = 1;
+  static const float min_angle = HB_PI / 360.f;
+  static const float color_step = 4.f / 255.f;
 
-  hb_vector_svg_point_t p0 = {cosf (a0), sinf (a0)};
+  float span = fabsf (a1 - a0);
+  if (unlikely (!(span > 0.f && span < 7.f)))
+    return;
+  float dc = hb_max (hb_max (fabsf (c1_in.r - c0_in.r), fabsf (c1_in.g - c0_in.g)),
+		     hb_max (fabsf (c1_in.b - c0_in.b), fabsf (c1_in.a - c0_in.a)));
+  int num_splits = hb_max ((int) ceilf (span / max_angle),
+			   hb_min ((int) ceilf (dc / color_step),
+				   (int) (span / min_angle)));
+
+  /* The far side of the widest wedge touches the circle of @radius. */
+  radius /= cosf (max_angle / 2.f);
+
+  /* The wedges tile the plane.  Antialiased one by one, each would
+   * let what is under it show through along its edges, so ask for
+   * them not to be.  For a viewer that antialiases them anyway, an
+   * opaque wedge also reaches under the one painted after it. */
+  body->append_str ("<g shape-rendering=\"crispEdges\">\n");
+  bool opaque = c0_in.a >= 1.f && c1_in.a >= 1.f;
+
+  hb_vector_svg_point_t sp0 = {cx + radius * cosf (a0), cy + radius * sinf (a0)};
   hb_vector_svg_rgba_t color0 = c0_in;
 
   for (int a = 0; a < num_splits; a++)
@@ -190,57 +217,39 @@ hb_vector_svg_add_sweep_patch (hb_vector_buf_t *body,
     float k = (a + 1.f) / num_splits;
     float angle1 = hb_vector_svg_lerp (a0, a1, k);
     hb_vector_svg_rgba_t color1 = hb_vector_svg_lerp_rgba (c0_in, c1_in, k);
-
-    hb_vector_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
-    hb_vector_svg_point_t sp0 = hb_vector_svg_add (center, hb_vector_svg_scale (p0, radius));
-    hb_vector_svg_point_t sp1 = hb_vector_svg_add (center, hb_vector_svg_scale (p1, radius));
-
-    hb_vector_svg_point_t A = hb_vector_svg_normalize (hb_vector_svg_add (p0, p1));
-    hb_vector_svg_point_t U = {-A.y, A.x};
-    float up0 = hb_vector_svg_dot (U, p0);
-    float up1 = hb_vector_svg_dot (U, p1);
-    if (fabsf (up0) < 1e-6f || fabsf (up1) < 1e-6f)
-    {
-      p0 = p1;
-      color0 = color1;
-      continue;
-    }
-    hb_vector_svg_point_t C0 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p0, A), p0) / up0));
-    hb_vector_svg_point_t C1 = hb_vector_svg_add (A, hb_vector_svg_scale (U, hb_vector_svg_dot (hb_vector_svg_sub (p1, A), p1) / up1));
-
-    hb_vector_svg_point_t sc0 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C0, hb_vector_svg_scale (hb_vector_svg_sub (C0, p0), 0.33333f)), radius));
-    hb_vector_svg_point_t sc1 = hb_vector_svg_add (center, hb_vector_svg_scale (hb_vector_svg_add (C1, hb_vector_svg_scale (hb_vector_svg_sub (C1, p1), 0.33333f)), radius));
+    hb_vector_svg_point_t sp1 = {cx + radius * cosf (angle1), cy + radius * sinf (angle1)};
 
     hb_vector_svg_rgba_t mid_color = hb_vector_svg_lerp_rgba (color0, color1, 0.5f);
     hb_color_t mid = hb_vector_svg_hb_color_from_rgba (mid_color);
 
     body->append_str ("<path d=\"M");
-    body->append_num (center.x, precision);
+    body->append_num (cx, precision);
     body->append_c (',');
-    body->append_num (center.y, precision);
+    body->append_num (cy, precision);
     body->append_str ("L");
     body->append_num (sp0.x, precision);
     body->append_c (',');
     body->append_num (sp0.y, precision);
-    body->append_str ("C");
-    body->append_num (sc0.x, precision);
-    body->append_c (',');
-    body->append_num (sc0.y, precision);
-    body->append_c (' ');
-    body->append_num (sc1.x, precision);
-    body->append_c (',');
-    body->append_num (sc1.y, precision);
-    body->append_c (' ');
+    body->append_str ("L");
     body->append_num (sp1.x, precision);
     body->append_c (',');
     body->append_num (sp1.y, precision);
+    if (opaque && a + 1 < num_splits)
+    {
+      float angle2 = hb_vector_svg_lerp (a0, a1, (a + 2.f) / num_splits);
+      body->append_str ("L");
+      body->append_num (cx + radius * cosf (angle2), precision);
+      body->append_c (',');
+      body->append_num (cy + radius * sinf (angle2), precision);
+    }
     body->append_str ("Z\" fill=\"");
     body->append_svg_color (mid, true);
     body->append_str ("\"/>\n");
 
-    p0 = p1;
+    sp0 = sp1;
     color0 = color1;
   }
+  body->append_str ("</g>\n");
 }
 
 /* Callback context + trampoline for hb_paint_sweep_gradient_tiles. */
@@ -368,6 +377,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned start = body.length;
   unsigned sprec = paint->defs.scale_precision ();
   body.append_str ("<g transform=\"matrix(");
   body.append_num (xx, sprec);
@@ -382,6 +392,7 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   body.append_c (',');
   body.append_num (paint->sy (dy));
   body.append_str (")\">\n");
+  paint->transform_opened (start, {xx, yx, xy, yy, paint->sx (dx), paint->sy (dy)});
 }
 
 static void
@@ -402,7 +413,7 @@ hb_vector_paint_pop_transform (hb_paint_funcs_t *,
   paint->transform_group_depth--;
   hb_bool_t opened = !!(paint->transform_group_open_mask & 1ull);
   paint->transform_group_open_mask >>= 1;
-  if (opened)
+  if (opened && paint->scope_closed ())
     paint->current_body ().append_str ("</g>\n");
 }
 
@@ -453,13 +464,14 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   unsigned pfx_len = paint->id_prefix_length;
 
   paint->path.clear ();
+  hb_extents_t<> extents;
   /* Skip the outline extraction when the session work budget is
    * spent; an empty clip path clips everything out. */
   if (likely (paint->budget_remaining >= 0))
   {
     hb_vector_path_sink_t sink = {&paint->path, paint->get_precision (),
 				 paint->x_scale_factor, paint->y_scale_factor,
-				 &paint->budget_remaining};
+				 &paint->budget_remaining, &extents};
     hb_font_draw_glyph (font, glyph, hb_vector_svg_path_draw_funcs_get (), &sink);
   }
 
@@ -481,11 +493,13 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   paint->defs.append_unsigned (def_id);
   paint->defs.append_str ("\"/></clipPath>\n");
 
+  unsigned start = paint->current_body ().length;
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("clip-p");
   paint->current_body ().append_unsigned (def_id);
   paint->current_body ().append_str (")\">\n");
+  paint->clip_opened (start, extents);
 }
 
 static void
@@ -499,6 +513,15 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   if (unlikely (!paint->ensure_initialized ()))
     return;
 
+  /* The two corners can come the other way round, as those of a clip
+   * box of a variable font can, and the rectangle is the same one.
+   * SVG does not render a rect of negative width or height, though,
+   * and a clip path of nothing clips everything out. */
+  float x = paint->sx (xmin), y = paint->sy (ymin);
+  float width = paint->sx (xmax - xmin), height = paint->sy (ymax - ymin);
+  if (width < 0.f) { x += width; width = -width; }
+  if (height < 0.f) { y += height; height = -height; }
+
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
   unsigned clip_id = paint->clip_rect_counter++;
@@ -507,20 +530,25 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   paint->defs.append_c ('c');
   paint->defs.append_unsigned (clip_id);
   paint->defs.append_str ("\"><rect x=\"");
-  paint->defs.append_num (paint->sx (xmin));
+  paint->defs.append_num (x);
   paint->defs.append_str ("\" y=\"");
-  paint->defs.append_num (paint->sy (ymin));
+  paint->defs.append_num (y);
   paint->defs.append_str ("\" width=\"");
-  paint->defs.append_num (paint->sx (xmax - xmin));
+  paint->defs.append_num (width);
   paint->defs.append_str ("\" height=\"");
-  paint->defs.append_num (paint->sy (ymax - ymin));
+  paint->defs.append_num (height);
   paint->defs.append_str ("\"/></clipPath>\n");
 
+  unsigned start = paint->current_body ().length;
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_c ('c');
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
+  paint->clip_opened (start, {hb_min (paint->sx (xmin), paint->sx (xmax)),
+			      hb_min (paint->sy (ymin), paint->sy (ymax)),
+			      hb_max (paint->sx (xmin), paint->sx (xmax)),
+			      hb_max (paint->sy (ymin), paint->sy (ymax))});
 }
 
 static hb_draw_funcs_t *
@@ -537,10 +565,12 @@ hb_vector_paint_push_clip_path_start (hb_paint_funcs_t *,
   }
 
   paint->path.clear ();
+  paint->clip_path_extents = hb_extents_t<> {};
   paint->clip_path_sink = {&paint->path, paint->get_precision (),
 			   paint->x_scale_factor,
 			   paint->y_scale_factor,
-			   &paint->budget_remaining};
+			   &paint->budget_remaining,
+			   &paint->clip_path_extents};
   *draw_data = &paint->clip_path_sink;
   return hb_vector_svg_path_draw_funcs_get ();
 }
@@ -571,11 +601,19 @@ hb_vector_paint_push_clip_path_end (hb_paint_funcs_t *,
   paint->defs.append_len (paint->path.arrayZ, paint->path.length);
   paint->defs.append_str ("\"/></clipPath>\n");
 
+  unsigned start = paint->current_body ().length;
   paint->current_body ().append_str ("<g clip-path=\"url(#");
   paint->current_body ().append_len (pfx, pfx_len);
   paint->current_body ().append_str ("cp");
   paint->current_body ().append_unsigned (clip_id);
   paint->current_body ().append_str (")\">\n");
+  if (paint->clip_path_sink.extents)
+  {
+    paint->clip_path_sink.extents = nullptr;
+    paint->clip_opened (start, paint->clip_path_extents);
+  }
+  else
+    paint->scope_opened (start);
 }
 
 static void
@@ -586,7 +624,8 @@ hb_vector_paint_pop_clip (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  paint->current_body ().append_str ("</g>\n");
+  if (paint->scope_closed ())
+    paint->current_body ().append_str ("</g>\n");
 }
 
 static void
@@ -683,6 +722,8 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
   unsigned grad_id = paint->gradient_counter++;
+  unsigned precision = hb_vector_svg_gradient_precision (paint->defs,
+							  hb_color_line_get_extend (color_line));
 
   /* Reduce COLR's 3-anchor (P0, P1, P2) to SVG's 2-point
    * (start, end) gradient. */
@@ -699,13 +740,13 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   paint->defs.append_str ("gr");
   paint->defs.append_unsigned (grad_id);
   paint->defs.append_str ("\" gradientUnits=\"userSpaceOnUse\" x1=\"");
-  paint->defs.append_num (paint->sx (gx0));
+  paint->defs.append_num (paint->sx (gx0), precision);
   paint->defs.append_str ("\" y1=\"");
-  paint->defs.append_num (paint->sy (gy0));
+  paint->defs.append_num (paint->sy (gy0), precision);
   paint->defs.append_str ("\" x2=\"");
-  paint->defs.append_num (paint->sx (gx1));
+  paint->defs.append_num (paint->sx (gx1), precision);
   paint->defs.append_str ("\" y2=\"");
-  paint->defs.append_num (paint->sy (gy1));
+  paint->defs.append_num (paint->sy (gy1), precision);
   paint->defs.append_str ("\" spreadMethod=\"");
   paint->defs.append_str (hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   paint->defs.append_str ("\">\n");
@@ -751,25 +792,27 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
   unsigned grad_id = paint->gradient_counter++;
+  unsigned precision = hb_vector_svg_gradient_precision (paint->defs,
+							  hb_color_line_get_extend (color_line));
 
   paint->defs.append_str ("<radialGradient id=\"");
   paint->defs.append_len (pfx, pfx_len);
   paint->defs.append_str ("gr");
   paint->defs.append_unsigned (grad_id);
   paint->defs.append_str ("\" gradientUnits=\"userSpaceOnUse\" cx=\"");
-  paint->defs.append_num (paint->sx (gx1));
+  paint->defs.append_num (paint->sx (gx1), precision);
   paint->defs.append_str ("\" cy=\"");
-  paint->defs.append_num (paint->sy (gy1));
+  paint->defs.append_num (paint->sy (gy1), precision);
   paint->defs.append_str ("\" r=\"");
-  paint->defs.append_num (paint->sx (gr1));
+  paint->defs.append_num (paint->sx (gr1), precision);
   paint->defs.append_str ("\" fx=\"");
-  paint->defs.append_num (paint->sx (gx0));
+  paint->defs.append_num (paint->sx (gx0), precision);
   paint->defs.append_str ("\" fy=\"");
-  paint->defs.append_num (paint->sy (gy0));
+  paint->defs.append_num (paint->sy (gy0), precision);
   if (gr0 > 0)
   {
     paint->defs.append_str ("\" fr=\"");
-    paint->defs.append_num (paint->sx (gr0));
+    paint->defs.append_num (paint->sx (gr0), precision);
   }
   paint->defs.append_str ("\" spreadMethod=\"");
   paint->defs.append_str (hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
@@ -809,8 +852,15 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   float ga0 = start_angle + mn * (end_angle - start_angle);
   float ga1 = start_angle + mx * (end_angle - start_angle);
 
+  /* Wedges that reach as far as the clips let them be seen, and no
+   * further. */
+  float scx = paint->sx (cx), scy = paint->sy (cy);
+  float radius = paint->sweep_radius (scx, scy, 32767.f);
+  if (radius <= 0.f)
+    return;
+
   hb_vector_svg_sweep_ctx_t ctx {
-    &paint->current_body (), paint->get_precision (), paint->sx (cx), paint->sy (cy), 32767.f
+    &paint->current_body (), paint->get_precision (), scx, scy, radius
   };
   hb_paint_sweep_gradient_tiles (stops.arrayZ, stops.length,
 				 hb_color_line_get_extend (color_line),
@@ -827,12 +877,246 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
-  /* The group is appended to the enclosing body when popped, so it shares
-   * the document cap with everything already held by the open groups. */
-  hb_vector_buf_t group;
-  group.base = paint->current_body ().base + paint->current_body ().length;
-  if (unlikely (!paint->group_stack.push_or_fail (std::move (group))))
+  paint->push_group ();
+}
+
+static void
+hb_vector_svg_append_id (hb_vector_paint_t *paint,
+			 hb_vector_buf_t &buf,
+			 char kind, unsigned id)
+{
+  buf.append_len (paint->id_prefix, paint->id_prefix_length);
+  buf.append_c (kind);
+  buf.append_unsigned (id);
+}
+
+/* Appends @group to @buf, as a group of its own if blending inside it
+ * has to be kept from what is beneath it. */
+static void
+hb_vector_svg_append_group (hb_vector_buf_t &buf,
+			    const hb_vector_paint_group_t &group)
+{
+  if (group.blended)
+    buf.append_str ("<g style=\"isolation:isolate\">\n");
+  buf.append_len (group.arrayZ, group.length);
+  if (group.blended)
+    buf.append_str ("</g>\n");
+}
+
+/* Writes @group to <defs> as an element for the body and masks to
+ * refer to, when it is needed more than once.  Returns its id. */
+static unsigned
+hb_vector_svg_define_group (hb_vector_paint_t *paint,
+			    const hb_vector_paint_group_t &group)
+{
+  auto &defs = paint->defs;
+  unsigned id = paint->group_def_count++;
+  defs.append_str ("<g id=\"");
+  hb_vector_svg_append_id (paint, defs, 'g', id);
+  defs.append_str (group.blended ? "\" style=\"isolation:isolate\">\n" : "\">\n");
+  defs.append_len (group.arrayZ, group.length);
+  defs.append_str ("</g>\n");
+  return id;
+}
+
+static void
+hb_vector_svg_append_group_or_use (hb_vector_paint_t *paint,
+				   hb_vector_buf_t &buf,
+				   const hb_vector_paint_group_t *group,
+				   unsigned group_id)
+{
+  if (group)
+  {
+    buf.append_len (group->arrayZ, group->length);
     return;
+  }
+  buf.append_str ("<use href=\"#");
+  hb_vector_svg_append_id (paint, buf, 'g', group_id);
+  buf.append_str ("\"/>\n");
+}
+
+/* Writes a mask to <defs> that is the alpha of a group or, with
+ * @inverse, one minus it.  The group is @group, which is written into
+ * the mask, or if that is null the defined group @group_id.  Returns
+ * the mask's id.
+ *
+ * The alpha comes from a mask of mask-type alpha, but that is not the
+ * mask returned.  It cannot be inverted, as no content has the inverse
+ * of another's alpha.  And Chrome ignores one that paints nothing
+ * when what it masks has clips of its own, where it should hide it.
+ * So the alpha mask is only ever put on a rectangle, in a luminance
+ * mask: white through it, or for the inverse, black through it over
+ * white. */
+static unsigned
+hb_vector_svg_define_mask (hb_vector_paint_t *paint,
+			   const hb_vector_paint_group_t *group,
+			   unsigned group_id,
+			   bool inverse)
+{
+  auto &defs = paint->defs;
+  unsigned alpha_id = paint->mask_counter++;
+  defs.append_str ("<mask id=\"");
+  hb_vector_svg_append_id (paint, defs, 'm', alpha_id);
+  defs.append_str ("\" mask-type=\"alpha\">\n");
+  hb_vector_svg_append_group_or_use (paint, defs, group, group_id);
+  defs.append_str ("</mask>\n");
+
+  unsigned id = paint->mask_counter++;
+  defs.append_str ("<mask id=\"");
+  hb_vector_svg_append_id (paint, defs, 'm', id);
+  defs.append_str ("\">\n");
+  if (inverse)
+    defs.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"#FFF\"/>\n");
+  defs.append_str ("<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\"");
+  if (!inverse)
+    defs.append_str (" fill=\"#FFF\"");
+  defs.append_str (" mask=\"url(#");
+  hb_vector_svg_append_id (paint, defs, 'm', alpha_id);
+  defs.append_str (")\"/>\n"
+		   "</mask>\n");
+  return id;
+}
+
+/* Paints a group into the current one through a mask: @group, which is
+ * written in place, or if that is null the defined group @group_id.
+ * With @plus it is added to what is beneath it, not painted over it. */
+static void
+hb_vector_svg_paint_masked (hb_vector_paint_t *paint,
+			    unsigned mask_id,
+			    const hb_vector_paint_group_t *group,
+			    unsigned group_id,
+			    bool plus = false)
+{
+  auto &body = paint->current_body ();
+  body.append_str ("<g mask=\"url(#");
+  hb_vector_svg_append_id (paint, body, 'm', mask_id);
+  body.append_str (plus ? ")\" style=\"mix-blend-mode:" HB_VECTOR_SVG_BLEND_PLUS "\">\n"
+			: ")\">\n");
+  hb_vector_svg_append_group_or_use (paint, body, group, group_id);
+  body.append_str ("</g>\n");
+}
+
+/* Makes what the current group has painted so far a unit to composite
+ * @src with, by closing the transforms and clips that are open in it.
+ * The source was painted under them, so it is put under copies of
+ * them; hb_vector_paint_t::reopen_scopes() opens them again, for what
+ * is painted next. */
+static void
+hb_vector_svg_close_scopes (hb_vector_paint_t *paint,
+			    hb_vector_paint_group_t &src,
+			    hb_vector_buf_t *opening)
+{
+  unsigned count = paint->close_scopes ("</g>\n", opening);
+  if (!count)
+    return;
+
+  hb_vector_paint_group_t under;
+  under.base = src.base;
+  under.referred = src.referred;
+  under.blended = src.blended;
+  under.append_len (opening->arrayZ, opening->length);
+  under.append_len (src.arrayZ, src.length);
+  for (unsigned i = 0; i < count; i++)
+    under.append_str ("</g>\n");
+  src = std::move (under);
+}
+
+/* Composites @src onto the current group in a Porter-Duff mode that
+ * no blend mode stands for.  They all come to keeping, dropping,
+ * reordering or masking the two groups:
+ *
+ *   CLEAR      nothing
+ *   SRC        the source
+ *   DEST_OVER  the source, then the backdrop
+ *   SRC_IN     the source, masked by the backdrop's alpha
+ *   DEST_IN    the backdrop, masked by the source's alpha
+ *   SRC_OUT    the source, masked by the inverse of the backdrop's alpha
+ *   DEST_OUT   the backdrop, masked by the inverse of the source's alpha
+ *   SRC_ATOP   DEST_OUT plus SRC_IN
+ *   DEST_ATOP  SRC_OUT plus DEST_IN
+ *   XOR        DEST_OUT plus SRC_OUT
+ *
+ * The two parts of the last three must be added: painted one over the
+ * other, the upper would hide some of the lower wherever both are
+ * partly transparent.  A viewer without plus-lighter does that. */
+static void
+hb_vector_svg_composite (hb_vector_paint_t *paint,
+			 hb_vector_paint_group_t &src,
+			 hb_paint_composite_mode_t mode)
+{
+  /* The backdrop is all that the current group has painted, and the
+   * result takes its place. */
+  auto &dst = paint->current_group ();
+  hb_vector_buf_t opening;
+  hb_vector_svg_close_scopes (paint, src, &opening);
+  if (unlikely (dst.in_error ()))
+    return;
+  hb_vector_paint_group_t backdrop = std::move (dst);
+  dst.referred = 0;
+  dst.blended = false;
+
+  switch ((unsigned) mode)
+  {
+    case HB_PAINT_COMPOSITE_MODE_SRC:
+      hb_vector_svg_append_group (dst, src);
+      dst.referred = src.referred;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+      hb_vector_svg_append_group (dst, src);
+      hb_vector_svg_append_group (dst, backdrop);
+      dst.referred = src.referred + backdrop.referred;
+      break;
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+    case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+    {
+      unsigned mask = hb_vector_svg_define_mask (paint, &backdrop, 0,
+						 mode == HB_PAINT_COMPOSITE_MODE_SRC_OUT);
+      hb_vector_svg_paint_masked (paint, mask, &src, 0);
+      dst.referred = src.referred + backdrop.work ();
+      break;
+    }
+
+    case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+    case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+    {
+      unsigned mask = hb_vector_svg_define_mask (paint, &src, 0,
+						 mode == HB_PAINT_COMPOSITE_MODE_DEST_OUT);
+      hb_vector_svg_paint_masked (paint, mask, &backdrop, 0);
+      dst.referred = backdrop.referred + src.work ();
+      break;
+    }
+
+    case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+    case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+    case HB_PAINT_COMPOSITE_MODE_XOR:
+    {
+      /* The lower part is one group out of the other, and the upper
+       * part the other group in it, or for XOR out of it. */
+      unsigned lower = hb_vector_svg_define_group (paint, backdrop);
+      unsigned upper = hb_vector_svg_define_group (paint, src);
+      if (mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP)
+	hb_swap (lower, upper);
+      unsigned lower_mask = hb_vector_svg_define_mask (paint, nullptr, upper, true);
+      unsigned upper_mask = hb_vector_svg_define_mask (paint, nullptr, lower,
+						       mode == HB_PAINT_COMPOSITE_MODE_XOR);
+      hb_vector_svg_paint_masked (paint, lower_mask, nullptr, lower);
+      hb_vector_svg_paint_masked (paint, upper_mask, nullptr, upper, true);
+      dst.referred = 2 * (src.work () + backdrop.work ());
+      dst.blended = true;
+      break;
+    }
+
+    case HB_PAINT_COMPOSITE_MODE_CLEAR:
+    default:
+      break;
+  }
+
+  paint->reopen_scopes (opening);
+
+  if (unlikely (src.in_error () || backdrop.in_error () || paint->defs.in_error ()))
+    dst.overflowed = true; /* Fails the render. */
 }
 
 static void
@@ -847,20 +1131,65 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   if (paint->group_stack.length < 2)
     return;
 
-  hb_vector_buf_t group = paint->group_stack.pop ();
-  auto &body = paint->current_body ();
+  /* Close what the group left open, so that it is a unit. */
+  while (paint->scope_closed ())
+    paint->current_body ().append_str ("</g>\n");
+
+  hb_vector_paint_group_t group = paint->group_stack.pop ();
+  auto &body = paint->current_group ();
+
+  if (mode == HB_PAINT_COMPOSITE_MODE_DEST)
+    return; /* The source is not used. */
+
+  /* What is not a mode is painted source-over. */
+  if (unlikely ((unsigned) mode > HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY))
+    mode = HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+
+  /* Three modes are written with both groups used twice.  When the
+   * document cannot take that, write the mode nearest to them that
+   * uses each once. */
+  if ((mode == HB_PAINT_COMPOSITE_MODE_SRC_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP ||
+       mode == HB_PAINT_COMPOSITE_MODE_XOR) &&
+      unlikely (!paint->affords (2 * group.work () + body.work ())))
+    mode = mode == HB_PAINT_COMPOSITE_MODE_DEST_ATOP
+	 ? HB_PAINT_COMPOSITE_MODE_DEST_OVER
+	 : HB_PAINT_COMPOSITE_MODE_SRC_OVER;
 
   const char *blend = hb_vector_svg_composite_mode_str (mode);
-  if (blend)
+  if (!blend)
   {
-    body.append_str ("<g style=\"mix-blend-mode:");
-    body.append_str (blend);
-    body.append_str ("\">\n");
-    body.append_len (group.arrayZ, group.length);
-    body.append_str ("</g>\n");
+    hb_vector_svg_composite (paint, group, mode);
+    return;
   }
-  else
-    body.append_len (group.arrayZ, group.length);
+
+  /* COLR composites a group onto what the enclosing group has painted
+   * so far, and onto nothing else.  A <g> with a blend mode blends with
+   * everything beneath it up to the nearest isolated group, and a <g> is
+   * not one by default: without isolation the source would also blend
+   * with earlier layers of the glyph, and with the page.  A clip is one,
+   * though, and one that is open in the enclosing group would keep the
+   * source from what was painted before it. */
+  bool blending = mode != HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+  hb_vector_buf_t opening;
+  if (blending)
+    hb_vector_svg_close_scopes (paint, group, &opening);
+  body.append_str ("<g style=\"mix-blend-mode:");
+  body.append_str (blend);
+  /* A blend mode other than normal isolates the group by itself. */
+  if (group.blended && !blending)
+    body.append_str (";isolation:isolate");
+  body.append_str ("\">\n");
+  body.append_len (group.arrayZ, group.length);
+  body.append_str ("</g>\n");
+  body.referred += group.referred;
+  if (blending)
+  {
+    body.blended = true;
+    paint->reopen_scopes (opening);
+    if (unlikely (group.in_error ()))
+      body.overflowed = true; /* Fails the render. */
+  }
 }
 
 static hb_bool_t
@@ -947,7 +1276,10 @@ hb_vector_paint_render_svg (hb_vector_paint_t *paint)
     out.append_str ("/>\n");
   }
 
-  out.append_str ("<g transform=\"scale(1,-1)\">\n");
+  /* The background is not part of what the glyphs blend with. */
+  out.append_str (paint->group_stack.arrayZ[0].blended
+		  ? "<g transform=\"scale(1,-1)\" style=\"isolation:isolate\">\n"
+		  : "<g transform=\"scale(1,-1)\">\n");
   out.append_len (paint->group_stack.arrayZ[0].arrayZ, paint->group_stack.arrayZ[0].length);
   out.append_str ("</g>\n");
 
