@@ -2,6 +2,14 @@ if get_option('vector').disabled()
   subdir_done()
 endif
 
+test_vector_svg_repeat = executable('test-vector-svg-repeat', 'test-vector-svg-repeat.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('svg-repeat', test_vector_svg_repeat,
+  suite: 'vector',
+)
+
 run_test = find_program('run-tests.py')
 
 test_vector_budget = executable('test-vector-budget', 'test-vector-budget.c',

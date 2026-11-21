@@ -44,6 +44,20 @@ hb_vector_svg_extend_mode_str (hb_paint_extend_t ext)
   }
 }
 
+/* How many decimals to write the ends of a gradient to.
+ *
+ * A gradient that repeats or reflects goes on in periods as long as
+ * it is, so what its length is off by is multiplied by the number of
+ * the period: written as coarsely as an outline, it is pixels off a
+ * few dozen periods on.  It is written as finely as a scale. */
+static unsigned
+hb_vector_svg_gradient_precision (const hb_vector_buf_t &buf,
+				  hb_paint_extend_t extend)
+{
+  return extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT
+	 ? buf.scale_precision () : buf.precision;
+}
+
 static void
 hb_vector_svg_emit_color_stops (hb_vector_paint_t *paint,
 				hb_vector_buf_t *buf,
@@ -683,6 +697,8 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
   unsigned grad_id = paint->gradient_counter++;
+  unsigned precision = hb_vector_svg_gradient_precision (paint->defs,
+							  hb_color_line_get_extend (color_line));
 
   /* Reduce COLR's 3-anchor (P0, P1, P2) to SVG's 2-point
    * (start, end) gradient. */
@@ -699,13 +715,13 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   paint->defs.append_str ("gr");
   paint->defs.append_unsigned (grad_id);
   paint->defs.append_str ("\" gradientUnits=\"userSpaceOnUse\" x1=\"");
-  paint->defs.append_num (paint->sx (gx0));
+  paint->defs.append_num (paint->sx (gx0), precision);
   paint->defs.append_str ("\" y1=\"");
-  paint->defs.append_num (paint->sy (gy0));
+  paint->defs.append_num (paint->sy (gy0), precision);
   paint->defs.append_str ("\" x2=\"");
-  paint->defs.append_num (paint->sx (gx1));
+  paint->defs.append_num (paint->sx (gx1), precision);
   paint->defs.append_str ("\" y2=\"");
-  paint->defs.append_num (paint->sy (gy1));
+  paint->defs.append_num (paint->sy (gy1), precision);
   paint->defs.append_str ("\" spreadMethod=\"");
   paint->defs.append_str (hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
   paint->defs.append_str ("\">\n");
@@ -751,25 +767,27 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
   unsigned grad_id = paint->gradient_counter++;
+  unsigned precision = hb_vector_svg_gradient_precision (paint->defs,
+							  hb_color_line_get_extend (color_line));
 
   paint->defs.append_str ("<radialGradient id=\"");
   paint->defs.append_len (pfx, pfx_len);
   paint->defs.append_str ("gr");
   paint->defs.append_unsigned (grad_id);
   paint->defs.append_str ("\" gradientUnits=\"userSpaceOnUse\" cx=\"");
-  paint->defs.append_num (paint->sx (gx1));
+  paint->defs.append_num (paint->sx (gx1), precision);
   paint->defs.append_str ("\" cy=\"");
-  paint->defs.append_num (paint->sy (gy1));
+  paint->defs.append_num (paint->sy (gy1), precision);
   paint->defs.append_str ("\" r=\"");
-  paint->defs.append_num (paint->sx (gr1));
+  paint->defs.append_num (paint->sx (gr1), precision);
   paint->defs.append_str ("\" fx=\"");
-  paint->defs.append_num (paint->sx (gx0));
+  paint->defs.append_num (paint->sx (gx0), precision);
   paint->defs.append_str ("\" fy=\"");
-  paint->defs.append_num (paint->sy (gy0));
+  paint->defs.append_num (paint->sy (gy0), precision);
   if (gr0 > 0)
   {
     paint->defs.append_str ("\" fr=\"");
-    paint->defs.append_num (paint->sx (gr0));
+    paint->defs.append_num (paint->sx (gr0), precision);
   }
   paint->defs.append_str ("\" spreadMethod=\"");
   paint->defs.append_str (hb_vector_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
