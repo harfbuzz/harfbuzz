@@ -9,7 +9,7 @@ from fontTools.ttLib import TTCollection, newTable
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 
 
-def make_font(family, advance, variable, postscript_names):
+def make_font(family, advance, variable, postscript_names, postscript_name=True):
     builder = FontBuilder(1000, isTTF=True)
     order = [".notdef", "A"]
     builder.setupGlyphOrder(order)
@@ -23,11 +23,10 @@ def make_font(family, advance, variable, postscript_names):
     builder.setupGlyf({".notdef": TTGlyphPen(None).glyph(), "A": pen.glyph()})
     builder.setupHorizontalMetrics({name: (advance, 100) for name in order})
     builder.setupHorizontalHeader(ascent=800, descent=-200)
-    builder.setupNameTable({
-        "familyName": family,
-        "styleName": "Regular",
-        "psName": family + "-Regular",
-    })
+    names = {"familyName": family, "styleName": "Regular"}
+    if postscript_name:
+        names["psName"] = family + "-Regular"
+    builder.setupNameTable(names)
     builder.setupOS2()
     builder.setupPost()
     if variable:
@@ -60,3 +59,7 @@ collection.fonts = [
 ]
 collection.fonts[0].save(Path(__file__).with_name("coretext-variable.ttf"))
 collection.save(Path(__file__).with_name("coretext-collection.ttc"))
+
+# Named instances, and no PostScript name to tell the face's descriptors by.
+make_font("HBCoreTextNameless", 500, True, False, False).save(
+    Path(__file__).with_name("coretext-no-postscript-name.ttf"))

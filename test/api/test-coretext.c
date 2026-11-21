@@ -102,9 +102,8 @@ test_native_coretext_variations (void)
 }
 
 static void
-check_coretext_collection (hb_bool_t collection)
+check_coretext_faces (const char *filename, unsigned members, hb_bool_t named)
 {
-  const char *filename = collection ? "coretext-collection.ttc" : "coretext-variable.ttf";
   char *path = g_test_build_filename (G_TEST_DIST, "fonts", filename, NULL);
   hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
   g_assert_nonnull (blob);
@@ -122,7 +121,7 @@ check_coretext_collection (hb_bool_t collection)
   loaders = 2;
 #endif
   for (unsigned loader = 0; loader < loaders; loader++)
-    for (unsigned member = 0; member < (collection ? G_N_ELEMENTS (names) : 1); member++)
+    for (unsigned member = 0; member < members; member++)
     {
       unsigned instances = 1;
 #ifndef HB_NO_VAR
@@ -135,12 +134,15 @@ check_coretext_collection (hb_bool_t collection)
                                   hb_coretext_face_create_from_file_or_fail (path, index);
         g_assert_nonnull (face);
         g_assert_cmpuint (hb_face_get_index (face), ==, index);
-        CGFontRef cg_font = hb_coretext_face_get_cg_font (face);
-        CFStringRef name = CGFontCopyPostScriptName (cg_font);
-        char actual[64];
-        g_assert_true (CFStringGetCString (name, actual, sizeof (actual), kCFStringEncodingUTF8));
-        g_assert_cmpstr (actual, ==, names[member]);
-        CFRelease (name);
+        if (named)
+        {
+          CGFontRef cg_font = hb_coretext_face_get_cg_font (face);
+          CFStringRef name = CGFontCopyPostScriptName (cg_font);
+          char actual[64];
+          g_assert_true (CFStringGetCString (name, actual, sizeof (actual), kCFStringEncodingUTF8));
+          g_assert_cmpstr (actual, ==, names[member]);
+          CFRelease (name);
+        }
 
         hb_font_t *font = hb_font_create (face);
         hb_codepoint_t glyph;
@@ -164,7 +166,7 @@ check_coretext_collection (hb_bool_t collection)
       }
     }
 
-  unsigned invalid_index = collection ? 3 : 1;
+  unsigned invalid_index = members;
   g_assert_null (hb_coretext_face_create_from_file_or_fail (path, invalid_index));
   g_assert_null (hb_coretext_face_create_from_blob_or_fail (blob, invalid_index));
   hb_blob_destroy (blob);
@@ -174,13 +176,21 @@ check_coretext_collection (hb_bool_t collection)
 static void
 test_coretext_collection (void)
 {
-  check_coretext_collection (true);
+  check_coretext_faces ("coretext-collection.ttc", 3, true);
 }
 
 static void
 test_coretext_named_instances (void)
 {
-  check_coretext_collection (false);
+  check_coretext_faces ("coretext-variable.ttf", 1, true);
+}
+
+static void
+test_coretext_no_postscript_name (void)
+{
+  /* Named instances give the file several descriptors, and this font has
+   * no PostScript name to tell its own by. */
+  check_coretext_faces ("coretext-no-postscript-name.ttf", 1, false);
 }
 
 int
@@ -192,6 +202,7 @@ main (int argc, char **argv)
   hb_test_add (test_native_coretext_variations);
   hb_test_add (test_coretext_collection);
   hb_test_add (test_coretext_named_instances);
+  hb_test_add (test_coretext_no_postscript_name);
 
   return hb_test_run ();
 }

@@ -182,6 +182,25 @@ release_data (void *info, const void *data, size_t size)
 }
 
 static CGFontRef
+create_cg_font_from_data (hb_blob_t *blob)
+{
+  unsigned int blob_length;
+  const char *blob_data = hb_blob_get_data (blob, &blob_length);
+
+  hb_blob_reference (blob);
+  hb_cf_ptr_t<CGDataProviderRef> provider (CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data));
+  if (unlikely (!provider))
+  {
+    hb_blob_destroy (blob);
+    return nullptr;
+  }
+  CGFontRef cg_font = CGFontCreateWithDataProvider (provider);
+  if (unlikely (!cg_font))
+    DEBUG_MSG (CORETEXT, blob, "CGFontCreateWithDataProvider() failed");
+  return cg_font;
+}
+
+static CGFontRef
 create_cg_font (CFArrayRef ct_font_desc_array, hb_face_t *face)
 {
   hb_cf_ptr_t<CFArrayRef> desc_array (ct_font_desc_array);
@@ -222,7 +241,16 @@ create_cg_font (CFArrayRef ct_font_desc_array, hb_face_t *face)
   }
   names.destroy ();
   if (unlikely (!postscript_name))
-    return nullptr;
+  {
+    /* The face has no PostScript name to match.  If it is the only face of
+     * its file, every descriptor is of that face, at one of its named
+     * instances.  Open the font data itself, which is the default instance. */
+    hb_unique_ptr_t<hb_blob_t> blob (hb_face_reference_blob (face));
+    if (hb_face_count (blob.get ()) != 1)
+      return nullptr;
+    hb_blob_make_immutable (blob.get ());
+    return create_cg_font_from_data (blob.get ());
+  }
 
   for (CFIndex i = 0; i < CFArrayGetCount (desc_array); i++)
   {
@@ -244,9 +272,7 @@ CGFontRef
 create_cg_font (hb_blob_t *blob, unsigned int index)
 {
   hb_blob_make_immutable (blob);
-  unsigned int blob_length;
-  const char *blob_data = hb_blob_get_data (blob, &blob_length);
-  if (unlikely (!blob_length))
+  if (unlikely (!hb_blob_get_length (blob)))
     DEBUG_MSG (CORETEXT, blob, "Empty blob");
 
   if (index || blob->as<OT::OpenTypeFontFile> ()->get_tag () == OT::OpenTypeFontFile::TTCTag)
@@ -262,6 +288,8 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
     hb_unique_ptr_t<hb_face_t> face (hb_face_create_or_fail (blob, index));
     if (unlikely (!face))
       return nullptr;
+    unsigned int blob_length;
+    const char *blob_data = hb_blob_get_data (blob, &blob_length);
     hb_cf_ptr_t<CFDataRef> data (CFDataCreate (kCFAllocatorDefault, (const UInt8 *) blob_data, blob_length));
     if (data)
     {
@@ -273,17 +301,7 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
     return nullptr;
   }
 
-  hb_blob_reference (blob);
-  hb_cf_ptr_t<CGDataProviderRef> provider (CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data));
-  if (unlikely (!provider))
-  {
-    hb_blob_destroy (blob);
-    return nullptr;
-  }
-  CGFontRef cg_font = CGFontCreateWithDataProvider (provider);
-  if (unlikely (!cg_font))
-    DEBUG_MSG (CORETEXT, blob, "CGFontCreateWithDataProvider() failed");
-  return cg_font;
+  return create_cg_font_from_data (blob);
 }
 
 CGFontRef
