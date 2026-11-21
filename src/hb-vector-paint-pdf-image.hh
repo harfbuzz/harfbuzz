@@ -33,24 +33,31 @@
 #include <zlib.h>
 #endif
 
-/* Inflate noninterlaced 8-bit PNG rows and undo their byte filters in place.
+/* Inflate noninterlaced PNG rows of samples of @bits bits, 8 or fewer, and
+ * undo their byte filters in place.  A row of samples of fewer than 8 bits
+ * is packed, and filtered a byte at a time.
  * Bound decoded bytes before allocating, and charge work even for bad streams.
  * Empty DEFLATE blocks can make input much larger than the decoded rows. */
 static bool
 hb_pdf_decode_png_rows (hb_vector_t<uint8_t> *out,
                        const char *idat_data, unsigned idat_len,
                        unsigned width, unsigned height, unsigned channels,
+                       unsigned bits,
                        int64_t *budget)
 {
 #ifndef HAVE_ZLIB
   (void) out; (void) idat_data; (void) idat_len;
-  (void) width; (void) height; (void) channels; (void) budget;
+  (void) width; (void) height; (void) channels; (void) bits; (void) budget;
   return false;
 #else
-  unsigned row_bytes, stride, data_len, raw_len;
+  unsigned row_bits, row_bytes, stride, data_len, raw_len;
   if (!width || !height || !channels || channels > 4 ||
-      hb_unsigned_mul_overflows (width, channels, &row_bytes) ||
-      hb_unsigned_add_overflows (row_bytes, 1u, &stride) ||
+      !bits || bits > 8 || (bits < 8 && channels != 1) ||
+      hb_unsigned_mul_overflows (width, channels * bits, &row_bits) ||
+      hb_unsigned_add_overflows (row_bits, 7u, &row_bits))
+    return false;
+  row_bytes = row_bits / 8;
+  if (hb_unsigned_add_overflows (row_bytes, 1u, &stride) ||
       hb_unsigned_mul_overflows (row_bytes, height, &data_len) ||
       data_len > HB_VECTOR_MAX_DOCUMENT_SIZE ||
       hb_unsigned_mul_overflows (stride, height, &raw_len) ||
@@ -136,7 +143,7 @@ hb_pdf_split_png_alpha (hb_vector_buf_t *color, hb_vector_buf_t *alpha,
   if (channels != 2 && channels != 4) return false;
   hb_vector_t<uint8_t> rows;
   if (!hb_pdf_decode_png_rows (&rows, idat_data, idat_len,
-                              width, height, channels, budget))
+                              width, height, channels, 8, budget))
     return false;
   /* The decoder checked these products while bounding all channels together. */
   unsigned pixels = width * height;
@@ -159,18 +166,31 @@ static bool
 hb_pdf_build_indexed_smask (hb_vector_buf_t *out,
                             const char *idat_data, unsigned idat_len,
                             unsigned width, unsigned height,
+                            unsigned bits,
                             const uint8_t *trns, unsigned trns_len,
                             int64_t *budget)
 {
+  /* A mask has a byte for each pixel, which is more than the image has
+   * where its samples are of fewer than 8 bits. */
+  unsigned pixels;
+  if (hb_unsigned_mul_overflows (width, height, &pixels) ||
+      pixels > HB_VECTOR_MAX_DOCUMENT_SIZE ||
+      !hb_budget_spend (*budget, HB_BUDGET_1, pixels))
+    return false;
   hb_vector_t<uint8_t> rows;
   if (!hb_pdf_decode_png_rows (&rows, idat_data, idat_len,
-                              width, height, 1, budget) ||
-      !out->resize (width * height))
+                              width, height, 1, bits, budget) ||
+      !out->resize (pixels))
     return false;
+  /* The decoder checked that a row of bits fits an unsigned. */
+  unsigned stride = (width * bits + 7) / 8 + 1;
   for (unsigned y = 0; y < height; y++)
     for (unsigned x = 0; x < width; x++)
     {
-      uint8_t index = rows.arrayZ[y * (width + 1) + 1 + x];
+      /* The indexes of a row are packed from the high bits of each byte. */
+      unsigned bit = x * bits;
+      uint8_t index = (rows.arrayZ[y * stride + 1 + bit / 8] >> (8 - bits - bit % 8)) &
+		      ((1u << bits) - 1);
       out->arrayZ[y * width + x] = (char) (index < trns_len ? trns[index] : 0xFF);
     }
   return true;

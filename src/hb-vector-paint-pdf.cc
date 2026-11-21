@@ -309,7 +309,8 @@ struct hb_pdf_resources_t
    * plte/plte_len is the PLTE chunk data for indexed images (may be null). */
   unsigned add_xobject_png_image (const char *idat_data, unsigned idat_len,
 				  unsigned width, unsigned height,
-				  unsigned colors, bool has_alpha, int64_t *budget,
+				  unsigned colors, unsigned bits,
+				  bool has_alpha, int64_t *budget,
 				  const uint8_t *plte = nullptr,
 				  unsigned plte_len = 0,
 				  const uint8_t *trns = nullptr,
@@ -328,7 +329,9 @@ struct hb_pdf_resources_t
     obj.append_unsigned (width);
     obj.append_str (" /Height ");
     obj.append_unsigned (height);
-    obj.append_str ("\n/BitsPerComponent 8\n");
+    obj.append_str ("\n/BitsPerComponent ");
+    obj.append_unsigned (bits);
+    obj.append_c ('\n');
 
     if (plte && plte_len >= 3)
     {
@@ -357,7 +360,8 @@ struct hb_pdf_resources_t
     bool have_smask = has_alpha;
     if (!has_alpha && plte && trns && trns_len)
       have_smask = hb_pdf_build_indexed_smask (&smask_stream, idat_data, idat_len,
-                                              width, height, trns, trns_len, budget);
+                                              width, height, bits,
+                                              trns, trns_len, budget);
     bool color_compressed = has_alpha && hb_pdf_compress_image_stream (&color_stream, budget);
     bool mask_compressed = have_smask && hb_pdf_compress_image_stream (&smask_stream, budget);
     if (*budget < 0) return UINT_MAX;
@@ -396,7 +400,9 @@ struct hb_pdf_resources_t
       obj.append_str ("/Filter /FlateDecode\n");
       obj.append_str ("/DecodeParms << /Predictor 15 /Colors ");
       obj.append_unsigned (colors);
-      obj.append_str (" /BitsPerComponent 8 /Columns ");
+      obj.append_str (" /BitsPerComponent ");
+      obj.append_unsigned (bits);
+      obj.append_str (" /Columns ");
       obj.append_unsigned (width);
       obj.append_str (" >>\n");
     }
@@ -812,6 +818,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
   /* Parse PNG chunks: extract IHDR and concatenate IDAT payloads. */
   unsigned png_w = 0, png_h = 0;
   unsigned colors = 3; /* default RGB */
+  unsigned bits = 8;
   uint8_t color_type = 2;
   bool has_alpha = false;
   const uint8_t *plte_data = nullptr;
@@ -837,9 +844,14 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
       if (chunk_len < 13) return false;
       png_w = hb_pdf_png_u32 (chunk_data);
       png_h = hb_pdf_png_u32 (chunk_data + 4);
-      uint8_t bit_depth = chunk_data[8];
+      bits = chunk_data[8];
       color_type = chunk_data[9];
-      if (bit_depth != 8) return false; /* only 8-bit supported */
+      /* Samples of 8 bits; of 1, 2 and 4 as well where they are gray
+       * or indexes into a palette, which is where PNG has them. */
+      if (bits != 8 &&
+	  !((bits == 1 || bits == 2 || bits == 4) &&
+	    (color_type == 0 || color_type == 3)))
+	return false;
 
       switch (color_type)
       {
@@ -884,7 +896,7 @@ hb_pdf_paint_image (hb_paint_funcs_t *,
 
   unsigned im_idx = res->add_xobject_png_image (idat.arrayZ, idat.length,
 						 png_w, png_h,
-						 colors, has_alpha, &paint->budget_remaining,
+						 colors, bits, has_alpha, &paint->budget_remaining,
 						 plte_data, plte_len,
 						 trns_data, trns_len);
 
