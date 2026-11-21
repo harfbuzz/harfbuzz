@@ -142,9 +142,11 @@ struct hb_kern_machine_t
 	    kern = font->em_scale_y (kern);
 	  hb_position_t kern1 = kern >> 1;
 	  hb_position_t kern2 = kern - kern1;
-	  pos[i].y_advance = hb_saturate_add (pos[i].y_advance, kern1);
-	  pos[j].y_advance = hb_saturate_add (pos[j].y_advance, kern2);
-	  pos[j].y_offset = hb_saturate_add (pos[j].y_offset, kern2);
+	  /* A positive value moves the glyphs apart.  Vertical advances
+	   * are negative, so the value is subtracted. */
+	  pos[i].y_advance = hb_saturate_sub (pos[i].y_advance, kern1);
+	  pos[j].y_advance = hb_saturate_sub (pos[j].y_advance, kern2);
+	  pos[j].y_offset = hb_saturate_sub (pos[j].y_offset, kern2);
 	}
       }
 

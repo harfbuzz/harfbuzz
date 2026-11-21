@@ -423,9 +423,12 @@ struct KerxSubTableFormat1
 	  }
 	  else if (buffer->info[idx].mask & kern_mask)
 	  {
+	    /* A positive value moves the glyph away from the one before
+	     * it.  Vertical advances are negative, so the value is
+	     * subtracted. */
 	    auto scaled = c->font->em_scale_y (v);
-	    o.y_advance = hb_saturate_add (o.y_advance, scaled);
-	    o.y_offset = hb_saturate_add (o.y_offset, scaled);
+	    o.y_advance = hb_saturate_sub (o.y_advance, scaled);
+	    o.y_offset = hb_saturate_sub (o.y_offset, scaled);
 	  }
 	}
       }
