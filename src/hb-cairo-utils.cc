@@ -84,6 +84,28 @@ hb_cairo_read_blob (void *closure,
 
   return CAIRO_STATUS_SUCCESS;
 }
+
+/* The longest side of an image that cairo makes a surface of. */
+#define HB_CAIRO_MAX_IMAGE_SIZE 32767u
+
+/* Whether the PNG image in @blob says that it is larger than that.
+ * cairo finds out only after it has allocated the whole image, which
+ * a font can make four billion pixels a side. */
+static bool
+hb_cairo_png_too_large (hb_blob_t *blob)
+{
+  unsigned int size;
+  const uint8_t *d = (const uint8_t *) hb_blob_get_data (blob, &size);
+
+  /* The signature, then the IHDR chunk: its length, its type, and the
+   * width and the height of the image. */
+  if (size < 24 || hb_memcmp (d + 12, "IHDR", 4))
+    return false;
+
+  uint32_t width = ((uint32_t) d[16] << 24) | (d[17] << 16) | (d[18] << 8) | d[19];
+  uint32_t height = ((uint32_t) d[20] << 24) | (d[21] << 16) | (d[22] << 8) | d[23];
+  return width > HB_CAIRO_MAX_IMAGE_SIZE || height > HB_CAIRO_MAX_IMAGE_SIZE;
+}
 #endif
 
 static const cairo_user_data_key_t *_hb_cairo_surface_blob_user_data_key = {0};
@@ -139,6 +161,9 @@ _hb_cairo_paint_glyph_image (hb_cairo_context_t *c,
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
   if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
+    if (unlikely (hb_cairo_png_too_large (blob)))
+      return false;
+
     hb_cairo_read_blob_data_t r;
     r.blob = blob;
     r.offset = 0;

@@ -138,7 +138,13 @@ test_hb_cairo_image_not_paintable (void)
    * nothing, and one that font functions paint as an image of no
    * width.  cairo refuses the surface of the first two and a scale by
    * zero for the others, and a context that has refused anything
-   * draws nothing more. */
+   * draws nothing more.
+   *
+   * The second PNG says it is 65536 pixels a side.  cairo allocates all
+   * of an image before it refuses its size, 17 GB here, so hb-cairo
+   * has to refuse it first: under MALLOC_PERTURB_, which meson sets
+   * for tests, the allocation is written to, and this test took
+   * seconds to a timeout. */
   static const struct
   {
     const char *font;
