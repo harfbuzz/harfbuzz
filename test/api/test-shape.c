@@ -394,6 +394,81 @@ test_shape_kerx_control_point_actions_are_charged (void)
   hb_font_destroy (parent);
   hb_face_destroy (face);
 }
+
+static hb_face_t *
+create_morx_loop_face (void)
+{
+  /* A three-glyph font whose morx has one Contextual subtable.  On 'a',
+   * glyph 1, its machine substitutes the glyph by itself and goes from
+   * the start state back to the start state without advancing: a loop
+   * that only the buffer's work budget ends.  'b', glyph 2, is out of the
+   * machine's classes. */
+  static const char maxp[] = {0x00, 0x00, 0x50, 0x00,  0x00, 0x03};
+  static const char cmap[] = {0, 0,  0, 1,  0, 3,  0, 10,  0, 0, 0, 12,
+			      0, 12,  0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+			      0, 0, 0, 'a',  0, 0, 0, 'b',  0, 0, 0, 1};
+  static const unsigned char morx[] = {
+    0, 2, 0, 0,  0, 0, 0, 1,			/* version 2, one chain */
+    0, 0, 0, 1,  0, 0, 0, 104,  0, 0, 0, 0,  0, 0, 0, 1, /* default flags, length, no features, one subtable */
+    0, 0, 0, 88,  0x20, 0, 0, 1,  0, 0, 0, 1,	/* length, Contextual in any direction, flags */
+    0, 0, 0, 5,  0, 0, 0, 20,  0, 0, 0, 28,  0, 0, 0, 48, /* nClasses, class, state, entry offsets */
+    0, 0, 0, 64,				/* substitution tables at 64 */
+    0, 8,  0, 1,  0, 1,  0, 4,			/* class lookup format 8: glyph 1 is class 4 */
+    0, 0,  0, 0,  0, 0,  0, 0,  0, 1,		/* state 0: class 4 takes entry 1 */
+    0, 0,  0, 0,  0, 0,  0, 0,  0, 1,		/* state 1: class 4 takes entry 1 */
+    0, 0,  0x00, 0,  0xFF, 0xFF,  0xFF, 0xFF,	/* entry 0: to state 0 */
+    0, 0,  0x40, 0,  0xFF, 0xFF,  0, 0,		/* entry 1: to state 0, DontAdvance, substitute current by table 0 */
+    0, 0, 0, 4,					/* substitution table 0 at 4 */
+    0, 8,  0, 1,  0, 1,  0, 1			/* lookup format 8: glyph 1 becomes glyph 1 */
+  };
+
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (maxp, sizeof (maxp), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('m','a','x','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create (cmap, sizeof (cmap), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('c','m','a','p'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_blob_create ((const char *) morx, sizeof (morx), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  hb_face_builder_add_table (builder, HB_TAG ('m','o','r','x'), blob);
+  hb_blob_destroy (blob);
+  blob = hb_face_reference_blob (builder);
+  hb_face_destroy (builder);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  return face;
+}
+
+static void
+test_shape_aat_loop_budget (void)
+{
+  /* A state machine that stops advancing spends the buffer's work budget.
+   * The buffer must then report failure, as it does when OpenType lookups
+   * run the budget out, so that the caller can tell. */
+  static const char *shapers[] = {"ot", NULL};
+  hb_face_t *face = create_morx_loop_face ();
+  hb_font_t *font = hb_font_create (face);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "b", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape_full (font, buffer, NULL, 0, shapers);
+  g_assert_true (hb_buffer_allocation_successful (buffer));
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 1);
+  hb_buffer_destroy (buffer);
+
+  buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "ab", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape_full (font, buffer, NULL, 0, shapers);
+  g_assert_false (hb_buffer_allocation_successful (buffer));
+  /* The glyphs are kept. */
+  g_assert_cmpuint (hb_buffer_get_length (buffer), ==, 2);
+  hb_buffer_destroy (buffer);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
 #endif
 
 static void
@@ -688,6 +763,7 @@ main (int argc, char **argv)
   hb_test_add (test_shape_harfrust_budget);
 #ifndef HB_NO_AAT
   hb_test_add (test_shape_kerx_control_point_actions_are_charged);
+  hb_test_add (test_shape_aat_loop_budget);
 #endif
   hb_test_add (test_shape_lookup_budget);
   hb_test_add (test_shape_complex_font_budget);

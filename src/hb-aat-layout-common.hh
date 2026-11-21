@@ -1495,8 +1495,17 @@ struct StateTableDriver
       if (buffer->idx == buffer->len)
 	break;
 
-      if (is_not_epsilon_transition || buffer->max_ops-- <= 0)
+      if (is_not_epsilon_transition)
 	(void) buffer->next_glyph ();
+      else if (unlikely (buffer->max_ops-- <= 0))
+      {
+	/* The machine keeps not advancing, and the buffer's work budget is
+	 * spent.  Fail the buffer, as the OpenType lookups do when the
+	 * budget runs out: the caller can then tell that the text was not
+	 * shaped in full, and no other subtable runs. */
+	buffer->successful = false;
+	break;
+      }
     }
 
     if (!c->in_place)
