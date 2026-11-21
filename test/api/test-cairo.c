@@ -97,6 +97,107 @@ test_hb_cairo_transform_no_inverse (void)
   hb_face_destroy (face);
 }
 
+/* Paints any glyph as an image of no width. */
+static hb_bool_t
+paint_image_of_no_width (hb_font_t *font HB_UNUSED,
+			 void *font_data HB_UNUSED,
+			 hb_codepoint_t glyph HB_UNUSED,
+			 hb_paint_funcs_t *paint_funcs,
+			 void *paint_data,
+			 unsigned int palette_index HB_UNUSED,
+			 hb_color_t foreground HB_UNUSED,
+			 void *user_data HB_UNUSED)
+{
+  hb_glyph_extents_t extents = {0, 1000, 1000, -1000};
+  hb_paint_image (paint_funcs, paint_data, hb_blob_get_empty (), 0, 8,
+		  HB_PAINT_IMAGE_FORMAT_BGRA, 0.f, &extents);
+  return TRUE;
+}
+
+static void
+test_hb_cairo_image_not_paintable (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Glyphs that are images cairo cannot paint: two whose PNG data
+   * cannot be read, one shown so small that its extents come to
+   * nothing, and one that font functions paint as an image of no
+   * width.  cairo refuses the surface of the first two and a scale by
+   * zero for the others, and a context that has refused anything
+   * draws nothing more. */
+  static const struct
+  {
+    const char *font;
+    hb_codepoint_t unicode;
+    double size;
+  } cases[] =
+  {
+    {"../fuzzing/fonts/sbix-png-plte-chunklen-oob.ttf", 0x270D, 64},
+    {"../fuzzing/fonts/cbdt-png-indexed-trns-smask-dimension-oob.ttf", 0xE903, 64},
+    {"fonts/sbix.ttf", 'X', 0.005},
+    {"fonts/sbix.ttf", 'X', 64},
+  };
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (cases); i++)
+  {
+    hb_face_t *face = hb_test_open_font_file (cases[i].font);
+    hb_font_t *font = hb_font_create (face);
+    hb_codepoint_t gid;
+    g_assert_true (hb_font_get_nominal_glyph (font, cases[i].unicode, &gid));
+
+    cairo_font_face_t *cairo_face;
+    if (i + 1 < G_N_ELEMENTS (cases))
+    {
+      /* As hb-view shows text: the font is scaled to 64 times its size. */
+      cairo_face = hb_cairo_font_face_create_for_face (face);
+      hb_cairo_font_face_set_scale_factor (cairo_face, 64);
+    }
+    else
+    {
+      hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+      hb_font_funcs_set_paint_glyph_or_fail_func (ffuncs, paint_image_of_no_width, NULL, NULL);
+      hb_font_t *subfont = hb_font_create_sub_font (font);
+      hb_font_set_funcs (subfont, ffuncs, NULL, NULL);
+      hb_font_funcs_destroy (ffuncs);
+      cairo_face = hb_cairo_font_face_create_for_font (subfont);
+      hb_font_destroy (subfont);
+    }
+    cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+    cairo_t *cr = cairo_create (surface);
+    cairo_set_font_face (cr, cairo_face);
+    cairo_set_font_size (cr, cases[i].size);
+
+    cairo_glyph_t glyph = {gid, 0, 64};
+    cairo_show_glyphs (cr, &glyph, 1);
+
+    g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+    g_assert_cmpint (cairo_surface_status (surface), ==, CAIRO_STATUS_SUCCESS);
+
+    /* What is drawn after the glyph is drawn. */
+    cairo_set_source_rgb (cr, 1, 0, 0);
+    cairo_rectangle (cr, 60, 0, 4, 4);
+    cairo_fill (cr);
+    cairo_surface_flush (surface);
+    uint32_t pixel;
+    memcpy (&pixel, cairo_image_surface_get_data (surface) + 62 * 4, sizeof (pixel));
+    g_assert_cmphex (pixel, ==, 0xFFFF0000u);
+
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+    cairo_font_face_destroy (cairo_face);
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+}
+
 static void
 test_hb_cairo_color_glyph_cycle (void)
 {
@@ -266,6 +367,7 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_transform_no_inverse);
+  hb_test_add (test_hb_cairo_image_not_paintable);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);

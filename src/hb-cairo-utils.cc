@@ -196,6 +196,17 @@ _hb_cairo_paint_glyph_image (hb_cairo_context_t *c,
   if (!surface)
     return false;
 
+  /* cairo refuses a surface that could not be made of the image, and
+   * the scales of an image or of extents that have no size; a context
+   * that has refused anything draws nothing more.  There is nothing to
+   * paint of any of these. */
+  if (unlikely (cairo_surface_status (surface) != CAIRO_STATUS_SUCCESS ||
+		!width || !height || !extents->width || !extents->height))
+  {
+    cairo_surface_destroy (surface);
+    return false;
+  }
+
   cairo_save (cr);
   /* this clip is here to work around recording surface limitations */
   cairo_rectangle (cr,
