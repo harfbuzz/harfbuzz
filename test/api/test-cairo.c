@@ -76,6 +76,77 @@ test_hb_cairo_color_glyph_cycle (void)
   hb_face_destroy (face);
 }
 
+/* Shows a glyph of @font filling a 64 by 64 picture and returns its
+ * pixel at (@x, @y), as 0xAARRGGBB. */
+static uint32_t
+glyph_pixel (hb_font_t *font, hb_codepoint_t unicode, int x, int y)
+{
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 64);
+
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
+  cairo_glyph_t glyph = {gid, 0, 64};
+  cairo_show_glyphs (cr, &glyph, 1);
+  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+
+  cairo_surface_flush (surface);
+  uint32_t pixel;
+  memcpy (&pixel,
+	  cairo_image_surface_get_data (surface) +
+	  y * cairo_image_surface_get_stride (surface) + x * 4,
+	  sizeof (pixel));
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+  cairo_font_face_destroy (cairo_face);
+  return pixel;
+}
+
+static void
+test_hb_cairo_radial_gradient_past_tip (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Radial gradients from red to blue whose color stops are not at 0
+   * and 1, so that the color line starts where the radius of its
+   * circle would be negative: past the tip of the cone.  cairo takes
+   * such a radius for a positive one, and used to be given it. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-radial-past-tip.ttf");
+  hb_font_t *font = hb_font_create (face);
+  uint32_t pixel;
+
+  /* The tip is in the middle, three eighths of the way from red to
+   * blue; a red disc used to be there. */
+  pixel = glyph_pixel (font, 'a', 32, 32);
+  g_assert_cmpuint (pixel >> 24, ==, 255);
+  g_assert_cmpuint ((pixel >> 16) & 255, >, 130);
+  g_assert_cmpuint ((pixel >> 16) & 255, <, 185);
+  g_assert_cmpuint (pixel & 255, >, 70);
+  g_assert_cmpuint (pixel & 255, <, 125);
+
+  /* All of the color line is past the tip, and its last color, blue,
+   * goes on from there; most of the glyph used to be red. */
+  pixel = glyph_pixel (font, 'b', 4, 4);
+  g_assert_cmpuint ((pixel >> 16) & 255, <, 30);
+  g_assert_cmpuint (pixel & 255, >, 220);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static void
 face_destroyed (void *user_data)
 {
@@ -204,6 +275,7 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
+  hb_test_add (test_hb_cairo_radial_gradient_past_tip);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
 

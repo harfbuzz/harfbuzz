@@ -346,6 +346,16 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
   rr0 = r0 + min * (r1 - r0);
   rr1 = r0 + max * (r1 - r0);
 
+  /* cairo takes a negative radius for a positive one. */
+  if (!hb_paint_radial_gradient_circles (stops, &len,
+					 hb_color_line_get_extend (color_line),
+					 &xx0, &yy0, &rr0, &xx1, &yy1, &rr1))
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
+
   pattern = cairo_pattern_create_radial ((double) xx0, (double) yy0, (double) rr0, (double) xx1, (double) yy1, (double) rr1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
 
