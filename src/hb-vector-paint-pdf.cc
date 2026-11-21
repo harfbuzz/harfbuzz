@@ -504,6 +504,23 @@ hb_pdf_empty_path (hb_vector_buf_t &body)
 /* ---- paint callbacks ---- */
 
 static void
+hb_pdf_paint_push_clip_rectangle (hb_paint_funcs_t *,
+				  void *paint_data,
+				  float xmin, float ymin,
+				  float xmax, float ymax,
+				  void *);
+
+/* Whether a transform has an inverse, with a margin for one that all but
+ * has none. */
+static bool
+hb_pdf_transform_has_inverse (float xx, float yx, float xy, float yy)
+{
+  float a = xx * yy, b = xy * yx;
+  float det = a - b;
+  return std::isfinite (det) && fabsf (det) > 1e-6f * (fabsf (a) + fabsf (b));
+}
+
+static void
 hb_pdf_paint_push_transform (hb_paint_funcs_t *,
 			     void *paint_data,
 			     float xx, float yx,
@@ -514,6 +531,16 @@ hb_pdf_paint_push_transform (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!paint->ensure_initialized ()))
     return;
+
+  /* What is painted under a transform that has no inverse has no area.
+   * Not every viewer paints nothing under a `cm` of one: poppler paints
+   * what is under it as if the transform were not there.  Clip
+   * everything out instead, until the transform is popped. */
+  if (unlikely (!hb_pdf_transform_has_inverse (xx, yx, xy, yy)))
+  {
+    hb_pdf_paint_push_clip_rectangle (nullptr, paint_data, 0.f, 0.f, 0.f, 0.f, nullptr);
+    return;
+  }
 
   auto &body = paint->current_body ();
   unsigned sprec = body.scale_precision ();

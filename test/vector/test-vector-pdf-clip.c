@@ -24,7 +24,11 @@
 
 /* A clip to an outline that has no points lets nothing through.  In
  * PDF, `W` with no path before it would leave the clip as it was, and
- * what is painted under it would cover the page. */
+ * what is painted under it would cover the page.
+ *
+ * A transform that has no inverse leaves no area to paint on.  Not
+ * every viewer paints nothing under a `cm` of one, so everything is
+ * clipped out instead. */
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -81,6 +85,33 @@ render (unsigned points)
   return blob;
 }
 
+/* Paints a color under a transform, and something else so that the
+ * document is not empty. */
+static hb_blob_t *
+render_under_transform (float xx, float yx, float xy, float yy)
+{
+  hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_PDF);
+  assert (paint);
+  hb_vector_extents_t extents = {0, 0, 100, 100};
+  hb_vector_paint_set_extents (paint, &extents);
+  hb_paint_funcs_t *funcs = hb_vector_paint_get_funcs (paint);
+
+  hb_paint_push_transform (funcs, paint, xx, yx, xy, yy, 5, 7);
+  hb_paint_push_clip_rectangle (funcs, paint, 20, 20, 80, 80);
+  hb_paint_color (funcs, paint, 0, HB_COLOR (0, 0, 255, 255));
+  hb_paint_pop_clip (funcs, paint);
+  hb_paint_pop_transform (funcs, paint);
+
+  hb_paint_push_clip_rectangle (funcs, paint, 0, 0, 10, 10);
+  hb_paint_color (funcs, paint, 0, HB_COLOR (255, 0, 0, 255));
+  hb_paint_pop_clip (funcs, paint);
+
+  hb_blob_t *blob = hb_vector_paint_render (paint);
+  assert (blob);
+  hb_vector_paint_destroy (paint);
+  return blob;
+}
+
 int
 main (void)
 {
@@ -99,6 +130,27 @@ main (void)
   assert (!find (data, len, "0 0 0 0 re"));
   assert (find (data, len, "h\nW n\n"));
   hb_blob_destroy (blob);
+
+  /* A transform that has an inverse is written. */
+  blob = render_under_transform (2, 0, 0, 3);
+  data = hb_blob_get_data (blob, &len);
+  assert (find (data, len, "q\n2 0 0 3 5 7 cm\n"));
+  assert (!find (data, len, "0 0 0 0 re"));
+  hb_blob_destroy (blob);
+
+  /* One that has none is not: a scale by zero, a scale by zero one way,
+   * and one that puts everything onto a line. */
+  static const float none[3][4] = {{0, 0, 0, 0}, {0, 0, 0, 3}, {1, 2, 2, 4}};
+  for (unsigned i = 0; i < 3; i++)
+  {
+    blob = render_under_transform (none[i][0], none[i][1], none[i][2], none[i][3]);
+    data = hb_blob_get_data (blob, &len);
+    assert (!find (data, len, " 5 7 cm"));
+    assert (find (data, len, "q\n0 0 0 0 re W n\n"));
+    /* What is painted after it is. */
+    assert (find (data, len, "1 0 0 rg"));
+    hb_blob_destroy (blob);
+  }
 
   return 0;
 }
