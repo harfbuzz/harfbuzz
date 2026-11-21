@@ -270,6 +270,33 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
   return true;
 }
 
+/* Gives @pattern the color stops @stops, which are sorted.  COLR
+ * interpolates colors with alpha multiplied into them, and cairo the
+ * color and the alpha of its stops apart, so the stops are rewritten
+ * for cairo to come to the same. */
+static void
+_hb_cairo_add_color_stops (cairo_pattern_t *pattern,
+			   const hb_color_stop_t *stops,
+			   unsigned int len)
+{
+  hb_vector_t<hb_color_stop_t> premultiplied;
+  if (hb_paint_premultiply_color_stops (stops, len, premultiplied))
+  {
+    stops = premultiplied.arrayZ;
+    len = premultiplied.length;
+  }
+
+  for (unsigned int i = 0; i < len; i++)
+    {
+      double r, g, b, a;
+      r = hb_color_get_red (stops[i].color) / 255.;
+      g = hb_color_get_green (stops[i].color) / 255.;
+      b = hb_color_get_blue (stops[i].color) / 255.;
+      a = hb_color_get_alpha (stops[i].color) / 255.;
+      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
+    }
+}
+
 void
 _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 				 hb_color_line_t *color_line,
@@ -300,15 +327,7 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   pattern = cairo_pattern_create_linear ((double) xxx0, (double) yyy0, (double) xxx1, (double) yyy1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
-  for (unsigned int i = 0; i < len; i++)
-    {
-      double r, g, b, a;
-      r = hb_color_get_red (stops[i].color) / 255.;
-      g = hb_color_get_green (stops[i].color) / 255.;
-      b = hb_color_get_blue (stops[i].color) / 255.;
-      a = hb_color_get_alpha (stops[i].color) / 255.;
-      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
-    }
+  _hb_cairo_add_color_stops (pattern, stops, len);
 
   cairo_set_source (cr, pattern);
   cairo_paint (cr);
@@ -349,15 +368,7 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
   pattern = cairo_pattern_create_radial ((double) xx0, (double) yy0, (double) rr0, (double) xx1, (double) yy1, (double) rr1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
 
-  for (unsigned int i = 0; i < len; i++)
-    {
-      double r, g, b, a;
-      r = hb_color_get_red (stops[i].color) / 255.;
-      g = hb_color_get_green (stops[i].color) / 255.;
-      b = hb_color_get_blue (stops[i].color) / 255.;
-      a = hb_color_get_alpha (stops[i].color) / 255.;
-      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
-    }
+  _hb_cairo_add_color_stops (pattern, stops, len);
 
   cairo_set_source (cr, pattern);
   cairo_paint (cr);
