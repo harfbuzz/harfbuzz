@@ -1000,6 +1000,10 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned src_width = width;
   unsigned src_height = height;
   const hb_raster_pixel_t *src_data = nullptr;
+  /* Whether the rows of the image go down from where its extents start,
+   * as those of raw data do, or up to there, as those of an image of
+   * ours do. */
+  bool rows_down = false;
   hb_raster_image_t decoded_png;
 
   if (format == HB_PAINT_IMAGE_FORMAT_BGRA)
@@ -1021,6 +1025,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
       return false;
 
     src_data = (const hb_raster_pixel_t *) data;
+    rows_down = true;
   }
   else if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
@@ -1104,11 +1109,11 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	}
 
 	/* Bilinear reconstruction has the texels at whole numbers, so
-	 * each is centered half a texel in; its rows are the other way
-	 * up.  The outer half of the texels at the edges is their own
-	 * color. */
+	 * each is centered half a texel in.  The outer half of the
+	 * texels at the edges is their own color. */
 	float ix = hb_clamp (u - 0.5f, 0.f, (float) (src_width - 1));
-	float iy = hb_clamp ((float) src_height - 0.5f - v, 0.f, (float) (src_height - 1));
+	float iy = hb_clamp (rows_down ? v - 0.5f : (float) src_height - 0.5f - v,
+			     0.f, (float) (src_height - 1));
 
 	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
 							     ix, iy);
@@ -1152,11 +1157,11 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	}
 
 	/* Bilinear reconstruction has the texels at whole numbers, so
-	 * each is centered half a texel in; its rows are the other way
-	 * up.  The outer half of the texels at the edges is their own
-	 * color. */
+	 * each is centered half a texel in.  The outer half of the
+	 * texels at the edges is their own color. */
 	float ix = hb_clamp (u - 0.5f, 0.f, (float) (src_width - 1));
-	float iy = hb_clamp ((float) src_height - 0.5f - v, 0.f, (float) (src_height - 1));
+	float iy = hb_clamp (rows_down ? v - 0.5f : (float) src_height - 0.5f - v,
+			     0.f, (float) (src_height - 1));
 
 	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
 							     ix, iy);

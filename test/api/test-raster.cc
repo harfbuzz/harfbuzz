@@ -774,6 +774,43 @@ test_image_extents (void)
   hb_raster_paint_destroy (paint);
 }
 
+/* The rows of raw image data go down from where the extents of the
+ * image start, as those of a FreeType bitmap do: this one is red at the
+ * top and blue at the bottom. */
+static void
+test_image_bgra_rows (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  hb_raster_extents_t ext = {0, 0, 8, 8, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  const uint8_t red[] = {0, 0, 255, 255}, blue[] = {255, 0, 0, 255};
+  uint8_t pixels[2 * 2 * 4];
+  for (unsigned i = 0; i < 4; i++)
+    memcpy (pixels + i * 4, i < 2 ? red : blue, 4);
+  hb_blob_t *blob = hb_blob_create ((const char *) pixels, sizeof (pixels),
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  hb_glyph_extents_t gext = {0, 8, 8, -8};
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_image (funcs, paint, blob, 2, 2,
+		  HB_PAINT_IMAGE_FORMAT_BGRA, 0.f, &gext);
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  hb_raster_image_get_extents (img, &ext);
+  g_assert_cmpuint (ext.height, ==, 8);
+  /* The rows of an hb_raster_image_t go up. */
+  const uint8_t *buffer = hb_raster_image_get_buffer (img);
+  for (unsigned x = 0; x < ext.width; x++)
+  {
+    g_assert_cmpmem (buffer + 7 * ext.stride + x * 4, 4, red, 4);
+    g_assert_cmpmem (buffer + 6 * ext.stride + x * 4, 4, red, 4);
+    g_assert_cmpmem (buffer + 1 * ext.stride + x * 4, 4, blue, 4);
+    g_assert_cmpmem (buffer + 0 * ext.stride + x * 4, 4, blue, 4);
+  }
+  hb_raster_image_destroy (img);
+  hb_blob_destroy (blob);
+  hb_raster_paint_destroy (paint);
+}
+
 static void
 test_image_png_byte_order (void)
 {
@@ -985,6 +1022,7 @@ main (int argc, char **argv)
   hb_test_add (test_clip_rectangle_transformed);
   hb_test_add (test_image_bgra);
   hb_test_add (test_image_extents);
+  hb_test_add (test_image_bgra_rows);
   hb_test_add (test_image_png_byte_order);
   hb_test_add (test_image_png_size);
   hb_test_add (test_budget_sweep);
