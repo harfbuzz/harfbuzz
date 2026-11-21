@@ -199,6 +199,73 @@ test_hb_cairo_image_not_paintable (void)
 }
 
 static void
+test_hb_cairo_image_not_square (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Two sbix glyphs whose images are not square, each red above its
+   * middle and blue below: one of 2 by 4 pixels, half an em wide and
+   * one tall, and one of 4 by 2, one em wide and half an em tall.
+   * The height of a PNG image used to be taken for its width, so the
+   * first showed its upper half over all of its height, and the second
+   * was over within half of its own. */
+  static const struct
+  {
+    hb_codepoint_t unicode;
+    int x, y;
+    uint32_t pixel;
+  } pixels[] =
+  {
+    {'a', 16, 12, 0xFFFF0000u},
+    {'a', 16, 52, 0xFF0000FFu},
+    {'b', 32, 39, 0xFFFF0000u},
+    {'b', 32, 60, 0xFF0000FFu},
+  };
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/sbix-not-square.ttf");
+  hb_font_t *font = hb_font_create (face);
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+
+  for (unsigned i = 0; i < G_N_ELEMENTS (pixels); i++)
+  {
+    hb_codepoint_t gid;
+    g_assert_true (hb_font_get_nominal_glyph (font, pixels[i].unicode, &gid));
+
+    cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+    cairo_t *cr = cairo_create (surface);
+    cairo_set_font_face (cr, cairo_face);
+    cairo_set_font_size (cr, 64);
+
+    cairo_glyph_t glyph = {gid, 0, 64};
+    cairo_show_glyphs (cr, &glyph, 1);
+    g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+
+    cairo_surface_flush (surface);
+    uint32_t pixel;
+    memcpy (&pixel,
+	    cairo_image_surface_get_data (surface) +
+	    pixels[i].y * cairo_image_surface_get_stride (surface) + pixels[i].x * 4,
+	    sizeof (pixel));
+    g_assert_cmphex (pixel, ==, pixels[i].pixel);
+
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+  }
+
+  cairo_font_face_destroy (cairo_face);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_hb_cairo_color_glyph_cycle (void)
 {
 #ifdef HB_TEST_CAIRO_TSAN
@@ -368,6 +435,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_transform_no_inverse);
   hb_test_add (test_hb_cairo_image_not_paintable);
+  hb_test_add (test_hb_cairo_image_not_square);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);

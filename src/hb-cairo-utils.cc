@@ -147,7 +147,7 @@ _hb_cairo_paint_glyph_image (hb_cairo_context_t *c,
     /* For PNG, width,height can be unreliable, as is the case for NotoColorEmoji :(.
      * Just pull them out of the surface. */
     width = cairo_image_surface_get_width (surface);
-    height = cairo_image_surface_get_width (surface);
+    height = cairo_image_surface_get_height (surface);
   }
   else
 #endif
