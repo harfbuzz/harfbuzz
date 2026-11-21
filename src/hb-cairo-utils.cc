@@ -289,9 +289,25 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
+  /* A color line of no length paints nothing unless it pads. */
+  if (!hb_paint_color_line_give_length (stops, &len,
+					hb_color_line_get_extend (color_line)))
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
   hb_paint_normalize_color_line (stops, len, &min, &max);
 
   hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
+
+  /* Nor does a gradient along no line; cairo would paint it. */
+  if (xx0 == xx1 && yy0 == yy1)
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
 
   xxx0 = xx0 + min * (xx1 - xx0);
   yyy0 = yy0 + min * (yy1 - yy0);
@@ -337,6 +353,14 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
 
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
+  /* A color line of no length paints nothing unless it pads. */
+  if (!hb_paint_color_line_give_length (stops, &len,
+					hb_color_line_get_extend (color_line)))
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
   hb_paint_normalize_color_line (stops, len, &min, &max);
 
   xx0 = x0 + min * (x1 - x0);

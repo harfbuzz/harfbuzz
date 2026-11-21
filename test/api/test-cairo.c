@@ -148,6 +148,62 @@ test_hb_cairo_radial_gradient_past_tip (void)
 }
 
 static void
+test_hb_cairo_color_line_no_length (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Gradients from red to blue whose color line has no length: one
+   * stop, or two at one offset.  If it pads, that is the first color
+   * before the offset and the last from it on; if it repeats or
+   * reflects, nothing.  And gradients that are ill-formed, which paint
+   * nothing either. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-color-line-no-length.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  /* What is painted along the row across the middle, at 4, 21, 23,
+   * 32, 39 and 42 of its 64 pixels: red, blue, or nothing. */
+  static const int xs[] = {4, 21, 23, 32, 39, 42};
+  const struct {
+    char unicode;
+    const char *pixels;
+  } tests[] = {
+    {'a', "rrrrrr"}, /* linear, one red stop */
+    {'b', "rrbbbb"}, /* linear, red and blue at one offset: they meet at 22.4 */
+    {'c', "bbrrrb"}, /* radial, the same: red within 9.6 of the center */
+    {'d', "------"}, /* as b, repeating */
+    {'e', "------"}, /* as c, reflecting */
+    {'f', "rrrrrr"}, /* radial, one red stop */
+    {'g', "------"}, /* linear, along no line */
+    {'h', "------"}, /* radial, of one circle */
+    {'i', "rrbbbb"}, /* as b, with a green stop between the two */
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    char pixels[G_N_ELEMENTS (xs) + 1];
+    for (unsigned j = 0; j < G_N_ELEMENTS (xs); j++)
+    {
+      uint32_t pixel = glyph_pixel (font, tests[i].unicode, xs[j], 32);
+      pixels[j] = pixel == 0xFFFF0000u ? 'r' :
+		  pixel == 0xFF004CFFu ? 'b' :
+		  !pixel ? '-' : '?';
+    }
+    pixels[G_N_ELEMENTS (xs)] = 0;
+    g_assert_cmpstr (pixels, ==, tests[i].pixels);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 face_destroyed (void *user_data)
 {
   *(hb_bool_t *) user_data = 1;
@@ -276,6 +332,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
   hb_test_add (test_hb_cairo_radial_gradient_past_tip);
+  hb_test_add (test_hb_cairo_color_line_no_length);
   hb_test_add (test_hb_cairo_face_lifecycle);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
 
