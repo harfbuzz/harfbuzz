@@ -994,7 +994,9 @@ hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,
  * renderers.  P1' is the foot of P1 on the line through P0
  * perpendicular to (P2 - P0); the resulting axis is the
  * gradient's actual direction (perpendicular to the rotation
- * line).  Degenerate (P0 == P2) passes through unchanged.
+ * line).  Degenerate (P0 == P2) passes through unchanged.  If
+ * P1 is on the line through P0 and P2, P1' is P0: the gradient
+ * is along no line.
  *
  * Since: 14.2.0
  **/
@@ -1014,6 +1016,14 @@ hb_paint_reduce_linear_anchors (float x0, float y0,
     return;
   }
   float q1x = x1 - x0, q1y = y1 - y0;
+  /* P1 on the line through P0 and P2 has its foot at P0, which the
+   * arithmetic below only comes close to. */
+  if (q1x * q2y == q1y * q2x)
+  {
+    *xx0 = *xx1 = x0;
+    *yy0 = *yy1 = y0;
+    return;
+  }
   float k = (q2x * q1x + q2y * q1y) / s;
   *xx0 = x0;
   *yy0 = y0;

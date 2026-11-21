@@ -1326,6 +1326,40 @@ check_sweep_tile (float a0, hb_color_t c0,
 }
 
 static void
+test_hb_paint_reduce_linear_anchors_on_a_line (void)
+{
+  float x0, y0, x1, y1;
+
+  /* P1 on the line through P0 and P2: the gradient is along no line,
+   * and is ill-formed.  It is found by its two ends being the same,
+   * which they are to be exactly: this one used to end a hair below
+   * where it starts. */
+  hb_paint_reduce_linear_anchors (450, 200, 450, 400, 450, 900,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x0, ==, 450);
+  g_assert_cmpfloat (y0, ==, 200);
+  g_assert_cmpfloat (x1, ==, 450);
+  g_assert_cmpfloat (y1, ==, 200);
+
+  hb_paint_reduce_linear_anchors (0, 0, 300, 100, 900, 300,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x1, ==, 0);
+  g_assert_cmpfloat (y1, ==, 0);
+
+  /* P1 on the other side of P0 from P2. */
+  hb_paint_reduce_linear_anchors (10, 20, -290, -80, 910, 320,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x1, ==, 10);
+  g_assert_cmpfloat (y1, ==, 20);
+
+  /* Not on the line. */
+  hb_paint_reduce_linear_anchors (0, 0, 100, 50, 0, 100,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x1, ==, 100);
+  g_assert_cmpfloat (y1, ==, 0);
+}
+
+static void
 test_hb_paint_sweep_gradient_tiles_clipped (void)
 {
   /* Variation deltas can put the angles far outside the circle.  The
@@ -1434,6 +1468,7 @@ main (int argc, char **argv)
   hb_test_add (test_color_glyph_user_data);
   hb_test_add (test_hb_paint_budget);
   hb_test_add (test_hb_paint_color_stops_budget);
+  hb_test_add (test_hb_paint_reduce_linear_anchors_on_a_line);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_clipped);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_seam_color);
 
