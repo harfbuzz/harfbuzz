@@ -303,6 +303,35 @@ hb_color_stops_cut (hb_color_stop_t *stops, unsigned *len,
 		!(from < stops[count - 1].offset) || !(to > stops[0].offset)))
     return false;
 
+  /* The color at @offset between two stops.  Colors are interpolated
+   * with alpha multiplied into them: the more transparent a stop is,
+   * the less of its color there is to give. */
+  auto color_at = [] (const hb_color_stop_t &s0, const hb_color_stop_t &s1,
+		      float offset) -> hb_color_t
+  {
+    float t = (offset - s0.offset) / (s1.offset - s0.offset);
+    hb_color_t c0 = s0.color, c1 = s1.color;
+    float a0 = hb_color_get_alpha (c0), a1 = hb_color_get_alpha (c1);
+    if (a0 == a1)
+      return hb_color_lerp (c0, c1, t);
+
+    float w0 = (1.f - t) * a0, w1 = t * a1;
+    float a = w0 + w1;
+    if (!(a > 0.f))
+      /* Transparent: the color that the other one fades out in. */
+      return (a0 > a1 ? c0 : c1) & ~(hb_color_t) 0xFF;
+
+    auto channel = [&] (unsigned shift) -> unsigned
+    {
+      float v = (w0 * ((c0 >> shift) & 0xFF) + w1 * ((c1 >> shift) & 0xFF)) / a + 0.5f;
+      if (!(v > 0.f)) return 0;
+      if (v > 255.f) return 255;
+      return (unsigned) v;
+    };
+    return HB_COLOR (channel (24), channel (16), channel (8),
+		     a < 255.f ? (unsigned) (a + 0.5f) : 255);
+  };
+
   if (to < stops[count - 1].offset)
   {
     /* The first stop that is not before @to ends the line: where it
@@ -313,9 +342,7 @@ hb_color_stops_cut (hb_color_stop_t *stops, unsigned *len,
       j++;
     if (stops[j].offset > to)
     {
-      stops[j].color = hb_color_lerp (stops[j - 1].color, stops[j].color,
-				      (to - stops[j - 1].offset) /
-				      (stops[j].offset - stops[j - 1].offset));
+      stops[j].color = color_at (stops[j - 1], stops[j], to);
       stops[j].is_foreground = false;
       stops[j].offset = to;
     }
@@ -331,9 +358,7 @@ hb_color_stops_cut (hb_color_stop_t *stops, unsigned *len,
       first--;
     if (stops[first].offset < from)
     {
-      stops[first].color = hb_color_lerp (stops[first].color, stops[first + 1].color,
-					  (from - stops[first].offset) /
-					  (stops[first + 1].offset - stops[first].offset));
+      stops[first].color = color_at (stops[first], stops[first + 1], from);
       stops[first].is_foreground = false;
       stops[first].offset = from;
     }

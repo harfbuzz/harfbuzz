@@ -43,6 +43,8 @@ typedef struct
   unsigned count;
   float offsets[3];
   hb_paint_extend_t extend;
+  /* Whether the second stop, the blue one, is transparent. */
+  int fades_out;
 } line_t;
 
 static unsigned
@@ -67,6 +69,8 @@ get_stops (hb_color_line_t *color_line,
       stops[n].offset = line->offsets[i];
       stops[n].is_foreground = 0;
       stops[n].color = colors[i];
+      if (i == 1 && line->fades_out)
+	stops[n].color = HB_COLOR (255, 0, 0, 0);
     }
     *count = n;
   }
@@ -99,6 +103,8 @@ has (const char *needle)
 /* Paints circles of radius @r0 where the color line is at 0 and @r1
  * where it is at 1, the one at the origin and the other @x1 to its
  * right, with the @count stops of the color line at @offsets. */
+static int fades_out;
+
 static hb_blob_t *
 render_stops (hb_vector_format_t format,
 	      float x1,
@@ -117,6 +123,7 @@ render_stops (hb_vector_format_t format,
   for (unsigned i = 0; i < count; i++)
     line.offsets[i] = offsets[i];
   line.extend = extend;
+  line.fades_out = fades_out;
   hb_color_line_t color_line;
   memset (&color_line, 0, sizeof (color_line));
   color_line.data = &line;
@@ -181,6 +188,16 @@ main (void)
   assert (has (" r=\"0\" fx=\"0\" fy=\"0\" fr=\"50\" spreadMethod"));
   assert (!has ("r=\"-"));
   hb_blob_destroy (blob);
+
+  /* The first case again, fading out from red to transparent blue.
+   * Colors are interpolated with alpha multiplied into them, so three
+   * eighths along it is red at five eighths: a transparent stop has
+   * no color to give. */
+  fades_out = 1;
+  blob = render (HB_VECTOR_FORMAT_SVG, 0, 10, 50, -1, 1, HB_PAINT_EXTEND_PAD);
+  assert (has ("<stop offset=\"0\" stop-color=\"rgb(255,0,0)\" stop-opacity=\"0.6235\"/>"));
+  hb_blob_destroy (blob);
+  fades_out = 0;
 
   /* Red and blue both at 0, and green where the radius would be -30:
    * the end that is not cut keeps its two stops, so that red still
