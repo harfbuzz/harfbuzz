@@ -978,6 +978,19 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_recycle_image (rdr, mask_img);
 }
 
+/* How many samples a side to take of an image for a pixel that spans
+ * (@du, @dv) pixels of it along that side.  Bilinear reconstruction
+ * reads two pixels a side, so it is one sample for each two spanned,
+ * and at most 16. */
+static inline unsigned
+hb_raster_image_samples (float du, float dv)
+{
+  float span = sqrtf (du * du + dv * dv);
+  if (!(span > 2.f))
+    return 1;
+  return (unsigned) hb_min (ceilf (span * 0.5f), 16.f);
+}
+
 static hb_bool_t
 hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		       void *paint_data,
@@ -1000,6 +1013,10 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned src_width = width;
   unsigned src_height = height;
   const hb_raster_pixel_t *src_data = nullptr;
+  /* Whether the rows of the image go down from where its extents start,
+   * as those of raw data do, or up to there, as those of an image of
+   * ours do. */
+  bool rows_down = false;
   hb_raster_image_t decoded_png;
 
   if (format == HB_PAINT_IMAGE_FORMAT_BGRA)
@@ -1021,6 +1038,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
       return false;
 
     src_data = (const hb_raster_pixel_t *) data;
+    rows_down = true;
   }
   else if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
@@ -1079,33 +1097,95 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
   c->mark_painted (surf);
 
+  /* Where a pixel painted spans more of the image than bilinear
+   * reconstruction reads, the image is shrunk, and the pixel is the
+   * average of a grid of samples spread over it. */
+  unsigned nx = hb_raster_image_samples (inv_xx / img_sx, inv_yx / img_sy);
+  unsigned ny = hb_raster_image_samples (inv_xy / img_sx, inv_yy / img_sy);
+  /* How far outside of the image the center of a pixel can be that
+   * still has a sample inside. */
+  float margin_u = 0.5f * (fabsf (inv_xx) + fabsf (inv_xy)) / fabsf (img_sx);
+  float margin_v = 0.5f * (fabsf (inv_yx) + fabsf (inv_yy)) / fabsf (img_sy);
+
+  /* The image at the pixel centered on a place in glyph space; false if
+   * none of the image is there. */
+  auto image_at = [&] (float gx, float gy, uint32_t *src_px) -> bool
+  {
+    if (nx * ny > 1)
+    {
+      float u = (gx - img_x) / img_sx;
+      float v = (gy - img_y) / img_sy;
+      if (!(u >= -margin_u && v >= -margin_v &&
+	    u <= (float) src_width + margin_u && v <= (float) src_height + margin_v))
+	return false;
+    }
+
+    float b = 0.f, g = 0.f, r = 0.f, a = 0.f;
+    bool any = false;
+    for (unsigned j = 0; j < ny; j++)
+    {
+      float fy = ((float) j + 0.5f) / (float) ny - 0.5f;
+      for (unsigned i = 0; i < nx; i++)
+      {
+	float fx = ((float) i + 0.5f) / (float) nx - 0.5f;
+
+	/* Map glyph space to the image: from (0, 0) at the corner its
+	 * extents start at to (src_width, src_height) at the opposite
+	 * one. */
+	float u = (gx + inv_xx * fx + inv_xy * fy - img_x) / img_sx;
+	float v = (gy + inv_yx * fx + inv_yy * fy - img_y) / img_sy;
+
+	/* A sample outside of the image is clear. */
+	if (unlikely (!std::isfinite (u) || !std::isfinite (v)) ||
+	    u < 0.f || v < 0.f ||
+	    u > (float) src_width || v > (float) src_height)
+	  continue;
+
+	/* Bilinear reconstruction has the texels at whole numbers, so
+	 * each is centered half a texel in.  The outer half of the
+	 * texels at the edges is their own color. */
+	float ix = hb_clamp (u - 0.5f, 0.f, (float) (src_width - 1));
+	float iy = hb_clamp (rows_down ? v - 0.5f : (float) src_height - 0.5f - v,
+			     0.f, (float) (src_height - 1));
+
+	uint32_t p = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
+						       ix, iy);
+	if (nx * ny == 1)
+	{
+	  *src_px = p;
+	  return true;
+	}
+	b += (float) (p & 0xff);
+	g += (float) ((p >> 8) & 0xff);
+	r += (float) ((p >> 16) & 0xff);
+	a += (float) (p >> 24);
+	any = true;
+      }
+    }
+    if (!any)
+      return false;
+
+    float scale = 1.f / (float) (nx * ny);
+    *src_px = (uint32_t) (b * scale + 0.5f)
+	    | ((uint32_t) (g * scale + 0.5f) << 8)
+	    | ((uint32_t) (r * scale + 0.5f) << 16)
+	    | ((uint32_t) (a * scale + 0.5f) << 24);
+    return true;
+  };
+
   if (clip.is_rect)
   {
     for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
       hb_raster_pixel_t *row = (hb_raster_pixel_t *) (surf->buffer.arrayZ + py * surf_stride);
-      float gx = inv_xx * (float) ((int) clip.min_x + ox) + inv_xy * (float) ((int) py + oy) + inv_x0;
-      float gy = inv_yx * (float) ((int) clip.min_x + ox) + inv_yy * (float) ((int) py + oy) + inv_y0;
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      float gx = inv_xx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_xy * ((float) ((int) py + oy) + 0.5f) + inv_x0;
+      float gy = inv_yx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_yy * ((float) ((int) py + oy) + 0.5f) + inv_y0;
+      for (unsigned px = clip.min_x; px < clip.max_x; px++, gx += inv_xx, gy += inv_yx)
       {
-	/* Map glyph space to image texel; bilinear reconstruction. */
-	float ix = (gx - img_x) / img_sx;
-	float iy = (float) (src_height - 1) - (gy - img_y) / img_sy;
-
-	if (unlikely (!std::isfinite (ix) || !std::isfinite (iy)) ||
-	    ix < 0.f || iy < 0.f ||
-	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
-	{
-	  gx += inv_xx;
-	  gy += inv_yx;
+	uint32_t src_px;
+	if (!image_at (gx, gy, &src_px))
 	  continue;
-	}
-
-	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
-							     ix, iy);
 	row[px] = hb_raster_pixel_t (hb_raster_src_over (src_px, (uint32_t) row[px]));
-	gx += inv_xx;
-	gy += inv_yx;
       }
     }
   }
@@ -1115,37 +1195,19 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
     {
       hb_raster_pixel_t *row = (hb_raster_pixel_t *) (surf->buffer.arrayZ + py * surf_stride);
       const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
-      float gx = inv_xx * (float) ((int) clip.min_x + ox) + inv_xy * (float) ((int) py + oy) + inv_x0;
-      float gy = inv_yx * (float) ((int) clip.min_x + ox) + inv_yy * (float) ((int) py + oy) + inv_y0;
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      float gx = inv_xx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_xy * ((float) ((int) py + oy) + 0.5f) + inv_x0;
+      float gy = inv_yx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_yy * ((float) ((int) py + oy) + 0.5f) + inv_y0;
+      for (unsigned px = clip.min_x; px < clip.max_x; px++, gx += inv_xx, gy += inv_yx)
       {
 	uint8_t clip_alpha = clip_row[px];
 	if (clip_alpha == 0)
-	{
-	  gx += inv_xx;
-	  gy += inv_yx;
 	  continue;
-	}
 
-	/* Map glyph space to image texel; bilinear reconstruction. */
-	float ix = (gx - img_x) / img_sx;
-	float iy = (float) (src_height - 1) - (gy - img_y) / img_sy;
-
-	if (unlikely (!std::isfinite (ix) || !std::isfinite (iy)) ||
-	    ix < 0.f || iy < 0.f ||
-	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
-	{
-	  gx += inv_xx;
-	  gy += inv_yx;
+	uint32_t src_px;
+	if (!image_at (gx, gy, &src_px))
 	  continue;
-	}
-
-	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
-							     ix, iy);
 	src_px = hb_raster_alpha_mul (src_px, clip_alpha);
 	row[px] = hb_raster_pixel_t (hb_raster_src_over (src_px, (uint32_t) row[px]));
-	gx += inv_xx;
-	gy += inv_yx;
       }
     }
   }
@@ -1436,6 +1498,43 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 }
 
+/* Solves A t^2 + B t + C = 0 for the offset on the color line of the
+ * circle of a radial gradient that passes through a point.  A circle
+ * has the radius r0 + t dr, and one with a negative radius is not
+ * painted; of the others, the one furthest along the line is on top.
+ * Returns false if no circle is to be painted there: outside the cone
+ * that the circles sweep, and on the far side of its tip. */
+static inline bool
+hb_raster_radial_gradient_t (float A, float B, float C,
+			     float r0, float dr,
+			     float *t)
+{
+  if (fabsf (A) > 1e-10f)
+  {
+    float disc = B * B - 4.f * A * C;
+    if (disc < 0.f)
+      return false;
+    float sq = sqrtf (disc);
+    float t1 = (-B + sq) / (2.f * A);
+    float t2 = (-B - sq) / (2.f * A);
+    if (t1 < t2)
+      hb_swap (t1, t2);
+    if (r0 + t1 * dr >= 0.f)
+      *t = t1;
+    else if (r0 + t2 * dr >= 0.f)
+      *t = t2;
+    else
+      return false;
+    return true;
+  }
+
+  /* One circle through each point. */
+  if (fabsf (B) < 1e-10f)
+    return false;
+  *t = -C / B;
+  return r0 + *t * dr >= 0.f;
+}
+
 static void
 hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 				 void *paint_data,
@@ -1525,35 +1624,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      /* Pick the larger root (t closer to 1 = outer circle) */
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      /* Choose the root that gives a positive radius */
-	      if (cr0 + t1 * dr >= 0.f)
-		grad_t = t1;
-	      else
-		grad_t = t2;
-	    }
-	    else
-	    {
-	      /* Linear case: Bt + C = 0 */
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
@@ -1571,29 +1646,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
-	    }
-	    else
-	    {
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
@@ -1628,29 +1685,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
-	    }
-	    else
-	    {
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
@@ -1676,29 +1715,11 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
 
 	    float grad_t;
-	    if (fabsf (A) > 1e-10f)
+	    if (!hb_raster_radial_gradient_t (A, B, C, cr0, dr, &grad_t))
 	    {
-	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      float sq = sqrtf (disc);
-	      float t1 = (-B + sq) / (2.f * A);
-	      float t2 = (-B - sq) / (2.f * A);
-	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
-	    }
-	    else
-	    {
-	      if (fabsf (B) < 1e-10f)
-	      {
-		gx += inv_xx;
-		gy += inv_yx;
-		continue;
-	      }
-	      grad_t = -C / B;
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
 	    }
 
 	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
