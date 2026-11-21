@@ -28,6 +28,8 @@ def sweep(end_angle, red_alpha, blue_alpha):
 
 CASES = [
     sweep(360, 0.5, 0.5),  # a: once around, both at a half
+    sweep(45, 1, 0),  # b: over 45 degrees, to transparent blue
+    sweep(45, 1, 0.25),  # c: over 45 degrees, to blue at a quarter
 ]
 
 

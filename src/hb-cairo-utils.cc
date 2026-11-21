@@ -484,6 +484,7 @@ _hb_cairo_add_patch (cairo_pattern_t *pattern, hb_cairo_point_t *center, hb_cair
 }
 
 #define MAX_ANGLE (HB_PI / 8.f)
+#define MIN_ANGLE (MAX_ANGLE / 16)
 
 static void
 _hb_cairo_add_sweep_gradient_patches1 (float cx, float cy, float radius,
@@ -494,11 +495,43 @@ _hb_cairo_add_sweep_gradient_patches1 (float cx, float cy, float radius,
   hb_cairo_point_t center = hb_cairo_point_t { cx, cy };
   int num_splits;
   hb_cairo_point_t p0;
+  hb_cairo_color_t end0 = *c0, end1 = *c1;
   hb_cairo_color_t color0, color1;
 
   num_splits = ceilf (fabsf (a1 - a0) / MAX_ANGLE);
+
+  /* cairo interpolates the colors at the corners of a patch apart from
+   * their alpha, and COLR with alpha multiplied into them.  The two
+   * are the same if the colors are, so a transparent end, which has no
+   * color of its own, takes that of the other.  Between two other ends
+   * that differ in alpha they are not: midway they are apart by a
+   * quarter of the difference in color times the difference in alpha.
+   * Split the tile into patches enough to keep that to a level or two,
+   * though none narrower than MIN_ANGLE; the colors between them are
+   * interpolated here, as COLR has it. */
+  if (end0.a == 0.f)
+  {
+    end0.r = end1.r;
+    end0.g = end1.g;
+    end0.b = end1.b;
+  }
+  else if (end1.a == 0.f)
+  {
+    end1.r = end0.r;
+    end1.g = end0.g;
+    end1.b = end0.b;
+  }
+  else if (end0.a != end1.a)
+  {
+    float dc = hb_max (hb_max (fabsf (end0.r - end1.r), fabsf (end0.g - end1.g)),
+		       fabsf (end0.b - end1.b));
+    float splits = ceilf (dc * fabsf (end0.a - end1.a) * (255.f * 255.f / 2040.f));
+    float finest = ceilf (fabsf (a1 - a0) / MIN_ANGLE);
+    num_splits = hb_max (num_splits, (int) hb_min (splits, finest));
+  }
+
   p0 = hb_cairo_point_t { cosf (a0), sinf (a0) };
-  color0 = *c0;
+  color0 = end0;
 
   for (int a = 0; a < num_splits; a++)
     {
@@ -510,7 +543,10 @@ _hb_cairo_add_sweep_gradient_patches1 (float cx, float cy, float radius,
       hb_cairo_patch_t patch;
 
       angle1 = _hb_cairo_interpolate (a0, a1, k);
-      _hb_cairo_interpolate_colors (c0, c1, k, &color1);
+      if (a + 1 < num_splits)
+	_hb_cairo_interpolate_colors (&end0, &end1, k, &color1);
+      else
+	color1 = end1;
 
       patch.color0 = color0;
       patch.color1 = color1;

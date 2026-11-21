@@ -212,10 +212,18 @@ test_hb_cairo_sweep_gradient_alpha (void)
     return;
   }
 
-  /* A sweep once around the center of the em, from red to blue, both
-   * at a half.  It is painted in sixteen patches, and alpha used to be
-   * multiplied into the two colors once more for each, so that it
-   * turned black on its way around. */
+  /* Sweeps around the center of the em, from red to blue.
+   *
+   * The first goes once around, both colors at a half.  It is painted
+   * in sixteen patches, and alpha used to be multiplied into the two
+   * colors once more for each, so that it turned black on its way
+   * around.
+   *
+   * The other two go over the first 45 degrees, from opaque red to
+   * blue that is transparent, or at a quarter.  cairo interpolates the
+   * colors at the corners of a patch apart from their alpha, which put
+   * blue into the red as it faded out; or black, which the transparent
+   * blue was taken for. */
   hb_face_t *face = hb_test_open_font_file ("fonts/colr-sweep-alpha.ttf");
   hb_font_t *font = hb_font_create (face);
   cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
@@ -237,6 +245,8 @@ test_hb_cairo_sweep_gradient_alpha (void)
   } tests[] = {
     /* Pixels in the 1st, 6th, 10th and 14th patch. */
     {'a', .5, .5, {{222, 111, .02751}, {79, 45, .33458}, {47, 179, .59058}, {178, 209, .83829}}},
+    {'b', 1., 0., {{227, 114, .17170}, {220, 90, .49040}, {207, 67, .82825}}},
+    {'c', 1., .25, {{227, 114, .17170}, {220, 90, .49040}, {207, 67, .82825}}},
   };
   for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
   {
