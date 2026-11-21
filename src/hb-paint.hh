@@ -461,11 +461,16 @@ hb_paint_radial_gradient_circles (hb_color_stop_t *stops, unsigned *len,
 				  float *x0, float *y0, float *r0,
 				  float *x1, float *y1, float *r1)
 {
+  float dx = *x1 - *x0, dy = *y1 - *y0, dr = *r1 - *r0;
+  /* Nothing is painted if the two are one circle, or if no circle has
+   * a radius. */
+  if (dr == 0.f && ((dx == 0.f && dy == 0.f) || *r0 <= 0.f))
+    return false;
+
   if (likely (*r0 >= 0.f && *r1 >= 0.f))
     return true;
 
-  float dx = *x1 - *x0, dy = *y1 - *y0, dr = *r1 - *r0;
-  /* No circle has a radius, or the radii are not numbers. */
+  /* The radii are not numbers. */
   if ((!(dr > 0.f) && !(dr < 0.f)) || unlikely (!*len))
     return false;
 

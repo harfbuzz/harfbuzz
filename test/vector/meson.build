@@ -29,6 +29,15 @@ test('radial-tip', test_vector_radial_tip,
   suite: 'vector',
 )
 
+test_vector_color_line = executable('test-vector-color-line', 'test-vector-color-line.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('color-line', test_vector_color_line,
+  args: [meson.project_source_root() / 'test' / 'api' / 'fonts' / 'colr-color-line-no-length.ttf'],
+  suite: 'vector',
+)
+
 test_vector_sweep = executable('test-vector-sweep', 'test-vector-sweep.c',
   dependencies: [libharfbuzz_vector_dep],
 )

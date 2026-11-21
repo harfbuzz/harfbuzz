@@ -672,6 +672,8 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   if (!paint->fetch_color_stops (color_line))
     return;
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  if (unlikely (!hb_paint_color_line_give_length (stops, hb_color_line_get_extend (color_line))))
+    return;
 
   /* Sort + rescale stops to [0, 1]; shift the gradient axis
    * by the original (mn, mx) so the visible gradient stays
@@ -693,6 +695,10 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   float gy0 = ly0 + mn * (ly1 - ly0);
   float gx1 = lx0 + mx * (lx1 - lx0);
   float gy1 = ly0 + mx * (ly1 - ly0);
+
+  /* A gradient along no line is ill-formed; viewers would paint it. */
+  if (gx0 == gx1 && gy0 == gy1)
+    return;
 
   paint->defs.append_str ("<linearGradient id=\"");
   paint->defs.append_len (pfx, pfx_len);
@@ -735,6 +741,8 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   if (!paint->fetch_color_stops (color_line))
     return;
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  if (unlikely (!hb_paint_color_line_give_length (stops, hb_color_line_get_extend (color_line))))
+    return;
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
