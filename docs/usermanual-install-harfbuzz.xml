@@ -206,7 +206,7 @@
 	  <term><command>-Dgobject=enabled</command></term>
 	  <listitem>
 	    <para>
-	      Use <ulink url="https://developer.gnome.org/gobject/stable/">GObject</ulink>. <emphasis>(Default = no)</emphasis>
+	      Use <ulink url="https://developer.gnome.org/gobject/stable/">GObject</ulink>. <emphasis>(Default = auto)</emphasis>
 	    </para>	   
 	    <para>
 	      This option enables or disables usage of the GObject
@@ -256,7 +256,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term><command>-Dgraphite=enabled</command></term>
+	  <term><command>-Dgraphite2=enabled</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://graphite.sil.org/">Graphite2</ulink> library. <emphasis>(Default = no)</emphasis>
@@ -264,7 +264,12 @@
 	    <para>
 	      This option enables or disables usage of the Graphite2
 	      library, which provides support for the Graphite shaping
-	      model. 
+	      model.  A build with Graphite2 shapes fonts that have
+	      Graphite tables with it, not with the OpenType shaper.
+	    </para>
+	    <para>
+	      Note: the older name of this option,
+	      <command>-Dgraphite</command>, is deprecated.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -335,14 +340,240 @@
 	  <term><command>-Ddocs=enabled</command></term>
 	  <listitem>
 	    <para>
-	      Use <ulink url="https://github.com/GNOME/gtk-doc">GTK-Doc</ulink>. <emphasis>(Default = no)</emphasis>
+	      Use <ulink url="https://github.com/GNOME/gtk-doc">GTK-Doc</ulink>. <emphasis>(Default = auto)</emphasis>
 	    </para>
 	    <para>
 	      This option enables the building of the documentation.
 	    </para>
 	  </listitem>
 	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dsubset=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Build the subsetting library. <emphasis>(Default = enabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables building
+	      <filename>libharfbuzz-subset</filename>, which subsets and
+	      instances fonts, and the <command>hb-subset</command>
+	      utility.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Draster=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Build the rasterization library. <emphasis>(Default = enabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables building
+	      <filename>libharfbuzz-raster</filename>, which renders glyphs
+	      to pixels, and the <command>hb-raster</command> utility.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dvector=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Build the vector drawing library. <emphasis>(Default = enabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables building
+	      <filename>libharfbuzz-vector</filename>, which writes glyphs
+	      as SVG or PDF, and the <command>hb-vector</command> utility.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dgpu=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Build the GPU rasterization library. <emphasis>(Default = enabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables building
+	      <filename>libharfbuzz-gpu</filename>, which encodes glyphs
+	      for rendering in a shader.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dutilities=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Build the command-line utilities. <emphasis>(Default = enabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables building
+	      <command>hb-shape</command>, <command>hb-info</command>, and
+	      the other utilities.  They need GLib.
+	      <command>hb-view</command> is built only with Cairo, and
+	      the utility of each library above only when that library
+	      is built.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dharfrust=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://github.com/harfbuzz/harfrust">HarfRust</ulink>. <emphasis>(Default = disabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables the HarfRust shaper backend.
+	      It needs a Rust toolchain.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dfontations=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://github.com/googlefonts/fontations">Fontations</ulink>. <emphasis>(Default = disabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables the Fontations font-functions
+	      backend.  It needs a Rust toolchain.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dkbts=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://github.com/JimmyLefevre/kb">kb_text_shape</ulink>. <emphasis>(Default = disabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables the kb_text_shape shaper
+	      backend.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dwasm=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Build the WebAssembly shaper (experimental). <emphasis>(Default = disabled)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables the WebAssembly shaper,
+	      which runs the shaping code that a font carries in its
+	      <literal>Wasm</literal> table.  It needs the
+	      <ulink url="https://github.com/bytecodealliance/wasm-micro-runtime">WebAssembly
+	      Micro Runtime</ulink> library.  A build with it shapes fonts
+	      that have a <literal>Wasm</literal> table with it, not with
+	      the OpenType shaper.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dpng=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="http://www.libpng.org/pub/png/libpng.html">libpng</ulink>. <emphasis>(Default = auto)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables usage of libpng, which the
+	      rasterization library uses to read PNG glyph images and to
+	      write PNG output, and the utilities to write PNG output.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dzlib=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://zlib.net/">zlib</ulink>. <emphasis>(Default = auto)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables usage of zlib, which is
+	      used to read compressed SVG glyph documents and to embed
+	      PNG glyph images in PDF output.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dchafa=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://hpjansson.org/chafa/">Chafa</ulink>. <emphasis>(Default = auto)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables usage of the Chafa library,
+	      which the utilities use to show their output in a terminal.
+	    </para>
+	    <para>
+	      Note: Chafa is used only by the HarfBuzz
+	      command-line utilities, and not by the HarfBuzz library.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dintrospection=enabled</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://gi.readthedocs.io/">GObject Introspection</ulink>. <emphasis>(Default = auto)</emphasis>
+	    </para>
+	    <para>
+	      This option enables or disables generating the
+	      introspection data (<filename>.gir</filename> and
+	      <filename>.typelib</filename> files) that language bindings
+	      are made from.  It needs GObject support.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dicu_builtin=true</command></term>
+	  <listitem>
+	    <para>
+	      Build ICU support into the HarfBuzz library. <emphasis>(Default = false)</emphasis>
+	    </para>
+	    <para>
+	      By default the ICU integration is a separate library,
+	      <filename>libharfbuzz-icu</filename>.  This option builds it
+	      into <filename>libharfbuzz</filename> instead.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><command>-Dexperimental_api=true</command></term>
+	  <listitem>
+	    <para>
+	      Build the experimental API. <emphasis>(Default = false)</emphasis>
+	    </para>
+	    <para>
+	      This option enables the API that is marked experimental,
+	      which can change or be removed in any release.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
+
+      <para>
+	The remaining options are for running the tests, benchmarks
+	and fuzzers, and for packaging.  The file
+	<filename>meson_options.txt</filename> lists every option
+	with its default, and <command>meson configure build</command>
+	shows the value each has in a build directory.
+      </para>
     </section>
 
     <section id="building.world">
