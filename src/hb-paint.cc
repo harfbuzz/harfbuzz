@@ -994,7 +994,9 @@ hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,
  * renderers.  P1' is the foot of P1 on the line through P0
  * perpendicular to (P2 - P0); the resulting axis is the
  * gradient's actual direction (perpendicular to the rotation
- * line).  Degenerate (P0 == P2) passes through unchanged.
+ * line).  Degenerate (P0 == P2) passes through unchanged.  If
+ * P1 is on the line through P0 and P2, P1' is P0: the gradient
+ * is along no line.
  *
  * Since: 14.2.0
  **/
@@ -1014,6 +1016,14 @@ hb_paint_reduce_linear_anchors (float x0, float y0,
     return;
   }
   float q1x = x1 - x0, q1y = y1 - y0;
+  /* P1 on the line through P0 and P2 has its foot at P0, which the
+   * arithmetic below only comes close to. */
+  if (q1x * q2y == q1y * q2x)
+  {
+    *xx0 = *xx1 = x0;
+    *yy0 = *yy1 = y0;
+    return;
+  }
   float k = (q2x * q1x + q2y * q1y) / s;
   *xx0 = x0;
   *yy0 = y0;
@@ -1049,10 +1059,7 @@ hb_paint_normalize_color_line (hb_color_stop_t *stops,
     return;
   }
 
-  hb_array_t<hb_color_stop_t> (stops, len)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return (a.offset > b.offset) - (a.offset < b.offset);
-    });
+  hb_color_stops_sort (stops, len);
 
   float mn = stops[0].offset, mx = stops[0].offset;
   for (unsigned i = 1; i < len; i++)
@@ -1066,6 +1073,33 @@ hb_paint_normalize_color_line (hb_color_stop_t *stops,
 
   *min = mn;
   *max = mx;
+}
+
+/* The color @t of the way from @c0 to @c1, the two interpolated with
+ * alpha multiplied into them, as COLR interpolates.  Where they differ
+ * in alpha that is not hb_color_lerp(): the more transparent a color
+ * is, the less of it there is to give. */
+static hb_color_t
+hb_color_lerp_premultiplied (hb_color_t c0, hb_color_t c1, float t)
+{
+  float a0 = hb_color_get_alpha (c0), a1 = hb_color_get_alpha (c1);
+  if (a0 == a1)
+    return hb_color_lerp (c0, c1, t);
+
+  float w0 = (1.f - t) * a0, w1 = t * a1;
+  float a = w0 + w1;
+  if (!(a > 0.f))
+    /* Transparent: the color that the other one fades out in. */
+    return (a0 > a1 ? c0 : c1) & ~(hb_color_t) 0xFF;
+
+  auto channel = [&] (unsigned shift) -> unsigned {
+    float v = (w0 * ((c0 >> shift) & 0xFF) + w1 * ((c1 >> shift) & 0xFF)) / a + 0.5f;
+    if (!(v > 0.f)) return 0;
+    if (v > 255.f) return 255;
+    return (unsigned) v;
+  };
+  return HB_COLOR (channel (24), channel (16), channel (8),
+		   a < 255.f ? (unsigned) (a + 0.5f) : 255);
 }
 
 /**
@@ -1110,8 +1144,8 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
     hb_color_t d0 = c0, d1 = c1;
     if (c0 != c1)
     {
-      if (t0 != a0) d0 = hb_color_lerp (c0, c1, (t0 - a0) / (a1 - a0));
-      if (t1 != a1) d1 = hb_color_lerp (c0, c1, (t1 - a0) / (a1 - a0));
+      if (t0 != a0) d0 = hb_color_lerp_premultiplied (c0, c1, (t0 - a0) / (a1 - a0));
+      if (t1 != a1) d1 = hb_color_lerp_premultiplied (c0, c1, (t1 - a0) / (a1 - a0));
     }
     emit_patch (t0, d0, t1, d1, user_data);
   };
@@ -1178,7 +1212,7 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
 	if (pos > 0)
 	{
 	  float f = (0.f - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-	  color0 = hb_color_lerp (colors[pos - 1], colors[pos], f);
+	  color0 = hb_color_lerp_premultiplied (colors[pos - 1], colors[pos], f);
 	}
 	break;
       }
@@ -1197,7 +1231,7 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
       else
       {
 	float f = (HB_2_PI - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-	hb_color_t color1 = hb_color_lerp (colors[pos - 1], colors[pos], f);
+	hb_color_t color1 = hb_color_lerp_premultiplied (colors[pos - 1], colors[pos], f);
 	emit (angles[pos - 1], colors[pos - 1], HB_2_PI, color1);
 	break;
       }
@@ -1221,15 +1255,23 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
     {
       /* The pattern repeats faster than the tile resolution; tiling
        * it would cost unbounded work for sub-visual detail.  Fill
-       * the whole circle with the period-average color instead. */
+       * the whole circle with the period-average color instead,
+       * averaged as it is interpolated: with alpha multiplied in. */
       float r = 0.f, g = 0.f, b = 0.f, a = 0.f;
       for (unsigned i = 1; i < n_stops; i++)
       {
 	float w = (angles[i] - angles[i - 1]) / span * 0.5f;
-	r += w * (hb_color_get_red (colors[i - 1]) + hb_color_get_red (colors[i]));
-	g += w * (hb_color_get_green (colors[i - 1]) + hb_color_get_green (colors[i]));
-	b += w * (hb_color_get_blue (colors[i - 1]) + hb_color_get_blue (colors[i]));
-	a += w * (hb_color_get_alpha (colors[i - 1]) + hb_color_get_alpha (colors[i]));
+	float a0 = hb_color_get_alpha (colors[i - 1]), a1 = hb_color_get_alpha (colors[i]);
+	r += w * (hb_color_get_red (colors[i - 1]) * a0 + hb_color_get_red (colors[i]) * a1);
+	g += w * (hb_color_get_green (colors[i - 1]) * a0 + hb_color_get_green (colors[i]) * a1);
+	b += w * (hb_color_get_blue (colors[i - 1]) * a0 + hb_color_get_blue (colors[i]) * a1);
+	a += w * (a0 + a1);
+      }
+      if (a > 0.f)
+      {
+	r /= a;
+	g /= a;
+	b /= a;
       }
       hb_color_t avg = HB_COLOR (hb_clamp_to<uint8_t> ((double) b + 0.5),
 				 hb_clamp_to<uint8_t> ((double) g + 0.5),
@@ -1282,13 +1324,13 @@ hb_paint_sweep_gradient_tiles (hb_color_stop_t                     *stops,
 	if (a0_l < 0.f)
 	{
 	  float f = (0.f - a0_l) / (a1_l - a0_l);
-	  hb_color_t c = hb_color_lerp (col0, col1, f);
+	  hb_color_t c = hb_color_lerp_premultiplied (col0, col1, f);
 	  emit (0.f, c, a1_l, col1);
 	}
 	else if (a1_l >= HB_2_PI)
 	{
 	  float f = (HB_2_PI - a0_l) / (a1_l - a0_l);
-	  hb_color_t c = hb_color_lerp (col0, col1, f);
+	  hb_color_t c = hb_color_lerp_premultiplied (col0, col1, f);
 	  emit (a0_l, col0, HB_2_PI, c);
 	  goto done;
 	}

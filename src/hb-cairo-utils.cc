@@ -270,6 +270,33 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
   return true;
 }
 
+/* Gives @pattern the color stops @stops, which are sorted.  COLR
+ * interpolates colors with alpha multiplied into them, and cairo the
+ * color and the alpha of its stops apart, so the stops are rewritten
+ * for cairo to come to the same. */
+static void
+_hb_cairo_add_color_stops (cairo_pattern_t *pattern,
+			   const hb_color_stop_t *stops,
+			   unsigned int len)
+{
+  hb_vector_t<hb_color_stop_t> premultiplied;
+  if (hb_paint_premultiply_color_stops (stops, len, premultiplied))
+  {
+    stops = premultiplied.arrayZ;
+    len = premultiplied.length;
+  }
+
+  for (unsigned int i = 0; i < len; i++)
+    {
+      double r, g, b, a;
+      r = hb_color_get_red (stops[i].color) / 255.;
+      g = hb_color_get_green (stops[i].color) / 255.;
+      b = hb_color_get_blue (stops[i].color) / 255.;
+      a = hb_color_get_alpha (stops[i].color) / 255.;
+      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
+    }
+}
+
 void
 _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 				 hb_color_line_t *color_line,
@@ -289,9 +316,25 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
+  /* A color line of no length paints nothing unless it pads. */
+  if (!hb_paint_color_line_give_length (stops, &len,
+					hb_color_line_get_extend (color_line)))
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
   hb_paint_normalize_color_line (stops, len, &min, &max);
 
   hb_paint_reduce_linear_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
+
+  /* Nor does a gradient along no line; cairo would paint it. */
+  if (xx0 == xx1 && yy0 == yy1)
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
 
   xxx0 = xx0 + min * (xx1 - xx0);
   yyy0 = yy0 + min * (yy1 - yy0);
@@ -300,15 +343,7 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   pattern = cairo_pattern_create_linear ((double) xxx0, (double) yyy0, (double) xxx1, (double) yyy1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
-  for (unsigned int i = 0; i < len; i++)
-    {
-      double r, g, b, a;
-      r = hb_color_get_red (stops[i].color) / 255.;
-      g = hb_color_get_green (stops[i].color) / 255.;
-      b = hb_color_get_blue (stops[i].color) / 255.;
-      a = hb_color_get_alpha (stops[i].color) / 255.;
-      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
-    }
+  _hb_cairo_add_color_stops (pattern, stops, len);
 
   cairo_set_source (cr, pattern);
   cairo_paint (cr);
@@ -337,6 +372,14 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
 
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
+  /* A color line of no length paints nothing unless it pads. */
+  if (!hb_paint_color_line_give_length (stops, &len,
+					hb_color_line_get_extend (color_line)))
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
   hb_paint_normalize_color_line (stops, len, &min, &max);
 
   xx0 = x0 + min * (x1 - x0);
@@ -346,18 +389,20 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
   rr0 = r0 + min * (r1 - r0);
   rr1 = r0 + max * (r1 - r0);
 
+  /* cairo takes a negative radius for a positive one. */
+  if (!hb_paint_radial_gradient_circles (stops, &len,
+					 hb_color_line_get_extend (color_line),
+					 &xx0, &yy0, &rr0, &xx1, &yy1, &rr1))
+    {
+      if (stops != stops_)
+	hb_free (stops);
+      return;
+    }
+
   pattern = cairo_pattern_create_radial ((double) xx0, (double) yy0, (double) rr0, (double) xx1, (double) yy1, (double) rr1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
 
-  for (unsigned int i = 0; i < len; i++)
-    {
-      double r, g, b, a;
-      r = hb_color_get_red (stops[i].color) / 255.;
-      g = hb_color_get_green (stops[i].color) / 255.;
-      b = hb_color_get_blue (stops[i].color) / 255.;
-      a = hb_color_get_alpha (stops[i].color) / 255.;
-      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
-    }
+  _hb_cairo_add_color_stops (pattern, stops, len);
 
   cairo_set_source (cr, pattern);
   cairo_paint (cr);
@@ -603,10 +648,7 @@ _hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
 
-  hb_array_t<hb_color_stop_t> (stops, len)
-    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
-      return (a.offset > b.offset) - (a.offset < b.offset);
-    });
+  hb_color_stops_sort (stops, len);
 
   cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
   max_x = (float) hb_max ((x1 - (double) cx) * (x1 - (double) cx), (x2 - (double) cx) * (x2 - (double) cx));

@@ -672,6 +672,8 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   if (!paint->fetch_color_stops (color_line))
     return;
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  if (unlikely (!hb_paint_color_line_give_length (stops, hb_color_line_get_extend (color_line))))
+    return;
 
   /* Sort + rescale stops to [0, 1]; shift the gradient axis
    * by the original (mn, mx) so the visible gradient stays
@@ -679,6 +681,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
    * out-of-range stops would otherwise be silently clamped. */
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
 
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
@@ -693,6 +696,10 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   float gy0 = ly0 + mn * (ly1 - ly0);
   float gx1 = lx0 + mx * (lx1 - lx0);
   float gy1 = ly0 + mx * (ly1 - ly0);
+
+  /* A gradient along no line is ill-formed; viewers would paint it. */
+  if (gx0 == gx1 && gy0 == gy1)
+    return;
 
   paint->defs.append_str ("<linearGradient id=\"");
   paint->defs.append_len (pfx, pfx_len);
@@ -735,9 +742,12 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   if (!paint->fetch_color_stops (color_line))
     return;
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
+  if (unlikely (!hb_paint_color_line_give_length (stops, hb_color_line_get_extend (color_line))))
+    return;
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
 
   /* Shift centers + radii by (mn, mx) along the gradient axis
    * to compensate for rescaling stops to [0, 1]. */
@@ -747,6 +757,10 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   float gx1 = x0 + mx * (x1 - x0);
   float gy1 = y0 + mx * (y1 - y0);
   float gr1 = r0 + mx * (r1 - r0);
+
+  if (!paint->radial_gradient_circles (hb_color_line_get_extend (color_line),
+				       &gx0, &gy0, &gr0, &gx1, &gy1, &gr1))
+    return;
 
   const char *pfx = paint->id_prefix;
   unsigned pfx_len = paint->id_prefix_length;
@@ -803,6 +817,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
 
   float mn, mx;
   hb_paint_normalize_color_line (stops.arrayZ, stops.length, &mn, &mx);
+  paint->premultiply_color_stops ();
 
   /* Shift the angle range to compensate for rescaling stops
    * to [0, 1]. */

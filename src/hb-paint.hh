@@ -29,6 +29,7 @@
 #include "hb-face.hh"
 #include "hb-font.hh"
 #include "hb-geometry.hh"
+#include "hb-vector.hh"
 
 #define HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS \
   HB_PAINT_FUNC_IMPLEMENT (push_transform) \
@@ -285,6 +286,335 @@ struct hb_paint_funcs_t
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 
+/* COLR interpolates the colors of a gradient with alpha multiplied
+ * into them.  SVG and PDF viewers, and cairo, interpolate the color
+ * and the alpha of the stops as given, which is not the same between
+ * two stops that differ in alpha: a color fading out to transparent
+ * black would turn dark on its way.
+ *
+ * Rewrites @stops, which have to be sorted, into @out, so that
+ * interpolating those that way gives what COLR asks for.  A
+ * transparent stop has no color of its own, so it takes its
+ * neighbor's, on each side.  Between two other stops that differ in
+ * alpha, the color is not linear in the offset; stops are added along
+ * its curve, as many as it takes to stay within a level or two of it.
+ * Returns false if @stops are to be used as they are. */
+static inline bool
+hb_paint_premultiply_color_stops (const hb_color_stop_t *stops, unsigned count,
+				  hb_vector_t<hb_color_stop_t> &out)
+{
+  bool differ = false;
+  for (unsigned i = 1; i < count && !differ; i++)
+    differ = hb_color_get_alpha (stops[i].color) !=
+	     hb_color_get_alpha (stops[0].color);
+  if (!differ)
+    return false;
+
+  /* Long color lines only get the transparent stops fixed. */
+  unsigned max_segments = count <= 256 ? 16 : 1;
+
+  if (unlikely (!out.alloc (count + count / 2)))
+    return false;
+  auto with_alpha = [] (hb_color_t c, unsigned a)
+  { return HB_COLOR (hb_color_get_blue (c), hb_color_get_green (c), hb_color_get_red (c), a); };
+  for (unsigned i = 0; i < count; i++)
+  {
+    const hb_color_stop_t &s = stops[i];
+    unsigned a = hb_color_get_alpha (s.color);
+    const hb_color_stop_t *next = i + 1 < count ? &stops[i + 1] : nullptr;
+    unsigned next_a = next ? hb_color_get_alpha (next->color) : 0;
+
+    if (!a)
+    {
+      unsigned prev_a = i ? hb_color_get_alpha (stops[i - 1].color) : 0;
+      hb_color_stop_t t = s;
+      if (prev_a)
+      {
+	t.color = with_alpha (stops[i - 1].color, 0);
+	out.push (t);
+      }
+      if (next_a)
+      {
+	t.color = with_alpha (next->color, 0);
+	out.push (t);
+      }
+      if (!prev_a && !next_a)
+	out.push (s);
+      continue;
+    }
+
+    out.push (s);
+    if (!next_a || next_a == a || !(next->offset > s.offset))
+      continue;
+
+    /* Midway, the premultiplied color is off by a quarter of the
+     * difference in color times the difference in alpha. */
+    unsigned dc = 0;
+    for (unsigned shift = 8; shift <= 24; shift += 8)
+    {
+      int d = (int) ((s.color >> shift) & 0xFF) - (int) ((next->color >> shift) & 0xFF);
+      dc = hb_max (dc, (unsigned) (d < 0 ? -d : d));
+    }
+    unsigned da = a > next_a ? a - next_a : next_a - a;
+    unsigned segments = hb_min (max_segments, (dc * da + 2039) / 2040);
+    for (unsigned k = 1; k < segments; k++)
+    {
+      float u = (float) k / segments;
+      float alpha = a + u * ((float) next_a - (float) a);
+      auto channel = [&] (unsigned shift) -> unsigned
+      {
+	float c0 = (float) ((s.color >> shift) & 0xFF) * a;
+	float c1 = (float) ((next->color >> shift) & 0xFF) * next_a;
+	return (unsigned) hb_clamp ((c0 + u * (c1 - c0)) / alpha + .5f, 0.f, 255.f);
+      };
+      hb_color_stop_t t;
+      t.offset = s.offset + u * (next->offset - s.offset);
+      t.is_foreground = false;
+      t.color = HB_COLOR (channel (24), channel (16), channel (8),
+			  (unsigned) (alpha + .5f));
+      out.push (t);
+    }
+  }
+  return !out.in_error ();
+}
+
+
+static inline hb_color_t
+hb_color_lerp (hb_color_t c0, hb_color_t c1, float t);
+
+/* Whether the stops of a color line all share one offset, which leaves
+ * it without a length. */
+static inline bool
+hb_color_stops_share_offset (const hb_color_stop_t *stops, unsigned len)
+{
+  for (unsigned i = 1; i < len; i++)
+    if (stops[i].offset != stops[0].offset)
+      return false;
+  return true;
+}
+
+/* A color line whose stops all share one offset has no length.  If it
+ * pads, it still has two colors: that of the first stop before the
+ * offset, and that of the last from it on.  If it repeats or reflects
+ * it is ill-formed, and nothing is painted; that is how
+ * hb_paint_sweep_gradient_tiles() has it too.
+ *
+ * Takes the @stops of a color line as the font has them, before they
+ * are sorted, in an array with room for four.  Returns false if
+ * nothing is to be painted.  A color line without a length is given
+ * one of 1, around its offset, with its two colors meeting halfway
+ * along.  That is a color line like any other, so that what paints
+ * the gradient needs to know of nothing new; and its gradient is as
+ * long as the font's and runs the same way, which a sliver of one
+ * would not once its ends are written. */
+static inline bool
+hb_paint_color_line_give_length (hb_color_stop_t *stops, unsigned *len,
+				 hb_paint_extend_t extend)
+{
+  unsigned count = *len;
+  if (likely (!hb_color_stops_share_offset (stops, count)))
+    return true;
+  if (unlikely (!count) || extend != HB_PAINT_EXTEND_PAD)
+    return false;
+
+  hb_color_stop_t first = stops[0], last = stops[count - 1];
+  float offset = first.offset;
+  unsigned n = 0;
+  stops[n] = first;
+  stops[n++].offset = offset - 0.5f;
+  if (count > 1)
+  {
+    stops[n] = first;
+    stops[n++].offset = offset;
+    stops[n] = last;
+    stops[n++].offset = offset;
+  }
+  stops[n] = last;
+  stops[n++].offset = offset + 0.5f;
+  *len = n;
+  return true;
+}
+
+/* The same for stops in a vector, which makes the room. */
+static inline bool
+hb_paint_color_line_give_length (hb_vector_t<hb_color_stop_t> &stops,
+				 hb_paint_extend_t extend)
+{
+  unsigned len = stops.length;
+  if (likely (!hb_color_stops_share_offset (stops.arrayZ, len)))
+    return true;
+  if (unlikely (!stops.resize (hb_max (len, 4u))))
+    return false;
+  if (!hb_paint_color_line_give_length (stops.arrayZ, &len, extend))
+    return false;
+  stops.shrink (len);
+  return true;
+}
+
+/* Cuts a color line whose stops are sorted, and which goes from 0 to 1,
+ * down to the stretch from @from to @to, in place; it goes from 0 to 1
+ * again, in no more stops.  An end that is not cut keeps its stops, and
+ * with them the color that goes on from it.  Returns false if there is
+ * no such stretch. */
+static inline bool
+hb_color_stops_cut (hb_color_stop_t *stops, unsigned *len,
+		    float from, float to)
+{
+  unsigned count = *len;
+  if (unlikely (!count || !(from < to) ||
+		!(from < stops[count - 1].offset) || !(to > stops[0].offset)))
+    return false;
+
+  /* The color at @offset between two stops.  Colors are interpolated
+   * with alpha multiplied into them: the more transparent a stop is,
+   * the less of its color there is to give. */
+  auto color_at = [] (const hb_color_stop_t &s0, const hb_color_stop_t &s1,
+		      float offset) -> hb_color_t
+  {
+    float t = (offset - s0.offset) / (s1.offset - s0.offset);
+    hb_color_t c0 = s0.color, c1 = s1.color;
+    float a0 = hb_color_get_alpha (c0), a1 = hb_color_get_alpha (c1);
+    if (a0 == a1)
+      return hb_color_lerp (c0, c1, t);
+
+    float w0 = (1.f - t) * a0, w1 = t * a1;
+    float a = w0 + w1;
+    if (!(a > 0.f))
+      /* Transparent: the color that the other one fades out in. */
+      return (a0 > a1 ? c0 : c1) & ~(hb_color_t) 0xFF;
+
+    auto channel = [&] (unsigned shift) -> unsigned
+    {
+      float v = (w0 * ((c0 >> shift) & 0xFF) + w1 * ((c1 >> shift) & 0xFF)) / a + 0.5f;
+      if (!(v > 0.f)) return 0;
+      if (v > 255.f) return 255;
+      return (unsigned) v;
+    };
+    return HB_COLOR (channel (24), channel (16), channel (8),
+		     a < 255.f ? (unsigned) (a + 0.5f) : 255);
+  };
+
+  if (to < stops[count - 1].offset)
+  {
+    /* The first stop that is not before @to ends the line: where it
+     * is, if that is at @to, as it is the one that says what the color
+     * is up to there; and with the color at @to, if it is after it. */
+    unsigned j = 1;
+    while (stops[j].offset < to)
+      j++;
+    if (stops[j].offset > to)
+    {
+      stops[j].color = color_at (stops[j - 1], stops[j], to);
+      stops[j].is_foreground = false;
+      stops[j].offset = to;
+    }
+    count = j + 1;
+  }
+
+  unsigned first = 0;
+  if (from > stops[0].offset)
+  {
+    /* The last stop that is not after @from starts it, likewise. */
+    first = count - 2;
+    while (stops[first].offset > from)
+      first--;
+    if (stops[first].offset < from)
+    {
+      stops[first].color = color_at (stops[first], stops[first + 1], from);
+      stops[first].is_foreground = false;
+      stops[first].offset = from;
+    }
+  }
+
+  for (unsigned i = 0; first + i < count; i++)
+  {
+    stops[i] = stops[first + i];
+    stops[i].offset = (stops[i].offset - from) / (to - from);
+  }
+  *len = count - first;
+  return true;
+}
+
+/* A radial gradient is given by the two circles where its color line
+ * starts and ends, and paints the circles between and beyond them that
+ * have a radius.  One of the two may not: its radius is negative if a
+ * color stop lies past the tip of the cone.  Such a circle cannot be
+ * given to what takes two circles to paint a gradient.
+ *
+ * Gives the gradient whose color line is @stops, sorted and going from
+ * 0 to 1, two circles that can be.  A color line that repeats is taken
+ * a whole number of periods further along, an even number if it
+ * reflects, which paints the same.  One that does not is cut where the
+ * radius is zero, in place.  Returns false if nothing is to be
+ * painted. */
+static inline bool
+hb_paint_radial_gradient_circles (hb_color_stop_t *stops, unsigned *len,
+				  hb_paint_extend_t extend,
+				  float *x0, float *y0, float *r0,
+				  float *x1, float *y1, float *r1)
+{
+  float dx = *x1 - *x0, dy = *y1 - *y0, dr = *r1 - *r0;
+  /* Nothing is painted if the two are one circle, or if no circle has
+   * a radius. */
+  if (dr == 0.f && ((dx == 0.f && dy == 0.f) || *r0 <= 0.f))
+    return false;
+
+  if (likely (*r0 >= 0.f && *r1 >= 0.f))
+    return true;
+
+  /* The radii are not numbers. */
+  if ((!(dr > 0.f) && !(dr < 0.f)) || unlikely (!*len))
+    return false;
+
+  /* Where the radius is zero.  The circles that have one are those
+   * past it if they grow, and those before it if they shrink. */
+  float tip = -*r0 / dr;
+  if (unlikely (!std::isfinite (tip)))
+    return false;
+
+  float from = 0.f, to = 1.f;
+  if (extend == HB_PAINT_EXTEND_REPEAT || extend == HB_PAINT_EXTEND_REFLECT)
+  {
+    float periods = dr > 0.f ? ceilf (tip) : floorf (tip) - 1.f;
+    if (extend == HB_PAINT_EXTEND_REFLECT && fmodf (periods, 2.f) != 0.f)
+      periods += dr > 0.f ? 1.f : -1.f;
+    from += periods;
+    to += periods;
+  }
+  else if (tip > 0.f && tip < 1.f)
+  {
+    /* The tip is on the color line. */
+    if (dr > 0.f) from = tip; else to = tip;
+    if (unlikely (!hb_color_stops_cut (stops, len, from, to)))
+      return false;
+  }
+  else
+  {
+    /* All of the color line is past the tip.  The color at its nearer
+     * end goes on from there: one color, from the tip on. */
+    if (unlikely (*len < 2))
+      return false;
+    hb_color_t color = stops[dr > 0.f ? *len - 1 : 0].color;
+    for (unsigned i = 0; i < 2; i++)
+    {
+      hb_color_stop_t stop = {(float) i, false, color};
+      stops[i] = stop;
+    }
+    *len = 2;
+    if (dr > 0.f) { from = tip; to = tip + 1.f; }
+    else { from = tip - 1.f; to = tip; }
+  }
+
+  float x = *x0, y = *y0, r = *r0;
+  *x0 = x + from * dx;
+  *y0 = y + from * dy;
+  *r0 = hb_max (r + from * dr, 0.f);
+  *x1 = x + to * dx;
+  *y1 = y + to * dy;
+  *r1 = hb_max (r + to * dr, 0.f);
+  return true;
+}
+
 
 /* Linearly interpolate between two hb_color_t values, component-wise,
  * in byte-channel space with rounding. */
@@ -302,6 +632,52 @@ hb_color_lerp (hb_color_t c0, hb_color_t c1, float t)
     return (unsigned) v;
   };
   return HB_COLOR (lerp (24), lerp (16), lerp (8), lerp (0));
+}
+
+/* Sorts color stops by offset.  Stops that share an offset stay in the
+ * order they are in: that order says which color comes before the
+ * offset and which after it, and a sort that may swap them turns a
+ * hard stop inside out. */
+static inline void
+hb_color_stops_sort (hb_color_stop_t *stops, unsigned len)
+{
+  /* Color lines usually come sorted. */
+  bool sorted = true;
+  for (unsigned i = 1; i < len && sorted; i++)
+    sorted = !(stops[i].offset < stops[i - 1].offset);
+  if (sorted)
+    return;
+
+  /* Merge sort, bottom up, taking from the earlier run on a tie. */
+  hb_vector_t<hb_color_stop_t> scratch;
+  if (unlikely (len > (1u << 30) || !scratch.resize_dirty ((int) len)))
+  {
+    /* Out of memory: sorted with hard stops at risk beats unsorted. */
+    hb_array_t<hb_color_stop_t> (stops, len)
+      .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
+	return (a.offset > b.offset) - (a.offset < b.offset);
+      });
+    return;
+  }
+  hb_color_stop_t *from = stops, *to = scratch.arrayZ;
+  for (unsigned width = 1; width < len; width *= 2)
+  {
+    for (unsigned lo = 0; lo < len; lo += 2 * width)
+    {
+      unsigned mid = hb_min (lo + width, len);
+      unsigned hi = hb_min (mid + width, len);
+      unsigned i = lo, j = mid, k = lo;
+      while (i < mid && j < hi)
+	to[k++] = from[j].offset < from[i].offset ? from[j++] : from[i++];
+      while (i < mid)
+	to[k++] = from[i++];
+      while (j < hi)
+	to[k++] = from[j++];
+    }
+    hb_swap (from, to);
+  }
+  if (from != stops)
+    hb_memcpy (stops, from, len * sizeof (stops[0]));
 }
 
 #endif /* HB_PAINT_HH */

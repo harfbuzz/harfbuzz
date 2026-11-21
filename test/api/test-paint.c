@@ -1326,6 +1326,40 @@ check_sweep_tile (float a0, hb_color_t c0,
 }
 
 static void
+test_hb_paint_reduce_linear_anchors_on_a_line (void)
+{
+  float x0, y0, x1, y1;
+
+  /* P1 on the line through P0 and P2: the gradient is along no line,
+   * and is ill-formed.  It is found by its two ends being the same,
+   * which they are to be exactly: this one used to end a hair below
+   * where it starts. */
+  hb_paint_reduce_linear_anchors (450, 200, 450, 400, 450, 900,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x0, ==, 450);
+  g_assert_cmpfloat (y0, ==, 200);
+  g_assert_cmpfloat (x1, ==, 450);
+  g_assert_cmpfloat (y1, ==, 200);
+
+  hb_paint_reduce_linear_anchors (0, 0, 300, 100, 900, 300,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x1, ==, 0);
+  g_assert_cmpfloat (y1, ==, 0);
+
+  /* P1 on the other side of P0 from P2. */
+  hb_paint_reduce_linear_anchors (10, 20, -290, -80, 910, 320,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x1, ==, 10);
+  g_assert_cmpfloat (y1, ==, 20);
+
+  /* Not on the line. */
+  hb_paint_reduce_linear_anchors (0, 0, 100, 50, 0, 100,
+				  &x0, &y0, &x1, &y1);
+  g_assert_cmpfloat (x1, ==, 100);
+  g_assert_cmpfloat (y1, ==, 0);
+}
+
+static void
 test_hb_paint_sweep_gradient_tiles_clipped (void)
 {
   /* Variation deltas can put the angles far outside the circle.  The
@@ -1394,6 +1428,80 @@ record_sweep_seam (float a0, hb_color_t c0,
 }
 
 static void
+test_hb_paint_sweep_gradient_tiles_alpha (void)
+{
+  /* A sweep from -180° to 180° reaches 0° halfway from its first stop
+   * to its second.  Colors are interpolated with alpha multiplied into
+   * them, so halfway from opaque red to transparent blue is red at a
+   * half, with no blue in it: a transparent stop has no color to
+   * give. */
+  {
+    hb_color_stop_t stops[2] = {
+      { 0.f, FALSE, HB_COLOR (0, 0, 255, 255) },   /* red */
+      { 1.f, FALSE, HB_COLOR (255, 0, 0, 0) },     /* transparent blue */
+    };
+    sweep_seam_data_t data = {FALSE, 0};
+
+    hb_paint_sweep_gradient_tiles (stops, 2, HB_PAINT_EXTEND_PAD,
+				   (float) -G_PI, (float) G_PI,
+				   record_sweep_seam, &data);
+
+    g_assert_true (data.seen);
+    g_assert_cmpint (hb_color_get_red (data.color), ==, 255);
+    g_assert_cmpint (hb_color_get_green (data.color), ==, 0);
+    g_assert_cmpint (hb_color_get_blue (data.color), ==, 0);
+    g_assert_cmpint (hb_color_get_alpha (data.color), >=, 127);
+    g_assert_cmpint (hb_color_get_alpha (data.color), <=, 128);
+  }
+
+  /* Halfway to blue at a quarter there is a fifth of blue in it, not a
+   * half: (255, 0, 0) at 255 and (0, 0, 255) at 64 meet at
+   * (204, 0, 51) at 160. */
+  {
+    hb_color_stop_t stops[2] = {
+      { 0.f, FALSE, HB_COLOR (0, 0, 255, 255) },
+      { 1.f, FALSE, HB_COLOR (255, 0, 0, 64) },
+    };
+    sweep_seam_data_t data = {FALSE, 0};
+
+    hb_paint_sweep_gradient_tiles (stops, 2, HB_PAINT_EXTEND_REPEAT,
+				   (float) -G_PI, (float) G_PI,
+				   record_sweep_seam, &data);
+
+    g_assert_true (data.seen);
+    g_assert_cmpint (hb_color_get_red (data.color), >=, 203);
+    g_assert_cmpint (hb_color_get_red (data.color), <=, 205);
+    g_assert_cmpint (hb_color_get_green (data.color), ==, 0);
+    g_assert_cmpint (hb_color_get_blue (data.color), >=, 50);
+    g_assert_cmpint (hb_color_get_blue (data.color), <=, 52);
+    g_assert_cmpint (hb_color_get_alpha (data.color), >=, 159);
+    g_assert_cmpint (hb_color_get_alpha (data.color), <=, 160);
+  }
+
+  /* A sweep that repeats more often than can be drawn is filled with
+   * the average of its colors, which is red at a half as well. */
+  {
+    hb_color_stop_t stops[2] = {
+      { 0.f, FALSE, HB_COLOR (0, 0, 255, 255) },
+      { 1.f, FALSE, HB_COLOR (255, 0, 0, 0) },
+    };
+    sweep_tiles_data_t data = {0, 0.f, 0, 0};
+
+    hb_paint_sweep_gradient_tiles (stops, 2, HB_PAINT_EXTEND_REPEAT,
+				   0.f, 1e-4f,
+				   check_sweep_tile, &data);
+
+    g_assert_cmpuint (data.tiles, ==, 1);
+    g_assert_cmphex (data.c0, ==, data.c1);
+    g_assert_cmpint (hb_color_get_red (data.c0), ==, 255);
+    g_assert_cmpint (hb_color_get_green (data.c0), ==, 0);
+    g_assert_cmpint (hb_color_get_blue (data.c0), ==, 0);
+    g_assert_cmpint (hb_color_get_alpha (data.c0), >=, 127);
+    g_assert_cmpint (hb_color_get_alpha (data.c0), <=, 128);
+  }
+}
+
+static void
 test_hb_paint_sweep_gradient_tiles_seam_color (void)
 {
   /* A sweep from -90° to 270° reaches 0° a quarter of the way from
@@ -1418,6 +1526,52 @@ test_hb_paint_sweep_gradient_tiles_seam_color (void)
   g_assert_cmpint (hb_color_get_alpha (data.color), ==, 255);
 }
 
+static void
+test_hb_paint_normalize_color_line_hard_stops (void)
+{
+  /* Two stops that share an offset are a hard stop: the first is the
+   * color before the offset and the second the color after it.
+   * Sorting has to leave them in that order however many stops there
+   * are; these are stripes, each a pair of stops of one color. */
+#define STRIPES 40
+  hb_color_stop_t stops[2 * STRIPES + 1];
+  float min, max;
+
+  for (unsigned extra = 0; extra < 2; extra++)
+  {
+    unsigned len = 0;
+    for (unsigned i = 0; i < STRIPES; i++)
+      for (unsigned end = 0; end < 2; end++)
+      {
+	stops[len].offset = (float) (i + end) / STRIPES;
+	stops[len].is_foreground = FALSE;
+	stops[len].color = HB_COLOR (i, 0, 0, 255);
+	len++;
+      }
+    if (extra)
+    {
+      /* Out of order: one more stop of the first stripe, at the end. */
+      stops[len].offset = .5f / STRIPES;
+      stops[len].is_foreground = FALSE;
+      stops[len].color = HB_COLOR (0, 0, 0, 255);
+      len++;
+    }
+
+    hb_paint_normalize_color_line (stops, len, &min, &max);
+
+    g_assert_cmpfloat (min, ==, 0.f);
+    g_assert_cmpfloat (max, ==, 1.f);
+    for (unsigned i = 0; i < len; i++)
+    {
+      unsigned stripe = i < extra ? 0 : (i - extra) / 2;
+      if (i)
+	g_assert_cmpfloat (stops[i - 1].offset, <=, stops[i].offset);
+      g_assert_cmpuint (hb_color_get_blue (stops[i].color), ==, stripe);
+    }
+  }
+#undef STRIPES
+}
+
 
 int
 main (int argc, char **argv)
@@ -1434,8 +1588,11 @@ main (int argc, char **argv)
   hb_test_add (test_color_glyph_user_data);
   hb_test_add (test_hb_paint_budget);
   hb_test_add (test_hb_paint_color_stops_budget);
+  hb_test_add (test_hb_paint_reduce_linear_anchors_on_a_line);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_clipped);
+  hb_test_add (test_hb_paint_sweep_gradient_tiles_alpha);
   hb_test_add (test_hb_paint_sweep_gradient_tiles_seam_color);
+  hb_test_add (test_hb_paint_normalize_color_line_hard_stops);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
   {

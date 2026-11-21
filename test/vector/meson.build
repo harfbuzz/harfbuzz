@@ -21,6 +21,31 @@ test('reset', test_vector_reset,
   suite: 'vector',
 )
 
+test_vector_radial_tip = executable('test-vector-radial-tip', 'test-vector-radial-tip.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('radial-tip', test_vector_radial_tip,
+  suite: 'vector',
+)
+
+test_vector_color_line = executable('test-vector-color-line', 'test-vector-color-line.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('color-line', test_vector_color_line,
+  args: [meson.project_source_root() / 'test' / 'api' / 'fonts' / 'colr-color-line-no-length.ttf'],
+  suite: 'vector',
+)
+
+test_vector_pdf_pad = executable('test-vector-pdf-pad', 'test-vector-pdf-pad.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('pdf-pad', test_vector_pdf_pad,
+  suite: 'vector',
+)
+
 test_vector_sweep = executable('test-vector-sweep', 'test-vector-sweep.c',
   dependencies: [libharfbuzz_vector_dep],
 )
@@ -36,6 +61,14 @@ if zlib_dep.found()
   )
   test('png', test_vector_png, suite: 'vector')
 endif
+
+test_vector_gradient = executable('test-vector-gradient', 'test-vector-gradient.c',
+  dependencies: [libharfbuzz_vector_dep],
+)
+
+test('gradient', test_vector_gradient,
+  suite: 'vector',
+)
 
 tests = [
   'basic',

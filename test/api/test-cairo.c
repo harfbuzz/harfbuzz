@@ -76,6 +76,133 @@ test_hb_cairo_color_glyph_cycle (void)
   hb_face_destroy (face);
 }
 
+/* Shows a glyph of @font filling a 64 by 64 picture and returns its
+ * pixel at (@x, @y), as 0xAARRGGBB. */
+static uint32_t
+glyph_pixel (hb_font_t *font, hb_codepoint_t unicode, int x, int y)
+{
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 64);
+
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
+  cairo_glyph_t glyph = {gid, 0, 64};
+  cairo_show_glyphs (cr, &glyph, 1);
+  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+
+  cairo_surface_flush (surface);
+  uint32_t pixel;
+  memcpy (&pixel,
+	  cairo_image_surface_get_data (surface) +
+	  y * cairo_image_surface_get_stride (surface) + x * 4,
+	  sizeof (pixel));
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+  cairo_font_face_destroy (cairo_face);
+  return pixel;
+}
+
+static void
+test_hb_cairo_radial_gradient_past_tip (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Radial gradients from red to blue whose color stops are not at 0
+   * and 1, so that the color line starts where the radius of its
+   * circle would be negative: past the tip of the cone.  cairo takes
+   * such a radius for a positive one, and used to be given it. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-radial-past-tip.ttf");
+  hb_font_t *font = hb_font_create (face);
+  uint32_t pixel;
+
+  /* The tip is in the middle, three eighths of the way from red to
+   * blue; a red disc used to be there. */
+  pixel = glyph_pixel (font, 'a', 32, 32);
+  g_assert_cmpuint (pixel >> 24, ==, 255);
+  g_assert_cmpuint ((pixel >> 16) & 255, >, 130);
+  g_assert_cmpuint ((pixel >> 16) & 255, <, 185);
+  g_assert_cmpuint (pixel & 255, >, 70);
+  g_assert_cmpuint (pixel & 255, <, 125);
+
+  /* All of the color line is past the tip, and its last color, blue,
+   * goes on from there; most of the glyph used to be red. */
+  pixel = glyph_pixel (font, 'b', 4, 4);
+  g_assert_cmpuint ((pixel >> 16) & 255, <, 30);
+  g_assert_cmpuint (pixel & 255, >, 220);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_hb_cairo_color_line_no_length (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Gradients from red to blue whose color line has no length: one
+   * stop, or two at one offset.  If it pads, that is the first color
+   * before the offset and the last from it on; if it repeats or
+   * reflects, nothing.  And gradients that are ill-formed, which paint
+   * nothing either. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-color-line-no-length.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  /* What is painted along the row across the middle, at 4, 21, 23,
+   * 32, 39 and 42 of its 64 pixels: red, blue, or nothing. */
+  static const int xs[] = {4, 21, 23, 32, 39, 42};
+  const struct {
+    char unicode;
+    const char *pixels;
+  } tests[] = {
+    {'a', "rrrrrr"}, /* linear, one red stop */
+    {'b', "rrbbbb"}, /* linear, red and blue at one offset: they meet at 22.4 */
+    {'c', "bbrrrb"}, /* radial, the same: red within 9.6 of the center */
+    {'d', "------"}, /* as b, repeating */
+    {'e', "------"}, /* as c, reflecting */
+    {'f', "rrrrrr"}, /* radial, one red stop */
+    {'g', "------"}, /* linear, along no line */
+    {'h', "------"}, /* radial, of one circle */
+    {'i', "rrbbbb"}, /* as b, with a green stop between the two */
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    char pixels[G_N_ELEMENTS (xs) + 1];
+    for (unsigned j = 0; j < G_N_ELEMENTS (xs); j++)
+    {
+      uint32_t pixel = glyph_pixel (font, tests[i].unicode, xs[j], 32);
+      pixels[j] = pixel == 0xFFFF0000u ? 'r' :
+		  pixel == 0xFF004CFFu ? 'b' :
+		  !pixel ? '-' : '?';
+    }
+    pixels[G_N_ELEMENTS (xs)] = 0;
+    g_assert_cmpstr (pixels, ==, tests[i].pixels);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 static void
 face_destroyed (void *user_data)
 {
@@ -117,6 +244,103 @@ test_hb_cairo_face_lifecycle (void)
    * hb_font_t created for the scaled font, and with it the face, go away. */
   cairo_debug_reset_static_data ();
   g_assert_true (destroyed);
+}
+
+/* Shows the glyph of @unicode, which fills its em, in a picture of 64
+ * by 64 pixels. */
+static cairo_surface_t *
+show_em_square (hb_font_t *font, hb_codepoint_t unicode)
+{
+  cairo_font_face_t *cairo_face = hb_cairo_font_face_create_for_font (font);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 64, 64);
+  cairo_t *cr = cairo_create (surface);
+
+  cairo_set_font_face (cr, cairo_face);
+  cairo_set_font_size (cr, 64);
+
+  hb_codepoint_t gid;
+  g_assert_true (hb_font_get_nominal_glyph (font, unicode, &gid));
+  cairo_glyph_t glyph = {gid, 0, 64};
+  cairo_show_glyphs (cr, &glyph, 1);
+  g_assert_cmpint (cairo_status (cr), ==, CAIRO_STATUS_SUCCESS);
+
+  cairo_destroy (cr);
+  cairo_font_face_destroy (cairo_face);
+  cairo_surface_flush (surface);
+  return surface;
+}
+
+/* Checks the pixel of @surface at (@x, @y) against what COLR makes of
+ * a gradient from opaque red to blue at @alpha, at @t of the way: the
+ * two interpolated with alpha multiplied in, which is how the pixel
+ * has them. */
+static void
+assert_red_to_blue (cairo_surface_t *surface, int x, int y, double t, double alpha)
+{
+  uint32_t pixel;
+  memcpy (&pixel,
+	  cairo_image_surface_get_data (surface) +
+	  y * cairo_image_surface_get_stride (surface) + x * 4,
+	  sizeof (pixel));
+
+  g_assert_cmpfloat_with_epsilon ((pixel >> 24) & 0xFF, 255 * (1 - t + t * alpha), 4);
+  g_assert_cmpfloat_with_epsilon ((pixel >> 16) & 0xFF, 255 * (1 - t), 4);
+  g_assert_cmpfloat_with_epsilon ((pixel >> 8) & 0xFF, 0, 4);
+  g_assert_cmpfloat_with_epsilon (pixel & 0xFF, 255 * t * alpha, 4);
+}
+
+static void
+test_hb_cairo_gradient_alpha (void)
+{
+#ifdef HB_TEST_CAIRO_TSAN
+  g_test_skip ("Cairo user-font rendering has a pre-existing lock-order inversion under TSan");
+  return;
+#endif
+  if (cairo_version () < CAIRO_VERSION_ENCODE (1, 18, 0))
+  {
+    g_test_skip ("This cairo has no color user fonts");
+    return;
+  }
+
+  /* Gradients from opaque red to blue that is transparent, or at a
+   * quarter.  cairo interpolates the color and the alpha of its stops
+   * apart, which would put blue into the red as it fades out, even
+   * where the blue is transparent and has no color to give. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/colr-gradient-alpha.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  static const struct {
+    char linear, radial;
+    double alpha;
+  } tests[] = {
+    {'a', 'b', 0.},
+    {'c', 'd', .25},
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    /* Across the em, left to right. */
+    cairo_surface_t *surface = show_em_square (font, tests[i].linear);
+    for (int x = 8; x < 64; x += 16)
+      assert_red_to_blue (surface, x, 32, (x + .5) / 64, tests[i].alpha);
+    cairo_surface_destroy (surface);
+
+    /* From the center of the em to half of its width, which is 32
+     * pixels: how far along that the centers of four pixels of the
+     * row below the center are. */
+    static const struct {
+      int x;
+      double t;
+    } at[] = {
+      {34, .07967}, {43, .35971}, {52, .64082}, {61, .92201},
+    };
+    surface = show_em_square (font, tests[i].radial);
+    for (unsigned j = 0; j < G_N_ELEMENTS (at); j++)
+      assert_red_to_blue (surface, at[j].x, 32, at[j].t, tests[i].alpha);
+    cairo_surface_destroy (surface);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
 }
 
 static void
@@ -204,7 +428,10 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_cairo_color_glyph_cycle);
+  hb_test_add (test_hb_cairo_radial_gradient_past_tip);
+  hb_test_add (test_hb_cairo_color_line_no_length);
   hb_test_add (test_hb_cairo_face_lifecycle);
+  hb_test_add (test_hb_cairo_gradient_alpha);
   hb_test_add (test_hb_cairo_glyphs_from_buffer_clusters);
 
   return hb_test_run ();
