@@ -328,6 +328,14 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_LINEAR_GRADIENT:
     {
+      /* A gradient whose P1 or P2 is at its P0 is ill-formed, and is not
+       * painted. */
+      const FT_Vector &p0 = paint.u.linear_gradient.p0;
+      const FT_Vector &p1 = paint.u.linear_gradient.p1;
+      const FT_Vector &p2 = paint.u.linear_gradient.p2;
+      if ((p1.x == p0.x && p1.y == p0.y) || (p2.x == p0.x && p2.y == p0.y))
+	break;
+
       hb_color_line_t cl = {
 	&paint.u.linear_gradient.colorline,
 	_hb_ft_color_line_get_color_stops, c,

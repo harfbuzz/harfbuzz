@@ -392,6 +392,7 @@ typedef struct {
 #define BAD_COLRV1  "fonts/bad_colrv1.ttf"
 #define ROCHER_ABC  "fonts/RocherColorGX.abc.ttf"
 #define SHORT_COLORLINE "fonts/colr-short-colorline.ttf"
+#define ILL_FORMED_LINEAR "fonts/colr-color-line-no-length.ttf"
 
 /* To verify the rendering visually, use
  *
@@ -769,6 +770,69 @@ test_color_stops_short_ft (void)
 
   hb_paint_funcs_destroy (funcs);
   hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+count_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
+		       void *paint_data,
+		       hb_color_line_t *color_line HB_UNUSED,
+		       float x0 HB_UNUSED, float y0 HB_UNUSED,
+		       float x1 HB_UNUSED, float y1 HB_UNUSED,
+		       float x2 HB_UNUSED, float y2 HB_UNUSED,
+		       void *user_data HB_UNUSED)
+{
+  unsigned int *count = paint_data;
+  (*count)++;
+}
+
+/* COLR says of a linear gradient that it is ill-formed, and must not
+ * be rendered, if its P1 or P2 is at its P0.  No such gradient gets to
+ * the paint callbacks, whichever font functions paint the glyph. */
+static void
+test_linear_gradient_ill_formed (void)
+{
+  static const struct {
+    char unicode;
+    float wght;
+    unsigned int gradients;
+  } tests[] = {
+    {'b', 0, 1}, /* P0, P1 and P2 apart */
+    {'g', 0, 0}, /* P1 at P0 */
+    {'j', 0, 0}, /* P2 at P0 */
+    /* The anchors are where the variation deltas put them: at the end
+     * of the font's axis, P2 of k is at its P0, and that of l is not. */
+    {'k', 0, 1},
+    {'k', 1, 0},
+    {'l', 0, 0},
+    {'l', 1, 1},
+  };
+  hb_face_t *face = hb_test_open_font_file (ILL_FORMED_LINEAR);
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_linear_gradient_func (funcs, count_linear_gradient, NULL, NULL);
+
+  for (unsigned int use_ft = 0; use_ft <= (unsigned int) have_ft_colrv1 (); use_ft++)
+    for (unsigned int i = 0; i < G_N_ELEMENTS (tests); i++)
+    {
+      hb_font_t *font = hb_font_create (face);
+      hb_variation_t wght = {HB_TAG ('w','g','h','t'), tests[i].wght};
+      hb_codepoint_t glyph;
+      unsigned int count = 0;
+
+      hb_font_set_variations (font, &wght, 1);
+#ifdef HB_HAS_FREETYPE
+      if (use_ft)
+	hb_ft_font_set_funcs (font);
+#endif
+
+      g_assert_true (hb_font_get_nominal_glyph (font, tests[i].unicode, &glyph));
+      hb_font_paint_glyph (font, glyph, funcs, &count, 0, HB_COLOR (0, 0, 0, 255));
+      g_assert_cmpuint (count, ==, tests[i].gradients);
+
+      hb_font_destroy (font);
+    }
+
+  hb_paint_funcs_destroy (funcs);
   hb_face_destroy (face);
 }
 
@@ -1627,6 +1691,7 @@ main (int argc, char **argv)
   hb_test_add (test_color_stops_ft);
   hb_test_add (test_ft_reentrant_paint);
   hb_test_add (test_color_stops_short_ft);
+  hb_test_add (test_linear_gradient_ill_formed);
 
   status = hb_test_run();
 
