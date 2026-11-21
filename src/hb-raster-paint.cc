@@ -978,6 +978,19 @@ hb_raster_paint_fill_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_recycle_image (rdr, mask_img);
 }
 
+/* How many samples a side to take of an image for a pixel that spans
+ * (@du, @dv) pixels of it along that side.  Bilinear reconstruction
+ * reads two pixels a side, so it is one sample for each two spanned,
+ * and at most 16. */
+static inline unsigned
+hb_raster_image_samples (float du, float dv)
+{
+  float span = sqrtf (du * du + dv * dv);
+  if (!(span > 2.f))
+    return 1;
+  return (unsigned) hb_min (ceilf (span * 0.5f), 16.f);
+}
+
 static hb_bool_t
 hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		       void *paint_data,
@@ -1084,29 +1097,49 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
   c->mark_painted (surf);
 
-  if (clip.is_rect)
+  /* Where a pixel painted spans more of the image than bilinear
+   * reconstruction reads, the image is shrunk, and the pixel is the
+   * average of a grid of samples spread over it. */
+  unsigned nx = hb_raster_image_samples (inv_xx / img_sx, inv_yx / img_sy);
+  unsigned ny = hb_raster_image_samples (inv_xy / img_sx, inv_yy / img_sy);
+  /* How far outside of the image the center of a pixel can be that
+   * still has a sample inside. */
+  float margin_u = 0.5f * (fabsf (inv_xx) + fabsf (inv_xy)) / fabsf (img_sx);
+  float margin_v = 0.5f * (fabsf (inv_yx) + fabsf (inv_yy)) / fabsf (img_sy);
+
+  /* The image at the pixel centered on a place in glyph space; false if
+   * none of the image is there. */
+  auto image_at = [&] (float gx, float gy, uint32_t *src_px) -> bool
   {
-    for (unsigned py = clip.min_y; py < clip.max_y; py++)
+    if (nx * ny > 1)
     {
-      hb_raster_pixel_t *row = (hb_raster_pixel_t *) (surf->buffer.arrayZ + py * surf_stride);
-      float gx = inv_xx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_xy * ((float) ((int) py + oy) + 0.5f) + inv_x0;
-      float gy = inv_yx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_yy * ((float) ((int) py + oy) + 0.5f) + inv_y0;
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      float u = (gx - img_x) / img_sx;
+      float v = (gy - img_y) / img_sy;
+      if (!(u >= -margin_u && v >= -margin_v &&
+	    u <= (float) src_width + margin_u && v <= (float) src_height + margin_v))
+	return false;
+    }
+
+    float b = 0.f, g = 0.f, r = 0.f, a = 0.f;
+    bool any = false;
+    for (unsigned j = 0; j < ny; j++)
+    {
+      float fy = ((float) j + 0.5f) / (float) ny - 0.5f;
+      for (unsigned i = 0; i < nx; i++)
       {
+	float fx = ((float) i + 0.5f) / (float) nx - 0.5f;
+
 	/* Map glyph space to the image: from (0, 0) at the corner its
 	 * extents start at to (src_width, src_height) at the opposite
 	 * one. */
-	float u = (gx - img_x) / img_sx;
-	float v = (gy - img_y) / img_sy;
+	float u = (gx + inv_xx * fx + inv_xy * fy - img_x) / img_sx;
+	float v = (gy + inv_yx * fx + inv_yy * fy - img_y) / img_sy;
 
+	/* A sample outside of the image is clear. */
 	if (unlikely (!std::isfinite (u) || !std::isfinite (v)) ||
 	    u < 0.f || v < 0.f ||
 	    u > (float) src_width || v > (float) src_height)
-	{
-	  gx += inv_xx;
-	  gy += inv_yx;
 	  continue;
-	}
 
 	/* Bilinear reconstruction has the texels at whole numbers, so
 	 * each is centered half a texel in.  The outer half of the
@@ -1115,11 +1148,44 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	float iy = hb_clamp (rows_down ? v - 0.5f : (float) src_height - 0.5f - v,
 			     0.f, (float) (src_height - 1));
 
-	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
-							     ix, iy);
+	uint32_t p = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
+						       ix, iy);
+	if (nx * ny == 1)
+	{
+	  *src_px = p;
+	  return true;
+	}
+	b += (float) (p & 0xff);
+	g += (float) ((p >> 8) & 0xff);
+	r += (float) ((p >> 16) & 0xff);
+	a += (float) (p >> 24);
+	any = true;
+      }
+    }
+    if (!any)
+      return false;
+
+    float scale = 1.f / (float) (nx * ny);
+    *src_px = (uint32_t) (b * scale + 0.5f)
+	    | ((uint32_t) (g * scale + 0.5f) << 8)
+	    | ((uint32_t) (r * scale + 0.5f) << 16)
+	    | ((uint32_t) (a * scale + 0.5f) << 24);
+    return true;
+  };
+
+  if (clip.is_rect)
+  {
+    for (unsigned py = clip.min_y; py < clip.max_y; py++)
+    {
+      hb_raster_pixel_t *row = (hb_raster_pixel_t *) (surf->buffer.arrayZ + py * surf_stride);
+      float gx = inv_xx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_xy * ((float) ((int) py + oy) + 0.5f) + inv_x0;
+      float gy = inv_yx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_yy * ((float) ((int) py + oy) + 0.5f) + inv_y0;
+      for (unsigned px = clip.min_x; px < clip.max_x; px++, gx += inv_xx, gy += inv_yx)
+      {
+	uint32_t src_px;
+	if (!image_at (gx, gy, &src_px))
+	  continue;
 	row[px] = hb_raster_pixel_t (hb_raster_src_over (src_px, (uint32_t) row[px]));
-	gx += inv_xx;
-	gy += inv_yx;
       }
     }
   }
@@ -1131,44 +1197,17 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
       const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
       float gx = inv_xx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_xy * ((float) ((int) py + oy) + 0.5f) + inv_x0;
       float gy = inv_yx * ((float) ((int) clip.min_x + ox) + 0.5f) + inv_yy * ((float) ((int) py + oy) + 0.5f) + inv_y0;
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      for (unsigned px = clip.min_x; px < clip.max_x; px++, gx += inv_xx, gy += inv_yx)
       {
 	uint8_t clip_alpha = clip_row[px];
 	if (clip_alpha == 0)
-	{
-	  gx += inv_xx;
-	  gy += inv_yx;
 	  continue;
-	}
 
-	/* Map glyph space to the image: from (0, 0) at the corner its
-	 * extents start at to (src_width, src_height) at the opposite
-	 * one. */
-	float u = (gx - img_x) / img_sx;
-	float v = (gy - img_y) / img_sy;
-
-	if (unlikely (!std::isfinite (u) || !std::isfinite (v)) ||
-	    u < 0.f || v < 0.f ||
-	    u > (float) src_width || v > (float) src_height)
-	{
-	  gx += inv_xx;
-	  gy += inv_yx;
+	uint32_t src_px;
+	if (!image_at (gx, gy, &src_px))
 	  continue;
-	}
-
-	/* Bilinear reconstruction has the texels at whole numbers, so
-	 * each is centered half a texel in.  The outer half of the
-	 * texels at the edges is their own color. */
-	float ix = hb_clamp (u - 0.5f, 0.f, (float) (src_width - 1));
-	float iy = hb_clamp (rows_down ? v - 0.5f : (float) src_height - 0.5f - v,
-			     0.f, (float) (src_height - 1));
-
-	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
-							     ix, iy);
 	src_px = hb_raster_alpha_mul (src_px, clip_alpha);
 	row[px] = hb_raster_pixel_t (hb_raster_src_over (src_px, (uint32_t) row[px]));
-	gx += inv_xx;
-	gy += inv_yx;
       }
     }
   }

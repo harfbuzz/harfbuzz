@@ -811,6 +811,49 @@ test_image_bgra_rows (void)
   hb_raster_paint_destroy (paint);
 }
 
+/* An image that is shrunk is averaged, not read at one place for each
+ * pixel painted: this one has every fourth column red and the rest blue,
+ * and each pixel painted covers eight columns of it. */
+static void
+test_image_shrunk (void)
+{
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  hb_raster_extents_t ext = {0, 0, 2, 2, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  const uint8_t red[] = {0, 0, 255, 255}, blue[] = {255, 0, 0, 255};
+  uint8_t pixels[16 * 16 * 4];
+  for (unsigned i = 0; i < 16 * 16; i++)
+    memcpy (pixels + i * 4, i % 4 ? blue : red, 4);
+  hb_blob_t *blob = hb_blob_create ((const char *) pixels, sizeof (pixels),
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  hb_glyph_extents_t gext = {0, 2, 2, -2};
+  hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
+  hb_paint_image (funcs, paint, blob, 16, 16,
+		  HB_PAINT_IMAGE_FORMAT_BGRA, 0.f, &gext);
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+  hb_raster_image_get_extents (img, &ext);
+  g_assert_cmpuint (ext.width, ==, 2);
+  g_assert_cmpuint (ext.height, ==, 2);
+  for (unsigned y = 0; y < ext.height; y++)
+    for (unsigned x = 0; x < ext.width; x++)
+    {
+      /* A quarter red and three quarters blue.  Read at its center
+       * alone, where a red column meets a blue one, it would be half
+       * of each. */
+      const uint8_t *pixel = hb_raster_image_get_buffer (img) + y * ext.stride + x * 4;
+      g_assert_cmpuint (pixel[0], >=, 189);
+      g_assert_cmpuint (pixel[0], <=, 193);
+      g_assert_cmpuint (pixel[1], ==, 0);
+      g_assert_cmpuint (pixel[2], >=, 62);
+      g_assert_cmpuint (pixel[2], <=, 66);
+      g_assert_cmpuint (pixel[3], ==, 255);
+    }
+  hb_raster_image_destroy (img);
+  hb_blob_destroy (blob);
+  hb_raster_paint_destroy (paint);
+}
+
 static void
 test_image_png_byte_order (void)
 {
@@ -1023,6 +1066,7 @@ main (int argc, char **argv)
   hb_test_add (test_image_bgra);
   hb_test_add (test_image_extents);
   hb_test_add (test_image_bgra_rows);
+  hb_test_add (test_image_shrunk);
   hb_test_add (test_image_png_byte_order);
   hb_test_add (test_image_png_size);
   hb_test_add (test_budget_sweep);
