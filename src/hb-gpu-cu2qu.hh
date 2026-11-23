@@ -49,6 +49,15 @@
 #define HB_GPU_CU2QU_MAX_N 64
 #endif
 
+/* A single quadratic is not tried for a third difference of more than
+ * this many times the tolerance.  A quadratic with the end points of a
+ * cubic gets at least sqrt(3)/36 of the cubic's third difference away
+ * from it, wherever its control point is, so none fits above 36/sqrt(3)
+ * = 20.78; this is past that by more than the fit test can be wrong. */
+#ifndef HB_GPU_CU2QU_QUADRATIC_MAX_D3
+#define HB_GPU_CU2QU_QUADRATIC_MAX_D3 21.
+#endif
+
 
 struct hb_gpu_cu2qu_point_t
 {
@@ -272,18 +281,23 @@ hb_gpu_cubic_to_quadratics (hb_gpu_draw_t *g,
 		!hb_budget_spend (*budget, HB_BUDGET_1)))
     return;
 
-  hb_gpu_cu2qu_point_t q1;
-  if (hb_gpu_cubic_approx_quadratic (c0, c1, c2, c3, tolerance, &q1))
-  {
-    g->acc_conic_to (q1.x, q1.y, c3.x, c3.y);
-    return;
-  }
-
   hb_gpu_cu2qu_cubic_t cubic (c0, c1, c2, c3);
+  double d3 = hypot (cubic.b3.x, cubic.b3.y);
+
+  /* A single quadratic, unless the third difference rules it out.  NaN
+   * does too. */
+  if (d3 <= tolerance * HB_GPU_CU2QU_QUADRATIC_MAX_D3)
+  {
+    hb_gpu_cu2qu_point_t q1;
+    if (hb_gpu_cubic_approx_quadratic (c0, c1, c2, c3, tolerance, &q1))
+    {
+      g->acc_conic_to (q1.x, q1.y, c3.x, c3.y);
+      return;
+    }
+  }
 
   /* The least n whose spline is within tolerance.  Written so that NaN
    * goes past the last. */
-  double d3 = hypot (cubic.b3.x, cubic.b3.y);
   unsigned n = 2;
   while (n <= HB_GPU_CU2QU_MAX_N &&
 	 !(d3 * hb_gpu_cubic_spline_error (n) <= tolerance * n * n * n))
