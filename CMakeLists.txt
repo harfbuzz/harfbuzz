@@ -864,7 +864,7 @@ if (HB_HAVE_CAIRO)
   endif ()
 endif()
 
-if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
+if (BUILD_SHARED_LIBS AND WIN32)
   add_compile_definitions(HB_DLL_EXPORT)
 endif ()
 

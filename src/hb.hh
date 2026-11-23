@@ -200,7 +200,7 @@
 # define __EXTENSIONS__ 1
 #endif
 
-#if defined (_MSC_VER) && defined (HB_DLL_EXPORT)
+#if (defined (_MSC_VER) || defined (__MINGW32__)) && defined (HB_DLL_EXPORT)
 #define HB_EXTERN __declspec (dllexport) extern
 #endif
 
@@ -301,7 +301,7 @@
 # if !defined(HB_NO_VISIBILITY) && !defined(__MINGW32__) && !defined(__CYGWIN__) && !defined(_MSC_VER) && !defined(__SUNPRO_CC)
 #  define HB_INTERNAL __attribute__((__visibility__("hidden")))
 # elif defined(__MINGW32__)
-   /* We use -export-symbols on mingw32, since it does not support visibility attributes. */
+   /* We use HB_DLL_EXPORT on mingw32, since it does not support visibility attributes. */
 #  define HB_INTERNAL
 # elif defined (_MSC_VER) && defined (HB_DLL_EXPORT)
    /* We do not try to export internal symbols on Visual Studio */
