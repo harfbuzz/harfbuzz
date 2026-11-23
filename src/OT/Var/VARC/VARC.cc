@@ -551,11 +551,14 @@ VARC::get_path_at (const hb_varc_context_t &c,
     return true;
   }
 
-  if (c.depth_left <= 0)
+  /* No font needs composites nested this deep, or this many of them in
+   * one glyph.  Spend the budget, which ends the session: nothing more
+   * is drawn, by this glyph or by what the renderer does after it. */
+  if (unlikely (c.depth_left <= 0 || c.edges_left <= 0))
+  {
+    c.budget = -1;
     return true;
-
-  if (c.edges_left <= 0)
-    return true;
+  }
   (c.edges_left)--;
 
   hb_decycler_node_t node (c.decycler);

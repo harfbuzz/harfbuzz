@@ -410,16 +410,9 @@ test_hb_draw_varc_static_deltas (void)
   hb_font_destroy (font);
 }
 
-static void
-test_hb_draw_varc_budget (void)
+static hb_draw_funcs_t *
+create_budget_funcs (void)
 {
-  hb_face_t *face = hb_test_open_font_file ("fonts/varc-6868.ttf");
-  hb_font_t *font = hb_font_create (face);
-  hb_face_destroy (face);
-
-  hb_codepoint_t gid = 0;
-  g_assert_true (hb_font_get_nominal_glyph (font, 0x6868u, &gid));
-
   hb_draw_funcs_t *budget_funcs = hb_draw_funcs_create ();
   hb_draw_funcs_set_move_to_func (budget_funcs, move_to, NULL, NULL);
   hb_draw_funcs_set_line_to_func (budget_funcs, line_to, NULL, NULL);
@@ -430,6 +423,20 @@ test_hb_draw_varc_budget (void)
   hb_draw_funcs_set_get_budget_func (budget_funcs, get_budget, NULL, NULL);
   hb_draw_funcs_set_get_budget_remaining_func (budget_funcs, get_budget_remaining, NULL, NULL);
   hb_draw_funcs_make_immutable (budget_funcs);
+  return budget_funcs;
+}
+
+static void
+test_hb_draw_varc_budget (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-6868.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  hb_codepoint_t gid = 0;
+  g_assert_true (hb_font_get_nominal_glyph (font, 0x6868u, &gid));
+
+  hb_draw_funcs_t *budget_funcs = create_budget_funcs ();
 
   budget_draw_data_t draw_data = {{0}, HB_BUDGET_DEFAULT, 0};
   g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 1 << 20));
@@ -443,6 +450,48 @@ test_hb_draw_varc_budget (void)
   hb_font_draw_glyph (font, gid, budget_funcs, &draw_data);
   g_assert_cmpint (draw_data.remaining, <, 0);
   g_assert_cmpuint (draw_data.draw.move_to_count, ==, 0);
+
+  hb_draw_funcs_destroy (budget_funcs);
+  hb_font_destroy (font);
+}
+
+static void
+test_hb_draw_varc_deep_nesting (void)
+{
+  /* nest0 holds nest1, which holds nest2, and so on for seventy glyphs,
+   * the last of which holds the leaf.  The limit is 64 levels. */
+  hb_face_t *face = hb_test_open_font_file ("fonts/varc-deep-nesting.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  hb_draw_funcs_t *budget_funcs = create_budget_funcs ();
+  hb_codepoint_t gid = 0;
+  budget_draw_data_t draw_data = {{0}, HB_BUDGET_DEFAULT, 0};
+
+  /* C is nest20 and then the leaf: fifty levels, within the limit. */
+  g_assert_true (hb_font_get_nominal_glyph (font, 'C', &gid));
+  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 1 << 20));
+  hb_font_draw_glyph (font, gid, budget_funcs, &draw_data);
+  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 2);
+  g_assert_cmpint (draw_data.remaining, >=, 0);
+
+  /* A is nest0 and then the leaf.  Meeting the limit ends the drawing:
+   * the leaf that comes after is not drawn, and the budget is spent, so
+   * that the renderer draws nothing after this glyph either. */
+  draw_data.draw = (draw_data_t) {0};
+  g_assert_true (hb_font_get_nominal_glyph (font, 'A', &gid));
+  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 1 << 20));
+  hb_font_draw_glyph (font, gid, budget_funcs, &draw_data);
+  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 0);
+  g_assert_cmpint (draw_data.remaining, <, 0);
+
+  /* B is the leaf and then nest0.  What was drawn before stays. */
+  draw_data.draw = (draw_data_t) {0};
+  g_assert_true (hb_font_get_nominal_glyph (font, 'B', &gid));
+  g_assert_true (hb_draw_set_budget (budget_funcs, &draw_data, 1 << 20));
+  hb_font_draw_glyph (font, gid, budget_funcs, &draw_data);
+  g_assert_cmpuint (draw_data.draw.move_to_count, ==, 1);
+  g_assert_cmpint (draw_data.remaining, <, 0);
 
   hb_draw_funcs_destroy (budget_funcs);
   hb_font_destroy (font);
@@ -591,6 +640,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_varc_delta_precision);
   hb_test_add (test_hb_draw_varc_static_deltas);
   hb_test_add (test_hb_draw_varc_budget);
+  hb_test_add (test_hb_draw_varc_deep_nesting);
   hb_test_add (test_hb_draw_varc_truncated_axes_run);
 #endif
   unsigned result = hb_test_run ();
