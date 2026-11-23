@@ -268,9 +268,11 @@
 #define HB_BUDGET_1024	1024u
 
 /* The common finite default for one top-level glyph rendering session.
- * Nested outline and paint work shares the same live counter. */
+ * Nested outline and paint work shares the same live counter.  The
+ * heaviest glyphs measured, those of Bitcount Ink over its design
+ * space, spend 2 million; this is eight times that. */
 #ifndef HB_BUDGET_GLYPH
-#define HB_BUDGET_GLYPH ((int64_t) 1 << 25)
+#define HB_BUDGET_GLYPH ((int64_t) 1 << 24)
 #endif
 
 /* Precharge COST * MULT.  Callers bound COST and MULT structurally, and live
