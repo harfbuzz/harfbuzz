@@ -690,13 +690,15 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
       }
       else
       {
-	/* FreeType behavior: control-point deviation from chord center. */
+	/* FreeType behavior: control-point deviation from chord center.
+	   Written so that a NaN deviation reads as flat: it is NaN
+	   again in both halves, all the way to the depth cap. */
 	const float flat_thresh = 0.25f;
 	float dx = x0 + x2 - 2.f * x1;
 	float dy = y0 + y2 - 2.f * y1;
 	if (dx < 0) dx = -dx;
 	if (dy < 0) dy = -dy;
-	is_flat = dx <= flat_thresh && dy <= flat_thresh;
+	is_flat = !(dx > flat_thresh || dy > flat_thresh);
       }
       emit_chord = is_flat;
     }
@@ -895,7 +897,8 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
       }
       else
       {
-	/* FreeType behavior: chord-trisection distance test. */
+	/* FreeType behavior: chord-trisection distance test.  As for
+	   the quadratic, a NaN distance reads as flat. */
 	const float flat_thresh = 0.5f;
 
 	float d10x = 2.f * x0 - 3.f * x1 + x3;
@@ -908,10 +911,10 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 	if (d20x < 0) d20x = -d20x;
 	if (d20y < 0) d20y = -d20y;
 
-	is_flat = d10x <= flat_thresh &&
-		  d10y <= flat_thresh &&
-		  d20x <= flat_thresh &&
-		  d20y <= flat_thresh;
+	is_flat = !(d10x > flat_thresh ||
+		    d10y > flat_thresh ||
+		    d20x > flat_thresh ||
+		    d20y > flat_thresh);
       }
       emit_chord = is_flat;
     }

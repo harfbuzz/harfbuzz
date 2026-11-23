@@ -27,6 +27,7 @@
 #include "hb-test.h"
 #include "hb-raster.h"
 #include <hb-ot.h>
+#include <cmath>
 
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
@@ -366,6 +367,55 @@ test_budget (void)
   hb_raster_draw_destroy (draw);
   hb_font_destroy (font);
   hb_face_destroy (face);
+}
+
+/* ── Test 9b: curves through NaN or infinity are not subdivided ──── */
+
+/* A transform that overflows turns the points of an outline into NaN and
+ * infinity.  No depth of subdivision flattens a curve through NaN, and
+ * none of its segments becomes an edge, so neither the clip box nor the
+ * edge cap stops it: it must cost nothing, not the 65,535 subdivisions
+ * of the depth cap.  A curve through infinity costs at most one
+ * subdivision per level. */
+static void
+test_budget_nonfinite_curve (void)
+{
+  hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
+  hb_draw_funcs_t *funcs = hb_raster_draw_get_funcs (draw);
+
+  /* With the extents left to the outline, and with a clip box. */
+  for (unsigned fixed = 0; fixed < 2; fixed++)
+  {
+    hb_raster_draw_reset (draw);
+    if (fixed)
+    {
+      hb_raster_extents_t extents = {0, 0, 32, 32, 0};
+      hb_raster_draw_set_extents (draw, &extents);
+    }
+    g_assert_true (hb_draw_set_budget (funcs, draw, 256));
+
+    hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+    hb_draw_move_to (funcs, draw, &st, NAN, NAN);
+    hb_draw_quadratic_to (funcs, draw, &st, NAN, NAN, NAN, NAN);
+    hb_draw_cubic_to (funcs, draw, &st, NAN, NAN, NAN, NAN, NAN, NAN);
+    /* NaN in one coordinate only, the other one flat. */
+    hb_draw_move_to (funcs, draw, &st, 1.f, 2.f);
+    hb_draw_quadratic_to (funcs, draw, &st, NAN, 3.f, 4.f, 4.f);
+    hb_draw_cubic_to (funcs, draw, &st, 6.f, 5.f, 8.f, NAN, 10.f, 7.f);
+    g_assert_cmpint (hb_draw_get_budget_remaining (funcs, draw), ==, 256);
+
+    hb_draw_move_to (funcs, draw, &st, 1.f, 2.f);
+    hb_draw_quadratic_to (funcs, draw, &st, 3.f, INFINITY, 4.f, 5.f);
+    hb_draw_quadratic_to (funcs, draw, &st, 6.f, 7.f, -INFINITY, 8.f);
+    hb_draw_cubic_to (funcs, draw, &st, INFINITY, 9.f, 10.f, -INFINITY, 11.f, 12.f);
+    hb_draw_cubic_to (funcs, draw, &st, 13.f, 14.f, 15.f, 16.f, INFINITY, INFINITY);
+    hb_draw_close_path (funcs, draw, &st);
+    g_assert_cmpint (hb_draw_get_budget_remaining (funcs, draw), >, 0);
+
+    hb_raster_image_destroy (hb_raster_draw_render (draw));
+  }
+
+  hb_raster_draw_destroy (draw);
 }
 
 /* ── Test 10: outline budget bounds a real COLR walk, apart from pixels ─ */
@@ -1424,6 +1474,7 @@ main (int argc, char **argv)
   hb_test_add (test_image_nonfinite_transform);
   hb_test_add (test_set_glyph_extents_overflow);
   hb_test_add (test_budget);
+  hb_test_add (test_budget_nonfinite_curve);
   hb_test_add (test_budget_colr_outline);
   hb_test_add (test_background_premultiplied);
   hb_test_add (test_background_stride);
