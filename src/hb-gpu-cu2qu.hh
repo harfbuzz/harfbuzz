@@ -60,6 +60,15 @@ hb_gpu_cu2qu_lerp (hb_gpu_cu2qu_point_t a, hb_gpu_cu2qu_point_t b, double t)
 	  a.y + (b.y - a.y) * t};
 }
 
+/* Whether @p is beyond what the encoder can store: it keeps coordinates
+ * in 16 bits, in units of 1 / HB_GPU_UNITS_PER_EM.  True for NaN. */
+static inline bool
+hb_gpu_cu2qu_unencodable (hb_gpu_cu2qu_point_t p)
+{
+  const double limit = 32768. / HB_GPU_UNITS_PER_EM;
+  return !(fabs (p.x) <= limit && fabs (p.y) <= limit);
+}
+
 
 /*
  * Check whether a cubic error curve stays within `tolerance` of the origin.
@@ -192,6 +201,21 @@ hb_gpu_cubic_to_quadratics (hb_gpu_draw_t *g,
 
   hb_gpu_cu2qu_point_t pts[7];
   hb_gpu_split_cubic_half (c0, c1, c2, c3, pts);
+
+  /* The split point is a point of the outline however the two halves are
+   * split further, and hb_gpu_draw_encode() rejects an outline with a
+   * point it cannot store.  So if it is such a point, splitting on is
+   * for nothing: emit the control polygons of the halves, which pass
+   * through it.  A transform can put an outline so far away that no
+   * piece of it ever fits a quadratic, and every cubic would be split
+   * to the maximum depth. */
+  if (unlikely (hb_gpu_cu2qu_unencodable (pts[3])))
+  {
+    for (unsigned i = 1; i < 7; i++)
+      g->acc_line_to (pts[i].x, pts[i].y);
+    return;
+  }
+
   hb_gpu_cubic_to_quadratics (g, pts[0], pts[1], pts[2], pts[3], tolerance, depth + 1);
   hb_gpu_cubic_to_quadratics (g, pts[3], pts[4], pts[5], pts[6], tolerance, depth + 1);
 }
