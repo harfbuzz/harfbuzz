@@ -23,6 +23,12 @@
  *
  */
 
+/* hb.hh defines _GNU_SOURCE, but it has to precede the first system header.
+ * Without it, Cygwin does not declare the sincos() that hb-algs.hh uses. */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 /* Include before hb.hh so libstdc++'s inline string implementations remain
  * available for MemorySanitizer instrumentation. */
 #include <string>

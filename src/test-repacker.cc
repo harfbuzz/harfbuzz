@@ -24,6 +24,13 @@
  * Google Author(s): Garret Rieger
  */
 
+/* hb.hh defines _GNU_SOURCE, but it has to precede the first system header.
+ * Without it, Cygwin does not declare the sincos() that hb-algs.hh uses.
+ * <string> stays ahead of hb.hh for MemorySanitizer; see test-vector.cc. */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 #include <cstdint>
 #include <string>
 

@@ -23,11 +23,11 @@
  *
  */
 
-#include <cmath>
-#include <cstdlib>
-
 #include "hb.hh"
 #include "hb-number.hh"
+
+#include <cmath>
+#include <cstdlib>
 
 static void
 test_parse_int ()

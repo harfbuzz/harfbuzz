@@ -24,8 +24,8 @@
  * Google Author(s): Qunxin Liu
  */
 
-#include <math.h>
 #include "hb-subset-instancer-solver.hh"
+#include <math.h>
 
 static inline bool approx (Triple a, Triple b)
 {
