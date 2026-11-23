@@ -360,6 +360,15 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_RASTER_MAX_DRAW_EDGES ((int64_t) 1 << 20)
 #endif
 
+/* Times the raster flatteners halve one curve.  A curve four times the
+ * size takes one more: glyphs take 8 at 8,192 pixels per em and 11 at a
+ * million, which is about as far as float coordinates can tell a flat
+ * curve from a bent one.  A curve still not flat at this depth ends the
+ * outline; no more of it is accumulated. */
+#ifndef HB_RASTER_MAX_FLATTEN_DEPTH
+#define HB_RASTER_MAX_FLATTEN_DEPTH 12
+#endif
+
 /* Compiling one AAT feature map: morx/mort chains and chain feature
  * records visited for each range of the text with its own set of
  * features, plus extra for each range a chain keeps rather than merges

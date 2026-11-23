@@ -644,7 +644,7 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
     bool check_clip;
   };
 
-  quad_node_t stack[16];
+  quad_node_t stack[HB_RASTER_MAX_FLATTEN_DEPTH];
   unsigned top = 0;
 
   bool check_clip = draw->flatten_clip_active;
@@ -653,13 +653,13 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
 
   while (true)
   {
-    bool emit_chord = depth >= 16;
+    bool emit_chord = false;
 
     /* Entirely outside the clip box: the chord is exact for coverage.
        Subdivided control points are convex combinations of their
        parent's, so once a node is entirely inside the box no
        descendant can leave it and the test is skipped below. */
-    if (!emit_chord && check_clip)
+    if (check_clip)
     {
       float bx0 = hb_min (x0, hb_min (x1, x2));
       float bx1 = hb_max (x0, hb_max (x1, x2));
@@ -703,10 +703,20 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
       emit_chord = is_flat;
     }
 
-    /* Charge one unit per subdivision; degrade to the chord when the
-       session work budget is spent. */
     if (!emit_chord)
     {
+      /* Not flat after this many halvings: the curve is too large to
+	 draw, as an outline put out of reach by a transform is.  End
+	 the outline here, so that nothing more is spent on it. */
+      if (unlikely (depth >= HB_RASTER_MAX_FLATTEN_DEPTH))
+      {
+	draw->edges_left = 0;
+	*work = work_left;
+	return;
+      }
+
+      /* Charge one unit per subdivision; degrade to the chord when the
+	 session work budget is spent. */
       if (unlikely (work_left <= 0))
 	emit_chord = true;
       else
@@ -734,7 +744,7 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
     float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
     float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
 
-    /* Depth is capped at 16, so stack capacity 16 is sufficient. */
+    /* Only nodes short of the depth cap are split, one pending per level. */
     stack[top++] = {xm, ym, x12, y12, x2, y2, depth + 1, check_clip};
     x2 = xm; y2 = ym;
     x1 = x01; y1 = y01;
@@ -856,7 +866,7 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
     bool check_clip;
   };
 
-  cubic_node_t stack[16];
+  cubic_node_t stack[HB_RASTER_MAX_FLATTEN_DEPTH];
   unsigned top = 0;
 
   bool check_clip = draw->flatten_clip_active;
@@ -865,13 +875,13 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 
   while (true)
   {
-    bool emit_chord = depth >= 16;
+    bool emit_chord = false;
 
     /* Entirely outside the clip box: the chord is exact for coverage.
        Subdivided control points are convex combinations of their
        parent's, so once a node is entirely inside the box no
        descendant can leave it and the test is skipped below. */
-    if (!emit_chord && check_clip)
+    if (check_clip)
     {
       float bx0 = hb_min (hb_min (x0, x1), hb_min (x2, x3));
       float bx1 = hb_max (hb_max (x0, x1), hb_max (x2, x3));
@@ -919,10 +929,18 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
       emit_chord = is_flat;
     }
 
-    /* Charge one unit per subdivision; degrade to the chord when the
-       session work budget is spent. */
     if (!emit_chord)
     {
+      /* As for the quadratic: not flat by now ends the outline. */
+      if (unlikely (depth >= HB_RASTER_MAX_FLATTEN_DEPTH))
+      {
+	draw->edges_left = 0;
+	*work = work_left;
+	return;
+      }
+
+      /* Charge one unit per subdivision; degrade to the chord when the
+	 session work budget is spent. */
       if (unlikely (work_left <= 0))
 	emit_chord = true;
       else
@@ -954,7 +972,7 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
     float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
     float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
 
-    /* Depth is capped at 16, so stack capacity 16 is sufficient. */
+    /* Only nodes short of the depth cap are split, one pending per level. */
     stack[top++] = {xm, ym, x123, y123, x23, y23, x3, y3, depth + 1, check_clip};
     x3 = xm; y3 = ym;
     x2 = x012; y2 = y012;

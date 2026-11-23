@@ -418,6 +418,82 @@ test_budget_nonfinite_curve (void)
   hb_raster_draw_destroy (draw);
 }
 
+/* ── Test 9c: a curve too large to flatten ends the outline ──────── */
+
+/* A curve is halved until it is flat, twelve times at most.  One that is
+ * still not flat then, as when a transform puts an outline astronomically
+ * far away, ends the outline: it costs a subdivision per level, and
+ * nothing that follows it is flattened. */
+static void
+test_budget_curve_too_large (void)
+{
+  hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
+  hb_draw_funcs_t *funcs = hb_raster_draw_get_funcs (draw);
+  const int64_t budget = 1 << 20;
+
+  /* With the extents left to the outline, and with a clip box. */
+  for (unsigned fixed = 0; fixed < 2; fixed++)
+  {
+    /* A hundred thousand pixels across is within reach, here from a
+     * point within the clip box: the curve is flattened in full, and so
+     * is one after it. */
+    hb_raster_draw_reset (draw);
+    if (fixed)
+    {
+      hb_raster_extents_t extents = {0, 0, 32, 32, 0};
+      hb_raster_draw_set_extents (draw, &extents);
+    }
+    g_assert_true (hb_draw_set_budget (funcs, draw, budget));
+    hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+    hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+    hb_draw_quadratic_to (funcs, draw, &st, 1e5f, 0.f, 1e5f, 1e5f);
+    int64_t left = hb_draw_get_budget_remaining (funcs, draw);
+    g_assert_cmpint (left, <, budget);
+    hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+    hb_draw_cubic_to (funcs, draw, &st, 20.f, 0.f, 30.f, 10.f, 30.f, 30.f);
+    g_assert_cmpint (hb_draw_get_budget_remaining (funcs, draw), <, left);
+
+    /* 1e30 pixels across is not. */
+    hb_raster_draw_reset (draw);
+    if (fixed)
+    {
+      hb_raster_extents_t extents = {0, 0, 32, 32, 0};
+      hb_raster_draw_set_extents (draw, &extents);
+    }
+    g_assert_true (hb_draw_set_budget (funcs, draw, budget));
+    st = HB_DRAW_STATE_DEFAULT;
+    hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+    hb_draw_quadratic_to (funcs, draw, &st, 1e30f, 0.f, 1e30f, 1e30f);
+    left = hb_draw_get_budget_remaining (funcs, draw);
+    g_assert_cmpint (left, >=, budget - 12);
+    hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+    hb_draw_cubic_to (funcs, draw, &st, 20.f, 0.f, 30.f, 10.f, 30.f, 30.f);
+    hb_draw_quadratic_to (funcs, draw, &st, 1e30f, 0.f, 1e30f, 1e30f);
+    g_assert_cmpint (hb_draw_get_budget_remaining (funcs, draw), ==, left);
+
+    /* Nor is a cubic that size. */
+    hb_raster_draw_reset (draw);
+    if (fixed)
+    {
+      hb_raster_extents_t extents = {0, 0, 32, 32, 0};
+      hb_raster_draw_set_extents (draw, &extents);
+    }
+    g_assert_true (hb_draw_set_budget (funcs, draw, budget));
+    st = HB_DRAW_STATE_DEFAULT;
+    hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+    hb_draw_cubic_to (funcs, draw, &st, 1e30f, 0.f, 1e30f, 1e30f, 0.f, 1e30f);
+    left = hb_draw_get_budget_remaining (funcs, draw);
+    g_assert_cmpint (left, >=, budget - 12);
+    hb_draw_move_to (funcs, draw, &st, 0.f, 0.f);
+    hb_draw_cubic_to (funcs, draw, &st, 20.f, 0.f, 30.f, 10.f, 30.f, 30.f);
+    g_assert_cmpint (hb_draw_get_budget_remaining (funcs, draw), ==, left);
+
+    hb_raster_image_destroy (hb_raster_draw_render (draw));
+  }
+
+  hb_raster_draw_destroy (draw);
+}
+
 /* ── Test 10: outline budget bounds a real COLR walk, apart from pixels ─ */
 
 /* The paint session's outline and pixel budgets are separate.  A 1x1
@@ -1475,6 +1551,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_glyph_extents_overflow);
   hb_test_add (test_budget);
   hb_test_add (test_budget_nonfinite_curve);
+  hb_test_add (test_budget_curve_too_large);
   hb_test_add (test_budget_colr_outline);
   hb_test_add (test_background_premultiplied);
   hb_test_add (test_background_stride);
