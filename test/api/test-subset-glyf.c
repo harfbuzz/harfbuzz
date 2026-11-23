@@ -625,6 +625,46 @@ test_subset_glyf_recompute_default_instance_bounds (void)
 }
 
 static void
+test_subset_glyf_instance_coord_overflow (void)
+{
+  /* gvar deltas push instanced coordinates, component offsets and phantom
+   * advances past the integer ranges the glyf instancer narrows them to.
+   * Without a clamp this is an out-of-range float-to-int conversion (UB).
+   * The fixture triggers every narrowing site in one pin: compW the WORD
+   * component-offset int16 cast, compB the byte-branch int cast, simp a
+   * contour point, simpP the sidebearing/advance math in update_mtx. */
+  hb_face_t *source = hb_test_open_font_file ("fonts/glyf-instance-coord-overflow.ttf");
+
+  /* The int16/int narrowing sites still produce a valid instance; the
+   * component offset is clamped into range rather than wrapping. */
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 3);
+  g_assert_true (hb_subset_input_pin_axis_location (input, source,
+                  HB_TAG ('w','g','h','t'), 1000.0f));
+  hb_face_t *subset = hb_subset_test_create_subset (source, input);
+  hb_blob_t *glyf = hb_face_reference_table (subset, HB_TAG ('g','l','y','f'));
+  unsigned length = 0;
+  hb_blob_get_data (glyf, &length);
+  g_assert_cmpuint (length, >, 0);
+  hb_blob_destroy (glyf);
+  hb_face_destroy (subset);
+
+  /* Including the phantom-advance glyph exercises update_mtx. The absurd
+   * advance may make the instance fail to build, which is fine; it must not
+   * invoke undefined behavior on the way (caught by the CI UBSan job). */
+  input = hb_subset_input_create_or_fail ();
+  hb_set_add_range (hb_subset_input_glyph_set (input), 0, 5);
+  g_assert_true (hb_subset_input_pin_axis_location (input, source,
+                  HB_TAG ('w','g','h','t'), 1000.0f));
+  hb_face_t *full = hb_subset_or_fail (source, input);
+  if (full)
+    hb_face_destroy (full);
+  hb_subset_input_destroy (input);
+
+  hb_face_destroy (source);
+}
+
+static void
 test_subset_glyf_aliased_loca (void)
 {
   /* A loca of 0, 16, 0, 16, ...: every even glyph is the same 16 bytes and
@@ -868,6 +908,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_retain_gids_truncates);
   hb_test_add (test_subset_glyf_zero_contour_instructions);
   hb_test_add (test_subset_glyf_recompute_default_instance_bounds);
+  hb_test_add (test_subset_glyf_instance_coord_overflow);
   hb_test_add (test_subset_glyf_aliased_loca);
   hb_test_add (test_subset_glyf_instancing_budget);
   hb_test_add (test_subset_glyf_missing_component);

@@ -168,13 +168,13 @@ struct CompositeGlyphRecord
       hb_memcpy (out, this, len);
 
       HBINT16 *o = reinterpret_cast<HBINT16 *> (out + len_before_val);
-      o[0] = roundf (point.x);
-      o[1] = roundf (point.y);
+      o[0] = hb_clamp_to<int16_t> (roundf (point.x));
+      o[1] = hb_clamp_to<int16_t> (roundf (point.y));
     }
     else
     {
-      int new_x = roundf (point.x);
-      int new_y = roundf (point.y);
+      int new_x = hb_clamp_to<int16_t> (roundf (point.x));
+      int new_y = hb_clamp_to<int16_t> (roundf (point.y));
       if (new_x <= 127 && new_x >= -128 &&
           new_y <= 127 && new_y >= -128)
       {

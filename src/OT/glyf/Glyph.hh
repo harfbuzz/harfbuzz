@@ -159,17 +159,17 @@ struct Glyph
 
     uint32_t hash = hb_hash (new_gid);
 
-    signed hori_aw = roundf (rightSideX - leftSideX);
+    signed hori_aw = hb_clamp_to<int> (roundf (rightSideX - leftSideX));
     if (hori_aw < 0) hori_aw = 0;
-    int lsb = roundf (xMin - leftSideX);
+    int lsb = hb_clamp_to<int> (roundf (xMin - leftSideX));
     plan->hmtx_map.set_with_hash (new_gid, hash, hb_pair ((unsigned) hori_aw, lsb));
     //flag value should be computed using non-empty glyphs
     if (type != EMPTY && lsb != xMin)
       plan->head_maxp_info.allXMinIsLsb = false;
 
-    signed vert_aw = roundf (topSideY - bottomSideY);
+    signed vert_aw = hb_clamp_to<int> (roundf (topSideY - bottomSideY));
     if (vert_aw < 0) vert_aw = 0;
-    int tsb = roundf (topSideY - yMax);
+    int tsb = hb_clamp_to<int> (roundf (topSideY - yMax));
     plan->vmtx_map.set_with_hash (new_gid, hash, hb_pair ((unsigned) vert_aw, tsb));
   }
 
