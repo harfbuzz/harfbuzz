@@ -172,7 +172,7 @@ hb_gpu_draw_t::acc_cubic_to (double c1x, double c1y,
   hb_gpu_cubic_to_quadratics (this,
 			      {c0x, c0y}, {c1x, c1y},
 			      {c2x, c2y}, {x, y},
-			      HB_GPU_CU2QU_TOLERANCE, 0);
+			      HB_GPU_CU2QU_TOLERANCE);
 }
 
 

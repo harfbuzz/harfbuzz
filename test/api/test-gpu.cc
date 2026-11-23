@@ -257,8 +257,8 @@ test_budget_cubic (void)
   hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
 
-  /* A cubic that fits no quadratic at any depth must not be subdivided
-   * once the budget is spent; the subdivision itself is charged. */
+  /* A cubic that no quadratic fits must not be worked on once the budget
+   * is spent; the attempts themselves are charged. */
   g_assert_true (hb_draw_set_budget (draw_funcs, draw, 0));
   hb_draw_move_to (draw_funcs, draw, &draw_state, 0.f, 0.f);
   hb_draw_cubic_to (draw_funcs, draw, &draw_state,
@@ -275,10 +275,9 @@ test_cubic_unencodable (void)
   hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
   hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
 
-  /* A cubic that passes beyond the coordinates the encoder can store
-   * makes the outline unencodable however finely it is split, so it must
-   * not be split all the way down, which is 2,047 nodes and 1,024 lines:
-   * the subdivision stops at the first split point out of reach. */
+  /* A cubic far beyond the coordinates the encoder can store makes the
+   * outline unencodable however it is converted, so it must not be
+   * worked on: it is emitted as its control polygon, for a few units. */
   g_assert_true (hb_draw_set_budget (draw_funcs, draw, 64));
   hb_draw_move_to (draw_funcs, draw, &draw_state, 0.f, 0.f);
   hb_draw_cubic_to (draw_funcs, draw, &draw_state,
@@ -295,8 +294,7 @@ test_cubic_unencodable (void)
   g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >=, 0);
   g_assert_null (hb_gpu_draw_encode (draw, nullptr));
 
-  /* And when its first split point is: the control points cancel there,
-   * and the two halves stop at their own. */
+  /* And when its middle is too: the control points cancel there. */
   g_assert_true (hb_draw_set_budget (draw_funcs, draw, 64));
   draw_state = HB_DRAW_STATE_DEFAULT;
   hb_draw_move_to (draw_funcs, draw, &draw_state, 0.f, 0.f);
@@ -312,6 +310,40 @@ test_cubic_unencodable (void)
   hb_draw_cubic_to (draw_funcs, draw, &draw_state,
 		    1.f, 2.f, 3.f, 4.f, NAN, NAN);
   g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >=, 0);
+
+  hb_gpu_draw_destroy (draw);
+}
+
+static void
+test_cubic_control_on_end (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+  hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
+
+  /* A cubic with a control point on its end point has no tangent at
+   * that end.  It must still convert to a few quadratics, not be worked
+   * on to the limit for want of two tangents to intersect. */
+  static const float cubics[2][8] = {
+    {0.f, 0.f,  0.f, 100.f,  100.f, 100.f,  100.f, 100.f},
+    {0.f, 0.f,  0.f, 0.f,    0.f, 100.f,    100.f, 100.f},
+  };
+  for (unsigned i = 0; i < 2; i++)
+  {
+    const float *c = cubics[i];
+    hb_gpu_draw_reset (draw);
+    g_assert_true (hb_draw_set_budget (draw_funcs, draw, 32));
+    hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
+    hb_draw_move_to (draw_funcs, draw, &draw_state, c[0], c[1]);
+    hb_draw_cubic_to (draw_funcs, draw, &draw_state,
+		      c[2], c[3], c[4], c[5], c[6], c[7]);
+    hb_draw_close_path (draw_funcs, draw, &draw_state);
+    g_assert_cmpint (hb_draw_get_budget_remaining (draw_funcs, draw), >=, 0);
+
+    hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
+    g_assert_nonnull (blob);
+    g_assert_cmpuint (hb_blob_get_length (blob), >, 0);
+    hb_blob_destroy (blob);
+  }
 
   hb_gpu_draw_destroy (draw);
 }
@@ -1317,6 +1349,7 @@ main (int argc, char **argv)
   hb_test_add (test_budget);
   hb_test_add (test_budget_cubic);
   hb_test_add (test_cubic_unencodable);
+  hb_test_add (test_cubic_control_on_end);
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
   hb_test_add (test_encode_quantizes_extents_outward);
