@@ -199,7 +199,7 @@ struct hb_gpu_cu2qu_cubic_t
 };
 
 /*
- * Try to approximate a cubic Bézier with a spline of n > 1 quadratics.
+ * The spline of n > 1 quadratics for a cubic.
  *
  * The cubic is cut into n equal pieces.  Each gives one off-curve point,
  * between the points its two end tangents suggest, nearer the first one
@@ -207,60 +207,48 @@ struct hb_gpu_cu2qu_cubic_t
  * quadratics meet halfway between their off-curve points.  So the spline
  * is smooth, and it leaves both ends of the cubic along the cubic's own
  * tangents.
- *
- * Fills @off with the n off-curve points and @on with the n + 1 on-curve
- * ones.
  */
-static bool
-hb_gpu_cubic_approx_spline (const hb_gpu_cu2qu_cubic_t &cubic,
-			    unsigned n,
-			    double tolerance,
-			    hb_gpu_cu2qu_point_t *off,
-			    hb_gpu_cu2qu_point_t *on)
+
+/* The off-curve point for the k-th of n pieces, @p its control points. */
+static inline hb_gpu_cu2qu_point_t
+hb_gpu_cubic_spline_control (const hb_gpu_cu2qu_point_t p[4],
+			     unsigned k, unsigned n)
 {
-  auto control = [n] (unsigned k, const hb_gpu_cu2qu_point_t p[4])
-  {
-    hb_gpu_cu2qu_point_t q0 = {p[0].x + (p[1].x - p[0].x) * 1.5,
-			       p[0].y + (p[1].y - p[0].y) * 1.5};
-    hb_gpu_cu2qu_point_t q1 = {p[3].x + (p[2].x - p[3].x) * 1.5,
-			       p[3].y + (p[2].y - p[3].y) * 1.5};
-    return hb_gpu_cu2qu_lerp (q0, q1, (double) k / (n - 1));
-  };
+  hb_gpu_cu2qu_point_t q0 = {p[0].x + (p[1].x - p[0].x) * 1.5,
+			     p[0].y + (p[1].y - p[0].y) * 1.5};
+  hb_gpu_cu2qu_point_t q1 = {p[3].x + (p[2].x - p[3].x) * 1.5,
+			     p[3].y + (p[2].y - p[3].y) * 1.5};
+  return hb_gpu_cu2qu_lerp (q0, q1, (double) k / (n - 1));
+}
 
-  hb_gpu_cu2qu_point_t cur[4], next[4];
-  cubic.piece (0, n, next);
-  off[0] = control (0, next);
-  on[0] = cubic.c0;
+/*
+ * How far the spline of n > 1 quadratics gets from its cubic at equal
+ * parameters, as a multiple of the cubic's third difference over n^3.
+ *
+ * It does not depend on the cubic.  With d the third difference over
+ * n^3, the off-curve point of piece k is the one of least error for the
+ * piece plus d (1 - 2k/(n-1)) / 4, which puts the on-curve point between
+ * pieces k-1 and k at d g(k) from the cubic, g(k) = (n-2k) / (4(n-1)).
+ * The difference between quadratic k and its piece then is d times
+ *
+ *   g(k) - u (2g(k) + k/(n-1)) + u^2 (1 + g(k) + g(k+1) + k/(n-1)) - u^3
+ *
+ * at parameter u, with g(0) = g(n) = 0.  It is largest in the first
+ * piece or in the second, and likewise in the last two.
+ */
+static inline double
+hb_gpu_cubic_spline_error (unsigned n)
+{
+  if (n == 2)
+    return 4. / 27.;
 
-  for (unsigned k = 0; k < n; k++)
-  {
-    hb_memcpy (cur, next, sizeof (cur));
-    if (k + 1 < n)
-    {
-      cubic.piece (k + 1, n, next);
-      off[k + 1] = control (k + 1, next);
-      on[k + 1] = hb_gpu_cu2qu_lerp (off[k], off[k + 1], 0.5);
-    }
-    else
-      on[k + 1] = cubic.c3;
+  double g = (n - 2) / (4. * (n - 1));
+  double first = 4. / 27. * (1 + g) * (1 + g) * (1 + g);
 
-    /* The quadratic from on[k] to on[k + 1] against its piece of the
-     * cubic.  Their ends differ as well, except at the cubic's own. */
-    hb_gpu_cu2qu_point_t err0 = {on[k].x - cur[0].x,
-				 on[k].y - cur[0].y};
-    hb_gpu_cu2qu_point_t err1 = {on[k].x + (off[k].x - on[k].x) * (2.0 / 3.0) - cur[1].x,
-				 on[k].y + (off[k].y - on[k].y) * (2.0 / 3.0) - cur[1].y};
-    hb_gpu_cu2qu_point_t err2 = {on[k + 1].x + (off[k].x - on[k + 1].x) * (2.0 / 3.0) - cur[2].x,
-				 on[k + 1].y + (off[k].y - on[k + 1].y) * (2.0 / 3.0) - cur[2].y};
-    hb_gpu_cu2qu_point_t err3 = {on[k + 1].x - cur[3].x,
-				 on[k + 1].y - cur[3].y};
+  double w2 = (.25 - .5 / (n - 1)) / 3;
+  double second = (n - 3) / (4. * (n - 1)) + 2 * w2 * sqrt (w2);
 
-    if (!(hypot (err3.x, err3.y) <= tolerance) ||
-	!hb_gpu_cubic_farthest_fit_inside (err0, err1, err2, err3, tolerance, 0))
-      return false;
-  }
-
-  return true;
+  return hb_max (first, second);
 }
 
 
@@ -275,10 +263,10 @@ hb_gpu_cubic_to_quadratics (hb_gpu_draw_t *g,
 			    hb_gpu_cu2qu_point_t c3,
 			    double tolerance)
 {
-  /* Charge the fit tests to the work budget, a unit for each quadratic
-   * tried, and stop once the accumulator has failed or the budget is
-   * spent: whatever we would emit from here is dropped by acc_emit()
-   * anyway. */
+  /* Charge the work budget a unit for the fit test and one for each
+   * quadratic computed, and stop once the accumulator has failed or the
+   * budget is spent: whatever we would emit from here is dropped by
+   * acc_emit() anyway. */
   int64_t *budget = g->get_budget_remaining ();
   if (unlikely (!g->success ||
 		!hb_budget_spend (*budget, HB_BUDGET_1)))
@@ -293,38 +281,41 @@ hb_gpu_cubic_to_quadratics (hb_gpu_draw_t *g,
 
   hb_gpu_cu2qu_cubic_t cubic (c0, c1, c2, c3);
 
-  /* At equal parameters no quadratic comes closer to a cubic than 1/32
-   * of the cubic's third difference, and that of one of n pieces is the
-   * whole cubic's over n^3.  So no fewer pieces than this can do.
-   * Written so that NaN goes past the last. */
+  /* The least n whose spline is within tolerance.  Written so that NaN
+   * goes past the last. */
   double d3 = hypot (cubic.b3.x, cubic.b3.y);
   unsigned n = 2;
   while (n <= HB_GPU_CU2QU_MAX_N &&
-	 !((double) n * n * n * (32 * tolerance) >= d3))
+	 !(d3 * hb_gpu_cubic_spline_error (n) <= tolerance * n * n * n))
     n++;
 
-  hb_gpu_cu2qu_point_t off[HB_GPU_CU2QU_MAX_N];
-  hb_gpu_cu2qu_point_t on[HB_GPU_CU2QU_MAX_N + 1];
-  for (; n <= HB_GPU_CU2QU_MAX_N; n++)
+  if (unlikely (n > HB_GPU_CU2QU_MAX_N))
   {
-    if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, n)))
-      return;
-
-    if (!hb_gpu_cubic_approx_spline (cubic, n, tolerance, off, on))
-      continue;
-
-    for (unsigned k = 0; k < n; k++)
-      g->acc_conic_to (off[k].x, off[k].y, on[k + 1].x, on[k + 1].y);
+    /* Too large for that many, which is far beyond what the encoder can
+     * store, as when a transform puts an outline astronomically far
+     * away: hb_gpu_draw_encode() will reject the outline.  Emit the
+     * control polygon, which has the cubic's points in it. */
+    g->acc_line_to (c1.x, c1.y);
+    g->acc_line_to (c2.x, c2.y);
+    g->acc_line_to (c3.x, c3.y);
     return;
   }
 
-  /* Too large for that many, which is far beyond what the encoder can
-   * store, as when a transform puts an outline astronomically far away:
-   * hb_gpu_draw_encode() will reject the outline.  Emit the control
-   * polygon, which has the cubic's points in it. */
-  g->acc_line_to (c1.x, c1.y);
-  g->acc_line_to (c2.x, c2.y);
-  g->acc_line_to (c3.x, c3.y);
+  if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, n)))
+    return;
+
+  hb_gpu_cu2qu_point_t piece[4];
+  cubic.piece (0, n, piece);
+  hb_gpu_cu2qu_point_t off = hb_gpu_cubic_spline_control (piece, 0, n);
+  for (unsigned k = 1; k < n; k++)
+  {
+    cubic.piece (k, n, piece);
+    hb_gpu_cu2qu_point_t next_off = hb_gpu_cubic_spline_control (piece, k, n);
+    hb_gpu_cu2qu_point_t on = hb_gpu_cu2qu_lerp (off, next_off, 0.5);
+    g->acc_conic_to (off.x, off.y, on.x, on.y);
+    off = next_off;
+  }
+  g->acc_conic_to (off.x, off.y, c3.x, c3.y);
 }
 
 
