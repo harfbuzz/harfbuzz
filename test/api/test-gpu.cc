@@ -348,6 +348,69 @@ test_cubic_control_on_end (void)
   hb_gpu_draw_destroy (draw);
 }
 
+static hb_blob_t *
+encode_one_curve (hb_gpu_draw_t *draw, const float *c, unsigned n_points)
+{
+  hb_draw_funcs_t *draw_funcs = hb_gpu_draw_get_funcs (draw);
+  hb_gpu_draw_reset (draw);
+  hb_draw_state_t draw_state = HB_DRAW_STATE_DEFAULT;
+  hb_draw_move_to (draw_funcs, draw, &draw_state, c[0], c[1]);
+  if (n_points == 4)
+    hb_draw_cubic_to (draw_funcs, draw, &draw_state,
+		      c[2], c[3], c[4], c[5], c[6], c[7]);
+  else
+    hb_draw_quadratic_to (draw_funcs, draw, &draw_state,
+			  c[2], c[3], c[4], c[5]);
+  hb_draw_close_path (draw_funcs, draw, &draw_state);
+  hb_blob_t *blob = hb_gpu_draw_encode (draw, nullptr);
+  g_assert_nonnull (blob);
+  return blob;
+}
+
+static void
+test_cubic_single_quadratic (void)
+{
+  hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+
+  /* A cubic runs along the quadratic of its two end tangents, at another
+   * pace, when its two handles add up to 4/3 of the way to where the
+   * tangents meet, however unevenly.  Such a cubic must come out as that
+   * one quadratic. */
+  static const struct
+  {
+    float cubic[8];
+    float quadratic[6];
+    bool same;
+  } tests[] = {
+    /* Handles all the way and a third of the way to (12,12). */
+    {{0.f, 0.f,  12.f, 12.f,  20.f, 4.f,  24.f, 0.f},
+     {0.f, 0.f,  12.f, 12.f,  24.f, 0.f}, true},
+    /* A control point on its end point: the cubic leaves that end toward
+     * the other control point, which is then the quadratic's. */
+    {{0.f, 0.f,  0.f, 0.f,  4.f, 4.f,  8.f, 0.f},
+     {0.f, 0.f,  4.f, 4.f,  8.f, 0.f}, true},
+    /* The first one eight times the size is too far from its quadratic. */
+    {{0.f, 0.f,  96.f, 96.f,  160.f, 32.f,  192.f, 0.f},
+     {0.f, 0.f,  96.f, 96.f,  192.f, 0.f}, false},
+  };
+  for (unsigned i = 0; i < G_N_ELEMENTS (tests); i++)
+  {
+    hb_blob_t *cubic = encode_one_curve (draw, tests[i].cubic, 4);
+    hb_blob_t *quadratic = encode_one_curve (draw, tests[i].quadratic, 3);
+    unsigned cubic_length, quadratic_length;
+    const char *cubic_data = hb_blob_get_data (cubic, &cubic_length);
+    const char *quadratic_data = hb_blob_get_data (quadratic, &quadratic_length);
+    g_assert_cmpuint (cubic_length, >, 0);
+    bool same = cubic_length == quadratic_length &&
+		0 == memcmp (cubic_data, quadratic_data, cubic_length);
+    g_assert_true (same == tests[i].same);
+    hb_blob_destroy (cubic);
+    hb_blob_destroy (quadratic);
+  }
+
+  hb_gpu_draw_destroy (draw);
+}
+
 static void
 test_draw_funcs (void)
 {
@@ -1350,6 +1413,7 @@ main (int argc, char **argv)
   hb_test_add (test_budget_cubic);
   hb_test_add (test_cubic_unencodable);
   hb_test_add (test_cubic_control_on_end);
+  hb_test_add (test_cubic_single_quadratic);
   hb_test_add (test_draw_funcs);
   hb_test_add (test_shader_sources);
   hb_test_add (test_encode_quantizes_extents_outward);

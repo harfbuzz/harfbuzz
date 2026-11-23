@@ -49,15 +49,6 @@
 #define HB_GPU_CU2QU_MAX_N 64
 #endif
 
-/* A single quadratic is not tried for a third difference of more than
- * this many times the tolerance.  A quadratic with the end points of a
- * cubic gets at least sqrt(3)/36 of the cubic's third difference away
- * from it, wherever its control point is, so none fits above 36/sqrt(3)
- * = 20.78; this is past that by more than the fit test can be wrong. */
-#ifndef HB_GPU_CU2QU_QUADRATIC_MAX_D3
-#define HB_GPU_CU2QU_QUADRATIC_MAX_D3 21.
-#endif
-
 
 struct hb_gpu_cu2qu_point_t
 {
@@ -73,48 +64,34 @@ hb_gpu_cu2qu_lerp (hb_gpu_cu2qu_point_t a, hb_gpu_cu2qu_point_t b, double t)
 
 
 /*
- * Check whether a cubic error curve stays within `tolerance` of the origin.
- */
-static bool
-hb_gpu_cubic_farthest_fit_inside (hb_gpu_cu2qu_point_t p0,
-				  hb_gpu_cu2qu_point_t p1,
-				  hb_gpu_cu2qu_point_t p2,
-				  hb_gpu_cu2qu_point_t p3,
-				  double tolerance, unsigned depth)
-{
-  if (hypot (p1.x, p1.y) <= tolerance &&
-      hypot (p2.x, p2.y) <= tolerance)
-    return true;
-
-  if (depth >= 8)
-    return false;
-
-  hb_gpu_cu2qu_point_t mid = {(p0.x + 3 * (p1.x + p2.x) + p3.x) * 0.125,
-			      (p0.y + 3 * (p1.y + p2.y) + p3.y) * 0.125};
-  if (hypot (mid.x, mid.y) > tolerance)
-    return false;
-
-  hb_gpu_cu2qu_point_t d3 = {(p3.x + p2.x - p1.x - p0.x) * 0.125,
-			     (p3.y + p2.y - p1.y - p0.y) * 0.125};
-
-  return hb_gpu_cubic_farthest_fit_inside (
-    p0,
-    hb_gpu_cu2qu_lerp (p0, p1, 0.5),
-    {mid.x - d3.x, mid.y - d3.y},
-    mid,
-    tolerance, depth + 1
-  ) && hb_gpu_cubic_farthest_fit_inside (
-    mid,
-    {mid.x + d3.x, mid.y + d3.y},
-    hb_gpu_cu2qu_lerp (p2, p3, 0.5),
-    p3,
-    tolerance, depth + 1
-  );
-}
-
-
-/*
- * Try to approximate a cubic Bézier with a single quadratic.
+ * Try to approximate a cubic Bézier with a single quadratic: the one
+ * whose control point q is where the cubic's two end tangents meet.
+ *
+ * Returns whether the two curves are within `tolerance` of each other as
+ * sets of points, not at equal parameters: the cubic runs along that
+ * quadratic at another pace, and what counts is how far it leaves it.
+ *
+ * With a = q - c0 and z = c3 - q, the cubic's control points are at
+ * c1 = c0 + l1 a and c2 = c3 - l2 z, and the cubic B is the quadratic Q
+ * at another parameter plus an offset along the parabola's axis:
+ *
+ *   B(t) = Q(tau(t)) + rho(t) (a - z)
+ *
+ *   tau(t) = 3 t (1-t)^2 l1/2 + 3 t^2 (1-t) (1 - l2/2) + t^3
+ *   rho(t) = 3 t^2 (1-t)^2 (l1 + l2 - 4/3 + 3 e(t)^2)
+ *   e(t)   = (1-t) (l1/2 - 1/3) + t (1/3 - l2/2)
+ *
+ * which is an identity of polynomials.  For l1 and l2 from 0 to 2, tau
+ * is a Bézier function with control values from 0 to 1, so it takes
+ * [0,1] onto [0,1]: every point of the cubic is |rho| |a - z| from a
+ * point of the quadratic, and every point of the quadratic that far from
+ * one of the cubic.  As t^2 (1-t)^2 is at most 1/16, the two are within
+ *
+ *   3/16 max |l1 + l2 - 4/3 + 3 e^2| |a - z|
+ *
+ * So a single quadratic fits when the two handles add up to 4/3 of the
+ * way to where the tangents meet, however that is split between them.
+ * (At equal parameters it would take 2/3 each.)
  */
 static bool
 hb_gpu_cubic_approx_quadratic (hb_gpu_cu2qu_point_t c0,
@@ -153,12 +130,28 @@ hb_gpu_cubic_approx_quadratic (hb_gpu_cu2qu_point_t c0,
   q1->x = c2.x + dx * h;
   q1->y = c2.y + dy * h;
 
-  hb_gpu_cu2qu_point_t err1 = {c0.x + (q1->x - c0.x) * (2.0 / 3.0) - c1.x,
-			       c0.y + (q1->y - c0.y) * (2.0 / 3.0) - c1.y};
-  hb_gpu_cu2qu_point_t err2 = {c3.x + (q1->x - c3.x) * (2.0 / 3.0) - c2.x,
-			       c3.y + (q1->y - c3.y) * (2.0 / 3.0) - c2.y};
+  /* The two legs of the quadratic, and how far along them the cubic's
+   * control points are.  Written so that NaN gives up. */
+  hb_gpu_cu2qu_point_t a = {q1->x - c0.x, q1->y - c0.y};
+  hb_gpu_cu2qu_point_t z = {c3.x - q1->x, c3.y - q1->y};
+  double aa = a.x * a.x + a.y * a.y;
+  double zz = z.x * z.x + z.y * z.y;
+  if (!(aa > 0 && zz > 0))
+    return false;
+  double l1 = ((c1.x - c0.x) * a.x + (c1.y - c0.y) * a.y) / aa;
+  double l2 = ((c3.x - c2.x) * z.x + (c3.y - c2.y) * z.y) / zz;
+  if (!(l1 >= 0 && l1 <= 2 && l2 >= 0 && l2 <= 2))
+    return false;
 
-  return hb_gpu_cubic_farthest_fit_inside ({0, 0}, err1, err2, {0, 0}, tolerance, 0);
+  /* e(t) goes from p to r, so e^2 is between the smaller of their
+   * squares, or zero if they differ in sign, and the larger. */
+  double p = l1 * .5 - 1. / 3., r = 1. / 3. - l2 * .5;
+  double e2_max = hb_max (p * p, r * r);
+  double e2_min = p * r <= 0 ? 0. : hb_min (p * p, r * r);
+  double g = l1 + l2 - 4. / 3.;
+  double m = hb_max (fabs (g + 3 * e2_max), fabs (g + 3 * e2_min));
+
+  return 3. / 16. * m * hypot (a.x - z.x, a.y - z.y) <= tolerance;
 }
 
 
@@ -281,23 +274,18 @@ hb_gpu_cubic_to_quadratics (hb_gpu_draw_t *g,
 		!hb_budget_spend (*budget, HB_BUDGET_1)))
     return;
 
-  hb_gpu_cu2qu_cubic_t cubic (c0, c1, c2, c3);
-  double d3 = hypot (cubic.b3.x, cubic.b3.y);
-
-  /* A single quadratic, unless the third difference rules it out.  NaN
-   * does too. */
-  if (d3 <= tolerance * HB_GPU_CU2QU_QUADRATIC_MAX_D3)
+  hb_gpu_cu2qu_point_t q1;
+  if (hb_gpu_cubic_approx_quadratic (c0, c1, c2, c3, tolerance, &q1))
   {
-    hb_gpu_cu2qu_point_t q1;
-    if (hb_gpu_cubic_approx_quadratic (c0, c1, c2, c3, tolerance, &q1))
-    {
-      g->acc_conic_to (q1.x, q1.y, c3.x, c3.y);
-      return;
-    }
+    g->acc_conic_to (q1.x, q1.y, c3.x, c3.y);
+    return;
   }
+
+  hb_gpu_cu2qu_cubic_t cubic (c0, c1, c2, c3);
 
   /* The least n whose spline is within tolerance.  Written so that NaN
    * goes past the last. */
+  double d3 = hypot (cubic.b3.x, cubic.b3.y);
   unsigned n = 2;
   while (n <= HB_GPU_CU2QU_MAX_N &&
 	 !(d3 * hb_gpu_cubic_spline_error (n) <= tolerance * n * n * n))
