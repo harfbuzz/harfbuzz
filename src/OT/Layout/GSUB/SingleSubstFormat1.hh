@@ -159,11 +159,11 @@ struct SingleSubstFormat1_3
   {
     unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (likely (index == NOT_COVERED))
-    {
-      if (alternate_count)
-        *alternate_count = 0;
-      return 0;
-    }
+      return 0; /* Leave the count for the next subtable. */
+
+    /* The substitute is the only alternate; nothing is past it. */
+    if (start_offset && alternate_count && alternate_glyphs)
+      *alternate_count = 0;
 
     if (alternate_count && *alternate_count && alternate_glyphs)
     {
