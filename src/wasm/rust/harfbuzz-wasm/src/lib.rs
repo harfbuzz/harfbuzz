@@ -32,6 +32,7 @@ use kurbo::BezPath;
 // assumptions about Javascript calling conventions. We
 // really do just want to import some C symbols and run
 // them in unsafe-land!
+#[link(wasm_import_module = "env")]
 extern "C" {
     fn face_get_upem(face: u32) -> u32;
     fn font_get_face(font: u32) -> u32;
