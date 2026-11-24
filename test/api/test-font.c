@@ -1224,6 +1224,115 @@ test_font_set_face (void)
   hb_face_destroy (other);
 }
 
+static int legacy_data_freed;
+
+static void
+legacy_data_free (void *user_data HB_UNUSED)
+{
+  legacy_data_freed++;
+}
+
+static hb_bool_t
+legacy_glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+		   hb_codepoint_t unicode HB_UNUSED,
+		   hb_codepoint_t variation_selector HB_UNUSED,
+		   hb_codepoint_t *glyph, void *user_data HB_UNUSED)
+{
+  *glyph = 42;
+  return true;
+}
+
+static void
+legacy_draw_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+		  hb_codepoint_t glyph HB_UNUSED,
+		  hb_draw_funcs_t *draw_funcs HB_UNUSED, void *draw_data,
+		  void *user_data HB_UNUSED)
+{
+  (*(int *) draw_data)++;
+}
+
+static hb_bool_t
+legacy_paint_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+		   hb_codepoint_t glyph HB_UNUSED,
+		   hb_paint_funcs_t *paint_funcs HB_UNUSED, void *paint_data,
+		   unsigned int palette_index HB_UNUSED,
+		   hb_color_t foreground HB_UNUSED,
+		   void *user_data HB_UNUSED)
+{
+  (*(int *) paint_data)++;
+  return true;
+}
+
+/* The legacy setters wrap their callback in a trampoline.  Given no
+ * callback they must put the default back, as the other setters do, and
+ * not leave a trampoline around nothing to be called through. */
+static void
+test_fontfuncs_legacy_null (void)
+{
+  hb_font_funcs_t *ffuncs = hb_font_funcs_create ();
+  hb_draw_funcs_t *dfuncs = hb_draw_funcs_create ();
+  hb_paint_funcs_t *pfuncs = hb_paint_funcs_create ();
+  hb_font_t *font;
+  hb_codepoint_t glyph;
+  int calls = 0;
+
+  legacy_data_freed = 0;
+
+  hb_font_funcs_set_glyph_func (ffuncs, legacy_glyph_func, NULL, legacy_data_free);
+  hb_font_funcs_set_draw_glyph_func (ffuncs, legacy_draw_func, NULL, legacy_data_free);
+  hb_font_funcs_set_paint_glyph_func (ffuncs, legacy_paint_func, NULL, legacy_data_free);
+  g_assert_cmpint (legacy_data_freed, ==, 0);
+
+  font = hb_font_create (hb_face_get_empty ());
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  glyph = 0;
+  g_assert_true (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_cmpuint (glyph, ==, 42);
+  glyph = 0;
+  g_assert_true (hb_font_get_variation_glyph (font, 'a', 0xFE00, &glyph));
+  g_assert_cmpuint (glyph, ==, 42);
+  g_assert_true (hb_font_draw_glyph_or_fail (font, 1, dfuncs, &calls));
+  g_assert_cmpint (calls, ==, 1);
+  g_assert_true (hb_font_paint_glyph_or_fail (font, 1, pfuncs, &calls, 0, HB_COLOR (0, 0, 0, 255)));
+  g_assert_cmpint (calls, ==, 2);
+  hb_font_destroy (font);
+
+  /* Each clear releases the data it was handed, and the data of the
+   * callback it replaces. */
+  hb_font_funcs_set_glyph_func (ffuncs, NULL, NULL, legacy_data_free);
+  g_assert_cmpint (legacy_data_freed, ==, 2);
+  hb_font_funcs_set_draw_glyph_func (ffuncs, NULL, NULL, legacy_data_free);
+  g_assert_cmpint (legacy_data_freed, ==, 4);
+  hb_font_funcs_set_glyph_shape_func (ffuncs, NULL, NULL, legacy_data_free);
+  g_assert_cmpint (legacy_data_freed, ==, 5);
+  hb_font_funcs_set_paint_glyph_func (ffuncs, NULL, NULL, legacy_data_free);
+  g_assert_cmpint (legacy_data_freed, ==, 7);
+
+  /* Nothing answers now but the defaults, which find nothing in a font
+   * with no parent to ask.  None of the callbacks above is called. */
+  font = hb_font_create (hb_face_get_empty ());
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  glyph = 7;
+  g_assert_false (hb_font_get_nominal_glyph (font, 'a', &glyph));
+  g_assert_false (hb_font_get_variation_glyph (font, 'a', 0xFE00, &glyph));
+  g_assert_false (hb_font_draw_glyph_or_fail (font, 1, dfuncs, &calls));
+  g_assert_false (hb_font_paint_glyph_or_fail (font, 1, pfuncs, &calls, 0, HB_COLOR (0, 0, 0, 255)));
+  g_assert_cmpint (calls, ==, 2);
+  hb_font_destroy (font);
+
+  /* An immutable object takes no change, and still releases the data. */
+  hb_font_funcs_make_immutable (ffuncs);
+  hb_font_funcs_set_glyph_func (ffuncs, NULL, NULL, legacy_data_free);
+  hb_font_funcs_set_draw_glyph_func (ffuncs, NULL, NULL, legacy_data_free);
+  hb_font_funcs_set_paint_glyph_func (ffuncs, NULL, NULL, legacy_data_free);
+  g_assert_cmpint (legacy_data_freed, ==, 10);
+
+  hb_paint_funcs_destroy (pfuncs);
+  hb_draw_funcs_destroy (dfuncs);
+  hb_font_funcs_destroy (ffuncs);
+  g_assert_cmpint (legacy_data_freed, ==, 10);
+}
+
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
@@ -1721,6 +1830,7 @@ main (int argc, char **argv)
   hb_test_add (test_font_float_scale_saturates);
 #ifndef HB_DISABLE_DEPRECATED
   hb_test_add (test_font_set_face);
+  hb_test_add (test_fontfuncs_legacy_null);
 #endif
 #ifdef HAVE_FONTATIONS
   hb_test_add (test_fontations_glyph_from_name_threads);
