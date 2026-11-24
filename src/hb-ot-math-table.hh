@@ -425,12 +425,10 @@ struct MathKern
 
     if (entries_count && kern_entries)
     {
-      unsigned int start = hb_min (start_offset, entriesCount);
-      unsigned int end = hb_min (start + *entries_count, entriesCount);
-      *entries_count = end - start;
+      auto kerns = hb_array (kernValue, entriesCount).sub_array (start_offset, entries_count);
 
-      for (unsigned int i = 0; i < *entries_count; i++) {
-	unsigned int j = start + i;
+      for (unsigned int i = 0; i < kerns.length; i++) {
+	unsigned int j = start_offset + i;
 
 	hb_position_t max_height;
 	if (j == heightCount) {
@@ -439,7 +437,7 @@ struct MathKern
 	  max_height = correctionHeight[j].get_y_value (font, this);
 	}
 
-	kern_entries[i] = {max_height, kernValue[j].get_x_value (font, this)};
+	kern_entries[i] = {max_height, kerns[i].get_x_value (font, this)};
       }
     }
     return entriesCount;

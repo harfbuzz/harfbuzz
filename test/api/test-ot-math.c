@@ -415,6 +415,66 @@ test_get_glyph_kernings (void)
   hb_face_destroy (face);
 }
 
+/* The getter clamps the count to the entries left from the offset.  With a
+ * non-zero offset, a count large enough overflowed that clamp.  UINT_MAX is
+ * such a count.  It overstates the capacity of the array, which is sized from
+ * the total, so it is not a call to make: it is only what sets the overflow
+ * off. */
+static void
+test_get_glyph_kernings_from_offset (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_codepoint_t glyph;
+  hb_ot_math_kern_entry_t *all, *page;
+  unsigned int total, count;
+
+  hb_font_set_scale (font, 2000, 1000);
+  g_assert_true (hb_font_get_glyph_from_name (font, "I", -1, &glyph));
+
+  total = hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0, NULL, NULL);
+  g_assert_cmpuint (total, ==, 10);
+  all = (hb_ot_math_kern_entry_t *) malloc (total * sizeof (all[0]));
+  page = (hb_ot_math_kern_entry_t *) malloc (total * sizeof (page[0]));
+
+  count = total;
+  g_assert_cmpuint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT,
+						   0, &count, all), ==, total);
+  g_assert_cmpuint (count, ==, total);
+
+  for (unsigned int start_offset = 0; start_offset <= total + 1; start_offset++)
+  {
+    unsigned int left = start_offset < total ? total - start_offset : 0;
+
+    for (unsigned int i = 0; i < total; i++)
+      page[i].max_correction_height = page[i].kern_value = -1;
+    count = (unsigned int) -1;
+    g_assert_cmpuint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT,
+						     start_offset, &count, page), ==, total);
+    g_assert_cmpuint (count, ==, left);
+    for (unsigned int i = 0; i < left; i++)
+    {
+      g_assert_cmpint (page[i].max_correction_height, ==, all[start_offset + i].max_correction_height);
+      g_assert_cmpint (page[i].kern_value, ==, all[start_offset + i].kern_value);
+    }
+    for (unsigned int i = left; i < total; i++)
+    {
+      g_assert_cmpint (page[i].max_correction_height, ==, -1);
+      g_assert_cmpint (page[i].kern_value, ==, -1);
+    }
+  }
+
+  count = (unsigned int) -1;
+  g_assert_cmpuint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT,
+						   (unsigned int) -1, &count, page), ==, total);
+  g_assert_cmpuint (count, ==, 0);
+
+  free (all);
+  free (page);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 
 static hb_position_t
 get_glyph_assembly_italics_correction (hb_font_t *font,
@@ -846,6 +906,7 @@ main (int argc, char **argv)
   hb_test_add (test_is_glyph_extended_shape);
   hb_test_add (test_get_glyph_kerning);
   hb_test_add (test_get_glyph_kernings);
+  hb_test_add (test_get_glyph_kernings_from_offset);
   hb_test_add (test_get_glyph_assembly_italics_correction);
   hb_test_add (test_get_min_connector_overlap);
   hb_test_add (test_get_glyph_variants);
