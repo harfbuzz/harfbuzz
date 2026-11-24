@@ -269,6 +269,18 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
  *
  * A virtual method for the #hb_paint_funcs_t to render a color glyph by glyph index.
  *
+ * It is called for a color glyph that another color glyph refers to, so
+ * that a client that caches rendered glyphs can supply this one from its
+ * cache.  Returning `false` leaves the glyph to HarfBuzz, which paints it
+ * as part of the walk in progress.
+ *
+ * A callback that paints the glyph by calling hb_font_paint_glyph()
+ * starts a new walk that knows nothing of the one in progress: the cycle
+ * detection of HarfBuzz, and its limits on depth and size, apply to each
+ * walk on its own.  Color glyphs can refer to each other, so such a
+ * callback must guard against cycles and limit how deeply it nests.
+ * Without that, a font can make it recurse until the stack overflows.
+ *
  * Return value: `true` if the glyph was painted, `false` otherwise.
  *
  * Since: 8.2.0
@@ -998,6 +1010,10 @@ hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
  * @destroy: (nullable): Function to call when @user_data is no longer needed
  *
  * Sets the color-glyph callback on the paint functions struct.
+ *
+ * A callback that paints by calling hb_font_paint_glyph() is responsible
+ * for guarding against cycles and for limiting how deeply it nests; see
+ * #hb_paint_color_glyph_func_t.
  *
  * If @func is `NULL`, the default implementation is restored.
  * @destroy is then called on @user_data right away.
