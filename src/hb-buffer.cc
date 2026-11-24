@@ -1552,6 +1552,11 @@ hb_buffer_clear_contents (hb_buffer_t *buffer)
  *
  * Pre allocates memory for @buffer to fit at least @size number of items.
  *
+ * This can move the arrays of @buffer.  Pointers returned earlier by
+ * hb_buffer_get_glyph_infos() and hb_buffer_get_glyph_positions() are
+ * then no longer valid, even though the contents of @buffer have not
+ * changed, and must be fetched again.
+ *
  * Return value:
  * `true` if @buffer memory allocation succeeded, `false` otherwise
  *
@@ -1672,11 +1677,13 @@ hb_buffer_get_length (const hb_buffer_t *buffer)
  * @length: (out): The output-array length.
  *
  * Returns @buffer glyph information array.  Returned pointer
- * is valid as long as @buffer contents are not modified.
+ * is valid as long as @buffer contents are not modified and
+ * hb_buffer_pre_allocate() is not called on it.
  *
  * Return value: (transfer none) (array length=length):
  * The @buffer glyph information array.
- * The value valid as long as buffer has not been modified.
+ * The value valid as long as buffer has not been modified
+ * or pre-allocated.
  *
  * Since: 0.9.2
  **/
@@ -1696,7 +1703,8 @@ hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
  * @length: (out): The output length
  *
  * Returns @buffer glyph position array.  Returned pointer
- * is valid as long as @buffer contents are not modified.
+ * is valid as long as @buffer contents are not modified and
+ * hb_buffer_pre_allocate() is not called on it.
  *
  * If buffer did not have positions before, the positions will be
  * initialized to zeros, unless this function is called from
@@ -1705,7 +1713,8 @@ hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
  *
  * Return value: (transfer none) (array length=length):
  * The @buffer glyph position array.
- * The value valid as long as buffer has not been modified.
+ * The value valid as long as buffer has not been modified
+ * or pre-allocated.
  *
  * Since: 0.9.2
  **/
