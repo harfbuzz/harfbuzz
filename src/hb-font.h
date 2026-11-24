@@ -593,11 +593,15 @@ typedef hb_bool_t (*hb_font_paint_glyph_or_fail_func_t) (hb_font_t *font, void *
 /**
  * hb_font_funcs_set_font_h_extents_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_font_h_extents_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 1.1.2
  **/
@@ -609,11 +613,15 @@ hb_font_funcs_set_font_h_extents_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_font_v_extents_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_font_v_extents_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 1.1.2
  **/
@@ -625,11 +633,15 @@ hb_font_funcs_set_font_v_extents_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_nominal_glyph_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_nominal_glyph_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 1.2.3
  **/
@@ -641,11 +653,15 @@ hb_font_funcs_set_nominal_glyph_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_nominal_glyphs_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_nominal_glyphs_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 2.0.0
  **/
@@ -657,11 +673,15 @@ hb_font_funcs_set_nominal_glyphs_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_variation_glyph_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_variation_glyph_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 1.2.3
  **/
@@ -673,11 +693,15 @@ hb_font_funcs_set_variation_glyph_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_h_advance_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_h_advance_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -689,11 +713,15 @@ hb_font_funcs_set_glyph_h_advance_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_v_advance_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_v_advance_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -705,11 +733,15 @@ hb_font_funcs_set_glyph_v_advance_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_h_advances_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_h_advances_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 1.8.6
  **/
@@ -721,11 +753,15 @@ hb_font_funcs_set_glyph_h_advances_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_v_advances_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_v_advances_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 1.8.6
  **/
@@ -737,11 +773,15 @@ hb_font_funcs_set_glyph_v_advances_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_h_origin_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_h_origin_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -753,11 +793,15 @@ hb_font_funcs_set_glyph_h_origin_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_v_origin_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_v_origin_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -769,11 +813,15 @@ hb_font_funcs_set_glyph_v_origin_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_h_origins_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_h_origins_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 11.3.0
  **/
@@ -785,11 +833,15 @@ hb_font_funcs_set_glyph_h_origins_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_v_origins_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_v_origins_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 11.3.0
  **/
@@ -801,11 +853,15 @@ hb_font_funcs_set_glyph_v_origins_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_h_kerning_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_h_kerning_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -817,11 +873,15 @@ hb_font_funcs_set_glyph_h_kerning_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_extents_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_extents_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -833,11 +893,15 @@ hb_font_funcs_set_glyph_extents_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_contour_point_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_contour_point_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -849,11 +913,15 @@ hb_font_funcs_set_glyph_contour_point_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_name_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_name_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -865,11 +933,15 @@ hb_font_funcs_set_glyph_name_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_glyph_from_name_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_from_name_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 0.9.2
  **/
@@ -881,11 +953,15 @@ hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_draw_glyph_or_fail_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_draw_glyph_or_fail_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 11.2.0
  **/
@@ -897,11 +973,15 @@ hb_font_funcs_set_draw_glyph_or_fail_func (hb_font_funcs_t *ffuncs,
 /**
  * hb_font_funcs_set_paint_glyph_or_fail_func:
  * @ffuncs: A font-function structure
- * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is no longer needed
  *
  * Sets the implementation function for #hb_font_paint_glyph_or_fail_func_t.
+ *
+ * If @func is `NULL`, the default implementation is restored, which
+ * defers to the parent font.  @destroy is then called on @user_data
+ * right away.
  *
  * Since: 11.2.0
  */

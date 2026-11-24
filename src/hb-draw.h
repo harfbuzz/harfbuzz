@@ -253,11 +253,14 @@ typedef int64_t *(*hb_draw_get_budget_remaining_func_t) (hb_draw_funcs_t *dfuncs
 /**
  * hb_draw_funcs_set_move_to_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): move-to callback
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): move-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets move-to callback to the draw functions object.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 4.0.0
  **/
@@ -269,11 +272,14 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *dfuncs,
 /**
  * hb_draw_funcs_set_line_to_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): line-to callback
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): line-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets line-to callback to the draw functions object.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 4.0.0
  **/
@@ -285,11 +291,14 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *dfuncs,
 /**
  * hb_draw_funcs_set_quadratic_to_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): quadratic-to callback
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): quadratic-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets quadratic-to callback to the draw functions object.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 4.0.0
  **/
@@ -301,11 +310,14 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *dfuncs,
 /**
  * hb_draw_funcs_set_cubic_to_func:
  * @dfuncs: draw functions
- * @func: (closure user_data) (destroy destroy) (scope notified): cubic-to callback
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): cubic-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets cubic-to callback to the draw functions object.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 4.0.0
  **/
@@ -317,11 +329,14 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *dfuncs,
 /**
  * hb_draw_funcs_set_close_path_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): close-path callback
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): close-path callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets close-path callback to the draw functions object.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 4.0.0
  **/
@@ -333,11 +348,14 @@ hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *dfuncs,
 /**
  * hb_draw_funcs_set_set_budget_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): budget setter
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): budget setter
  * @user_data: Data to pass to @func
  * @destroy: (nullable): callback to destroy @user_data
  *
  * Sets the budget setter callback.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 14.5.0
  **/
@@ -349,11 +367,14 @@ hb_draw_funcs_set_set_budget_func (hb_draw_funcs_t         *dfuncs,
 /**
  * hb_draw_funcs_set_get_budget_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): budget getter
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): budget getter
  * @user_data: Data to pass to @func
  * @destroy: (nullable): callback to destroy @user_data
  *
  * Sets the budget-policy getter callback.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 14.5.0
  **/
@@ -365,11 +386,14 @@ hb_draw_funcs_set_get_budget_func (hb_draw_funcs_t         *dfuncs,
 /**
  * hb_draw_funcs_set_get_budget_remaining_func:
  * @dfuncs: draw functions object
- * @func: (closure user_data) (destroy destroy) (scope notified): live-budget getter
+ * @func: (nullable) (closure user_data) (destroy destroy) (scope notified): live-budget getter
  * @user_data: Data to pass to @func
  * @destroy: (nullable): callback to destroy @user_data
  *
  * Sets the live-budget getter callback.
+ *
+ * If @func is `NULL`, the default implementation is restored.
+ * @destroy is then called on @user_data right away.
  *
  * Since: 14.5.0
  **/
