@@ -374,6 +374,18 @@ release_shape_plan (const hb_wasm_face_data_t *face_data,
 		    hb_wasm_shape_plan_t *plan,
 		    bool cache = false);
 
+#ifndef HB_NO_WASM_BUDGET
+/* The memory an instance may use for a buffer of this length, in bytes. */
+static uint64_t
+max_memory_for (const hb_wasm_face_data_t *face_data, unsigned buffer_len)
+{
+  return face_data->max_memory_base +
+	 (uint64_t) HB_WASM_MAX_MEMORY_BUFFER_FACTOR *
+	 (sizeof (hb_glyph_info_t) + sizeof (hb_glyph_position_t)) *
+	 buffer_len;
+}
+#endif
+
 static hb_wasm_shape_plan_t *
 acquire_shape_plan (hb_face_t *face,
 		    const hb_wasm_face_data_t *face_data,
@@ -386,7 +398,15 @@ acquire_shape_plan (hb_face_t *face,
   if (likely (plan && face_data->plan.cmpexch (plan, nullptr)))
   {
     if (likely (buffer_len <= plan->max_buffer_len))
+    {
+#ifndef HB_NO_WASM_BUDGET
+      /* An instance that serves buffers of any length was made for a
+       * shorter one; see below. */
+      plan->max_memory = hb_max (plan->max_memory,
+				 max_memory_for (face_data, buffer_len));
+#endif
       return plan;
+    }
 
     /* How much memory an instance may use is fixed when it is created,
      * and this one was created for shorter buffers. */
@@ -416,13 +436,16 @@ acquire_shape_plan (hb_face_t *face,
   plan->max_buffer_len = 1024;
   while (plan->max_buffer_len < buffer_len)
     plan->max_buffer_len *= 2;
-  plan->max_memory = face_data->max_memory_base +
-		     (uint64_t) HB_WASM_MAX_MEMORY_BUFFER_FACTOR *
-		     (sizeof (hb_glyph_info_t) + sizeof (hb_glyph_position_t)) *
-		     plan->max_buffer_len;
+  plan->max_memory = max_memory_for (face_data, plan->max_buffer_len);
   uint32_t max_pages = (uint32_t) hb_min ((plan->max_memory + 65535) / 65536, (uint64_t) 65536);
   /* Zero leaves the module its own maximum. */
   args.max_memory_pages = face_data->module_max_pages <= max_pages ? 0 : max_pages;
+  /* A module whose own maximum is within what we allow is not held by
+   * our limit, now or for a longer buffer.  Its instance serves them
+   * all; making another would only have the module set itself up
+   * again, which for some is most of their work. */
+  if (!args.max_memory_pages)
+    plan->max_buffer_len = (unsigned) -1;
 #else
   plan->max_buffer_len = (unsigned) -1;
   plan->max_memory = (uint64_t) -1;

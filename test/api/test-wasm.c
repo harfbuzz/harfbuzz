@@ -365,6 +365,33 @@ test_wasm_refused_modules (void)
 }
 
 static void
+test_wasm_instance_kept (void)
+{
+  const char *shapers[] = {"wasm", NULL};
+  hb_face_t *face = hb_test_open_font_file ("fonts/wasm-fixed-memory.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  char text[2001];
+
+  hb_buffer_add_utf8 (buffer, "abc", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+
+  /* The module's memory cannot grow past what we allow it, so a longer
+   * buffer goes to the instance it already has.  The module checks. */
+  memset (text, 'a', sizeof (text) - 1);
+  text[sizeof (text) - 1] = '\0';
+  hb_buffer_reset (buffer);
+  hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  g_assert_true (hb_shape_full (font, buffer, NULL, 0, shapers));
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
 test_wasm_module_allocator (void)
 {
   /* These modules export malloc() and free(), which the runtime then
@@ -462,6 +489,7 @@ main (int argc, char **argv)
   hb_test_add (test_wasm_destroy);
   hb_test_add (test_wasm_start_function);
   hb_test_add (test_wasm_refused_modules);
+  hb_test_add (test_wasm_instance_kept);
   hb_test_add (test_wasm_module_allocator);
 #ifdef HB_TEST_WASM_BUDGET
   hb_test_add (test_wasm_memory_limit);
