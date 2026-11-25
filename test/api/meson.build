@@ -43,6 +43,7 @@ tests = [
   'test-ot-tag.c',
   'test-ot-extents-cff.c',
   'test-ot-metrics-tt-var.c',
+  'test-paged-getters.c',
   'test-paint.c',
   'test-subset-repacker.c',
   'test-set.c',

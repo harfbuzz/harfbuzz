@@ -951,6 +951,8 @@ hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */)
 {
+  if (table_count && !table_tags) *table_count = 0;
+
   if (!face->get_table_tags_func)
   {
     if (table_count)

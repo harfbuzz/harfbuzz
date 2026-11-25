@@ -103,6 +103,8 @@ hb_ot_var_get_axes (hb_face_t        *face,
 		    unsigned int     *axes_count /* IN/OUT */,
 		    hb_ot_var_axis_t *axes_array /* OUT */)
 {
+  if (axes_count && !axes_array) *axes_count = 0;
+
   return face->table.fvar->get_axes_deprecated (start_offset, axes_count, axes_array);
 }
 
@@ -150,6 +152,8 @@ hb_ot_var_get_axis_infos (hb_face_t             *face,
 			  unsigned int          *axes_count /* IN/OUT */,
 			  hb_ot_var_axis_info_t *axes_array /* OUT */)
 {
+  if (axes_count && !axes_array) *axes_count = 0;
+
   return face->table.fvar->get_axis_infos (start_offset, axes_count, axes_array);
 }
 
@@ -254,6 +258,8 @@ hb_ot_var_named_instance_get_design_coords (hb_face_t    *face,
 					    unsigned int *coords_length, /* IN/OUT */
 					    float        *coords         /* OUT */)
 {
+  if (coords_length && !coords) *coords_length = 0;
+
   return face->table.fvar->get_instance_coords (instance_index, coords_length, coords);
 }
 

@@ -519,6 +519,8 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
                                unsigned int *count,
                                hb_color_stop_t *color_stops)
 {
+  if (count && !color_stops) *count = 0;
+
   return color_line->get_color_stops (color_line,
 				      color_line->data,
 				      start, count,

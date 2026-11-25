@@ -363,6 +363,8 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
+  if (point_count && !point_array) *point_count = 0;
+
   return face->table.GDEF->table->get_attach_points (glyph,
 						     start_offset,
 						     point_count,
@@ -399,6 +401,8 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
+  if (caret_count && !caret_array) *caret_count = 0;
+
   return font->face->table.GDEF->table->get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
 }
 #endif
@@ -442,6 +446,8 @@ hb_ot_layout_table_get_script_tags (hb_face_t    *face,
 				    unsigned int *script_count /* IN/OUT */,
 				    hb_tag_t     *script_tags  /* OUT */)
 {
+  if (script_count && !script_tags) *script_count = 0;
+
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   return g.get_script_tags (start_offset, script_count, script_tags);
@@ -614,6 +620,8 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 				     unsigned int *feature_count /* IN/OUT */,
 				     hb_tag_t     *feature_tags  /* OUT */)
 {
+  if (feature_count && !feature_tags) *feature_count = 0;
+
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   return g.get_feature_tags (start_offset, feature_count, feature_tags);
@@ -684,6 +692,8 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 				       unsigned int *language_count /* IN/OUT */,
 				       hb_tag_t     *language_tags  /* OUT */)
 {
+  if (language_count && !language_tags) *language_count = 0;
+
   const OT::Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
 
   return s.get_lang_sys_tags (start_offset, language_count, language_tags);
@@ -914,6 +924,8 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
 					   unsigned int *feature_count   /* IN/OUT */,
 					   unsigned int *feature_indexes /* OUT */)
 {
+  if (feature_count && !feature_indexes) *feature_count = 0;
+
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
@@ -950,6 +962,8 @@ hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
 					unsigned int *feature_count /* IN/OUT */,
 					hb_tag_t     *feature_tags  /* OUT */)
 {
+  if (feature_count && !feature_tags) *feature_count = 0;
+
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
@@ -1036,6 +1050,8 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 				  unsigned int *lookup_count   /* IN/OUT */,
 				  unsigned int *lookup_indexes /* OUT */)
 {
+  if (lookup_count && !lookup_indexes) *lookup_count = 0;
+
   return hb_ot_layout_feature_with_variations_get_lookups (face,
 							   table_tag,
 							   feature_index,
@@ -1509,6 +1525,8 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
 						  unsigned int *lookup_count /* IN/OUT */,
 						  unsigned int *lookup_indexes /* OUT */)
 {
+  if (lookup_count && !lookup_indexes) *lookup_count = 0;
+
   static_assert ((OT::FeatureVariations::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_VARIATIONS_INDEX), "");
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
@@ -1927,6 +1945,8 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     unsigned int   *char_count, /* IN/OUT.  May be NULL */
 				     hb_codepoint_t *characters  /* OUT.     May be NULL */)
 {
+  if (char_count && !characters) *char_count = 0;
+
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   return g.get_feature (feature_index)
 	  .get_feature_params ()
@@ -2733,6 +2753,8 @@ hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
 					  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
 					  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
 {
+  if (alternate_count && !alternate_glyphs) *alternate_count = 0;
+
   hb_get_glyph_alternates_dispatch_t c;
   const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
   auto ret = lookup.dispatch (&c, glyph, start_offset, alternate_count, alternate_glyphs);
@@ -2896,6 +2918,8 @@ hb_ot_layout_get_extender_glyphs (hb_face_t      *face,
 				  unsigned       *glyphs_count /* IN/OUT.  May be NULL */,
 				  hb_codepoint_t *glyphs       /* OUT.     May be NULL */)
 {
+  if (glyphs_count && !glyphs) *glyphs_count = 0;
+
   hb_tag_t script_tag, language_tag;
   choose_layout_tags (script, language, &script_tag, &language_tag);
   // Extender glyphs are per-script in the JSTF table.

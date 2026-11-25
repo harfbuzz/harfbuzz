@@ -184,6 +184,8 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
 				unsigned int  *colors_count  /* IN/OUT.  May be NULL. */,
 				hb_color_t    *colors        /* OUT.     May be NULL. */)
 {
+  if (colors_count && !colors) *colors_count = 0;
+
   return face->table.CPAL->get_palette_colors (palette_index, start_offset, colors_count, colors);
 }
 
@@ -268,6 +270,8 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      unsigned int        *layer_count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */)
 {
+  if (layer_count && !layers) *layer_count = 0;
+
   return face->table.COLR->colr->get_glyph_layers (glyph, start_offset, layer_count, layers);
 }
 

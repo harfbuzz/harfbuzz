@@ -123,6 +123,8 @@ hb_ot_name_get_utf8 (hb_face_t       *face,
 		     unsigned int    *text_size /* IN/OUT */,
 		     char            *text      /* OUT */)
 {
+  if (text_size && !text) *text_size = 0;
+
   return hb_ot_name_get_utf<hb_utf8_t> (face, name_id, language, text_size,
 					(hb_utf8_t::codepoint_t *) text);
 }
@@ -151,6 +153,8 @@ hb_ot_name_get_utf16 (hb_face_t       *face,
 		      unsigned int    *text_size /* IN/OUT */,
 		      uint16_t        *text      /* OUT */)
 {
+  if (text_size && !text) *text_size = 0;
+
   return hb_ot_name_get_utf<hb_utf16_t> (face, name_id, language, text_size, text);
 }
 
@@ -178,6 +182,8 @@ hb_ot_name_get_utf32 (hb_face_t       *face,
 		      unsigned int    *text_size /* IN/OUT */,
 		      uint32_t        *text      /* OUT */)
 {
+  if (text_size && !text) *text_size = 0;
+
   return hb_ot_name_get_utf<hb_utf32_t> (face, name_id, language, text_size, text);
 }
 

@@ -1107,6 +1107,32 @@ test_depend_gsub_high_bit_tags (void)
   hb_face_destroy (face);
 }
 
+/* A count with a NULL array is not a conforming call: nothing is written,
+ * and the count says so.  See test-paged-getters.c. */
+static void
+test_depend_lookup_glyph_null_array (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  unsigned int total, count;
+  g_assert_nonnull (depend);
+
+  total = hb_subset_depend_lookup_glyph (depend, 131, 0, NULL, NULL);
+  g_assert_cmpuint (total, >, 0);
+  count = 12345;
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 131, 0, &count, NULL), ==, total);
+  g_assert_cmpuint (count, ==, 0);
+
+  /* A glyph with no edges. */
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 0xFFFFFFu, 0, NULL, NULL), ==, 0);
+  count = 12345;
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 0xFFFFFFu, 0, &count, NULL), ==, 0);
+  g_assert_cmpuint (count, ==, 0);
+
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1123,6 +1149,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_edge_limit);
   hb_test_add (test_depend_gsub_high_bit_tags);
   hb_test_add (test_depend_gsub_recursion_limit);
+  hb_test_add (test_depend_lookup_glyph_null_array);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_depend_context_format6);
   hb_test_add (test_depend_gsub_context_set_glyphs);

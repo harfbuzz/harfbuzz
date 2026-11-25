@@ -1257,6 +1257,8 @@ hb_ot_shape_plan_get_feature_tags (hb_shape_plan_t *shape_plan,
 				   unsigned int    *tag_count, /* IN/OUT */
 				   hb_tag_t        *tags /* OUT */)
 {
+  if (tag_count && !tags) *tag_count = 0;
+
 #ifndef HB_NO_OT_SHAPE
   return shape_plan->ot.map.get_feature_tags (start_offset, tag_count, tags);
 #else

@@ -235,6 +235,8 @@ hb_ot_math_get_glyph_kernings (hb_font_t *font,
 			       unsigned int *entries_count, /* IN/OUT */
 			       hb_ot_math_kern_entry_t *kern_entries /* OUT */)
 {
+  if (entries_count && !kern_entries) *entries_count = 0;
+
   return font->face->table.MATH->get_glyph_info().get_kernings (glyph,
 								kern,
 								start_offset,
@@ -274,6 +276,8 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
 			       unsigned int *variants_count, /* IN/OUT */
 			       hb_ot_math_glyph_variant_t *variants /* OUT */)
 {
+  if (variants_count && !variants) *variants_count = 0;
+
   return font->face->table.MATH->get_variants().get_glyph_variants (glyph, direction, font,
 								    start_offset,
 								    variants_count,
@@ -339,6 +343,8 @@ hb_ot_math_get_glyph_assembly (hb_font_t *font,
 			       hb_ot_math_glyph_part_t *parts, /* OUT */
 			       hb_position_t *italics_correction /* OUT */)
 {
+  if (parts_count && !parts) *parts_count = 0;
+
   return font->face->table.MATH->get_variants().get_glyph_parts (glyph,
 								 direction,
 								 font,

@@ -178,6 +178,8 @@ hb_subset_depend_lookup_glyph (hb_subset_depend_t *depend,
                                 unsigned int *entry_count,
                                 hb_subset_depend_entry_t *entries)
 {
+  if (entry_count && !entries) *entry_count = 0;
+
   unsigned int total = depend->data.get_glyph_entry_count (gid);
   if (entry_count)
   {

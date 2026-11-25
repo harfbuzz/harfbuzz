@@ -56,6 +56,8 @@ hb_ot_meta_get_entry_tags (hb_face_t        *face,
 			   unsigned int     *entries_count, /* IN/OUT.  May be NULL. */
 			   hb_ot_meta_tag_t *entries        /* OUT.     May be NULL. */)
 {
+  if (entries_count && !entries) *entries_count = 0;
+
   return face->table.meta->get_entries (start_offset, entries_count, entries);
 }
 

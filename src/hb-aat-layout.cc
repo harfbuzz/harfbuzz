@@ -422,6 +422,8 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
 				 unsigned int                 *feature_count, /* IN/OUT.  May be NULL. */
 				 hb_aat_layout_feature_type_t *features       /* OUT.     May be NULL. */)
 {
+  if (feature_count && !features) *feature_count = 0;
+
   return face->table.feat->get_feature_types (start_offset, feature_count, features);
 }
 
@@ -472,6 +474,8 @@ hb_aat_layout_feature_type_get_selector_infos (hb_face_t                        
 					       hb_aat_layout_feature_selector_info_t *selectors,      /* OUT.     May be NULL. */
 					       unsigned int                          *default_index   /* OUT.     May be NULL. */)
 {
+  if (selector_count && !selectors) *selector_count = 0;
+
   return face->table.feat->get_selector_infos (feature_type, start_offset, selector_count, selectors, default_index);
 }
 

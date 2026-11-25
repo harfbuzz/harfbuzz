@@ -511,6 +511,9 @@ hb_ot_tags_from_script_and_language (hb_script_t   script,
 				     unsigned int *language_count /* IN/OUT */,
 				     hb_tag_t     *language_tags /* OUT */)
 {
+  if (script_count && !script_tags) *script_count = 0;
+  if (language_count && !language_tags) *language_count = 0;
+
   bool needs_script = true;
 
   if (language == HB_LANGUAGE_INVALID)
