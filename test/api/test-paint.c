@@ -1639,6 +1639,106 @@ test_hb_paint_normalize_color_line_hard_stops (void)
 }
 
 
+typedef struct {
+  hb_font_t *font;
+  hb_blob_t *image;
+  unsigned calls;
+} handed_on_t;
+
+static hb_bool_t
+record_color_glyph (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+		    hb_codepoint_t glyph HB_UNUSED, hb_font_t *font,
+		    void *user_data HB_UNUSED)
+{
+  handed_on_t *h = (handed_on_t *) paint_data;
+  h->font = font;
+  h->calls++;
+  return true;
+}
+
+static void
+record_fill_glyph (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+		   hb_codepoint_t glyph HB_UNUSED, hb_font_t *font,
+		   hb_bool_t is_foreground HB_UNUSED, hb_color_t color HB_UNUSED,
+		   void *user_data HB_UNUSED)
+{
+  handed_on_t *h = (handed_on_t *) paint_data;
+  h->font = font;
+  h->calls++;
+}
+
+static void
+record_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+			hb_codepoint_t glyph HB_UNUSED, hb_font_t *font,
+			void *user_data HB_UNUSED)
+{
+  handed_on_t *h = (handed_on_t *) paint_data;
+  h->font = font;
+  h->calls++;
+}
+
+static hb_bool_t
+record_image (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+	      hb_blob_t *image,
+	      unsigned int width HB_UNUSED, unsigned int height HB_UNUSED,
+	      hb_tag_t format HB_UNUSED, float slant HB_UNUSED,
+	      hb_glyph_extents_t *extents HB_UNUSED,
+	      void *user_data HB_UNUSED)
+{
+  handed_on_t *h = (handed_on_t *) paint_data;
+  h->image = image;
+  h->calls++;
+  return true;
+}
+
+/* An object that is only handed on to a callback, or to whatever paints
+ * or draws a glyph, is handed on as the empty object when the caller
+ * passed none. */
+static void
+test_no_object_is_handed_on_as_the_empty_one (void)
+{
+  hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_color_glyph_func (funcs, record_color_glyph, NULL, NULL);
+  hb_paint_funcs_set_fill_glyph_func (funcs, record_fill_glyph, NULL, NULL);
+  hb_paint_funcs_set_push_clip_glyph_func (funcs, record_push_clip_glyph, NULL, NULL);
+  hb_paint_funcs_set_image_func (funcs, record_image, NULL, NULL);
+
+  handed_on_t h = {NULL, NULL, 0};
+
+  hb_paint_color_glyph (funcs, &h, 0, NULL);
+  g_assert_true (h.font == hb_font_get_empty ());
+  h.font = NULL;
+  hb_paint_fill_glyph (funcs, &h, 0, NULL, false, HB_COLOR (0, 0, 0, 255));
+  g_assert_true (h.font == hb_font_get_empty ());
+  h.font = NULL;
+  hb_paint_push_clip_glyph (funcs, &h, 0, NULL);
+  g_assert_true (h.font == hb_font_get_empty ());
+  hb_paint_image (funcs, &h, NULL, 1, 1, HB_PAINT_IMAGE_FORMAT_PNG, 0.f, NULL);
+  g_assert_true (h.image == hb_blob_get_empty ());
+  g_assert_cmpuint (h.calls, ==, 4);
+
+  /* One that was passed is handed on as it is. */
+  hb_face_t *face = hb_test_open_font_file (TEST_GLYPHS);
+  hb_font_t *font = hb_font_create (face);
+  hb_blob_t *blob = hb_face_reference_blob (face);
+  hb_paint_color_glyph (funcs, &h, 0, font);
+  g_assert_true (h.font == font);
+  hb_paint_image (funcs, &h, blob, 1, 1, HB_PAINT_IMAGE_FORMAT_PNG, 0.f, NULL);
+  g_assert_true (h.image == blob);
+  hb_blob_destroy (blob);
+
+  /* With no paint or draw functions a glyph is painted and drawn with
+   * the empty ones, which do nothing. */
+  hb_font_paint_glyph (font, 10, NULL, NULL, 0, HB_COLOR (0, 0, 0, 255));
+  (void) hb_font_paint_glyph_or_fail (font, 10, NULL, NULL, 0, HB_COLOR (0, 0, 0, 255));
+  hb_font_draw_glyph (font, 10, NULL, NULL);
+  (void) hb_font_draw_glyph_or_fail (font, 10, NULL, NULL);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_paint_funcs_destroy (funcs);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1692,6 +1792,8 @@ main (int argc, char **argv)
   hb_test_add (test_ft_reentrant_paint);
   hb_test_add (test_color_stops_short_ft);
   hb_test_add (test_linear_gradient_ill_formed);
+
+  hb_test_add (test_no_object_is_handed_on_as_the_empty_one);
 
   status = hb_test_run();
 

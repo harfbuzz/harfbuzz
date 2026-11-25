@@ -639,6 +639,8 @@ hb_paint_color_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                       hb_codepoint_t glyph,
                       hb_font_t *font)
 {
+  /* A callback is owed a font.  Hand it the empty one for none. */
+  if (unlikely (!font)) font = hb_font_get_empty ();
   return funcs->color_glyph (paint_data, glyph, font);
 }
 
@@ -663,6 +665,8 @@ hb_paint_fill_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                      hb_bool_t is_foreground,
                      hb_color_t color)
 {
+  /* A callback is owed a font.  Hand it the empty one for none. */
+  if (unlikely (!font)) font = hb_font_get_empty ();
   funcs->fill_glyph (paint_data, glyph, font, is_foreground, color);
 }
 
@@ -682,6 +686,8 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_codepoint_t glyph,
                           hb_font_t *font)
 {
+  /* A callback is owed a font.  Hand it the empty one for none. */
+  if (unlikely (!font)) font = hb_font_get_empty ();
   funcs->push_clip_glyph (paint_data, glyph, font);
 }
 
@@ -828,6 +834,8 @@ hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
                 HB_UNUSED float slant,
                 hb_glyph_extents_t *extents)
 {
+  /* A callback is owed a blob.  Hand it the empty one for none. */
+  if (unlikely (!image)) image = hb_blob_get_empty ();
   funcs->image (paint_data, image, width, height, format, 0.f, extents);
 }
 
