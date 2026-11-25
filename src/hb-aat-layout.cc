@@ -408,7 +408,8 @@ hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
  * @start_offset: offset of the first feature type to retrieve
  * @feature_count: (inout) (optional): Input = the maximum number of feature types to return;
  *                 Output = the actual number of feature types returned (may be zero)
- * @features: (out caller-allocates) (array length=feature_count) (nullable): Array of feature types found
+ * @features: (out caller-allocates) (array length=feature_count) (optional): Array of feature types found.
+ *            May be `NULL` only if @feature_count is `NULL` or zero.
  *
  * Fetches a list of the AAT feature types included in the specified face.
  *
@@ -449,11 +450,12 @@ hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
  * hb_aat_layout_feature_type_get_selector_infos:
  * @face: #hb_face_t to work upon
  * @feature_type: The #hb_aat_layout_feature_type_t of the requested feature type
- * @start_offset: offset of the first feature type to retrieve
+ * @start_offset: offset of the first selector to retrieve
  * @selector_count: (inout) (optional): Input = the maximum number of selectors to return;
  *                  Output = the actual number of selectors returned (may be zero)
  * @selectors: (out caller-allocates) (array length=selector_count) (optional):
  *             A buffer pointer. The selectors available for the feature type queries.
+ *             May be `NULL` only if @selector_count is `NULL` or zero.
  * @default_index: (out) (optional): The index of the feature's default selector, if any
  *
  * Fetches a list of the selectors available for the specified feature in the given face.

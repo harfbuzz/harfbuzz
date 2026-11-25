@@ -267,4 +267,87 @@ hb_blob_create (data, length, HB_MEMORY_MODE_WRITABLE, data, free)
     </para>
   </section>
 
+
+  <section id="object-model-list-getters">
+    <title>Functions that return a list</title>
+    <para>
+      Many HarfBuzz functions return a list of items: the table tags
+      of a face, the script tags of a layout table, the variation axes
+      of a variable font.  HarfBuzz does not allocate these lists.  The
+      caller passes an array, and the function fills it in.  Such
+      functions follow one convention:
+    </para>
+    <itemizedlist spacing="compact">
+      <listitem>
+	<para>
+	  <literal>start_offset</literal> is the index of the first
+	  item to fetch.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The count is passed by pointer.  Going in, it is the
+	  capacity of the array; coming out, the number of items
+	  written to it.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The return value is the total number of items, whatever
+	  offset, count and array were passed.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      There are two ways to call such a function: with an array and
+      its capacity, or with <literal>NULL</literal> for both the count
+      and the array, to ask only for the total.  The usual pattern is
+      to do one and then the other:
+    </para>
+<programlisting language="C">
+unsigned int count;
+hb_tag_t *tags;
+
+count = hb_ot_layout_table_get_script_tags(face, HB_OT_TAG_GSUB, 0, NULL, NULL);
+tags = malloc(count * sizeof(hb_tag_t));
+hb_ot_layout_table_get_script_tags(face, HB_OT_TAG_GSUB, 0, &amp;count, tags);
+</programlisting>
+    <para>
+      A client with an array of fixed size can instead fetch the list
+      a piece at a time, adding the count that comes back
+      to <literal>start_offset</literal> until it reaches the total.
+    </para>
+<programlisting language="C">
+hb_tag_t tags[32];
+unsigned int offset = 0;
+unsigned int total;
+
+do
+{
+  unsigned int count = sizeof(tags) / sizeof(tags[0]);
+  total = hb_ot_layout_table_get_script_tags(face, HB_OT_TAG_GSUB, offset, &amp;count, tags);
+  for (unsigned int i = 0; i &lt; count; i++)
+    use_script_tag(tags[i]);
+  offset += count;
+}
+while (offset &lt; total);
+</programlisting>
+    <para>
+      Each call sets <literal>count</literal> to the capacity of the
+      array before it is passed, since it comes back as the number of
+      items written.
+    </para>
+    <para>
+      The array may be <literal>NULL</literal> only if the count
+      is <literal>NULL</literal> or zero.  A non-zero count with no
+      array is not a valid call.  HarfBuzz answers it by setting the
+      count to zero and writing nothing; the return value is still the
+      total.
+    </para>
+    <para>
+      A few of these functions leave out the offset or the return
+      value; the API Reference manual describes each.
+    </para>
+  </section>
+
 </chapter>

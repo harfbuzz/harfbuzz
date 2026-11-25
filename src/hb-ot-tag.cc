@@ -490,14 +490,14 @@ parse_private_use_subtag (const char     *private_use_subtag,
  * hb_ot_tags_from_script_and_language:
  * @script: an #hb_script_t to convert.
  * @language: (nullable): an #hb_language_t to convert.
- * @script_count: (inout) (optional): maximum number of script tags to retrieve (IN)
- * and actual number of script tags retrieved (OUT)
- * @script_tags: (out) (optional): array of size at least @script_count to store the
- * script tag results
- * @language_count: (inout) (optional): maximum number of language tags to retrieve
- * (IN) and actual number of language tags retrieved (OUT)
- * @language_tags: (out) (optional): array of size at least @language_count to store
- * the language tag results
+ * @script_count: (inout) (optional): Input = the maximum number of script tags to return;
+ *                Output = the actual number of script tags returned (may be zero)
+ * @script_tags: (out caller-allocates) (array length=script_count) (optional): The array of script tags found.
+ *               May be `NULL` only if @script_count is `NULL` or zero.
+ * @language_count: (inout) (optional): Input = the maximum number of language tags to return;
+ *                  Output = the actual number of language tags returned (may be zero)
+ * @language_tags: (out caller-allocates) (array length=language_count) (optional): The array of language tags found.
+ *                 May be `NULL` only if @language_count is `NULL` or zero.
  *
  * Converts an #hb_script_t and an #hb_language_t to script and language tags.
  *

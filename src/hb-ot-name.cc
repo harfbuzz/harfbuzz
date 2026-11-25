@@ -104,9 +104,10 @@ hb_ot_name_get_utf (hb_face_t       *face,
  * @face: font face.
  * @name_id: OpenType name identifier to fetch.
  * @language: language to fetch the name for.
- * @text_size: (inout) (optional): input size of @text buffer, and output size of
- *                                   text written to buffer.
- * @text: (out caller-allocates) (array length=text_size): buffer to write fetched name into.
+ * @text_size: (inout) (optional): Input = the size of the @text buffer;
+ *             Output = the size of the text written to it (may be zero)
+ * @text: (out caller-allocates) (array length=text_size) (optional): buffer to write fetched name into.
+ *        May be `NULL` only if @text_size is `NULL` or zero.
  *
  * Fetches a font name from the OpenType 'name' table.
  * If @language is #HB_LANGUAGE_INVALID, English ("en") is assumed.
@@ -134,9 +135,10 @@ hb_ot_name_get_utf8 (hb_face_t       *face,
  * @face: font face.
  * @name_id: OpenType name identifier to fetch.
  * @language: language to fetch the name for.
- * @text_size: (inout) (optional): input size of @text buffer, and output size of
- *                                   text written to buffer.
- * @text: (out caller-allocates) (array length=text_size): buffer to write fetched name into.
+ * @text_size: (inout) (optional): Input = the size of the @text buffer;
+ *             Output = the size of the text written to it (may be zero)
+ * @text: (out caller-allocates) (array length=text_size) (optional): buffer to write fetched name into.
+ *        May be `NULL` only if @text_size is `NULL` or zero.
  *
  * Fetches a font name from the OpenType 'name' table.
  * If @language is #HB_LANGUAGE_INVALID, English ("en") is assumed.
@@ -163,9 +165,10 @@ hb_ot_name_get_utf16 (hb_face_t       *face,
  * @face: font face.
  * @name_id: OpenType name identifier to fetch.
  * @language: language to fetch the name for.
- * @text_size: (inout) (optional): input size of @text buffer, and output size of
- *                                   text written to buffer.
- * @text: (out caller-allocates) (array length=text_size): buffer to write fetched name into.
+ * @text_size: (inout) (optional): Input = the size of the @text buffer;
+ *             Output = the size of the text written to it (may be zero)
+ * @text: (out caller-allocates) (array length=text_size) (optional): buffer to write fetched name into.
+ *        May be `NULL` only if @text_size is `NULL` or zero.
  *
  * Fetches a font name from the OpenType 'name' table.
  * If @language is #HB_LANGUAGE_INVALID, English ("en") is assumed.

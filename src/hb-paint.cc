@@ -499,9 +499,10 @@ hb_paint_get_budget_remaining (hb_paint_funcs_t *funcs, void *paint_data)
  * hb_color_line_get_color_stops:
  * @color_line: a #hb_color_line_t object
  * @start: the index of the first color stop to return
- * @count: (inout) (optional): Input = the maximum number of feature tags to return;
- *     Output = the actual number of feature tags returned (may be zero)
- * @color_stops: (out) (array length=count) (optional): Array of #hb_color_stop_t to populate
+ * @count: (inout) (optional): Input = the maximum number of color stops to return;
+ *     Output = the actual number of color stops returned (may be zero)
+ * @color_stops: (out caller-allocates) (array length=count) (optional): Array of #hb_color_stop_t to populate.
+ *     May be `NULL` only if @count is `NULL` or zero.
  *
  * Fetches a list of color stops from the given color line object.
  *

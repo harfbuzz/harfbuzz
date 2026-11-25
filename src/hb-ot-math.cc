@@ -206,7 +206,8 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
  * @start_offset: offset of the first kern entry to retrieve
  * @entries_count: (inout) (optional): Input = the maximum number of kern entries to return;
  *                                     Output = the actual number of kern entries returned
- * @kern_entries: (out caller-allocates) (array length=entries_count) (nullable): array of kern entries returned
+ * @kern_entries: (out caller-allocates) (array length=entries_count) (optional): array of kern entries returned.
+ *                May be `NULL` only if @entries_count is `NULL` or zero.
  *
  * Fetches the raw MathKern (cut-in) data for the specified font, glyph index,
  * and @kern. The corresponding list of kern values and correction heights is
@@ -251,9 +252,10 @@ hb_ot_math_get_glyph_kernings (hb_font_t *font,
  * @glyph: The index of the glyph to stretch
  * @direction: The direction of the stretching (horizontal or vertical)
  * @start_offset: offset of the first variant to retrieve
- * @variants_count: (inout): Input = the maximum number of variants to return;
+ * @variants_count: (inout) (optional): Input = the maximum number of variants to return;
  *                           Output = the actual number of variants returned
- * @variants: (out) (array length=variants_count) (nullable): array of variants returned
+ * @variants: (out caller-allocates) (array length=variants_count) (optional): array of variants returned.
+ *            May be `NULL` only if @variants_count is `NULL` or zero.
  *
  * Fetches the MathGlyphConstruction for the specified font, glyph index, and
  * direction. The corresponding list of size variants is returned as a list of
@@ -315,9 +317,10 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
  * @glyph: The index of the glyph to stretch
  * @direction: direction of the stretching (horizontal or vertical)
  * @start_offset: offset of the first glyph part to retrieve
- * @parts_count: (inout): Input = maximum number of glyph parts to return;
+ * @parts_count: (inout) (optional): Input = maximum number of glyph parts to return;
  *               Output = actual number of parts returned
- * @parts: (out) (array length=parts_count) (nullable): the glyph parts returned
+ * @parts: (out caller-allocates) (array length=parts_count) (optional): the glyph parts returned.
+ *         May be `NULL` only if @parts_count is `NULL` or zero.
  * @italics_correction: (out): italics correction of the glyph assembly
  *
  * Fetches the GlyphAssembly for the specified font, glyph index, and direction.

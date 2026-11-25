@@ -147,10 +147,10 @@ hb_subset_depend_from_face_or_fail (hb_face_t *face)
  * @depend: depend object
  * @gid: GID to retrieve dependencies from
  * @start_offset: offset of first entry to retrieve
- * @entry_count: (inout) (optional): Input = number of entries to fill; output = number
- *   actually filled. Pass NULL to query total count without filling.
- * @entries: (out) (optional) (array length=entry_count): Array to fill with dependency
- *   edge data. May be NULL if @entry_count is also NULL.
+ * @entry_count: (inout) (optional): Input = the maximum number of entries to return;
+ *   Output = the actual number of entries returned (may be zero)
+ * @entries: (out caller-allocates) (array length=entry_count) (optional): Array to fill with dependency
+ *   edge data. May be `NULL` only if @entry_count is `NULL` or zero.
  *
  * Retrieve dependency edges for a glyph. Follows the standard HarfBuzz array-getter
  * pattern: always returns the total number of edges for @gid regardless of

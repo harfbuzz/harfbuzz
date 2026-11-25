@@ -167,12 +167,18 @@ hb_face_get_glyph_count (const hb_face_t *face);
  * hb_get_table_tags_func_t:
  * @face: A face object
  * @start_offset: The index of first table tag to retrieve
- * @table_count: (inout): Input = the maximum number of table tags to return;
+ * @table_count: (inout) (optional): Input = the maximum number of table tags to return;
  *                Output = the actual number of table tags returned (may be zero)
- * @table_tags: (out) (array length=table_count) (nullable): The array of table tags found
+ * @table_tags: (out caller-allocates) (array length=table_count) (optional): The array of table tags found.
+ *              `NULL` only if @table_count is `NULL` or zero.
  * @user_data: User data pointer passed by the caller
  *
  * Callback function for hb_face_get_table_tags().
+ *
+ * hb_face_get_table_tags() hands on the arguments it was called with, after
+ * setting the count to zero if @table_tags is `NULL`.  So the callback is
+ * handed a `NULL` @table_tags only with a `NULL` or zero @table_count.  If
+ * @table_count is `NULL`, it writes nothing and only returns the total.
  *
  * Return value: Total number of tables, or zero if it is not possible to list
  *

@@ -159,7 +159,8 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  * @start_offset: offset of the first color to retrieve
  * @color_count: (inout) (optional): Input = the maximum number of colors to return;
  *               Output = the actual number of colors returned (may be zero)
- * @colors: (out) (array length=color_count) (nullable): The array of #hb_color_t records found
+ * @colors: (out caller-allocates) (array length=color_count) (optional): The array of #hb_color_t records found.
+ *          May be `NULL` only if @color_count is `NULL` or zero.
  *
  * Fetches a list of the colors in a color palette.
  *
@@ -254,7 +255,8 @@ hb_ot_color_glyph_has_paint (hb_face_t      *face,
  * @start_offset: offset of the first layer to retrieve
  * @layer_count: (inout) (optional): Input = the maximum number of layers to return;
  *         Output = the actual number of layers returned (may be zero)
- * @layers: (out) (array length=layer_count) (nullable): The array of layers found
+ * @layers: (out caller-allocates) (array length=layer_count) (optional): The array of layers found.
+ *          May be `NULL` only if @layer_count is `NULL` or zero.
  *
  * Fetches a list of all color layers for the specified glyph index in the specified
  * face. The list returned will begin at the offset provided.

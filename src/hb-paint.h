@@ -596,12 +596,18 @@ typedef struct hb_color_line_t hb_color_line_t;
  * @color_line: a #hb_color_line_t object
  * @color_line_data: the data accompanying @color_line
  * @start: the index of the first color stop to return
- * @count: (inout) (optional): Input = the maximum number of feature tags to return;
- *     Output = the actual number of feature tags returned (may be zero)
- * @color_stops: (out) (array length=count) (optional): Array of #hb_color_stop_t to populate
+ * @count: (inout) (optional): Input = the maximum number of color stops to return;
+ *     Output = the actual number of color stops returned (may be zero)
+ * @color_stops: (out caller-allocates) (array length=count) (optional): Array of #hb_color_stop_t to populate.
+ *     `NULL` only if @count is `NULL` or zero.
  * @user_data: the data accompanying this method
  *
  * A virtual method for the #hb_color_line_t to fetch color stops.
+ *
+ * hb_color_line_get_color_stops() hands on the arguments it was called with,
+ * after setting the count to zero if @color_stops is `NULL`.  So the method is
+ * handed a `NULL` @color_stops only with a `NULL` or zero @count.  If @count is
+ * `NULL`, it writes nothing and only returns the total.
  *
  * Return value: the total number of color stops in @color_line
  *

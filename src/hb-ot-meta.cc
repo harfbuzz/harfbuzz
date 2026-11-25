@@ -41,12 +41,14 @@
  * hb_ot_meta_get_entry_tags:
  * @face: a face object
  * @start_offset: iteration's start offset
- * @entries_count:(inout) (optional): buffer size as input, filled size as output
- * @entries: (out caller-allocates) (array length=entries_count) (nullable): entries tags buffer
+ * @entries_count: (inout) (optional): Input = the maximum number of entry tags to return;
+ *                 Output = the actual number of entry tags returned (may be zero)
+ * @entries: (out caller-allocates) (array length=entries_count) (optional): entries tags buffer.
+ *           May be `NULL` only if @entries_count is `NULL` or zero.
  *
- * Fetches all available feature types.
+ * Fetches all available entry tags.
  *
- * Return value: Number of all available feature types.
+ * Return value: Number of all available entry tags.
  *
  * Since: 2.6.0
  **/

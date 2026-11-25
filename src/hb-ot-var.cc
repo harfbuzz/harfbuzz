@@ -86,10 +86,11 @@ hb_ot_var_get_axis_count (hb_face_t *face)
 /**
  * hb_ot_var_get_axes:
  * @face: #hb_face_t to work upon
- * @start_offset: offset of the first lookup to retrieve
+ * @start_offset: offset of the first variation axis to retrieve
  * @axes_count: (inout) (optional): Input = the maximum number of variation axes to return;
  *                Output = the actual number of variation axes returned (may be zero)
- * @axes_array: (out caller-allocates) (array length=axes_count) (nullable): The array of variation axes found
+ * @axes_array: (out caller-allocates) (array length=axes_count) (optional): The array of variation axes found.
+ *              May be `NULL` only if @axes_count is `NULL` or zero.
  *
  * Fetches a list of all variation axes in the specified face. The list returned will begin
  * at the offset provided.
@@ -134,10 +135,11 @@ hb_ot_var_find_axis (hb_face_t        *face,
 /**
  * hb_ot_var_get_axis_infos:
  * @face: #hb_face_t to work upon
- * @start_offset: offset of the first lookup to retrieve
+ * @start_offset: offset of the first variation axis to retrieve
  * @axes_count: (inout) (optional): Input = the maximum number of variation axes to return;
  *                Output = the actual number of variation axes returned (may be zero)
- * @axes_array: (out caller-allocates) (array length=axes_count) (nullable): The array of variation axes found
+ * @axes_array: (out caller-allocates) (array length=axes_count) (optional): The array of variation axes found.
+ *              May be `NULL` only if @axes_count is `NULL` or zero.
  *
  * Fetches a list of all variation axes in the specified face. The list returned will begin
  * at the offset provided.
@@ -243,7 +245,8 @@ hb_ot_var_named_instance_get_postscript_name_id (hb_face_t  *face,
  * @instance_index: The index of the named instance to query
  * @coords_length: (inout) (optional): Input = the maximum number of coordinates to return;
  *                 Output = the actual number of coordinates returned (may be zero)
- * @coords: (out) (array length=coords_length) (nullable): The array of coordinates found for the query
+ * @coords: (out caller-allocates) (array length=coords_length) (optional): The array of coordinates found for the query.
+ *          May be `NULL` only if @coords_length is `NULL` or zero.
  *
  * Fetches the design-space coordinates corresponding to the given
  * named instance in the face.

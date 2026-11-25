@@ -1241,13 +1241,14 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
  * hb_ot_shape_plan_get_feature_tags:
  * @shape_plan: A shaping plan
  * @start_offset: The index of first feature to retrieve
- * @tag_count: (inout): Input = the maximum number of features to return;
+ * @tag_count: (inout) (optional): Input = the maximum number of features to return;
  *                      Output = the actual number of features returned (may be zero)
- * @tags: (out) (array length=tag_count): The array of enabled feature
+ * @tags: (out caller-allocates) (array length=tag_count) (optional): The array of enabled feature tags.
+ *        May be `NULL` only if @tag_count is `NULL` or zero.
  *
  * Fetches the list of OpenType feature tags enabled for a shaping plan, if possible.
  *
- * Return value: Total number of feature tagss.
+ * Return value: Total number of feature tags.
  *
  * Since: 10.3.0
  */
