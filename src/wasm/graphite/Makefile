@@ -7,8 +7,12 @@ all: $(FONTS)
 # malloc and free: HarfBuzz does not run a module that does either, unless
 # built with HB_NO_WASM_BUDGET.  shape.cc defines the WASI calls that the C
 # library would otherwise import.
+#
+# The module is interpreted, so every instruction counts.  For -flto to reach
+# into Graphite, build libgraphite2.a with -O3 -flto as well.
 %.wasm: %.cc ../../hb-wasm-api.h
 	emcc \
+		-O3 -flto \
 		-I ../.. \
 		-I ~/graphite/include/ \
 		-fvisibility=hidden \
