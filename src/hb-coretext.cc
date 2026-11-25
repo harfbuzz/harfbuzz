@@ -116,20 +116,13 @@ _hb_cg_get_table_tags (const hb_face_t *face HB_UNUSED,
     return population;
   }
 
-  unsigned end_offset = start_offset + *table_count;
-  if (unlikely (end_offset < start_offset))
-  {
-    *table_count = 0;
-    return population;
-  }
-  end_offset = hb_min (end_offset, (unsigned) population);
-
-  *table_count = end_offset - start_offset;
+  /* start_offset is below population here, so this cannot wrap. */
+  *table_count = hb_min (*table_count, (unsigned) population - start_offset);
   if (table_tags)
-    for (unsigned i = start_offset; i < end_offset; i++)
+    for (unsigned i = 0; i < *table_count; i++)
     {
-      CTFontTableTag tag = (CTFontTableTag)(uintptr_t) CFArrayGetValueAtIndex (arr, i);
-      table_tags[i - start_offset] = tag;
+      CTFontTableTag tag = (CTFontTableTag)(uintptr_t) CFArrayGetValueAtIndex (arr, start_offset + i);
+      table_tags[i] = tag;
     }
 
   return population;

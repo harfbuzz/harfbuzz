@@ -55,6 +55,15 @@ _test_get_table_tags (hb_face_t *face)
   g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 14, &count, tags));
   g_assert_cmpuint (1u, ==, count);
   g_assert_cmpuint (tags[0], ==, HB_TAG ('p', 'r', 'e', 'p'));
+
+  /* A count that overstates the array, so much that adding the offset
+   * to it wraps, is clamped to what is left like any other. */
+  hb_tag_t rest[15];
+  count = (unsigned) -1;
+  g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 2, &count, rest));
+  g_assert_cmpuint (13u, ==, count);
+  g_assert_cmpuint (rest[0], ==, HB_TAG ('c', 'v', 't', ' '));
+  g_assert_cmpuint (rest[12], ==, HB_TAG ('p', 'r', 'e', 'p'));
 }
 
 static void
