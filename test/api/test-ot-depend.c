@@ -1107,7 +1107,7 @@ test_depend_gsub_high_bit_tags (void)
   hb_face_destroy (face);
 }
 
-/* A count with a NULL array is not a conforming call: nothing is written,
+/* A positive count with a NULL array is not a conforming call: nothing is written,
  * and the count says so.  See test-paged-getters.c. */
 static void
 test_depend_lookup_glyph_null_array (void)
@@ -1120,6 +1120,14 @@ test_depend_lookup_glyph_null_array (void)
   total = hb_subset_depend_lookup_glyph (depend, 131, 0, NULL, NULL);
   g_assert_cmpuint (total, >, 0);
   count = 12345;
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 131, 0, &count, NULL), ==, total);
+  g_assert_cmpuint (count, ==, 0);
+
+  count = total;
+  g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 131, total, &count, NULL), ==, total);
+  g_assert_cmpuint (count, ==, 0);
+
+  count = 0;
   g_assert_cmpuint (hb_subset_depend_lookup_glyph (depend, 131, 0, &count, NULL), ==, total);
   g_assert_cmpuint (count, ==, 0);
 
