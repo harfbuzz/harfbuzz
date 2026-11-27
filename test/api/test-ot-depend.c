@@ -1141,6 +1141,86 @@ test_depend_lookup_glyph_null_array (void)
   hb_face_destroy (face);
 }
 
+static hb_bool_t
+has_context_dependency (hb_subset_depend_t *depend,
+			hb_codepoint_t source_glyph,
+			hb_codepoint_t target_glyph,
+			hb_tag_t layout_tag,
+			hb_codepoint_t ctx_a,
+			hb_codepoint_t ctx_b)
+{
+  unsigned int total = hb_subset_depend_lookup_glyph (depend, source_glyph, 0, NULL, NULL);
+  hb_set_t *set = hb_set_create ();
+  hb_set_t *sub = hb_set_create ();
+  hb_bool_t found = FALSE;
+
+  for (unsigned int index = 0; index < total; index++)
+  {
+    hb_subset_depend_entry_t entry;
+    unsigned int count = 1;
+    hb_subset_depend_lookup_glyph (depend, source_glyph, index, &count, &entry);
+
+    if (entry.table_tag != HB_OT_TAG_GSUB ||
+	entry.dependent != target_glyph ||
+	entry.layout_tag != layout_tag ||
+	entry.context_set_index == HB_CODEPOINT_INVALID)
+      continue;
+
+    hb_set_clear (set);
+    if (!hb_subset_depend_lookup_set (depend, entry.context_set_index, set))
+      continue;
+
+    hb_bool_t has_a = hb_set_has (set, ctx_a);
+    hb_bool_t has_b = hb_set_has (set, ctx_b);
+    hb_codepoint_t elem = HB_SET_VALUE_INVALID;
+    while (hb_set_next (set, &elem))
+    {
+      if (!(elem & 0x80000000u))
+	continue;
+      hb_set_clear (sub);
+      if (!hb_subset_depend_lookup_set (depend, elem & 0x7FFFFFFFu, sub))
+	continue;
+      if (hb_set_has (sub, ctx_a))
+	has_a = TRUE;
+      if (hb_set_has (sub, ctx_b))
+	has_b = TRUE;
+    }
+
+    if (has_a && has_b)
+    {
+      found = TRUE;
+      break;
+    }
+  }
+
+  hb_set_destroy (sub);
+  hb_set_destroy (set);
+  return found;
+}
+
+/* ChainContextSubst Format 2 lookups that share deduplicated Coverage,
+ * InputClassDef, RuleSet, and Rule tables but differ in LookAheadClassDef must
+ * not collide in context_set_cache. */
+static void
+test_depend_chain_context_format2_shared_rule (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoSansSogdian-Regular.subset.ttf");
+  hb_subset_depend_t *depend = hb_subset_depend_from_face_or_fail (face);
+  hb_tag_t calt = HB_TAG ('c','a','l','t');
+  g_assert_nonnull (depend);
+
+  /* Lookup 9: MemMed (8)/MemIni (9) -> MemMed.L (20)/MemIni.L (19) before Aleph (4, 5). */
+  g_assert_true (has_context_dependency (depend, 8, 20, calt, 4, 5));
+  g_assert_true (has_context_dependency (depend, 9, 19, calt, 4, 5));
+
+  /* Lookup 11 (shares Rule with Lookup 9, differs in LookAheadClassDef): before Taw (10, 11). */
+  g_assert_true (has_context_dependency (depend, 8, 20, calt, 10, 11));
+  g_assert_true (has_context_dependency (depend, 9, 19, calt, 10, 11));
+
+  hb_subset_depend_destroy (depend);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1158,6 +1238,7 @@ main (int argc, char **argv)
   hb_test_add (test_depend_gsub_high_bit_tags);
   hb_test_add (test_depend_gsub_recursion_limit);
   hb_test_add (test_depend_lookup_glyph_null_array);
+  hb_test_add (test_depend_chain_context_format2_shared_rule);
 #ifndef HB_NO_BEYOND_64K
   hb_test_add (test_depend_context_format6);
   hb_test_add (test_depend_gsub_context_set_glyphs);

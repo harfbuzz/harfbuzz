@@ -462,20 +462,28 @@ struct hb_depend_context_t :
     context_set_cache_key_t (const void *rule_,
 			     const void *record_,
 			     const void *data_,
+			     const void *backtrack_data_,
+			     const void *lookahead_data_,
 			     hb_codepoint_t active_glyphs_,
 			     unsigned value_,
-			     unsigned format_)
-      : rule (rule_), record (record_), data (data_), active_glyphs (active_glyphs_),
-	value (value_), format (format_) {}
+			     unsigned format_,
+			     bool is_chain_)
+      : rule (rule_), record (record_), data (data_),
+	backtrack_data (backtrack_data_), lookahead_data (lookahead_data_),
+	active_glyphs (active_glyphs_), value (value_), format (format_),
+	is_chain (is_chain_) {}
 
     bool operator == (const context_set_cache_key_t &o) const
     {
       return rule == o.rule &&
 	     record == o.record &&
 	     data == o.data &&
+	     backtrack_data == o.backtrack_data &&
+	     lookahead_data == o.lookahead_data &&
 	     active_glyphs == o.active_glyphs &&
 	     value == o.value &&
-	     format == o.format;
+	     format == o.format &&
+	     is_chain == o.is_chain;
     }
 
     uint32_t hash () const
@@ -483,17 +491,23 @@ struct hb_depend_context_t :
       uint32_t current = hb_hash ((uintptr_t) rule);
       current = current * 31 + hb_hash ((uintptr_t) record);
       current = current * 31 + hb_hash ((uintptr_t) data);
+      current = current * 31 + hb_hash ((uintptr_t) backtrack_data);
+      current = current * 31 + hb_hash ((uintptr_t) lookahead_data);
       current = current * 31 + hb_hash (active_glyphs);
       current = current * 31 + hb_hash (value);
-      return current * 31 + hb_hash (format);
+      current = current * 31 + hb_hash (format);
+      return current * 31 + hb_hash ((unsigned) is_chain);
     }
 
     const void *rule = nullptr;
     const void *record = nullptr;
     const void *data = nullptr;
+    const void *backtrack_data = nullptr;
+    const void *lookahead_data = nullptr;
     hb_codepoint_t active_glyphs = HB_CODEPOINT_INVALID;
     unsigned value = 0;
     unsigned format = 0;
+    bool is_chain = false;
   };
 
   struct recurse_key_t
@@ -676,14 +690,19 @@ struct hb_depend_context_t :
   bool get_context_set_cache_key (const void *rule,
 				  const void *record,
 				  const void *data,
+				  const void *backtrack_data,
+				  const void *lookahead_data,
 				  unsigned value,
 				  unsigned format,
+				  bool is_chain,
 				  context_set_cache_key_t *key)
   {
     hb_codepoint_t active_idx;
     if (!get_parent_active_glyphs_index (&active_idx))
       return false;
-    *key = context_set_cache_key_t (rule, record, data, active_idx, value, format);
+    *key = context_set_cache_key_t (rule, record, data, backtrack_data,
+				    lookahead_data, active_idx, value, format,
+				    is_chain);
     return true;
   }
 
@@ -2573,6 +2592,9 @@ context_depend_sets_are_cached (hb_depend_context_t *c,
 				unsigned value,
 				ContextFormat context_format,
 				const void *data,
+				const void *backtrack_data,
+				const void *lookahead_data,
+				bool is_chain,
 				hb_vector_t<hb_codepoint_t> *cached_context_sets)
 {
   hb_codepoint_t active_idx = HB_CODEPOINT_INVALID;
@@ -2590,7 +2612,8 @@ context_depend_sets_are_cached (hb_depend_context_t *c,
     }
 
     hb_depend_context_t::context_set_cache_key_t key (
-      rule, &lookup_records[i], data, active_idx, value, context_format);
+      rule, &lookup_records[i], data, backtrack_data, lookahead_data,
+      active_idx, value, context_format, is_chain);
     hb_codepoint_t *cached_context_set = nullptr;
     if (!c->context_set_cache.has (key, &cached_context_set))
       return false;
@@ -2610,6 +2633,9 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
 					     unsigned value,
 					     ContextFormat context_format,
 					     const void *data,
+					     const void *backtrack_data,
+					     const void *lookahead_data,
+					     bool is_chain,
 					     intersected_glyphs_func_t intersected_glyphs_func,
 					     void *cache,
 					     const hb_set_t &preliminary_context,
@@ -2645,8 +2671,10 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
       continue;
 
     hb_depend_context_t::context_set_cache_key_t context_cache_key;
-    if (unlikely (!c->get_context_set_cache_key (rule, &lookupRecord[i], data, value,
-						 context_format, &context_cache_key)))
+    if (unlikely (!c->get_context_set_cache_key (rule, &lookupRecord[i], data,
+						 backtrack_data, lookahead_data, value,
+						 context_format, is_chain,
+						 &context_cache_key)))
       return;
 
     hb_codepoint_t context_set_idx;
@@ -3091,6 +3119,7 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
   bool context_sets_cached = context_depend_sets_are_cached (
     c, inputCount, lookupCount, lookupRecord, rule, value,
     lookup_context.context_format, lookup_context.intersects_data,
+    nullptr, nullptr, false,
     &scratch->cached_context_sets);
   if (unlikely (!c->depend_data->successful))
     return;
@@ -3140,6 +3169,9 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
 				  value,
 				  lookup_context.context_format,
 				  lookup_context.intersects_data,
+				  nullptr,
+				  nullptr,
+				  false,
 				  lookup_context.funcs.intersected_glyphs,
 				  lookup_context.intersected_glyphs_cache,
 				  preliminary_context,
@@ -4559,6 +4591,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
   bool context_sets_cached = context_depend_sets_are_cached (
     c, inputCount, lookupCount, lookupRecord, rule, value,
     lookup_context.context_format, lookup_context.intersects_data[1],
+    lookup_context.intersects_data[0], lookup_context.intersects_data[2], true,
     &scratch->cached_context_sets);
   if (unlikely (!c->depend_data->successful))
     return;
@@ -4571,6 +4604,9 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 				    value,
 				    lookup_context.context_format,
 				    lookup_context.intersects_data[1],
+				    lookup_context.intersects_data[0],
+				    lookup_context.intersects_data[2],
+				    true,
 				    lookup_context.funcs.intersected_glyphs,
 				    lookup_context.intersected_glyphs_cache,
 				    scratch->preliminary_context,
@@ -4695,6 +4731,9 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 				  value,
 				  lookup_context.context_format,
 				  lookup_context.intersects_data[1],
+				  lookup_context.intersects_data[0],
+				  lookup_context.intersects_data[2],
+				  true,
 				  lookup_context.funcs.intersected_glyphs,
 				  lookup_context.intersected_glyphs_cache,
 				  preliminary_context,
