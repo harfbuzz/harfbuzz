@@ -130,6 +130,43 @@ test_range_charset_names (void)
   }
 }
 
+static void
+test_shared_names (void)
+{
+  char cff[] = {
+    1, 0, 4, 4,                         /* Header */
+    0, 1, 1, 1, 2, 'T',                 /* Name INDEX */
+    0, 1, 1, 1, 5,                      /* Top DICT INDEX */
+    (char) 162, 15, (char) 171, 17,      /* charset=23, CharStrings=32 */
+    0, 0,                               /* String INDEX */
+    0, 0,                               /* Global Subr INDEX */
+    0, 0, 1, 0, 1, 0, 2, 0, 1,          /* Charset: space, space, exclam, space */
+    0, 5, 1, 1, 2, 3, 4, 5, 6, 14, 14, 14, 14, 14, /* Five endchar CharStrings */
+  };
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "CFF ", cff);
+  hb_face_set_glyph_count (face, 5);
+  hb_font_t *font = hb_font_create (face);
+
+  /* A name shared by several glyphs resolves to the first of them. */
+  char name[64];
+  hb_codepoint_t glyph;
+  for (hb_codepoint_t gid = 1; gid <= 4; gid++)
+  {
+    g_assert_true (hb_font_get_glyph_name (font, gid, name, sizeof (name)));
+    g_assert_cmpstr (name, ==, gid == 3 ? "exclam" : "space");
+  }
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_cmpint (glyph, ==, 1);
+  test_one_glyph (font, 3, "exclam");
+  test_one_glyph (font, 0, ".notdef");
+  g_assert_false (hb_font_get_glyph_from_name (font, "A", -1, &glyph));
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -139,6 +176,7 @@ main (int argc, char **argv)
   hb_test_add (test_non_standard_names);
   hb_test_add (test_predef_charset_names);
   hb_test_add (test_range_charset_names);
+  hb_test_add (test_shared_names);
 
   return hb_test_run();
 }

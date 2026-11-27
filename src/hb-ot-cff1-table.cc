@@ -586,12 +586,17 @@ struct cff1_cs_opset_seac_t : cff1_cs_opset_t<cff1_cs_opset_seac_t, get_seac_par
 };
 
 static bool
-_cff1_subrs_may_end_in_seac (const CFF1Subrs &subrs)
+_cff1_subrs_may_end_in_seac (const CFF1Subrs &subrs, int64_t &budget)
 {
   for (unsigned int i = 0; i < subrs.count; i++)
-    for (const auto byte : subrs[i])
+  {
+    const hb_ubytes_t str = subrs[i];
+    if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, 1 + str.length)))
+      return true;
+    for (const auto byte : str)
       if (byte == OpCode_endchar)
         return true;
+  }
   return false;
 }
 
@@ -599,23 +604,39 @@ OT::cff1::accelerator_subset_t::accelerator_subset_t (hb_face_t *face) : SUPER (
 {
   if (unlikely (!is_valid ())) return;
 
-  subrs_may_end_in_seac = _cff1_subrs_may_end_in_seac (*globalSubrs);
+  /* Distinct subroutines add up to at most the table.  INDEX entries can
+   * overlap though, and Font DICTs can share a Subrs INDEX, so that reading
+   * all of them costs many table scans; assume the worst when they do. */
+  int64_t budget = blob->length;
+  subrs_may_end_in_seac = _cff1_subrs_may_end_in_seac (*globalSubrs, budget);
   for (unsigned int fd = 0; !subrs_may_end_in_seac && fd < fdCount; fd++)
     subrs_may_end_in_seac =
-      _cff1_subrs_may_end_in_seac (*privateDicts[fd].localSubrs);
+      _cff1_subrs_may_end_in_seac (*privateDicts[fd].localSubrs, budget);
 }
 
 static bool
 _cff1_charstring_may_end_in_seac (const hb_ubytes_t &str,
-                                  bool subrs_may_end_in_seac)
+                                  bool subrs_may_end_in_seac,
+                                  int64_t *budget)
 {
+  /* The interpreter fails without budget; do not read the charstring either. */
+  if (budget && unlikely (*budget <= 0)) return false;
+
   if (subrs_may_end_in_seac)
+  {
     /* A subroutine can terminate the glyph with endchar, even when the glyph
      * has no endchar of its own or has unreachable bytes after the call.
      * False positives from operands and masks are safe. */
-    for (const auto byte : str)
-      if (byte == OpCode_callsubr || byte == OpCode_callgsubr)
-        return true;
+    unsigned int i = 0;
+    while (i < str.length &&
+           str[i] != OpCode_callsubr && str[i] != OpCode_callgsubr)
+      i++;
+    /* Glyphs can share charstring bytes as they can share subroutines, so
+     * the table size does not bound the bytes read here either. */
+    if (budget) hb_budget_spend (*budget, HB_BUDGET_1, i);
+    if (i < str.length)
+      return true;
+  }
 
   if (unlikely (!str.length || str[str.length - 1] != OpCode_endchar))
     return false;
@@ -654,7 +675,7 @@ bool OT::cff1::accelerator_subset_t::get_seac_components (hb_codepoint_t glyph, 
 
   unsigned int fd = fdSelect ? fdSelect->get_fd (glyph) : 0;
   const hb_ubytes_t str = (*charStrings)[glyph];
-  if (unlikely (!_cff1_charstring_may_end_in_seac (str, subrs_may_end_in_seac))) return false;
+  if (unlikely (!_cff1_charstring_may_end_in_seac (str, subrs_may_end_in_seac, budget))) return false;
   cff1_cs_interp_env_t env (str, *this, fd);
   cff1_cs_interpreter_t<cff1_cs_opset_seac_t, get_seac_param_t> interp (env);
   get_seac_param_t  param (this);

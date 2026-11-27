@@ -1374,6 +1374,20 @@ struct cff1
       }
     }
 
+    hb_codepoint_t glyph_to_sid (hb_codepoint_t glyph,
+				 code_pair_t *cache = nullptr) const
+    {
+      if (cache && unlikely (cache->glyph != HB_CODEPOINT_INVALID &&
+			     glyph < cache->glyph && glyph < num_glyphs))
+      {
+	/* A backward lookup cannot use the cached charset range. */
+	if (const hb_codepoint_t *table = get_glyph_to_sid_table ())
+	  return table[glyph];
+      }
+
+      return lookup_sid (glyph, cache);
+    }
+
     glyph_to_sid_map_t *create_glyph_to_sid_map () const
     {
       if (charset)
@@ -1389,8 +1403,8 @@ struct cff1
 	return nullptr;
     }
 
-    hb_codepoint_t glyph_to_sid (hb_codepoint_t glyph,
-				 code_pair_t *cache = nullptr) const
+    hb_codepoint_t lookup_sid (hb_codepoint_t glyph,
+			       code_pair_t *cache) const
     {
       if (charset)
 	return charset->get_sid (glyph, num_glyphs, cache);
@@ -1545,7 +1559,7 @@ struct cff1
 	  {
 	    hb_codepoint_t	sid = glyph_to_sid (gid, &glyph_to_sid_cache);
 	    gname_t	gname;
-	    gname.sid = sid;
+	    gname.gid = gid;
 	    if (sid < cff1_std_strings_length)
 	      gname.name = cff1_std_strings (sid);
 	    else
@@ -1555,9 +1569,26 @@ struct cff1
 	    }
 	    if (unlikely (!gname.name.arrayZ))
 	      gname.name = hb_bytes_t ("", 0); /* To avoid nullptr. */
-	    names->push (gname);
+	    if (unlikely (!names->push_or_fail (gname)))
+	    {
+	      names->fini ();
+	      hb_free (names);
+	      return false;
+	    }
 	  }
-	  names->qsort ();
+	  /* Store the glyph, not the SID: mapping a SID back to its glyph
+	   * with Charset::get_glyph() is a linear scan of the charset on
+	   * every lookup.  Glyphs can share a name; keep the first glyph
+	   * of each, matching Charset::get_glyph(). */
+	  names->qsort ([] (const gname_t &a, const gname_t &b) {
+	    int ret = gname_t::cmp (&a, &b);
+	    return ret ? ret : (int) a.gid - (int) b.gid;
+	  });
+	  unsigned count = 0;
+	  for (unsigned i = 0; i < names->length; i++)
+	    if (!count || names->arrayZ[i].cmp (names->arrayZ[count - 1]))
+	      names->arrayZ[count++] = names->arrayZ[i];
+	  names->shrink (count);
 	}
 	if (unlikely (!glyph_names.cmpexch (nullptr, names)))
 	{
@@ -1573,9 +1604,7 @@ struct cff1
       gname_t key = { hb_bytes_t (name, len), 0 };
       const gname_t *gname = names ? names->bsearch (key) : nullptr;
       if (!gname) return false;
-      hb_codepoint_t gid = sid_to_glyph (gname->sid);
-      if (!gid && gname->sid) return false;
-      *glyph = gid;
+      *glyph = gname->gid;
       return true;
     }
 
@@ -1586,7 +1615,7 @@ struct cff1
     struct gname_t
     {
       hb_bytes_t	name;
-      uint16_t		sid;
+      hb_codepoint_t	gid;
 
       static int cmp (const void *a_, const void *b_)
       {

@@ -520,6 +520,42 @@ test_subset_cff1_j_retaingids (void)
   hb_face_destroy (face_41_4c2e);
 }
 
+/* A custom glyph mapping makes the subsetter look up the SIDs of a range
+ * charset out of glyph order. */
+static void
+test_subset_cff1_glyph_map_charset_order (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
+  unsigned num_glyphs = hb_face_get_glyph_count (face);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_map_t *mapping = hb_subset_input_old_to_new_glyph_mapping (input);
+  for (hb_codepoint_t gid = 1; gid < num_glyphs; gid++)
+  {
+    hb_set_add (hb_subset_input_glyph_set (input), gid);
+    hb_map_set (mapping, gid, num_glyphs - gid);
+  }
+
+  hb_face_t *subset = hb_subset_or_fail (face, input);
+  g_assert_nonnull (subset);
+  g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, num_glyphs);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_font_t *subset_font = hb_font_create (subset);
+  for (hb_codepoint_t gid = 1; gid < num_glyphs; gid++)
+  {
+    char expected[64], actual[64];
+    g_assert_true (hb_font_get_glyph_name (font, gid, expected, sizeof (expected)));
+    g_assert_true (hb_font_get_glyph_name (subset_font, num_glyphs - gid, actual, sizeof (actual)));
+    g_assert_cmpstr (actual, ==, expected);
+  }
+
+  hb_font_destroy (subset_font);
+  hb_font_destroy (font);
+  hb_face_destroy (subset);
+  hb_subset_input_destroy (input);
+  hb_face_destroy (face);
+}
+
 static void
 test_subset_cff1_identity_charset (void)
 {
@@ -969,6 +1005,7 @@ main (int argc, char **argv)
   hb_test_add_data_flavor (GUINT_TO_POINTER (0), "format0", test_subset_cff1_encoding_glyph_count);
   hb_test_add_data_flavor (GUINT_TO_POINTER (1), "format1", test_subset_cff1_encoding_glyph_count);
   hb_test_add (test_subset_cff1_encoding_range_overflow);
+  hb_test_add (test_subset_cff1_glyph_map_charset_order);
   hb_test_add (test_subset_cff1_identity_charset);
   hb_test_add (test_subset_cff1_j_identity_charset);
   hb_test_add (test_subset_cff1_shared_local_subrs);
