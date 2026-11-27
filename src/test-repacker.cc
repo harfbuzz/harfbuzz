@@ -3797,6 +3797,71 @@ test_isolate_subgraph_shared_wide_parents ()
   free (buffer);
 }
 
+static void
+test_subgraph_searches_skip_virtual_links ()
+{
+  // Two subtables behind 32 bit links share a ligature, which has a virtual link
+  // to the coverage of each of them, as the subsetter's de-duplication produces.
+  //
+  // root -32-> s1, s2
+  // s1 -16-> cov1, lig
+  // s2 -16-> cov2, lig
+  // lig -virtual-> cov1, cov2
+  // cov2 -32-> ext
+  //
+  // cov2 and ext are not part of s1's subgraph: no offset in it points to them. The
+  // searches which are run for each subtable must not walk lig's virtual links.
+  size_t buffer_size = 1000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize ();
+  unsigned ext = add_object ("ext", 3, &c);
+  unsigned cov1 = add_object ("cv1", 3, &c);
+
+  start_object ("cv2", 3, &c);
+  add_wide_offset (ext, &c);
+  unsigned cov2 = c.pop_pack (false);
+
+  start_object ("lig", 3, &c);
+  add_virtual_offset (cov1, &c);
+  add_virtual_offset (cov2, &c);
+  unsigned lig = c.pop_pack (false);
+
+  start_object ("s1", 2, &c);
+  add_offset (cov1, &c);
+  add_offset (lig, &c);
+  unsigned s1 = c.pop_pack (false);
+
+  start_object ("s2", 2, &c);
+  add_offset (cov2, &c);
+  add_offset (lig, &c);
+  unsigned s2 = c.pop_pack (false);
+
+  start_object ("root", 4, &c);
+  add_wide_offset (s1, &c);
+  add_wide_offset (s2, &c);
+  c.pop_pack (false);
+  c.end_serialize ();
+
+  graph_t graph = graph_t::create (c.object_graph ()).value ();
+  hb_always_assert (graph.vertices_[lig - 1].obj ().virtual_links.length == 2);
+
+  hb_set_t roots;
+  hb_always_assert (graph.find_32bit_roots (s1 - 1, roots).is_ok ());
+  hb_always_assert (roots.is_empty ());
+
+  hb_set_t visited;
+  size_t size = graph.find_subgraph_size (s1 - 1, visited).value ();
+  hb_always_assert (size == graph.vertices_[s1 - 1].table_size () +
+                            graph.vertices_[cov1 - 1].table_size () +
+                            graph.vertices_[lig - 1].table_size ());
+  hb_always_assert (visited.get_population () == 3);
+  hb_always_assert (!visited.has (cov2 - 1));
+
+  free (buffer);
+}
+
 static void test_invalid_link_objidx ()
 {
   size_t buffer_size = 100;
@@ -4025,6 +4090,7 @@ main (int argc, char **argv)
   test_resolve_shared_overflow_vertex_limit ();
   test_32bit_roots_traversal ();
   test_isolate_subgraph_shared_wide_parents ();
+  test_subgraph_searches_skip_virtual_links ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.

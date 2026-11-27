@@ -1117,8 +1117,13 @@ public:
   //
   // This traversal does not use a visited set internally, it is the responsibility of visit_edge
   // to track and filter visited nodes if required for the particular traversal.
+  //
+  // If real_links_only is set then virtual links are not enumerated at all. A shared object can
+  // carry a virtual link for each of its users, so traversals which are run once per user and
+  // have no use for the virtual links should set this.
   template <typename VisitEdgeFunc>
-  graph_result_t<void> traverse_directed_bfs (unsigned start_idx, VisitEdgeFunc&& visit_edge)
+  graph_result_t<void> traverse_directed_bfs (unsigned start_idx, VisitEdgeFunc&& visit_edge,
+                                              bool real_links_only = false)
   {
     if (unlikely (start_idx >= vertices_.length))
     {
@@ -1150,7 +1155,7 @@ public:
         const auto& v = vertices_[node_idx];
 
         unsigned num_real = v.obj().real_links.length;
-        unsigned total_links = num_real + v.obj().virtual_links.length;
+        unsigned total_links = num_real + (real_links_only ? 0 : v.obj().virtual_links.length);
 
         for (unsigned i = 0; i < total_links; i++)
         {
@@ -1207,6 +1212,13 @@ public:
     });
   }
 
+  /*
+   * Sums the sizes of the nodes reachable from node_idx through real links which are not in
+   * subgraph yet, and adds them to subgraph.
+   *
+   * Virtual links are not followed: they only constrain the order of two objects, and on a shared
+   * object they lead to nodes that belong to its other users.
+   */
   graph_result_t<size_t> find_subgraph_size (unsigned node_idx, hb_set_t& subgraph, unsigned max_depth = HB_GRAPH_INVALID)
   {
     size_t size = 0;
@@ -1221,7 +1233,7 @@ public:
       const auto& o = vertices_[child].obj();
       size += o.tail - o.head;
       return depth < max_depth;
-    }));
+    }, true));
     return Ok(size);
   }
 
@@ -1233,6 +1245,9 @@ public:
   {
     // Note: this specifically requires a BFS based traversal to ensure we don't recurse through
     // a node that is accessible via both 32bit and non-32 bit links.
+    //
+    // Only real links can form 32 bit spaces, so virtual links are not traversed. This is called
+    // for every wide link: walking the virtual links of shared objects each time is quadratic.
     hb_set_t visited;
     return traverse_directed_bfs (node_idx, [&] (
       unsigned parent,
@@ -1254,7 +1269,7 @@ public:
       if (visited.has (child)) return false;
       visited.add (child);
       return true;
-    });
+    }, true);
   }
 
   /*
