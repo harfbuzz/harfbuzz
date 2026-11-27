@@ -65,8 +65,9 @@ struct hb_subset_context_t :
   hb_serialize_context_t *serializer;
   hb_tag_t table_tag;
   /* Work left for subsetting this table: outline work for glyf instancing,
-   * Coverage and ClassDef glyph walks for layout tables.  Lives here rather
-   * than in the table's subset() so retries with a larger buffer share it. */
+   * Coverage and ClassDef glyph walks for layout tables, condition trees and
+   * variation regions for VARC.  Lives here rather than in the table's
+   * subset() so retries with a larger buffer share it. */
   int64_t budget_remaining;
 
   hb_subset_context_t (hb_blob_t *source_blob_,

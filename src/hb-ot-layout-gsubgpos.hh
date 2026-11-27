@@ -37,6 +37,7 @@
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-depend-data.hh"
+#include "hb-set-builder.hh"
 
 
 namespace OT {

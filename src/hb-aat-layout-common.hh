@@ -34,6 +34,7 @@
 #include "hb-open-type.hh"
 #include "hb-cache.hh"
 #include "hb-bit-set.hh"
+#include "hb-set-builder.hh"
 #include "hb-bit-page.hh"
 
 
@@ -165,7 +166,20 @@ struct hb_aat_apply_context_t :
     using_buffer_glyph_set = buffer->len >= 4 && buffer_glyph_set;
 
     if (likely (using_buffer_glyph_set))
-      buffer->collect_codepoints (*buffer_glyph_set);
+    {
+      if (likely (buffer->len <= 128))
+      {
+        buffer->collect_codepoints (*buffer_glyph_set);
+        using_buffer_glyph_set = !buffer_glyph_set->in_error ();
+        return;
+      }
+      buffer_glyph_set->clear ();
+      hb_set_builder_t<hb_bit_set_t> glyphs (*buffer_glyph_set);
+      for (unsigned i = 0; i < buffer->len; i++)
+        glyphs.add (buffer->info[i].codepoint);
+      /* A partial set cannot be used to skip an AAT subtable. */
+      using_buffer_glyph_set = glyphs.flush ();
+    }
   }
   bool buffer_intersects_machine () const
   {

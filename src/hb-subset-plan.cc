@@ -130,7 +130,9 @@ static void _colr_closure (hb_subset_plan_t* plan,
 
   //closure for COLRv1
   hb_set_t variation_indices, delta_set_indices;
-  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices, &delta_set_indices);
+  if (unlikely (!plan->check_success (colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices,
+                                                         &variation_indices, &delta_set_indices))))
+    return;
 
   colr.closure_V0palette_indices (glyphs_colred, &palette_indices);
   remap_indexes (&layer_indices, &plan->colrv1_layers);

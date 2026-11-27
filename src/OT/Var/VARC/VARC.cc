@@ -88,6 +88,12 @@ VarComponent::decompile_record (const VARC &varc,
     READ_UINT32VAR_FIELD (decoded->axis_indices_index, axis_indices);
     hb_ubytes_t axis_indices_bytes = (&varc+varc.axisIndicesList).bytes_at (decoded->axis_indices_index);
     unsigned axis_count;
+    /* Counting walks the whole encoded list, also when the list turns out
+     * to be malformed; charge the walk before doing it, not only the
+     * values of a list that decodes. */
+    if (unlikely (budget &&
+		  !hb_budget_spend (*budget, HB_BUDGET_1, axis_indices_bytes.length)))
+      return false;
     if (unlikely (!TupleValues::count_values (axis_indices_bytes.arrayZ,
 					      axis_indices_bytes.arrayZ + axis_indices_bytes.length,
 					      &axis_count)))
@@ -174,6 +180,7 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
    * can otherwise make many gids resolve to one large record. */
   const CFF2Index &records = this+glyphRecords;
   size_t records_size = records.get_size ();
+  int64_t budget = HB_BUDGET_SUBSET_LAYOUT;
 
   while (pending)
   {
@@ -190,7 +197,7 @@ VARC::closure_glyphs (hb_set_t *glyphset) const
     {
       VarComponent::record_t component;
       if (unlikely (!VarComponent::decompile_record (*this, record,
-						     nullptr, nullptr, &component)))
+						     nullptr, nullptr, &component, &budget)))
 	return false;
       if (!glyphset->has (component.gid))
       {
@@ -227,7 +234,8 @@ VARC::depend (hb_depend_data_builder_t *depend_data) const
     {
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (*this, record,
-						       nullptr, nullptr, &component)))
+						       nullptr, nullptr, &component,
+						       &depend_data->budget_remaining)))
 	{
 	  depend_data->fail ();
 	  return;

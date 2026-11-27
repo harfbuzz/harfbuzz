@@ -23,11 +23,42 @@
  */
 
 #include "hb.hh"
-#include "hb-set.hh"
+#include "hb-set-builder.hh"
 
 int
 main (int argc, char **argv)
 {
+
+  /* Ordered and pending additions must have the same membership before
+   * and after a flush, including when collecting into an existing set. */
+  {
+    hb_set_t out {2}, expected {2};
+    hb_set_builder_t<> builder (out);
+    for (unsigned i = 0; i < 150; i++)
+    {
+      unsigned value = i * 1024;
+      builder.add (value);
+      expected.add (value);
+    }
+    for (unsigned i = 150; i; i--)
+      for (unsigned bit : {0u, 5u, 63u, 5u})
+      {
+        unsigned value = (i - 1) * 1024 + 512 + bit;
+        builder.add (value);
+        expected.add (value);
+        hb_always_assert (builder.has (value));
+      }
+    builder.add (HB_SET_VALUE_INVALID);
+    hb_always_assert (!builder.has (HB_SET_VALUE_INVALID));
+    hb_always_assert (!builder.has (513));
+    hb_always_assert (builder.flush () && out == expected);
+    hb_always_assert (builder.flush () && out == expected);
+    builder.add (511);
+    builder.clear ();
+    hb_always_assert (!builder.has (511) && !builder.has (2));
+    builder.add (17);
+    hb_always_assert (builder.flush () && out.get_population () == 1 && out.has (17));
+  }
 
   /* Test copy constructor. */
   {

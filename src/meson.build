@@ -257,6 +257,7 @@ hb_base_sources = files(
   'hb-set-digest.hh',
   'hb-set.cc',
   'hb-set.hh',
+  'hb-set-builder.hh',
   'hb-shape-plan.cc',
   'hb-shape-plan.hh',
   'hb-shape.cc',

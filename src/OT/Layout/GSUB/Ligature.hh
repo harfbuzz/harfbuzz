@@ -44,8 +44,9 @@ struct Ligature
     // Build the complete ligature set upfront before adding any edges
     hb_set_t complete_ligset;
     complete_ligset.add (first);
-    + hb_iter (component) | hb_sink (complete_ligset);
-    if (unlikely (complete_ligset.in_error ()))
+    hb_set_builder_t<> components (complete_ligset);
+    for (const auto &gid : component) components.add (gid);
+    if (unlikely (!components.flush ()))
     {
       c->depend_data->fail ();
       return;

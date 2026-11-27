@@ -3030,9 +3030,16 @@ struct SparseVariationRegion
 
   bool serialize (hb_serialize_context_t *c,
 		  const SparseVariationRegion *src,
-		  const hb_map_t *axis_map)
+		  const hb_map_t *axis_map,
+		  int64_t *budget /* IN/OUT */)
   {
     TRACE_SERIALIZE (this);
+    /* Any number of offsets can share one region, or one axis of a region,
+     * and each is written and packed again, so neither the size of the
+     * table nor that of the output bounds the objects serialized. */
+    if (unlikely (!c->check_success (hb_budget_spend (*budget, HB_BUDGET_32,
+						      1 + src->axes.len))))
+      return_trace (false);
     if (unlikely (!axes.serialize (c, (unsigned) src->axes.len))) return_trace (false);
     for (unsigned i = 0; i < axes.len; i++)
       if (unlikely (src->axes[i].is_null () ||
@@ -3086,7 +3093,8 @@ struct SparseVarRegionList
   bool serialize (hb_serialize_context_t *c,
 		  const SparseVarRegionList *src,
 		  const hb_inc_bimap_t &region_map,
-		  const hb_map_t *axis_map)
+		  const hb_map_t *axis_map,
+		  int64_t *budget /* IN/OUT */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
@@ -3099,7 +3107,7 @@ struct SparseVarRegionList
       if (unlikely (old_index >= src->regions.len ||
 		    !regions[i].serialize_serialize (c,
 					     &(src+src->regions[old_index]),
-					     axis_map)))
+					     axis_map, budget)))
 	return_trace (false);
     }
     return_trace (true);
@@ -3570,7 +3578,8 @@ struct MultiVarData
   bool serialize (hb_serialize_context_t *c,
 		  const MultiVarData *src,
 		  const hb_inc_bimap_t &inner_map,
-		  const hb_inc_bimap_t &region_map)
+		  const hb_inc_bimap_t &region_map,
+		  int64_t *budget)
   {
     TRACE_SERIALIZE (this);
     unsigned region_count = src->regionIndices.len;
@@ -3591,6 +3600,12 @@ struct MultiVarData
     }
 
     const auto &src_delta_sets = src->get_delta_sets ();
+    /* The delta sets of a well-formed font do not overlap, so together they
+     * cannot outgrow their INDEX.  A font with overlapping offsets can
+     * otherwise make every retained delta set a copy of the whole INDEX, in
+     * each of any number of data sets sharing it.  This also keeps the
+     * running total exact, which a saturating sum into unsigned is not. */
+    size_t delta_sets_size = src_delta_sets.get_size ();
     hb_vector_t<hb_ubytes_t> delta_sets;
     unsigned data_size = 0;
     if (unlikely (!delta_sets.alloc_exact (inner_map.get_population ())))
@@ -3600,10 +3615,16 @@ struct MultiVarData
       unsigned old_inner = inner_map.backward (i);
       if (unlikely (old_inner >= src_delta_sets.count)) return_trace (false);
       hb_ubytes_t bytes = static_cast<const CFF2Index &> (src_delta_sets)[old_inner];
-      data_size = hb_unsigned_add_saturate (data_size, bytes.length);
+      if (unlikely (bytes.length > delta_sets_size))
+	return_trace (c->check_success (false));
+      delta_sets_size -= bytes.length;
+      data_size += bytes.length;
       delta_sets.push (bytes);
     }
-    if (unlikely (data_size == UINT_MAX || delta_sets.in_error ()))
+    if (unlikely (delta_sets.in_error ()))
+      return_trace (false);
+
+    if (unlikely (!c->check_success (hb_budget_spend (*budget, HB_BUDGET_1, data_size))))
       return_trace (false);
 
     auto &out_delta_sets = StructAfter<decltype (deltaSetsX)> (regionIndices);
@@ -4039,7 +4060,8 @@ struct MultiItemVariationStore
   bool serialize (hb_serialize_context_t *c,
 		  const MultiItemVariationStore *src,
 		  const hb_array_t<const hb_inc_bimap_t> &inner_maps,
-		  const hb_map_t *axis_map)
+		  const hb_map_t *axis_map,
+		  int64_t *budget /* IN/OUT */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this) ||
@@ -4060,7 +4082,8 @@ struct MultiItemVariationStore
     hb_inc_bimap_t region_map;
     region_map.add_set (&region_indices);
     if (unlikely (region_indices.in_error () || region_map.in_error () ||
-		  !regions.serialize_serialize (c, &src_regions, region_map, axis_map)))
+		  !regions.serialize_serialize (c, &src_regions, region_map, axis_map,
+						budget)))
       return_trace (false);
 
     dataSets.len = set_count;
@@ -4070,7 +4093,7 @@ struct MultiItemVariationStore
     {
       if (!inner_maps[i].get_population ()) continue;
       if (unlikely (!dataSets[set_index++].serialize_serialize (
-			    c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
+			    c, &(src+src->dataSets[i]), inner_maps[i], region_map, budget)))
 	return_trace (false);
     }
     return_trace (true);
@@ -4870,14 +4893,17 @@ struct Condition
     return_trace (c->end_recursion (this->dispatch (c)));
   }
 
-  bool collect_var_indices (hb_set_t *var_indices,
+  template <typename Set>
+  bool collect_var_indices (Set *var_indices,
 			    unsigned depth = HB_MAX_NESTING_LEVEL,
-                            hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values = nullptr) const;
+                            hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values = nullptr,
+			    int64_t *budget = nullptr /* IN/OUT */) const;
 
   bool serialize (hb_serialize_context_t *c,
 		  const Condition *src,
 		  const hb_map_t &varidx_map,
-		  const hb_map_t *axis_map = nullptr);
+		  const hb_map_t *axis_map,
+		  int64_t *budget /* IN/OUT */);
 
   private:
   lookup_condition_subset_result_t subset_lookup_condition_impl (
@@ -4918,7 +4944,8 @@ struct ConditionList
 		  const ConditionList *src,
 		  const hb_inc_bimap_t &condition_map,
 		  const hb_map_t &varidx_map,
-		  const hb_map_t *axis_map)
+		  const hb_map_t *axis_map,
+		  int64_t *budget /* IN/OUT */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
@@ -4929,7 +4956,8 @@ struct ConditionList
       unsigned old_index = condition_map.backward (i);
       if (unlikely (old_index >= src->conditions.len ||
 		    !conditions[i].serialize_serialize (
-			c, &(src+src->conditions[old_index]), varidx_map, axis_map)))
+			c, &(src+src->conditions[old_index]), varidx_map, axis_map,
+			budget)))
 	return_trace (false);
     }
     return_trace (true);
@@ -4947,11 +4975,15 @@ struct ConditionList
   DEFINE_SIZE_ARRAY (4, conditions);
 };
 
+template <typename Set>
 inline bool
-Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth,
-                               hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values) const
+Condition::collect_var_indices (Set *var_indices, unsigned depth,
+                               hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values,
+			       int64_t *budget) const
 {
   if (unlikely (!depth)) return false;
+  /* As in evaluate(): charge every node visited, if there is a budget. */
+  if (budget && unlikely (!hb_budget_spend (*budget, HB_BUDGET_1))) return false;
   switch (u.format.v)
   {
     case 0:
@@ -4970,18 +5002,21 @@ Condition::collect_var_indices (hb_set_t *var_indices, unsigned depth,
     case 3:
       for (const auto &offset : u.format3.conditions)
 	if (unlikely (!(&u.format3+offset).collect_var_indices (var_indices,
-							     depth - 1, condition_values)))
+							     depth - 1, condition_values,
+							     budget)))
 	  return false;
       return true;
     case 4:
       for (const auto &offset : u.format4.conditions)
 	if (unlikely (!(&u.format4+offset).collect_var_indices (var_indices,
-							     depth - 1, condition_values)))
+							     depth - 1, condition_values,
+							     budget)))
 	  return false;
       return true;
     case 5:
       return (&u.format5+u.format5.condition).collect_var_indices (var_indices,
-								  depth - 1, condition_values);
+								  depth - 1, condition_values,
+								  budget);
     default:
       return false;
   }
@@ -4991,9 +5026,15 @@ inline bool
 Condition::serialize (hb_serialize_context_t *c,
 		      const Condition *src,
 		      const hb_map_t &varidx_map,
-		      const hb_map_t *axis_map)
+		      const hb_map_t *axis_map,
+		      int64_t *budget)
 {
   TRACE_SERIALIZE (this);
+  /* And/Or children are offsets that may all share one subtree, or be null,
+   * and each is written and packed again, so neither the size of the table
+   * nor that of the output bounds the nodes visited.  Charge every one. */
+  if (unlikely (!c->check_success (hb_budget_spend (*budget, HB_BUDGET_32))))
+    return_trace (false);
   switch (src->u.format.v)
   {
     case 0:
@@ -5043,7 +5084,7 @@ Condition::serialize (hb_serialize_context_t *c,
       for (unsigned i = 0; i < out->conditions.len; i++)
 	if (unlikely (!out->conditions[i].serialize_serialize (
 			c, &(&src->u.format3+src->u.format3.conditions[i]),
-			varidx_map, axis_map)))
+			varidx_map, axis_map, budget)))
 	  return_trace (false);
       return_trace (true);
     }
@@ -5057,7 +5098,7 @@ Condition::serialize (hb_serialize_context_t *c,
       for (unsigned i = 0; i < out->conditions.len; i++)
 	if (unlikely (!out->conditions[i].serialize_serialize (
 			c, &(&src->u.format4+src->u.format4.conditions[i]),
-			varidx_map, axis_map)))
+			varidx_map, axis_map, budget)))
 	  return_trace (false);
       return_trace (true);
     }
@@ -5067,7 +5108,7 @@ Condition::serialize (hb_serialize_context_t *c,
       if (unlikely (!out ||
 		    !out->condition.serialize_serialize (
 			c, &(&src->u.format5+src->u.format5.condition),
-			varidx_map, axis_map)))
+			varidx_map, axis_map, budget)))
 	return_trace (false);
       return_trace (true);
     }

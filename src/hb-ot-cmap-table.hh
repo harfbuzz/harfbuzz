@@ -31,7 +31,7 @@
 #include "hb-ot-shaper-arabic-pua.hh"
 #include "hb-open-type.hh"
 #include "hb-ot-dual.hh"
-#include "hb-set.hh"
+#include "hb-set-builder.hh"
 #include "hb-cache.hh"
 
 /*
@@ -1231,8 +1231,10 @@ struct NonDefaultUVS : SortedArray32Of<UVSMapping<Types>>
 
   void collect_unicodes (hb_set_t *out) const
   {
+    hb_set_builder_t<> values (*out);
     for (const auto& a : this->as_array ())
-      out->add (a.unicodeValue);
+      values.add (a.unicodeValue);
+    values.flush ();
   }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
@@ -2715,6 +2717,7 @@ struct cmap_accelerator_t
       return;
     }
 
+    hb_set_builder_t<> glyphs (*glyphset);
     hb_set_t variation_selectors;
     collect_variation_selectors (&variation_selectors);
     for (hb_codepoint_t variation_selector : variation_selectors)
@@ -2737,9 +2740,10 @@ struct cmap_accelerator_t
 
 	hb_codepoint_t glyph;
 	if (get_variation_glyph (unicode, variation_selector, &glyph))
-	  glyphset->add (glyph);
+	  glyphs.add (glyph);
       }
     }
+    glyphs.flush ();
   }
 
   cmap::accelerator_t dmap;

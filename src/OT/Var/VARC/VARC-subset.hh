@@ -2,6 +2,7 @@
 #define OT_VAR_VARC_VARC_SUBSET_HH
 
 #include "VARC.hh"
+#include "../../../hb-set-builder.hh"
 
 namespace OT {
 
@@ -57,6 +58,7 @@ struct varc_subset_plan_t
 
   bool collect_indices ()
   {
+    hb_set_builder_t<> variations (var_indices);
     for (unsigned old_index : old_indices)
     {
       hb_ubytes_t remaining = source_records[old_index];
@@ -65,7 +67,7 @@ struct varc_subset_plan_t
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (source, remaining,
 						       nullptr, nullptr,
-						       &component)))
+						       &component, &subset_context->budget_remaining)))
 	  return false;
 
 	if (component.flags & (unsigned) VarComponent::flags_t::HAVE_CONDITION)
@@ -82,10 +84,10 @@ struct varc_subset_plan_t
 	}
 	if ((component.flags & (unsigned) VarComponent::flags_t::AXIS_VALUES_HAVE_VARIATION) &&
 	    component.axis_values_var_idx != VarIdx::NO_VARIATION)
-	  var_indices.add (component.axis_values_var_idx);
+	  variations.add (component.axis_values_var_idx);
 	if ((component.flags & (unsigned) VarComponent::flags_t::TRANSFORM_HAS_VARIATION) &&
 	    component.transform_var_idx != VarIdx::NO_VARIATION)
-	  var_indices.add (component.transform_var_idx);
+	  variations.add (component.transform_var_idx);
 
 	remaining = remaining.sub_array (component.size);
       }
@@ -96,10 +98,12 @@ struct varc_subset_plan_t
       return false;
 
     for (hb_codepoint_t condition_index : condition_indices)
-      if (unlikely (!source_conditions[condition_index].collect_var_indices (&var_indices)))
+      if (unlikely (!source_conditions[condition_index].collect_var_indices (
+			&variations, HB_MAX_NESTING_LEVEL, nullptr,
+			&subset_context->budget_remaining)))
 	return false;
 
-    return true;
+    return variations.flush ();
   }
 
   bool create_maps ()
@@ -169,9 +173,15 @@ struct varc_subset_plan_t
 		  (axis_map && !axis_indices_data.resize (
 					  axis_indices_map.get_population ()))))
       return false;
+    /* As in collect_glyphs(): the entries of a well-formed INDEX do not
+     * overlap, so those selected cannot outgrow it. */
+    size_t source_size = source_axis_indices.get_size ();
     for (unsigned i = 0; i < axis_indices_map.get_population (); i++)
     {
       hb_ubytes_t bytes = source_axis_indices[axis_indices_map.backward (i)];
+      if (unlikely (bytes.length > source_size))
+	return false;
+      source_size -= bytes.length;
       if (axis_map)
       {
 	hb_vector_t<int> indices;
@@ -281,7 +291,7 @@ struct varc_subset_plan_t
       VarComponent::record_t component;
       if (unlikely (!VarComponent::decompile_record (source, remaining,
 						     nullptr, nullptr,
-						     &component) ||
+						     &component, &subset_context->budget_remaining) ||
 		    !compile_component (remaining, component, retain_gids)))
 	return false;
       remaining = remaining.sub_array (component.size);
@@ -412,7 +422,8 @@ VARC::subset (hb_subset_context_t *c) const
 						       &source_conditions,
 						       subset_plan.condition_map,
 						       subset_plan.varidx_map,
-						       subset_plan.axis_map)) ||
+						       subset_plan.axis_map,
+						       &c->budget_remaining)) ||
 		(subset_plan.axis_indices_map.get_population () &&
 		 !out->axisIndicesList.serialize_serialize (c->serializer,
 							subset_plan.selected_axis_indices.iter (),
@@ -421,7 +432,8 @@ VARC::subset (hb_subset_context_t *c) const
 		 !out->varStore.serialize_serialize (c->serializer,
 						  &source_var_store,
 						  subset_plan.var_inner_maps.as_array (),
-						  subset_plan.axis_map)) ||
+						  subset_plan.axis_map,
+						  &c->budget_remaining)) ||
 		!out->glyphRecords.serialize_serialize (c->serializer,
 						 subset_plan.records.iter (),
 						 &subset_plan.data_size)))

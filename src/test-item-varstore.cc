@@ -458,6 +458,41 @@ test_condition_budget ()
 }
 
 static void
+test_multi_varstore_serialize_budget ()
+{
+  static const unsigned char store_data[] = {
+    0, 1,  0, 0, 0, 16,  0, 2,  0, 0, 0, 42,  0, 0, 0, 42,	/* MultiItemVariationStore */
+    0, 0, 0, 1,  0, 0, 0, 8,			/* SparseVarRegionList */
+    0, 2,  0, 0, 0, 10,  0, 0, 0, 10,		/* SparseVariationRegion */
+    0, 0,  0, 0,  0x40, 0,  0x40, 0,		/* SparseVarRegionAxis */
+    1,  0, 2,  0, 0,  0, 0,  0, 0, 0, 11,	/* MultiVarData */
+    0, 0, 0, 1,  1,  1, 4,  1, 1, 2,		/* TupleList */
+  };
+  const auto &store = *reinterpret_cast<const OT::MultiItemVariationStore *> (store_data);
+
+  hb_set_t var_indices;
+  var_indices.add (0);
+  var_indices.add (1u << 16);
+  hb_vector_t<hb_inc_bimap_t> inner_maps;
+  hb_map_t varidx_map;
+  hb_always_assert (store.create_subset_plan (var_indices, &inner_maps, &varidx_map));
+
+  // The region is charged for itself and for each of its axis offsets,
+  // even though both share one axis. Both outer indices copy three delta bytes.
+  for (unsigned short_by : {0u, 1u})
+  {
+    char buf[128];
+    hb_serialize_context_t s (buf, sizeof (buf));
+    int64_t budget = HB_BUDGET_32 * (1 + 2) + 2 * 3 - short_by;
+    auto *copy = s.start_serialize<OT::MultiItemVariationStore> ();
+    hb_always_assert (copy->serialize (&s, &store, inner_maps.as_array (), nullptr, &budget) == !short_by);
+    hb_always_assert (s.in_error () == (bool) short_by);
+    hb_always_assert (short_by ? budget < 0 : budget == 0);
+    s.end_serialize ();
+  }
+}
+
+static void
 test_repeated_region_index ()
 {
   /* One axis, two regions, and a VarData whose region indices are {0, 1, 0}:
@@ -632,6 +667,7 @@ main (int argc, char **argv)
   test_condition_delta_precision ();
   test_multi_instancer_budget ();
   test_condition_budget ();
+  test_multi_varstore_serialize_budget ();
   test_repeated_region_index ();
   test_delta_matrix_limits ();
   test_tuple_split_budget ();
