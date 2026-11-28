@@ -59,6 +59,17 @@ struct hb_raster_edge_t
   int32_t wind;     /* +1 or -1 */
 };
 
+/* The image row an edge starts on.  Edges that start above the first
+   row belong to it; edges that start below the last one get a row that
+   is not less than the height. */
+static inline unsigned
+hb_raster_edge_start_row (const hb_raster_edge_t &e,
+			  const hb_raster_extents_t &ext)
+{
+  int64_t row = (int64_t) (e.yL >> HB_RASTER_PIXEL_BITS) - ext.y_origin;
+  return (unsigned) hb_clamp (row, (int64_t) 0, (int64_t) ext.height);
+}
+
 /* hb_raster_draw_t — outline rasterizer */
 struct hb_raster_draw_t
 {
@@ -108,7 +119,8 @@ struct hb_raster_draw_t
   hb_vector_t<int16_t> row_cover;
   hb_vector_t<int64_t> row_area_wide;
   hb_vector_t<int64_t> row_cover_wide;
-  hb_vector_t<hb_vector_t<unsigned>> edge_buckets;
+  hb_vector_t<unsigned> edge_bucket_ends; /* Per row: end of its edges in edge_order */
+  hb_vector_t<unsigned> edge_order;       /* Edge indices, grouped by starting row */
   hb_vector_t<unsigned> active_edges;
 
   /* Recycled image for zero-malloc render */
@@ -1759,24 +1771,38 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     hb_memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
     hb_memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
-    /* Bucket edges by their starting pixel row.
-       Only grow the outer vector; clear inner vectors without freeing. */
-    unsigned old_buckets = draw->edge_buckets.length;
-    if (ext.height > old_buckets)
-    {
-      if (unlikely (!draw->edge_buckets.resize (ext.height)))
-	return nullptr;
-    }
-    for (unsigned i = 0; i < hb_min (ext.height, old_buckets); i++)
-      draw->edge_buckets.arrayZ[i].clear ();
-    /* New buckets (if any) are already empty from resize's zero-init. */
+    /* Bucket edges by their starting pixel row, with a stable counting
+       sort of the edge indices into one array.  This scratch is kept
+       between renders, so it must stay bounded by the image height and
+       the edge cap: a vector per row would each keep room for the most
+       edges that ever started on its row, whatever outline that was. */
+    if (unlikely (!draw->edge_bucket_ends.resize_dirty (ext.height) ||
+		  !draw->edge_order.resize_dirty (draw->edges.length)))
+      return nullptr;
+    unsigned *bucket_ends = draw->edge_bucket_ends.arrayZ;
+    unsigned *edge_order = draw->edge_order.arrayZ;
+    hb_memset (bucket_ends, 0, ext.height * sizeof (bucket_ends[0]));
 
+    for (const auto &e : draw->edges)
+    {
+      unsigned row = hb_raster_edge_start_row (e, ext);
+      if (row < ext.height)
+	bucket_ends[row]++;
+    }
+    /* Turn the counts into bucket starts; placing its edges then
+       advances each start to the bucket's end. */
+    unsigned num_bucketed = 0;
+    for (unsigned row = 0; row < ext.height; row++)
+    {
+      unsigned count = bucket_ends[row];
+      bucket_ends[row] = num_bucketed;
+      num_bucketed += count;
+    }
     for (unsigned i = 0; i < draw->edges.length; i++)
     {
-      int row = (draw->edges.arrayZ[i].yL >> HB_RASTER_PIXEL_BITS) - ext.y_origin;
-      if (row < 0) row = 0;
-      if ((unsigned) row >= ext.height) continue;
-      draw->edge_buckets.arrayZ[row].push (i);
+      unsigned row = hb_raster_edge_start_row (draw->edges.arrayZ[i], ext);
+      if (row < ext.height)
+	edge_order[bucket_ends[row]++] = i;
     }
 
     /* Scanline loop with active edge list. */
@@ -1789,7 +1815,9 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       int32_t y_top = (int32_t) hb_clamp (y_top_64, (int64_t) INT32_MIN, (int64_t) INT32_MAX);
 
       /* Add new edges from this row's bucket. */
-      draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
+      unsigned bucket_start = row ? bucket_ends[row - 1] : 0;
+      draw->active_edges.extend (hb_array (edge_order + bucket_start,
+					   bucket_ends[row] - bucket_start));
 
       /* Process active edges and compact live ones in one linear pass. */
       unsigned x_min = ext.width, x_max = 0;
