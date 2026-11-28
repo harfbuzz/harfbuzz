@@ -282,9 +282,6 @@ struct cff2_private_dict_opset_t : dict_opset_t
 {
   static void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_t& dictval)
   {
-    num_dict_val_t val;
-    val.init ();
-
     switch (op) {
       case OpCode_StdHW:
       case OpCode_StdVW:
@@ -318,13 +315,11 @@ struct cff2_private_dict_opset_t : dict_opset_t
 
       default:
 	dict_opset_t::process_op (op, env);
-	if (!env.argStack.is_empty ()) return;
 	break;
     }
 
-    if (unlikely (env.in_error ())) return;
-
-    dictval.add_op (op, env.str_ref, val);
+    /* The operators are not recorded: only the subsetter reads them back,
+     * and it uses cff2_private_dict_opset_subset_t. */
   }
 };
 
@@ -415,6 +410,8 @@ struct cff2
 
     accelerator_templ_t (hb_face_t *face)
     {
+      uint64_t num_priv_ops = 0;
+
       if (!face) return;
 
       topDict.init ();
@@ -495,7 +492,14 @@ struct cff2
 	cff2_priv_dict_interp_env_t env2 (privDictStr);
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL, cff2_priv_dict_interp_env_t> priv_interp (env2);
 	privateDicts[i].init ();
-	if (unlikely (!priv_interp.interpret (privateDicts[i]))) goto fail;
+	if (unlikely (!priv_interp.interpret (privateDicts[i]) || privateDicts[i].values.in_error ())) goto fail;
+
+	/* Font DICTs can share a Private DICT, so the size of the table does
+	 * not bound the operators the subset accelerator records for them. */
+	num_priv_ops += privateDicts[i].get_count ();
+	if (unlikely (num_priv_ops > hb_max (this->blob->length,
+					     (unsigned) HB_CFF_MAX_PRIVATE_DICT_OPS_MIN)))
+	  goto fail;
 
 	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (&privDictStr[0], privateDicts[i].subrsOffset, sc);
       }

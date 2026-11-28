@@ -947,9 +947,6 @@ struct cff1_private_dict_opset_t : dict_opset_t
 {
   static void process_op (op_code_t op, num_interp_env_t& env, cff1_private_dict_values_t& dictval)
   {
-    num_dict_val_t val;
-    val.init ();
-
     switch (op) {
       case OpCode_BlueValues:
       case OpCode_OtherBlues:
@@ -977,13 +974,11 @@ struct cff1_private_dict_opset_t : dict_opset_t
 
       default:
 	dict_opset_t::process_op (op, env);
-	if (!env.argStack.is_empty ()) return;
 	break;
     }
 
-    if (unlikely (env.in_error ())) return;
-
-    dictval.add_op (op, env.str_ref, val);
+    /* The operators are not recorded: only the subsetter reads them back,
+     * and it uses cff1_private_dict_opset_subset_t. */
   }
 };
 
@@ -1091,6 +1086,8 @@ struct cff1
 
     accelerator_templ_t (hb_face_t *face)
     {
+      uint64_t num_priv_ops = 0;
+
       if (!face) return;
 
       topDict.init ();
@@ -1207,7 +1204,15 @@ struct cff1
 	  num_interp_env_t env2 (privDictStr);
 	  dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp (env2);
 	  priv->init ();
-	  if (unlikely (!priv_interp.interpret (*priv)))   goto fail;
+	  if (unlikely (!priv_interp.interpret (*priv) || priv->values.in_error ()))   goto fail;
+
+	  /* Font DICTs can share a Private DICT, so the size of the table
+	   * does not bound the operators the subset accelerator records for
+	   * them. */
+	  num_priv_ops += priv->get_count ();
+	  if (unlikely (num_priv_ops > hb_max (this->blob->length,
+					       (unsigned) HB_CFF_MAX_PRIVATE_DICT_OPS_MIN)))
+	    goto fail;
 
 	  priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset, sc);
 	}
@@ -1223,7 +1228,7 @@ struct cff1
 	num_interp_env_t env (privDictStr);
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp (env);
 	priv->init ();
-	if (unlikely (!priv_interp.interpret (*priv)))   goto fail;
+	if (unlikely (!priv_interp.interpret (*priv) || priv->values.in_error ()))   goto fail;
 
 	priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset, sc);
 	hb_barrier ();

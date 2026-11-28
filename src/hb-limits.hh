@@ -157,6 +157,16 @@
 #define HB_CFF_MAX_OPS 200000
 #endif
 
+/* Private DICT operators that the accelerator of one CFF or CFF2 table
+ * records for the subsetter.  Any number of Font DICTs can name the same
+ * Private DICT, so the size of the table does not bound them.  The limit
+ * is one operator per byte of the table, which a table whose Font DICTs
+ * do not share their Private DICTs cannot exceed, but no less than this
+ * minimum; exceeding it fails the table. */
+#ifndef HB_CFF_MAX_PRIVATE_DICT_OPS_MIN
+#define HB_CFF_MAX_PRIVATE_DICT_OPS_MIN 16384
+#endif
+
 #ifndef HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH
 #define HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH 64
 #endif
