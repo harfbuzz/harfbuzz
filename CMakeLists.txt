@@ -398,6 +398,7 @@ if (HB_HAVE_ICU)
 
   get_target_property(ICU_UC_LIBRARY ICU::uc IMPORTED_LOCATION)
   list(APPEND THIRD_PARTY_LIBS ${ICU_UC_LIBRARY})
+  include_directories(${ICU_INCLUDE_DIRS})
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
