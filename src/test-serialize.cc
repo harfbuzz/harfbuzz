@@ -90,13 +90,50 @@ test_null_condition ()
   };
 
   auto *copy = s.start_serialize<OT::Condition> ();
-  hb_always_assert (copy->serialize (&s, &condition, varidx_map));
+  int64_t budget = HB_BUDGET_SUBSET_LAYOUT;
+  hb_always_assert (copy->serialize (&s, &condition, varidx_map, nullptr, &budget));
   s.end_serialize ();
 
   hb_bytes_t bytes = s.copy_bytes ();
   hb_always_assert (bytes.length == sizeof (expected));
   hb_always_assert (!hb_memcmp (bytes.arrayZ, expected, sizeof (expected)));
   bytes.fini ();
+}
+
+static void
+test_condition_subset_budget ()
+{
+  static const unsigned char condition_data[] = {
+    0, 3,  3,  0, 0, 12,  0, 0, 12,  0, 0, 0,	/* ConditionAnd */
+    0, 2,  0, 1,  0, 0, 0, 5,			/* ConditionValue */
+  };
+  const auto &condition = *reinterpret_cast<const OT::Condition *> (condition_data);
+
+  /* Every node visited is charged, even when children of the And share one
+   * subtree or are null: the And, the shared value twice, and one null. */
+  hb_set_t var_indices;
+  int64_t budget = 4 * HB_BUDGET_1;
+  hb_always_assert (condition.collect_var_indices (&var_indices, HB_MAX_NESTING_LEVEL,
+						   nullptr, &budget));
+  hb_always_assert (budget == 0);
+  hb_always_assert (var_indices.get_population () == 1 && var_indices.has (5));
+  hb_always_assert (!condition.collect_var_indices (&var_indices, HB_MAX_NESTING_LEVEL,
+						    nullptr, &budget));
+  hb_always_assert (budget < 0);
+
+  hb_map_t varidx_map;
+  hb_always_assert (varidx_map.set (5, 0));
+  for (unsigned short_by : {0u, 1u})
+  {
+    char buf[64];
+    hb_serialize_context_t s (buf, sizeof (buf));
+    budget = 4 * HB_BUDGET_32 - short_by;
+    auto *copy = s.start_serialize<OT::Condition> ();
+    hb_always_assert (copy->serialize (&s, &condition, varidx_map, nullptr, &budget) == !short_by);
+    hb_always_assert (s.in_error () == (bool) short_by);
+    hb_always_assert (short_by ? budget < 0 : budget == 0);
+    s.end_serialize ();
+  }
 }
 
 static void
@@ -534,6 +571,7 @@ main (int argc, char **argv)
 {
   test_empty_coverage_population ();
   test_null_condition ();
+  test_condition_subset_budget ();
   test_lookup_condition_sharing ();
   test_lookup_condition_resolution ();
   test_feature_substitution_params_sanitize ();

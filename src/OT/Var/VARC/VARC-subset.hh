@@ -65,7 +65,7 @@ struct varc_subset_plan_t
 	VarComponent::record_t component;
 	if (unlikely (!VarComponent::decompile_record (source, remaining,
 						       nullptr, nullptr,
-						       &component)))
+						       &component, &subset_context->budget_remaining)))
 	  return false;
 
 	if (component.flags & (unsigned) VarComponent::flags_t::HAVE_CONDITION)
@@ -96,7 +96,9 @@ struct varc_subset_plan_t
       return false;
 
     for (hb_codepoint_t condition_index : condition_indices)
-      if (unlikely (!source_conditions[condition_index].collect_var_indices (&var_indices)))
+      if (unlikely (!source_conditions[condition_index].collect_var_indices (
+			&var_indices, HB_MAX_NESTING_LEVEL, nullptr,
+			&subset_context->budget_remaining)))
 	return false;
 
     return true;
@@ -169,9 +171,15 @@ struct varc_subset_plan_t
 		  (axis_map && !axis_indices_data.resize (
 					  axis_indices_map.get_population ()))))
       return false;
+    /* As in collect_glyphs(): the entries of a well-formed INDEX do not
+     * overlap, so those selected cannot outgrow it. */
+    size_t source_size = source_axis_indices.get_size ();
     for (unsigned i = 0; i < axis_indices_map.get_population (); i++)
     {
       hb_ubytes_t bytes = source_axis_indices[axis_indices_map.backward (i)];
+      if (unlikely (bytes.length > source_size))
+	return false;
+      source_size -= bytes.length;
       if (axis_map)
       {
 	hb_vector_t<int> indices;
@@ -281,7 +289,7 @@ struct varc_subset_plan_t
       VarComponent::record_t component;
       if (unlikely (!VarComponent::decompile_record (source, remaining,
 						     nullptr, nullptr,
-						     &component) ||
+						     &component, &subset_context->budget_remaining) ||
 		    !compile_component (remaining, component, retain_gids)))
 	return false;
       remaining = remaining.sub_array (component.size);
@@ -412,7 +420,8 @@ VARC::subset (hb_subset_context_t *c) const
 						       &source_conditions,
 						       subset_plan.condition_map,
 						       subset_plan.varidx_map,
-						       subset_plan.axis_map)) ||
+						       subset_plan.axis_map,
+						       &c->budget_remaining)) ||
 		(subset_plan.axis_indices_map.get_population () &&
 		 !out->axisIndicesList.serialize_serialize (c->serializer,
 							subset_plan.selected_axis_indices.iter (),
@@ -421,7 +430,8 @@ VARC::subset (hb_subset_context_t *c) const
 		 !out->varStore.serialize_serialize (c->serializer,
 						  &source_var_store,
 						  subset_plan.var_inner_maps.as_array (),
-						  subset_plan.axis_map)) ||
+						  subset_plan.axis_map,
+						  &c->budget_remaining)) ||
 		!out->glyphRecords.serialize_serialize (c->serializer,
 						 subset_plan.records.iter (),
 						 &subset_plan.data_size)))
