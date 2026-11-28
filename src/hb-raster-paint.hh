@@ -104,16 +104,6 @@ struct hb_raster_clip_t
     return (size_t) stride * height <= alpha.length;
   }
 
-  /* Makes the alpha buffer cover the surface.  A cached buffer is all
-   * zero, so only growth needs initializing. */
-  bool alloc_alpha ()
-  {
-    size_t size = (size_t) stride * height;
-    if (unlikely (size > HB_RASTER_MAX_BUFFER_SIZE))
-      return false;
-    return size <= alpha.length || alpha.resize ((unsigned) size);
-  }
-
   /* Zeroes the mask, returning the buffer to its cached state. */
   void clear_alpha ()
   {
@@ -171,6 +161,9 @@ struct hb_raster_paint_t
   int64_t budget = HB_BUDGET_DEFAULT;
   int64_t budget_remaining = HB_BUDGET_GLYPH;
   int64_t pixel_remaining = HB_BUDGET_RASTER_PIXELS;
+  /* The most area the pixel budget is in proportion to; limited for
+   * extents that hb_raster_paint_glyph() took from the font. */
+  int64_t pixel_budget_area = HB_BUDGET_UNLIMITED;
 
   /* Helpers */
 
@@ -184,9 +177,11 @@ struct hb_raster_paint_t
   int64_t get_default_pixel_budget () const
   {
     const hb_raster_extents_t &extents = get_surface_extents ();
+    int64_t area = hb_min ((int64_t) extents.width * extents.height,
+			   pixel_budget_area);
     return hb_max ((int64_t) HB_BUDGET_RASTER_PIXELS,
-		   (int64_t) HB_BUDGET_RASTER_PAINT_PASSES *
-		   extents.width * extents.height);
+		   hb_min ((int64_t) HB_BUDGET_RASTER_PAINT_PASSES * area,
+			   (int64_t) HB_BUDGET_RASTER_PAINT_MAX));
   }
 
   void recharge_budget ()
@@ -219,6 +214,56 @@ struct hb_raster_paint_t
     return true;
   }
 
+  /* Upper bound on backing storage. Transfers between a stack and a cache
+   * keep their charge. Recount on pressure to reclaim charges for buffers
+   * discarded after allocation failures. */
+  uint64_t storage_bytes = 0;
+
+  bool reserve_storage (uint64_t size, unsigned capacity, uint64_t limit)
+  {
+    uint64_t growth = size > capacity ? size - capacity : 0;
+    if (likely (storage_bytes + growth <= limit))
+    {
+      storage_bytes += growth;
+      return true;
+    }
+
+    while (surface_cache.length)
+      hb_raster_image_destroy (surface_cache.pop ());
+    clip_cache.clear ();
+    storage_bytes = capacity; /* The buffer currently out of the cache. */
+    for (const auto *surface : surface_stack)
+      storage_bytes += surface->buffer.allocated;
+    for (const auto &clip : clip_stack)
+      storage_bytes += clip.alpha.allocated;
+
+    if (storage_bytes + growth > limit) return false;
+    storage_bytes += growth;
+    return true;
+  }
+
+  bool prepare_buffer (hb_vector_t<uint8_t> &buffer, uint64_t size, uint64_t limit)
+  {
+    if (unlikely (size > HB_RASTER_MAX_BUFFER_SIZE || buffer.in_error ())) return false;
+    if (unlikely (!reserve_storage (size, buffer.allocated, limit)))
+    {
+      /* An oversized cached buffer may be all that prevents reuse at
+       * the new size. Discard it and try the exact requested size. */
+      if ((uint64_t) buffer.allocated <= size) return false;
+      storage_bytes -= buffer.allocated;
+      buffer.fini ();
+      if (!reserve_storage (size, 0, limit)) return false;
+    }
+    return size <= (unsigned) buffer.allocated || buffer.alloc_exact ((unsigned) size);
+  }
+
+  bool alloc_clip_alpha (hb_raster_clip_t &clip)
+  {
+    uint64_t size = (uint64_t) clip.stride * clip.height;
+    return prepare_buffer (clip.alpha, size, HB_RASTER_MAX_PAINT_STORAGE) &&
+           (size <= clip.alpha.length || clip.alpha.resize ((unsigned) size));
+  }
+
   /* Takes a surface out of the cache, or makes one, laid out as the root
    * is.  It still holds what was painted on it, within its painted box;
    * one that had another layout may hold anything anywhere. */
@@ -236,12 +281,18 @@ struct hb_raster_paint_t
     hb_raster_format_t format = img->format;
     hb_raster_extents_t layout = img->extents;
     const hb_raster_extents_t &extents = get_surface_extents ();
-    if (unlikely (!img->configure (HB_RASTER_FORMAT_BGRA32, extents)))
+    uint64_t stride = hb_max ((uint64_t) extents.width * 4, (uint64_t) extents.stride);
+    uint64_t size = stride <= UINT_MAX ? stride * extents.height : UINT64_MAX;
+    uint64_t limit = surface_stack.length ? HB_RASTER_MAX_PAINT_STORAGE :
+                     hb_max (size, (uint64_t) HB_RASTER_MAX_PAINT_STORAGE);
+    int old_capacity = img->buffer.allocated;
+    if (unlikely (!prepare_buffer (img->buffer, size, limit) ||
+                  !img->configure (HB_RASTER_FORMAT_BGRA32, extents)))
     {
       hb_raster_image_destroy (img);
       return nullptr;
     }
-    if (img->format != format ||
+    if (img->buffer.allocated < old_capacity || img->format != format ||
 	img->extents.width != layout.width ||
 	img->extents.height != layout.height ||
 	img->extents.stride != layout.stride)
@@ -266,7 +317,8 @@ struct hb_raster_paint_t
 
   void release_surface (hb_raster_image_t *img)
   {
-    if (!surface_cache.push_or_fail (img))
+    if ((uint64_t) img->buffer.allocated > HB_RASTER_MAX_PAINT_STORAGE ||
+        !surface_cache.push_or_fail (img))
       hb_raster_image_destroy (img);
   }
 

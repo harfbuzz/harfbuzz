@@ -230,6 +230,12 @@
 #define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 30)
 #endif
 
+/* Combined backing storage of a paint context's group surfaces and clip
+ * masks, including caches. A larger explicit root surface can stand alone. */
+#ifndef HB_RASTER_MAX_PAINT_STORAGE
+#define HB_RASTER_MAX_PAINT_STORAGE ((uint64_t) 256 << 20)
+#endif
+
 /* Maximum surface dimension (pixels per side) when extents are derived
  * from font data (glyph extents, accumulated outline bounds, or the header
  * of an embedded PNG image about to be decoded).  Bounds
@@ -348,6 +354,27 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * and the heaviest glyph of Noto Color Emoji 110. */
 #ifndef HB_BUDGET_RASTER_PAINT_PASSES
 #define HB_BUDGET_RASTER_PAINT_PASSES 512
+#endif
+
+/* The most pixel work the area of a paint surface can earn.  A surface
+ * sized from glyph extents is up to HB_RASTER_MAX_AUTO_DIMENSION on a
+ * side whatever the size the glyph is rendered at, so its area is the
+ * font's to choose, and without a ceiling so is the budget.  This is all
+ * of the passes up to 2048 pixels on a side, the largest size they were
+ * measured at, and 128 of them at HB_RASTER_MAX_AUTO_DIMENSION.  A unit
+ * is the work of a solid fill on one pixel; gradients and blend modes are
+ * charged several for each pixel. */
+#ifndef HB_BUDGET_RASTER_PAINT_MAX
+#define HB_BUDGET_RASTER_PAINT_MAX ((int64_t) 1 << 31)
+#endif
+
+/* A surface that hb_raster_paint_glyph() sizes from the extents of the
+ * glyph earns pixel work for no more than this many times the area of the
+ * em square at the size the glyph is rendered at, so that a font cannot
+ * claim the work of a large surface for a small glyph.  Color glyphs are
+ * drawn to the em and cover little more than one. */
+#ifndef HB_BUDGET_RASTER_PAINT_EMS
+#define HB_BUDGET_RASTER_PAINT_EMS 4
 #endif
 
 /* Sweeping an outline costs a small fraction of the area of its mask, and

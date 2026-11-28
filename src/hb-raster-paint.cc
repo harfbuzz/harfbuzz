@@ -331,7 +331,7 @@ hb_raster_paint_finalize_path_clip (hb_raster_paint_t *c,
   }
 
   hb_raster_clip_t new_clip = c->acquire_clip (w, h);
-  if (unlikely (!new_clip.alloc_alpha ()))
+  if (unlikely (!c->alloc_clip_alpha (new_clip)))
   {
     hb_raster_draw_recycle_image (rdr, mask_img);
     hb_raster_paint_push_empty_clip (c, w, h);
@@ -558,7 +558,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   {
     /* Fast path: intersect an axis-aligned rect with an existing alpha clip. */
     new_clip.is_rect = false;
-    if (unlikely (!new_clip.alloc_alpha ()))
+    if (unlikely (!c->alloc_clip_alpha (new_clip)))
     {
       hb_raster_paint_push_empty_clip (c, w, h);
       return;
@@ -587,7 +587,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   {
     /* General case: rasterize transformed quad as alpha mask */
     new_clip.is_rect = false;
-    if (unlikely (!new_clip.alloc_alpha ()))
+    if (unlikely (!c->alloc_clip_alpha (new_clip)))
     {
       hb_raster_paint_push_empty_clip (c, w, h);
       return;
@@ -781,7 +781,11 @@ hb_raster_paint_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   /* Clearing the surface costs what was last painted on it. */
   hb_raster_image_t *new_surf = c->take_surface ();
-  if (unlikely (!new_surf)) return;
+  if (unlikely (!new_surf))
+  {
+    c->pixel_remaining = -1;
+    return;
+  }
   if (unlikely (!c->charge_work (new_surf->painted.get_area ())))
   {
     c->release_surface (new_surf);
@@ -790,7 +794,10 @@ hb_raster_paint_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   new_surf->clear_painted ();
 
   if (unlikely (!c->surface_stack.push_or_fail (new_surf)))
+  {
     c->release_surface (new_surf);
+    c->pixel_remaining = -1;
+  }
 }
 
 static void
@@ -813,7 +820,9 @@ hb_raster_paint_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
     hb_raster_box_t box = src->painted;
     if (!hb_raster_composite_mode_ignores_clear_source (mode))
       box.add (dst->painted);
-    if (likely (c->charge_work (box.get_area ())))
+    unsigned cost = mode >= HB_PAINT_COMPOSITE_MODE_HSL_HUE ? HB_BUDGET_8 :
+                    mode >= HB_PAINT_COMPOSITE_MODE_SCREEN ? HB_BUDGET_4 : HB_BUDGET_1;
+    if (likely (c->precharge_work (cost * box.get_area ())))
     {
       hb_raster_image_composite (dst, src, mode, box);
       dst->painted.add (box);
@@ -1409,7 +1418,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_raster_clip_t &clip = c->current_clip ();
   unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
-  if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
+  if (unlikely (!c->precharge_work ((int64_t) HB_BUDGET_4 * clip_w * clip_h)))
     return;
   c->mark_painted (surf);
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
@@ -1601,7 +1610,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_raster_clip_t &clip = c->current_clip ();
   unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
-  if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
+  if (unlikely (!c->precharge_work ((int64_t) HB_BUDGET_4 * clip_w * clip_h)))
     return;
   c->mark_painted (surf);
   bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
@@ -1808,7 +1817,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_raster_clip_t &clip = c->current_clip ();
   unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
   unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
-  if (unlikely (!c->charge_work ((int64_t) clip_w * clip_h)))
+  if (unlikely (!c->precharge_work ((int64_t) HB_BUDGET_8 * clip_w * clip_h)))
     return;
 
   /* Apply normalization to angle range */
@@ -2277,6 +2286,7 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 {
   paint->fixed_extents = *extents;
   paint->has_extents = true;
+  paint->pixel_budget_area = HB_BUDGET_UNLIMITED;
   if (paint->fixed_extents.stride == 0)
     paint->fixed_extents.stride = paint->fixed_extents.width * 4;
 }
@@ -2376,6 +2386,7 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
     0
   };
   paint->has_extents = true;
+  paint->pixel_budget_area = HB_BUDGET_UNLIMITED;
   if (paint->fixed_extents.stride == 0)
     paint->fixed_extents.stride = paint->fixed_extents.width * 4;
   return true;
@@ -2562,8 +2573,20 @@ hb_raster_paint_glyph_impl (hb_raster_paint_t *paint,
   if (!paint->has_extents)
   {
     hb_glyph_extents_t ge;
-    if (hb_font_get_glyph_extents (font, glyph, &ge))
-      hb_raster_paint_set_glyph_extents (paint, &ge);
+    if (hb_font_get_glyph_extents (font, glyph, &ge) &&
+	hb_raster_paint_set_glyph_extents (paint, &ge))
+    {
+      /* The font chose these extents, whatever the size it is rendered
+       * at.  Keep the pixel budget in proportion to that size. */
+      int x_scale, y_scale;
+      hb_font_get_scale (font, &x_scale, &y_scale);
+      hb_transform_t<> t = paint->base_transform;
+      paint->apply_scale_factor (t);
+      float em_area = fabsf (t.xx * t.yy - t.xy * t.yx) *
+		      fabsf ((float) x_scale * y_scale);
+      paint->pixel_budget_area =
+	hb_max (hb_clamp_to<int32_t> (HB_BUDGET_RASTER_PAINT_EMS * em_area), 0);
+    }
   }
 
   hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
@@ -2682,6 +2705,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
       return nullptr;
   }
 
+  paint->storage_bytes -= result->buffer.allocated;
   return result;
 }
 
@@ -2702,6 +2726,7 @@ hb_raster_paint_clear (hb_raster_paint_t *paint)
 {
   paint->fixed_extents = {};
   paint->has_extents = false;
+  paint->pixel_budget_area = HB_BUDGET_UNLIMITED;
   paint->transform_stack.clear ();
   paint->release_all_clips ();
   for (auto *s : paint->surface_stack)
@@ -2754,6 +2779,13 @@ hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,
 			       hb_raster_image_t  *image)
 {
   if (unlikely (!image)) return;
+  /* The caller can supply an independently allocated image. */
+  if (unlikely (image->buffer.in_error () ||
+                !paint->reserve_storage (image->buffer.allocated, 0, HB_RASTER_MAX_PAINT_STORAGE)))
+  {
+    hb_raster_image_destroy (image);
+    return;
+  }
   /* What it holds is not ours to know. */
   image->painted = {0, 0, image->extents.width, image->extents.height};
   paint->release_surface (image);

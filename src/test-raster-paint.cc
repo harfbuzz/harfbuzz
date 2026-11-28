@@ -73,9 +73,47 @@ get_extend (hb_color_line_t *color_line HB_UNUSED,
   return HB_PAINT_EXTEND_PAD;
 }
 
+static void
+test_storage_limit ()
+{
+  auto *paint = hb_raster_paint_create_or_fail ();
+  hb_always_assert (paint);
+  auto *funcs = hb_raster_paint_get_funcs (paint);
+  hb_raster_extents_t ext = {0, 0, 16, 16, 0};
+  hb_raster_paint_set_extents (paint, &ext);
+  hb_paint_push_group (funcs, paint);
+  push_box_clip (funcs, paint, 1, 1, 12, 12);
+  hb_paint_pop_clip (funcs, paint);
+  hb_paint_pop_group (funcs, paint, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+  hb_always_assert (paint->surface_cache && paint->clip_cache);
+  uint64_t cached_bytes = paint->storage_bytes;
+  for (unsigned i = 0; i < 3; i++)
+  {
+    hb_raster_image_t *image = hb_raster_paint_render (paint);
+    hb_always_assert (image && paint->storage_bytes == cached_bytes - image->buffer.allocated);
+    hb_raster_paint_recycle_image (paint, image);
+    hb_always_assert (paint->storage_bytes == cached_bytes);
+    hb_raster_paint_set_extents (paint, &ext);
+    hb_paint_push_group (funcs, paint);
+    hb_paint_pop_group (funcs, paint, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+  }
+  /* Exercise the pressure path without a large allocation. The cached
+   * group is checked out, the idle mask is evicted, and the recount
+   * includes both the active root and the checked-out group. */
+  paint->storage_bytes = HB_RASTER_MAX_PAINT_STORAGE + 1;
+  hb_paint_push_group (funcs, paint);
+  hb_always_assert (!paint->surface_cache && !paint->clip_cache);
+  hb_always_assert (paint->surface_stack.length == 2);
+  hb_always_assert (paint->storage_bytes ==
+                    (unsigned) paint->surface_stack.arrayZ[0]->buffer.allocated +
+                    (unsigned) paint->surface_stack.arrayZ[1]->buffer.allocated);
+  hb_raster_paint_destroy (paint);
+}
+
 int
 main ()
 {
+  test_storage_limit ();
   hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
   hb_always_assert (paint);
   hb_paint_funcs_t *funcs = hb_raster_paint_get_funcs (paint);
@@ -303,6 +341,7 @@ main ()
     hb_paint_push_group (funcs, paint);
     hb_paint_push_clip_rectangle (funcs, paint, (float) x0, (float) y0,
 				  (float) (x0 + 16), (float) (y0 + 16));
+    int64_t fill_budget = paint->pixel_remaining;
     switch (kind)
     {
     case 0: hb_paint_color (funcs, paint, false, HB_COLOR (255, 255, 255, 255)); break;
@@ -312,6 +351,9 @@ main ()
     case 4: hb_paint_image (funcs, paint, texels_blob, 2, 2, HB_PAINT_IMAGE_FORMAT_BGRA,
 			    0.f, &texels_extents); break;
     }
+    if (kind >= 1 && kind <= 3)
+      hb_always_assert (fill_budget - paint->pixel_remaining ==
+                        (kind == 3 ? HB_BUDGET_8 : HB_BUDGET_4) * 16 * 16);
     hb_paint_pop_clip (funcs, paint);
     before = paint->pixel_remaining;
     hb_paint_pop_group (funcs, paint, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
