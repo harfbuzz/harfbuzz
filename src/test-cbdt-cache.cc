@@ -157,6 +157,49 @@ main (int argc, char **argv)
     hb_always_assert (actual_data.as_bytes () == expected_data.as_bytes ());
   }
 
+  /* Two blocks with the same key still have distinct contents. */
+  {
+    OT::cbdt_dedup_context_t dedup;
+    hb_vector_t<unsigned> lengths {1};
+    hb_vector_t<char> bytes {'a', 'b'}, a {'a'}, b {'b'};
+    unsigned base;
+    hb_always_assert (dedup.add (0, 0, lengths));
+    auto snap = dedup.snapshot ();
+    hb_always_assert (!dedup.find (0, b, lengths, bytes, &base));
+    hb_always_assert (dedup.add (0, 1, lengths));
+    hb_always_assert (dedup.find (0, b, lengths, bytes, &base) && base == 1);
+    dedup.revert (snap);
+    hb_always_assert (dedup.find (0, a, lengths, bytes, &base) && base == 0);
+  }
+
+  /* A strike that is rejected after some of its subtables were emitted is
+   * reverted, and must then leave nothing behind in the cache either.
+   * Truncate the source CBDT at every length to reject it at every point. */
+  {
+    hb_bytes_t cbdt_bytes = cbdt.get_blob ()->as_bytes ();
+    OT::cbdt_dedup_context_t dedup;
+    hb_vector_t<char> data;
+    unsigned rejected = 0;
+    for (unsigned length = 0; length <= cbdt_bytes.length; length++)
+    {
+      char buffer[4096];
+      hb_serialize_context_t serializer (buffer, sizeof (buffer));
+      auto *cblc_prime = serializer.start_serialize<OT::CBLC> ();
+      hb_always_assert (serializer.extend_min (cblc_prime));
+      hb_subset_context_t context (nullptr, plan, &serializer, HB_OT_TAG_CBLC);
+      if (cblc->subset_size_table (&context, strikes[0], cbdt_bytes.arrayZ, length,
+				   cblc_prime, &data, &dedup))
+	break;
+      rejected++;
+      hb_always_assert (!serializer.in_error ());
+      hb_always_assert (!data.length);
+      hb_always_assert (!dedup.entries.length && !dedup.lengths.length &&
+			!dedup.map.get_population ());
+    }
+    hb_always_assert (rejected);
+    hb_always_assert (dedup.entries.length && data.length);
+  }
+
   /* Reject nonrepresentable append lengths before allocating or copying.
    * Simulate the boundary using a tiny vector instead of a large font. */
   {

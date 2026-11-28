@@ -272,6 +272,82 @@ test_subset_cbdt_many_records (void)
   hb_blob_destroy (maxp);
 }
 
+static void
+test_subset_cbdt_glyph_map_beyond_64k (void)
+{
+  /* One format 1 subtable with a one-byte image for each of glyphs 1..5.
+   * The glyph mapping renumbers them 65534..65538.  CBLC holds 16-bit glyph
+   * ids, so only the first two can keep their bitmaps; the others used to
+   * wrap around and be written behind a gap of 65536 glyphs. */
+  enum { NUM_GLYPHS = 6 };
+  static const char MAXP_data[6] =
+    "\x00\x00\x50\x00" /* version */
+    "\x00\x06" /* numGlyphs */
+    ;
+  static const char CBDT_data[4 + NUM_GLYPHS - 1] =
+    "\x00\x03\x00\x00" /* version */
+    ;
+  static const char CBLC_data[8 + 48 + 8 + 8 + 4 * NUM_GLYPHS] =
+    "\x00\x03\x00\x00" /* version */
+    "\x00\x00\x00\x01" /* numSizes */
+    /* BitmapSize */
+    "\x00\x00\x00\x38" /* indexSubtableArrayOffset */
+    "\x00\x00\x00\x28" /* indexTablesSize */
+    "\x00\x00\x00\x01" /* numberOfIndexSubtables */
+    "\x00\x00\x00\x00" /* colorRef */
+    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" /* hori */
+    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" /* vert */
+    "\x00\x01" /* startGlyphIndex */
+    "\x00\x05" /* endGlyphIndex */
+    "\x20\x20\x20\x01" /* ppemX, ppemY, bitDepth, flags */
+    /* IndexSubtableRecord */
+    "\x00\x01" /* firstGlyphIndex */
+    "\x00\x05" /* lastGlyphIndex */
+    "\x00\x00\x00\x08" /* offsetToSubtable */
+    /* IndexSubtableFormat1 */
+    "\x00\x01" /* indexFormat */
+    "\x00\x11" /* imageFormat */
+    "\x00\x00\x00\x04" /* imageDataOffset */
+    "\x00\x00\x00\x00" /* offsetArray */
+    "\x00\x00\x00\x01"
+    "\x00\x00\x00\x02"
+    "\x00\x00\x00\x03"
+    "\x00\x00\x00\x04"
+    "\x00\x00\x00\x05"
+    ;
+
+  hb_face_t *face = hb_face_builder_create ();
+  HB_FACE_ADD_TABLE (face, "maxp", MAXP_data);
+  HB_FACE_ADD_TABLE (face, "CBLC", CBLC_data);
+  HB_FACE_ADD_TABLE (face, "CBDT", CBDT_data);
+
+  hb_set_t *glyphs = hb_set_create ();
+  hb_set_add_range (glyphs, 1, NUM_GLYPHS - 1);
+  hb_subset_input_t *input = hb_subset_test_create_input_from_glyphs (glyphs);
+  hb_set_destroy (glyphs);
+  /* The unmapped glyphs 2..5 follow as 65535..65538. */
+  hb_map_set (hb_subset_input_old_to_new_glyph_mapping (input), 1, 65534);
+  hb_face_t *face_subset = hb_subset_test_create_subset (face, input);
+
+  /* Glyphs 65534 and 65535 are kept, in a record without gaps. */
+  hb_blob_t *cblc = hb_face_reference_table (face_subset, HB_TAG ('C','B','L','C'));
+  unsigned int cblc_length;
+  const uint8_t *cblc_data = (const uint8_t *) hb_blob_get_data (cblc, &cblc_length);
+  g_assert_cmpuint (cblc_length, ==, 8 + 48 + 8 + 8 + 4 * 3);
+  g_assert_cmpuint (cblc_data[8 + 40] << 8 | cblc_data[8 + 41], ==, 65534); /* startGlyphIndex */
+  g_assert_cmpuint (cblc_data[8 + 42] << 8 | cblc_data[8 + 43], ==, 65535); /* endGlyphIndex */
+  g_assert_cmpuint (cblc_data[8 + 48] << 8 | cblc_data[8 + 49], ==, 65534); /* firstGlyphIndex */
+  g_assert_cmpuint (cblc_data[8 + 50] << 8 | cblc_data[8 + 51], ==, 65535); /* lastGlyphIndex */
+  hb_blob_destroy (cblc);
+
+  hb_blob_t *cbdt = hb_face_reference_table (face_subset, HB_TAG ('C','B','D','T'));
+  g_assert_cmpuint (hb_blob_get_length (cbdt), ==, 4 + 2);
+  hb_blob_destroy (cbdt);
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+}
+
 // TODO: add support/tests for index formats 2,4,5 (image formats are treated as
 // opaque blobs when subsetting so don't need to be tested separately).
 // TODO: add a test that keeps no codepoints.
@@ -292,6 +368,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cbdt_index_format_3);
   hb_test_add (test_subset_cbdt_overlapping_images);
   hb_test_add (test_subset_cbdt_many_records);
+  hb_test_add (test_subset_cbdt_glyph_map_beyond_64k);
 
   return hb_test_run();
 }

@@ -56,6 +56,8 @@ struct cbdt_dedup_context_t
     unsigned int base;		/* Offset of the data in cbdt_prime. */
     unsigned int lstart;	/* Start index in lengths. */
     unsigned int lcount;	/* Number of length entries. */
+    unsigned int previous;	/* Earlier entry for the same key, or UINT_MAX. */
+    uint64_t key;		/* Key of the entry in map. */
   };
 
   static uint64_t hash (unsigned int image_format,
@@ -95,11 +97,44 @@ struct cbdt_dedup_context_t
   {
     if (unlikely (entries.in_error () || this->lengths.in_error () || map.in_error ()))
       return false;
-    entry_t e = {base, this->lengths.length, lengths.length};
+    unsigned int *previous;
+    entry_t e = {base, this->lengths.length, lengths.length,
+                 map.has (key, &previous) ? *previous : UINT_MAX, key};
     if (unlikely (!entries.push_or_fail (e))) return false;
     for (unsigned int length : lengths)
       if (unlikely (!this->lengths.push_or_fail (length))) return false;
     return map.set (key, entries.length - 1);
+  }
+
+  struct snapshot_t
+  {
+    unsigned int num_entries;
+    unsigned int num_lengths;
+  };
+
+  snapshot_t snapshot () const
+  { return snapshot_t {entries.length, lengths.length}; }
+
+  /* Forgets the blocks added since the snapshot.  To be called whenever
+   * cbdt_prime is truncated back to its length at that time: entries for
+   * data that is no longer there can never be found again, and would pile
+   * up as each later identical subtable is added anew. */
+  void revert (const snapshot_t &snap)
+  {
+    for (unsigned int i = entries.length; i > snap.num_entries; i--)
+    {
+      const entry_t &entry = entries.arrayZ[i - 1];
+      if (entry.previous == UINT_MAX)
+        map.del (entry.key);
+      else
+      {
+        unsigned int *index;
+        if (map.has (entry.key, &index))
+          *index = entry.previous;
+      }
+    }
+    entries.shrink (snap.num_entries, false);
+    lengths.shrink (snap.num_lengths, false);
   }
 
   hb_hashmap_t<uint64_t, unsigned int> map;
@@ -660,8 +695,14 @@ struct IndexSubtableArray
     /* Map each retained glyph to the first record covering it, as
      * find_table () would, by walking the records once instead of once
      * per glyph: the records are not necessarily sorted or disjoint, and a
-     * font can make every search fail (numTables is a 32-bit field). */
-    hb_set_t glyphs (*c->plan->glyphset ());
+     * font can make every search fail (numTables is a 32-bit field).
+     *
+     * The records hold 16-bit glyph IDs.  Work on that part of the glyph
+     * set only, so that what the set operations below cost does not depend
+     * on how many other glyphs the plan retains. */
+    hb_set_t glyphs;
+    glyphs.add_range (0, 0xFFFFu);
+    glyphs.intersect (*c->plan->glyphset ());
     hb_map_t record_map;
     for (unsigned int i = 0; i < bitmap_size_context->num_tables; i++)
     {
@@ -676,7 +717,10 @@ struct IndexSubtableArray
     if (unlikely (!c->serializer->propagate_error (glyphs, record_map))) return;
 
     bool start_glyph_is_set = false;
-    unsigned num_glyphs = c->plan->num_output_glyphs ();
+    /* A strike and its records hold 16-bit glyph ids: glyphs that a custom
+     * glyph mapping moves beyond those cannot keep their bitmaps. */
+    unsigned num_glyphs = hb_min (c->plan->num_output_glyphs (),
+				  1u << (8 * HBGlyphID16::static_size));
     for (hb_codepoint_t new_gid = 0; new_gid < num_glyphs; new_gid++)
     {
       hb_codepoint_t old_gid;
@@ -909,12 +953,14 @@ struct CBLC
 
     auto snap = c->serializer->snapshot ();
     auto cbdt_prime_len = cbdt_prime->length;
+    auto dedup_snap = dedup->snapshot ();
 
     if (!table.subset (c, this, cbdt, cbdt_length, cbdt_prime, dedup))
     {
       cblc_prime->sizeTables.len--;
       c->serializer->revert (snap);
       cbdt_prime->shrink (cbdt_prime_len);
+      dedup->revert (dedup_snap);
       return_trace (false);
     }
     return_trace (true);

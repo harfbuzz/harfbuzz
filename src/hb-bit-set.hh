@@ -314,6 +314,13 @@ struct hb_bit_set_t
   {
     if (ds <= de)
     {
+      // compact() costs as much as the whole set; bail if the set has no page
+      // in the range, ie. there is nothing to delete.
+      unsigned int start;
+      page_map.bfind ((unsigned) ds, &start, HB_NOT_FOUND_STORE_CLOSEST);
+      if (start >= page_map.length || (int) page_map.arrayZ[start].major > de)
+	return;
+
       // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
       // before attempting to rewrite the page map.
       hb_vector_t<unsigned> compact_workspace;

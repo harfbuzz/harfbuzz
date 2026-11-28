@@ -646,6 +646,12 @@ test_set_delrange (void)
 
   hb_set_del_range (s, P*13+5, P*15-10);	/* Deletion from deleted pages. */
 
+  unsigned population = hb_set_get_population (s);
+  hb_set_del_range (s, P*13, P*15-1);		/* Deletion of deleted pages. */
+  hb_set_del_range (s, P*7-10, P*8+10);		/* Deletion covering a deleted page. */
+  hb_set_del_range (s, P*20, P*30-1);		/* Deletion of pages past the last one. */
+  g_assert_cmpuint (hb_set_get_population (s), ==, population);
+
   for (unsigned i = 0; i < n; i++)
   {
     unsigned b = ranges[i].b;
@@ -655,6 +661,12 @@ test_set_delrange (void)
       g_assert_true (!hb_set_has (s, b++));
     g_assert_true (hb_set_has (s, (e+2)&~1));
   }
+
+  hb_set_del_range (s, P*13, P*16-1);		/* Deletion of deleted pages and a present one. */
+  g_assert_true (hb_set_has (s, P*13-2));
+  g_assert_true (!hb_set_has (s, P*15));
+  g_assert_true (!hb_set_has (s, P*16-2));
+  g_assert_true (hb_set_has (s, P*18+102));
 
   hb_set_destroy (s);
 }
