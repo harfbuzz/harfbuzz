@@ -558,6 +558,10 @@ collect_layout_variation_indices (hb_subset_plan_t* plan)
   }
 #endif
 
+  /* A collection that ran out of budget is incomplete. */
+  if (unlikely (!plan->check_success (c.budget_remaining >= 0)))
+    return;
+
   remap_variation_indices (gdef->get_var_store (),
                            varidx_set, plan->normalized_coords,
                            !plan->pinned_at_default,

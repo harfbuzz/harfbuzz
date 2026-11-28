@@ -1871,6 +1871,10 @@ struct item_variations_t
   /* has long words */
   bool has_long = false;
 
+  /* scratch for instantiating the tuples; its budget is what copying tuples
+   * may still cost in this instancing session, see HB_BUDGET_INSTANCER_*. */
+  optimize_scratch_t scratch;
+
   public:
   bool has_long_word () const
   { return has_long; }
@@ -1943,6 +1947,12 @@ struct item_variations_t
     for (auto condition : conditions)
     {
       unsigned old_idx = condition.second.first;
+      // Any number of conditions can name one row. Each of them walks all
+      // the regions of its VarData here and all of its tuples below, and
+      // may copy the tuples into a private row.
+      if (unlikely (!hb_budget_spend (scratch.budget, HB_BUDGET_1,
+                                      varStore.get_region_index_count (old_idx >> 16))))
+        return false;
       double value = condition.second.second +
                      varStore.get_delta<double> (old_idx, plan->normalized_coords.as_array ());
       unsigned old_outer = old_idx >> 16;
@@ -1954,6 +1964,9 @@ struct item_variations_t
       if (outer >= vars.length || inner >= var_data_num_rows[outer])
         continue;
 
+      unsigned num_tuples = vars[outer].tuple_vars.length;
+      if (unlikely (!hb_budget_spend (scratch.budget, HB_BUDGET_1, num_tuples)))
+        return false;
       double maximum = fabs ((double) value);
       bool variable = false;
       for (const tuple_delta_t &tuple : vars[outer].tuple_vars)
@@ -1978,6 +1991,8 @@ struct item_variations_t
       // integers, otherwise use the available 32-bit precision.
       while (maximum * scale * 2 <= INT_MAX)
       {
+        if (unlikely (!hb_budget_spend (scratch.budget, HB_BUDGET_1, num_tuples)))
+          return false;
         bool integral = (double) value * scale == round ((double) value * scale);
         for (const tuple_delta_t &tuple : vars[outer].tuple_vars)
           integral &= (double) tuple.deltas_x[inner] * scale ==
@@ -2000,6 +2015,8 @@ struct item_variations_t
           copy.deltas_x.push ((float) round ((double) tuple.deltas_x[inner] * scale));
           if (unlikely (copy.axis_tuples.in_error () || copy.indices.in_error () ||
                         copy.deltas_x.in_error ())) return false;
+          if (unlikely (!hb_budget_spend (scratch.budget, copy.get_cost ())))
+            return false;
           private_row.tuple_vars.push (std::move (copy));
         }
         if (unlikely (vars.length >= 0xFFFFu)) return false;
@@ -2076,7 +2093,6 @@ struct item_variations_t
                                const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
                                bool build_regions = true)
   {
-    optimize_scratch_t scratch;
     for (tuple_variations_t& tuple_vars : vars)
       if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances, scratch))
         return false;

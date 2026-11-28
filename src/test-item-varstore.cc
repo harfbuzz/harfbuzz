@@ -22,6 +22,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  */
+#include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-var-common.hh"
 #include "hb-ot-var-hvar-table.hh"
 // HVAR table data from SourceSerif4Variable-Roman_subset.otf
@@ -651,6 +652,30 @@ test_tuple_split_budget ()
   hb_always_assert (!item_vars.instantiate_tuple_vars (locations, distances));
 }
 
+static void
+test_pair_variation_budget ()
+{
+  static const unsigned char data[] = {
+    0, 2,  0, 22,  0, 16,  0, 0,  0, 28,  0, 36,  0, 1,  0, 3, /* PairPos */
+    0, 0,  0, 0,  0, 0,                   /* One row of three device offsets. */
+    0, 1,  0, 1,  0, 1,                   /* Coverage: glyph 1. */
+    0, 1,  0, 1,  0, 1,  0, 0,            /* ClassDef1: glyph 1, class 0. */
+    0, 1,  0, 1,  0, 2,  0, 1,  0, 2,     /* ClassDef2: glyphs 1, 2. */
+  };
+  using PairPos = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>;
+  const auto &pair = *reinterpret_cast<const PairPos *> (data);
+  hb_set_t indices, glyphs;
+  glyphs.add_range (1, 2);
+  /* Two coverage units, three ClassDef records, and three matrix cells. */
+  for (int64_t budget : {7, 8})
+  {
+    OT::hb_collect_variation_indices_context_t c (&indices, &glyphs, nullptr);
+    c.budget_remaining = budget;
+    pair.collect_variation_indices (&c);
+    hb_always_assert (c.budget_remaining == budget - 8);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -664,6 +689,7 @@ main (int argc, char **argv)
   test_signed_delta_widths ();
   test_failed_encoding ();
   test_accumulated_delta_widths ();
+  test_pair_variation_budget ();
   test_condition_delta_precision ();
   test_multi_instancer_budget ();
   test_condition_budget ();

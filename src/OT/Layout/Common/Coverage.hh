@@ -298,7 +298,9 @@ struct Coverage
     }
   }
 
-  bool intersect_set (hb_subset_context_t *c, const hb_set_t &glyphs,
+  /* Same, charged to the work budget of a subset or subset-plan context. */
+  template <typename context_t>
+  bool intersect_set (context_t *c, const hb_set_t &glyphs,
 		      hb_set_t &intersection) const
   {
     if (unlikely (!c->check_ops (get_record_count ()))) return false;

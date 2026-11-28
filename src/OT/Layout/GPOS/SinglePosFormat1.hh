@@ -42,9 +42,7 @@ struct SinglePosFormat1_3 : ValueBase
   {
     if (!valueFormat.has_device ()) return;
 
-    hb_set_t intersection;
-    (this+coverage).intersect_set (*c->glyph_set, intersection);
-    if (!intersection) return;
+    if (!(this+coverage).intersects (c->glyph_set)) return;
 
     valueFormat.collect_variation_indices (c, this, values.as_array (valueFormat.get_len ()));
   }

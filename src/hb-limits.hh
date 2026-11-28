@@ -296,7 +296,8 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
 #define HB_BUDGET_SUBSET_GLYF ((int64_t) 1 << 33)
 #endif
 
-/* Coverage and ClassDef glyph walks while subsetting one layout table.
+/* Coverage and ClassDef glyph walks while subsetting one layout table, or
+ * while collecting the layout variation indices of one subset plan.
  * A glyph range costs a few bytes and any number of offsets can share it,
  * so neither the table size nor the sanitizer's budget bounds that work. */
 #ifndef HB_BUDGET_SUBSET_LAYOUT
@@ -405,7 +406,11 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * Limiting an axis splits every tuple that uses it into up to six, so
  * tuples multiply with each limited axis.  The copies are charged to a
  * budget that starts at MIN and earns FACTOR times each source tuple,
- * in tuple_delta_t::get_cost () units of roughly eight bytes. */
+ * in tuple_delta_t::get_cost () units of roughly eight bytes.
+ * A FeatureVariations condition value costs a dozen bytes and any number
+ * of them can name one VarStore row; what is left of the budget also pays
+ * for each walk over the regions and tuples of that row, and for each
+ * tuple copied when the condition needs a private row. */
 #ifndef HB_BUDGET_INSTANCER_FACTOR
 #define HB_BUDGET_INSTANCER_FACTOR 128
 #endif

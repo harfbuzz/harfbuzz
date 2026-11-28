@@ -19,34 +19,26 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
                                      unsigned class2_count,
                                      const ValueRecord &values)
 {
-  if (!coverage.intersects (c->glyph_set) ||
-      !class_def2.intersects (c->glyph_set)) return;
   if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
 
-  hb_set_t klass1_glyphs, klass2_glyphs;
-  if (!class_def1.collect_coverage (&klass1_glyphs)) return;
-  if (!class_def2.collect_coverage (&klass2_glyphs)) return;
+  /* Any number of offsets can point at us, and a Coverage range of a few
+   * bytes can cover every retained glyph: charge the intersection to the
+   * budget, and take the classes from the ClassDef records rather than
+   * glyph by glyph. */
+  hb_set_t first_glyphs;
+  if (unlikely (!coverage.intersect_set (c, *c->glyph_set, first_glyphs))) return;
 
+  /* Classes outside the matrix have no values; apply() ignores them too. */
   hb_set_t class1_set, class2_set;
-  for (const unsigned cp : + c->glyph_set->iter () | hb_filter (coverage))
-  {
-    if (!klass1_glyphs.has (cp)) class1_set.add (0);
-    else
-    {
-      unsigned klass1 = class_def1.get (cp);
-      /* Classes outside the matrix have no values; apply() ignores them too. */
-      if (klass1 < class1_count)
-        class1_set.add (klass1);
-    }
-  }
+  if (unlikely (first_glyphs.is_empty () ||
+                !c->check_ops (class_def1.get_record_count ()) ||
+                !c->check_ops (class_def2.get_record_count ()))) return;
+  class_def1.intersected_classes (&first_glyphs, &class1_set);
+  class1_set.del_range (class1_count, HB_SET_VALUE_INVALID);
 
+  class_def2.intersected_classes (c->glyph_set, &class2_set);
+  class2_set.del_range (class2_count, HB_SET_VALUE_INVALID);
   class2_set.add (0);
-  for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
-  {
-    unsigned klass2 = class_def2.get (cp);
-    if (klass2 < class2_count)
-      class2_set.add (klass2);
-  }
 
   if (class1_set.is_empty ()
       || class2_set.is_empty ()
@@ -58,6 +50,7 @@ void collect_pair_variation_indices (hb_collect_variation_indices_context_t *c,
   const hb_array_t<const Value> values_array = values.as_array ((unsigned)class1_count * (unsigned) class2_count * (len1 + len2));
   for (const unsigned class1_idx : class1_set.iter ())
   {
+    if (unlikely (!c->check_ops (class2_set.get_population ()))) return;
     for (const unsigned class2_idx : class2_set.iter ())
     {
       unsigned start_offset = (class1_idx * (unsigned) class2_count + class2_idx) * (len1 + len2);

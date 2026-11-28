@@ -215,10 +215,18 @@ struct hb_collect_variation_indices_context_t :
   return_t dispatch (const T &obj) { obj.collect_variation_indices (this); return hb_empty_t (); }
   static return_t default_return_value () { return hb_empty_t (); }
 
+  /* Charge COUNT units of work that the size of the source table does
+   * not bound.  Once the budget is exhausted the collected set is
+   * incomplete, and the subset plan fails. */
+  bool check_ops (unsigned count)
+  { return hb_budget_spend (budget_remaining, count); }
+
   hb_set_t *layout_variation_indices;
   const hb_set_t *glyph_set;
   const hb_map_t *gpos_lookups;
   hb_hashmap_t<uintptr_t, hb_pair_t<unsigned, int>> *condition_values = nullptr;
+  /* Shared by all the tables of one subset plan; see check_ops (). */
+  int64_t budget_remaining = HB_BUDGET_SUBSET_LAYOUT;
 
   hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
 					  const hb_set_t *glyph_set_,
