@@ -105,6 +105,7 @@ vowel_syllable =	reph? V.n? (ZWJ | complex_syllable_tail);
 standalone_cluster =	((Repha|CS)? PLACEHOLDER | reph? DOTTEDCIRCLE).n? complex_syllable_tail;
 symbol_cluster =	symbol syllable_tail;
 broken_cluster =	reph? n? complex_syllable_tail;
+joiner_run =		z z+;
 other =			any;
 
 main := |*
@@ -114,6 +115,7 @@ main := |*
 	symbol_cluster		=> { found_syllable (indic_symbol_cluster); };
 	SMPst			=> { found_syllable (indic_non_indic_cluster); };
 	broken_cluster		=> { found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
+	joiner_run		=> { found_joiner_run (indic_non_indic_cluster); };
 	other			=> { found_syllable (indic_non_indic_cluster); };
 *|;
 
@@ -127,6 +129,19 @@ main := |*
       info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (syllable_serial == 16) syllable_serial = 1; \
+  } HB_STMT_END
+
+/* matra_group allows any number of joiners before a matra, so without the
+ * joiner_run rule the scanner reads to the end of a run of joiners from each
+ * joiner in it, only to back up and emit that one joiner as `other` when no
+ * matra follows: quadratic in the length of the run.  Emit the same
+ * one-joiner syllables here in one pass, for all but the last joiner (p is
+ * on it), and rescan from that one: it may start a cluster with what follows. */
+#define found_joiner_run(syllable_type) \
+  HB_STMT_START { \
+    for (te = ts + 1; te <= p; ts++, te++) \
+      found_syllable (syllable_type); \
+    p--; \
   } HB_STMT_END
 
 inline void
@@ -150,5 +165,6 @@ find_syllables_indic (hb_buffer_t *buffer)
 }
 
 #undef found_syllable
+#undef found_joiner_run
 
 #endif /* HB_OT_SHAPER_INDIC_MACHINE_HH */

@@ -90,11 +90,13 @@ syllable_tail = xgroup matra_group xgroup (H.c)? ygroup;
 
 broken_cluster =	Robatic? (H.cn)* (H | syllable_tail);
 consonant_syllable =	(cn|PLACEHOLDER|DOTTEDCIRCLE) broken_cluster;
+joiner_run =		joiner joiner+;
 other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (khmer_consonant_syllable); };
 	broken_cluster		=> { found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
+	joiner_run		=> { found_joiner_run (khmer_non_khmer_cluster); };
 	other			=> { found_syllable (khmer_non_khmer_cluster); };
 *|;
 
@@ -108,6 +110,19 @@ main := |*
       info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (syllable_serial == 16) syllable_serial = 1; \
+  } HB_STMT_END
+
+/* xgroup allows any number of joiners before an Xgroup, so without the
+ * joiner_run rule the scanner reads to the end of a run of joiners from each
+ * joiner in it, only to back up and emit that one joiner as `other` when no
+ * Xgroup follows: quadratic in the length of the run.  Emit the same
+ * one-joiner syllables here in one pass, for all but the last joiner (p is
+ * on it), and rescan from that one: it may start a cluster with what follows. */
+#define found_joiner_run(syllable_type) \
+  HB_STMT_START { \
+    for (te = ts + 1; te <= p; ts++, te++) \
+      found_syllable (syllable_type); \
+    p--; \
   } HB_STMT_END
 
 inline void
@@ -131,5 +146,6 @@ find_syllables_khmer (hb_buffer_t *buffer)
 }
 
 #undef found_syllable
+#undef found_joiner_run
 
 #endif /* HB_OT_SHAPER_KHMER_MACHINE_HH */

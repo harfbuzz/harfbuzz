@@ -168,6 +168,7 @@ number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
 numeral_cluster = N numeral_cluster_tail?;
 symbol_cluster = (O | GB | SB) tail?;
 hieroglyph_cluster = SB* G HR? HM? SE* (J SB* (G HR? HM? SE*)?)*;
+segment_begin_run = SB SB+;
 other = any;
 
 main := |*
@@ -180,6 +181,7 @@ main := |*
 	hieroglyph_cluster ZWNJ?		=> { found_syllable (use_hieroglyph_cluster); };
 	FMPst					=> { found_syllable (use_non_cluster); };
 	broken_cluster ZWNJ?			=> { found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
+	segment_begin_run			=> { found_segment_begin_run (); };
 	other					=> { found_syllable (use_non_cluster); };
 *|;
 
@@ -193,6 +195,24 @@ main := |*
       info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (syllable_serial == 16) syllable_serial = 1; \
+  } HB_STMT_END
+
+/* hieroglyph_cluster allows any number of SB before a G, so without the
+ * segment_begin_run rule the scanner reads to the end of a run of SB from
+ * each SB in it, only to back up and emit that one SB as a symbol_cluster
+ * when no G follows: quadratic in the length of the run.  Emit the same
+ * one-SB symbol clusters here in one pass, for all but the last SB (p is on
+ * it), and rescan from that one: it may take a tail. */
+#define found_segment_begin_run() \
+  HB_STMT_START { \
+    for (auto start = +ts, end = start + 1; start != p; ++start, ++end) \
+    { \
+      for (unsigned i = (*start).second.first; i < (*end).second.first; ++i) \
+	info[i].syllable() = (syllable_serial << 4) | use_symbol_cluster; \
+      syllable_serial++; \
+      if (syllable_serial == 16) syllable_serial = 1; \
+    } \
+    p--; \
   } HB_STMT_END
 
 
@@ -293,5 +313,6 @@ find_syllables_use (hb_buffer_t *buffer)
 }
 
 #undef found_syllable
+#undef found_segment_begin_run
 
 #endif /* HB_OT_SHAPER_USE_MACHINE_HH */

@@ -73,7 +73,7 @@ static const unsigned char _khmer_syllable_machine_trans_keys[] = {
 	5u, 26u, 5u, 26u, 5u, 26u, 5u, 26u, 5u, 26u, 1u, 27u, 4u, 27u, 1u, 15u, 
 	4u, 27u, 4u, 27u, 27u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 
 	4u, 27u, 1u, 15u, 4u, 27u, 4u, 27u, 27u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 
-	4u, 27u, 4u, 27u, 5u, 26u, 0
+	4u, 27u, 4u, 27u, 5u, 26u, 5u, 26u, 0
 };
 
 static const char _khmer_syllable_machine_key_spans[] = {
@@ -82,7 +82,7 @@ static const char _khmer_syllable_machine_key_spans[] = {
 	22, 22, 22, 22, 22, 27, 24, 15, 
 	24, 24, 1, 24, 24, 24, 24, 24, 
 	24, 15, 24, 24, 1, 24, 24, 24, 
-	24, 24, 22
+	24, 24, 22, 22
 };
 
 static const short _khmer_syllable_machine_index_offsets[] = {
@@ -91,7 +91,7 @@ static const short _khmer_syllable_machine_index_offsets[] = {
 	354, 377, 400, 423, 446, 469, 497, 522, 
 	538, 563, 588, 590, 615, 640, 665, 690, 
 	715, 740, 756, 781, 806, 808, 833, 858, 
-	883, 908, 933
+	883, 908, 933, 956
 };
 
 static const char _khmer_syllable_machine_indicies[] = {
@@ -128,140 +128,143 @@ static const char _khmer_syllable_machine_indicies[] = {
 	0, 0, 0, 13, 4, 0, 15, 15, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 16, 14, 14, 
-	14, 14, 17, 18, 14, 15, 15, 19, 
-	19, 19, 19, 19, 19, 19, 19, 19, 
-	19, 19, 19, 19, 19, 19, 19, 19, 
-	19, 19, 18, 19, 20, 20, 14, 14, 
+	14, 14, 17, 18, 14, 15, 15, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
-	14, 14, 20, 14, 15, 15, 14, 14, 
+	14, 14, 14, 14, 14, 14, 14, 14, 
+	14, 14, 18, 14, 19, 19, 14, 14, 
+	14, 14, 14, 14, 14, 14, 14, 14, 
+	14, 14, 19, 14, 15, 15, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
 	14, 14, 14, 16, 14, 14, 14, 14, 
-	14, 18, 14, 21, 21, 14, 14, 14, 
+	14, 18, 14, 20, 20, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
-	16, 14, 22, 22, 14, 14, 14, 14, 
+	16, 14, 21, 21, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
-	14, 14, 14, 14, 14, 14, 14, 23, 
-	14, 24, 24, 14, 14, 14, 14, 14, 
+	14, 14, 14, 14, 14, 14, 14, 22, 
+	14, 23, 23, 14, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
-	16, 14, 14, 14, 14, 14, 25, 14, 
-	24, 24, 14, 14, 14, 14, 14, 14, 
+	16, 14, 14, 14, 14, 14, 24, 14, 
+	23, 23, 14, 14, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
-	14, 14, 14, 14, 14, 25, 14, 26, 
-	26, 14, 14, 14, 14, 14, 14, 14, 
+	14, 14, 14, 14, 14, 24, 14, 25, 
+	25, 14, 14, 14, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 16, 14, 
-	14, 14, 14, 14, 27, 14, 26, 26, 
+	14, 14, 14, 14, 26, 14, 25, 25, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
 	14, 14, 14, 14, 14, 14, 14, 14, 
-	14, 14, 14, 27, 14, 29, 29, 28, 
-	30, 31, 31, 28, 28, 28, 13, 13, 
-	28, 28, 28, 29, 28, 28, 28, 28, 
-	16, 25, 27, 23, 28, 17, 18, 20, 
-	28, 33, 34, 34, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 2, 10, 12, 8, 32, 13, 4, 
-	5, 32, 35, 35, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	35, 32, 33, 36, 36, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 32, 2, 10, 12, 8, 32, 3, 
-	4, 5, 32, 37, 38, 38, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 32, 32, 2, 10, 12, 8, 32, 
-	32, 4, 5, 32, 5, 32, 37, 6, 
-	6, 32, 32, 32, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 8, 32, 32, 2, 5, 32, 37, 
-	7, 7, 32, 32, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 8, 5, 32, 
-	37, 39, 39, 32, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	2, 32, 32, 8, 32, 32, 10, 5, 
-	32, 37, 40, 40, 32, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 2, 10, 32, 8, 32, 32, 12, 
-	5, 32, 33, 38, 38, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 32, 2, 10, 12, 8, 32, 32, 
-	4, 5, 32, 33, 38, 38, 32, 32, 
-	32, 32, 32, 32, 32, 32, 32, 32, 
-	32, 32, 32, 2, 10, 12, 8, 32, 
-	3, 4, 5, 32, 42, 42, 41, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 42, 41, 30, 43, 43, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 41, 41, 16, 25, 27, 23, 
-	41, 17, 18, 20, 41, 44, 45, 45, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 41, 41, 41, 16, 25, 27, 
-	23, 41, 41, 18, 20, 41, 20, 41, 
-	44, 21, 21, 41, 41, 41, 41, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 41, 23, 41, 41, 16, 20, 
-	41, 44, 22, 22, 41, 41, 41, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 41, 41, 41, 41, 41, 23, 
-	20, 41, 44, 46, 46, 41, 41, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 16, 41, 41, 23, 41, 41, 
-	25, 20, 41, 44, 47, 47, 41, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 41, 16, 25, 41, 23, 41, 
-	41, 27, 20, 41, 30, 45, 45, 41, 
-	41, 41, 41, 41, 41, 41, 41, 41, 
-	41, 41, 41, 41, 16, 25, 27, 23, 
-	41, 41, 18, 20, 41, 15, 15, 48, 
-	48, 48, 48, 48, 48, 48, 48, 48, 
-	48, 48, 48, 48, 16, 48, 48, 48, 
-	48, 48, 18, 48, 0
+	14, 14, 14, 26, 14, 28, 28, 27, 
+	29, 30, 30, 27, 27, 27, 13, 13, 
+	27, 27, 27, 28, 27, 27, 27, 27, 
+	16, 24, 26, 22, 27, 17, 18, 19, 
+	27, 32, 33, 33, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 2, 10, 12, 8, 31, 13, 4, 
+	5, 31, 34, 34, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	34, 31, 32, 35, 35, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 2, 10, 12, 8, 31, 3, 
+	4, 5, 31, 36, 37, 37, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 2, 10, 12, 8, 31, 
+	31, 4, 5, 31, 5, 31, 36, 6, 
+	6, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 8, 31, 31, 2, 5, 31, 36, 
+	7, 7, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 8, 5, 31, 
+	36, 38, 38, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	2, 31, 31, 8, 31, 31, 10, 5, 
+	31, 36, 39, 39, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 2, 10, 31, 8, 31, 31, 12, 
+	5, 31, 32, 37, 37, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 2, 10, 12, 8, 31, 31, 
+	4, 5, 31, 32, 37, 37, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 2, 10, 12, 8, 31, 
+	3, 4, 5, 31, 41, 41, 40, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 41, 40, 29, 42, 42, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 40, 40, 16, 24, 26, 22, 
+	40, 17, 18, 19, 40, 43, 44, 44, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 40, 40, 40, 16, 24, 26, 
+	22, 40, 40, 18, 19, 40, 19, 40, 
+	43, 20, 20, 40, 40, 40, 40, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 40, 22, 40, 40, 16, 19, 
+	40, 43, 21, 21, 40, 40, 40, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 40, 40, 40, 40, 40, 22, 
+	19, 40, 43, 45, 45, 40, 40, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 16, 40, 40, 22, 40, 40, 
+	24, 19, 40, 43, 46, 46, 40, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 40, 16, 24, 40, 22, 40, 
+	40, 26, 19, 40, 29, 44, 44, 40, 
+	40, 40, 40, 40, 40, 40, 40, 40, 
+	40, 40, 40, 40, 16, 24, 26, 22, 
+	40, 40, 18, 19, 40, 48, 48, 47, 
+	47, 47, 47, 47, 47, 47, 47, 47, 
+	47, 47, 47, 47, 16, 47, 47, 47, 
+	47, 47, 18, 47, 48, 48, 49, 49, 
+	49, 49, 49, 49, 49, 49, 49, 49, 
+	49, 49, 49, 49, 49, 49, 49, 49, 
+	49, 18, 49, 0
 };
 
 static const char _khmer_syllable_machine_trans_targs[] = {
 	21, 1, 27, 31, 25, 26, 4, 5, 
 	28, 7, 29, 9, 30, 32, 21, 12, 
-	37, 41, 35, 21, 36, 15, 16, 38, 
-	18, 39, 20, 40, 21, 22, 33, 42, 
-	21, 23, 10, 24, 0, 2, 3, 6, 
-	8, 21, 34, 11, 13, 14, 17, 19, 
-	21
+	37, 41, 35, 36, 15, 16, 38, 18, 
+	39, 20, 40, 21, 22, 33, 42, 21, 
+	23, 10, 24, 0, 2, 3, 6, 8, 
+	21, 34, 11, 13, 14, 17, 19, 21, 
+	43, 21
 };
 
 static const char _khmer_syllable_machine_trans_actions[] = {
 	1, 0, 2, 2, 2, 0, 0, 0, 
 	2, 0, 2, 0, 2, 2, 3, 0, 
-	2, 4, 4, 5, 0, 0, 0, 2, 
-	0, 2, 0, 2, 8, 2, 0, 9, 
-	10, 0, 0, 2, 0, 0, 0, 0, 
-	0, 11, 4, 0, 0, 0, 0, 0, 
-	12
+	2, 2, 2, 0, 0, 0, 2, 0, 
+	2, 0, 2, 6, 2, 0, 0, 7, 
+	0, 0, 2, 0, 0, 0, 0, 0, 
+	8, 2, 0, 0, 0, 0, 0, 9, 
+	0, 10
 };
 
 static const char _khmer_syllable_machine_to_state_actions[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 6, 0, 0, 
+	0, 0, 0, 0, 0, 4, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0
+	0, 0, 0, 0
 };
 
 static const char _khmer_syllable_machine_from_state_actions[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 7, 0, 0, 
+	0, 0, 0, 0, 0, 5, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0
+	0, 0, 0, 0
 };
 
 static const short _khmer_syllable_machine_eof_trans[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 15, 20, 15, 15, 15, 
-	15, 15, 15, 15, 15, 0, 33, 33, 
-	33, 33, 33, 33, 33, 33, 33, 33, 
-	33, 42, 42, 42, 42, 42, 42, 42, 
-	42, 42, 49
+	1, 1, 1, 15, 15, 15, 15, 15, 
+	15, 15, 15, 15, 15, 0, 32, 32, 
+	32, 32, 32, 32, 32, 32, 32, 32, 
+	32, 41, 41, 41, 41, 41, 41, 41, 
+	41, 41, 48, 50
 };
 
 static const int khmer_syllable_machine_start = 21;
@@ -275,7 +278,7 @@ static const int khmer_syllable_machine_en_main = 21;
 
 
 
-#line 102 "hb-ot-shaper-khmer-machine.rl"
+#line 104 "hb-ot-shaper-khmer-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -287,6 +290,19 @@ static const int khmer_syllable_machine_en_main = 21;
     if (syllable_serial == 16) syllable_serial = 1; \
   } HB_STMT_END
 
+/* xgroup allows any number of joiners before an Xgroup, so without the
+ * joiner_run rule the scanner reads to the end of a run of joiners from each
+ * joiner in it, only to back up and emit that one joiner as `other` when no
+ * Xgroup follows: quadratic in the length of the run.  Emit the same
+ * one-joiner syllables here in one pass, for all but the last joiner (p is
+ * on it), and rescan from that one: it may start a cluster with what follows. */
+#define found_joiner_run(syllable_type) \
+  HB_STMT_START { \
+    for (te = ts + 1; te <= p; ts++, te++) \
+      found_syllable (syllable_type); \
+    p--; \
+  } HB_STMT_END
+
 inline void
 find_syllables_khmer (hb_buffer_t *buffer)
 {
@@ -294,7 +310,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 287 "hb-ot-shaper-khmer-machine.hh"
+#line 303 "hb-ot-shaper-khmer-machine.hh"
 	{
 	cs = khmer_syllable_machine_start;
 	ts = 0;
@@ -302,7 +318,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 122 "hb-ot-shaper-khmer-machine.rl"
+#line 137 "hb-ot-shaper-khmer-machine.rl"
 
 
   p = 0;
@@ -310,7 +326,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 299 "hb-ot-shaper-khmer-machine.hh"
+#line 315 "hb-ot-shaper-khmer-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -320,11 +336,11 @@ find_syllables_khmer (hb_buffer_t *buffer)
 		goto _test_eof;
 _resume:
 	switch ( _khmer_syllable_machine_from_state_actions[cs] ) {
-	case 7:
+	case 5:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 311 "hb-ot-shaper-khmer-machine.hh"
+#line 327 "hb-ot-shaper-khmer-machine.hh"
 	}
 
 	_keys = _khmer_syllable_machine_trans_keys + (cs<<1);
@@ -346,60 +362,40 @@ _eof_trans:
 #line 1 "NONE"
 	{te = p+1;}
 	break;
-	case 8:
-#line 98 "hb-ot-shaper-khmer-machine.rl"
+	case 6:
+#line 100 "hb-ot-shaper-khmer-machine.rl"
 	{te = p+1;{ found_syllable (khmer_non_khmer_cluster); }}
 	break;
-	case 10:
-#line 96 "hb-ot-shaper-khmer-machine.rl"
+	case 7:
+#line 97 "hb-ot-shaper-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (khmer_consonant_syllable); }}
 	break;
-	case 11:
-#line 97 "hb-ot-shaper-khmer-machine.rl"
+	case 8:
+#line 98 "hb-ot-shaper-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
-	case 12:
-#line 98 "hb-ot-shaper-khmer-machine.rl"
+	case 10:
+#line 99 "hb-ot-shaper-khmer-machine.rl"
+	{te = p;p--;{ found_joiner_run (khmer_non_khmer_cluster); }}
+	break;
+	case 9:
+#line 100 "hb-ot-shaper-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (khmer_non_khmer_cluster); }}
 	break;
 	case 1:
-#line 96 "hb-ot-shaper-khmer-machine.rl"
+#line 97 "hb-ot-shaper-khmer-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (khmer_consonant_syllable); }}
 	break;
 	case 3:
-#line 97 "hb-ot-shaper-khmer-machine.rl"
-	{{p = ((te))-1;}{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
-	break;
-	case 5:
-#line 1 "NONE"
-	{	switch( act ) {
-	case 2:
-	{{p = ((te))-1;} found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }
-	break;
-	case 3:
-	{{p = ((te))-1;} found_syllable (khmer_non_khmer_cluster); }
-	break;
-	}
-	}
-	break;
-	case 4:
-#line 1 "NONE"
-	{te = p+1;}
-#line 97 "hb-ot-shaper-khmer-machine.rl"
-	{act = 2;}
-	break;
-	case 9:
-#line 1 "NONE"
-	{te = p+1;}
 #line 98 "hb-ot-shaper-khmer-machine.rl"
-	{act = 3;}
+	{{p = ((te))-1;}{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 #line 368 "hb-ot-shaper-khmer-machine.hh"
 	}
 
 _again:
 	switch ( _khmer_syllable_machine_to_state_actions[cs] ) {
-	case 6:
+	case 4:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
@@ -419,10 +415,11 @@ _again:
 
 	}
 
-#line 130 "hb-ot-shaper-khmer-machine.rl"
+#line 145 "hb-ot-shaper-khmer-machine.rl"
 
 }
 
 #undef found_syllable
+#undef found_joiner_run
 
 #endif /* HB_OT_SHAPER_KHMER_MACHINE_HH */

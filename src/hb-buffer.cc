@@ -549,6 +549,10 @@ hb_buffer_t::set_masks (hb_mask_t    value,
   if (!mask)
     return;
 
+  /* Callers keep setting masks after the buffer has failed; don't walk then. */
+  if (unlikely (!successful))
+    return;
+
   hb_mask_t not_mask = ~mask;
   value &= mask;
 
