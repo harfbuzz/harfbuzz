@@ -165,7 +165,8 @@ struct cvar
       return_trace (false);
 
     optimize_scratch_t scratch;
-    if (!tuple_variations.instantiate (c->plan->axes_location, c->plan->axes_triple_distances, scratch))
+    if (!tuple_variations.instantiate (c->plan->axes_location, c->plan->axes_triple_distances,
+                                      scratch, nullptr, nullptr, false, &budget))
       return_trace (false);
 
     if (!tuple_variations.compile_bytes (c->plan->axes_index_map, c->plan->axes_old_index_tag_map,

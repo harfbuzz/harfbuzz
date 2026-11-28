@@ -414,18 +414,32 @@ decompile_cvar_with_budget (OT::TupleVariationData<>::tuple_variations_t &tuple_
 static void
 test_tuple_points_budget ()
 {
-  /* Each tuple is expanded to 65 points; the decode charges them. */
+  /* Each tuple has 65 points and one occupied axis. The axis hash
+   * table keeps all of its allocated slots. */
+  hb_hashmap_t<hb_tag_t, Triple> axes;
+  axes.set (HB_TAG ('w','g','h','t'), Triple (0, 1, 1));
+  int64_t two_tuples = 2 * (65 + 1 + OT::tuple_delta_t::axis_map_bytes (axes));
   {
     OT::TupleVariationData<>::tuple_variations_t tuple_variations;
-    int64_t budget = 2 * 65 - 1;
+    int64_t budget = two_tuples - 1;
     hb_always_assert (!decompile_cvar_with_budget (tuple_variations, &budget));
   }
 
   OT::TupleVariationData<>::tuple_variations_t tuple_variations;
-  int64_t budget = 2 * 65;
+  int64_t budget = two_tuples;
   hb_always_assert (decompile_cvar_with_budget (tuple_variations, &budget));
   hb_always_assert (tuple_variations.tuple_vars.length == 2);
   hb_always_assert (budget == 0);
+
+  /* Moving the default into a tuple splits it, copying its axis map. */
+  hb_tag_t tag = HB_TAG ('w','g','h','t');
+  axes.set (tag, Triple (-1., 0.25, 1.));
+  hb_hashmap_t<hb_tag_t, TripleDistances> distances;
+  distances.set (tag, TripleDistances (1., 1.));
+  OT::optimize_scratch_t scratch;
+  hb_always_assert (!tuple_variations.instantiate (axes, distances, scratch, nullptr, nullptr,
+                                                   false, &budget));
+  hb_always_assert (budget < 0);
 }
 
 int

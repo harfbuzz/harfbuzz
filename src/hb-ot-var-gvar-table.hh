@@ -76,7 +76,7 @@ struct glyph_variations_t
 
   hb_alloc_pool_t pool;
 
-  /* points all tuples of this table may still be expanded to */
+  /* Remaining tuple work and storage across this table. */
   int64_t budget = 0;
 
   public:
@@ -171,7 +171,7 @@ struct glyph_variations_t
       /* avar2 partial instancing: cull unreachable tuples. */
       if (plan->has_avar2 && plan->avar2_reachable_ranges.get_population ())
 	glyph_variations[i].cull_unreachable (plan->avar2_reachable_ranges);
-      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, scratch, &pool, all_points, iup_optimize))
+      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, scratch, &pool, all_points, iup_optimize, &budget))
         return false;
     }
     return true;
@@ -205,6 +205,11 @@ struct glyph_variations_t
     {
       for (tuple_delta_t& var : vars.tuple_vars)
       {
+        /* Walk the original axes, then retain up to three F2DOT14
+         * coordinates per surviving axis in both arrays and headers. */
+        if (unlikely (!hb_budget_spend (budget, HB_BUDGET_1, axes_old_index_tag_map.get_population ()) ||
+                      !hb_budget_spend (budget, 6 * F2DOT14::static_size, axes_index_map.get_population ())))
+          return false;
         if (!var.compile_coords (axes_index_map, axes_old_index_tag_map, &pool))
           return false;
         unsigned *count;

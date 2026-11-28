@@ -421,6 +421,8 @@ hb_budget_spend (int64_t &budget, unsigned int cost, unsigned int mult = 1)
  * size of the font does not bound the product.  The budget is this many
  * points per byte of the table, but no less than the minimum; exceeding
  * it fails the table. */
+/* The same table-wide allowance also covers per-axis decoding, retained
+ * axis maps (including copies made by splitting), and compiled coordinates. */
 #ifndef HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR
 #define HB_BUDGET_SUBSET_TUPLE_POINTS_FACTOR 64
 #endif

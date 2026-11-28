@@ -103,7 +103,8 @@ struct TupleVariationHeader
         start = hb_min (peak, 0.f);
         end = hb_max (peak, 0.f);
       }
-      axis_tuples.set (*axis_tag, Triple (start, peak, end));
+      if (unlikely (!axis_tuples.set (*axis_tag, Triple (start, peak, end))))
+        return false;
     }
 
     return true;
@@ -336,6 +337,9 @@ struct tuple_delta_t
 	   compiled_interm_coords.duplicate_vector_from_pool (pool, o.compiled_interm_coords);
   }
 
+  static unsigned axis_map_bytes (const hb_hashmap_t<hb_tag_t, Triple> &axes)
+  { return axes.items ? (axes.mask + 1) * sizeof (*axes.items) : 0; }
+
   /* Budget cost of a copy of this tuple. */
   unsigned get_cost () const
   { return HB_BUDGET_32 + HB_BUDGET_8 * axis_tuples.get_population () + HB_BUDGET_1 * indices.length; }
@@ -398,7 +402,7 @@ struct tuple_delta_t
 				    TripleDistances axis_triple_distances,
 				    hb_vector_t<tuple_delta_t>& out,
 				    rebase_tent_result_scratch_t &scratch,
-				    hb_alloc_pool_t *pool = nullptr)
+				    hb_alloc_pool_t *pool, int64_t *table_budget)
   {
     // May move *this out.
 
@@ -436,7 +440,8 @@ struct tuple_delta_t
       tuple_delta_t new_var;
       if (i < solutions.length - 1)
       {
-	if (unlikely (!new_var.copy_from (*this, pool)))
+	if (unlikely ((table_budget && !hb_budget_spend (*table_budget, axis_map_bytes (axis_tuples))) ||
+		      !new_var.copy_from (*this, pool)))
 	{
 	  out.ensure_error ();
 	  return;
@@ -538,36 +543,35 @@ struct tuple_delta_t
      * compiling this tuple and return true */
     if (!compiled_deltas) return true;
 
-    unsigned cur_axis_count = axes_index_map.get_population ();
-    /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
-    unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    if (unlikely (!compiled_tuple_header.allocate_from_pool (pool, alloc_len, false))) return false;
+    if (!shared_tuples_idx_map &&
+        !compile_coords (axes_index_map, axes_old_index_tag_map))
+      return false;
 
     unsigned flag = 0;
-    /* skip the first 4 header bytes: variationDataSize+tupleIndex */
-    F2DOT14* p = reinterpret_cast<F2DOT14 *> (compiled_tuple_header.begin () + 4);
-    F2DOT14* end = reinterpret_cast<F2DOT14 *> (compiled_tuple_header.end ());
-    hb_array_t<F2DOT14> coords (p, end - p);
+    unsigned *shared_index;
+    bool shared = shared_tuples_idx_map &&
+                  shared_tuples_idx_map->has (&compiled_peak_coords, &shared_index);
+    unsigned peak_count = shared ? 0 : compiled_peak_coords.length;
+    unsigned interm_count = compiled_interm_coords.length;
+    if (!shared && !peak_count) return false;
 
-    if (!shared_tuples_idx_map)
-      compile_coords (axes_index_map, axes_old_index_tag_map); // non-gvar tuples do not have compiled coords yet
-
-    /* encode peak coords */
-    unsigned peak_count = 0;
-    unsigned *shared_tuple_idx;
-    if (shared_tuples_idx_map &&
-        shared_tuples_idx_map->has (&compiled_peak_coords, &shared_tuple_idx))
-    {
-      flag = *shared_tuple_idx;
-    }
+    unsigned header_len = 4 + (peak_count + interm_count) * F2DOT14::static_size;
+    if (unlikely (!compiled_tuple_header.allocate_from_pool (pool, header_len, false)))
+      return false;
+    auto *coords = compiled_tuple_header.arrayZ + 4;
+    if (shared)
+      flag = *shared_index;
     else
     {
-      peak_count = encode_peak_coords(coords, flag);
-      if (!peak_count) return false;
+      flag = TupleVariationHeader::TupleIndex::EmbeddedPeakTuple;
+      hb_memcpy (coords, compiled_peak_coords.arrayZ, peak_count * F2DOT14::static_size);
     }
-
-    /* encode interim coords, it's optional so returned num could be 0 */
-    unsigned interim_count = encode_interm_coords (coords.sub_array (peak_count), flag);
+    if (interm_count)
+    {
+      flag |= TupleVariationHeader::TupleIndex::IntermediateRegion;
+      hb_memcpy (coords + peak_count * F2DOT14::static_size,
+                 compiled_interm_coords.arrayZ, interm_count * F2DOT14::static_size);
+    }
 
     /* pointdata length = 0 implies "use shared points" */
     if (points_data_length)
@@ -578,29 +582,7 @@ struct tuple_delta_t
     o->varDataSize = serialized_data_size;
     o->tupleIndex = flag;
 
-    unsigned total_header_len = 4 + (peak_count + interim_count) * (F2DOT14::static_size);
-    compiled_tuple_header.shrink_back_to_pool (pool, total_header_len);
     return true;
-  }
-
-  unsigned encode_peak_coords (hb_array_t<F2DOT14> peak_coords,
-                               unsigned& flag) const
-  {
-    hb_memcpy (&peak_coords[0], &compiled_peak_coords[0], compiled_peak_coords.length * sizeof (compiled_peak_coords[0]));
-    flag |= TupleVariationHeader::TupleIndex::EmbeddedPeakTuple;
-    return compiled_peak_coords.length;
-  }
-
-  /* if no need to encode intermediate coords, then just return p */
-  unsigned encode_interm_coords (hb_array_t<F2DOT14> coords,
-                                 unsigned& flag) const
-  {
-    if (compiled_interm_coords)
-    {
-      hb_memcpy (&coords[0], &compiled_interm_coords[0], compiled_interm_coords.length * sizeof (compiled_interm_coords[0]));
-      flag |= TupleVariationHeader::TupleIndex::IntermediateRegion;
-    }
-    return compiled_interm_coords.length;
   }
 
   bool compile_deltas (hb_vector_t<int> &rounded_deltas_scratch,
@@ -1040,9 +1022,15 @@ struct TupleVariationData
         if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
           return false;
 
+        if (budget && unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, iterator.get_axis_count ())))
+          return false;
 	hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
         if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axes_old_index_tag_map, axis_tuples)
             || axis_tuples.is_empty ())
+          return false;
+
+        /* The tuple retains the hash table, including its unused slots. */
+        if (budget && unlikely (!hb_budget_spend (*budget, tuple_delta_t::axis_map_bytes (axis_tuples))))
           return false;
 
 	private_indices.reset ();
@@ -1167,7 +1155,7 @@ struct TupleVariationData
     bool change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
 					      int64_t &budget,
-					      hb_alloc_pool_t *pool = nullptr)
+					      hb_alloc_pool_t *pool, int64_t *table_budget)
     {
       /* Splitting below may grow the tuples this much. */
       for (const tuple_delta_t& var : tuple_vars)
@@ -1198,7 +1186,7 @@ struct TupleVariationData
         for (tuple_delta_t& var : tuple_vars)
         {
 	  // This may move var out.
-	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch, pool);
+	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch, pool, table_budget);
           if (unlikely (out.in_error ())) return false;
           if (!out) continue;
 
@@ -1361,10 +1349,11 @@ struct TupleVariationData
 		      optimize_scratch_t &scratch,
 		      hb_alloc_pool_t *pool = nullptr,
                       contour_point_vector_t* contour_points = nullptr,
-                      bool optimize = false)
+                      bool optimize = false,
+                      int64_t *table_budget = nullptr)
     {
       if (!tuple_vars) return true;
-      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, scratch.budget, pool))
+      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, scratch.budget, pool, table_budget))
         return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)
