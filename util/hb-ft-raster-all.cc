@@ -162,13 +162,17 @@ main (int argc, char **argv)
     int y0 = floor_div_64 (bbox.yMin);
     int x1 = ceil_div_64 (bbox.xMax);
     int y1 = ceil_div_64 (bbox.yMax);
-    unsigned width  = (unsigned) (x1 > x0 ? x1 - x0 : 0);
-    unsigned height = (unsigned) (y1 > y0 ? y1 - y0 : 0);
+    unsigned width  = (unsigned) (x1 > x0 ? (int64_t) x1 - x0 : 0);
+    unsigned height = (unsigned) (y1 > y0 ? (int64_t) y1 - y0 : 0);
     if (!width || !height)
       continue;
 
     unsigned stride = (width + 3u) & ~3u;
-    std::vector<uint8_t> pixels (stride * height, 0);
+    /* Skip what does not fit; same limit as hb-raster.  It also keeps
+       rows * pitch within the int that FreeType computes it in. */
+    if (stride < width || stride > HB_RASTER_MAX_BUFFER_SIZE / height)
+      continue;
+    std::vector<uint8_t> pixels ((size_t) stride * height, 0);
 
     for (unsigned iter = 0; iter < num_iterations; iter++)
     {

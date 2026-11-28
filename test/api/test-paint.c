@@ -887,6 +887,17 @@ reentrant_color (hb_paint_funcs_t *funcs HB_UNUSED,
 }
 
 static void
+reentrant_layer (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data,
+                 hb_codepoint_t glyph HB_UNUSED, hb_font_t *font,
+                 hb_bool_t is_foreground, hb_color_t color, void *user_data HB_UNUSED)
+{
+  reentrant_paint_t *data = paint_data;
+  g_string_append_printf (data->colors, "%u %u;", is_foreground, color);
+  if (++data->palette_calls == 1 && data->reenter)
+    hb_font_paint_glyph (font, 1, data->empty_funcs, NULL, 1, HB_COLOR (0, 0, 0, 255));
+}
+
+static void
 reentrant_gradient (reentrant_paint_t *data, hb_color_line_t *line, unsigned int kind)
 {
   unsigned int total = hb_color_line_get_color_stops (line, 0, NULL, NULL);
@@ -998,6 +1009,29 @@ test_ft_reentrant_paint (void)
   g_assert_cmpuint (data.palette_calls, >, 0);
   for (unsigned int i = 0; i < 3; i++)
     g_assert_cmpuint (data.gradients[i], >, 0);
+
+  g_free (expected);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  face = hb_test_open_font_file (ROCHER_ABC);
+  font = hb_font_create (face);
+#ifdef HB_HAS_FREETYPE
+  hb_ft_font_set_funcs (font);
+#endif
+  hb_paint_funcs_set_fill_glyph_func (funcs, reentrant_layer, NULL, NULL);
+  data.font = font;
+  data.reenter = FALSE;
+  data.palette_calls = 0;
+  g_string_truncate (data.colors, 0);
+  hb_font_paint_glyph (font, 1, funcs, &data, 0, HB_COLOR (0, 0, 0, 255));
+  g_assert_cmpuint (data.palette_calls, >, 1);
+  expected = g_strdup (data.colors->str);
+  data.reenter = TRUE;
+  data.palette_calls = 0;
+  g_string_truncate (data.colors, 0);
+  hb_font_paint_glyph (font, 1, funcs, &data, 0, HB_COLOR (0, 0, 0, 255));
+  g_assert_cmpstr (data.colors->str, ==, expected);
 
   g_free (expected);
   g_string_free (data.colors, TRUE);

@@ -189,15 +189,6 @@ _hb_ft_get_solid_color (hb_ft_paint_context_t *c,
     return;
   }
 
-  /* A callback may have painted another glyph, selecting another palette on
-   * the face while it was unlocked.  Re-select ours unconditionally:
-   * FT_Palette_Select is a no-op in FreeType when our palette is already
-   * current, and returns the palette pointer either way. */
-  FT_Color *palette = nullptr;
-  (void) FT_Palette_Select (c->ft_font->ft_face, c->palette_index, &palette);
-  c->palette = hb_array ((const FT_Color *) palette,
-			 palette ? c->palette.length : 0);
-
   FT_Color ft_color = c->palette ? c->palette[color_index.palette_index] : FT_Color {};
   *color = HB_COLOR (ft_color.blue,
 		     ft_color.green,
@@ -568,12 +559,17 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
   if (!palette)
   {
     // https://github.com/harfbuzz/harfbuzz/issues/5116
-    palette_index = 0;
     (void) FT_Palette_Select(ft_face, 0, &palette);
   }
 
-  auto palette_array = hb_array ((const FT_Color *) palette,
-				 palette ? palette_data.num_palette_entries : 0);
+  /* Both paint paths unlock the face around callbacks, which may select
+   * another palette on the same face. */
+  hb_vector_t<FT_Color> palette_copy;
+  auto copy_palette = [&] () {
+    palette_copy.extend (hb_array ((const FT_Color *) palette,
+                                   palette ? palette_data.num_palette_entries : 0));
+    return !palette_copy.in_error ();
+  };
 
   /* COLRv1 */
   FT_OpaquePaint paint = {0};
@@ -581,6 +577,9 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        FT_COLOR_NO_ROOT_TRANSFORM,
 			        &paint))
   {
+    if (unlikely (!copy_palette ())) return false;
+    auto palette_array = palette_copy.as_array ();
+
     hb_ft_paint_context_t c (ft_font, font,
 			     paint_funcs, paint_data,
 			     palette_array, palette_index, foreground);
@@ -634,6 +633,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
   if (palette && have_layers)
   {
+    if (unlikely (!copy_palette ())) return false;
     do
     {
       hb_bool_t is_foreground = true;
@@ -641,7 +641,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
       if ( layer_color_index != 0xFFFF )
       {
-	FT_Color layer_color = palette[layer_color_index];
+	FT_Color layer_color = palette_copy[layer_color_index];
 	color = HB_COLOR (layer_color.blue,
 			  layer_color.green,
 			  layer_color.red,

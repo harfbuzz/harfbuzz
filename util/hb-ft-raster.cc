@@ -233,6 +233,13 @@ struct ft_raster_output_t : output_options_t<true>
       return;
     }
 
+    /* The extents come from the font and the text; keep them in range
+       of the integer conversions below. */
+    const float max_coord = 1e9f;
+    if (!(img_xmin > -max_coord && img_xmax < max_coord &&
+	  img_ymin > -max_coord && img_ymax < max_coord))
+      fail (false, "Image too large");
+
     int x0 = (int) floorf (img_xmin);
     int y0 = (int) floorf (img_ymin);
     int x1 = (int) ceilf (img_xmax);
@@ -241,7 +248,12 @@ struct ft_raster_output_t : output_options_t<true>
     unsigned height = (unsigned) (y1 - y0);
     unsigned stride = (width + 3u) & ~3u;
 
-    std::vector<uint8_t> pixels (stride * height, 0);
+    /* Same limit as hb-raster.  It also keeps rows * pitch within the
+       int that FreeType computes it in. */
+    if (stride > HB_RASTER_MAX_BUFFER_SIZE / height)
+      fail (false, "Image too large: %u x %u pixels", width, height);
+
+    std::vector<uint8_t> pixels ((size_t) stride * height, 0);
     for (unsigned int iter = 0; iter < num_iterations; iter++)
     {
       std::fill (pixels.begin (), pixels.end (), 0);
