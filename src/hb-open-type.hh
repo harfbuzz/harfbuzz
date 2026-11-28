@@ -1324,6 +1324,12 @@ struct CFFIndex
   {
     TRACE_SERIALIZE (this);
 
+    /* Offsets are 1-based, so the last one is data_size + 1, which has to
+     * fit in 32 bits.  Items may share bytes, so their lengths can add up
+     * to this without the font being anywhere near as large. */
+    if (unlikely (data_size == UINT_MAX))
+      return_trace (c->check_success (false, HB_SERIALIZE_ERROR_INT_OVERFLOW));
+
     unsigned off_size = (hb_bit_storage (data_size + 1) + 7) / 8;
     off_size = hb_max(min_off_size, off_size);
 

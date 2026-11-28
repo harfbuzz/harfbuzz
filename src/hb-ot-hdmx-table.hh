@@ -49,7 +49,7 @@ struct DeviceRecord
   bool serialize (hb_serialize_context_t *c,
 		  unsigned pixelSize,
 		  Iterator it,
-		  const hb_vector_t<hb_codepoint_pair_t> new_to_old_gid_list,
+		  hb_array_t<const hb_codepoint_pair_t> new_to_old_gid_list,
 		  unsigned num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -107,7 +107,9 @@ struct hdmx
     this->sizeDeviceRecord = DeviceRecord::get_size (num_glyphs);
 
     for (const hb_item_type<Iterator>& _ : +it)
-      c->start_embed<DeviceRecord> ()->serialize (c, _.first, _.second, new_to_old_gid_list, num_glyphs);
+      if (unlikely (!c->start_embed<DeviceRecord> ()->serialize (c, _.first, _.second,
+								  new_to_old_gid_list, num_glyphs)))
+	return_trace (false);
 
     return_trace (c->successful ());
   }

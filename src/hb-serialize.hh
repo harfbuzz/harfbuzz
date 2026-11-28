@@ -418,6 +418,8 @@ struct hb_serialize_context_t
     {
       assert (!obj->real_links.length);
       assert (!obj->virtual_links.length);
+      obj->fini ();
+      object_pool.release (obj);
       return 0;
     }
 

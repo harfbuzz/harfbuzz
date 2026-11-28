@@ -481,6 +481,25 @@ test_push_pop_after_overflow ()
 }
 
 static void
+test_pop_pack_empty_object ()
+{
+  char buf[32];
+  hb_serialize_context_t s (buf, sizeof (buf));
+  s.start_serialize ();
+
+  /* An object that nothing was written for must go back to the pool. */
+  s.push ();
+  auto *obj = s.snapshot ().current;
+  hb_always_assert (!s.pop_pack ());
+  s.push ();
+  hb_always_assert (s.snapshot ().current == obj);
+  hb_always_assert (!s.pop_pack ());
+
+  s.end_serialize ();
+  hb_always_assert (!s.in_error ());
+}
+
+static void
 check_delta_set_index_map (unsigned count, unsigned expected_format)
 {
   struct plan_t
@@ -581,6 +600,7 @@ main (int argc, char **argv)
   test_device_only_value ();
   test_failed_class_mapping ();
   test_push_pop_after_overflow ();
+  test_pop_pack_empty_object ();
   test_delta_set_index_map_format1 ();
 
   char buf[16384];

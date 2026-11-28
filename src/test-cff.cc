@@ -216,6 +216,42 @@ test_index_count_limits ()
 }
 
 static void
+test_index_data_size_limits ()
+{
+  /* Items can share their bytes, so their lengths can add up to more than
+   * an INDEX can address.  The last offset is the data size plus one. */
+  static const unsigned char data[1] = {0};
+  char buffer[64];
+  for (unsigned total : {UINT_MAX - 1, UINT_MAX})
+  {
+    hb_ubytes_t items[2] = {hb_ubytes_t (data, total / 2),
+			    hb_ubytes_t (data, total - total / 2)};
+
+    hb_serialize_context_t c (buffer, sizeof (buffer));
+    auto *index = c.start_serialize<OT::CFF1Index> ();
+    bool success = index->serialize_header (&c, hb_iter (items), total);
+    hb_always_assert (success == (total < UINT_MAX));
+    if (success)
+    {
+      hb_always_assert (index->offset_array_size () == 4 * 3);
+      /* Two items, four-byte offsets: 1, 1 + total / 2, 1 + total. */
+      static const unsigned char expected[] = {
+        0, 2, 4, 0, 0, 0, 1, 0x80, 0, 0, 0, 0xff, 0xff, 0xff, 0xff
+      };
+      hb_always_assert (!hb_memcmp (buffer, expected, sizeof (expected)));
+    }
+    else
+      hb_always_assert (c.in_error () && !c.ran_out_of_room ());
+
+    hb_serialize_context_t c2 (buffer, sizeof (buffer));
+    auto *index2 = c2.start_serialize<OT::CFF2Index> ();
+    hb_always_assert (!index2->serialize (&c2, hb_iter (items)));
+    hb_always_assert (c2.in_error ());
+    hb_always_assert (c2.ran_out_of_room () == (total < UINT_MAX));
+  }
+}
+
+static void
 test_roundtrip_parse_encode_num_tp ()
 {
   CFF::str_buff_t buff;
@@ -350,6 +386,7 @@ int
 main (int argc, char **argv)
 {
   test_index_count_limits ();
+  test_index_data_size_limits ();
   test_specialized_line_geometry ();
   test_specialized_fractional_geometry ();
   test_specialized_many_commands ();

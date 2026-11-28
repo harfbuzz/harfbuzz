@@ -5672,6 +5672,7 @@ struct FeatureTableSubstitution
         if (!l->feature_idx_tag_map->has (feature_index, &p))
           return_trace (false);
         auto *o = out->substitutions.serialize_append (c->serializer);
+        if (unlikely (!o)) return_trace (false);
         if (!o->serialize (l, feature_index,
                            reinterpret_cast<const Feature*> (p->first),
                            reinterpret_cast<const Tag*> (p->second)))
