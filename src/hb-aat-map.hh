@@ -40,6 +40,9 @@ struct hb_aat_map_t
     hb_mask_t flags;
     unsigned cluster_first;
     unsigned cluster_last; // end - 1
+
+    int cmp (unsigned cluster) const
+    { return cluster < cluster_first ? -1 : cluster <= cluster_last ? 0 : +1; }
   };
 
   public:

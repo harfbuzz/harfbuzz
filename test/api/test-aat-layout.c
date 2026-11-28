@@ -253,9 +253,10 @@ test_aat_morx_subtable_limit (void)
 
 /* A font mapping 'a' and 'b' to glyphs 1 and 2.  Its first morx chain turns
  * glyph 1 into glyph 2 where common ligatures are on; they are off by default.
+ * It does so with a noncontextual subtable, or with a contextual one if asked.
  * That chain is followed by empty_chains chains that have nothing in them. */
 static hb_face_t *
-create_morx_face (unsigned int empty_chains)
+create_morx_face (unsigned int empty_chains, hb_bool_t contextual)
 {
   static const unsigned char cmap[] = {
     0x00,0x00, 0x00,0x01, 0x00,0x03, 0x00,0x0A, 0x00,0x00,0x00,0x0C,
@@ -268,15 +269,36 @@ create_morx_face (unsigned int empty_chains)
     0x00,0x01, 0x00,0x02, 0x00,0x00,0x00,0x18, 0x00,0x00, 0x01,0x00,
     0x00,0x02, 0x01,0x00, 0x00,0x03, 0x01,0x00,
   };
-  static const unsigned char chain[] = {
+  static const unsigned char noncontextual_chain[] = {
     0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x3C, 0x00,0x00,0x00,0x02, 0x00,0x00,0x00,0x01,
     0x00,0x01, 0x00,0x02, 0x00,0x00,0x00,0x01, 0xFF,0xFF,0xFF,0xFF,
     0x00,0x01, 0x00,0x03, 0x00,0x00,0x00,0x00, 0xFF,0xFF,0xFF,0xFE,
     0x00,0x00,0x00,0x14, 0x20,0x00,0x00,0x04, 0x00,0x00,0x00,0x01,
     0x00,0x08, 0x00,0x01, 0x00,0x01, 0x00,0x02,
   };
+  static const unsigned char contextual_chain[] = {
+    0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x80, 0x00,0x00,0x00,0x02, 0x00,0x00,0x00,0x01,
+    0x00,0x01, 0x00,0x02, 0x00,0x00,0x00,0x01, 0xFF,0xFF,0xFF,0xFF,
+    0x00,0x01, 0x00,0x03, 0x00,0x00,0x00,0x00, 0xFF,0xFF,0xFF,0xFE,
+    0x00,0x00,0x00,0x58, 0x20,0x00,0x00,0x01, 0x00,0x00,0x00,0x01,
+    /* Five classes; offsets to the class table, states, entries, substitutions. */
+    0x00,0x00,0x00,0x05, 0x00,0x00,0x00,0x14, 0x00,0x00,0x00,0x1C, 0x00,0x00,0x00,0x30,
+    0x00,0x00,0x00,0x40,
+    /* Glyph 1 is of class 4. */
+    0x00,0x08, 0x00,0x01, 0x00,0x01, 0x00,0x04,
+    /* Two states: class 4 takes entry 1. */
+    0x00,0x00, 0x00,0x00, 0x00,0x00, 0x00,0x00, 0x00,0x01,
+    0x00,0x00, 0x00,0x00, 0x00,0x00, 0x00,0x00, 0x00,0x01,
+    /* Entry 1 substitutes the current glyph from table 0. */
+    0x00,0x00, 0x00,0x00, 0xFF,0xFF, 0xFF,0xFF,
+    0x00,0x00, 0x00,0x00, 0xFF,0xFF, 0x00,0x00,
+    /* Table 0 maps glyph 1 to glyph 2. */
+    0x00,0x00,0x00,0x04, 0x00,0x08, 0x00,0x01, 0x00,0x01, 0x00,0x02,
+  };
+  const unsigned char *chain = contextual ? contextual_chain : noncontextual_chain;
+  unsigned int chain_length = contextual ? sizeof (contextual_chain) : sizeof (noncontextual_chain);
   unsigned int chain_count = 1 + empty_chains;
-  unsigned int morx_length = 8 + sizeof (chain) + 16 * empty_chains;
+  unsigned int morx_length = 8 + chain_length + 16 * empty_chains;
   unsigned char *morx = (unsigned char *) calloc (1, morx_length);
   hb_face_t *builder = hb_face_builder_create ();
   hb_blob_t *blob;
@@ -287,9 +309,9 @@ create_morx_face (unsigned int empty_chains)
   morx[5] = chain_count >> 16;
   morx[6] = chain_count >> 8;
   morx[7] = chain_count;
-  memcpy (morx + 8, chain, sizeof (chain));
+  memcpy (morx + 8, chain, chain_length);
   for (unsigned int i = 0; i < empty_chains; i++)
-    morx[8 + sizeof (chain) + 16 * i + 7] = 16;
+    morx[8 + chain_length + 16 * i + 7] = 16;
 
   blob = hb_blob_create ((const char *) cmap, sizeof (cmap), HB_MEMORY_MODE_READONLY, NULL, NULL);
   g_assert_true (hb_face_builder_add_table (builder, HB_TAG ('c','m','a','p'), blob));
@@ -307,10 +329,12 @@ create_morx_face (unsigned int empty_chains)
   return builder;
 }
 
-/* Shapes a run of 'a' that has ligatures on in every character whose index
- * is not a multiple of period, each character having its own feature range. */
+/* Shapes a run of 'a' that has ligatures on in every character whose cluster
+ * is not a multiple of period, each cluster having its own feature range.
+ * The clusters are 0, 1, 2, ... or, if interleaved, 0, length - 1, 1, ... */
 static hb_buffer_t *
-shape_ranged_features (hb_face_t *morx_face, unsigned int length, unsigned int period)
+shape_ranged_features (hb_face_t *morx_face, unsigned int length, unsigned int period,
+		       hb_bool_t interleaved)
 {
   hb_font_t *font = hb_font_create (morx_face);
   hb_buffer_t *buffer = hb_buffer_create ();
@@ -319,7 +343,7 @@ shape_ranged_features (hb_face_t *morx_face, unsigned int length, unsigned int p
   g_assert_nonnull (features);
   for (unsigned int i = 0; i < length; i++)
   {
-    hb_buffer_add (buffer, 'a', i);
+    hb_buffer_add (buffer, 'a', !interleaved ? i : i % 2 ? length - 1 - i / 2 : i / 2);
     features[i].tag = HB_TAG ('l','i','g','a');
     features[i].value = i % period != 0;
     features[i].start = i;
@@ -341,8 +365,8 @@ shape_ranged_features (hb_face_t *morx_face, unsigned int length, unsigned int p
 static void
 test_aat_ranged_features (void)
 {
-  hb_face_t *morx_face = create_morx_face (1);
-  hb_buffer_t *buffer = shape_ranged_features (morx_face, 100, 3);
+  hb_face_t *morx_face = create_morx_face (1, false);
+  hb_buffer_t *buffer = shape_ranged_features (morx_face, 100, 3, false);
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
 
   for (unsigned int i = 0; i < 100; i++)
@@ -357,8 +381,8 @@ test_aat_ranged_features_many_chains (void)
 {
   /* The number of chains times the number of ranges is what must not
    * be paid for, in time or memory.  The first ranges still work. */
-  hb_face_t *morx_face = create_morx_face (20000);
-  hb_buffer_t *buffer = shape_ranged_features (morx_face, 5000, 2);
+  hb_face_t *morx_face = create_morx_face (20000, false);
+  hb_buffer_t *buffer = shape_ranged_features (morx_face, 5000, 2, false);
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
 
   for (unsigned int i = 0; i < 100; i++)
@@ -366,6 +390,29 @@ test_aat_ranged_features_many_chains (void)
 
   hb_buffer_destroy (buffer);
   hb_face_destroy (morx_face);
+}
+
+static void
+test_aat_ranged_features_unordered_clusters (void)
+{
+  /* Clusters need not be monotonic.  Each glyph takes the features of the
+   * range its cluster is in, however far that is from the previous glyph's;
+   * getting there must not be paid for range by range in every subtable. */
+  for (unsigned int contextual = 0; contextual < 2; contextual++)
+  {
+    hb_face_t *morx_face = create_morx_face (0, contextual);
+    hb_buffer_t *buffer = shape_ranged_features (morx_face, 20000, 3, true);
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+
+    for (unsigned int i = 0; i < 20000; i++)
+    {
+      g_assert_cmpuint (i % 2 ? 19999 - i / 2 : i / 2, ==, info[i].cluster);
+      g_assert_cmpuint (info[i].cluster % 3 ? 2 : 1, ==, info[i].codepoint);
+    }
+
+    hb_buffer_destroy (buffer);
+    hb_face_destroy (morx_face);
+  }
 }
 
 #endif
@@ -384,6 +431,7 @@ main (int argc, char **argv)
   hb_test_add (test_aat_morx_subtable_limit);
   hb_test_add (test_aat_ranged_features);
   hb_test_add (test_aat_ranged_features_many_chains);
+  hb_test_add (test_aat_ranged_features_unordered_clusters);
 #endif
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");

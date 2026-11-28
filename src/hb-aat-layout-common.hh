@@ -1372,12 +1372,12 @@ struct StateTableDriver
 	auto *range = last_range;
 	if (buffer->idx < buffer->len)
 	{
+	  /* Ranges are sorted and cover all clusters, but clusters need not
+	   * be monotonic: try the neighboring range, then search. */
 	  unsigned cluster = buffer->cur().cluster;
-	  while (cluster < range->cluster_first)
-	    range--;
-	  while (cluster > range->cluster_last)
-	    range++;
-
+	  int dir = range->cmp (cluster);
+	  if (dir && (range += dir)->cmp (cluster))
+	    range = ac->range_flags->bsearch (cluster, last_range);
 
 	  last_range = range;
 	}

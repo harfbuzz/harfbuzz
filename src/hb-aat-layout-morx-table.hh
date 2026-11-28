@@ -273,6 +273,17 @@ struct ContextualSubtable
 			 StateTableDriver<Types, EntryData, Flags> *driver,
 			 const Entry<EntryData> &entry)
     {
+      /* Each substitution is a search in a font-sized lookup plus GDEF class
+       * queries, and a non-advancing transition, which the driver charges a
+       * single op, can repeat that at will.  Charge the work to the buffer's
+       * work budget.  Actions that advance run once per glyph at most. */
+      if ((entry.flags & DontAdvance) &&
+	  unlikely ((buffer->max_ops -= HB_BUDGET_64) <= 0))
+      {
+	buffer->successful = false;
+	return;
+      }
+
       const HBGlyphID16 *replacement;
 
       replacement = nullptr;
@@ -538,6 +549,11 @@ struct LigatureSubtable
       if (buffer->idx >= buffer->len)
 	return; /* TODO Work on previous instead? */
 
+      /* As in ContextualSubtable: a non-advancing transition can repeat
+       * the GDEF class query of the ligature it stores at will. */
+      if (entry.flags & DontAdvance)
+	if (unlikely ((buffer->max_ops -= HB_BUDGET_16) <= 0)) return;
+
       unsigned int cursor = match_length;
 
       unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
@@ -676,11 +692,12 @@ struct NoncontextualSubtable
       {
 	auto *range = last_range;
 	{
+	  /* Ranges are sorted and cover all clusters, but clusters need not
+	   * be monotonic: try the neighboring range, then search. */
 	  unsigned cluster = info[i].cluster;
-	  while (cluster < range->cluster_first)
-	    range--;
-	  while (cluster > range->cluster_last)
-	    range++;
+	  int dir = range->cmp (cluster);
+	  if (dir && (range += dir)->cmp (cluster))
+	    range = c->range_flags->bsearch (cluster, last_range);
 
 	  last_range = range;
 	}

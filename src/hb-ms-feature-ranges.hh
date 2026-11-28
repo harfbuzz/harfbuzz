@@ -159,18 +159,19 @@ hb_ms_setup_features (const hb_feature_t                *features,
       range->index_last  = event->index - 1;
 
       last_index = event->index;
+
+      /* Drop the features that end here, all in one pass.  Removing each
+       * one at its own end event is quadratic in those that end together,
+       * as all global features do. */
+      unsigned int j = 0;
+      for (const auto &feature : active_features)
+        if (features[feature.order].end != last_index)
+          active_features.arrayZ[j++] = feature;
+      active_features.shrink (j, false);
     }
 
     if (event->start)
-    {
       active_features.push (event->feature);
-    }
-    else
-    {
-      auto *feature = active_features.lsearch (event->feature);
-      if (feature)
-        active_features.remove_ordered (feature - active_features.arrayZ);
-    }
   }
 
   if (!range_records.length) /* No active feature found. */

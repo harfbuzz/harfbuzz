@@ -162,19 +162,19 @@ hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 	break;
 
       last_index = event->index;
+
+      /* Drop the features that end here, all in one pass.  Removing each
+       * one at its own end event is quadratic in those that end together,
+       * as all global features do.  Note that seq - 1 indexes features. */
+      unsigned int j = 0;
+      for (const auto &feature : active_features)
+	if (features.arrayZ[feature.seq - 1].end != last_index)
+	  active_features.arrayZ[j++] = feature;
+      active_features.shrink (j, false);
     }
 
     if (event->start)
-    {
       active_features.push (event->feature);
-    } else {
-      for (unsigned int j = 0; j < active_features.length; j++)
-	if (active_features[j].seq == event->feature.seq)
-	{
-	  active_features.remove_ordered (j);
-	  break;
-	}
-    }
   }
 
   for (auto &chain_flags : m.chain_flags)
