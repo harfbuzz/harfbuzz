@@ -296,6 +296,10 @@ struct hb_depend_data_builder_t
   bool charge_set (const hb_set_t &set, unsigned cost = HB_BUDGET_32)
   { return check_success (hb_budget_spend (budget_remaining, cost, 1 + set.get_page_count ())); }
 
+  /* Charge work that is not the filling or storing of a set. */
+  bool spend_budget (unsigned int cost, unsigned int mult = 1)
+  { return check_success (hb_budget_spend (budget_remaining, cost, mult)); }
+
   hb_codepoint_t new_set (const hb_set_t &set)
   {
     hb_codepoint_t set_index;

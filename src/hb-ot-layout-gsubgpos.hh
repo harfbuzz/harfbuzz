@@ -151,6 +151,12 @@ struct hb_closure_context_t :
     if (parent_active_glyphs ().is_subset (*covered_glyph_set))
       return true;
 
+    /* The set kept for each lookup can be as large as the closure, while a
+     * lookup costs the font a few bytes.  Charge it for its pages: the
+     * memory it holds until the closure ends. */
+    if (unlikely (!spend_budget (HB_BUDGET_128, parent_active_glyphs ().get_page_count ())))
+      return true;
+
     covered_glyph_set->union_ (parent_active_glyphs ());
     return false;
   }
@@ -456,11 +462,13 @@ struct hb_depend_context_t :
     glyph_set_type_t type = GLYPH_SET_CLASS;
   };
 
+  /* A lookup record enters its label only through its sequence index, so
+   * the records of a rule that name the same position share one entry. */
   struct context_set_cache_key_t
   {
     context_set_cache_key_t () = default;
     context_set_cache_key_t (const void *rule_,
-			     const void *record_,
+			     unsigned seq_index_,
 			     const void *data_,
 			     const void *backtrack_data_,
 			     const void *lookahead_data_,
@@ -468,15 +476,15 @@ struct hb_depend_context_t :
 			     unsigned value_,
 			     unsigned format_,
 			     bool is_chain_)
-      : rule (rule_), record (record_), data (data_),
+      : rule (rule_), data (data_),
 	backtrack_data (backtrack_data_), lookahead_data (lookahead_data_),
-	active_glyphs (active_glyphs_), value (value_), format (format_),
+	seq_index (seq_index_), active_glyphs (active_glyphs_), value (value_), format (format_),
 	is_chain (is_chain_) {}
 
     bool operator == (const context_set_cache_key_t &o) const
     {
       return rule == o.rule &&
-	     record == o.record &&
+	     seq_index == o.seq_index &&
 	     data == o.data &&
 	     backtrack_data == o.backtrack_data &&
 	     lookahead_data == o.lookahead_data &&
@@ -489,7 +497,7 @@ struct hb_depend_context_t :
     uint32_t hash () const
     {
       uint32_t current = hb_hash ((uintptr_t) rule);
-      current = current * 31 + hb_hash ((uintptr_t) record);
+      current = current * 31 + hb_hash (seq_index);
       current = current * 31 + hb_hash ((uintptr_t) data);
       current = current * 31 + hb_hash ((uintptr_t) backtrack_data);
       current = current * 31 + hb_hash ((uintptr_t) lookahead_data);
@@ -500,10 +508,10 @@ struct hb_depend_context_t :
     }
 
     const void *rule = nullptr;
-    const void *record = nullptr;
     const void *data = nullptr;
     const void *backtrack_data = nullptr;
     const void *lookahead_data = nullptr;
+    unsigned seq_index = 0;
     hb_codepoint_t active_glyphs = HB_CODEPOINT_INVALID;
     unsigned value = 0;
     unsigned format = 0;
@@ -688,7 +696,7 @@ struct hb_depend_context_t :
   }
 
   bool get_context_set_cache_key (const void *rule,
-				  const void *record,
+				  unsigned seq_index,
 				  const void *data,
 				  const void *backtrack_data,
 				  const void *lookahead_data,
@@ -700,7 +708,7 @@ struct hb_depend_context_t :
     hb_codepoint_t active_idx;
     if (!get_parent_active_glyphs_index (&active_idx))
       return false;
-    *key = context_set_cache_key_t (rule, record, data, backtrack_data,
+    *key = context_set_cache_key_t (rule, seq_index, data, backtrack_data,
 				    lookahead_data, active_idx, value, format,
 				    is_chain);
     return true;
@@ -1741,6 +1749,18 @@ typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, unsigned value, const v
 typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
 typedef unsigned (*get_value_func_t) (hb_glyph_info_t &info, const void *data);
 
+/* The lookup accelerator allocates one digest per offset, including null
+ * offsets, for every lookup subtable that reaches the array. */
+template <typename Digest>
+static bool check_lookup_cache_size (hb_sanitize_context_t *c, unsigned count)
+{
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+  return count <= UINT_MAX / sizeof (Digest) && c->check_ops (count * sizeof (Digest));
+#else
+  return true;
+#endif
+}
+
 /* One word per RuleSet, summarizing the classes accepted at the first
  * input position after the current glyph.  Collisions only cause extra work. */
 struct hb_ot_layout_ruleset_digest_t
@@ -2612,7 +2632,7 @@ context_depend_sets_are_cached (hb_depend_context_t *c,
     }
 
     hb_depend_context_t::context_set_cache_key_t key (
-      rule, &lookup_records[i], data, backtrack_data, lookahead_data,
+      rule, lookup_records[i].sequenceIndex, data, backtrack_data, lookahead_data,
       active_idx, value, context_format, is_chain);
     hb_codepoint_t *cached_context_set = nullptr;
     if (!c->context_set_cache.has (key, &cached_context_set))
@@ -2671,7 +2691,7 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
       continue;
 
     hb_depend_context_t::context_set_cache_key_t context_cache_key;
-    if (unlikely (!c->get_context_set_cache_key (rule, &lookupRecord[i], data,
+    if (unlikely (!c->get_context_set_cache_key (rule, seqIndex, data,
 						 backtrack_data, lookahead_data, value,
 						 context_format, is_chain,
 						 &context_cache_key)))
@@ -2690,6 +2710,21 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
 	c->depend_data->fail ();
 	return;
       }
+
+      /* Building a label walks all the requirements of the rule, whether or
+       * not that adds a set or an edge to the graph. */
+      if (unlikely (!c->depend_data->spend_budget (HB_BUDGET_4,
+						   1 + preliminary_context.get_population () +
+						   input_position_glyphs->length)))
+	return;
+      /* Each set among them is tested against the direct requirements,
+       * which walks the pages of both. */
+      auto charge_test = [&] (const hb_set_t &set)
+      {
+	return c->depend_data->spend_budget (HB_BUDGET_1,
+					     1 + set.get_page_count () +
+					     position_context.get_page_count ());
+      };
 
       /* Build position-specific context_set for this lookup. */
       position_context.clear ();  // Will hold direct glyphs
@@ -2722,6 +2757,7 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
 	hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
 	const hb_set_t *original_set = c->depend_data->get_set_from_index (set_idx);
 	if (unlikely (!original_set)) continue;
+	if (unlikely (!charge_test (*original_set))) return;
 
 	/* Dependency context sets are never inverted. */
 	if (!original_set->intersects (position_context)) {
@@ -2737,6 +2773,8 @@ static inline void context_depend_recurse_lookups (hb_depend_context_t *c,
       /* Process non-singleton input positions. */
       for (unsigned j = 0; j < input_position_glyphs->length; j++) {
 	if (j != seqIndex && (*input_position_glyphs)[j]->get_population () > 1) {
+	  if (unlikely (!charge_test (*(*input_position_glyphs)[j]))) return;
+
 	  /* Input-position sets are also never inverted. */
 	  if (!(*input_position_glyphs)[j]->intersects (position_context)) {
 	    /* No overlap with position_context - add full requirement */
@@ -4228,7 +4266,9 @@ struct ContextFormat2_5
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
+    return_trace (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this) &&
+		  hb_barrier () &&
+		  check_lookup_cache_size<hb_ot_layout_ruleset_digest_t> (c, ruleSet.len));
   }
 
   protected:
@@ -6022,7 +6062,9 @@ struct ChainContextFormat2_5
 		  backtrackClassDef.sanitize (c, this) &&
 		  inputClassDef.sanitize (c, this) &&
 		  lookaheadClassDef.sanitize (c, this) &&
-		  ruleSet.sanitize (c, this));
+		  ruleSet.sanitize (c, this) &&
+		  hb_barrier () &&
+		  check_lookup_cache_size<hb_ot_layout_ruleset_digest_t> (c, ruleSet.len));
   }
 
   protected:

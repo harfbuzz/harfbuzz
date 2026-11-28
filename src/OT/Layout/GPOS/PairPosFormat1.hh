@@ -38,6 +38,9 @@ struct PairPosFormat1_3
     if (!c->check_struct (this)) return_trace (false);
     hb_barrier ();
 
+    if (unlikely (!check_lookup_cache_size<hb_set_digest_t> (c, pairSet.len)))
+      return_trace (false);
+
     unsigned int len1 = valueFormat[0].get_len ();
     unsigned int len2 = valueFormat[1].get_len ();
     typename PairSet::sanitize_closure_t closure =
