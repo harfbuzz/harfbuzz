@@ -354,8 +354,19 @@ struct Glyph
       head_maxp_info->maxComponentDepth = hb_max (head_maxp_info->maxComponentDepth, depth);
     }
 
-    if (!coords && font->has_nonzero_coords)
-      coords = hb_array (font->coords, font->num_coords);
+    /* The coords are the same for the whole component tree.  Resolve them
+     * once at the top, dropping all-zero ones, so that components only test
+     * for emptiness instead of each walking every axis again. */
+    if (depth == 0)
+    {
+      if (!coords && font->has_nonzero_coords)
+	coords = hb_array (font->coords, font->num_coords);
+#ifndef HB_NO_VAR
+      if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, coords.length))) return false;
+      if (!hb_any (coords))
+	coords = hb_array_t<const int> ();
+#endif
+    }
 
     contour_point_vector_t &points = type == SIMPLE ? all_points : scratch.comp_points;
     unsigned old_length = points.length;
@@ -416,7 +427,7 @@ struct Glyph
     }
 
 #ifndef HB_NO_VAR
-    if (hb_any (coords))
+    if (coords)
     {
       if (!glyf_accelerator.gvar->apply_deltas_to_points (gid,
 							  coords,

@@ -87,6 +87,46 @@ test_iup_shifted_default ()
 }
 
 static void
+test_iup_no_forced_point ()
+{
+  /* Deltas that grow linearly with the coordinate force no point, so the
+   * optimizer has to find where to start the contour. Wherever that is, it
+   * must keep the two extremes, and one more point for every seven in between,
+   * since a reference pair can infer at most six points. */
+  const unsigned counts[] = {8, 512};
+  for (unsigned count : counts)
+    for (unsigned rotation = 0; rotation < count; rotation++)
+    {
+      contour_point_vector_t points;
+      hb_vector_t<int> x_deltas, y_deltas;
+      /* The last four are the phantom points. */
+      hb_always_assert (points.resize (count + 4));
+      hb_always_assert (x_deltas.resize (count + 4));
+      hb_always_assert (y_deltas.resize (count + 4));
+      for (unsigned i = 0; i < count; i++)
+      {
+        unsigned x = (i + rotation) % count;
+        points[i].init (x, 0, i == count - 1);
+        x_deltas[i] = 10 * x;
+      }
+
+      hb_vector_t<bool> opt_indices;
+      iup_scratch_t scratch;
+      hb_always_assert (iup_delta_optimize (points, x_deltas, y_deltas, opt_indices, scratch));
+      hb_always_assert (opt_indices.length == count + 4);
+      unsigned ref_count = 0;
+      for (unsigned i = 0; i < count; i++)
+      {
+        unsigned x = (i + rotation) % count;
+        if (x == 0 || x == count - 1)
+          hb_always_assert (opt_indices[i]);
+        ref_count += opt_indices[i];
+      }
+      hb_always_assert (ref_count == 2 + (count - 2) / 7);
+    }
+}
+
+static void
 test_decompile_cvar ()
 {
   const OT::cvar* cvar_table = reinterpret_cast<const OT::cvar*> (cvar_data);
@@ -392,6 +432,7 @@ int
 main (int argc, char **argv)
 {
   test_iup_shifted_default ();
+  test_iup_no_forced_point ();
   test_tuple_values_count_values ();
   test_tuple_values_valid_control ();
   test_tuple_values_iter_trunc ();

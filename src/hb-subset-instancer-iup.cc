@@ -475,17 +475,14 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
       return false;
 
     unsigned contour_point_size = hb_static_size (contour_point_t);
-    for (unsigned i = 0; i < n; i++)
-    {
-      hb_memcpy ((void *) repeat_x_deltas.arrayZ, (const void *) x_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
-      hb_memcpy ((void *) (repeat_x_deltas.arrayZ + n), (const void *) x_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
+    hb_memcpy ((void *) repeat_x_deltas.arrayZ, (const void *) x_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
+    hb_memcpy ((void *) (repeat_x_deltas.arrayZ + n), (const void *) x_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
 
-      hb_memcpy ((void *) repeat_y_deltas.arrayZ, (const void *) y_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
-      hb_memcpy ((void *) (repeat_y_deltas.arrayZ + n), (const void *) y_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
+    hb_memcpy ((void *) repeat_y_deltas.arrayZ, (const void *) y_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
+    hb_memcpy ((void *) (repeat_y_deltas.arrayZ + n), (const void *) y_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
 
-      hb_memcpy ((void *) repeat_points.arrayZ, (const void *) contour_points.arrayZ, n * contour_point_size);
-      hb_memcpy ((void *) (repeat_points.arrayZ + n), (const void *) contour_points.arrayZ, n * contour_point_size);
-    }
+    hb_memcpy ((void *) repeat_points.arrayZ, (const void *) contour_points.arrayZ, n * contour_point_size);
+    hb_memcpy ((void *) (repeat_points.arrayZ + n), (const void *) contour_points.arrayZ, n * contour_point_size);
 
     if (!_iup_contour_optimize_dp (repeat_points, repeat_x_deltas, repeat_y_deltas,
                                    forced_set, tolerance_sq, n,
@@ -493,34 +490,60 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 				   scratch.interp_x_deltas, scratch.interp_y_deltas))
       return false;
 
-    unsigned best_cost = n + 1;
+    /* The solution that ends at start is valid if its chain goes through
+     * start - n. Walking the chain from every start to find that out is
+     * quadratic in the contour length. Every link of the chain points to a
+     * smaller index or to -1, so the links form a forest: number it in
+     * pre-order, and the points whose chain goes through i are exactly those
+     * numbered chain_order[i] to chain_order[i] + chain_sizes[i] - 1. */
     int len = costs.length;
-    hb_iup_set_t best_sol;
+    hb_vector_t<unsigned> &chain_sizes = scratch.chain_sizes.reset ();
+    hb_vector_t<unsigned> &chain_order = scratch.chain_order.reset ();
+    hb_vector_t<unsigned> &chain_next = scratch.chain_next.reset ();
+    if (unlikely (!chain_sizes.resize (len) ||
+                  !chain_order.resize_dirty (len) ||
+                  !chain_next.resize_dirty (len)))
+      return false;
+
+    for (int i = len - 1; i >= 0; i--)
+    {
+      chain_sizes.arrayZ[i]++;
+      int parent = chain.arrayZ[i];
+      if (parent >= 0)
+        chain_sizes.arrayZ[parent] += chain_sizes.arrayZ[i];
+    }
+
+    /* chain_next[i] is the number of the next point that links to i */
+    unsigned next_root = 0;
+    for (int i = 0; i < len; i++)
+    {
+      int parent = chain.arrayZ[i];
+      unsigned &next = parent < 0 ? next_root : chain_next.arrayZ[parent];
+      chain_order.arrayZ[i] = next;
+      chain_next.arrayZ[i] = next + 1;
+      next += chain_sizes.arrayZ[i];
+    }
+
+    unsigned best_cost = n + 1;
+    int best_start = n - 1;
     for (int start = n - 1; start < len; start++)
     {
-      hb_iup_set_t solution;
-      int i = start;
       int lookback = start - (int) n;
-      while (i > lookback)
+      if (lookback >= 0 &&
+          chain_order.arrayZ[start] - chain_order.arrayZ[lookback] >= chain_sizes.arrayZ[lookback])
+        continue;
+
+      unsigned cost_i = lookback < 0 ? 0 : costs.arrayZ[lookback];
+      unsigned cost = costs.arrayZ[start] - cost_i;
+      if (cost <= best_cost)
       {
-        solution.add (i % n);
-        i = chain.arrayZ[i];
-      }
-      if (i == lookback)
-      {
-        unsigned cost_i = i < 0 ? 0 : costs.arrayZ[i];
-        unsigned cost = costs.arrayZ[start] - cost_i;
-        if (cost <= best_cost)
-        {
-          best_sol = solution;
-          best_cost = cost;
-        }
+        best_start = start;
+        best_cost = cost;
       }
     }
 
-    for (unsigned i = 0; i < n; i++)
-      if (best_sol.has (i))
-        opt_indices.arrayZ[i] = true;
+    for (int i = best_start; i > best_start - (int) n; i = chain.arrayZ[i])
+      opt_indices.arrayZ[i % n] = true;
   }
   return true;
 }

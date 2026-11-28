@@ -34,6 +34,9 @@ struct iup_scratch_t
   hb_vector_t<double> interp_y_deltas;
   hb_vector_t<unsigned> costs;
   hb_vector_t<int> chain;
+  hb_vector_t<unsigned> chain_sizes;
+  hb_vector_t<unsigned> chain_order;
+  hb_vector_t<unsigned> chain_next;
   hb_vector_t<bool> rot_indices;
   hb_vector_t<int> rot_x_deltas;
   hb_vector_t<int> rot_y_deltas;
