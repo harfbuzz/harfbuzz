@@ -28,7 +28,7 @@ struct Sequence
   void closure (hb_closure_context_t *c) const
   {
     if (unlikely (!c->spend_budget (HB_BUDGET_1, substitute.len))) return;
-    c->output->add_array (substitute.arrayZ, substitute.len);
+    c->add_output (substitute.as_array ());
   }
 
   void depend (hb_depend_context_t *c, hb_codepoint_t source) const

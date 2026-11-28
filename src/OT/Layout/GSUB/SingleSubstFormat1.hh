@@ -81,7 +81,7 @@ void single_subst_closure (hb_closure_context_t *c,
   if (unlikely (!c->spend_budget (HB_BUDGET_1, intersection.get_population ()))) return;
   + hb_iter (intersection)
   | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
-  | hb_sink (c->output)
+  | hb_apply ([c] (hb_codepoint_t g) { c->add_output (g); })
   ;
 }
 

@@ -36,7 +36,7 @@ struct Ligature
   {
     if (unlikely (!c->spend_budget (HB_BUDGET_1, component.lenP1))) return;
     if (!intersects (c->glyphs)) return;
-    c->output->add (ligGlyph);
+    c->add_output (ligGlyph);
   }
 
   void depend (hb_depend_context_t *c, hb_codepoint_t first) const

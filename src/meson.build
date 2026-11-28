@@ -1004,6 +1004,7 @@ if get_option('tests').enabled()
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
     'test-bit-vector': ['test-bit-vector.cc', 'hb-static.cc'],
     'test-buffer': ['test-buffer.cc', 'hb-static.cc'],
+    'test-gsub-closure': ['test-gsub-closure.cc', 'hb-static.cc'],
     'test-gdef-cache': ['test-gdef-cache.cc', 'hb-static.cc'],
     'test-cache': ['test-cache.cc'],
     'test-cff': ['test-cff.cc', 'hb-static.cc'],

@@ -102,6 +102,35 @@ struct hb_closure_context_t :
   bool spend_budget (unsigned int cost, unsigned int mult = 1)
   { return hb_budget_spend (budget, cost, mult); }
 
+  /* Appending set pages is cheap.  Batch scattered writes once the
+   * page map grows beyond what a 16-bit glyph space can occupy. */
+  void add_output (hb_codepoint_t g)
+  {
+    if (unlikely (g >= num_glyphs)) return;
+    if (likely (output->get_page_count () <= MAX_OUTPUT_PAGES_UNSORTED || g >= max_output))
+    {
+      max_output = hb_max (max_output, g);
+      output->add (g);
+      return;
+    }
+    if (unlikely (pending_output.length >= MAX_PENDING_OUTPUT))
+      sync_output ();
+    pending_output.push (g);
+  }
+  template <typename T>
+  void add_output (hb_array_t<const T> glyphs)
+  {
+    for (hb_codepoint_t g : glyphs)
+      add_output (g);
+  }
+
+  /* The glyphs added since the last flush(). */
+  const hb_set_t& get_output ()
+  {
+    sync_output ();
+    return *output;
+  }
+
   template <typename Base, typename Offsets>
   bool spend_coverages (const Base *base, const Offsets &coverages)
   {
@@ -189,7 +218,6 @@ struct hb_closure_context_t :
 
   hb_face_t *face;
   hb_set_t *glyphs;
-  hb_set_t output[1];
   hb_vector_t<hb_set_t> active_glyphs_stack;
   recurse_func_t recurse_func = nullptr;
   unsigned int nesting_level_left;
@@ -202,6 +230,7 @@ struct hb_closure_context_t :
 			  face (face_),
 			  glyphs (glyphs_),
 			  nesting_level_left (nesting_level_left_),
+			  num_glyphs (hb_face_get_glyph_count (face_)),
 			  done_lookups_glyph_count (done_lookups_glyph_count_),
 			  done_lookups_glyph_set (done_lookups_glyph_set_)
   {}
@@ -212,14 +241,50 @@ struct hb_closure_context_t :
 
   void flush ()
   {
-    output->del_range (face->get_num_glyphs (), HB_SET_VALUE_INVALID);	/* Remove invalid glyphs. */
-    glyphs->union_ (*output);
+    sync_output ();
+    if (unlikely (output->in_error ()))
+      glyphs->err ();
+    else
+      glyphs->union_ (*output);
     output->clear ();
+    max_output = 0;
     active_glyphs_stack.pop ();
     active_glyphs_stack.reset ();
   }
 
   private:
+  void sync_output ()
+  {
+    if (unlikely (pending_output.in_error ()))
+    {
+      output->err ();
+      pending_output.reset ();
+    }
+    if (!pending_output) return;
+
+    /* Adding to an empty set in sorted order only ever appends pages,
+     * and a union merges the two page maps in one pass. */
+    hb_set_t sorted;
+    pending_output.qsort ([] (hb_codepoint_t a, hb_codepoint_t b) { return (a > b) - (a < b); });
+    sorted.add_sorted_array (pending_output.arrayZ, pending_output.length);
+    output->union_ (sorted);
+    if (unlikely (sorted.in_error ()))
+      output->err ();
+    pending_output.clear ();
+  }
+
+  /* With no more pages than this, which is what all 16-bit glyph ids
+   * make, adding a page to output in any place is cheap. */
+  static constexpr unsigned MAX_OUTPUT_PAGES_UNSORTED = 128;
+  /* Bounds the memory of pending_output, whatever a lookup visit lists.
+   * Large enough for the union in sync_output(), which is linear in the
+   * pages of output, at most 2^15 of them, to cost little per glyph. */
+  static constexpr unsigned MAX_PENDING_OUTPUT = 1u << 14;
+
+  const unsigned num_glyphs;
+  hb_codepoint_t max_output = 0;
+  hb_set_t output[1];
+  hb_vector_t<hb_codepoint_t> pending_output;
   hb_map_t *done_lookups_glyph_count;
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set;
   unsigned int lookup_count = 0;
@@ -2552,9 +2617,8 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
       /* A previous lookup at this position may have produced new glyphs.
        * Keep them visible without flushing the active context stack. */
       if (unlikely (!c->spend_budget (HB_BUDGET_1, c->glyphs->get_population ()) ||
-                    !c->spend_budget (HB_BUDGET_1 * 2, c->output->get_population ())))
+                    !c->spend_budget (HB_BUDGET_1 * 2, c->get_output ().get_population ())))
         return;
-      c->output->del_range (c->face->get_num_glyphs (), HB_SET_VALUE_INVALID);
     }
     hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
@@ -2563,7 +2627,7 @@ static inline void context_closure_recurse_lookups (hb_closure_context_t *c,
       *cur_active_glyphs = std::move (pos_glyphs);
     } else {
       *cur_active_glyphs = *c->glyphs;
-      cur_active_glyphs->union_ (*c->output);
+      cur_active_glyphs->union_ (c->get_output ());
     }
 
     if (unlikely (cur_active_glyphs->in_error ()))

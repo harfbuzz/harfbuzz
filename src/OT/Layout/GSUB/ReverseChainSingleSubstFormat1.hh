@@ -177,7 +177,7 @@ struct ReverseChainSingleSubstFormat1_2
 	unsigned i = cov.get_coverage (g);
 	if (i == NOT_COVERED || i >= substitute.len)
 	  continue;
-	c->output->add (substitute.arrayZ[i]);
+	c->add_output (substitute.arrayZ[i]);
       }
 
       return;
@@ -187,7 +187,7 @@ struct ReverseChainSingleSubstFormat1_2
     + hb_zip (cov, substitute)
     | hb_filter (glyph_set, hb_first)
     | hb_map (hb_second)
-    | hb_sink (c->output)
+    | hb_apply ([c] (hb_codepoint_t g) { c->add_output (g); })
     ;
   }
 

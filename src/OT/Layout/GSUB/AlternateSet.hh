@@ -29,7 +29,7 @@ struct AlternateSet
   void closure (hb_closure_context_t *c) const
   {
     if (unlikely (!c->spend_budget (HB_BUDGET_1, alternates.len))) return;
-    c->output->add_array (alternates.arrayZ, alternates.len);
+    c->add_output (alternates.as_array ());
   }
 
   void depend (hb_depend_context_t *c, hb_codepoint_t source) const
