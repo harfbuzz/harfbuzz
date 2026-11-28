@@ -176,6 +176,115 @@ test_get_table_tags_builder_unsorted (void)
   hb_face_destroy (face);
 }
 
+static void
+put_u16 (char *p, unsigned v)
+{
+  p[0] = (char) (v >> 8);
+  p[1] = (char) v;
+}
+
+static void
+put_u32 (char *p, unsigned v)
+{
+  put_u16 (p, v >> 16);
+  put_u16 (p + 2, v & 0xFFFFu);
+}
+
+static void
+test_get_table_tags_dfont (void)
+{
+  /* A DFont whose resource type list is as long as its 16-bit count
+   * allows, with 'sfnt' as the last type, holding one font with as many
+   * tables as a table directory holds.  Finding the face walks the type
+   * list; that must happen once, not again for every table looked up,
+   * or the loop below takes billions of steps. */
+  enum {
+    num_types = 0x10000,
+    num_tables = 0xFFFF,
+    data_offset = 0x100, /* Also what identifies the file as a DFont. */
+    sfnt_offset = data_offset + 4,
+    maxp_offset = 12 + 16 * num_tables, /* From the start of the sfnt. */
+    sfnt_length = maxp_offset + 6,
+    map_offset = sfnt_offset + sfnt_length,
+    type_list_offset = map_offset + 28,
+    length = type_list_offset + 2 + 8 * num_types
+  };
+  static const char maxp[6] = {0, 0, 0x50, 0, 0, 1}; /* Version 0.5, one glyph. */
+
+  char *data = (char *) calloc (1, length);
+  g_assert_nonnull (data);
+
+  /* Resource fork header. */
+  put_u32 (data + 0, data_offset);
+  put_u32 (data + 4, map_offset);
+  put_u32 (data + 8, 4 + sfnt_length);
+  put_u32 (data + 12, length - map_offset);
+
+  /* The resource: its length, then a font of empty tables and a 'maxp'. */
+  put_u32 (data + data_offset, sfnt_length);
+  char *sfnt = data + sfnt_offset;
+  put_u32 (sfnt + 0, 0x00010000u);
+  put_u16 (sfnt + 4, num_tables);
+  for (unsigned i = 0; i < num_tables - 1; i++)
+    put_u32 (sfnt + 12 + 16 * i, HB_TAG ('a',0,0,0) + i);
+  char *maxp_record = sfnt + 12 + 16 * (num_tables - 1);
+  put_u32 (maxp_record + 0, HB_TAG ('m','a','x','p'));
+  put_u32 (maxp_record + 8, maxp_offset);
+  put_u32 (maxp_record + 12, sizeof (maxp));
+  memcpy (sfnt + maxp_offset, maxp, sizeof (maxp));
+
+  /* Resource map and its type list.  All types but the last are left
+   * zeroed: not 'sfnt', no resources.  The one resource record of 'sfnt'
+   * lies on the first of them, and so is zeroed too: the resource at the
+   * start of the data. */
+  put_u16 (data + map_offset + 24, type_list_offset - map_offset);
+  char *types = data + type_list_offset;
+  put_u16 (types, num_types - 1);
+  char *sfnt_type = types + 2 + 8 * (num_types - 1);
+  put_u32 (sfnt_type + 0, HB_TAG ('s','f','n','t'));
+  put_u16 (sfnt_type + 4, 0); /* Resource count minus 1. */
+  put_u16 (sfnt_type + 6, 2); /* Resource records, from the type list. */
+
+  hb_blob_t *blob = hb_blob_create (data, length, HB_MEMORY_MODE_WRITABLE, data, free);
+  g_assert_cmpuint (1u, ==, hb_face_count (blob));
+  hb_face_t *missing = hb_face_create (blob, 1);
+  g_assert_cmpuint (hb_face_get_table_tags (missing, 0, NULL, NULL), ==, 0);
+  hb_face_destroy (missing);
+
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+
+  g_assert_cmpuint (num_tables, ==, hb_face_get_table_tags (face, 0, NULL, NULL));
+
+  hb_tag_t tags[32];
+  unsigned offset = 0, count = sizeof (tags) / sizeof (tags[0]);
+  while (((void) hb_face_get_table_tags (face, offset, &count, tags), count))
+  {
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_blob_t *table = hb_face_reference_table (face, tags[i]);
+      if (offset + i < num_tables - 1)
+      {
+	g_assert_cmpuint (tags[i], ==, HB_TAG ('a',0,0,0) + offset + i);
+	g_assert_cmpuint (0u, ==, hb_blob_get_length (table));
+      }
+      else
+      {
+	g_assert_cmpuint (tags[i], ==, HB_TAG ('m','a','x','p'));
+	g_assert_cmpuint (sizeof (maxp), ==, hb_blob_get_length (table));
+	g_assert_true (hb_blob_get_data (table, NULL) == sfnt + maxp_offset);
+      }
+      hb_blob_destroy (table);
+    }
+    offset += count;
+    count = sizeof (tags) / sizeof (tags[0]);
+  }
+  g_assert_cmpuint (offset, ==, num_tables);
+  g_assert_cmpuint (1u, ==, hb_face_get_glyph_count (face));
+
+  hb_face_destroy (face);
+}
+
 #ifdef HAVE_FREETYPE
 static void
 test_get_table_tags_ft (void)
@@ -311,6 +420,7 @@ main (int argc, char **argv)
   hb_test_add (test_get_table_tags_builder);
   hb_test_add (test_get_table_tags_builder_limit);
   hb_test_add (test_get_table_tags_builder_unsorted);
+  hb_test_add (test_get_table_tags_dfont);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_get_table_tags_ft);
   hb_test_add (test_get_table_tags_ft_stream);

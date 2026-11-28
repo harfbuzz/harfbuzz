@@ -155,7 +155,12 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
 
 typedef struct hb_face_for_data_closure_t {
   hb_blob_t *blob;
-  uint16_t  index;
+  /* The face at index, resolved once: tables are looked up many times, and
+   * finding the face of a DFont walks a resource type list that can be as
+   * long as the font likes.  The blob is sanitized and immutable, so these
+   * stay valid for as long as the closure holds it. */
+  const OT::OpenTypeFontFace *ot_face;
+  unsigned int base_offset;
 } hb_face_for_data_closure_t;
 
 static hb_face_for_data_closure_t *
@@ -168,7 +173,9 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
     return nullptr;
 
   closure->blob = blob;
-  closure->index = (uint16_t) (index & 0xFFFFu);
+
+  const OT::OpenTypeFontFile &ot_file = *blob->as<OT::OpenTypeFontFile> ();
+  closure->ot_face = &ot_file.get_face (index & 0xFFFFu, &closure->base_offset);
 
   return closure;
 }
@@ -190,13 +197,9 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
   if (tag == HB_TAG_NONE)
     return hb_blob_reference (data->blob);
 
-  const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
-  unsigned int base_offset;
-  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index, &base_offset);
+  const OT::OpenTypeTable &table = data->ot_face->get_table_by_tag (tag);
 
-  const OT::OpenTypeTable &table = ot_face.get_table_by_tag (tag);
-
-  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, base_offset + table.offset, table.length);
+  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, data->base_offset + table.offset, table.length);
 
   return blob;
 }
@@ -210,10 +213,7 @@ _hb_face_for_data_get_table_tags (const hb_face_t *face HB_UNUSED,
 {
   hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) user_data;
 
-  const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
-  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
-
-  return ot_face.get_table_tags (start_offset, table_count, table_tags);
+  return data->ot_face->get_table_tags (start_offset, table_count, table_tags);
 }
 
 

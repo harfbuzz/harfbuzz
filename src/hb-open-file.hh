@@ -452,7 +452,7 @@ struct ResourceForkHeader
   {
     const OpenTypeFontFace &face = (this+map).get_face (idx, &(this+data));
     if (base_offset)
-      *base_offset = (const char *) &face - (const char *) this;
+      *base_offset = &face == &Null (OpenTypeFontFace) ? 0 : (const char *) &face - (const char *) this;
     return face;
   }
 
