@@ -201,10 +201,17 @@ struct hb_hashmap_t
 
   bool in_error () const { return !successful; }
 
+  static unsigned allocation_power (unsigned population)
+  {
+    /* Power 32 cannot be represented as a 32-bit slot count. */
+    return population > 0x3FFFFFFFu ? 32 : hb_bit_storage (hb_max (population * 2, 4u));
+  }
+
   bool alloc (unsigned new_population = 0)
   {
     if (unlikely (!successful)) return false;
-    if (unlikely (population > 0x3FFFFFFFu || new_population > 0x3FFFFFFFu))
+    unsigned power = allocation_power (hb_max ((unsigned) population, new_population));
+    if (unlikely (power >= 32))
     {
       // Population sizes >0x3FFFFFFF will result in power
       // being larger than 31, which in turn leads to a new size
@@ -215,7 +222,6 @@ struct hb_hashmap_t
 
     if (new_population != 0 && (new_population + new_population / 2) < mask) return true;
 
-    unsigned int power = hb_bit_storage (hb_max (hb_max ((unsigned) population, new_population) * 2, 4u));
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) hb_malloc2 ((size_t) new_size, sizeof (item_t));
     if (unlikely (!new_items))

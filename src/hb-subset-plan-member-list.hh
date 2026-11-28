@@ -63,7 +63,7 @@ HB_SUBSET_PLAN_MEMBER (hb_map_t, glyph_map_gsub)
 
 // Same mapping as glyph_map_gsub, as a flat array indexed by old gid,
 // with HB_MAP_VALUE_INVALID entries for glyphs not retained.  Sized to
-// the highest retained GSUB gid plus one.
+// the highest retained GSUB gid plus one when the range is dense enough.
 HB_SUBSET_PLAN_MEMBER (hb_vector_t<hb_codepoint_t>, glyph_map_gsub_flat)
 
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset)

@@ -1405,14 +1405,15 @@ test_subset_create_for_tables_face (void)
 static void
 test_subset_create_for_tables_face_MAXP (void)
 {
-  static const char MAXP_data[] = "\x00\x00\x50\x00\x00\x00\x03";
+  static const char MAXP_data[] = "\x00\x00\x50\x00\x02\x00\x03";
   hb_face_t *source = hb_face_builder_create ();
   HB_FACE_ADD_TABLE (source, "MAXP", MAXP_data);
   hb_face_t *callback_face = hb_face_create_for_tables (_copy_table, source, NULL);
 
   hb_set_t *glyphs = hb_set_create ();
   hb_set_add (glyphs, 0);
-  hb_set_add (glyphs, 2);
+  /* Retain a sparse high glyph from a callback-backed face. */
+  hb_set_add (glyphs, 0x20002u);
   hb_face_t *subset = hb_subset_test_create_subset (
       callback_face, hb_subset_test_create_input_from_glyphs (glyphs));
   hb_set_destroy (glyphs);

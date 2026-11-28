@@ -31,6 +31,15 @@ int
 main (int argc, char **argv)
 {
 
+  for (unsigned population : {7u, 8u, 9u, 15u, 16u, 17u})
+  {
+    hb_map_t map;
+    hb_always_assert (map.alloc (population));
+    unsigned slots = 1u << hb_map_t::allocation_power (population);
+    hb_always_assert (slots == map.size ());
+    hb_always_assert (slots == (population < 8 ? 16u : population < 16 ? 32u : 64u));
+  }
+
   /* Test copy constructor. */
   {
     hb_map_t v1;

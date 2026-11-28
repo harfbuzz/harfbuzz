@@ -179,6 +179,12 @@
 #define HB_SUBSET_GLYF_MAX_BYTES_FACTOR 16
 #endif
 
+/* Retained glyph maps, the new-to-old pair list and dense per-glyph
+ * arrays in a subset plan. Applies to callback-backed faces as well. */
+#ifndef HB_SUBSET_MAX_GLYPH_MAP_BYTES
+#define HB_SUBSET_MAX_GLYPH_MAP_BYTES ((int64_t) 256 << 20)
+#endif
+
 #ifndef HB_GPU_DRAW_MAX_CURVES
 #define HB_GPU_DRAW_MAX_CURVES 65536
 #endif

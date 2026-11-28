@@ -566,7 +566,8 @@ static bool
 _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
                         const hb_map_t* glyph_map,
                         hb_map_t* out,
-                        hb_vector_t<hb_codepoint_t>* out_flat)
+                        hb_vector_t<hb_codepoint_t>* out_flat,
+                        int64_t bytes_remaining)
 {
   if (unlikely (glyph_set_gsub->in_error ()))
     return false;
@@ -574,16 +575,22 @@ _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
   hb_codepoint_t max_gid = HB_SET_VALUE_INVALID;
   hb_set_previous (glyph_set_gsub, &max_gid);
   unsigned flat_size = max_gid == HB_SET_VALUE_INVALID ? 0 : max_gid + 1;
-  if (unlikely (!out_flat->resize_dirty (flat_size)))
-    return false;
-  hb_memset (out_flat->arrayZ, 0xFF, flat_size * sizeof (hb_codepoint_t));
+  unsigned population = glyph_set_gsub->get_population ();
+  /* The hash map is required. Its flat accelerator is worthwhile only
+   * for a dense enough range and when it fits in the remaining space. */
+  if (flat_size <= hb_max (65536ull, 4ull * population) &&
+      (int64_t) flat_size * (int) sizeof (hb_codepoint_t) <= bytes_remaining)
+  {
+    if (unlikely (!out_flat->resize_full (flat_size, false, true))) return false;
+    hb_memset (out_flat->arrayZ, 0xFF, flat_size * sizeof (hb_codepoint_t));
+  }
 
-  out->alloc (glyph_set_gsub->get_population ());
+  if (unlikely (!out->alloc (population))) return false;
   for (auto gid : *glyph_set_gsub)
   {
     hb_codepoint_t new_gid = glyph_map->get (gid);
     out->set (gid, new_gid);
-    out_flat->arrayZ[gid] = new_gid;
+    if (out_flat->length) out_flat->arrayZ[gid] = new_gid;
   }
   return !out->in_error ();
 }
@@ -599,9 +606,9 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 				unsigned int	*num_glyphs /* OUT */)
 {
   unsigned pop = all_gids_to_retain->get_population ();
-  reverse_glyph_map->alloc (pop);
-  glyph_map->alloc (pop);
-  new_to_old_gid_list->alloc (pop);
+  if (unlikely (!reverse_glyph_map->alloc (pop) || !glyph_map->alloc (pop) ||
+                !new_to_old_gid_list->alloc_exact (pop)))
+    return false;
 
   if (*requested_glyph_map)
   {
@@ -687,11 +694,10 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     *num_glyphs = max_glyph + 1;
   }
 
-  reverse_glyph_map->alloc (reverse_glyph_map->get_population () + new_to_old_gid_list->length);
+  if (unlikely (new_to_old_gid_list->in_error ())) return false;
   + hb_iter (new_to_old_gid_list)
   | hb_sink (reverse_glyph_map)
   ;
-  glyph_map->alloc (glyph_map->get_population () + new_to_old_gid_list->length);
   + hb_iter (new_to_old_gid_list)
   | hb_map (&hb_codepoint_pair_t::reverse)
   | hb_sink (glyph_map)
@@ -884,6 +890,17 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   if (unlikely (in_error ()))
     return;
 
+  /* Charge the rounded reservation of each fresh map before allocating any. */
+  auto map_bytes = [] (unsigned population) -> int64_t {
+    return ((int64_t) 1 << hb_map_t::allocation_power (population)) * sizeof (hb_map_t::item_t);
+  };
+  unsigned retained = _glyphset.get_population ();
+  int64_t bytes_remaining = HB_SUBSET_MAX_GLYPH_MAP_BYTES
+                          - 2 * map_bytes (retained)
+                          - map_bytes (_glyphset_gsub.get_population ())
+                          - (int64_t) retained * (int) sizeof (hb_codepoint_pair_t);
+  if (unlikely (!check_success (bytes_remaining >= 0))) return;
+
   if (!check_success(_create_old_gid_to_new_gid_map(
           face,
           flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
@@ -905,11 +922,22 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   }
 #endif
 
+  if (normalized_coords)
+  {
+    bytes_remaining -= (int64_t) _num_output_glyphs * 2 * (int) sizeof (unsigned);
+    if (unlikely (!check_success (bytes_remaining >= 0 &&
+                                  bounds_width_vec.resize_full (_num_output_glyphs, false, true) &&
+                                  bounds_height_vec.resize_full (_num_output_glyphs, false, true))))
+      return;
+    for (auto &v : bounds_width_vec) v = 0xFFFFFFFF;
+    for (auto &v : bounds_height_vec) v = 0xFFFFFFFF;
+  }
+
   if (!check_success (_create_glyph_map_gsub (
       &_glyphset_gsub,
       glyph_map,
       &glyph_map_gsub,
-      &glyph_map_gsub_flat)))
+      &glyph_map_gsub_flat, bytes_remaining)))
     return;
 
   // Now that we have old to new gid map update the unicode to new gid list.
@@ -919,13 +947,6 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
     unicode_to_new_gid_list.arrayZ[i].second =
         glyph_map->get(unicode_to_new_gid_list.arrayZ[i].second);
   }
-
-  bounds_width_vec.resize_dirty  (_num_output_glyphs);
-  for (auto &v : bounds_width_vec)
-    v = 0xFFFFFFFF;
-  bounds_height_vec.resize_dirty  (_num_output_glyphs);
-  for (auto &v : bounds_height_vec)
-    v = 0xFFFFFFFF;
 
 #ifndef HB_NO_SUBSET_LAYOUT    
   if (!drop_tables.has (HB_OT_TAG_GDEF))
