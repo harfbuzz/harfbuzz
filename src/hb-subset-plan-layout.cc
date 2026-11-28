@@ -129,6 +129,8 @@ _collect_instanced_lookup_variations (
   {
     unsigned feature_index = record.get_feature_index ();
     if (!feature_indices->has (feature_index)) continue;
+    /* The first record of a feature wins, as in get_lookup_variations(). */
+    if (lookup_variations->has (feature_index)) continue;
 
     hb::shared_ptr<hb_set_t> lookups {hb_set_create ()};
     record.collect_lookups (&variations,

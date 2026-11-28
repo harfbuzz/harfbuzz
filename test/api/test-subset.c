@@ -298,6 +298,115 @@ test_subset_lookup_variations (void)
   hb_face_destroy (face);
 }
 
+/* A GSUB whose liga feature substitutes glyph 2 for glyph 1, and whose
+ * FeatureVariations has two LookupVariationRecords for that feature: one
+ * that keeps the feature's default lookups and one that drops them. */
+static hb_face_t *
+_create_duplicate_lookup_variation_face (hb_bool_t first_keeps_default)
+{
+  static const char cmap_data[] = {
+    0, 0, 0, 1,  0, 3, 0, 10,  0, 0, 0, 12,
+    0, 12, 0, 0,  0, 0, 0, 28,  0, 0, 0, 0,  0, 0, 0, 1,
+    0, 0, 0, 'a',  0, 0, 0, 'a',  0, 0, 0, 1, /* 'a' -> glyph 1 */
+  };
+  static const char fvar_data[] = {
+    0, 1, 0, 0,  0, 16,  0, 2,  0, 1,  0, 20,  0, 0,  0, 8,
+    'w', 'g', 'h', 't',  0, 0, 0, 0,  0, 0, 0, 0,  0x03, (char) 0xE8, 0, 0,  0, 0,  1, 0,
+  };
+  static const char maxp_data[] = { 0, 0, 0x50, 0, 0, 3 };
+
+  unsigned gsub_length = 14 + 20 + 14 + 24 + 24 + 20;
+  char *gsub = g_malloc (gsub_length);
+  char *p = gsub;
+
+  p = _put16 (p, 1); p = _put16 (p, 1);
+  p = _put16 (p, 14); p = _put16 (p, 34); p = _put16 (p, 48);
+  p = _put16 (p, 0); p = _put16 (p, 72);
+  /* ScriptList: DFLT, default LangSys using feature 0. */
+  p = _put16 (p, 1); memcpy (p, "DFLT", 4); p += 4; p = _put16 (p, 8);
+  p = _put16 (p, 4); p = _put16 (p, 0);
+  p = _put16 (p, 0); p = _put16 (p, 0xFFFF); p = _put16 (p, 1); p = _put16 (p, 0);
+  /* FeatureList: liga, using lookup 0. */
+  p = _put16 (p, 1); memcpy (p, "liga", 4); p += 4; p = _put16 (p, 8);
+  p = _put16 (p, 0); p = _put16 (p, 1); p = _put16 (p, 0);
+  /* LookupList: one SingleSubstFormat1, glyph 1 -> glyph 2. */
+  p = _put16 (p, 1); p = _put16 (p, 4);
+  p = _put16 (p, 1); p = _put16 (p, 0); p = _put16 (p, 1); p = _put16 (p, 8);
+  p = _put16 (p, 1); p = _put16 (p, 6); p = _put16 (p, 1);
+  p = _put16 (p, 1); p = _put16 (p, 1); p = _put16 (p, 1);
+  /* FeatureVariations 1.1: no FeatureVariationRecord, two
+   * LookupVariationRecords for feature 0. */
+  p = _put16 (p, 1); p = _put16 (p, 1); p = _put16 (p, 0); p = _put16 (p, 0);
+  p = _put16 (p, 0); p = _put16 (p, 2);
+  p = _put16 (p, 0); p = _put16 (p, 0); p = _put16 (p, 24);
+  p = _put16 (p, 0); p = _put16 (p, 0); p = _put16 (p, 34);
+  /* Two FeatureLookupsTables without conditional lookups. */
+  p = _put16 (p, 1); p = _put16 (p, 0); p = _put16 (p, first_keeps_default ? 1 : 0);
+  p = _put16 (p, 0); p = _put16 (p, 0);
+  p = _put16 (p, 1); p = _put16 (p, 0); p = _put16 (p, first_keeps_default ? 0 : 1);
+  p = _put16 (p, 0); p = _put16 (p, 0);
+  g_assert_cmpuint (p - gsub, ==, gsub_length);
+
+  hb_face_t *builder = hb_face_builder_create ();
+  hb_blob_t *blob = hb_blob_create (gsub, gsub_length, HB_MEMORY_MODE_WRITABLE, gsub, g_free);
+  hb_face_builder_add_table (builder, HB_TAG ('G','S','U','B'), blob);
+  hb_blob_destroy (blob);
+  HB_FACE_ADD_TABLE (builder, "cmap", cmap_data);
+  HB_FACE_ADD_TABLE (builder, "fvar", fvar_data);
+  HB_FACE_ADD_TABLE (builder, "maxp", maxp_data);
+
+  blob = hb_face_reference_blob (builder);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  hb_face_destroy (builder);
+  return face;
+}
+
+static hb_codepoint_t
+_shape_letter_a (hb_face_t *face)
+{
+  hb_font_t *font = hb_font_create (face);
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, "a", -1, 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, NULL, 0);
+
+  unsigned length;
+  const hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &length);
+  g_assert_cmpuint (length, ==, 1);
+  hb_codepoint_t glyph = info[0].codepoint;
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  return glyph;
+}
+
+static void
+test_subset_lookup_variations_first_record (void)
+{
+  /* The first record of a feature decides its lookups in a full instance,
+   * as it does in shaping; the records after it are not collected. */
+  for (unsigned first_keeps_default = 0; first_keeps_default < 2; first_keeps_default++)
+  {
+    hb_face_t *face = _create_duplicate_lookup_variation_face (first_keeps_default);
+    g_assert_cmpuint (_shape_letter_a (face), ==, first_keeps_default ? 2 : 1);
+
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    hb_set_add (hb_subset_input_unicode_set (input), 'a');
+    g_assert_true (hb_subset_input_pin_all_axes_to_default (input, face));
+
+    hb_face_t *subset = hb_subset_or_fail (face, input);
+    g_assert_nonnull (subset);
+    /* .notdef and glyph 1, and glyph 2 when the lookup is kept. */
+    g_assert_cmpuint (hb_face_get_glyph_count (subset), ==, first_keeps_default ? 3 : 2);
+    g_assert_cmpuint (_shape_letter_a (subset), ==, first_keeps_default ? 2 : 1);
+
+    hb_face_destroy (subset);
+    hb_subset_input_destroy (input);
+    hb_face_destroy (face);
+  }
+}
+
 static void
 assert_condition_instance_matches (hb_face_t *face, hb_face_t *subset,
 				   const int *coords,
@@ -1920,6 +2029,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_shared_coverage_budget);
 #ifndef HB_NO_VAR
   hb_test_add (test_subset_lookup_variations);
+  hb_test_add (test_subset_lookup_variations_first_record);
   hb_test_add (test_subset_lookup_variation_fractional_value);
   hb_test_add (test_subset_condition_value_precision);
   hb_test_add (test_subset_feature_variation_conditions);

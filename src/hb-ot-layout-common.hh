@@ -1035,7 +1035,11 @@ struct LangSys
     return_trace (c->embed (*this));
   }
 
-  bool compare (const LangSys& o, const hb_map_t *feature_index_map) const
+  /* o_features: the retained features of o, already mapped through
+   * feature_index_map. */
+  bool compare (const LangSys& o,
+		hb_array_t<const unsigned> o_features,
+		const hb_map_t *feature_index_map) const
   {
     if (reqFeatureIndex != o.reqFeatureIndex)
       return false;
@@ -1046,11 +1050,7 @@ struct LangSys
     | hb_map (feature_index_map)
     ;
 
-    auto o_iter =
-    + hb_iter (o.featureIndex)
-    | hb_filter (feature_index_map)
-    | hb_map (feature_index_map)
-    ;
+    auto o_iter = hb_iter (o_features);
 
     for (; iter && o_iter; iter++, o_iter++)
     {
@@ -1157,15 +1157,26 @@ struct Script
     {
       //only collect features from non-redundant langsys
       const LangSys& d = get_default_lang_sys ();
+      /* Map the retained features of the default langsys once, instead of
+       * in every compare() below: visitLangsys() only charges for the
+       * features of the langsys being compared against it. */
+      hb_vector_t<unsigned> d_features;
       if (c->visitLangsys (d.get_feature_count ())) {
         d.collect_features (c);
+
+        + hb_iter (d.featureIndex)
+        | hb_filter (c->duplicate_feature_map)
+        | hb_map (c->duplicate_feature_map)
+        | hb_sink (d_features)
+        ;
       }
 
       for (auto _ : + hb_enumerate (langSys))
       {
         const LangSys& l = this+_.second.offset;
         if (!c->visitLangsys (l.get_feature_count ())) continue;
-        if (l.compare (d, c->duplicate_feature_map)) continue;
+        if (likely (!d_features.in_error ()) &&
+            l.compare (d, d_features.as_array (), c->duplicate_feature_map)) continue;
 
         l.collect_features (c);
         c->script_langsys_map->get (script_index)->add (_.first);
